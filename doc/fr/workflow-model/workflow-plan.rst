@@ -79,11 +79,11 @@ Diagramme d'activité du workflow du plan de classement
 
     + Contient CHECK_MANIFEST_OBJECTNUMBER (CheckObjectsNumberActionHandler.java) :
 
-      - Comptage des objets (BinaryDataObject) dans le manifest.xml en s'assurant de l'absence de doublon, que le nombre d'objets reçus est strictement égal au nombre d'objets attendus
+      - Comptage des objets (BinaryDataObject) dans le manifest.xml en s'assurant de l'absence de doublon, que le nombre d'objets binaires reçus est strictement égal au nombre d'objets attendus
 
-      - Création de la liste des objets dans le workspace GUID/SIP/content/,
+      - Création de la liste des objets binaires dans le workspace GUID/SIP/content/,
 
-      - Comparaison du nombre et des URI des objets contenus dans le SIP avec ceux définis dans le manifeste.
+      - Comparaison du nombre et des URI des objets binaires contenus dans le SIP avec ceux définis dans le manifeste.
 
 
     * Contient CHECK_MANIFEST (ExtractSedaActionHandler.java) :

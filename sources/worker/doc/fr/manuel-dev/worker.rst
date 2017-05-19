@@ -309,7 +309,7 @@ Si nécessaire et si compatible, il est possible de passer par un mode MEMORY po
       // Initialize the real value in MEMORY using those out parameters from Resource Files
       handlerIO.addOuputResult(0, PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP));
       handlerIO.addOuputResult(1, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP));
-      handlerIO.addOuputResult(2, PropertiesUtils.getResourceFile(BDO_TO_BDO_INFO_MAP));
+      handlerIO.addOuputResult(2, PropertiesUtils.getResourceFile(DO_TO_DO_INFO_MAP));
       handlerIO.addOuputResult(3, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS));
 
 
@@ -556,7 +556,7 @@ TODO
 4.6.1 description
 =================
 Ce handler permet d'extraire le contenu du SEDA. Il y a :
-- extraction des BinaryDataObject
+- extraction des BinaryDataObject et PhysicalDataObject
 - extraction des ArchiveUnit
 - création des lifes cycles des units
 - construction de l'arbre des units et sauvegarde sur le workspace
@@ -567,25 +567,25 @@ Ce handler permet d'extraire le contenu du SEDA. Il y a :
 
 4.6.2 Détail des différentes maps utilisées :
 =============================================
-Map<String, String> binaryDataObjectIdToGuid
-    contenu         : cette map contient l'id du BDO relié à son guid
+Map<String, String> dataObjectIdToGuid
+    contenu         : cette map contient l'id du DO relié à son guid
     création        : elle est créé lors de la création du handler
-    MAJ, put        : elle est populée lors de la lecture des BinaryDataObject
+    MAJ, put        : elle est populée lors de la lecture des BinaryDataObject et PhysicalDataObject
     lecture, get    : saveObjectGroupsToWorkspace, getObjectGroupQualifiers,
     suppression     : c'est un clean en fin d'execution du handler
 
-Map<String, String> binaryDataObjectIdToObjectGroupId :
-    contenu         : cette map contient l'id du BDO relié au groupe d'objet de la balise DataObjectGroupId ou DataObjectGroupReferenceId
+Map<String, String> dataObjectIdToObjectGroupId :
+    contenu         : cette map contient l'id du DO relié au groupe d'objet de la balise DataObjectGroupId ou DataObjectGroupReferenceId
     création        : elle est créé lors de la création du handler
-    MAJ, put        : elle est populée lors de la lecture des BinaryDataObject
-    lecture, get    : lecture de la map dans mapNewTechnicalDataObjectGroupToBDO, getNewGdoIdFromGdoByUnit, completeBinaryObjectToObjectGroupMap, checkArchiveUnitIdReference et writeBinaryDataObjectInLocal
+    MAJ, put        : elle est populée lors de la lecture des BinaryDataObject et PhysicalDataObject
+    lecture, get    : lecture de la map dans mapNewTechnicalDataObjectGroupToDO, getNewGdoIdFromGdoByUnit, completeDataObjectToObjectGroupMap, checkArchiveUnitIdReference et writeDataObjectInLocal
     suppression     : c'est un clean en fin d'execution du handler
 
-Map<String, GotObj> binaryDataObjectIdWithoutObjectGroupId :
-    contenu         : cette map contient l'id du BDO relié à un groupe d'objet technique instanciés lors du parcours des objets binaires.
+Map<String, GotObj> dataObjectIdWithoutObjectGroupId :
+    contenu         : cette map contient l'id du DO relié à un groupe d'objet technique instanciés lors du parcours des objets.
     création        : elle est créé lors de la création du handler
-    MAJ, put        : elle est populée lors du parcours des BDO dans mapNewTechnicalDataObjectGroupToBDO et extractArchiveUnitToLocalFile. Dans extractArchiveUnitToLocalFile, quand on découvre un DataObjectReferenceId et que cet Id se trouve dans binaryDataObjectIdWithoutObjectGroupId alors on récupère l'objet et on change le statut isVisited à true.
-    lecture, get    : lecture de la map dans mapNewTechnicalDataObjectGroupToBDO, extractArchiveUnitToLocalFile, getNewGdoIdFromGdoByUnit,
+    MAJ, put        : elle est populée lors du parcours des DO dans mapNewTechnicalDataObjectGroupToDO et extractArchiveUnitToLocalFile. Dans extractArchiveUnitToLocalFile, quand on découvre un DataObjectReferenceId et que cet Id se trouve dans dataObjectIdWithoutObjectGroupId alors on récupère l'objet et on change le statut isVisited à true.
+    lecture, get    : lecture de la map dans mapNewTechnicalDataObjectGroupToDO, extractArchiveUnitToLocalFile, getNewGdoIdFromGdoByUnit,
     suppression     : c'est un clean en fin d'execution du handler
 
 Le groupe d'objet technique GotObj contient un guid et un boolean isVisited, initialisé à false lors de la création. Le set à true est fait lors du parcours des units.
@@ -593,22 +593,22 @@ Le groupe d'objet technique GotObj contient un guid et un boolean isVisited, ini
 Map<String, String> objectGroupIdToGuid
     contenu         : cette map contient l'id du groupe d'objet relié à son guid
     création        : elle est créé lors de la création du handler
-    MAJ, put        : elle est populée lors du parcours des BDO dans writeBinaryDataObjectInLocal et mapNewTechnicalDataObjectGroupToBDO lors de la création du groupe d'objet technique
-    lecture, get    : lecture de la map dans checkArchiveUnitIdReference, writeBinaryDataObjectInLocal, extractArchiveUnitToLocalFile, saveObjectGroupsToWorkspace
+    MAJ, put        : elle est populée lors du parcours des DO dans writeDataObjectInLocal et mapNewTechnicalDataObjectGroupToDO lors de la création du groupe d'objet technique
+    lecture, get    : lecture de la map dans checkArchiveUnitIdReference, writeDataObjectInLocal, extractArchiveUnitToLocalFile, saveObjectGroupsToWorkspace
     suppression     : c'est un clean en fin d'execution du handler
 
 Map<String, String> objectGroupIdToGuidTmp
     contenu         : c'est la même map que objectGroupIdToGuid
     création        : elle est créé lors de la création du handler
-    MAJ, put        : elle est populée dans writeBinaryDataObjectInLocal
-    lecture, get    : lecture de la map dans writeBinaryDataObjectInLocal
+    MAJ, put        : elle est populée dans writeDataObjectInLocal
+    lecture, get    : lecture de la map dans writeDataObjectInLocal
     suppression     : c'est un clean en fin d'execution du handler
 
-Map<String, List<String>> objectGroupIdToBinaryDataObjectId
-    contenu         : cette map contient l'id du groupe d'objet relié à son ou ses BDO
+Map<String, List<String>> objectGroupIdToDataObjectId
+    contenu         : cette map contient l'id du groupe d'objet relié à son ou ses DO
     création        : elle est créé lors de la création du handler
-    MAJ, put        : elle est populée lors du parcours des BDO dans writeBinaryDataObjectInLocal quand il y a une balise DataObjectGroupId ou DataObjectGroupReferenceId et qu'il n'existe pas dans objectGroupIdToBinaryDataObjectId.
-    lecture, get    : lecture de la map dans le parcours des BDO dans writeBinaryDataObjectInLocal.  La lecture est faite pour ajouter des BDO dans la liste.
+    MAJ, put        : elle est populée lors du parcours des DO dans writeDataObjectInLocal quand il y a une balise DataObjectGroupId ou DataObjectGroupReferenceId et qu'il n'existe pas dans objectGroupIdToDataObjectId.
+    lecture, get    : lecture de la map dans le parcours des DO dans writeDataObjectInLocal.  La lecture est faite pour ajouter des DO dans la liste.
     suppression     : c'est un clean en fin d'execution du handler
 
 Map<String, List<String>> objectGroupIdToUnitId
@@ -618,11 +618,11 @@ Map<String, List<String>> objectGroupIdToUnitId
     lecture, get    : lecture de la map dans le parcours des units. La lecture est faite pour ajouter des units dans la liste.
     suppression     : c'est un clean en fin d'execution du handler
 
-Map<String, BinaryObjectInfo> objectGuidToBinaryObject
-    contenu         : cette map contient le guid du binary data object et BinaryObjectInfo
+Map<String, DataObjectInfo> objectGuidToDataObject
+    contenu         : cette map contient le guid du data object et DataObjectInfo
     création        : elle est créé lors de la création du handler
-    MAJ, put        : elle est populer lors de l'extraction des infos du binary data object vers le workspace
-    lecture, get    : elle permet de récupérer les infos binary data object pour sauver l'object group sur le worskapce et
+    MAJ, put        : elle est populer lors de l'extraction des infos du data object vers le workspace
+    lecture, get    : elle permet de récupérer les infos binary data object pour sauver l'object group sur le worskapce
     supression      : c'est un clean en fin d'execution du handler
 
 Map<String, String> unitIdToGuid
@@ -635,18 +635,18 @@ Map<String, String> unitIdToGuid
 Map<String, String> unitIdToGroupId
     contenu         : cette map contient l'id de l'unit relié à son group id
     création        : elle est créé lors de la création du handler
-    MAJ, put        : elle est populée lors du parcours des BDO dans writeBinaryDataObjectInLocal quand il y a une balise DataObjectGroupId ou DataObjectGroupReferenceId
+    MAJ, put        : elle est populée lors du parcours des DO dans writeDataObjectInLocal quand il y a une balise DataObjectGroupId ou DataObjectGroupReferenceId
     lecture, get    : lecture de la map se fait lors de l'extraction des unit dans extractArchiveUnitToLocalFile et permettant de lire dans objectGroupIdToGuid.
     suppression     : c'est un clean en fin d'execution du handler
 
 Map<String, String> objectGuidToUri
     contenu         : cette map contient le guid du BDO relié à son uri définis dans le manifest
     création        : elle est créé lors de la création du handler
-    MAJ, put        : elle est poppulée lors du parcours des BDO dans writeBinaryDataObjectInLocal quand il rencontre la balise uri
+    MAJ, put        : elle est poppulée lors du parcours des DO dans writeDataObjectInLocal quand il rencontre la balise uri
     lecture, get    : lecture de la map se fait lors du save des objects groups dans le workspace
     suppression     : c'est un clean en fin d'execution du handler
 
-sauvegarde des maps (binaryDataObjectIdToObjectGroupId, objectGroupIdToGuid) dans le workspace
+sauvegarde des maps (dataObjectIdToObjectGroupId, objectGroupIdToGuid) dans le workspace
 
 4.6.3 Vérifier les ArchiveUnit du SIP
 =====================================
@@ -659,22 +659,22 @@ Pour ce cas, le map unitIdToGroupId contient une référence entre un unitId et 
 Dans le objectGroupIdToGuid, il n'existe pas de lien entre id de groupe d'objet et son guid (parce que c'est un id d'object
 numérique).
 
-On vérifie la valeur des groupIds récupérés dans binaryDataObjectIdToObjectGroupId et unitIdToGroupId. Si ils sont différents,
+On vérifie la valeur des groupIds récupérés dans dataObjectIdToObjectGroupId et unitIdToGroupId. Si ils sont différents,
 il s'agit du cas abordé ci-dessus, sinon c'est celui des objects numériques sans groupe d'objet technique. Enfin, l'exception
-ArchiveUnitContainBinaryDataObjectException est déclenchée pour ExtractSeda et dans cette étape, le status KO est mise à jour 
+ArchiveUnitContainDataObjectException est déclenchée pour ExtractSeda et dans cette étape, le status KO est mise à jour 
 pour l'exécution de l'étape.
 
 L'exécution de l'algorithme est présenté dans le preudo-code ci-dessous:
 	
 	Si (map unitIdToGroupId contient des valeurs)    
 		Pour (chaque élement ELEM du map unitIdToGroupId)
-			Si (la valeur guid de groupe d'object dans objectGroupIdToGuid associé à ELEM) // archiveUnit reference par BDO
-				Prendre la valeur groupId dans le maps binaryDataObjectIdToObjectGroupId associé à groupId d'ELEM
-				Si cette groupId est NULLE // ArchiveUnit réferencé BDO mais il n'existe pas un lien BDO à groupe d'objet 
+			Si (la valeur guid de groupe d'object dans objectGroupIdToGuid associé à ELEM) // archiveUnit reference par DO
+				Prendre la valeur groupId dans le maps dataObjectIdToObjectGroupId associé à groupId d'ELEM
+				Si cette groupId est NULLE // ArchiveUnit réferencé DO mais il n'existe pas un lien DO à groupe d'objet 
 					Délencher l'exception ProcessingException					
 				Autrement
 					Si (cette groupId est différente grouId associé à ELEM)
-						Délencher l'exception ArchiveUnitContainBinaryDataObjectException
+						Délencher l'exception ArchiveUnitContainDataObjectException
 				Fin Si
 			Fin Si
 		Fin Pour		
@@ -795,7 +795,7 @@ La première étape dans ce handler est de déterminer l'état du Workflow : OK 
 Map<String, Object> archiveUnitSystemGuid
     contenu         : cette map contient la liste des archives units avec son identifiant tel que déclaré dans le manifest, associé à son GUID.
 
-Map<String, Object> binaryDataObjectSystemGuid
+Map<String, Object> dataObjectSystemGuid
     contenu         : cette map contient la liste Data Objects avec leur GUID généré associé à l'identifiant déclaré dans le manifest.
 
 Map<String, Object> bdoObjectGroupSystemGuid
@@ -877,8 +877,8 @@ Map<String, String> objectGroupIdToGuid
 Map<String, String> archiveUnitIdToGuid
 	contenu         : cette map contient l'id du groupe d'objet relié à son guid
 
-Map<String, Object> bdoToBdoInfo
-	contenu         : cette map contient l'id du binary data object relié à son information
+Map<String, Object> dataObjectIdToDetailDataObject
+	contenu         : cette map contient l'id du data object relié à ses informations
 
 
 4.12.3 exécution

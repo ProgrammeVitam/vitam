@@ -154,7 +154,7 @@ Cette tâche contient plusieurs traitements, chacun ayant un contrôle et des po
 
 * Vérification du nombre d'objets (CHECK_MANIFEST_OBJECTNUMBER)
 
-    + **Règle** : le nombre d'objets reçus dans la solution Vitam doit être strictement égal au nombre d'objets déclaré dans le manifeste du SIP
+    + **Règle** : le nombre d'objets binaires reçus dans la solution Vitam doit être strictement égal au nombre d'objets binaires déclaré dans le manifeste du SIP
 
     + **Statuts** :
 
@@ -198,7 +198,7 @@ Contrôle et traitements des objets (STP_OG_CHECK_AND_TRANSFORME)
 Vérification de l'intégrité des objets (CHECK_DIGEST)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+ **Règle** : vérification de la cohérence entre l'empreinte de l'objet calculée par la solution logicielle Vitam et celle déclarée dans le manifeste. Si l'empreinte déclarée dans le manifeste n'a pas été calculée avec l'algorithme SHA-512, alors le système recalcule une empreinte avec cette algorithme. C'est celle-ci qui sera enregistrée dans le système.
++ **Règle** : vérification de la cohérence entre l'empreinte de l'objet binaire calculée par la solution logicielle Vitam et celle déclarée dans le manifeste. Si l'empreinte déclarée dans le manifeste n'a pas été calculée avec l'algorithme SHA-512, alors le système recalcule une empreinte avec cette algorithme. C'est celle-ci qui sera enregistrée dans le système.
 
 + **Algorithmes autorisés en entrée** : MD5, SHA-1, SHA-256, SHA-512
 
@@ -206,19 +206,19 @@ Vérification de l'intégrité des objets (CHECK_DIGEST)
 
 + **Statuts** :
 
-  - OK : tous les objets reçus sont identiques aux objets attendus. Tous les objets disposent désormais d'une empreinte calculée avec l'algorithme SHA-512 (CHECK_DIGEST.OK=Succès de la vérification de lintégrité des objets)
+  - OK : tous les objets binaires reçus sont identiques aux objets binaires attendus. Tous les objets binaires disposent désormais d'une empreinte calculée avec l'algorithme SHA-512 (CHECK_DIGEST.OK=Succès de la vérification de l'intégrité des objets binaires)
 
-  - KO : au moins un objet reçu n'est pas identique aux objets attendus (CHECK_DIGEST.KO=Échec de la vérification de lintégrité des objets)
+  - KO : au moins un objet reçu n'est pas identique aux objets attendus (CHECK_DIGEST.KO=Échec de la vérification de l'intégrité des objets binaires)
 
-  - FATAL : la vérification de l'intégrité des objets n'a pas pu être réalisée suite à une erreur système, e.g. algorithme inconnu (CHECK_DIGEST.FATAL=Erreur fatale lors de la vérification des objets)
+  - FATAL : la vérification de l'intégrité des objets binaires n'a pas pu être réalisée suite à une erreur système, e.g. algorithme inconnu (CHECK_DIGEST.FATAL=Erreur fatale lors de la vérification des objets)
 
-  - WARNING : tous les objets reçus sont identiques aux objets attendus, mais au moins un objet a une empreinte déclarée dans le manifeste non calculée par l'algorithme SHA-512 (CHECK_DIGEST.WARNING=Avertissement lors de la vérification de lempreinte)
+  - WARNING : tous les objets binaires reçus sont identiques aux objets binaires attendus, mais au moins un objet a une empreinte déclarée dans le manifeste non calculée par l'algorithme SHA-512 (CHECK_DIGEST.WARNING=Avertissement lors de la vérification de lempreinte)
 
 
 Identification des formats (OG_OBJECTS_FORMAT_CHECK)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+ **Règle** :  Vitam identifie les formats de chaque objet présent dans le SIP, afin de garantir une information homogène et objective. Cette action met en œuvre un outil d'identification prenant l'objet en entrée et fournissant des informations de format en sortie. Ces informations sont comparées les formats identifiés dans le référentiel des formats interne au système et avec celles déclarées dans le manifeste. En cas d'incohérence entre la déclaration de l'application versante et le format identifié par le système, le SIP sera tout de même accepté, générant un warning. Vitam se servira alors des informations qu'il a lui même identifiées et non celles de l'application versante.
++ **Règle** :  Vitam identifie les formats de chaque objet binaire présent dans le SIP, afin de garantir une information homogène et objective. Cette action met en œuvre un outil d'identification prenant l'objet en entrée et fournissant des informations de format en sortie. Ces informations sont comparées les formats identifiés dans le référentiel des formats interne au système et avec celles déclarées dans le manifeste. En cas d'incohérence entre la déclaration de l'application versante et le format identifié par le système, le SIP sera tout de même accepté, générant un warning. Vitam se servira alors des informations qu'il a lui même identifiées et non celles de l'application versante.
 
 + **Type** : bloquant.
 
@@ -286,18 +286,18 @@ Vérification de la disponibilité de l'offre de stockage (STORAGE_AVAILABILITY_
 Rangement des objets (STP_OG_STORING)
 =====================================
 
-Enregistrement des objets sur l'offre de stockage (OG_STORAGE)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Enregistrement des objets binaires sur l'offre de stockage (OG_STORAGE)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 + **Type** : Bloquant.
 
 + **Statuts** :
 
-  - OK : tous les objets contenus dans le SIP ont été stockés dans l'offre de stockage (OG_STORAGE.OK=Succès du rangement des objets et groupes d'objets)
+  - OK : tous les objets binaires contenus dans le SIP ont été stockés dans l'offre de stockage (OG_STORAGE.OK=Succès du rangement des objets et groupes d'objets)
 
-  - KO : au moins un des objets contenus dans le SIP n'a pas pu être stocké dans l'offre de stockage (OG_STORAGE.KO=Échec du rangement des objets et groupes d'objets)
+  - KO : au moins un des objets binaires contenus dans le SIP n'a pas pu être stocké dans l'offre de stockage (OG_STORAGE.KO=Échec du rangement des objets et groupes d'objets)
 
-  - FATAL : l'enregistrement des objets sur l'offre de stockage n'a pas pu être réalisé suite à une erreur système (OG_STORAGE.FATAL=Erreur fatale lors du rangement des objets et groupes d'objets)
+  - FATAL : l'enregistrement des objets binaires sur l'offre de stockage n'a pas pu être réalisé suite à une erreur système (OG_STORAGE.FATAL=Erreur fatale lors du rangement des objets et groupes d'objets)
 
 
 Indexation des métadonnées des groupes d'objets (OG_METADATA_INDEXATION)
@@ -447,329 +447,329 @@ Il décrit le processus d'entrée (hors Ingest externe) pour entrer un SIP, inde
 .. code-block:: json
 
   {
-    "id": "DefaultIngestWorkflow",
-    "comment": "Default Ingest Workflow V6",
-    "steps": [
-      {
-        "workerGroupId": "DefaultWorker",
-        "stepName": "STP_INGEST_CONTROL_SIP",
-        "behavior": "BLOCKING",
-        "distribution": {
-          "kind": "REF",
-          "element": "SIP/manifest.xml"
-        },
-        "actions": [
-          {
-            "action": {
-              "actionKey": "CHECK_SEDA",
-              "behavior": "BLOCKING"
-            }
-          },
-          {
-            "action": {
-              "actionKey": "CHECK_HEADER",
-              "behavior": "BLOCKING",
-              "in": [
-                {
-                  "name": "checkContract",
-                  "uri": "VALUE:true"
-                }
-              ]
-            }
-          },
-          {
-            "action": {
-              "actionKey": "CHECK_DATAOBJECTPACKAGE",
-              "behavior": "BLOCKING",
-              "in": [
-                {
-                  "name": "checkNoObject",
-                  "uri": "VALUE:false"
-                }
-              ],
-              "out": [
-                {
-                  "name": "unitsLevel.file",
-                  "uri": "WORKSPACE:UnitsLevel/ingestLevelStack.json"
-                },
-                {
-                  "name": "mapsBDOtoOG.file",
-                  "uri": "WORKSPACE:Maps/BDO_TO_OBJECT_GROUP_ID_MAP.json"
-                },
-                {
-                  "name": "mapsBDO.file",
-                  "uri": "WORKSPACE:Maps/BINARY_DATA_OBJECT_ID_TO_GUID_MAP.json"
-                },
-                {
-                  "name": "mapsObjectGroup.file",
-                  "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
-                },
-                {
-                  "name": "mapsObjectGroup.file",
-                  "uri": "MEMORY:MapsMemory/OG_TO_ARCHIVE_ID_MAP.json"
-                },
-                {
-                  "name": "mapsBDOtoVersionBDO.file",
-                  "uri": "WORKSPACE:Maps/BDO_TO_VERSION_BDO_MAP.json"
-                },
-                {
-                  "name": "mapsUnits.file",
-                  "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json"
-                },
-                {
-                  "name": "globalSEDAParameters.file",
-                  "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
-                },
-                {
-                  "name": "mapsObjectGroup.file",
-                  "uri": "MEMORY:MapsMemory/OBJECT_GROUP_ID_TO_GUID_MAP.json"
-                }
-              ]
-            }
-          }
-        ]
+  "id": "DefaultIngestWorkflow",
+  "comment": "Default Ingest Workflow V6",
+  "steps": [
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_INGEST_CONTROL_SIP",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": "SIP/manifest.xml"
       },
-      {
-        "workerGroupId": "DefaultWorker",
-        "stepName": "STP_OG_CHECK_AND_TRANSFORME",
-        "behavior": "BLOCKING",
-        "distribution": {
-          "kind": "LIST",
-          "element": "ObjectGroup"
-        },
-        "actions": [
-        	{
-            "action": {
-              "actionKey": "CHECK_DIGEST",
-              "behavior": "BLOCKING",
-              "in": [
-                {
-                  "name": "algo",
-                  "uri": "VALUE:SHA-512"
-                }
-              ]
-            }
-          },
-          {
-            "action": {
-              "actionKey": "OG_OBJECTS_FORMAT_CHECK",
-              "behavior": "BLOCKING"
-            }
+      "actions": [
+        {
+          "action": {
+            "actionKey": "CHECK_SEDA",
+            "behavior": "BLOCKING"
           }
-        ]
+        },
+        {
+          "action": {
+            "actionKey": "CHECK_HEADER",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "checkContract",
+                "uri": "VALUE:true"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CHECK_DATAOBJECTPACKAGE",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "checkNoObject",
+                "uri": "VALUE:false"
+              }
+            ],
+            "out": [
+              {
+                "name": "unitsLevel.file",
+                "uri": "WORKSPACE:UnitsLevel/ingestLevelStack.json"
+              },
+              {
+                "name": "mapsDOtoOG.file",
+                "uri": "WORKSPACE:Maps/DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP.json"
+              },
+              {
+                "name": "mapsDO.file",
+                "uri": "WORKSPACE:Maps/DATA_OBJECT_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "mapsObjectGroup.file",
+                "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "mapsObjectGroup.file",
+                "uri": "MEMORY:MapsMemory/OG_TO_ARCHIVE_ID_MAP.json"
+              },
+              {
+                "name": "mapsDOIdtoDODetail.file",
+                "uri": "WORKSPACE:Maps/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP.json"
+              },
+              {
+                "name": "mapsUnits.file",
+                "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "globalSEDAParameters.file",
+                "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
+              },
+              {
+                "name": "mapsObjectGroup.file",
+                "uri": "MEMORY:MapsMemory/OBJECT_GROUP_ID_TO_GUID_MAP.json"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_OG_CHECK_AND_TRANSFORME",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST",
+        "element": "ObjectGroup"
       },
-      {
-        "workerGroupId": "DefaultWorker",
-        "stepName": "STP_UNIT_CHECK_AND_PROCESS",
-        "behavior": "BLOCKING",
-        "distribution": {
-          "kind": "LIST",
-          "element": "Units"
-        },
-        "actions": [
-        	{
-            "action": {
-              "actionKey": "CHECK_UNIT_SCHEMA",
-              "behavior": "BLOCKING"
-            }
-          },
-          {
-            "action": {
-              "actionKey": "UNITS_RULES_COMPUTE",
-              "behavior": "BLOCKING"
-            }
+      "actions": [
+        {
+          "action": {
+            "actionKey": "CHECK_DIGEST",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "algo",
+                "uri": "VALUE:SHA-512"
+              }
+            ]
           }
-        ]
+        },
+        {
+          "action": {
+            "actionKey": "OG_OBJECTS_FORMAT_CHECK",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_UNIT_CHECK_AND_PROCESS",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST",
+        "element": "Units"
       },
-      {
-        "workerGroupId": "DefaultWorker",
-        "stepName": "STP_STORAGE_AVAILABILITY_CHECK",
-        "behavior": "BLOCKING",
-        "distribution": {
-          "kind": "REF",
-          "element": "SIP/manifest.xml"
-        },
-        "actions": [
-          {
-            "action": {
-              "actionKey": "STORAGE_AVAILABILITY_CHECK",
-              "behavior": "BLOCKING"
-            }
+      "actions": [
+        {
+          "action": {
+            "actionKey": "CHECK_UNIT_SCHEMA",
+            "behavior": "BLOCKING"
           }
-        ]
+        },
+        {
+          "action": {
+            "actionKey": "UNITS_RULES_COMPUTE",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_STORAGE_AVAILABILITY_CHECK",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": "SIP/manifest.xml"
       },
-      {
-        "workerGroupId": "DefaultWorker",
-        "stepName": "STP_OG_STORING",
-        "behavior": "BLOCKING",
-        "distribution": {
-          "kind": "LIST",
-          "element": "ObjectGroup"
-        },
-        "actions": [
-          {
-            "action": {
-              "actionKey": "OG_STORAGE",
-              "behavior": "BLOCKING"
-            }
-          },
-          {
-            "action": {
-              "actionKey": "OG_METADATA_INDEXATION",
-              "behavior": "BLOCKING"
-            }
-          },
-                  {
-            "action": {
-              "actionKey": "OG_METADATA_STORAGE",
-              "behavior": "BLOCKING"
-            }
-          },
-          {
-            "action": {
-              "actionKey": "COMMIT_LIFE_CYCLE_OBJECT_GROUP",
-              "behavior": "BLOCKING"
-            }
+      "actions": [
+        {
+          "action": {
+            "actionKey": "STORAGE_AVAILABILITY_CHECK",
+            "behavior": "BLOCKING"
           }
-        ]
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_OG_STORING",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST",
+        "element": "ObjectGroup"
       },
-      {
-        "workerGroupId": "DefaultWorker",
-        "stepName": "STP_UNIT_STORING",
-        "behavior": "BLOCKING",
-        "distribution": {
-          "kind": "LIST",
-          "element": "Units"
+      "actions": [
+        {
+          "action": {
+            "actionKey": "OG_STORAGE",
+            "behavior": "BLOCKING"
+          }
         },
-        "actions": [
-          {
-            "action": {
-              "actionKey": "UNIT_METADATA_INDEXATION",
-              "behavior": "BLOCKING",
-  	        "in": [
-  	            {
-  	               "name": "UnitType",
-  	               "uri": "VALUE:INGEST"
-                  },
-  	            {
-  	              "name": "globalSEDAParameters.file",
-  	              "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
-  	            }
-  	        ]
-            }
-          },
-          {
-            "action": {
-              "actionKey": "UNIT_METADATA_STORAGE",
-              "behavior": "BLOCKING"
-            }
+        {
+          "action": {
+            "actionKey": "OG_METADATA_INDEXATION",
+            "behavior": "BLOCKING"
           }
-          ,
-          {
-            "action": {
-              "actionKey": "COMMIT_LIFE_CYCLE_UNIT",
-              "behavior": "BLOCKING"
-            }
+        },
+                {
+          "action": {
+            "actionKey": "OG_METADATA_STORAGE",
+            "behavior": "BLOCKING"
           }
-        ]
+        },
+        {
+          "action": {
+            "actionKey": "COMMIT_LIFE_CYCLE_OBJECT_GROUP",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_UNIT_STORING",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST",
+        "element": "Units"
       },
-      {
-        "workerGroupId": "DefaultWorker",
-        "stepName": "STP_ACCESSION_REGISTRATION",
-        "behavior": "BLOCKING",
-        "distribution": {
-          "kind": "REF",
-          "element": "SIP/manifest.xml"
-        },
-        "actions": [
-          {
-            "action": {
-              "actionKey": "ACCESSION_REGISTRATION",
-              "behavior": "BLOCKING",
-              "in": [
-                {
-                  "name": "mapsUnits.file",
-                  "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json"
+      "actions": [
+        {
+          "action": {
+            "actionKey": "UNIT_METADATA_INDEXATION",
+            "behavior": "BLOCKING",
+          "in": [
+              {
+                 "name": "UnitType",
+                 "uri": "VALUE:INGEST"
                 },
-                {
-                  "name": "mapsBDO.file",
-                  "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
-                },
-                {
-                  "name": "mapsBDO.file",
-                  "uri": "WORKSPACE:Maps/BDO_TO_VERSION_BDO_MAP.json"
-                },
-                {
-                  "name": "globalSEDAParameters.file",
-                  "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
-                }
-              ]
-            }
+              {
+                "name": "globalSEDAParameters.file",
+                "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
+              }
+          ]
           }
-        ]
+        },
+        {
+          "action": {
+            "actionKey": "UNIT_METADATA_STORAGE",
+            "behavior": "BLOCKING"
+          }
+        }
+        ,
+        {
+          "action": {
+            "actionKey": "COMMIT_LIFE_CYCLE_UNIT",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_ACCESSION_REGISTRATION",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": "SIP/manifest.xml"
       },
-      {
-        "workerGroupId": "DefaultWorker",
-        "stepName": "STP_INGEST_FINALISATION",
-        "behavior": "FINALLY",
-        "distribution": {
-          "kind": "REF",
-          "element": "SIP/manifest.xml"
-        },
-        "actions": [
-          {
-            "action": {
-              "actionKey": "ATR_NOTIFICATION",
-              "behavior": "NOBLOCKING",
-              "in": [
-                {
-                  "name": "mapsUnits.file",
-                  "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json",
-                  "optional": true
-                },
-                {
-                  "name": "mapsBDO.file",
-                  "uri": "WORKSPACE:Maps/BINARY_DATA_OBJECT_ID_TO_GUID_MAP.json",
-                  "optional": true
-                },
-                {
-                  "name": "mapsBDOtoOG.file",
-                  "uri": "WORKSPACE:Maps/BDO_TO_OBJECT_GROUP_ID_MAP.json",
-                  "optional": true
-                },
-                {
-                  "name": "mapsBDOtoVersionBDO.file",
-                  "uri": "WORKSPACE:Maps/BDO_TO_VERSION_BDO_MAP.json",
-                  "optional": true
-                },
-                {
-                  "name": "globalSEDAParameters.file",
-                  "uri": "WORKSPACE:ATR/globalSEDAParameters.json",
-                  "optional": true
-                },
-                {
-                  "name": "mapsOG.file",
-                  "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json",
-                  "optional": true
-                }
-              ],
-              "out": [
-                {
-                  "name": "atr.file",
-                  "uri": "WORKSPACE:ATR/responseReply.xml"
-                }
-              ]
-            }
-          },
-          {
-            "action": {
-              "actionKey": "ROLL_BACK",
-              "behavior": "BLOCKING"
-            }
+      "actions": [
+        {
+          "action": {
+            "actionKey": "ACCESSION_REGISTRATION",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "mapsUnits.file",
+                "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "mapsDO.file",
+                "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "mapsDO.file",
+                "uri": "WORKSPACE:Maps/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP.json"
+              },
+              {
+                "name": "globalSEDAParameters.file",
+                "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
+              }
+            ]
           }
-        ]
-      }
-    ]
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_INGEST_FINALISATION",
+      "behavior": "FINALLY",
+      "distribution": {
+        "kind": "REF",
+        "element": "SIP/manifest.xml"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "ATR_NOTIFICATION",
+            "behavior": "NOBLOCKING",
+            "in": [
+              {
+                "name": "mapsUnits.file",
+                "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json",
+                "optional": true
+              },
+              {
+                "name": "mapsDO.file",
+                "uri": "WORKSPACE:Maps/DATA_OBJECT_ID_TO_GUID_MAP.json",
+                "optional": true
+              },
+              {
+                "name": "mapsDOtoOG.file",
+                "uri": "WORKSPACE:Maps/DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP.json",
+                "optional": true
+              },
+              {
+                "name": "mapsDOtoVersionBDO.file",
+                "uri": "WORKSPACE:Maps/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP.json",
+                "optional": true
+              },
+              {
+                "name": "globalSEDAParameters.file",
+                "uri": "WORKSPACE:ATR/globalSEDAParameters.json",
+                "optional": true
+              },
+              {
+                "name": "mapsOG.file",
+                "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json",
+                "optional": true
+              }
+            ],
+            "out": [
+              {
+                "name": "atr.file",
+                "uri": "WORKSPACE:ATR/responseReply.xml"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "ROLL_BACK",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    }
+  ]
   }
 
 D'une façon synthétique, le workflow est décrit de cette façon :
@@ -826,7 +826,7 @@ D'une façon synthétique, le workflow est décrit de cette façon :
 
     * Contient CHECK_MANIFEST (ExtractSedaActionHandler.java) :
 
-      - Extraction des ArchiveUnits, des BinaryDataObject,
+      - Extraction des ArchiveUnits, des BinaryDataObject, des PhysicalDataObject,
 
       - Création des journaux de cycle de vie des ArchiveUnits et des ObjectGroup,
 
@@ -839,15 +839,15 @@ D'une façon synthétique, le workflow est décrit de cette façon :
 
     * Contient CHECK_CONSISTENCY (CheckObjectUnitConsistencyActionHandler.java) :
 
-      - Extraction des BinaryDataObject du manifest.xml et création de la MAP (table de concordance) des Id BinaryDataObject / Génération GUID (de ces mêmes BinaryDataObject),
+      - Extraction des BinaryDataObject et PhysicalDataObject du manifest.xml et création de la MAP (table de concordance) des Id BinaryDataObject ou PhysicalDataObject / Génération GUID (de ces mêmes BinaryDataObject),
 
       - Extraction des ArchiveUnit du manifest.xml et création de la MAP des id ArchiveUnit / Génération GUID (de ces mêmes ArchiveUnit),
 
-      - Contrôle des références dans les ArchiveUnit des Id BinaryDataObject,
+      - Contrôle des références dans les ArchiveUnit des Id BinaryDataObject et PhysicalDataObject,
 
       - Vérification de la cohérence objet/unit,
 
-      - Stockage dans le Workspace des BinaryDataObject et des ArchiveUnit.
+      - Stockage dans le Workspace des BinaryDataObject, PhysicalDataObject et des ArchiveUnit.
 
 - **Step 2** - STP_OG_CHECK_AND_TRANSFORME : Contrôle et traitements des objets / distribution sur LIST GUID/BinaryDataObject
 
