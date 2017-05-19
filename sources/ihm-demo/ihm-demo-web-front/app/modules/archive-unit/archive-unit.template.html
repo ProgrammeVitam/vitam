@@ -263,7 +263,7 @@
               <td>
                 <a href=""
                    ng-click="download($event, archiveObjectGroupsOgId , version.DataObjectVersion, version.Rank, version.FileName)"
-                   target="_blank" ng-if="getClassVersion(version.DataObjectVersion) != 'grayColor'">
+                   target="_blank" ng-if="getClassVersion(version.DataObjectVersion) != 'grayColor' && !isPhysicalArchive(version)">
                   <i class="material-icons">file_download</i>
                 </a>
               </td>

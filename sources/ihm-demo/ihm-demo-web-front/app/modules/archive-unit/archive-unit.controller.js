@@ -771,7 +771,6 @@ angular.module('archive.unit')
           if (key === 'PhysicalDimensions') {
             var allPromises = [];
             angular.forEach(value, function(value, kind) {
-
               allPromises.push(uneceMappingService.getDimensionWithDisplayableUnit(value, kind))
             });
             $q.all(allPromises).then(
@@ -862,6 +861,9 @@ angular.module('archive.unit')
     // ********************************************************************************* //
 
     self.hasPermission = authVitamService.hasPermission;
+    $scope.isPhysicalArchive = function(version){
+        return version.metadatas.PhysicalId != undefined;
+    }
     $scope.getClassVersion = function(version) {
       if ($scope.userContract.DataObjectVersion.indexOf(version.split('_')[0]) < 0) {
         return 'grayColor';
