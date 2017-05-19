@@ -199,6 +199,7 @@ public class Profile extends VitamDocument<Profile> {
 
     /**
      * Get the profile status
+     * If toJson called without MongoClient configuration this will thow codec exception
      * @return status of ingest contact
      */
     public ProfileStatus getStatus() {
@@ -248,6 +249,7 @@ public class Profile extends VitamDocument<Profile> {
 
     /**
      * The profile file format
+     * If toJson called without MongoClient configuration this will thow codec exception
      * @return the profile format
      */
     public ProfileFormat getFormat() {

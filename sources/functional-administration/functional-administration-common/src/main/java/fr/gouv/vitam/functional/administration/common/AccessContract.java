@@ -75,6 +75,9 @@ public class AccessContract extends VitamDocument<AccessContract> {
     public static final String DEACTIVATIONDATE = "DeactivationDate";
 
 
+    public static final String TYPEUNIQUE = "typeunique";
+
+
     /**
      * Empty Constructor
      */

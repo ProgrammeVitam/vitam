@@ -29,12 +29,12 @@
       "index": "not_analyzed"
     },
     "CreationDate": {
-      "type": "string",
-      "index": "analyzed"
+      "type": "date",
+      "format": "strict_date_optional_time"
     },
     "UpdateDate": {
-      "type": "string",
-      "index": "analyzed"
+      "type": "date",
+      "format": "strict_date_optional_time"
     },
     "Extension": {
       "type": "string"

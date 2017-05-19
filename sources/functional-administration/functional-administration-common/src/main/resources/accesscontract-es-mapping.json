@@ -1,0 +1,33 @@
+{
+  "properties": {
+    "Name": {
+      "type": "string"
+    },
+    "Description": {
+      "type": "string"
+    },
+    "Status": {
+      "type": "string",
+      "index": "not_analyzed"
+    },
+    "OriginatingAgencies": {
+      "type": "string"
+    },
+    "CreationDate": {
+      "type": "date",
+      "format": "strict_date_optional_time"
+    },
+    "LastUpdate": {
+      "type": "date",
+      "index": "not_analyzed"
+    },
+    "ActivationDate": {
+      "type": "date",
+      "format": "strict_date_optional_time"
+    },
+    "DeactivationDate": {
+      "type": "date",
+      "format": "strict_date_optional_time"
+    }
+  }
+}

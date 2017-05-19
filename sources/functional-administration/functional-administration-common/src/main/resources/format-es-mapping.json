@@ -21,8 +21,8 @@
       "index": "not_analyzed"
     },
     "CreatedDate": {
-      "type": "string",
-      "index": "analyzed"
+      "type": "date",
+      "format": "strict_date_optional_time"
     },
     "Version": {
       "type": "string",

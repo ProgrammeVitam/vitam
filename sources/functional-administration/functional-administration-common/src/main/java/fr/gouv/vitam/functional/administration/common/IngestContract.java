@@ -83,6 +83,8 @@ public class IngestContract extends VitamDocument<IngestContract> {
     public static final String DEACTIVATIONDATE = "DeactivationDate";
 
 
+    public static final String TYPEUNIQUE = "typeunique";
+
     /**
      * Empty Constructor
      */
