@@ -1,13 +1,6 @@
 package fr.gouv.vitam.access.external.client;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.access.external.api.AccessCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
@@ -27,6 +20,12 @@ import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 /**
  * Rest client implementation for Access External
@@ -259,54 +258,6 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         }
     }
 
-    @Override
-    public Response getUnitObject(JsonNode selectObjectQuery, String unitId, String usage, int version,
-        Integer tenantId, String contractName)
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException, AccessUnauthorizedException {
-        SanityChecker.checkJsonAll(selectObjectQuery);
-        if (selectObjectQuery == null || selectObjectQuery.size() == 0) {
-            throw new IllegalArgumentException(BLANK_DSL);
-        }
-        ParametersChecker.checkParameter(BLANK_OBJECT_GROUP_ID, unitId);
-        ParametersChecker.checkParameter(BLANK_USAGE, usage);
-        ParametersChecker.checkParameter(BLANK_VERSION, version);
-
-        Response response = null;
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
-        headers.add(GlobalDataRest.X_QUALIFIER, usage);
-        headers.add(GlobalDataRest.X_VERSION, version);
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
-
-        try {
-            response = performRequest(HttpMethod.POST, UNITS + unitId + "/object", headers,
-                selectObjectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-            if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-                LOGGER.error("Internal Server Error" + " : " + status.getReasonPhrase());
-                throw new AccessExternalClientServerException("Internal Server Error");
-            } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                throw new AccessExternalClientNotFoundException(status.getReasonPhrase());
-            } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
-                throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
-            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                throw new AccessExternalClientServerException(response.getStatusInfo().getReasonPhrase());
-            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                throw new AccessUnauthorizedException(response.getStatusInfo().getReasonPhrase());
-            }
-
-            return response;
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
-                consumeAnyEntityAndClose(response);
-            }
-        }
-    }
     /* Logbook external */
 
     @Override

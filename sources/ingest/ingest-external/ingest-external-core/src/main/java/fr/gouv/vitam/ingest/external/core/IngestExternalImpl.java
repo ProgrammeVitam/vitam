@@ -438,7 +438,7 @@ public class IngestExternalImpl implements IngestExternal {
                 ingestClient.uploadInitialLogbook(helper.removeCreateDelegate(containerName.getId()));
                 if (!isFileInfected && isSupportedMedia) {
 
-                        ingestClient.upload(inputStream, CommonMediaType.valueOf(mimeType), contextWithExecutionMode);
+                    ingestClient.upload(inputStream, CommonMediaType.valueOf(mimeType), contextWithExecutionMode);
                     return  Response.status(Status.OK).build();
                 }
                 else {
@@ -495,7 +495,7 @@ public class IngestExternalImpl implements IngestExternal {
      */
     private Response prepareEarlyAtrKo(final GUID containerName, final GUID ingestGuid,
         final LogbookOperationsClientHelper helper, final LogbookOperationParameters startedParameters,
-        boolean isFileInfected, String mimeType, final LogbookOperationParameters endParameters, 
+        boolean isFileInfected, String mimeType, final LogbookOperationParameters endParameters,
         LogbookTypeProcess logbookTypeProcess, String logbookEventType)
         throws LogbookClientNotFoundException, IngestExternalException {
         Response responseNoProcess;
@@ -508,8 +508,6 @@ public class IngestExternalImpl implements IngestExternal {
             atrKo = AtrKoBuilder.buildAtrKo(containerName.getId(), "ArchivalAgencyToBeDefined",
                 "TransferringAgencyToBeDefined",
                 "SANITY_CHECK_SIP", null, StatusCode.KO);
-
-            storeATR(ingestGuid, atrKo);
 
         } else {
             atrKo = AtrKoBuilder.buildAtrKo(containerName.getId(), "ArchivalAgencyToBeDefined",

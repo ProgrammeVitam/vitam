@@ -31,6 +31,7 @@ import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
+import fr.gouv.vitam.access.external.common.exception.AccessExternalNotFoundException;
 import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -191,5 +192,5 @@ public interface AdminExternalClient extends BasicClient {
      * @param profileMetadataId
      * @return
      */
-    Response downloadProfileFile(String profileMetadataId, Integer tenantId) throws AccessExternalClientException;
+    Response downloadProfileFile(String profileMetadataId, Integer tenantId) throws AccessExternalClientException, AccessExternalNotFoundException;
 }

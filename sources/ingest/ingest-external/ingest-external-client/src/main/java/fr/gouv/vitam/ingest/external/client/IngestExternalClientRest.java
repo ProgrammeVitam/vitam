@@ -113,19 +113,14 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
                 default:
                     throw new IngestExternalException("Unknown error");
             }
-
+            // TODO: 5/22/17 return also VitamError when needed
             return  new RequestResponseOK<JsonNode>().parseHeadersFromResponse(response).setHttpCode(response.getStatus());
 
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Ingest External Internal Server Error", e);
             throw new IngestExternalException("Ingest External Internal Server Error", e);
         } finally {
-            if (response != null && response.getStatus() != Status.ACCEPTED.getStatusCode() &&
-                response.getStatus() != Status.BAD_REQUEST.getStatusCode() &&
-                response.getStatus() != Status.PARTIAL_CONTENT.getStatusCode() &&
-                response.getStatus() != Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-                consumeAnyEntityAndClose(response);
-            }
+            consumeAnyEntityAndClose(response);
         }
 
 
@@ -281,23 +276,29 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
                 performRequest(HttpMethod.PUT, OPERATION_URI + "/" + operationId,
                     headers,
                     MediaType.APPLICATION_JSON_TYPE);
+
+
+            if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                LOGGER.warn("SIP Warning : " + Response.Status.NOT_FOUND.getReasonPhrase());
+                throw new VitamClientInternalException(NOT_FOUND_EXCEPTION);
+            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
+                LOGGER.warn("SIP Warning : " + Response.Status.PRECONDITION_FAILED.getReasonPhrase());
+                throw new VitamClientInternalException(REQUEST_PRECONDITION_FAILED);
+
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                consumeAnyEntityAndClose(response);
+                LOGGER.warn("SIP Warning : " + Response.Status.UNAUTHORIZED.getReasonPhrase());
+                throw new ProcessingException(UNAUTHORIZED);
+            } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+                LOGGER.warn("SIP Warning : " + Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
+                throw new VitamClientInternalException(INTERNAL_SERVER_ERROR);
+            }
+
         } catch (VitamClientInternalException e) {
+            // close only for exception
+            consumeAnyEntityAndClose(response);
             LOGGER.error("VitamClientInternalException: ", e);
             throw new VitamClientException(e);
-        }
-        if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-            LOGGER.warn("SIP Warning : " + Response.Status.NOT_FOUND.getReasonPhrase());
-            throw new VitamClientInternalException(NOT_FOUND_EXCEPTION);
-        } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-            LOGGER.warn("SIP Warning : " + Response.Status.PRECONDITION_FAILED.getReasonPhrase());
-            throw new VitamClientInternalException(REQUEST_PRECONDITION_FAILED);
-
-        } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-            LOGGER.warn("SIP Warning : " + Response.Status.UNAUTHORIZED.getReasonPhrase());
-            throw new ProcessingException(UNAUTHORIZED);
-        } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-            LOGGER.warn("SIP Warning : " + Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
-            throw new VitamClientInternalException(INTERNAL_SERVER_ERROR);
         }
 
         return response;

@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.core;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -35,12 +36,16 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.core.Response;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.gouv.vitam.common.server.application.VitamStreamingOutput;
 import org.apache.commons.io.IOUtils;
+import org.glassfish.jersey.message.internal.OutboundJaxrsResponse;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -107,7 +112,7 @@ public class AccessInternalModuleImplTest {
     private LogbookOperationsClient logbookOperationClient;
     private LogbookLifeCyclesClient logbookLifeCycleClient;
     private StorageClient storageClient;
-    private static AsyncResponseJunitTest asynResponse = new AsyncResponseJunitTest();
+    private AsyncResponseJunitTest asynResponse;
     private static JunitHelper junitHelper;
     private static int serverPort;
 
@@ -186,6 +191,8 @@ public class AccessInternalModuleImplTest {
         accessModuleImpl =
             new AccessInternalModuleImpl(storageClient, logbookOperationClient, logbookLifeCycleClient,
                 workspaceClient);
+        asynResponse = new AsyncResponseJunitTest();
+
     }
 
     @Test
@@ -510,14 +517,15 @@ public class AccessInternalModuleImplTest {
             .thenReturn(new ByteArrayInputStream(FAKE_METADATA_RESULT.getBytes()));
         when(storageClient.getContainerAsync(anyString(), anyString(), anyObject()))
             .thenReturn(responseMock);
-        final AccessBinaryData abd =
             accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, fromStringToJson(QUERY), "BinaryMaster", 0);
-        assertNotNull(abd);
-        final Response binaryMasterResponse = abd.getOriginalResponse();
-        assertNotNull(binaryMasterResponse);
-        final InputStream binaryMaster = binaryMasterResponse.readEntity(InputStream.class);
+        assertNotNull(asynResponse.getResponse());
+
         final InputStream stream2 = IOUtils.toInputStream(FAKE_METADATA_RESULT);
-        assertTrue(IOUtils.contentEquals(binaryMaster, stream2));
+        VitamStreamingOutput entity = (VitamStreamingOutput) ((Response) asynResponse.getResponse()).getEntity();
+        final ByteArrayOutputStream output = new ByteArrayOutputStream();
+        entity.write(output);
+
+        assertArrayEquals(output.toByteArray(), IOUtils.toByteArray(stream2));
     }
 
     @Test
@@ -531,13 +539,22 @@ public class AccessInternalModuleImplTest {
             .thenReturn(PropertiesUtils.getResourceAsStream(REAL_DATA_RESULT_PATH));
         when(storageClient.getContainerAsync(anyString(), anyString(), anyObject()))
             .thenReturn(responseMock);
-        final AccessBinaryData abd =
             accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, fromStringToJson(QUERY), "BinaryMaster", 0);
-        assertNotNull(abd);
-        final Response binaryMasterResponse = abd.getOriginalResponse();
-        assertNotNull(binaryMasterResponse);
-        assertEquals("image/png", abd.getMimetype());
-        assertEquals("Vitam-S\u00E9nsibilisation de l' API-V1.0.png", abd.getFilename());
+
+        assertNotNull(asynResponse.getResponse());
+
+        VitamStreamingOutput entity = (VitamStreamingOutput) ((Response) asynResponse.getResponse()).getEntity();
+        final ByteArrayOutputStream output = new ByteArrayOutputStream();
+        entity.write(output);
+
+        byte[] src = output.toByteArray();
+        JsonNode jsonNode = JsonHandler.getFromBytes(src);
+        assertNotNull(jsonNode);
+        assertEquals(jsonNode.get("$results").get(0).get("#qualifiers").get("Thumbnail").get("versions").get(0)
+            .get("FormatIdentification").get("MimeType").asText(), "image/png");
+        assertEquals(
+            jsonNode.get("$results").get(0).get("#qualifiers").get("Thumbnail").get("versions").get(0).get("FileInfo")
+                .get("Filename").asText(), "Vitam-S\u00E9nsibilisation de l' API-V1.0.png");
     }
 
 
@@ -552,13 +569,26 @@ public class AccessInternalModuleImplTest {
             .thenReturn(PropertiesUtils.getResourceAsStream(REAL_DATA_RESULT_MULTI_PATH));
         when(storageClient.getContainerAsync(anyString(), anyString(), anyObject()))
             .thenReturn(responseMock);
-        final AccessBinaryData abd =
             accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, fromStringToJson(QUERY), "BinaryMaster", 0);
-        assertNotNull(abd);
+        assertNotNull(asynResponse.getResponse());
+
+        VitamStreamingOutput entity = (VitamStreamingOutput) ((Response) asynResponse.getResponse()).getEntity();
+        final ByteArrayOutputStream output = new ByteArrayOutputStream();
+        entity.write(output);
+
+        byte[] src = output.toByteArray();
+        JsonNode jsonNode = JsonHandler.getFromBytes(src);
+        assertNotNull(jsonNode);
+        assertEquals(jsonNode.get("$results").get(0).get("#qualifiers").get("Thumbnail").get("versions").get(0)
+            .get("FormatIdentification").get("MimeType").asText(), "image/png");
+        assertEquals(jsonNode.get("$results").get(0).get("#qualifiers").get("Thumbnail").get("versions").get(0)
+            .get("FormatIdentification").get("Filename").asText(), "Wrong name");
+
+       /* assertNotNull(abd);
         final Response binaryMasterResponse = abd.getOriginalResponse();
         assertNotNull(binaryMasterResponse);
         assertEquals("image/png", abd.getMimetype());
-        assertEquals("Wrong name", abd.getFilename());
+        assertEquals("Wrong name", abd.getFilename());*/
     }
 
     @Test(expected = AccessInternalExecutionException.class)

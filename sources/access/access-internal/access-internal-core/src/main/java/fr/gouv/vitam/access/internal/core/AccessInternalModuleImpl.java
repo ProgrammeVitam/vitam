@@ -282,7 +282,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     }
 
     @Override
-    public AccessBinaryData getOneObjectFromObjectGroup(AsyncResponse asyncResponse, String idObjectGroup,
+    public void getOneObjectFromObjectGroup(AsyncResponse asyncResponse, String idObjectGroup,
         JsonNode queryJson, String qualifier, int version)
         throws MetaDataNotFoundException, StorageNotFoundException, AccessInternalExecutionException,
         InvalidParseOperationException {
@@ -353,7 +353,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     .header("Content-Disposition", "attachment; filename=\"" + filename + "\"")
                     .type(mimetype);
             helper.writeResponse(responseBuilder);
-            return new AccessBinaryData(filename, mimetype, response);
         } catch (final StorageServerClientException e) {
             throw new AccessInternalExecutionException(e);
         } finally {

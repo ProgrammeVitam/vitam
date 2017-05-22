@@ -33,6 +33,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.TimeoutHandler;
+import javax.ws.rs.core.Response;
 
 import fr.gouv.vitam.common.SingletonUtils;
 
@@ -42,13 +43,22 @@ import fr.gouv.vitam.common.SingletonUtils;
 public class AsyncResponseJunitTest implements AsyncResponse {
 
     boolean done = false;
+
+    Object response;
+
     @Override
     public boolean resume(Object response) {
         if (null != response) {
-            done =  true;
+            this.response = response;
+            done = true;
         }
         return done;
     }
+
+    public Object getResponse() {
+        return response;
+    }
+
 
     @Override
     public boolean resume(Throwable response) {

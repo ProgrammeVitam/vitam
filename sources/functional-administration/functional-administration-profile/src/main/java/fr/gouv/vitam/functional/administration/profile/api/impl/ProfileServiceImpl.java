@@ -29,6 +29,7 @@ package fr.gouv.vitam.functional.administration.profile.api.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.common.base.Strings;
 import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -91,8 +92,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -382,6 +385,11 @@ public class ProfileServiceImpl implements ProfileService {
             throw new ProfileNotFoundException("No profile metadata found with id : "+profileMetadataId+", to import the file, the metadata profile must be created first");
         }
 
+        if (Strings.isNullOrEmpty(profileMetadata.getPath()) || profileMetadata.getPath().isEmpty()) {
+            LOGGER.error("The profile metadata found with an id : "+profileMetadataId+", does not have an xsd or an rng file yet");
+            throw new ProfileNotFoundException("The profile metadata found with id : "+profileMetadataId+", does not have a xsd or rng file yet");
+        }
+
         // A valid operation found : download the related file
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
 
@@ -393,7 +401,10 @@ public class ProfileServiceImpl implements ProfileService {
                 .header("Content-Disposition", "filename=" + profileMetadata.getPath())
                 .header("Content-Type", "application/octet-stream"));
 
-        } catch (StorageServerClientException | StorageNotFoundException e) {
+        } catch (StorageServerClientException e) {
+            LOGGER.error(e.getMessage(), e);
+            throw new ReferentialException(e);
+        } catch (StorageNotFoundException e) {
             LOGGER.error(e.getMessage(), e);
             throw new ProfileNotFoundException(e);
         }

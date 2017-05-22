@@ -102,8 +102,7 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
     }
 
     @Override
-    public Response storeATR(GUID guid, InputStream input) throws VitamClientException {
-        return ClientMockResultHelper.getObjectStream();
+    public void storeATR(GUID guid, InputStream input) throws VitamClientException {
     }
 
     public ItemStatus getOperationProcessStatus(String id) throws VitamClientException {

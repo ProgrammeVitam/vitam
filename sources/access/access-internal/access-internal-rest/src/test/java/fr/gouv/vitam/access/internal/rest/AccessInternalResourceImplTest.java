@@ -26,38 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.rest;
 
-import static com.jayway.restassured.RestAssured.given;
-import static com.jayway.restassured.RestAssured.with;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
-
-import java.io.ByteArrayInputStream;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
-
-import fr.gouv.vitam.access.internal.api.AccessBinaryData;
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -75,6 +46,33 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayInputStream;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import static com.jayway.restassured.RestAssured.given;
+import static com.jayway.restassured.RestAssured.with;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
 public class AccessInternalResourceImplTest {
 
@@ -505,9 +503,9 @@ public class AccessInternalResourceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(0);
 
         reset(mock);
-        when(
-            mock.getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt()))
-                .thenThrow(new StorageNotFoundException("test"));
+
+        doThrow(new StorageNotFoundException("test")).when(mock)
+            .getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
@@ -516,9 +514,8 @@ public class AccessInternalResourceImplTest {
             .statusCode(Status.NOT_FOUND.getStatusCode());
 
         reset(mock);
-        when(
-            mock.getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt()))
-                .thenThrow(new MetaDataNotFoundException("test"));
+        doThrow(new MetaDataNotFoundException("test")).when(mock)
+            .getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
@@ -534,9 +531,7 @@ public class AccessInternalResourceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(0);
 
         reset(mock);
-        when(
-            mock.getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt()))
-                .thenThrow(new AccessInternalExecutionException("Wanted exception"));
+        doThrow(new AccessInternalExecutionException("Wanted exception")).when(mock).getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
@@ -562,9 +557,10 @@ public class AccessInternalResourceImplTest {
         final Response response =
             ResponseHelper.getOutboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
                 MediaType.APPLICATION_OCTET_STREAM, null);
-        when(
-            mock.getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt()))
-                .thenReturn(new AccessBinaryData("file1", MediaType.APPLICATION_OCTET_STREAM, response));
+
+
+        doAnswer(invocation -> {return null;}).when(mock)
+            .getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")

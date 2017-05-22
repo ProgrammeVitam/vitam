@@ -127,25 +127,6 @@ public interface AccessExternalClient extends BasicClient {
         AccessExternalClientNotFoundException, AccessUnauthorizedException;
 
     /**
-     * selectObjectById
-     *
-     * @param selectObjectQuery the select object query
-     * @param unitId the unit id for getting object
-     * @param tenantId the working tenant
-     * @param usage the usage kind
-     * @param version the version
-     * @return Json representation
-     * @throws InvalidParseOperationException
-     * @throws AccessExternalClientServerException
-     * @throws AccessExternalClientNotFoundException
-     * @throws AccessUnauthorizedException
-     */
-    Response getUnitObject(JsonNode selectObjectQuery, String unitId, String usage,
-        int version, Integer tenantId, String contractName)
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException, AccessUnauthorizedException;
-
-    /**
      * selectOperation
      *
      * @param select the select query
