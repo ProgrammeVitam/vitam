@@ -128,3 +128,20 @@ Rest API
 -Contrat d'entrée
 |PUT https://vitam/admin-external/v1/contract
 Mise à jour du contrat d'entrès
+
+- Profiles
+| POST https://vitam/admin-external/v1/profiles
+    Créer ou rechercher des profiles au format json (métadata). Le header X-Http-Method-Override pilote la décision entre la recherche et la création.
+
+| PUT https://vitam/admin-external/v1/profiles
+    Importer le profile au format rng ou xsd
+
+| GET https://vitam/admin-external/v1/profiles
+    Télécharger le profile au format rng ou xsd si le accept est un octet-stream sinon c'est une recherche de profiles au format json (métadata)
+
+| GET https://vitam/admin-external/v1/profiles/profile_id
+    Rechercher un profile avec son id (profile_id)
+
+| POST https://vitam/admin-external/v1/profiles/profile_id
+    Si X-Http-Method-Override égale à GET alors rechercher un profile avec son id (profile_id)
+

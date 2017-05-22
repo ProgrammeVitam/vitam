@@ -259,6 +259,12 @@ public class AdminManagementExternalResourceImpl {
     }
 
 
+    /**
+     * Download the file
+     * @param collection
+     * @param profileMetadataId
+     * @param asyncResponse
+     */
     @GET
     @Path("/{collection}/{id}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)

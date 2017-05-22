@@ -30,7 +30,8 @@ functional-administration
 	    |                       sur les traitements de format référentiel et gestion de règles administratives.
 	    |--- functional-administration-client  : client functional-administration qui sera utilisé par les autres modules
 	    |                       pour les appels de traitement sur le format référentiel & gestion de règles.
-			|--- functional-administration-contract	: fournis les traitements de base pour les contrat d'accès et les contrat d'entrées
+		|--- functional-administration-contract	: fournis les traitements de base pour les contrat d'accès et les contrat d'entrées
+		|--- functional-administration-profile	: fournis les traitements de base pour les profile.
 
 2. Classes métiers
 Dans cette section, nous présentons quelques classes principales dans des modules/packages
@@ -42,6 +43,15 @@ fr.gouv.vitam.functional.administration.common
 -FileFormat.java : une extension de VitamDocument définissant le référentiel des formats.
 -ReferentialFile.java : interface définissant des opérations liées au référentiel des format : importation du fichier
 PRONOM, vérificaton du fichier PRONOM soumis, recherche d'un format existant et suppression du référentiel des formats.
+-IngestContract.java : Le modèle de données des contracts d'entrée, ce modèle étend VitamDocument.
+-AccessContract.java : Le modèle de données des contracts d'accès, ce modèle étend VitamDocument.
+-Profile.java : Le modèle de données des profiles, ce modèle étend VitamDocument.
+
+
+fr.gouv.vitam.functional.administration.common.embed
+ProfileFormat.class: Une enum embeded dans le profile qui sert à définir le format du fichier profile (xsd, rng)
+ProfileStatus.class: Une enum embeded dans le profile qui sert à définir le status (ACTIVE, INACTIVE)
+
 
 fr.gouv.vitam.functional.administration.common.exception : définir des exceptions concernant de opération sur le
 référentiel des formats
@@ -68,7 +78,8 @@ MongoDbAccess commun pour mongodb
 2.3. functional-administration-rest
 - AdminManagementResource.java : définir des ressources différentes pour le serveur REST functional-administration
 - AdminManagementApplication.java : créer & lancer le serveur d'application avec une configuration
-
+- ContractResource.java : Définir l'endpoints de l'api rest des contrats (entrée et accès)
+- ProfileResource.java : Définir l'endpoint de l'api rest du profile
 2.4. functional-administration-client
 - AdminManagementClientRest.java : créer le client de et des fonctionnalités en se connectant au serveur REST
 - AdminManagementClientMock.java : créer le client et des fonctionnalités en se connectant au mock de serveur
@@ -123,3 +134,14 @@ MongoDbAccess commun pour mongodb
 	 - ContractValidator.java : Interface fonctionnelle de validations des contrats
 	 - GenericContractValidator.java : Interface fonctionnelle de validations des contrats
 	 - IngestContractImpl.java : Classe d'implémentation pour la gestion des contrats d'entrées
+
+
+2.8. functional-administration-profile
+
+	 fr.gouv.vitam.functional.administration.profile.api
+	 - ProfileService.java :   Interface définissant les différentes opérations sur les profiles.
+	 fr.gouv.vitam.functional.administration.profile.api.impl
+	 - ProfileServiceImpl.java :   Implémentation du service ProfileService.
+	 fr.gouv.vitam.functional.administration.profile.core
+	 - ProfileManager.java : Gère toutes les opérations du logbook et toutes les opérations de validation concernant les profiles. Lors de la validation, il vérifie (si déjà existence dans la base de données, champs obligatoires, fichiers au format xsd ou rng valides, ..).
+	 - ProfileValidator.java : Interface fonctionnelle de validations des contrats
