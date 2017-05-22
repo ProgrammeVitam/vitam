@@ -1,0 +1,9 @@
+[Unit]
+Description=Path unit to ensure consul dns is set in /etc/resolv.conf
+
+[Path]
+PathModified=/etc/resolv.conf
+Unit=vitam_dns_localhost_enforce.service
+
+[Install]
+WantedBy=multi-user.target
