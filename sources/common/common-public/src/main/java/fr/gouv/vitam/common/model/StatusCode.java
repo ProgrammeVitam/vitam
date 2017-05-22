@@ -32,7 +32,6 @@ import javax.ws.rs.core.Response.Status;
  * Enum StatusCode
  *
  * different constants status code for workflow , action handler and process
- *
  */
 public enum StatusCode {
 
@@ -76,7 +75,6 @@ public enum StatusCode {
     }
 
     /**
-     *
      * @return True if the status is greater or equal to OK
      */
     public boolean isGreaterOrEqualToKo() {
@@ -84,7 +82,6 @@ public enum StatusCode {
     }
 
     /**
-     *
      * @return True if the status is greater or equal to FATAL
      */
     public boolean isGreaterOrEqualToFatal() {
@@ -92,20 +89,21 @@ public enum StatusCode {
     }
 
     /**
-     *
      * @return the HTTP Status equivalent to this StatusCode for OK, KO and WARNING status
      */
     public Status getEquivalentHttpStatus() {
-        Status status = Status.OK;
-        if (!StatusCode.OK.equals(this)) {
-            if (StatusCode.WARNING.equals(this)) {
-                status = Status.PARTIAL_CONTENT;
-            } else {
-                status = Status.BAD_REQUEST;
-            }
+        switch (this) {
+            case OK:
+                return Status.OK;
+            case WARNING:
+                return Status.PARTIAL_CONTENT;
+            case KO:
+                return Status.BAD_REQUEST;
+            case FATAL:
+                return Status.INTERNAL_SERVER_ERROR;
+            default:
+                return Status.INTERNAL_SERVER_ERROR;
         }
-
-        return status;
     }
 
     /**

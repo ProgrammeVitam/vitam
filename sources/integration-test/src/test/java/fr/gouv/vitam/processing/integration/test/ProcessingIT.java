@@ -1455,7 +1455,6 @@ public class ProcessingIT {
             // checkMonitoring - meaning something has been added in the monitoring tool
             final Map<String, ProcessStep> map = processMonitoring.getProcessSteps(containerName, tenantId);
             assertNotNull(map);
-
         }
     }
 

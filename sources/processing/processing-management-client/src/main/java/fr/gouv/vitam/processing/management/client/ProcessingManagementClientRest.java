@@ -196,8 +196,6 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
                 throw new IllegalArgumentException(ILLEGAL_ARGUMENT);
             } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
                 throw new NotAuthorizedException(ILLEGAL_ARGUMENT);
-            } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-                throw new InternalServerException(INTERNAL_SERVER_ERROR2);
             }
 
             // XXX: theoretically OK status case
