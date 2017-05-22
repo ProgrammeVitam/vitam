@@ -548,22 +548,26 @@ La page affiche la liste de toutes les opérations d’entrée en cours d’éx�
 La liste est composée des colonnes suivantes :
 
 * Identifiant de l’opération - identifiant unique de l’opération d’entrée
-* Catégorie de l’opération - indique le type d’opération d’entrée
-* INGEST - indique une opération d’entrée normale
-* INGEST_TEST - indique une opération d’entrée en test à blanc
+* Catégorie de l’opération - indique le type d’opération d’entrée :
+	* INGEST - indique une opération d’entrée normale
+	* INGEST_TEST - indique une opération d’entrée en test à blanc
 * Date de l’entrée - date à laquelle l’entrée à été soumise à la solution logicielle Vitam
 * Mode d’exécution - indique le mode d’exécution choisi. Celui-ci peut-être
 	* Continu
 	* Pas à pas
-* Etat global de l’opération d’entrée - indique si l’opération est :
+* Précédente étape du workflow / étape en cours 
+* Prochaine étape du workflow
+* Statut - indique si l’opération est :
 	* En attente
 	* En cours
 	* Terminée
-* Statut : Statut de la dernière étape du workflow réalisée au cours de l’opération d’entrée
-* Actions : Contient des boutons d’action permettant d’interagir avec l'entrée réalisée en mode d’exécution pas à
-pas
+* Actions : Contient des boutons d’action permettant d’interagir avec l'entrée réalisée en mode d’exécution pas à pas
 
-Les opérations d’entrée sont classées par ordre alphabétique selon leur identifiant.
+Les opérations d’entrée sont classées par ordre antéchronologique selon leur date d'entrée.
+
+Seules les opérations en cours de traitement sont affichées sur cet écran.
+
+.. image:: images/GESTION_VERSEMENT_ecran.png
 
 Utilisation du mode pas à pas
 -----------------------------
