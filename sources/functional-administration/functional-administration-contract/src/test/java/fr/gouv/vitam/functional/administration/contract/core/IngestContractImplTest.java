@@ -19,6 +19,8 @@ package fr.gouv.vitam.functional.administration.contract.core;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
@@ -41,10 +43,12 @@ import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -166,7 +170,26 @@ public class IngestContractImplTest {
         assertThat(!response.isOk());
     }
 
-
+    @Test
+    @RunWithCustomExecutor
+    public void testObjectNode() throws InvalidParseOperationException{
+        final ArrayNode object = JsonHandler.createArrayNode();
+        final ObjectNode msg = JsonHandler.createObjectNode();
+        msg.put("Status", "update");
+        msg.put("oldStatus", "INACTIF");
+        msg.put("newStatus", "ACTIF");
+        final ObjectNode msg2 = JsonHandler.createObjectNode();
+        msg2.put("FilingParentId","update");
+        msg2.put("oldFilingParentId", "lqskdfjh");
+        msg2.put("newFilingParentId", "lqskdfjh");
+        object.add(msg);
+        object.add(msg2);
+        String wellFormedJson = SanityChecker.sanitizeJson(object);
+        System.out.println("YOOOOOOOOOOOOOOOOOOOOOOOOOOO" + wellFormedJson);
+    }
+    
+    
+    
     @Test
     @RunWithCustomExecutor
     public void givenIngestContractsTestProfileInDBReturnOK() throws Exception {
@@ -431,8 +454,9 @@ public class IngestContractImplTest {
         update.addActions(setActionStatusInactive, setActionDesactivationDateInactive, setActionLastUpdateInactive);
         updateParser.parse(update.getFinalUpdate());
         JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
+        
         RequestResponse<IngestContractModel> updateContractStatus =
-            ingestContractService.updateContract(queryDslForUpdate);
+            ingestContractService.updateContract(ingestModelList.get(0).getId(), queryDslForUpdate);
         assertThat(updateContractStatus).isNotExactlyInstanceOf(VitamError.class);
 
         List<IngestContractModel> ingestContractModelListForassert =
@@ -456,7 +480,7 @@ public class IngestContractImplTest {
             setActionLastUpdateActive);
         updateParserActive.parse(updateStatusActive.getFinalUpdate());
         JsonNode queryDslStatusActive = updateParserActive.getRequest().getFinalUpdate();
-        ingestContractService.updateContract(queryDslStatusActive);
+        ingestContractService.updateContract(ingestModelList.get(0).getId(), queryDslStatusActive);
 
 
         List<IngestContractModel> accessContractModelListForassert2 =

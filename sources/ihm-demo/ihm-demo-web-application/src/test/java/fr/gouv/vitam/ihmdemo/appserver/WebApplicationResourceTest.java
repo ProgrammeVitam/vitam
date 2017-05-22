@@ -265,7 +265,7 @@ public class WebApplicationResourceTest {
         JsonNode jsonNode = JsonHandler.createObjectNode();
         Mockito.doReturn("Atr").when(mockResponse).getHeaderString(anyObject());
         Mockito.doReturn(200).when(mockResponse).getStatus();
-        Mockito.doReturn(mockResponse).when(adminExternalClient).updateAccessContract(jsonNode, TENANT_ID);
+        Mockito.doReturn(mockResponse).when(adminExternalClient).updateAccessContract("azercdsqsdf", jsonNode, TENANT_ID);
     }
 
 

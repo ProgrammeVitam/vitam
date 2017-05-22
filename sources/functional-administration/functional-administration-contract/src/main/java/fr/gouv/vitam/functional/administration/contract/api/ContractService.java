@@ -29,6 +29,7 @@ package fr.gouv.vitam.functional.administration.contract.api;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -64,13 +65,14 @@ public interface ContractService<T extends AbstractContractModel> extends VitamA
      * <li>- DesactivationDate </li>
      * <li>- LastUpdate </li>
      * <li>- Status</li>
-     * 
-     * 
+     * @param id TODO
      * @param queryDsl the given queryDsl for update
+     * 
+     * 
      * @return RequestResponseOK if success or VitamError
      * @throws VitamException if in error occurs while validating contracts
      */
-    public RequestResponse<T> updateContract(JsonNode queryDsl) throws VitamException;
+    public RequestResponse<T> updateContract(String id, JsonNode queryDsl) throws VitamException;
 
 
     /**

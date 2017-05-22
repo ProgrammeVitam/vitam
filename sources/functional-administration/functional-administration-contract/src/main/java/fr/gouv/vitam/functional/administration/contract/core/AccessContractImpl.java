@@ -43,6 +43,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import fr.gouv.vitam.common.security.SanityChecker;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.bson.conversions.Bson;
 
@@ -359,7 +360,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
          * 
          * @throws VitamException
          */
-        private void logUpdateStarted() throws VitamException {
+        private void logUpdateStarted(String id) throws VitamException {
             eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
                 .newLogbookOperationParameters(eip, CONTRACT_UPDATE_EVENT, eip, LogbookTypeProcess.MASTERDATA,
@@ -367,13 +368,21 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                     VitamLogbookMessages.getCodeOp(CONTRACT_UPDATE_EVENT, StatusCode.STARTED), eip);
             logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, CONTRACT_UPDATE_EVENT +
                 "." + StatusCode.STARTED);
+            if (null != id && !id.isEmpty()) {
+                logbookParameters.putParameterValue(LogbookParameterName.objectIdentifier, id);
+            }
             helper.createDelegate(logbookParameters);
 
         }
 
-        private void logUpdateSuccess(String updateEventDetailData) throws VitamException {
-            ObjectNode evDetData = JsonHandler.createObjectNode();
-            evDetData.put("AccessStatus", updateEventDetailData);
+        private void logUpdateSuccess(String id, String updateEventDetailData, String oldValue) throws VitamException {
+            final ObjectNode evDetData = JsonHandler.createObjectNode();
+            final ObjectNode msg = JsonHandler.createObjectNode();
+            msg.put("updateField", "Status");
+            msg.put("oldValue", oldValue);
+            msg.put("newValue", updateEventDetailData);
+            evDetData.put("AccessContract", msg);
+            String wellFormedJson = SanityChecker.sanitizeJson(evDetData);
             final LogbookOperationParameters logbookParameters =
                 LogbookParametersFactory
                     .newLogbookOperationParameters(
@@ -384,8 +393,12 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                         StatusCode.OK,
                         VitamLogbookMessages.getCodeOp(CONTRACT_UPDATE_EVENT, StatusCode.OK),
                         eip);
+
+            if (null != id && !id.isEmpty()) {
+                logbookParameters.putParameterValue(LogbookParameterName.objectIdentifier, id);
+            }
             logbookParameters.putParameterValue(LogbookParameterName.eventDetailData,
-                JsonHandler.unprettyPrint(evDetData));
+                wellFormedJson);
             logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, CONTRACT_UPDATE_EVENT +
                 "." + StatusCode.OK);
             helper.updateDelegate(logbookParameters);
@@ -526,14 +539,19 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
 
 
     @Override
-    public RequestResponse<AccessContractModel> updateContract(JsonNode queryDsl)
+    public RequestResponse<AccessContractModel> updateContract(String id, JsonNode queryDsl)
         throws VitamException {
         ParametersChecker.checkParameter(UPDATE_ACCESS_CONTRACT_MANDATORY_PATAMETER, queryDsl);
         final VitamError error = new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem())
             .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
 
+        AccessContractModel accContractModel = findOne(id);
+        if (accContractModel == null) {
+            return error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
+                "Access contract not find" + id));
+        }
         AccessContractManager manager = new AccessContractManager(logBookclient);
-        manager.logUpdateStarted();
+        manager.logUpdateStarted(accContractModel.getId());
         if (queryDsl == null || !queryDsl.isObject()) {
             return error;
         }
@@ -549,9 +567,8 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                     String field = it.next();
                     JsonNode status = fieldName.findValue(field);
                     if ("Status".equals(field)) {
-                        if (!(AccessContractStatus.ACTIVE.name().equals(status.asText()) ||
-                            AccessContractStatus.INACTIVE
-                                .name().equals(status.asText()))) {
+                        if (!(ContractStatus.ACTIVE.name().equals(status.asText()) || ContractStatus.INACTIVE
+                            .name().equals(status.asText()))) {
                             error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
                                 "The Access contract status must be ACTIVE or INACTIVE but not " + status.asText()));
                         }
@@ -580,7 +597,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
 
             return error;
         }
-        manager.logUpdateSuccess(updateStatus);
+        manager.logUpdateSuccess(id, updateStatus, accContractModel.getStatus());
         return new RequestResponseOK<AccessContractModel>();
     }
 

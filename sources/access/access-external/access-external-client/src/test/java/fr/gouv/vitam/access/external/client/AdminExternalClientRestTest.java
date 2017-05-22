@@ -424,7 +424,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(
             Response.status(Status.OK).entity(new RequestResponseOK<>().addAllResults(getAccessContracts())).build());
-
+        
         RequestResponse resp =
             client.findDocuments(AdminCollections.ACCESS_CONTRACTS, JsonHandler.createObjectNode(), TENANT_ID);
         assertThat(resp).isInstanceOf(RequestResponseOK.class);

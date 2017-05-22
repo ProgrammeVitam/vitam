@@ -91,8 +91,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     private static final String ACCESSION_REGISTER_GET_DETAIL_URL = "accession-register/detail";
     private static final String INGEST_CONTRACTS_URI = "/contracts";
     private static final String ACCESS_CONTRACTS_URI = "/accesscontracts";
-    private static final String UPDATE_ACCESS_CONTRACT_URI = "/accesscontract";
-    private static final String UPDATE_INGEST_CONTRACT_URI = "/contract";
+    private static final String UPDATE_ACCESS_CONTRACT_URI = "/accesscontract/";
+    private static final String UPDATE_INGEST_CONTRACT_URI = "/contract/";
     private static final String PROFILE_URI = "/profiles";
 
     AdminManagementClientRest(AdminManagementClientFactory factory) {
@@ -808,12 +808,12 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public RequestResponse<AccessContractModel> updateAccessContract(JsonNode queryDsl)
+    public RequestResponse<AccessContractModel> updateAccessContract(String id, JsonNode queryDsl)
         throws InvalidParseOperationException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.PUT, UPDATE_ACCESS_CONTRACT_URI, null, queryDsl,
+            response = performRequest(HttpMethod.PUT, UPDATE_ACCESS_CONTRACT_URI + id, null, queryDsl,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
@@ -832,12 +832,12 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public RequestResponse<IngestContractModel> updateIngestContract(JsonNode queryDsl)
+    public RequestResponse<IngestContractModel> updateIngestContract(String id, JsonNode queryDsl)
         throws InvalidParseOperationException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.PUT, UPDATE_INGEST_CONTRACT_URI, null, queryDsl,
+            response = performRequest(HttpMethod.PUT, UPDATE_INGEST_CONTRACT_URI + id, null, queryDsl,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {

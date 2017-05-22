@@ -1786,7 +1786,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             updateStatusActive.addActions(setActionLastUpdateActive);
             updateParserActive.parse(updateStatusActive.getFinalUpdate());
             JsonNode queryDsl = updateParserActive.getRequest().getFinalUpdate();
-            final RequestResponse archiveDetails = adminClient.updateIngestContract(queryDsl, getTenantId(headers));
+            final RequestResponse archiveDetails = adminClient.updateIngestContract(contractId, queryDsl, getTenantId(headers));
             return Response.status(Status.OK).entity(archiveDetails).build();
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
@@ -1950,7 +1950,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 setActionLastUpdateActive);
             updateParserActive.parse(updateStatusActive.getFinalUpdate());
             JsonNode queryDsl = updateParserActive.getRequest().getFinalUpdate();
-            final RequestResponse archiveDetails = adminClient.updateAccessContract(queryDsl, getTenantId(headers));
+            final RequestResponse archiveDetails = adminClient.updateAccessContract(contractId, queryDsl, getTenantId(headers));
             return Response.status(Status.OK).entity(archiveDetails).build();
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
