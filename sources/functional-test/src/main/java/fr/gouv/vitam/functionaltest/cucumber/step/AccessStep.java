@@ -29,21 +29,11 @@ package fr.gouv.vitam.functionaltest.cucumber.step;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
-import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
-import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
-
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -65,20 +55,26 @@ import org.assertj.core.api.Fail;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Iterables;
 
 import cucumber.api.DataTable;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.access.external.api.AdminCollections;
+import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
 /**
  * step defining access glue
@@ -86,6 +82,18 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 public class AccessStep {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessStep.class);
+
+    private static final String UNIT_GUID = "UNIT_GUID";
+    
+    private static String CONTRACT_WITH_LINK = "[{" + 
+    "\"Name\":\"contrat_de_rattachement_TNR\"," + 
+        "\"Description\":\"Rattachant les SIP à une AU\"," +
+        "\"Status\" : \"ACTIVE\"," +
+        "\"LastUpdate\":\"10/12/2016\"," +
+        "\"CreationDate\":\"10/12/2016\"," +
+        "\"ActivationDate\":\"10/12/2016\"," +
+        "\"DeactivationDate\":\"10/12/2016\"," +
+        "\"FilingParentId\": \"" + UNIT_GUID + "\"}]";
 
     private static final String OPERATION_ID = "Operation-Id";
 
@@ -125,6 +133,26 @@ public class AccessStep {
         }
     }
 
+
+    /**
+     * Upload contract with noeud 
+     * 
+     * @param title
+     * @throws IOException
+     */
+    @When("^j'importe le contrat d'entrée avec le noeud de rattachement dont le titre est (.*)")
+    public void upload_contract_ingest_with_noeud(String title) throws Throwable {
+        try {
+            String unitGuid = replaceTitleByGUID(title);
+            String newContract = CONTRACT_WITH_LINK.replace(UNIT_GUID, unitGuid);
+            JsonNode node = JsonHandler.getFromString(newContract);
+            world.getAdminClient().importContracts(new ByteArrayInputStream(newContract.getBytes()), 
+                world.getTenantId(), AdminCollections.CONTRACTS);
+        } catch (AccessExternalClientException | IllegalStateException | InvalidParseOperationException e) {
+            // Do Nothing
+            LOGGER.warn("Contrat d'entrée est déjà importé");
+        }
+    }
     /**
      * @param lastJsonNode
      * @param raw
