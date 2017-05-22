@@ -220,19 +220,20 @@ public class ProfileManager {
      *
      * @param errorsDetails
      */
-    public void logValidationError(String eventType, String errorsDetails) throws VitamException {
+    public void logValidationError(String eventType, String objectId, String errorsDetails) throws VitamException {
         LOGGER.error("There validation errors on the input file {}", errorsDetails);
         final LogbookOperationParameters logbookParameters = LogbookParametersFactory
             .newLogbookOperationParameters(eip, eventType, eip, LogbookTypeProcess.MASTERDATA,
                 StatusCode.KO,
                 VitamLogbookMessages.getCodeOp(eventType, StatusCode.KO), eip);
-        logbookMessageError(errorsDetails, logbookParameters);
+        logbookMessageError(objectId, errorsDetails, logbookParameters);
+
         helper.updateDelegate(logbookParameters);
         logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
 
     }
 
-    private void logbookMessageError(String errorsDetails, LogbookOperationParameters logbookParameters) {
+    private void logbookMessageError(String objectId, String errorsDetails, LogbookOperationParameters logbookParameters) {
         if (null != errorsDetails && !errorsDetails.isEmpty()) {
             try {
                 final ObjectNode object = JsonHandler.createObjectNode();
@@ -244,6 +245,9 @@ public class ProfileManager {
                 //Do nothing
             }
         }
+        if (null != objectId && ! objectId.isEmpty()) {
+            logbookParameters.putParameterValue(LogbookParameterName.objectIdentifier, objectId);
+        }
     }
 
     /**
@@ -252,14 +256,14 @@ public class ProfileManager {
      * @param errorsDetails
      * @throws VitamException
      */
-    public void logFatalError(String eventType, String errorsDetails) throws VitamException {
+    public void logFatalError(String eventType, String objectId, String errorsDetails) throws VitamException {
         LOGGER.error("There validation errors on the input file {}", errorsDetails);
         final LogbookOperationParameters logbookParameters = LogbookParametersFactory
             .newLogbookOperationParameters(eip, eventType, eip, LogbookTypeProcess.MASTERDATA,
                 StatusCode.FATAL,
                 VitamLogbookMessages.getCodeOp(eventType, StatusCode.FATAL), eip);
 
-        logbookMessageError(errorsDetails, logbookParameters);
+        logbookMessageError(objectId, errorsDetails, logbookParameters);
 
         helper.updateDelegate(logbookParameters);
         logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
@@ -270,13 +274,14 @@ public class ProfileManager {
      *
      * @throws VitamException
      */
-    public void logStarted(String eventType) throws VitamException {
+    public void logStarted(String eventType, String objectId) throws VitamException {
         eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
         final LogbookOperationParameters logbookParameters = LogbookParametersFactory
             .newLogbookOperationParameters(eip, eventType, eip, LogbookTypeProcess.MASTERDATA,
                 StatusCode.STARTED,
                 VitamLogbookMessages.getCodeOp(eventType, StatusCode.STARTED), eip);
 
+        logbookMessageError(objectId, null, logbookParameters);
         helper.createDelegate(logbookParameters);
 
     }
@@ -286,11 +291,14 @@ public class ProfileManager {
      *
      * @throws VitamException
      */
-    public void logInProgress(String eventType, StatusCode statusCode) throws VitamException {
+    public void logInProgress(String eventType, String objectId, StatusCode statusCode) throws VitamException {
         final LogbookOperationParameters logbookParameters = LogbookParametersFactory
             .newLogbookOperationParameters(eip, eventType, eip, LogbookTypeProcess.MASTERDATA,
                 statusCode,
                 VitamLogbookMessages.getCodeOp(eventType, statusCode), eip);
+
+        logbookMessageError(objectId, null, logbookParameters);
+
         helper.updateDelegate(logbookParameters);
     }
 
@@ -299,11 +307,20 @@ public class ProfileManager {
      *
      * @throws VitamException
      */
-    public void logSuccess(String eventType) throws VitamException {
+    public void logSuccess(String eventType, String objectId, String message) throws VitamException {
         final LogbookOperationParameters logbookParameters = LogbookParametersFactory
             .newLogbookOperationParameters(eip, eventType, eip, LogbookTypeProcess.MASTERDATA,
                 StatusCode.OK,
                 VitamLogbookMessages.getCodeOp(eventType, StatusCode.OK), eip);
+
+        if (null != objectId && ! objectId.isEmpty()) {
+            logbookParameters.putParameterValue(LogbookParameterName.objectIdentifier, objectId);
+        }
+
+        if (null != message && ! message.isEmpty()) {
+            logbookParameters.putParameterValue(LogbookParameterName.eventDetailData, message);
+        }
+
         helper.updateDelegate(logbookParameters);
         logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
     }

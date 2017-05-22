@@ -67,7 +67,7 @@
 						<td ng-click="goToDetails(log._id)">{{log.Description}}</td>
 						<td ng-click="goToDetails(log._id)">{{log.Status | StrReplace }}</td> <!--TODO-->
 						<td ng-show="hasPermission('profiles:read')">
-							<a href="" ng-click="ctrl.downloadOperation(log._id)">
+							<a ng-if="log.Path" href="" ng-click="ctrl.downloadOperation(log._id)">
 								<i class="material-icons">file_download</i>
 							</a>
 						</td>
