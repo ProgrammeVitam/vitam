@@ -395,6 +395,7 @@ La page "Détail d'un contrat d'entrée" contient les informations suivantes :
 * Date d'activation
 * Date de mise à jour
 * Date de désactivation
+* Profils d'archivage
 
 .. image:: images/CONTRACTS_ingest_contract_detail.png
 
