@@ -121,13 +121,13 @@ La structure de la collection Unit est composée de la transposition JSON de tou
 
 _profil (#type): Type de document utilisé lors de l'entrée, correspond au ArchiveUnitProfile, le profil d'archivage utilisé lors de l'entrée
 
-"_mgt" (#management): possède les balises reprises du bloc <Management> du bordereau pour cette unité archivistique. Il contient :
+"_mgt" (#management): contient les balises reprises du bloc <Management> du bordereau pour cette unité archivistique :
   * "OriginatingAgency": le service producteur déclaré dans le bordereau
   * "RuleType" [] : ce tablleau est optionnel. Il contient les règles de gestions appliquées à cette unité archivistiques. Chaque tableau correspond à une catégorie de règle. Pour être valide, la catégorie de règle doit être présente dans la collection Rules. Chaque tableau contient une à n règles. Chaque règle est composée des champs suivants :
-    *  "Rule": ce champ contient le nom de la règle. Pour être valide, elle doit être contenue dans la collection Rule, et correspondre à la catégorie déclarée par le nom du tableau qui la contient
-    *  "StartDate": date de début. Cette date est déclarée dans le bordereau. Si aucune date n'est renseigne, c'est la date de l'import qui sera ajouté ici.
-    *  "FinalAction": champ décrivant le sort final. Ce champ est disponible pour les règles de type "StorageRule" et "AppraisalRule". La valeur contenu doit le champ doit être disponible soit dans l'énumération FinalActionAppraisalCodeType soit dans FinalActionStorageCodeType
-    *  "EndDate": Date de fin d'application de la règle; Cette valeur est issue d'un calcul réalisé par VITAM consistant en l'ajout du délais correspondant à la règle dans la collection Rules et le champ startDate.
+  *  "Rule": ce champ contient le nom de la règle. Pour être valide, elle doit être contenue dans la collection Rule, et correspondre à la catégorie déclarée par le nom du tableau qui la contient
+  *  "StartDate": date de début. Cette date est déclarée dans le bordereau. Si aucune date n'est renseigne, c'est la date de l'import qui sera ajouté ici.
+  *  "FinalAction": champ décrivant le sort final. Ce champ est disponible pour les règles de type "StorageRule" et "AppraisalRule". La valeur contenu doit le champ doit être disponible soit dans l'énumération FinalActionAppraisalCodeType soit dans FinalActionStorageCodeType
+  *  "EndDate": Date de fin d'application de la règle; Cette valeur est issue d'un calcul réalisé par VITAM consistant en l'ajout du délais correspondant à la règle dans la collection Rules et le champ startDate.
 
 Collection ObjectGroup
 ======================
@@ -217,7 +217,8 @@ Exemple de Json stocké en base
                     },
                     "Size": 29403,
                     "Uri": "Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf",
-                    "MessageDigest": "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
+                    "MessageDigest": "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266
+                    c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
                     "Algorithm": "SHA-512"
                 }
             ]
@@ -287,14 +288,13 @@ Les valeurs possibles pour ce champ sont : Audio, Document, Text, Image et Video
       - "FormatLitteral" : nom du format. C'est une reprise de la valeur située entre les balises <FormatLitteral> du XML
       - "MimeType" : type Mime. C'est une reprise de la valeur située entre les balises <MimeType> du XML.
       - "FormatId" : PUID du format de l'objet. Il est défini par Vitam à l'aide du référentiel PRONOM maintenu par The National Archives (UK).
-    - "FileInfo"
+    - "FileInfo" :
       - "Filename" : nom de l'objet
       - "CreatingApplicationName": Chaîne de caractères. Contient le nom de l'application avec laquelle le document a été créé. Ce champ est renseigné avec la métadonnée correspondante portée par le fichier. *Ce champ est facultatif et n'est pas présent systématiquement*
       - "CreatingApplicationVersion": Chaîne de caractères. Contient le numéro de version de l'application avec laquelle le document a été créé. Ce champ est renseigné avec la métadonnée correspondante portée par le fichier. *Ce champ est facultatif et n'est pas présent systématiquement*
       - "CreatingOs": Chaîne de caractères. Contient le nom du système d'exploitation avec lequel le document a été créé.  Ce champ est renseigné avec la métadonnée correspondante portée par le fichier. *Ce champ est facultatif et n'est pas présent systématiquement*
       - "CreatingOsVersion": Chaîne de caractères. Contient le numéro de version du système d'exploitation avec lequel le document a été créé.  Ce champ est renseigné avec la métadonnées correspondante portée par le fichier. *Ce champ et facultatif est n'est pas présent systématiquement*
       - "LastModified" : date de dernière modification de l'objet au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"Ce champ est optionnel, et est renseigné avec la métadonnée correspondante portée par le fichier.
-
       - "Size": Ce champ contient un nombre entier. taille de l'objet (en octets).
     - "OtherMetadata": Contient une chaîne de caractères. Champ disponible pour ajouter d'autres métadonnées metier (Dublin Core, IPTC...). Ce champ est renseigné avec les valeurs contenues entre les balises <OtherMetadata>. Ceci correspond à une extension du SEDA.
     - "Uri": localisation du fichier dans le SIP

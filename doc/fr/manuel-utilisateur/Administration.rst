@@ -60,6 +60,34 @@ Suite à la recherche, le résultat de la recherche est affiché sous forme de t
 
 .. image:: images/op_resultat.png
 
+L'utilisateur a la possibilité d'afficher des colonnes supplémentaires afin de faire apparaître les autres informations contenues dans le journal des opérations. 
+
+Pour cela il clique sur le bouton "Informations complémentaires" et sélectionne les informations qu'il souhaite afficher. 
+
+Celles-ci sont :
+
+- Identifiant de l'évènement
+- Détail des données de l'évènement
+- Identifiant de l'opération
+- Code d'erreur technique
+- Identifiant de l'agent interne
+- Identifiant de l'application externe
+- Identifiant donné par l'application externe
+- Identifiant de la requête
+- Identifiant du service versant
+- Identifiant du service producteur
+- Identifiant interne de l'objet
+- Identifiant externe de l'objet
+- Identifiant du tenant
+
+L'utilisateur a la possibité d'afficher toutes les colonnes supplémentaires en cliquant sur "Tout  sélectionner". 
+
+.. image:: images/op_tout_selectionner.png
+
+Une fois l'ensemble des colonnes affichées, l'utilisateur peut cliquer sur "Tout désélectionner" afin de revenir à l'affichage d'origine.
+
+.. image:: images/op_tout_deselectionner.png
+
 Consultation du détail d'une opération
 --------------------------------------
 
