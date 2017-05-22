@@ -334,7 +334,7 @@ Contrats d'entrée
 
 **Importer un contrat d'entrée**
 
-Pour importer un contrat d'entrée, l'utilisateur clique sur le menu "Administration" puis sur le sous-menu "importer un contrat d'entrée".
+Pour importer un contrat d'entrée, l'utilisateur clique sur le menu "Administration" puis sur le sous-menu "importer des contrats d'entrée".
 
 .. image:: images/CONTRACTS_Menu_import_ingest.png
 
@@ -343,8 +343,6 @@ Les contrats d'entrée sont des fichiers JSON constitués des champs suivants :
 * Name : nom du contrat (obligatoire)
 * Description : description du contrat (obligatoire)
 * Status : statut du contrat. ACTIVE ou INACTIVE
-* CreationDate : date de dernière mise à jour du contrat. Doit être contribué sous la forme JJ/MM/AAAA
-* ActivationDate : date d'activation du contrat. Doit être contribué sous la forme JJ/MM/AAAA
 
 Il sélectionne ensuite le fichier à importer en cliquant sur "parcourir", puis clique sur "importer" pour lancer l'opération.
 
@@ -400,11 +398,10 @@ La page "Détail d'un contrat d'entrée" contient les informations suivantes :
 
 Contrats d'accès
 -----------------
----
 
 **Importer un contrat d'accès**
 
-Pour importer un contrat d'accès, l'utilisateur clique sur le menu "Administration" puis sur le sous-menu "importer un contrat d'accès".
+Pour importer un contrat d'accès, l'utilisateur clique sur le menu "Administration" puis sur le sous-menu "importer des contrats d'accès".
 
 .. image:: images/CONTRACTS_Menu_import_acess.png
 
@@ -413,10 +410,7 @@ Les contrats d'accès sont des fichiers JSON constitués des champs suivants :
 * Name : nom du contrat (obligatoire)
 * Description : description du contrat (obligatoire)
 * Status : statut du contrat. ACTIVE ou INACTIVE
-* CreationDate : date de dernière mise à jour du contrat. Doit être contribué sous la forme JJ/MM/AAAA
-* ActivationDate : date d'activation du contrat. Doit être contribué sous la forme JJ/MM/AAAA
 * "OriginatingAgencies": tableau contenant le(s) service(s) producteur(s) pour le(s)quel(s) le détenteur du contrat peut accéder aux unités archivistiques (obligatoire)
-
 
 Il sélectionne ensuite le fichier à importer en cliquant sur "parcourir", puis clique sur "importer" pour lancer l'opération.
 
@@ -469,6 +463,96 @@ La page "Détail d'un contrat d'accès" contient les informations suivantes :
 
 .. image:: images/CONTRACTS_acces_contract_detail.png
 
+Profils d'archivage
+===================
+
+Accès aux menus de gestion des profils d'archivage
+---------------------------------------------------
+
+Les sous-menus permettant d’accéder aux interfaces de recherche et d’import de profils d'archivage sont disponibles dans le menu “Administration”.
+
+.. image:: images/profil_acces.png
+
+Importer un profil d'archivage
+--------------------------------
+
+Pour importer un profil d'archivage, l'utilisateur clique sur le menu "Administration" puis sur le sous-menu "importer des profils".
+
+Les profils d'archivage sont des fichiers JSON constitués des champs suivants :
+
+* Name : nom du profil d'archivage (obligatoire)
+* Description : description du profil d'archivage (obligatoire)
+* Status : statut du profil d'archivage. ACTIVE ou INACTIVE
+* Format : format attendu pour le fichier de règle. XSD ou RNG
+
+Pour importer un profil d'archivage, l'utilisateur sélectionne ensuite le fichier à importer en cliquant sur “parcourir”, puis clique sur “importer” pour lancer l’opération.
+
+.. image:: images/profil_import.png
+
+Une fenêtre modale indique alors soit :
+
+* Les contrats ont bien été importés
+* Échec de l’import du fichier. Ceci peut être causé par :
+	* le fait que le(s) profil(s) d'archivage mentionnés existent déjà pour le tenant
+	* le fait que le fichier JSON est invalide
+
+Cette opération est journalisée et disponible dans le Journal des Opérations.
+
+Rechercher un profil d'archivage
+---------------------------------
+
+Pour accéder à la recherche de profils d'archivage, l’utilisateur clique sur le menu “Administration”, puis sur le sous-menu “Référentiel des profils”.
+
+La page affiche un formulaire de recherche composé des champs suivants :
+
+* Nom du profil : permet d’effectuer une recherche approchante sur les noms des profils d'archivage disponibles dans la solution logicielle Vitam.
+* Identifiant : permet d’effectuer une recherche exacte sur les identifiants des profils d'archivage.
+
+Par défaut, la solution logicielle Vitam affiche tous les profils d'archivage disponibles dans la liste de résultats et l’affine en fonction de la recherche effectuée. La liste des résultats est composée des colonnes suivantes :
+
+* Identifiant
+* Nom
+* Description
+* Etat
+* Profil
+
+En cliquant sur une ligne, l’utilisateur ouvre le détail du profil d'archivage dans un nouvel onglet.
+
+Lorsqu'un fichier de règle a été associé au profil, une flèche indiquant la possibilité de le télecharger apparaît. L'utilisateur peut lancer le télechargement en cliquant dessus.
+
+.. image:: images/profil_search.png
+
+Consulter le détail d'un profil d'archivage
+--------------------------------------------
+
+La page "Détail d'un profil d'archivage" contient les informations suivantes :
+
+* ID
+* Nom
+* Description
+* Fichier
+* Format
+* Date de création
+* Statut
+* Date de mise à jour
+* Tenant(s)
+* Date de désactivation
+ 
+.. image:: images/profil_detail.png
+
+Assoccier un fichier de règles à un profil d'archivage
+-------------------------------------------------------
+
+Pour importer un fichier de règles à associer à un profil d'archivage, l'utilisateur clique sur le bouton "parcourir" à coté du champ "fichier" puis clique sur "importer". Le format du fichier doit correspondre au format attendu, indiqué dans le champ format.
+
+la fin de l'opération d'import, une fenêtre modale indique un des deux messages suivants :
+
+* Le profil a bien été importé
+* Echec de l'import du fichier
+
+L'opération est journalisée et disponible depuis l'écran de consultation des journaux d'opérations. 
+
+En cas de succès de l'import de fichier de règle, la date de mise à jour du profil est ajustée en conséquence. Si l'utilisateur importe un fichier de règle alors qu'un autre fichier de règles a déjà été importé, alors le nouveau fichier remplace l'ancien.
 
 Import d'un arbre de positionnement
 =================================
