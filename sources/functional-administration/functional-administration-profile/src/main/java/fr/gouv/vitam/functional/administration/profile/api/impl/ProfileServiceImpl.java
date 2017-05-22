@@ -30,6 +30,7 @@ package fr.gouv.vitam.functional.administration.profile.api.impl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.base.Strings;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -56,6 +57,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.VitamStreamingOutput;
 import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
@@ -68,6 +70,7 @@ import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminI
 import fr.gouv.vitam.functional.administration.profile.api.ProfileService;
 import fr.gouv.vitam.functional.administration.profile.core.ProfileManager;
 import fr.gouv.vitam.functional.administration.profile.core.ProfileValidator.RejectionCause;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
@@ -144,7 +147,7 @@ public class ProfileServiceImpl implements ProfileService {
         }
 
 
-        manager.logStarted(PROFILES_IMPORT_EVENT);
+        manager.logStarted(PROFILES_IMPORT_EVENT, null);
 
         final Set<String> profileIdentifiers = new HashSet<>();
         final Set<String> profileNames = new HashSet<>();
@@ -207,7 +210,7 @@ public class ProfileServiceImpl implements ProfileService {
                 // stop
                 String errorsDetails =
                     error.getErrors().stream().map(c -> c.getMessage()).collect(Collectors.joining(","));
-                manager.logValidationError(PROFILES_IMPORT_EVENT, errorsDetails);
+                manager.logValidationError(PROFILES_IMPORT_EVENT, null, errorsDetails);
                 return error;
             }
 
@@ -219,12 +222,12 @@ public class ProfileServiceImpl implements ProfileService {
             mongoAccess.insertDocuments(profilesToPersist, FunctionalAdminCollections.PROFILE);
         } catch (Exception exp) {
             String err = new StringBuilder("Import profiles error : ").append(exp.getMessage()).toString();
-            manager.logFatalError(PROFILES_IMPORT_EVENT,           err);
+            manager.logFatalError(PROFILES_IMPORT_EVENT,       null,     err);
             return getVitamError(VitamCode.PROFILE_FILE_IMPORT_ERROR.getItem(), err).setHttpCode(
                 Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
         }
 
-        manager.logSuccess(PROFILES_IMPORT_EVENT);
+        manager.logSuccess(PROFILES_IMPORT_EVENT, null,  null);
 
 
         return new RequestResponseOK<ProfileModel>().addAllResults(profileModelList).setHits(
@@ -237,7 +240,7 @@ public class ProfileServiceImpl implements ProfileService {
         InputStream profileFile)
         throws VitamException {
 
-        manager.logStarted(PROFILES_FILE_IMPORT_EVENT);
+        manager.logStarted(PROFILES_FILE_IMPORT_EVENT, profileMetadataId);
 
         final ProfileModel profileMetadata = findOne(profileMetadataId);
 
@@ -246,7 +249,7 @@ public class ProfileServiceImpl implements ProfileService {
         if (null == profileMetadata) {
             LOGGER.error("No profile metadata found with id : "+profileMetadataId+", to import the file, the metadata profile must be created first");
 
-            manager.logValidationError(PROFILES_FILE_IMPORT_EVENT,
+            manager.logValidationError(PROFILES_FILE_IMPORT_EVENT, profileMetadata.getId(),
                 "No profile metadata found with id : "+profileMetadataId+", to import the file, the metadata profile must be created first");
             return  vitamError. addToErrors(getVitamError(VitamCode.PROFILE_FILE_IMPORT_ERROR.getItem(), "No profile metadata found with id : "+profileMetadataId+", to import the file, the metadata profile must be created first"));
         }
@@ -267,7 +270,7 @@ public class ProfileServiceImpl implements ProfileService {
             if (!isValide) {
                 String errorsDetails =
                     vitamError.getErrors().stream().map(c -> c.getMessage()).collect(Collectors.joining(","));
-                manager.logValidationError(PROFILES_FILE_IMPORT_EVENT,"Profile file validate error : "+errorsDetails);
+                manager.logValidationError(PROFILES_FILE_IMPORT_EVENT,profileMetadataId, "Profile file validate error : "+errorsDetails);
                 return vitamError;
             }
 
@@ -289,13 +292,17 @@ public class ProfileServiceImpl implements ProfileService {
 
         final String fileName = String.format("%d_profile_%s_%s.%s", tenantId, profileMetadata.getId(), now().format(
             DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")), extention);
-
         final String uri = String.format("%s/%s", extention, fileName);
+
+
+        final String oldPath = profileMetadata.getPath();
+        final String newPath = fileName;
+
 
         //Final path in the workspace : tenant_profiles/format(xsd|rng)/tenant_profile_id.format(xsd|rng)
 
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-            manager.logInProgress(OP_PROFILE_STORAGE, StatusCode.STARTED);
+            manager.logInProgress(OP_PROFILE_STORAGE, profileMetadataId,  StatusCode.STARTED);
 
             workspaceClient.createContainer(containerName);
             workspaceClient.putObject(containerName, uri, profileFile);
@@ -308,7 +315,7 @@ public class ProfileServiceImpl implements ProfileService {
                 if (!isValide) {
                     String errorsDetails =
                         vitamError.getErrors().stream().map(c -> c.getMessage()).collect(Collectors.joining(","));
-                    manager.logValidationError(PROFILES_FILE_IMPORT_EVENT,"Profile file validate error : "+errorsDetails);
+                    manager.logValidationError(PROFILES_FILE_IMPORT_EVENT, profileMetadataId,"Profile file validate error : "+errorsDetails);
                     workspaceClient.deleteContainer(containerName, true);
                     return vitamError;
                 }
@@ -324,7 +331,7 @@ public class ProfileServiceImpl implements ProfileService {
             try (final StorageClient storageClient = storageClientFactory.getClient()) {
 
                 storageClient.storeFileFromWorkspace(DEFAULT_STORAGE_STRATEGY, StorageCollectionType.PROFILES, fileName, description);
-                manager.logInProgress(OP_PROFILE_STORAGE, StatusCode.OK);
+                manager.logInProgress(OP_PROFILE_STORAGE, profileMetadataId, StatusCode.OK);
 
 
 
@@ -348,7 +355,7 @@ public class ProfileServiceImpl implements ProfileService {
                 StorageServerClientException | ContentAddressableStorageNotFoundException e) {
                 String err = new StringBuilder("Import profiles storage error : ").append(e.getMessage()).toString();
                 LOGGER.error(err, e);
-                manager.logFatalError(OP_PROFILE_STORAGE,           err);
+                manager.logFatalError(OP_PROFILE_STORAGE,      profileMetadataId,     err);
                 return getVitamError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem(), err).setHttpCode(
                     Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
             } finally {
@@ -357,7 +364,7 @@ public class ProfileServiceImpl implements ProfileService {
         } catch (ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException e) {
             String err = new StringBuilder("Import profiles storage workspace error : ").append(e.getMessage()).toString();
             LOGGER.error(err, e);
-            manager.logFatalError(OP_PROFILE_STORAGE,           err);
+            manager.logFatalError(OP_PROFILE_STORAGE,     profileMetadataId,      err);
             return getVitamError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem(), err).setHttpCode(
                 Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
@@ -370,7 +377,21 @@ public class ProfileServiceImpl implements ProfileService {
                 }
         }
 
-        manager.logSuccess(PROFILES_FILE_IMPORT_EVENT);
+        String wellFormedJson = null;
+        try {
+            final ObjectNode object = JsonHandler.createObjectNode();
+            final ObjectNode msg = JsonHandler.createObjectNode();
+            msg.put("updateField", "Path");
+            msg.put("oldPath", oldPath);
+            msg.put("newPath", newPath);
+            object.put("profileUpdate", msg);
+
+            wellFormedJson = SanityChecker.sanitizeJson(object);
+        } catch (InvalidParseOperationException e) {
+            //Do nothing
+        }
+
+        manager.logSuccess(PROFILES_FILE_IMPORT_EVENT, profileMetadataId, wellFormedJson);
 
         return new RequestResponseOK().setHttpCode(Response.Status.CREATED.getStatusCode());
     }
