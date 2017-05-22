@@ -153,17 +153,7 @@
     </dependency>
     <dependency>
         <groupId>fr.gouv.vitam</groupId>
-        <artifactId>ingest-internal-model</artifactId>
-        <version>${project.version}</version>
-    </dependency>
-    <dependency>
-        <groupId>fr.gouv.vitam</groupId>
         <artifactId>ingest-internal-api</artifactId>
-        <version>${project.version}</version>
-    </dependency>
-    <dependency>
-        <groupId>fr.gouv.vitam</groupId>
-        <artifactId>ingest-internal-core</artifactId>
         <version>${project.version}</version>
     </dependency>
     <dependency>

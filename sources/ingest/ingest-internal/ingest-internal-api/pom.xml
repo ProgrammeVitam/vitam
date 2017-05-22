@@ -18,11 +18,6 @@
         </dependency>
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
-            <artifactId>ingest-internal-model</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>fr.gouv.vitam</groupId>
             <artifactId>workspace-api</artifactId>
             <version>${project.version}</version>
         </dependency>
