@@ -242,15 +242,18 @@ Exemple de JSON stocké en base
 ::
 
     {
-    "_id": "aefqaaaaaahbl62nabkzgak3k6qtf3aaaaaq",
-    "_tenant": 0,
-    "Name": "SIA archives nationales",
-    "Description": "Contrat d'accès - SIA archives nationales",
-    "Status": "ACTIVE",
-    "CreationDate": "2017-04-10T11:30:33.798",
-    "LastUpdate": "2017-04-10T11:30:33.798",
-    "ActivationDate": "2017-04-10T11:30:33.798",
-    "DeactivationDate": null
+      "_id": "aefqaaaaaahbl62nabkzgak3k6qtf3aaaaaq",
+      "_tenant": 0,
+      "Name": "SIA archives nationales",
+      "Description": "Contrat d'accès - SIA archives nationales",
+      "Status": "ACTIVE",
+      "CreationDate": "2017-04-10T11:30:33.798",
+      "LastUpdate": "2017-04-10T11:30:33.798",
+      "ActivationDate": "2017-04-10T11:30:33.798",
+      "DeactivationDate": null
+      "ArchiveProfiles": [
+          "ArchiveProfile8"
+      ]
     }
 
 Exemple d'un fichier implémentant des contrats d'entrée envoyé au format JSON
@@ -270,6 +273,9 @@ L'exemple suivant est un JSON contenant deux contrats d'entrée :
             "Name":"Contrat Archives Nationales",
             "Description":"Test entrée - Contrat Archives Nationales",
             "Status" : "INACTIVE",
+            "ArchiveProfiles": [
+              "ArchiveProfile8"
+            ]
         }
     ]
 
@@ -297,6 +303,8 @@ Détail des champs
 "ActivationDate": date d'activation. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
 
 "DeactivationDate": date de désactivation du contrat. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+
+"ArchiveProfiles": Tableau de chaînes de caractères. Contient la liste des profils d'archivage pouvant être utilisés par le contrat d'entrée.
 
 Collection AccessContract
 =========================
