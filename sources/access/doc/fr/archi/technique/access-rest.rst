@@ -271,7 +271,7 @@ la classe contient actuellement 6 méthodes :
 ##########################################
 classe controlleur REST
 
-la classe contient actuellement 6 méthodes :
+la classe contient actuellement 10 méthodes :
 1. checkDocument()
 	vérifier le format ou la règle
 
@@ -294,29 +294,76 @@ la classe contient actuellement 6 méthodes :
     public Response importDocument(@PathParam("collection") String collection, InputStream document) {
      ...
 
-3. findDocuments()
-     récupérer le format ou la règle
+3. importProfileFile()
+    Importer un fichier au format xsd ou rng et l'attacher à un profile métadata déjà existant.
+
+ .. code-block:: java
+	@Path("/{collection}/{id}")
+    @PUT
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response importProfileFile(@Context UriInfo uriInfo, @PathParam("collection") String collection, @PathParam("id") String profileMetadataId,
+        InputStream profileFile) {
+     ...
+
+4. downloadProfileFile()
+    Télécharger un fichier d'un profile métadata existant au format xsd ou rng.
+
+ .. code-block:: java
+	@GET
+    @Path("/{collection}/{id}")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public void downloadProfileFile(@PathParam("collection") String collection, @PathParam("id") String profileMetadataId,
+        @Suspended final AsyncResponse asyncResponse) {
+     ...
+
+5. findDocuments()
+     récupérer le format, la règle, le contrat (entrée ou accès), le profile.
+
+ .. code-block:: java
+ 	@Path("/{collection}")
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response findDocuments(@PathParam("collection") String collection, JsonNode select) {
+     ...
+
+6. createOrfindDocuments()
+    Si la valeur de xhttpOverride est rensigné et égale à GET alors, c'est un find, donc redirection vers la méthode findDocuments ci-dessus.
+    Sinon, c'est créate. Cette méthode est utilisé pour créer des profiles au format json. On peut noter que dans ce cas de figure, ça ressemble à la méthode importDocument, sauf que le Consumes qui change.
 
  .. code-block:: java
  	@Path("/{collection}")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response findDocuments(@PathParam("collection") String collection, JsonNode select) {
+    public Response createOrfindDocuments(@PathParam("collection") String collection, JsonNode select, @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
      ...
 
-4. findDocumentByID()
-     récupérer le format ou la règle avec la filtre avec son id
+
+7. findDocumentByID()
+     En utilisant la méthode POST avec un paramètre xhttpOverride, ce méthode permets de récupérer avec un id en entrée, le format, la règle, les contrats (accès, entrée), les profiles.
 
  .. code-block:: java
- 	@POST
-    @Path("/{collection}/{id_document}")
+ 	@Path("/{collection}/{id_document}")
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response findDocumentByID(@PathParam("collection") String collection, @PathParam("id_document") String documentId, @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
+     ...
+
+
+8. findDocumentByID()
+     En utilisant la méthode GET, ce méthode permets derécupérer avec un id en entrée, le format, la règle, les contrats (accès, entrée), les profiles.
+
+ .. code-block:: java
+ 	@Path("/{collection}/{id_document}")
+    @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response findDocumentByID(@PathParam("collection") String collection,
         @PathParam("id_document") String documentId) {
      ...
 
-5. updateAccessContract()
+9. updateAccessContract()
    Mise à jour du contrat d'accès
    .. code-block:: java
     @PUT
@@ -326,7 +373,7 @@ la classe contient actuellement 6 méthodes :
        public Response updateAccessContract(JsonNode queryDsl) {
        ...
 
-6. updateIngestContract()
+10. updateIngestContract()
      Mise à jour du contrat d'entrée
      .. code-block:: java
       @PUT
