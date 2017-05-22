@@ -169,7 +169,7 @@ public class BenchmarkMultipartResource extends ApplicationStatusResource {
     public MultiPart multipartPost(@FormDataParam("sip") FormDataContentDisposition sipDisposition,
         @FormDataParam("sip") InputStream stream, @FormDataParam("check") String check) {
         final long size = JunitHelper.consumeInputStream(stream);
-        final FakeInputStream inputStream = new FakeInputStream(size, true);
+        final FakeInputStream inputStream = new FakeInputStream(size);
         final MultiPart multiPart = new MultiPart();
         multiPart
             .bodyPart(new StreamDataBodyPart("sipback", inputStream, sipDisposition.getFileName()));

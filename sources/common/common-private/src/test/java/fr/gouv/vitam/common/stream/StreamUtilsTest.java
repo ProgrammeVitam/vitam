@@ -64,7 +64,7 @@ public class StreamUtilsTest {
     @Test
     public void testPartialReadOnClose() throws IOException {
         final long size = 100000;
-        FakeInputStream inputStream = new FakeInputStream(size, true);
+        FakeInputStream inputStream = new FakeInputStream(size);
         try {
             final long read = inputStream.skip(size / 2);
             assertEquals(size / 2, read);

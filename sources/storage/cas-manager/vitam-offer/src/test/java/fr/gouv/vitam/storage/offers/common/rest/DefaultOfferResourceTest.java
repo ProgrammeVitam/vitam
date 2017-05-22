@@ -686,7 +686,7 @@ public class DefaultOfferResourceTest {
                     .contentType(MediaType.APPLICATION_JSON).content(objectInit).when()
                     .post(OBJECTS_URI + "/" + DataCategory.OBJECT.name() + "/id" + i);
 
-            try (FakeInputStream fin = new FakeInputStream(50, false)) {
+            try (FakeInputStream fin = new FakeInputStream(50)) {
                 assertNotNull(fin);
                 given().header(GlobalDataRest.X_TENANT_ID, "1").header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_END)
                         .contentType(MediaType.APPLICATION_OCTET_STREAM).content(fin).when()

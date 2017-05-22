@@ -235,7 +235,7 @@ public class StorageTestMultiIT {
             // nothing
         }
 
-        try (FakeInputStream fis = new FakeInputStream(size, false)) {
+        try (FakeInputStream fis = new FakeInputStream(size, true, true)) {
             workspaceClient.putObject(CONTAINER, OBJECT_ID, fis);
         }
     }
@@ -318,7 +318,7 @@ public class StorageTestMultiIT {
             GUID objectId = GUIDFactory.newObjectGUID(0);
             workspaceGUIDs.add(objectId);
             try {
-                try (FakeInputStream fis = new FakeInputStream(size, false)) {
+                try (FakeInputStream fis = new FakeInputStream(size, true, true)) {
                     workspaceClient.putObject(CONTAINER, objectId.getId(), fis);
                 }
             } catch (Exception e1) {

@@ -509,7 +509,7 @@ public class StorageDistributionImplTest {
         createObjectDescription.setWorkspaceContainerGUID("container1" + this);
         createObjectDescription.setWorkspaceObjectURI("SIP/content/test.pdf");
 
-        FakeInputStream stream = new FakeInputStream(500, false);
+        FakeInputStream stream = new FakeInputStream(500);
         reset(client);
 
         when(client.getObject("container1" + this, "SIP/content/test.pdf")).thenReturn(

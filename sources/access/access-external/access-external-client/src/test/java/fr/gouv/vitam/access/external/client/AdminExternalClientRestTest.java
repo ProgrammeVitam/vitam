@@ -312,7 +312,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).entity(error).build());
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         RequestResponse resp =
-            client.importContracts(new FakeInputStream(0, false), TENANT_ID, AdminCollections.CONTRACTS);
+            client.importContracts(new FakeInputStream(0), TENANT_ID, AdminCollections.CONTRACTS);
         Assert.assertTrue(VitamError.class.isAssignableFrom(resp.getClass()));
         Assert.assertEquals(Status.BAD_REQUEST.getStatusCode(), (((VitamError) resp).getHttpCode()));
     }
@@ -358,7 +358,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).entity(error).build());
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         RequestResponse resp =
-            client.importContracts(new FakeInputStream(0, false), TENANT_ID, AdminCollections.ACCESS_CONTRACTS);
+            client.importContracts(new FakeInputStream(0), TENANT_ID, AdminCollections.ACCESS_CONTRACTS);
         Assert.assertTrue(VitamError.class.isAssignableFrom(resp.getClass()));
         Assert.assertEquals(Status.BAD_REQUEST.getStatusCode(), (((VitamError) resp).getHttpCode()));
     }
@@ -487,7 +487,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).entity(error).build());
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         RequestResponse resp =
-            client.createProfiles(new FakeInputStream(0, false), TENANT_ID);
+            client.createProfiles(new FakeInputStream(0), TENANT_ID);
         Assert.assertTrue(VitamError.class.isAssignableFrom(resp.getClass()));
         Assert.assertEquals(Status.BAD_REQUEST.getStatusCode(), (((VitamError) resp).getHttpCode()));
     }
@@ -511,7 +511,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
             Response.status(Status.CREATED).entity(new RequestResponseOK<>())
                 .build());
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        RequestResponse resp = client.importProfileFile("FakeIdXSD", new FakeInputStream(0, false), TENANT_ID);
+        RequestResponse resp = client.importProfileFile("FakeIdXSD", new FakeInputStream(0), TENANT_ID);
         Assert.assertTrue(RequestResponseOK.class.isAssignableFrom(resp.getClass()));
         Assert.assertTrue((((RequestResponseOK) resp).isOk()));
     }
@@ -524,7 +524,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
             Response.status(Status.CREATED).entity(new RequestResponseOK<>())
                 .build());
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        RequestResponse resp = client.importProfileFile("FakeIdRNG", new FakeInputStream(0, false), TENANT_ID);
+        RequestResponse resp = client.importProfileFile("FakeIdRNG", new FakeInputStream(0), TENANT_ID);
         Assert.assertTrue(RequestResponseOK.class.isAssignableFrom(resp.getClass()));
         Assert.assertTrue((((RequestResponseOK) resp).isOk()));
     }

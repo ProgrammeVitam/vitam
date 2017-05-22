@@ -356,7 +356,7 @@ public abstract class ContentAddressableStorageTestAbstract {
         storage.createContainer(containerName);
         assertNotNull(storage.getContainerInformation(containerName));
         for (int i = 0; i < 100; i++) {
-            storage.putObject(containerName, GUIDFactory.newGUID().getId(), new FakeInputStream(100, false));
+            storage.putObject(containerName, GUIDFactory.newGUID().getId(), new FakeInputStream(100));
         }
         PageSet<? extends StorageMetadata> pageSet = storage.listContainer(containerName);
         assertNotNull(pageSet);
@@ -364,7 +364,7 @@ public abstract class ContentAddressableStorageTestAbstract {
         assertEquals(100, pageSet.size());
 
         for (int i = 100; i < (nbIter * 100 +50); i++) {
-            storage.putObject(containerName, GUIDFactory.newGUID().getId(), new FakeInputStream(100, false));
+            storage.putObject(containerName, GUIDFactory.newGUID().getId(), new FakeInputStream(100));
         }
         // First list without marker
         pageSet = storage.listContainer(containerName);
