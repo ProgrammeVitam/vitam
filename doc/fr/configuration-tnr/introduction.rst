@@ -45,3 +45,10 @@ Une fois git lfs installé, il est néccessaire de l'activer pour le dépôt vit
 
 	git lfs install
 
+Méthodologie de test
+=====================
+
+Purge des bases
+----------------
+
+Les bases sont vidée avant le lancement de chaque campagne de test. Il est donc nécessaire que toutes les ressources mobilisées pour un test (SIP, référentiels...) soient chargées dans VITAM en amont de l’exécution de ce test. 
