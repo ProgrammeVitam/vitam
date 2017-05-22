@@ -90,6 +90,8 @@
     - "jetty-config.xml"
     - "vitam.conf"
     - "vitam.metrics.conf"
+  tags:
+    - update_vitam_configuration
   notify:
     - restart service
 
