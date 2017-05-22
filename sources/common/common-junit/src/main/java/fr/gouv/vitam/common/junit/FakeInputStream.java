@@ -3,6 +3,8 @@ package fr.gouv.vitam.common.junit;
 import java.io.InputStream;
 import java.util.Random;
 
+import com.google.common.util.concurrent.FakeTimeLimiter;
+
 /**
  * Fake InputStream
  */
@@ -12,7 +14,20 @@ public class FakeInputStream extends InputStream {
     private long read = 0;
     private final boolean block;
     private final Random random = new Random();
+    private final boolean useRandom;
 
+    /**
+     * Constructor of Fake InputStream
+     *<br/>
+     *<br/>
+     *<b>Preferred constructor</b>
+     *
+     * @param limit the total size of the InputStream
+     */
+    public FakeInputStream(long limit) {
+        this(limit, true, false);
+    }
+    
     /**
      * Constructor of Fake InputStream
      *
@@ -20,12 +35,27 @@ public class FakeInputStream extends InputStream {
      * @param block True means the byte are read per block and False means one by one read
      */
     public FakeInputStream(long limit, boolean block) {
+        this(limit, block, false);
+    }
+
+    /**
+     * Constructor of Fake InputStream
+     *
+     * @param limit the total size of the InputStream
+     * @param block True means the byte are read per block and False means one by one read
+     * @param useRandom True use random values for each bytes, else 42 for each
+     */
+    public FakeInputStream(long limit, boolean block, boolean useRandom) {
         this.limit = limit;
         this.block = block;
+        this.useRandom = useRandom;
     }
 
     private byte getValue() {
-        return (byte) random.nextInt(BYTE_VALUE_LIMIT);
+        if (useRandom) {
+            return (byte) random.nextInt(BYTE_VALUE_LIMIT);
+        }
+        return 42;
     }
 
     @Override

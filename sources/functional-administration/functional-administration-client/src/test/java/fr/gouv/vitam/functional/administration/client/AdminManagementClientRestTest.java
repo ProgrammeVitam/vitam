@@ -725,7 +725,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         when(mock.put()).thenReturn(Response.status(Status.CREATED).entity(new RequestResponseOK<>().setHttpCode(Status.CREATED.getStatusCode())).build());
-        RequestResponse resp = client.importProfileFile("fakeId", new FakeInputStream(0l, false));
+        RequestResponse resp = client.importProfileFile("fakeId", new FakeInputStream(0l));
         assertEquals(resp.getHttpCode(), Status.CREATED.getStatusCode());
     }
 

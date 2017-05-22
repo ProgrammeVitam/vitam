@@ -360,7 +360,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
     @Test
     public void putBigObjectWithRequestOk() throws Exception {
         final StoragePutRequest request = new StoragePutRequest(1, DataCategory.OBJECT.getFolder(), "GUID",
-            DigestType.MD5.getName(), new FakeInputStream(2097152, true));
+            DigestType.MD5.getName(), new FakeInputStream(2097152));
         when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(getPostObjectResult(-1)).build());
         when(mock.put()).thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(0)).build())
             .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(1)).build())
@@ -379,7 +379,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
     @Test
     public void putBigObject2WithRequestOk() throws Exception {
         final StoragePutRequest request = new StoragePutRequest(tenant, DataCategory.OBJECT.getFolder(), "GUID",
-            DigestType.MD5.getName(), new FakeInputStream(2201507, true));
+            DigestType.MD5.getName(), new FakeInputStream(2201507));
         when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(getPostObjectResult(-1)).build());
         when(mock.put()).thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(0)).build())
             .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(1)).build())
@@ -400,7 +400,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
     @Test(expected = StorageDriverException.class)
     public void putBigObjectWithRequestInternalError() throws Exception {
         final StoragePutRequest request = new StoragePutRequest(tenant, DataCategory.OBJECT.name(), "GUID",
-            DigestType.MD5.getName(), new FakeInputStream(2097152, true));
+            DigestType.MD5.getName(), new FakeInputStream(2097152));
         when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(getPostObjectResult(-1)).build());
         when(mock.put()).thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(0)).build())
             .thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
@@ -414,7 +414,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
     public void putBigObjectWithBadRequestDuringTransfert() throws Exception {
         final StoragePutRequest request =
             new StoragePutRequest(0, DataCategory.OBJECT.name(), "GUID", DigestType.MD5.getName(),
-                new FakeInputStream(2095104, true));
+                new FakeInputStream(2095104));
         when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(getPostObjectResult(-1)).build());
         when(mock.put()).thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(0)).build())
             .thenReturn(Response.status(Status.BAD_REQUEST).build());

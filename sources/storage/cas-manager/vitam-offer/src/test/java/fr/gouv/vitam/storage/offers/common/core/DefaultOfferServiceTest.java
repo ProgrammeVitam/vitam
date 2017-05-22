@@ -128,7 +128,7 @@ public class DefaultOfferServiceTest {
     @Test
     public void createObjectTestNoContainer() throws Exception {
         final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
-        offerService.createObject("fakeContainer", OBJECT_ID, new FakeInputStream(1024, false), true, OBJECT_TYPE);
+        offerService.createObject("fakeContainer", OBJECT_ID, new FakeInputStream(1024), true, OBJECT_TYPE);
     }
 
     @Test
@@ -421,7 +421,7 @@ public class DefaultOfferServiceTest {
         final ObjectInit objectInit = getObjectInit(false);
         for (int i = 0; i < 150; i++) {
             offerService.initCreateObject(CONTAINER_PATH, objectInit, "object_" + i);
-            offerService.createObject(CONTAINER_PATH, "object_" + i, new FakeInputStream(50, false), true, OBJECT_TYPE);
+            offerService.createObject(CONTAINER_PATH, "object_" + i, new FakeInputStream(50), true, OBJECT_TYPE);
         }
         String cursorId = offerService.createCursor(CONTAINER_PATH);
         assertNotNull(cursorId);

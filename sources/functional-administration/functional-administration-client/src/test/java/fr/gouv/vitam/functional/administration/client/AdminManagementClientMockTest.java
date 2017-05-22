@@ -270,7 +270,7 @@ public class AdminManagementClientMockTest {
     @RunWithCustomExecutor
     public void givenClientMockWhenImportProfileFile() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        RequestResponse resp = client.importProfileFile("fakeId", new FakeInputStream(0,false));
+        RequestResponse resp = client.importProfileFile("fakeId", new FakeInputStream(0));
         assertEquals(resp.getHttpCode(), Status.CREATED.getStatusCode());
     }
 

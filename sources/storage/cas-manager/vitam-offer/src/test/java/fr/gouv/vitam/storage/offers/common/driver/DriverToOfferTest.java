@@ -217,7 +217,7 @@ public class DriverToOfferTest {
 
         // Add some objects
         for (int i = 0; i < 150; i++) {
-            try (FakeInputStream fis = new FakeInputStream(50, false)) {
+            try (FakeInputStream fis = new FakeInputStream(50)) {
                 request = new StoragePutRequest(TENANT_ID, DataCategory.UNIT.name(), "f" + i,
                         VitamConfiguration.getDefaultDigestType().name(), fis);
                 connection.putObject(request);

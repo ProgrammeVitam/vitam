@@ -198,17 +198,17 @@ abstract class AbstractCommonClient implements BasicClient {
         if (source instanceof ConnectTimeoutException || source instanceof UnknownHostException
                 || source instanceof org.apache.http.conn.HttpHostConnectException
                 || source.getMessage().startsWith("Unable to establish route:")) {
-            LOGGER.info("TimeoutOccurs or DNS probe error, retry: " + retry, source);
+            LOGGER.warn("TimeoutOccurs or DNS probe error, retry: " + retry, source);
             try {
                 long sleep = random.nextInt(50) + 20;
                 Thread.sleep(sleep);
             } catch (InterruptedException e1) {
-                LOGGER.warn("TimeoutOccurs or DNS probe error, retry: " + retry, source);
+                LOGGER.error("TimeoutOccurs or DNS probe error, retry: " + retry, source);
                 throw new ProcessingException("Interruption received", e1);
             }
             return e;
         } else {
-            LOGGER.warn("TimeoutOccurs or DNS probe error, retry: " + retry, source);
+            LOGGER.error("TimeoutOccurs or DNS probe error, retry: " + retry, source);
             throw e;
         }
     }
@@ -246,6 +246,7 @@ abstract class AbstractCommonClient implements BasicClient {
             }
         }
         if (lastException != null) {
+            LOGGER.error(lastException);
             throw lastException;
         } else {
             throw new VitamClientInternalException("Unknown error in client");
@@ -400,6 +401,7 @@ abstract class AbstractCommonClient implements BasicClient {
                         }
                     }
                     if (lastException != null) {
+                        LOGGER.error(lastException);
                         throw lastException;
                     } else {
                         throw new VitamClientInternalException("Unknown error in client");
@@ -416,6 +418,7 @@ abstract class AbstractCommonClient implements BasicClient {
                     }
                 }
                 if (lastException != null) {
+                    LOGGER.error(lastException);
                     throw lastException;
                 } else {
                     throw new VitamClientInternalException("Unknown error in client");
@@ -467,6 +470,7 @@ abstract class AbstractCommonClient implements BasicClient {
                         }
                     }
                     if (lastException != null) {
+                        LOGGER.error(lastException);
                         throw lastException;
                     } else {
                         throw new VitamClientInternalException("Unknown error in client");
@@ -483,6 +487,7 @@ abstract class AbstractCommonClient implements BasicClient {
                     }
                 }
                 if (lastException != null) {
+                    LOGGER.error(lastException);
                     throw lastException;
                 } else {
                     throw new VitamClientInternalException("Unknown error in client");
@@ -566,6 +571,7 @@ abstract class AbstractCommonClient implements BasicClient {
                 }
             }
         }
+        builder.header("Connection", "keep-alive");
         String newPath = path;
         if (newPath.codePointAt(0) != '/') {
             newPath = "/" + newPath;
