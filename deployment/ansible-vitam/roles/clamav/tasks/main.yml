@@ -8,6 +8,8 @@
     owner: "{{ vitam_user }}"
     group: "{{ vitam_group }}"
     mode: 0750
+  tags:
+    - update_vitam_configuration
 
 # TODO: clean up the list (hint : ensure everything is really used ... I fear not.).
 - name: install ClamAV packages
