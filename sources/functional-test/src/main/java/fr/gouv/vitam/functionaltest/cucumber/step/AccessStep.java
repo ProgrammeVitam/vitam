@@ -251,6 +251,46 @@ public class AccessStep {
     public void number_of_result_are(int numberOfResult) throws Throwable {
         assertThat(results).hasSize(numberOfResult);
     }
+    
+    /**
+     * check if the status of the select result is unauthorized
+     *
+     * @param numberOfResult number of result.
+     * @throws Throwable
+     */
+    @Then("^le statut de select résultat est (.*)$")
+    public void the_status_of_the_select_result(String status) throws Throwable {
+        JsonNode queryJSON = JsonHandler.getFromString(query);
+        String s = null;
+        try{
+            RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnits(queryJSON,
+            world.getTenantId(), world.getContractId());
+        } catch (AccessUnauthorizedException e){
+            s = Status.UNAUTHORIZED.toString();
+        }
+        assertThat(status).isEqualTo(s);
+    }
+    
+    /**
+     * check if the status of the update result is unauthorized
+     *
+     * @param numberOfResult number of result.
+     * @throws Throwable
+     */
+    @Then("^le statut de update résultat est (.*)$")
+    public void the_status_of_the_update_result(String status) throws Throwable {
+        JsonNode queryJSON = JsonHandler.getFromString(query);
+        String s = null;
+        // get id of last result
+        String unitId = getValueFromResult("#id", 0);
+        try{
+            RequestResponse<JsonNode> requestResponse = world.getAccessClient().updateUnitbyId(queryJSON, unitId,
+            world.getTenantId(), world.getContractId());
+        } catch (AccessUnauthorizedException e){
+            s = Status.UNAUTHORIZED.toString();
+        }
+        assertThat(status).isEqualTo(s);
+    }
 
     /**
      * define a query from a file to reuse it after
