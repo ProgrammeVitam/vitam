@@ -107,7 +107,7 @@ public class SynchronizedLruCacheTest {
         Thread.sleep(20);
         synchronizedLruCache.forceClearOldest();
         synchronizedLruCache.updateTtl("key");
-        Thread.sleep(20);
+        Thread.sleep(40);
         synchronizedLruCache.forceClearOldest();
         assertEquals(1, synchronizedLruCache.size());
         Thread.sleep(100);
