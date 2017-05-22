@@ -22,7 +22,7 @@
   "operation.logbook.displayField.evIdProc": "Identifiant de l'opération",
   "operation.logbook.displayField.evTypeProc": "Catégorie d'opération",
   "operation.logbook.displayField.outDetail": "Code d'erreur technique",
-  "operation.logbook.displayField.agId": "Identifiant de l'agent",
+  "operation.logbook.displayField.agId": "Identifiant de l'agent interne",
   "operation.logbook.displayField.obId": "Identifiant interne de l'objet",
   "operation.logbook.displayField.evIdReq": "Identifiant de la requête",
   "operation.logbook.displayField.obIdReq": "Identifiant du lot d'objet",
