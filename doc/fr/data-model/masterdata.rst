@@ -324,10 +324,6 @@ Exemple de JSON stocké en base
     "OriginatingAgencies":["FRA-56","FRA-47"]
     }
 
-Les champs à renseigner obligatoirement à la création d'un contrat sont :
-* Name
-* Description
-
 Exemple d'un fichier implémentant des contrats d'accès envoyé au format JSON
 ------------------------------------------------------------------------------
 
@@ -353,6 +349,10 @@ L'exemple suivant est un JSON contenant deux contrats d'accès :
         }
     ]
 
+Les champs à renseigner obligatoirement à la création d'un contrat sont :
+* Name
+* Description
+
 Détail des champs
 -----------------
 
@@ -376,6 +376,89 @@ Détail des champs
 
 "OriginatingAgencies": tableau contenant les services producteurs pour lesquels le détenteur du contrat a accès peut consulter les archives. Il s'agit d'un tableau de chaînes de caractères.
 
+Collection Profile
+===================
+
+Utilisation de la collection
+----------------------------
+
+La collection Profile permet de stocker unitairement les profils d'archivage.
+
+Exemple de JSON stocké en base
+--------------------------------
+
+::
+
+  {
+    "_id": "aegaaaaaaehlfs7waax4iak4f52mzriaaaaq",
+    "_tenant": 1,
+    "Identifier": "ArchiveProfile0",
+    "Name": "ArchiveProfile0",
+    "Description": "aDescription of the Profile",
+    "Status": "ACTIVE",
+    "Format": "XSD",
+    "CreationDate": "2016-12-10T00:00",
+    "LastUpdate": "2017-05-22T09:23:33.637",
+    "ActivationDate": "2016-12-10T00:00",
+    "DeactivationDate": "2016-12-10T00:00",
+    "Path": "1_profile_aegaaaaaaehlfs7waax4iak4f52mzriaaaaq_20170522_092333.xsd"
+  }
+
+Exemple d'un fichier implémentant des profils envoyé au format JSON
+---------------------------------------------------------------------
+
+::
+
+  [
+    {
+      "Identifier":"ArchiveProfile0",
+      "Name":"ArchiveProfile0",
+      "Description":"Description of the Profile",
+      "Status":"ACTIVE",
+      "Format":"XSD"
+    },
+      {
+      "Identifier":"ArchiveProfile1",
+      "Name":"ArchiveProfile1",
+      "Description":"Description of the profile 2",
+      "Status":"ACTIVE",
+      "Format":"RNG"
+    }
+  ]
+
+Les champs à renseigner obligatoirement à la création d'un contrat sont :
+
+* Name
+* Description
+* Format
+
+Détail des champs
+-----------------
+
+"_id": identifiant unique. Il s'agit d'une chaîne de 36 caractères.
+
+"_tenant": Identifiant du tenant.
+
+"Identifier": Chaîne de caractères. Indique l'identifiant du profil d'archivage. 
+
+"Name": Chaîne de caractères unique par tenant. Indique le nom du profil d'archivage.
+
+"Description": Chaîne de caractères permettant de décrire le profil d'archivage.
+
+"Status": Chaîne de caractères indiquant l'état du profil d'archivage. Elle doit correspondre à une valeur de l'énuméartion ProfileStatus, soit ACTIVE soit INACTIVE.
+
+"Format": Chaîne de cractères devant correspondre à l'énumération ProfileFormat. Indique le format attendu pour le fichier décrivant les règles du profil d'archivage.
+
+"CreationDate": date de création du profil d'archivage. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+
+"LastUpdate": date de dernière modification du profil d'archivage. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+
+"ActivationDate": date d'activation du profil d'archivage. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+
+"DeactivationDate": date de desactivation du profil d'archivage. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+
+"Path": Chaine de caractères. Indique le nom du fichier de règles associé au profil d'archivage.
+
 Collection AccessionRegisterSummary
 ===================================
 
@@ -385,7 +468,7 @@ Utilisation de la collection
 Cette collection est utilisée pour l'affichage global du registre des fonds, dans la liste des fonds pour lesquels des AU ont été prises en compte dans Vitam.
 
 Exemple de JSON stocké en base
-------------------------------
+--------------------------------
 
 ::
 
@@ -417,7 +500,7 @@ Exemple de JSON stocké en base
   }
 
 Exemple de la description dans le XML d'entrée
-----------------------------------------------
+-----------------------------------------------
 
 Les seuls élements issus des bordereaux (manifest.xml), utilisés ici sont ceux correspondants à la déclaration des identifiants du service producteur et du service versant. Ils sont placés entre les balisés <ManagementMetadata>
 
