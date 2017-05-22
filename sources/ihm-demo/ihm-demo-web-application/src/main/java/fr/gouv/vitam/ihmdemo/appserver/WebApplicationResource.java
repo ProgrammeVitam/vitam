@@ -80,6 +80,7 @@ import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
+import fr.gouv.vitam.access.external.common.exception.AccessExternalNotFoundException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -110,7 +111,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessExecutionStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
@@ -133,6 +133,8 @@ import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+
+import static fr.gouv.vitam.common.server.application.AsyncInputStreamHelper.asyncResponseResume;
 
 /**
  * Web Application Resource class
@@ -1587,6 +1589,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                     throw new VitamClientException("No ArchiveTransferReply found in response from Server");
                 }
             }
+            return Response.fromResponse(response).build();
         } catch (final ProcessingException e) {
             // if there is an unauthorized action
             LOGGER.error(e);
@@ -1597,8 +1600,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
         } catch (BadRequestException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        } finally {
+            DefaultClient.staticConsumeAnyEntityAndClose(response);
         }
-        return response;
     }
 
 
@@ -2048,16 +2052,22 @@ public class WebApplicationResource extends ApplicationStatusResource {
                     .header("Content-Disposition", response.getHeaderString("Content-Disposition"))
                     .type(response.getMediaType());
             helper.writeResponse(responseBuilder);
-        }  catch (final AccessExternalClientException exc) {
+        } catch (final AccessExternalNotFoundException exc) {
             LOGGER.error(exc.getMessage(), exc);
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR)
-                .toString()).build());
+            asyncResponseResume(asyncResponse,
+                Response.status(Status.NOT_FOUND)
+                    .entity(getErrorEntity(Status.NOT_FOUND, exc.getMessage()).toString()).build());
+        } catch (final AccessExternalClientException exc) {
+            LOGGER.error(exc.getMessage(), exc);
+            asyncResponseResume(asyncResponse,
+                Response.status(Status.INTERNAL_SERVER_ERROR)
+                    .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exc.getMessage()).toString()).build());
         }
     }
 
-    private VitamError getErrorEntity(Status status) {
+    private VitamError getErrorEntity(Status status, String msgErr) {
         return new VitamError(status.name()).setHttpCode(status.getStatusCode())
-            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase());
+            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(msgErr);
     }
 
     /**

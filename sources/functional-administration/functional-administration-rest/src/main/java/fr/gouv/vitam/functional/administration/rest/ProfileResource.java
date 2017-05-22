@@ -212,18 +212,24 @@ public class ProfileResource {
 
                     profileService.downloadProfileFile(profileMetadataId, asyncResponse);
 
-                }  catch (final ProfileNotFoundException | ReferentialException | InvalidParseOperationException exc) {
+                }  catch (final ProfileNotFoundException exc) {
                     LOGGER.error(exc.getMessage(), exc);
-                    AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR)
-                        .toString()).build());
+                    AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                        Response.status(Status.NOT_FOUND)
+                            .entity(getErrorEntity(Status.NOT_FOUND, exc.getMessage(), null).toString()
+                            ).build());
+
+                }  catch (final ReferentialException | InvalidParseOperationException exc) {
+                    LOGGER.error(exc.getMessage(), exc);
+                    AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                        Response.status(Status.INTERNAL_SERVER_ERROR)
+                            .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exc.getMessage(), null).toString()
+                            ).build());
                 }
             });
     }
 
-    private VitamError getErrorEntity(Status status) {
-        return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext("FUNCTIONAL_ADMINISTRATION_MODULE")
-            .setState("").setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase());
-    }
+
     /**
      * Find profiles by queryDsl
      *
@@ -268,8 +274,10 @@ public class ProfileResource {
             (message != null && !message.trim().isEmpty()) ? message
                 : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
         String aCode = (code != null) ? code : String.valueOf(status.getStatusCode());
-        return new VitamError(aCode).setHttpCode(status.getStatusCode()).setContext("ADMIN_MODULE")
-            .setState("code_vitam").setMessage(status.getReasonPhrase()).setDescription(aMessage);
+        return new VitamError(aCode).setHttpCode(status.getStatusCode())
+            .setContext("FUNCTIONAL_ADMINISTRATION_MODULE")
+            .setState("ko").setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
+
 
 }

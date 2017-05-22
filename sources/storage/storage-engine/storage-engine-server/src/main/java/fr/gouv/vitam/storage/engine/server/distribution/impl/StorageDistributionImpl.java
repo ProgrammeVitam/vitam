@@ -693,8 +693,9 @@ public class StorageDistributionImpl implements StorageDistribution {
     private Map<String, Object> retrieveDataFromWorkspace(String containerGUID, String objectURI,
         WorkspaceClient workspaceClient)
         throws StorageNotFoundException, StorageTechnicalException {
+        Response response = null;
         try {
-            Response response = workspaceClient.getObject(containerGUID, objectURI);
+            response = workspaceClient.getObject(containerGUID, objectURI);
             Map<String, Object> result = new HashMap<>();
             String length = response.getHeaderString(VitamHttpHeader.X_CONTENT_LENGTH.getName());
             Object entity = response.getEntity();
@@ -716,9 +717,11 @@ public class StorageDistributionImpl implements StorageDistribution {
             result.put(RESPONSE_KEY, response);
             return result;
         } catch (final ContentAddressableStorageNotFoundException exc) {
+            workspaceClient.consumeAnyEntityAndClose(response);
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, containerGUID), exc);
             throw new StorageNotFoundException(exc);
         } catch (final ContentAddressableStorageServerException exc) {
+            workspaceClient.consumeAnyEntityAndClose(response);
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), exc);
             throw new StorageTechnicalException(exc);
         }

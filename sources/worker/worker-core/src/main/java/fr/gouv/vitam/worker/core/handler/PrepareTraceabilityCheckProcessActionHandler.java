@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -33,6 +33,8 @@ import java.util.List;
 
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.common.client.DefaultClient;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -69,7 +71,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 /**
- * 
+ *
  */
 public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler {
 
@@ -128,6 +130,7 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
             return itemStatus;
         }
 
+        Response response = null;
         // 2- TRACEABILITY operation found, so extract the ZIP file to start checking process
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
 
@@ -144,7 +147,7 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
             String fileName = traceabilityEvent.getFileName();
 
             // 1- get zip file
-            final Response response =
+            response =
                 storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, fileName, StorageCollectionType.LOGBOOKS);
 
             // 2- unzip file
@@ -166,6 +169,8 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e.getMessage(), e);
             itemStatus.increment(StatusCode.FATAL);
+        } finally {
+            DefaultClient.staticConsumeAnyEntityAndClose(response);
         }
 
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);

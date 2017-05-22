@@ -191,22 +191,19 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     }
 
     @Override
-    public Response storeATR(GUID guid, InputStream input) throws VitamClientException {
+    public void storeATR(GUID guid, InputStream input) throws VitamClientException {
         Response response = null;
 
         try {
             response = performRequest(HttpMethod.POST, INGEST_URL + "/" + guid + REPORT,
                 null, input, MediaType.APPLICATION_OCTET_STREAM_TYPE,
                 MediaType.APPLICATION_OCTET_STREAM_TYPE);
-            return response;
 
         } catch (VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);
             throw new VitamClientException(e);
         } finally {
-            if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
-                consumeAnyEntityAndClose(response);
-            }
+            consumeAnyEntityAndClose(response);
         }
     }
 

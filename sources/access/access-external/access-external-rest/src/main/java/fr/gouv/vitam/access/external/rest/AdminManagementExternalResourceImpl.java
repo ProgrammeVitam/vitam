@@ -267,8 +267,8 @@ public class AdminManagementExternalResourceImpl {
 
         if (!AdminCollections.PROFILE.compareTo(collection)) {
             LOGGER.error("Endpoint accept only profiles");
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR)
-                .toString()).build());
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, "Endpoint accept only profiles", null)).build());
         }
 
         ParametersChecker.checkParameter("Profile id should be filled", profileMetadataId);
@@ -279,30 +279,28 @@ public class AdminManagementExternalResourceImpl {
         VitamThreadPoolExecutor.getDefaultExecutor()
             .execute(() -> asyncDownloadProfileFile(profileMetadataId, asyncResponse));
     }
-
     private void asyncDownloadProfileFile(String profileMetadataId, final AsyncResponse asyncResponse) {
-
-        AsyncInputStreamHelper helper;
-
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
 
             final Response response = client.downloadProfileFile(profileMetadataId);
-            helper = new AsyncInputStreamHelper(asyncResponse, response);
+            final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
+
             final ResponseBuilder responseBuilder =
                 Response.status(Status.OK)
                     .header("Content-Disposition", response.getHeaderString("Content-Disposition"))
                     .type(response.getMediaType());
             helper.writeResponse(responseBuilder);
-        }  catch (final AdminManagementClientServerException | ProfileNotFoundException exc) {
+        }  catch (final ProfileNotFoundException exc) {
             LOGGER.error(exc.getMessage(), exc);
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR)
-                .toString()).build());
+            AsyncInputStreamHelper
+                .asyncResponseResume(asyncResponse,
+                    Response.status(Status.NOT_FOUND).entity(getErrorEntity(Status.NOT_FOUND, exc.getMessage(), null).toString()).build());
+        }  catch (final AdminManagementClientServerException exc) {
+            LOGGER.error(exc.getMessage(), exc);
+            AsyncInputStreamHelper
+                .asyncResponseResume(asyncResponse,
+                    Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exc.getMessage(), null).toString()).build());
         }
-    }
-
-    private VitamError getErrorEntity(Status status) {
-        return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(ACCESS_EXTERNAL_MODULE)
-            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase());
     }
 
     /**
@@ -453,7 +451,7 @@ public class AdminManagementExternalResourceImpl {
         if (xhttpOverride != null && "GET".equalsIgnoreCase(xhttpOverride)) {
             return findDocumentByID(collection, documentId);
         } else {
-            return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST)).build();
+            return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST, "Method not yet implemented", null)).build();
         }
     }
 

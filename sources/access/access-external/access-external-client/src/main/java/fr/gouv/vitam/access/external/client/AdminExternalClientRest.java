@@ -14,9 +14,11 @@ import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
+import fr.gouv.vitam.access.external.common.exception.AccessExternalNotFoundException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -238,8 +240,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             response = performRequest(HttpMethod.PUT, AdminCollections.PROFILE.getName() + "/" + profileMetadataId, headers,
                 profile, MediaType.APPLICATION_OCTET_STREAM_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
-            RequestResponse responseBis = RequestResponse.parseFromResponse(response);
-            return responseBis;
+            return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
@@ -249,7 +250,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public Response downloadProfileFile(String profileMetadataId, Integer tenantId) throws AccessExternalClientException {
+    public Response downloadProfileFile(String profileMetadataId, Integer tenantId) throws AccessExternalClientException,
+        AccessExternalNotFoundException {
         ParametersChecker.checkParameter("Profile is is required", profileMetadataId);
 
 
@@ -262,19 +264,19 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             response = performRequest(HttpMethod.GET, AdminCollections.PROFILE.getName() +"/"+ profileMetadataId, headers, MediaType.APPLICATION_OCTET_STREAM_TYPE);
             status = Status.fromStatusCode(response.getStatus());
             switch (status) {
-                case INTERNAL_SERVER_ERROR:
-                    LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
-                    throw new AccessExternalClientException(INTERNAL_SERVER_ERROR);
-                case NOT_FOUND:
-                    throw new AccessExternalClientException(status.getReasonPhrase());
                 case OK:
-                    break;
-                default:
-                    LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
-                    throw new AccessExternalClientException(
-                        INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
+                    return response;
+                default: {
+                    String msgErr = "Error while download profile file : "+profileMetadataId;
+                    final RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
+                    if (!requestResponse.isOk()) {
+                        VitamError error = (VitamError) requestResponse;
+                        msgErr = error.getDescription();
+                    }
+                    throw new AccessExternalNotFoundException(msgErr);
+                }
             }
-            return response;
+
         } catch (final VitamClientInternalException e) {
             throw new AccessExternalClientException(INTERNAL_SERVER_ERROR, e); // access-common
         } finally {

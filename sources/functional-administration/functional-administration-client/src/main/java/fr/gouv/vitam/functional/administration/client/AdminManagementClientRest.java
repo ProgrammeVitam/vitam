@@ -45,6 +45,7 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
@@ -717,19 +718,18 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
             status = Status.fromStatusCode(response.getStatus());
             switch (status) {
-                case INTERNAL_SERVER_ERROR:
-                    LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
-                    throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR);
-                case NOT_FOUND:
-                    throw new ProfileNotFoundException(status.getReasonPhrase());
                 case OK:
-                    break;
-                default:
-                    LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
-                    throw new AdminManagementClientServerException(
-                        INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
+                    return response;
+                default: {
+                    String msgErr = "Error while download profile file : "+profileMetadataId;
+                    final RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
+                    if (!requestResponse.isOk()) {
+                        VitamError error = (VitamError) requestResponse;
+                        msgErr = error.getDescription();
+                    }
+                    throw new ProfileNotFoundException(msgErr);
+                }
             }
-            return response;
         } catch (final VitamClientInternalException e) {
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
         } finally {
