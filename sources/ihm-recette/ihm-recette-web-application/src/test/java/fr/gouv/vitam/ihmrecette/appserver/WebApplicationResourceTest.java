@@ -28,6 +28,7 @@ package fr.gouv.vitam.ihmrecette.appserver;
 
 
 import static com.jayway.restassured.RestAssured.given;
+import static fr.gouv.vitam.ihmrecette.appserver.WebApplicationResource.DEFAULT_CONTRACT_NAME;
 
 import java.io.File;
 
@@ -126,7 +127,7 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testGetLogbookStatisticsWithSuccess() throws Exception {
-        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, TENANT_ID))
+        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, TENANT_ID, DEFAULT_CONTRACT_NAME))
             .thenReturn(RequestResponseOK.getFromJsonNode(sampleLogbookOperation));
         given().param("id_op", FAKE_OPERATION_ID).expect().statusCode(Status.OK.getStatusCode()).when()
             .get("/stat/" + FAKE_OPERATION_ID);
@@ -136,7 +137,7 @@ public class WebApplicationResourceTest {
     @Test
     public void testGetLogbookStatisticsWithNotFoundWhenLogbookClientException()
         throws Exception {
-        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, TENANT_ID))
+        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, TENANT_ID, DEFAULT_CONTRACT_NAME))
             .thenThrow(LogbookClientException.class);
         given().param("id_op", FAKE_OPERATION_ID).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .get("/stat/" + FAKE_OPERATION_ID);
@@ -146,7 +147,7 @@ public class WebApplicationResourceTest {
     @Test
     public void testGetLogbookStatisticsWithInternalServerErrorWhenInvalidParseOperationException()
         throws Exception {
-        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, TENANT_ID))
+        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, TENANT_ID, DEFAULT_CONTRACT_NAME))
             .thenThrow(InvalidParseOperationException.class);
         given().param("id_op", FAKE_OPERATION_ID).expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
             .when()

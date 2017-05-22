@@ -74,7 +74,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     private static final String NOT_FOUND_EXCEPTION = "Not Found Exception";
     private static final String UNAUTHORIZED = "Unauthorized";
     private static final int TIME_TO_SLEEP = 1000; // one seconds
-    private static final int NB_TRY = 100;
+    private static final int NB_TRY = 500;
 
     IngestExternalClientRest(IngestExternalClientFactory factory) {
         super(factory);

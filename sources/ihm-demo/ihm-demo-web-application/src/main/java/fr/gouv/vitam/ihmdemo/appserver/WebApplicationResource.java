@@ -27,6 +27,47 @@
 package fr.gouv.vitam.ihmdemo.appserver;
 
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.CookieParam;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import org.apache.shiro.authc.UsernamePasswordToken;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.util.ThreadContext;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Iterables;
@@ -92,46 +133,6 @@ import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
-import org.apache.shiro.authc.UsernamePasswordToken;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
-import org.apache.shiro.subject.Subject;
-import org.apache.shiro.util.ThreadContext;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.CookieParam;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 /**
  * Web Application Resource class
@@ -401,11 +402,13 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @RequiresPermissions("logbook:operations:read")
     public Response getLogbookResultById(@Context HttpHeaders headers, @PathParam("idOperation") String operationId,
         String options) {
+        String contractName = headers.getHeaderString(GlobalDataRest.X_ACCESS_CONTRAT_ID);
         RequestResponse result = null;
         try {
             ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-            result = UserInterfaceTransactionManager.selectOperationbyId(operationId, getTenantId(headers));
+            result =
+                UserInterfaceTransactionManager.selectOperationbyId(operationId, getTenantId(headers), contractName);
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
@@ -574,6 +577,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         // mapping X-request-ID
         final List<Object> responseDetails = uploadRequestsStatus.get(operationId);
         Integer tenantId = getTenantId(headers);
+        String contractName = headers.getHeaderString(GlobalDataRest.X_ACCESS_CONTRAT_ID);
 
         if (responseDetails != null) {
             try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
@@ -592,7 +596,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                     File file = downloadAndSaveATR(id, tenantId);
 
                     if (file != null) {
-                        JsonNode lastEvent = getlogBookOperationStatus(id, tenantId);
+                        JsonNode lastEvent = getlogBookOperationStatus(id, tenantId, contractName);
                         // ingestExternalClient client
                         int status = getStatus(lastEvent);
                         return Response.status(status).entity(new FileInputStream(file))
@@ -651,10 +655,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
-    private static JsonNode getlogBookOperationStatus(String operationId, Integer tenantId)
+    private static JsonNode getlogBookOperationStatus(String operationId, Integer tenantId, String contractName)
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         final RequestResponse<JsonNode> result =
-            UserInterfaceTransactionManager.selectOperationbyId(operationId, tenantId);
+            UserInterfaceTransactionManager.selectOperationbyId(operationId, tenantId, contractName);
         RequestResponseOK<JsonNode> responseOK = (RequestResponseOK<JsonNode>) result;
         List<JsonNode> results = responseOK.getResults();
         JsonNode operation = results.get(0);
@@ -1000,11 +1004,13 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @RequiresPermissions("archiveunit:objects:read")
     public void getObjectAsInputStreamAsync(@Context HttpHeaders headers, @PathParam("idOG") String objectGroupId,
         @QueryParam("usage") String usage, @QueryParam("version") String version,
-        @QueryParam("filename") String filename, @QueryParam("tenantId") Integer tenantId, @QueryParam("contractId") String contractId,
+        @QueryParam("filename") String filename, @QueryParam("tenantId") Integer tenantId,
+        @QueryParam("contractId") String contractId,
         @Suspended final AsyncResponse asyncResponse) {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         VitamThreadPoolExecutor.getDefaultExecutor()
-            .execute(() -> asyncGetObjectStream(asyncResponse, objectGroupId, usage, version, filename, tenantId, contractId));
+            .execute(() -> asyncGetObjectStream(asyncResponse, objectGroupId, usage, version, filename, tenantId,
+                contractId));
     }
 
     /**
