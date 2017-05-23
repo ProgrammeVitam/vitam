@@ -97,7 +97,11 @@ angular.module('workflows')
       $scope.search.response.data = response.data.$results[0].$results[0].$results[0];
       $scope.search.response.totalResult = $scope.search.response.data.length;
       $scope.search.pagination.resultPages = Math.ceil($scope.search.response.totalResult / $scope.search.pagination.itemsPerPage);
-      $scope.search.pagination.currentPage = Math.floor($scope.search.pagination.startOffset / $scope.search.pagination.itemsPerPage) + 1;
+      if ($scope.search.pagination.resultPages > 0) {
+        $scope.search.pagination.currentPage = Math.floor($scope.search.pagination.startOffset / $scope.search.pagination.itemsPerPage) + 1;
+      } else {
+        $scope.search.pagination.currentPage = 0;
+      }
       return true;
     };
     var computeErrorMessage = function() {
