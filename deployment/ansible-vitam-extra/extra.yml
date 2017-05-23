@@ -7,7 +7,7 @@
 
 - hosts: vitam
   roles:
-    - {role: packetbeat, when: "ansible_virtualization_type != 'docker'"}
+    - {role: packetbeat, when: "inventory_hostname != 'localhost'"}
 
 - hosts: hosts-elasticsearch-log
   roles:
@@ -19,7 +19,7 @@
 
 - hosts: hosts-mongo-express
   roles:
-    - {role: mongo-express, when: "ansible_virtualization_type != 'docker'"}
+    - {role: mongo-express, when: "inventory_hostname != 'localhost'"}
 
 - hosts: elasticsearch
   roles:
