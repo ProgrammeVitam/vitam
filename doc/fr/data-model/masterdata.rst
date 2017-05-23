@@ -250,10 +250,11 @@ Exemple de JSON stocké en base
       "CreationDate": "2017-04-10T11:30:33.798",
       "LastUpdate": "2017-04-10T11:30:33.798",
       "ActivationDate": "2017-04-10T11:30:33.798",
-      "DeactivationDate": null
+      "DeactivationDate": null,
       "ArchiveProfiles": [
           "ArchiveProfile8"
-      ]
+      ],
+      "FilingParentId": "aeaqaaaaaagbcaacaax56ak35rpo6zqaaaaq"
     }
 
 Exemple d'un fichier implémentant des contrats d'entrée envoyé au format JSON
@@ -306,6 +307,8 @@ Détail des champs
 
 "ArchiveProfiles": Tableau de chaînes de caractères. Contient la liste des profils d'archivage pouvant être utilisés par le contrat d'entrée.
 
+"FilingParentId": le point de rattachement -- id d’une unité archivistique dans le plan de classement
+
 Collection AccessContract
 =========================
 
@@ -329,7 +332,9 @@ Exemple de JSON stocké en base
     "LastUpdate": "2017-04-10T11:30:33.798",
     "ActivationDate": "2017-04-10T11:30:33.798",
     "DeactivationDate": null,
-    "OriginatingAgencies":["FRA-56","FRA-47"]
+    "OriginatingAgencies":["FRA-56","FRA-47"],
+    "DataObjectVersion": ["PhysicalMaster", "BinaryMaster", "Dissemination", "Thumbnail", "TextContent"],
+    "WritingPermission": true
     }
 
 Exemple d'un fichier implémentant des contrats d'accès envoyé au format JSON
@@ -383,6 +388,10 @@ Détail des champs
 "DeactivationDate": date de désactivation du contrat. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
 
 "OriginatingAgencies": tableau contenant les services producteurs pour lesquels le détenteur du contrat a accès peut consulter les archives. Il s'agit d'un tableau de chaînes de caractères.
+
+"DataObjectVersion": tableau contenant tous les usages d'un groupe d'objet à qui l'utilisateur souhaite d'avoir d'access.
+
+"WritingPermission": droit d'écriture. Peut être true ou false. S'il est true, on peut éditer des métadonnées d’une unité archivistique.
 
 Collection Profile
 ===================
