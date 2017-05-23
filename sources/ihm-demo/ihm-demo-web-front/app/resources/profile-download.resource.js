@@ -35,7 +35,7 @@
 // Define resources in order to call WebApp http endpoints for download
 // Logbook
 angular.module('core').factory('downloadProfileResource',
-		function(IHM_URLS, $http) {
+		function(IHM_URLS, $http, authVitamService) {
 
 			var Download_profile_ROOT = '/profiles/';
 			var downloadProfileResource = {};
@@ -46,7 +46,7 @@ angular.module('core').factory('downloadProfileResource',
 			 * @returns {HttpPromise} The promise returned by the http call
 			 */
 			downloadProfileResource.result = function(idProfile) {
-				return $http.get(IHM_URLS.IHM_BASE_URL + Download_profile_ROOT + idProfile, {headers:{accept: 'application/octet-stream'}});
+				return $http.get(IHM_URLS.IHM_BASE_URL + Download_profile_ROOT + idProfile, {headers:{'accept': 'application/octet-stream', 'X-Tenant-Id': authVitamService.cookieValue(authVitamService.COOKIE_TENANT_ID)}});
 			};
 
 			return downloadProfileResource;
