@@ -480,12 +480,12 @@ abstract class AbstractCommonClient implements BasicClient {
     @Override
     public void close() {
         if (client != null) {
-            clientFactory.chunkedPoolingManager.releaseConnection((HttpClientConnection) client, null,
-                VitamConfiguration.getMaxDelayUnusedConnection(), TimeUnit.MILLISECONDS);
+            /* clientFactory.chunkedPoolingManager.releaseConnection(client, null,
+                VitamConfiguration.getMaxDelayUnusedConnection(), TimeUnit.MILLISECONDS);*/
         }
         if (clientNotChunked != null) {
-            clientFactory.notChunkedPoolingManager.releaseConnection((HttpClientConnection) clientNotChunked, null,
-                VitamConfiguration.getMaxDelayUnusedConnection(), TimeUnit.MILLISECONDS);
+            /* clientFactory.notChunkedPoolingManager.releaseConnection(clientNotChunked, null,
+                VitamConfiguration.getMaxDelayUnusedConnection(), TimeUnit.MILLISECONDS); */
         }
     }
 
