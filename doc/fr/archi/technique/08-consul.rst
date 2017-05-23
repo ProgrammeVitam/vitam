@@ -19,6 +19,7 @@ Dans le cadre de VITAM, le déploiement des noeuds consul doit correspondre aux 
 * Un cluster de serveurs consul sur un nombre impair de noeuds dédiés, chacun d'entre eux étant configurés pour exposer l'IHM de suivi ;
 * 1 client par serveur hébergeant un service VITAM.
 
+.. note:: Préconisation : Le fonctionnement de consul via trois noeuds master au minimum nous prémunissent de la perte d'un de ces noeuds sans perturbation du service. Un seul noeud consul est très déconseillé.
 
 Résolution DNS
 ==============
