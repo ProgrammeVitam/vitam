@@ -3,18 +3,17 @@
 #### Curator ####
 
 # Disabled when docker detected (local deployement)
-# TODO: check if localhost instead of ansible_virtualization_type != docker
 - name: remove PyYAML.x86_64 as incompatible with Curator
   package:
     name: PyYAML.x86_64
     state: absent
-  when: ansible_virtualization_type != 'docker'
+  when: "inventory_hostname != 'localhost'"
 
 - name: install Curator package
   package:
     name: python-elasticsearch-curator
     state: latest
-  when: ansible_virtualization_type != 'docker'
+  when: "inventory_hostname != 'localhost'"
 
 - name: ensure Curator directories exist
   file:
@@ -28,7 +27,7 @@
     - log
     - conf
     - lib
-  when: ansible_virtualization_type != 'docker'
+  when: "inventory_hostname != 'localhost'"
 
 - name: apply configuration files for curator
   template:
@@ -42,21 +41,21 @@
     - "delete_index.yml"
     - "close_index.yml"
     - "metrics_index.yml"
-  when: ansible_virtualization_type != 'docker'
+  when: "inventory_hostname != 'localhost'"
 
 - name: copy the systemd unit & timer files for curator
   template:
     src: "{{role_path}}/templates/systemd/{{item}}.j2"
     dest: "/usr/lib/systemd/system/{{item}}"
   with_items: "{{ lookup('pipe','find {{role_path}}/templates/systemd/ -type f  -exec basename {} .j2 \\; || true').split('\n') }}"
-  when: "ansible_virtualization_type != 'docker' and ansible_distribution == 'CentOS' and {{ lookup('pipe', 'test -d {{role_path}}/templates/systemd || echo nofolder') == \"\" }}"
+  when: "inventory_hostname != 'localhost' and ansible_distribution == 'CentOS' and {{ lookup('pipe', 'test -d {{role_path}}/templates/systemd || echo nofolder') == \"\" }}"
 
 - name: copy the systemd unit & timer files for curator
   template:
     src: "{{role_path}}/templates/systemd/{{item}}.j2"
     dest: "/lib/systemd/system/{{item}}"
   with_items: "{{ lookup('pipe','find {{role_path}}/templates/systemd/ -type f  -exec basename {} .j2 \\; || true').split('\n') }}"
-  when: "ansible_virtualization_type != 'docker' and ansible_distribution == 'Debian' and {{ lookup('pipe', 'test -d {{role_path}}/templates/systemd || echo nofolder') == \"\" }}"
+  when: "inventory_hostname != 'localhost' and ansible_distribution == 'Debian' and {{ lookup('pipe', 'test -d {{role_path}}/templates/systemd || echo nofolder') == \"\" }}"
 
 - name: Enable systemd timers
   systemd:
@@ -65,7 +64,7 @@
     enabled: "yes"
     state: "started"
   with_items: "{{ lookup('pipe','find {{role_path}}/templates/systemd/ -type f -name *.timer.j2 -exec basename {} .j2 \\; || true').split('\n') }}"
-  when: "ansible_virtualization_type != 'docker' and {{ lookup('pipe', 'test -d {{role_path}}/templates/systemd || echo nofolder') == \"\" }}"
+  when: "inventory_hostname != 'localhost' and {{ lookup('pipe', 'test -d {{role_path}}/templates/systemd || echo nofolder') == \"\" }}"
 
 - name: Ensure consul service is started
   service:
