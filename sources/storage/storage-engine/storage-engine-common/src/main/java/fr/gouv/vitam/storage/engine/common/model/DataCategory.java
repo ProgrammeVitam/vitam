@@ -60,7 +60,12 @@ public enum DataCategory {
     /**
      * Profile xsd, rng, ...
      */
-    PROFILE("profile", false, false);
+    PROFILE("profile", false, false),
+
+    /**
+     * StorageLog (any)
+     */
+    STORAGELOG("storagelog",false,false);
 
     /**
      * Folder

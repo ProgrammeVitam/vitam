@@ -55,6 +55,11 @@ public enum StorageCollectionType {
     PROFILES("profiles"),
 
     /**
+     * StorageLog
+     */
+    STORAGELOG("storagelog"),
+
+    /**
      * ObjectGroups collection
      */
     OBJECTGROUPS("objectgroups"),

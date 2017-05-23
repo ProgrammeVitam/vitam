@@ -93,6 +93,7 @@ public class StorageLogbookAdministration {
 
 
     private static final String STRATEGY_ID = "default";
+    public static final String STORAGE_LOGBOOK_OPERATION_ZIP = "Storage_LogbookOperation";
     final StorageLogbookService storageLogbookService;
     private final File tmpFolder;
 
@@ -126,11 +127,11 @@ public class StorageLogbookAdministration {
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         try {
 
-            final String fileName = String.format("%d_LogbookOperation_%s.zip", tenantId, eip.toString());
+            final String fileName = String.format("%d_"+STORAGE_LOGBOOK_OPERATION_ZIP+"_%s.zip", tenantId, eip.toString());
             createLogbookOperationStructure(helper, eip, tenantId);
 
             final File zipFile = new File(tmpFolder, fileName);
-            final String uri = String.format("%s/%s", "logbook", fileName);
+            final String uri = String.format("%s/%s", "storgae_logbook", fileName);
             LogInformationEvent event = null;
             LogInformation info = storageLogbookService.generateSecureStorage(tenantId);
             try (LogZipFile logZipFile = new LogZipFile(zipFile)) {
@@ -143,6 +144,11 @@ public class StorageLogbookAdministration {
                     digest.toString(),
                     getString(LocalDateTime.now()), tenantId);
                 logZipFile.close();
+                try {
+                    info.getPath().toFile().delete();
+                }catch (Exception e ){
+                    LOGGER.error("unable to delete log fiel ", e);
+                }
             } catch (IOException |
                 ArchiveException e) {
                 createLogbookOperationEvent(helper, eip, tenantId, STP_OP_SECURISATION, FATAL, null,STP_FAIL_MESSAGE_PROCESS);
@@ -167,7 +173,7 @@ public class StorageLogbookAdministration {
 
                 try (final StorageClient storageClient = storageClientFactory.getClient()) {
                     storageClient.storeFileFromWorkspace(
-                        STRATEGY_ID, StorageCollectionType.OBJECTS, fileName, description);
+                        STRATEGY_ID, StorageCollectionType.STORAGELOG, fileName, description);
                     workspaceClient.deleteObject(fileName, uri);
 
                 } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |

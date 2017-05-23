@@ -1100,6 +1100,32 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         }
     }
 
+    /**
+     * Post a new object
+     *
+     * @param httpServletRequest      http servlet request to get requester
+     * @param headers                 http header
+     * @param storageLogname         the id of the object
+     * @param createObjectDescription the object description
+     * @return Response
+     */
+    // header (X-Requester)
+    @Path("/storagelog/{storagelogname}")
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response createStorageLog(@Context HttpServletRequest httpServletRequest,
+        @Context HttpHeaders headers,
+        @PathParam("storagelogname") String storageLogname, ObjectDescription createObjectDescription) {
+        // If the POST is a creation request
+        if (createObjectDescription != null) {
+            return createObjectByType(headers, storageLogname, createObjectDescription, DataCategory.STORAGELOG,
+                httpServletRequest.getRemoteAddr());
+        } else {
+            return getObjectInformationWithPost(headers, storageLogname);
+        }
+    }
+
 
     /**
      * Post a new object

@@ -82,7 +82,7 @@ public class StorageLogbookServiceImpl implements StorageLogbookService {
 
     @Override
     public LogInformation generateSecureStorage(Integer tenantId) throws IOException {
-        return appender.secureWithoutCreatingNewLogByTenant(tenantId);
+        return appender.secureAndCreateNewlogByTenant(tenantId);
 
     }
     //FIXME Secure when server restart
