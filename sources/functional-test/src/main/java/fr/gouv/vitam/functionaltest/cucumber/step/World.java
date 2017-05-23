@@ -135,6 +135,17 @@ public class World {
     public void the_test_are_done_on_tenant(int tenantId) throws Throwable {
         this.tenantId = tenantId;
     }
+    
+    /**
+     * define a contractId
+     *
+     * @param contractId id of the access contract
+     * @throws Throwable
+     */
+    @Given("^les tests effectués sur le contrat id (.*)$")
+    public void the_test_are_done_on_contract(String contractId) throws Throwable {
+        this.contractId = contractId;
+    }
 
     /**
      * @return tenant ID
