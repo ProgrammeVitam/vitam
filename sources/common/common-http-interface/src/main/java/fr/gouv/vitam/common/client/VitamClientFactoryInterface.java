@@ -125,6 +125,14 @@ public interface VitamClientFactoryInterface<T extends MockOrRestClient> {
      * Shutdown the Factory
      */
     void shutdown();
+
+    /**
+     * Reset the client into the Jersey Client pool if possible
+     * 
+     * @param client
+     * @param chunk
+     */
+    void resume(Client client, boolean chunk);
     
     /**
      * enum to define client type

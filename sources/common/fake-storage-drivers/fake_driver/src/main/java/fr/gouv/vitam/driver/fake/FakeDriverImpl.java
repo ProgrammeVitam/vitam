@@ -152,6 +152,11 @@ public class FakeDriverImpl extends AbstractDriver {
                 // empty
             }
 
+            @Override
+            public void resume(Client client, boolean chunk) {
+                // Empty
+            }
+
         };
         return factory;
     }

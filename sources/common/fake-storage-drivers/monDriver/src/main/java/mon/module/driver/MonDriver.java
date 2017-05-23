@@ -103,6 +103,10 @@ public class MonDriver extends AbstractDriver {
 
             public void shutdown() {
             }
+
+            @Override
+            public void resume(Client client, boolean chunk) {
+            }
         };
         return factory;
     }

@@ -127,6 +127,12 @@ public class MockDriverImpl extends AbstractDriver {
         public void shutdown() {
             // Empty
         }
+
+        @Override
+        public void resume(Client client, boolean chunk) {
+            // Empty
+        }
+
     }
     
     @Override
