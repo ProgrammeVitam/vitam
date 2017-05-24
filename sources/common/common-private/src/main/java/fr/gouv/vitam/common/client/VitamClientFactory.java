@@ -111,6 +111,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
     static final SocketConfig SOCKETCONFIG = SocketConfig.custom()
         .setTcpNoDelay(true).setSoKeepAlive(true).setSoReuseAddress(true).build();
 
+    
     /**
      * Pool of JerseyClient for chunk mode
      */
@@ -119,6 +120,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
      * Pool JerseyClient for non chunk mode
      */
     final Queue<Client> nonChunkedClientJerseyPool = new ConcurrentLinkedQueue<>();
+
     /**
      * Global configuration for Apache: Idle Monitor
      */
@@ -146,7 +148,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
     VitamThreadPoolExecutor vitamThreadPoolExecutor = VitamThreadPoolExecutor.getDefaultExecutor();
     SSLConfiguration sslConfiguration = null;
     private boolean useAuthorizationFilter = true;
-
+    
     /**
      * Constructor with standard configuration
      *
@@ -261,7 +263,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
         this.givenClient = client;
         idleMonitor = new ExpiredConnectionMonitorThread(this);
     }
-
+    
     protected void disableUseAuthorizationFilter() {
         useAuthorizationFilter = false;
     }
@@ -367,6 +369,34 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
         commonApacheConfigure(config, chunkedMode);
     }
 
+    private final Client getFromCache(boolean useChunkedMode) {
+        Client client = null;
+        if (useChunkedMode) {
+            client = clientJerseyPool.poll();
+        } else {
+            client = nonChunkedClientJerseyPool.poll();
+        }
+        return client;
+    }
+
+    private final synchronized void addToCache(Client client, boolean chunk) {
+        if (chunk) {
+            if (clientJerseyPool.size() >= VitamConfiguration.getMaxTotalClient()) {
+                // Remove oldest client
+                Client client2 = clientJerseyPool.poll();
+                client2.close();
+            }
+            clientJerseyPool.add(client);
+        } else {
+            if (nonChunkedClientJerseyPool.size() >= VitamConfiguration.getMaxTotalClient()) {
+                // Remove oldest client
+                Client client2 = nonChunkedClientJerseyPool.poll();
+                client2.close();
+            }
+            nonChunkedClientJerseyPool.add(client);
+        }
+    }
+
     /**
      * Specific to handle Junit tests with given Client
      *
@@ -374,20 +404,22 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
      * @param useChunkedMode
      * @return the associated client
      */
-    private synchronized Client buildClient(ClientConfig config, boolean useChunkedMode) {
+    private Client buildClient(ClientConfig config, boolean useChunkedMode) {
         if (givenClient != null) {
             return givenClient;
         }
-        if (useChunkedMode) {
-            if (clientJerseyPool.isEmpty()) {
-                return buildClientWithFilter(config);
+        synchronized (this) {
+            if (useChunkedMode) {
+                if (clientJerseyPool.isEmpty()) {
+                    return buildClientWithFilter(config);
+                }
+                return getFromCache(useChunkedMode);
+            } else {
+                if (nonChunkedClientJerseyPool.isEmpty()) {
+                    return buildClientWithFilter(config);
+                }
+                return getFromCache(useChunkedMode);
             }
-            return clientJerseyPool.poll();
-        } else {
-            if (nonChunkedClientJerseyPool.isEmpty()) {
-                return buildClientWithFilter(config);
-            }
-            return nonChunkedClientJerseyPool.poll();
         }
     }
 
@@ -401,23 +433,11 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
     }
 
     @Override
-    public synchronized void resume(Client client, boolean chunk) {
+    public void resume(Client client, boolean chunk) {
         if (client == givenClient) {
             return;
         }
-        if (chunk) {
-            if (clientJerseyPool.size() > VitamConfiguration.getMaxClientPerHost()) {
-                client.close();
-            } else {
-                clientJerseyPool.add(client);
-            }
-        } else {
-            if (nonChunkedClientJerseyPool.size() > VitamConfiguration.getMaxClientPerHost()) {
-                client.close();
-            } else {
-                nonChunkedClientJerseyPool.add(client);
-            }
-        }
+        addToCache(client, chunk);
     }
 
     /**
@@ -504,7 +524,8 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
     /**
      * Shutdown the global Connection Manager (cannot be restarted yet)
      */
-    public void shutdown() {
+    @Override
+    public synchronized void shutdown() {
         if (idleMonitor != null && !STATIC_IDLE_MONITOR.get()) {
             idleMonitor.shutdown();
             idleMonitor.interrupt();

@@ -188,8 +188,7 @@ class ApacheConnector implements Connector {
                     if (value != null && param.equalsIgnoreCase("timeout")) {
                         try {
                             return Long.parseLong(value) * 1000;
-                        } catch(NumberFormatException ignore) {
-                        }
+                        } catch (NumberFormatException ignore) {}
                     }
                 }
                 // otherwise keep alive for 30 seconds
@@ -244,7 +243,6 @@ class ApacheConnector implements Connector {
         if (disableAutomaticRetries) {
             clientBuilder.disableAutomaticRetries();
         }
-
         clientBuilder.setConnectionManager(getConnectionManager(client, config, sslContext));
         clientBuilder.setConnectionManagerShared(
             PropertiesHelper.getValue(config.getProperties(), ApacheClientProperties.CONNECTION_MANAGER_SHARED, false,

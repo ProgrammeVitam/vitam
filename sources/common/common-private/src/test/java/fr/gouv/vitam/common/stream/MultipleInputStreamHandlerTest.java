@@ -207,6 +207,7 @@ public class MultipleInputStreamHandlerTest {
                 assertEquals("rank: " + i, INPUTSTREAM_SIZE, total[i]);
             }
         } catch (final IOException e) {
+            LOGGER.error(e);
             fail("Should not raized an exception: " + e.getMessage());
         }
         final long stop = System.nanoTime();
