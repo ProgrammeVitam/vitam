@@ -3,10 +3,10 @@ Scenario pour l'ingest
 
 Cette partie décrit les scenario de test correspondant au processus d'ingest.
 
-Liste des scenario
+Liste des scenarios
 ==================
 
-Ci-dessous est représentée la liste des différents scenario de test exécutés dans le cadre de l'automatisation des tests.
+Ci-dessous est représentée la liste des différents scenarios de test exécutés dans le cadre de l'automatisation des tests.
 
 .. csv-table:: Liste des scenario pour l'ingest
    :header: "Nom du Sip", "Etat", "Code", "Nom du test", "Catégorie"
