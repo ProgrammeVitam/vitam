@@ -28,6 +28,8 @@ package fr.gouv.vitam.functional.administration.client.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import fr.gouv.vitam.common.model.AbstractContractModel;
+
 import java.util.Set;
 
 /**

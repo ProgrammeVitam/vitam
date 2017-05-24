@@ -24,25 +24,22 @@
  *  The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  *  accept its terms.
  */
-package fr.gouv.vitam.functional.administration.common.client.model;
+package fr.gouv.vitam.common.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import org.junit.Rule;
+import org.junit.Test;
+
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.client.model.AbstractContractModel;
-import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
-import fr.gouv.vitam.functional.administration.common.AccessContract;
-import fr.gouv.vitam.functional.administration.common.ContractStatus;
-import org.junit.Rule;
-import org.junit.Test;
-
-import java.util.HashSet;
-import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * Data Transfer Object Model of access contract (DTO).
@@ -74,9 +71,11 @@ public class AccessContractModelTest {
             .setDescription(description).setStatus(ContractStatus.ACTIVE.name())
             .setLastupdate(lastupdate)
             .setCreationdate(lastupdate)
-            .setActivationdate(lastupdate).
-            setDeactivationdate(lastupdate);
-        contract.setOriginatingAgencies(originatingAgencies);
+            .setActivationdate(lastupdate)
+            .setDeactivationdate(lastupdate);
+        contract
+            .setOriginatingAgencies(originatingAgencies)
+            .setEveryOriginatingAgency(true);
 
         assertEquals(id, contract.getId());
         assertEquals(name, contract.getName());
@@ -85,6 +84,7 @@ public class AccessContractModelTest {
         assertEquals(lastupdate, contract.getActivationdate());
         assertEquals(lastupdate, contract.getDeactivationdate());
         assertEquals(originatingAgencies, contract.getOriginatingAgencies());
+        assertTrue(contract.getEveryOriginatingAgency());
     }
 
 }

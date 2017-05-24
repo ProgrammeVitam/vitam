@@ -43,13 +43,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import fr.gouv.vitam.common.security.SanityChecker;
-
 import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.bson.conversions.Bson;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.BooleanNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.client.MongoCursor;
 
@@ -73,13 +74,13 @@ import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.AccessContractModel;
+import fr.gouv.vitam.common.model.ContractStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
-import fr.gouv.vitam.functional.administration.common.ContractStatus;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
@@ -369,13 +370,27 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
 
         }
 
-        private void logUpdateSuccess(String id, String updateEventDetailData, String oldValue) throws VitamException {
+        private void logUpdateSuccess(String id, String updateEventDetailData, String oldValue, Boolean newEveryOriginatingAgency, Boolean oldEveryOriginatingAgency) throws VitamException {
             final ObjectNode evDetData = JsonHandler.createObjectNode();
-            final ObjectNode msg = JsonHandler.createObjectNode();
-            msg.put("updateField", "Status");
-            msg.put("oldValue", oldValue);
-            msg.put("newValue", updateEventDetailData);
-            evDetData.put("AccessContract", msg);
+            final ObjectNode evDetDataContract = JsonHandler.createObjectNode();
+
+            if (updateEventDetailData != null) {
+                final ObjectNode msg = JsonHandler.createObjectNode();
+	            msg.put("updateField", AccessContract.STATUS);
+	            msg.put("oldValue", oldValue);
+	            msg.put("newValue", updateEventDetailData);
+	            evDetDataContract.set(AccessContract.STATUS, msg);
+            }
+
+            if (newEveryOriginatingAgency != null) {
+	            final ObjectNode msg2 = JsonHandler.createObjectNode();
+	            msg2.put("updateField", AccessContract.EVERYORIGINATINGAGENCY);
+	            msg2.put("oldValue", oldEveryOriginatingAgency);
+	            msg2.put("newValue", newEveryOriginatingAgency);
+	            evDetDataContract.set(AccessContract.EVERYORIGINATINGAGENCY, msg2);
+            }
+
+            evDetData.set("AccessContract", evDetDataContract);
             String wellFormedJson = SanityChecker.sanitizeJson(evDetData);
             final LogbookOperationParameters logbookParameters =
                 LogbookParametersFactory
@@ -553,20 +568,27 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
         JsonNode actionNode = queryDsl.get(GLOBAL.ACTION.exactToken());
 
         String updateStatus = null;
+        Boolean updateEveryOriginatingAgency = null;
         for (JsonNode fieldToSet : actionNode) {
             JsonNode fieldName = fieldToSet.get(UPDATEACTION.SET.exactToken());
             if (fieldName != null) {
                 Iterator<String> it = fieldName.fieldNames();
                 while (it.hasNext()) {
                     String field = it.next();
-                    JsonNode status = fieldName.findValue(field);
-                    if ("Status".equals(field)) {
-                        if (!(ContractStatus.ACTIVE.name().equals(status.asText()) || ContractStatus.INACTIVE
-                            .name().equals(status.asText()))) {
+                    JsonNode value = fieldName.findValue(field);
+                    if (AccessContract.STATUS.equals(field)) {
+                        if (!(ContractStatus.ACTIVE.name().equals(value.asText()) || ContractStatus.INACTIVE
+                            .name().equals(value.asText()))) {
                             error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
-                                "The Access contract status must be ACTIVE or INACTIVE but not " + status.asText()));
+                                "The Access contract status must be ACTIVE or INACTIVE but not " + value.asText()));
                         }
-                        updateStatus = status.asText();
+                        updateStatus = value.asText();
+                    } else if (AccessContract.EVERYORIGINATINGAGENCY.equals(field)) {
+                        if (!(value instanceof BooleanNode)) {
+                            error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
+                                "The Access contract EveryOriginatingAgency must be true or false but not " + value.asText()));
+                        }
+                        updateEveryOriginatingAgency = value.asBoolean();
                     }
                 }
             }
@@ -591,7 +613,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
 
             return error;
         }
-        manager.logUpdateSuccess(id, updateStatus, accContractModel.getStatus());
+        manager.logUpdateSuccess(id, updateStatus, accContractModel.getStatus(), updateEveryOriginatingAgency, accContractModel.getEveryOriginatingAgency());
         return new RequestResponseOK<AccessContractModel>();
     }
 

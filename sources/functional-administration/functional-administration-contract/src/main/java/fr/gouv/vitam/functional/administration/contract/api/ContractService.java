@@ -32,9 +32,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.model.AbstractContractModel;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
-import fr.gouv.vitam.functional.administration.client.model.AbstractContractModel;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
 import java.util.List;

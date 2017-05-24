@@ -34,6 +34,7 @@ import java.util.List;
 
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
+
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -67,6 +68,7 @@ import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.model.AccessContractModel;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
@@ -75,7 +77,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
 
@@ -349,6 +350,85 @@ public class AccessContractImplTest {
         for (AccessContractModel accessContractModel : accessContractModelListForassert2) {
             assertThat(inactiveStatus.equals(accessContractModel.getStatus())).isFalse();
             assertThat(activeStatus.equals(accessContractModel.getStatus())).isTrue();
+            assertThat(accessContractModel.getActivationdate()).isNotEmpty();
+            assertThat(accessContractModel.getLastupdate()).isNotEmpty();
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenAccessContractTestUpdateAccessContractOriginatingAgency() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final String documentName = "aName";
+        final String inactiveStatus = "INACTIVE";
+        final String activeStatus = "ACTIVE";
+        // Create document
+        File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
+
+        List<AccessContractModel> accessContractModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {});
+        RequestResponse response = accessContractService.createContracts(accessContractModelList);
+
+        RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
+        assertThat(responseCast.getResults()).hasSize(2);
+
+
+        final SelectParserSingle parser = new SelectParserSingle(new VarNameAdapter());
+        Select select = new Select();
+        parser.parse(select.getFinalSelect());
+        parser.addCondition(QueryHelper.eq("Name", documentName));
+        JsonNode queryDsl = parser.getRequest().getFinalSelect();
+        accessContractModelList = accessContractService.findContracts(queryDsl);
+        assertThat(accessContractModelList).isNotEmpty();
+        for (AccessContractModel accessContractModel : accessContractModelList) {
+            assertThat(activeStatus.equals(accessContractModel.getStatus()));
+        }
+
+        // Test update for access contract Status => inactive
+        String now = LocalDateUtil.now().toString();
+        final UpdateParserSingle updateParser = new UpdateParserSingle(new VarNameAdapter());
+        SetAction setActionStatusInactive = UpdateActionHelper.set("Status", inactiveStatus);
+        SetAction setActionDesactivationDateInactive = UpdateActionHelper.set("DeactivationDate", now);
+        SetAction setActionLastUpdateInactive = UpdateActionHelper.set("LastUpdate", now);
+        Update update = new Update();
+        update.setQuery(QueryHelper.eq("Name", documentName));
+        update.addActions(setActionStatusInactive, setActionDesactivationDateInactive, setActionLastUpdateInactive);
+        updateParser.parse(update.getFinalUpdate());
+        JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
+        RequestResponse<AccessContractModel> updateContractStatus =
+            accessContractService.updateContract(accessContractModelList.get(0).getId(), queryDslForUpdate);
+        assertThat(updateContractStatus).isNotExactlyInstanceOf(VitamError.class);
+
+        List<AccessContractModel> accessContractModelListForassert =
+            accessContractService.findContracts(queryDsl);
+        assertThat(accessContractModelListForassert).isNotEmpty();
+        for (AccessContractModel accessContractModel : accessContractModelListForassert) {
+            assertThat(inactiveStatus.equals(accessContractModel.getStatus())).isTrue();
+            assertThat(activeStatus.equals(accessContractModel.getStatus())).isFalse();
+            assertThat(accessContractModel.getEveryOriginatingAgency()).isFalse();
+            assertThat(accessContractModel.getDeactivationdate()).isNotEmpty();
+            assertThat(accessContractModel.getLastupdate()).isNotEmpty();
+        }
+
+        // Test update for access contract Status => Active
+        final UpdateParserSingle updateParserActive = new UpdateParserSingle(new VarNameAdapter());
+        SetAction setActionEveryOriginatingAgency = UpdateActionHelper.set("EveryOriginatingAgency", true);
+        SetAction setActionLastUpdateActive = UpdateActionHelper.set("LastUpdate", now);
+        Update updateStatusActive = new Update();
+        updateStatusActive.setQuery(QueryHelper.eq("Name", documentName));
+        updateStatusActive.addActions(setActionEveryOriginatingAgency, setActionLastUpdateActive);
+        updateParserActive.parse(updateStatusActive.getFinalUpdate());
+        JsonNode queryDslStatusActive = updateParserActive.getRequest().getFinalUpdate();
+        accessContractService.updateContract(accessContractModelList.get(0).getId(), queryDslStatusActive);
+
+
+        List<AccessContractModel> accessContractModelListForassert2 =
+            accessContractService.findContracts(queryDsl);
+        assertThat(accessContractModelListForassert2).isNotEmpty();
+        for (AccessContractModel accessContractModel : accessContractModelListForassert2) {
+            assertThat(inactiveStatus.equals(accessContractModel.getStatus())).isTrue();
+            assertThat(activeStatus.equals(accessContractModel.getStatus())).isFalse();
+            assertThat(accessContractModel.getEveryOriginatingAgency()).isTrue();
             assertThat(accessContractModel.getActivationdate()).isNotEmpty();
             assertThat(accessContractModel.getLastupdate()).isNotEmpty();
         }

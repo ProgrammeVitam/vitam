@@ -177,7 +177,7 @@ public class AdminManagementClientMockTest {
         AdminManagementClientFactory.changeMode(null);
         final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
         final Select select = new Select();
-        final RequestResponse detailResponse = client.getAccessionRegisterDetail(select.getFinalSelect());
+        final RequestResponse detailResponse = client.getAccessionRegisterDetail("aedqaaaaacaam7mxabsakakygeje2uyaaaaq", select.getFinalSelect());
 
         if (detailResponse.isOk()) {
             RequestResponseOK<AccessionRegisterDetailModel> responseOK =

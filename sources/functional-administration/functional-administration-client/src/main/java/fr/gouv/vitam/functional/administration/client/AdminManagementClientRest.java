@@ -52,9 +52,9 @@ import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.AccessContractModel;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterSummaryModel;
 import fr.gouv.vitam.functional.administration.client.model.ContextModel;
@@ -408,14 +408,15 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public RequestResponse<AccessionRegisterDetailModel> getAccessionRegisterDetail(JsonNode query)
+    public RequestResponse<AccessionRegisterDetailModel> getAccessionRegisterDetail(String documentId, JsonNode query)
         throws InvalidParseOperationException, ReferentialException {
 
         ParametersChecker.checkParameter("query is a mandatory parameter", query);
+        ParametersChecker.checkParameter("documentId is a mandatory parameter", documentId);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, ACCESSION_REGISTER_GET_DETAIL_URL, null, query,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(HttpMethod.POST, ACCESSION_REGISTER_GET_DETAIL_URL + "/" + documentId + "/",
+                null, query, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:

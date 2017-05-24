@@ -28,12 +28,6 @@ package fr.gouv.vitam.access.external.rest;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
@@ -59,15 +53,9 @@ import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
-import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.database.builder.query.Query;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
-import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
@@ -90,10 +78,6 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
-import fr.gouv.vitam.functional.administration.common.AccessContract;
-import fr.gouv.vitam.functional.administration.common.ContractStatus;
-import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.response.RequestResponseError;
 
@@ -657,12 +641,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         }
 
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            Set<String> prodServices = getOriginatingAgencies(VitamThreadUtils.getVitamSession().getContractId());
-            SelectParserSingle parser = new SelectParserSingle();
-            parser.parse(select);
-            parser.addCondition(QueryHelper.in(ORIGINATING_AGENCY,
-                prodServices.stream().toArray(String[]::new)).setDepthLimit(0));
-            final RequestResponse result = client.getAccessionRegister(parser.getRequest().getFinalSelect());
+            final RequestResponse result = client.getAccessionRegister(select);
             return Response.status(Status.OK).entity(result).build();
         } catch (final ReferentialNotFoundException e) {
             LOGGER.error(e);
@@ -720,21 +699,12 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         }
         ParametersChecker.checkParameter("accession register id is a mandatory parameter", documentId);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            Set<String> prodServices = getOriginatingAgencies(VitamThreadUtils.getVitamSession().getContractId());
-            if (!prodServices.contains(documentId)) {
-                final Status status = Status.UNAUTHORIZED;
-                return Response.status(status).entity(getErrorEntity(status)).build();
-            }
-            final SelectParserSingle parser = new SelectParserSingle();
-            parser.parse(select);
-            parser.addCondition(eq(ORIGINATING_AGENCY, URLDecoder.decode(documentId, CharsetUtils.UTF_8)));
             RequestResponse accessionRegisterDetail =
-                client.getAccessionRegisterDetail(parser.getRequest().getFinalSelect());
+                client.getAccessionRegisterDetail(documentId, select);
             return Response.status(Status.OK).entity(accessionRegisterDetail).build();
         } catch (final ReferentialNotFoundException e) {
             return Response.status(Status.OK).entity(new RequestResponseOK()).build();
-        } catch (InvalidParseOperationException | UnsupportedEncodingException |
-            InvalidCreateOperationException e) {
+        } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
             final Status status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status)).build();
@@ -745,33 +715,6 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         }
     }
 
-    private static Set<String> getOriginatingAgencies(String contratId) throws InvalidParseOperationException,
-        InvalidCreateOperationException, AdminManagementClientServerException {
-        Set<String> prodServices = new HashSet<>();
-        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            JsonNode queryDsl = getQueryDsl(contratId);
-            RequestResponse<AccessContractModel> response = client.findAccessContracts(queryDsl);
-            if (!response.isOk() || ((RequestResponseOK<AccessContractModel>) response).getResults().size() == 0) {
-                final Status status = Status.UNAUTHORIZED;
-            }
-            List<AccessContractModel> list = ((RequestResponseOK<AccessContractModel>) response).getResults();
-            prodServices = list.get(0).getOriginatingAgencies();
-        }
-        return prodServices;
-    }
-
-    private static JsonNode getQueryDsl(String headerAccessContratId)
-        throws InvalidParseOperationException, InvalidCreateOperationException {
-
-        Select select = new Select();
-        Query query = QueryHelper.and().add(QueryHelper.eq(AccessContract.NAME, headerAccessContratId),
-            QueryHelper.eq(AccessContract.STATUS, ContractStatus.ACTIVE.name()));
-        select.setQuery(query);
-        JsonNode queryDsl = select.getFinalSelect();
-
-        return queryDsl;
-    }
-
     private Response buildErrorResponse(VitamCode vitamCode) {
         return Response.status(vitamCode.getStatus())
             .entity(new RequestResponseError().setError(new VitamError(VitamCodeHelper.getCode(vitamCode))
@@ -779,5 +722,4 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
                 .setMessage(vitamCode.getMessage()).setDescription(vitamCode.getMessage())).toString())
             .build();
     }
-
 }

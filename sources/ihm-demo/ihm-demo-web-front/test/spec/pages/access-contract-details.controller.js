@@ -48,7 +48,8 @@ describe('accessContractsDetailsController', function() {
             "LastUpdate":"2017-04-24T15:49:00.403",
             "ActivationDate":"2016-12-10T00:00",
             "DeactivationDate":"2016-12-10T00:00",
-            "OriginatingAgencies":["MAEDI"]
+            "OriginatingAgencies":["MAEDI"],
+            "EveryOriginatingAgency": false
         }],"$context":{}
     };
 
@@ -67,7 +68,7 @@ describe('accessContractsDetailsController', function() {
 
     it('should init the detail on initialization', function() {
         spyOn(AccessContractResource, 'getDetails').and.callFake(function (id, callback) {
-            callback({data: contractDetail});
+            callback({data: angular.copy(contractDetail)});
         });
 
         AccessContractsDetailsController();
@@ -79,7 +80,7 @@ describe('accessContractsDetailsController', function() {
 
     it('should update Status when updateStatus is called', function() {
         spyOn(AccessContractResource, 'getDetails').and.callFake(function (id, callback) {
-            callback({data: contractDetail});
+            callback({data: angular.copy(contractDetail)});
         });
 
         AccessContractsDetailsController();
@@ -90,6 +91,28 @@ describe('accessContractsDetailsController', function() {
         scope.updateStatus();
         expect(scope.tmpVars.oldStatus).toBe('ACTIVE'); // $results.Status
         expect(scope.contract.Status).toBe('INACTIVE'); // true because Status is ACTIVE
+    });
+
+    it('should update Status when updateStatus is called', function() {
+      spyOn(AccessContractResource, 'getDetails').and.callFake(function (id, callback) {
+        callback({data: angular.copy(contractDetail)});
+      });
+      spyOn(AccessContractResource, 'update').and.callFake(function (id, data) {
+        return {then: function(f) {f()}};
+      });
+
+      AccessContractsDetailsController();
+
+      scope.saveModifs();
+      expect(AccessContractResource.update).toHaveBeenCalledTimes(0);
+
+      scope.contract.Status = 'INACTIVE';
+      scope.saveModifs();
+
+      scope.contract.EveryOriginatingAgency = true;
+      scope.saveModifs();
+      expect(AccessContractResource.update).toHaveBeenCalledTimes(2);
+
     });
 
 });

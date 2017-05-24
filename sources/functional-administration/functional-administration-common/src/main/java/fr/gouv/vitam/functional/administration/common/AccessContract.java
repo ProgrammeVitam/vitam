@@ -27,8 +27,11 @@
 package fr.gouv.vitam.functional.administration.common;
 
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.model.ContractStatus;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+
 import org.bson.Document;
 
 import java.util.Set;
@@ -59,6 +62,11 @@ public class AccessContract extends VitamDocument<AccessContract> {
      * the originating agencies
      */
     public static final String ORIGINATINGAGENCIES = "OriginatingAgencies";
+
+    /**
+     * Work for all originating agencies ?
+     */
+    public static final String EVERYORIGINATINGAGENCY = "EveryOriginatingAgency";
 
     /**
      * the creatation date of contract

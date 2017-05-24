@@ -70,6 +70,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.model.ProcessState;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.apache.shiro.subject.Subject;
@@ -175,6 +176,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String DEACTIVATION_DATE_FIELD_QUERY = "DeactivationDate";
     private static final String LAST_UPDATE_FIELD_QUERY = "LastUpdate";
     private static final String NAME_FIELD_QUERY = "Name";
+    private static final String EVERY_ORIG_AGENCY_FIELD_QUERY = "EveryOriginatingAgency";
 
     private final WebApplicationConfig webApplicationConfig;
     private Map<String, AtomicLong> uploadMap = new HashMap<>();
@@ -1943,22 +1945,47 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             final UpdateParserSingle updateParserActive = new UpdateParserSingle(new VarNameAdapter());
-            SetAction setActionStatusActive =
-                UpdateActionHelper.set(STATUS_FIELD_QUERY, updateData.get(STATUS_FIELD_QUERY));
-            SetAction setActionDesactivationDateActive = null;
-            if (updateData.get(ACTIVATION_DATE_FIELD_QUERY) != null) {
-                setActionDesactivationDateActive =
-                    UpdateActionHelper.set(ACTIVATION_DATE_FIELD_QUERY, updateData.get(ACTIVATION_DATE_FIELD_QUERY));
-            } else if (updateData.get(DEACTIVATION_DATE_FIELD_QUERY) != null) {
-                setActionDesactivationDateActive = UpdateActionHelper.set(DEACTIVATION_DATE_FIELD_QUERY,
-                    updateData.get(DEACTIVATION_DATE_FIELD_QUERY));
+
+            List<SetAction> actions = new ArrayList<>();
+            actions.add(UpdateActionHelper.set(LAST_UPDATE_FIELD_QUERY, updateData.get(LAST_UPDATE_FIELD_QUERY)));
+            boolean updateStatus = false;
+            boolean updateEveryOriginatingAgency = false;
+
+            if (updateData.get(STATUS_FIELD_QUERY) != null && 
+                (updateData.get(ACTIVATION_DATE_FIELD_QUERY) != null || updateData.get(DEACTIVATION_DATE_FIELD_QUERY) != null)) {
+	            actions.add(UpdateActionHelper.set(STATUS_FIELD_QUERY, updateData.get(STATUS_FIELD_QUERY)));
+	            SetAction setActionDesactivationDateActive = null;
+	            if (updateData.get(ACTIVATION_DATE_FIELD_QUERY) != null) {
+	                setActionDesactivationDateActive =
+	                    UpdateActionHelper.set(ACTIVATION_DATE_FIELD_QUERY, updateData.get(ACTIVATION_DATE_FIELD_QUERY));
+	            } else if (updateData.get(DEACTIVATION_DATE_FIELD_QUERY) != null) {
+	                setActionDesactivationDateActive = UpdateActionHelper.set(DEACTIVATION_DATE_FIELD_QUERY,
+	                    updateData.get(DEACTIVATION_DATE_FIELD_QUERY));
+	            }
+	            actions.add(setActionDesactivationDateActive);
+	            updateStatus = true;
+            } else if (updateData.get(STATUS_FIELD_QUERY) != null ||
+                updateData.get(ACTIVATION_DATE_FIELD_QUERY) != null ||
+                updateData.get(DEACTIVATION_DATE_FIELD_QUERY) != null) {
+                return Response.status(Status.BAD_REQUEST).entity("Invalid update status query").build();
             }
-            SetAction setActionLastUpdateActive =
-                UpdateActionHelper.set(LAST_UPDATE_FIELD_QUERY, updateData.get(LAST_UPDATE_FIELD_QUERY));
+
+            if (updateData.get(EVERY_ORIG_AGENCY_FIELD_QUERY) != null) {
+                Boolean everyOrigAgency = BooleanUtils.toBooleanObject(updateData.get(EVERY_ORIG_AGENCY_FIELD_QUERY));
+                if (everyOrigAgency == null) {
+                    return Response.status(Status.BAD_REQUEST).entity("Invalid EveryOriginatingAgency value").build();
+                }
+                actions.add(UpdateActionHelper.set(EVERY_ORIG_AGENCY_FIELD_QUERY, everyOrigAgency));
+                updateEveryOriginatingAgency = true;
+            }
+
+            if (!updateStatus && !updateEveryOriginatingAgency) {
+                return Response.status(Status.BAD_REQUEST).entity("Empty Query, Nothing to Update").build();
+            }
+
             Update updateStatusActive = new Update();
             updateStatusActive.setQuery(QueryHelper.eq(NAME_FIELD_QUERY, updateData.get(NAME_FIELD_QUERY)));
-            updateStatusActive.addActions(setActionStatusActive, setActionDesactivationDateActive,
-                setActionLastUpdateActive);
+            updateStatusActive.addActions(actions.toArray(new SetAction[actions.size()]));
             updateParserActive.parse(updateStatusActive.getFinalUpdate());
             JsonNode queryDsl = updateParserActive.getRequest().getFinalUpdate();
             final RequestResponse archiveDetails =

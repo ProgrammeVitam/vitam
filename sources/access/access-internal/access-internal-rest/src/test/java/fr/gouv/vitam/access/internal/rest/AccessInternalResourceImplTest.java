@@ -29,6 +29,7 @@ package fr.gouv.vitam.access.internal.rest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
+
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -39,6 +40,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.AccessContractModel;
 import fr.gouv.vitam.common.server.application.junit.ResponseHelper;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -46,6 +48,7 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -55,6 +58,7 @@ import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -313,8 +317,11 @@ public class AccessInternalResourceImplTest {
     @Test
     @RunWithCustomExecutor
     public void given_getUnits_and_getUnitByID_thenReturn_OK() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+    	AccessContractModel contract = new AccessContractModel();
         Set<String> prodServices = new HashSet<String>(Arrays.asList("a", "b"));
-        VitamThreadUtils.getVitamSession().setProdServices(prodServices);
+    	contract.setOriginatingAgencies(prodServices);
+        VitamThreadUtils.getVitamSession().setContract(contract);
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
@@ -565,13 +572,8 @@ public class AccessInternalResourceImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void testGetObjectStream() throws Exception {
+    public void testGetObjectStreamUnauthorized() throws Exception {
         reset(mock);
-
-        final Response response =
-            ResponseHelper.getOutboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
-                MediaType.APPLICATION_OCTET_STREAM, null);
-
 
         doAnswer(invocation -> {
             return null;

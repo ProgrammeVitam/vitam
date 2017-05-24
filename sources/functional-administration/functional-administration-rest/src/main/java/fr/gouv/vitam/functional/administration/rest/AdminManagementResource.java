@@ -31,8 +31,10 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -45,26 +47,39 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
+import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.AccessContractModel;
+import fr.gouv.vitam.common.model.ContractStatus;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server.application.resources.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.accession.register.core.ReferentialAccessionRegisterImpl;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
@@ -491,6 +506,21 @@ public class AdminManagementResource extends ApplicationStatusResource {
         try (ReferentialAccessionRegisterImpl accessionRegisterManagement =
             new ReferentialAccessionRegisterImpl(mongoAccess)) {
             SanityChecker.checkJsonAll(select);
+
+            AccessContractModel contract = getContractDetails(VitamThreadUtils.getVitamSession().getContractId());
+            if (contract == null) {
+                throw new AccessUnauthorizedException("Contract Not Found");
+            }
+            boolean isEveryOriginatingAgency = contract.getEveryOriginatingAgency();
+            Set<String> prodServices = contract.getOriginatingAgencies();
+
+            SelectParserSingle parser = new SelectParserSingle();
+            parser.parse(select);
+            if (!isEveryOriginatingAgency) {
+                parser.addCondition(QueryHelper.in("OriginatingAgency",
+                    prodServices.stream().toArray(String[]::new)).setDepthLimit(0));
+            }
+
             fileFundRegisters = accessionRegisterManagement.findDocuments(select);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -522,18 +552,33 @@ public class AdminManagementResource extends ApplicationStatusResource {
      * @throws InvalidParseOperationException when error json occurs
      * @throws ReferentialException when the mongo search throw error or search result is null
      */
-    @Path("accession-register/detail")
+    @Path("accession-register/detail/{id}")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response findDetailAccessionRegister(JsonNode select)
+    public Response findDetailAccessionRegister(@PathParam("id") String documentId, JsonNode select)
         throws InvalidParseOperationException, IOException, ReferentialException {
         ParametersChecker.checkParameter(SELECT_IS_A_MANDATORY_PARAMETER, select);
         List<AccessionRegisterDetail> fileAccessionRegistersDetail = new ArrayList<>();
         try (ReferentialAccessionRegisterImpl accessionRegisterManagement =
             new ReferentialAccessionRegisterImpl(mongoAccess)) {
             SanityChecker.checkJsonAll(select);
-            fileAccessionRegistersDetail = accessionRegisterManagement.findDetail(select);
+
+            AccessContractModel contract = getContractDetails(VitamThreadUtils.getVitamSession().getContractId());
+            if (contract == null) {
+                throw new AccessUnauthorizedException("Contract Not Found");
+            }
+            boolean isEveryOriginatingAgency = contract.getEveryOriginatingAgency();
+            Set<String> prodServices = contract.getOriginatingAgencies();
+
+            SelectParserSingle parser = new SelectParserSingle();
+            parser.parse(select);
+            if (!isEveryOriginatingAgency) {
+                parser.addCondition(QueryHelper.in("OriginatingAgency",
+                    prodServices.stream().toArray(String[]::new)).setDepthLimit(0));
+            }
+            parser.addCondition(eq("OriginatingAgency", URLDecoder.decode(documentId, CharsetUtils.UTF_8)));
+            fileAccessionRegistersDetail = accessionRegisterManagement.findDetail(parser.getRequest().getFinalSelect());
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
@@ -571,6 +616,33 @@ public class AdminManagementResource extends ApplicationStatusResource {
         String aCode = (code != null) ? code : String.valueOf(status.getStatusCode());
         return new VitamError(aCode).setHttpCode(status.getStatusCode()).setContext("ADMIN_MODULE")
             .setState("code_vitam").setMessage(status.getReasonPhrase()).setDescription(aMessage);
+    }
+
+    private static AccessContractModel getContractDetails(String contratId) throws InvalidParseOperationException,
+    InvalidCreateOperationException, AdminManagementClientServerException {
+        AccessContractModel contract = null;
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            JsonNode queryDsl = getQueryDsl(contratId);
+            RequestResponse<AccessContractModel> response = client.findAccessContracts(queryDsl);
+            if (!response.isOk() || ((RequestResponseOK<AccessContractModel>)response).getResults().size() == 0){
+                return null;
+            }
+            List<AccessContractModel> list = ((RequestResponseOK<AccessContractModel>)response).getResults();
+            contract = list.get(0);
+        }
+        return contract;
+    }
+
+    private static JsonNode getQueryDsl(String headerAccessContratId)
+         throws InvalidParseOperationException, InvalidCreateOperationException{
+
+        Select select = new Select();
+        Query query = QueryHelper.and().add(QueryHelper.eq(AccessContract.NAME, headerAccessContratId),
+            QueryHelper.eq(AccessContract.STATUS, ContractStatus.ACTIVE.name()));
+        select.setQuery(query);
+        JsonNode queryDsl = select.getFinalSelect();
+
+        return queryDsl;
     }
 
 }

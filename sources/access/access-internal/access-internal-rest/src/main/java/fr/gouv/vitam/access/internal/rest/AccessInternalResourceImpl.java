@@ -67,6 +67,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.AccessContractModel;
 import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
@@ -226,7 +227,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkJsonAll(queryDsl);
             SanityChecker.checkParameter(idUnit);
             SanityChecker.checkParameter(requestId);
-            if (!VitamThreadUtils.getVitamSession().isWritingPermission()) {
+            if (!VitamThreadUtils.getVitamSession().getContract().getWritingPermission()) {
                 status = Status.UNAUTHORIZED;
                 return Response.status(status).entity(getErrorEntity(status)).build();
             }
@@ -256,9 +257,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         try {
             SanityChecker.checkJsonAll(query);
             SanityChecker.checkParameter(idObjectGroup);
-            final VitamSession vitamSession = VitamThreadUtils.getVitamSession();
-            Set<String> prodServices = vitamSession.getProdServices();
-            if (prodServices == null || prodServices.isEmpty()) {
+            final AccessContractModel contract = VitamThreadUtils.getVitamSession().getContract();
+            Set<String> prodServices = contract.getOriginatingAgencies();        
+            if (contract.getEveryOriginatingAgency()) {
                 result = accessModule.selectObjectGroupById(query, idObjectGroup);
             } else {
                 final SelectParserMultiple parser = new SelectParserMultiple();
@@ -350,8 +351,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
     private boolean validUsage(String s) {
         final VitamSession vitamSession = VitamThreadUtils.getVitamSession();
-        Set<String> versions = vitamSession.getUsages();
-
+        Set<String> versions = vitamSession.getContract().getDataObjectVersion();
+        
         if (versions == null || versions.isEmpty()) {
             return true;
         }
@@ -363,11 +364,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         return false;
     }
 
-    private JsonNode addProdServicesToQuery(JsonNode queryDsl)
-        throws InvalidParseOperationException, InvalidCreateOperationException {
-        final VitamSession vitamSession = VitamThreadUtils.getVitamSession();
-        Set<String> prodServices = vitamSession.getProdServices();
-        if (prodServices == null || prodServices.isEmpty()) {
+    private JsonNode addProdServicesToQuery(JsonNode queryDsl) throws InvalidParseOperationException, InvalidCreateOperationException {        
+        final AccessContractModel contract = VitamThreadUtils.getVitamSession().getContract();
+        Set<String> prodServices = contract.getOriginatingAgencies();
+        if (contract.getEveryOriginatingAgency()) {
             return queryDsl;
         } else {
             final SelectParserMultiple parser = new SelectParserMultiple();

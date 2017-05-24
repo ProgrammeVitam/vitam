@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.functional.administration.client.model;
+package fr.gouv.vitam.common.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -44,6 +44,9 @@ public class AccessContractModel extends AbstractContractModel {
     
     @JsonProperty("WritingPermission")
     private boolean writingPermission;
+
+    @JsonProperty("EveryOriginatingAgency")
+    private boolean everyOriginatingAgency;
 
     /**
      * Constructor without fields
@@ -103,5 +106,25 @@ public class AccessContractModel extends AbstractContractModel {
         this.writingPermission = writingPermission;
         return this;
     }
+
+
+	/**
+	 * @return true if all originatingAgencies are enabled for this contract
+	 */
+	public boolean getEveryOriginatingAgency() {
+		return everyOriginatingAgency;
+	}
+
+
+	/**
+	 * Set the 'everyOriginatingAgency' flag on the contract.
+	 *
+	 * @param everyOriginatingAgency If true, all originatingAgencies are enabled for this contract
+	 * @return the contract
+	 */
+	public AccessContractModel setEveryOriginatingAgency(boolean everyOriginatingAgency) {
+		this.everyOriginatingAgency = everyOriginatingAgency;
+		return this;
+	}
 
 }

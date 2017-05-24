@@ -26,7 +26,7 @@
  */
 package fr.gouv.vitam.functional.administration.contract.core;
 
-import fr.gouv.vitam.functional.administration.client.model.AbstractContractModel;
+import fr.gouv.vitam.common.model.AbstractContractModel;
 
 import java.util.Optional;
 
