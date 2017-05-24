@@ -107,6 +107,40 @@ documentation:
         X-Http-Method-Override:
           required: true
 
+/accesscontracts:
+  displayName: Accès contracts
+  description: |
+     API qui définit les requêtes pour accéder au contracts d'accès
+     La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste de contrats d'accès selon le DSL Vitam en cas de succès.
+  get:
+    description: |
+      API qui définit les requêtes pour accéder aux contrats d'accès
+    is: [RegisterTraits.RegisterListingResponse]
+  post:
+    description: |
+      Importe un ensemble des contrats d'accès qui sont sauvegardés et indexés en cas de succès
+    is: [RegisterTraits.RegisterListingResponse, StandardTraits.OverrideGet, RegisterTraits.RegisterUpload]
+    headers:
+      X-Http-Method-Override:
+        required: false
+
+/contracts:
+  displayName: Ingest contracts
+  description: |
+     API qui définit les requêtes pour accéder au contracts d'entrée
+     La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste de contrats d'entrée selon le DSL Vitam en cas de succès.
+  get:
+    description: |
+       API qui définit les requêtes pour accéder aux contrats d'entrée
+    is: [RegisterTraits.RegisterListingResponse]
+  post:
+    description: |
+      Importe un ensemble des contrats d'entrée qui sont sauvegardés et indexés en cas de succès
+    is: [RegisterTraits.RegisterItemResponse]
+    headers:
+      X-Http-Method-Override:
+        required: false
+
 /status:
   get:
     is: [ StandardTraits.StandardHeader204,
