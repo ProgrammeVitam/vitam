@@ -47,6 +47,18 @@ public enum StorageCollectionType {
      * Logbooks collection
      */
     LOGBOOKS("logbooks"),
+
+
+    /**
+     * Profiles collection
+     */
+    PROFILES("profiles"),
+
+    /**
+     * StorageLog
+     */
+    STORAGELOG("storagelog"),
+
     /**
      * ObjectGroups collection
      */

@@ -24,6 +24,7 @@ public class AccessExternalClientMockTest {
     final String BODY_WITH_ID = "{$query: {$eq: {\"#id\": \"identifier1\" }}, $projection: {}, $filter: {}}";
     final String ID = "identifier1";
     final String USAGE = "usage";
+    final String CONTRACT = "contract";
     final int VERSION = 1;
     final int TENANT_ID = 0;
     AccessExternalClient client;
@@ -38,83 +39,67 @@ public class AccessExternalClientMockTest {
 
     @Test
     public void givenMockConfExistWhenAccessExternalSelectUnitsThenReturnResult()
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException {
-        assertNotNull(client.selectUnits(JsonHandler.getFromString(queryDsql), TENANT_ID));
+        throws Exception {
+        assertNotNull(client.selectUnits(JsonHandler.getFromString(queryDsql), TENANT_ID, CONTRACT));
     }
 
     @Test
     public void givenMockConfExistWhenAccessExternalSelectUnitbyIDThenReturnResult()
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException {
-        assertNotNull(client.selectUnitbyId(JsonHandler.getFromString(queryDsql), ID, TENANT_ID));
+        throws Exception {
+        assertNotNull(client.selectUnitbyId(JsonHandler.getFromString(queryDsql), ID, TENANT_ID, CONTRACT));
     }
 
     @Test
     public void givenMockConfExistWhenAccessExternalUpdateUnitbyIDThenReturnResult()
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException, NoWritingPermissionException {
-        assertNotNull(client.updateUnitbyId(JsonHandler.getFromString(queryDsql), ID, TENANT_ID));
+        throws Exception {
+        assertNotNull(client.updateUnitbyId(JsonHandler.getFromString(queryDsql), ID, TENANT_ID, CONTRACT));
     }
 
     @Test
     public void givenMockConfExistWhenAccessExternalSelectObjectOfUnitbyIDThenReturnResult()
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException, IOException {
-        assertNotNull(client.getObject(JsonHandler.getFromString(queryDsql), ID, USAGE, VERSION, TENANT_ID));
+        throws Exception {
+        assertNotNull(client.getObject(JsonHandler.getFromString(queryDsql), ID, USAGE, VERSION, TENANT_ID, CONTRACT));
     }
 
     @Test
     public void givenMockConfExistWhenAccessExternalSelectObjectbyIDThenReturnResult()
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException {
-        assertNotNull(client.selectObjectById(JsonHandler.getFromString(queryDsql), ID, TENANT_ID));
+        throws Exception {
+        assertNotNull(client.selectObjectById(JsonHandler.getFromString(queryDsql), ID, TENANT_ID, CONTRACT));
     }
 
     @Test
     public void givenMockConfExistWhenAccessExternal_selectOperationLogbook_ThenRetururnResult()
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException,
-        LogbookClientException {
-        assertNotNull(client.selectOperation(JsonHandler.getFromString(queryDsql), TENANT_ID));
+        throws Exception {
+        assertNotNull(client.selectOperation(JsonHandler.getFromString(queryDsql), TENANT_ID, CONTRACT));
     }
 
     @Test
     public void givenMockConfExistWhenAccessExternal_selectOperationbyIdLogbook_ThenRetururnResult()
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException,
-        LogbookClientException {
-        assertNotNull(client.selectOperationbyId(ID, TENANT_ID));
+        throws Exception {
+        assertNotNull(client.selectOperationbyId(ID, TENANT_ID, CONTRACT));
     }
 
     @Test
     public void givenMockConfExistWhenAccessExternal_selectUnitLifeCycleByIdLogbook_ThenRetururnResult()
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException,
-        LogbookClientException {
-        assertNotNull(client.selectUnitLifeCycleById(ID, TENANT_ID));
+        throws Exception {
+        assertNotNull(client.selectUnitLifeCycleById(ID, TENANT_ID, CONTRACT));
     }
 
     @Test
     public void givenMockConfExistWhenAccessExternal_selectUnitLifeCycleLogbook_ThenRetururnResult()
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException,
-        LogbookClientException {
-        assertNotNull(client.selectUnitLifeCycle(JsonHandler.getFromString(BODY_WITH_ID), TENANT_ID));
+        throws Exception {
+        assertNotNull(client.selectUnitLifeCycle(JsonHandler.getFromString(BODY_WITH_ID), TENANT_ID, CONTRACT));
     }
 
     @Test
     public void givenMockConfExistWhenAccessExternal_selectObjectGroupLifeCycleByIdLogbook_ThenRetururnResult()
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException,
-        LogbookClientException {
-        assertNotNull(client.selectObjectGroupLifeCycleById(ID, TENANT_ID));
+        throws Exception {
+        assertNotNull(client.selectObjectGroupLifeCycleById(ID, TENANT_ID, CONTRACT));
     }
 
     @Test
     public void givenMockConfExistWhenAccessExternal_checkTraceabilityOperation_ThenReturnResult()
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException, LogbookClientException {
-        assertNotNull(client.checkTraceabilityOperation(JsonHandler.getFromString(queryDsql), TENANT_ID));
+        throws Exception {
+        assertNotNull(client.checkTraceabilityOperation(JsonHandler.getFromString(queryDsql), TENANT_ID, CONTRACT));
     }
 }

@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -e
 
-
 ######################################################################
 ############################# Includes  ##############################
 ######################################################################
@@ -20,9 +19,14 @@ function generateHostCertificate {
     local INTERMEDIATE_CA_KEY="${3}"
     local HOSTNAME="${4}"
     local TYPE_CERTIFICAT="${5}"
-    local CN_VALEUR="${6}"
+    local SERVICE_HOSTNAME="${6}"
 
-    local RSA_TYPE=$(echo ${TYPE_CERTIFICAT}| tr '[:lower:]' '[:upper:]')
+    # Correctly set Subject Alternate Name (env var is read inside the openssl configuration file)
+    export OPENSSL_SAN="DNS:${SERVICE_HOSTNAME},DNS:${HOSTNAME}"
+    # Correctly set certificate CN (env var is read inside the openssl configuration file)
+    export OPENSSL_CN="${SERVICE_HOSTNAME}"
+    # Correctly set certificate DIRECTORY (env var is read inside the openssl configuration file)
+    export OPENSSL_CRT_DIR=${TYPE_CERTIFICAT}
 
     pki_logger "Création du certificat ${TYPE_CERTIFICAT} pour ${COMPOSANT} hébergé sur ${HOSTNAME}..."
     mkdir -p "${REPERTOIRE_CERTIFICAT}/${TYPE_CERTIFICAT}/hosts/${HOSTNAME}"
@@ -32,16 +36,15 @@ function generateHostCertificate {
         -keyout "${REPERTOIRE_CERTIFICAT}/${TYPE_CERTIFICAT}/hosts/${HOSTNAME}/${COMPOSANT}.key" \
         -out "${REPERTOIRE_CERTIFICAT}/${TYPE_CERTIFICAT}/hosts/${HOSTNAME}/${COMPOSANT}.req" \
         -nodes \
-        -config "${REPERTOIRE_CONFIG}/${TYPE_CERTIFICAT}/ca-config" \
-        -subj "/CN=${CN_VALEUR}/O=Vitam./C=FR/ST=idf/L=paris" \
+        -config "${REPERTOIRE_CONFIG}/crt-config" \
         -batch
 
     pki_logger "Generation du certificat signé avec CA ${TYPE_CERTIFICAT}..."
-    openssl ca -config "${REPERTOIRE_CONFIG}/${TYPE_CERTIFICAT}/ca-config" \
+    openssl ca -config "${REPERTOIRE_CONFIG}/crt-config" \
         -passin pass:"${INTERMEDIATE_CA_KEY}" \
         -out "${REPERTOIRE_CERTIFICAT}/${TYPE_CERTIFICAT}/hosts/${HOSTNAME}/${COMPOSANT}.crt" \
         -in "${REPERTOIRE_CERTIFICAT}/${TYPE_CERTIFICAT}/hosts/${HOSTNAME}/${COMPOSANT}.req" \
-        -name CA_intermediate -extensions ${RSA_TYPE}_RSA_SSL -batch
+        -extensions extension_${TYPE_CERTIFICAT} -batch
 
     purge_directory "${REPERTOIRE_CERTIFICAT}/${TYPE_CERTIFICAT}/hosts/${HOSTNAME}"
     purge_directory "${REPERTOIRE_CONFIG}/${TYPE_CERTIFICAT}"
@@ -56,7 +59,10 @@ function generateTimestampCertificate {
     local CN_VALEUR="${HOSTNAME}"
     local TYPE_CERTIFICAT="timestamping"
 
-    local RSA_TYPE=$(echo ${TYPE_CERTIFICAT}| tr '[:lower:]' '[:upper:]')
+    # Correctly set certificate CN (env var is read inside the openssl configuration file)
+    export OPENSSL_CN="${CN_VALEUR}"
+    # Correctly set certificate DIRECTORY (env var is read inside the openssl configuration file)
+    export OPENSSL_CRT_DIR=${TYPE_CERTIFICAT}
 
     pki_logger "Création du certificat ${TYPE_CERTIFICAT} pour ${COMPOSANT}"
     mkdir -p "${REPERTOIRE_CERTIFICAT}/${TYPE_CERTIFICAT}/vitam"
@@ -66,16 +72,15 @@ function generateTimestampCertificate {
         -keyout "${REPERTOIRE_CERTIFICAT}/${TYPE_CERTIFICAT}/vitam/${COMPOSANT}.key" \
         -out "${REPERTOIRE_CERTIFICAT}/${TYPE_CERTIFICAT}/vitam/${COMPOSANT}.req" \
         -nodes \
-        -config "${REPERTOIRE_CONFIG}/${TYPE_CERTIFICAT}/ca-config" \
-        -subj "/CN=${CN_VALEUR}/O=Vitam./C=FR/ST=idf/L=paris" \
+        -config "${REPERTOIRE_CONFIG}/crt-config" \
         -batch
 
     pki_logger "Generation du certificat signé avec CA ${TYPE_CERTIFICAT}..."
-    openssl ca -config "${REPERTOIRE_CONFIG}/${TYPE_CERTIFICAT}/ca-config" \
+    openssl ca -config "${REPERTOIRE_CONFIG}/crt-config" \
         -passin pass:"${INTERMEDIATE_CA_KEY}" \
         -out "${REPERTOIRE_CERTIFICAT}/${TYPE_CERTIFICAT}/vitam/${COMPOSANT}.crt" \
         -in "${REPERTOIRE_CERTIFICAT}/${TYPE_CERTIFICAT}/vitam/${COMPOSANT}.req" \
-        -name CA_intermediate -extensions ${RSA_TYPE}_RSA_SSL -batch
+        -extensions extension_${TYPE_CERTIFICAT} -batch
 
     purge_directory "${REPERTOIRE_CERTIFICAT}/${TYPE_CERTIFICAT}/vitam"
     purge_directory "${REPERTOIRE_CONFIG}/${TYPE_CERTIFICAT}"
@@ -89,6 +94,11 @@ function generateClientCertificate {
     local CLIENT_TYPE="${4}"
     local TYPE_CERTIFICAT="client"
 
+    # Correctly set certificate CN (env var is read inside the openssl configuration file)
+    export OPENSSL_CN="${CLIENT_NAME}"
+    # Correctly set certificate DIRECTORY (env var is read inside the openssl configuration file)
+    export OPENSSL_CRT_DIR=${CLIENT_TYPE}
+
     pki_logger "Création du certificat ${TYPE_CERTIFICAT} pour ${CLIENT_NAME}"
     mkdir -p "${REPERTOIRE_CERTIFICAT}/${CLIENT_TYPE}/clients/${CLIENT_NAME}"
     pki_logger "Generation de la clé..."
@@ -96,16 +106,15 @@ function generateClientCertificate {
         -passout pass:"${MDP_KEY}" \
         -keyout "${REPERTOIRE_CERTIFICAT}/${CLIENT_TYPE}/clients/${CLIENT_NAME}/${CLIENT_NAME}.key" \
         -out "${REPERTOIRE_CERTIFICAT}/${CLIENT_TYPE}/clients/${CLIENT_NAME}/${CLIENT_NAME}.req" \
-        -config "${REPERTOIRE_CONFIG}/${CLIENT_TYPE}/ca-config" \
-        -subj "/CN=${CLIENT_NAME}/O=Vitam./C=FR/ST=idf/L=paris" \
+        -config "${REPERTOIRE_CONFIG}/crt-config" \
         -batch
 
     pki_logger "Generation du certificat signé avec ${CLIENT_TYPE}..."
-    openssl ca -config "${REPERTOIRE_CONFIG}/${CLIENT_TYPE}/ca-config" \
+    openssl ca -config "${REPERTOIRE_CONFIG}/crt-config" \
         -passin pass:"${MDP_CAINTERMEDIATE_KEY}" \
         -out "${REPERTOIRE_CERTIFICAT}/${CLIENT_TYPE}/clients/${CLIENT_NAME}/${CLIENT_NAME}.crt" \
         -in "${REPERTOIRE_CERTIFICAT}/${CLIENT_TYPE}/clients/${CLIENT_NAME}/${CLIENT_NAME}.req" \
-        -name CA_intermediate -extensions CLIENT_RSA_SSL -batch
+        -extensions extension_${TYPE_CERTIFICAT} -batch
 
     purge_directory "${REPERTOIRE_CERTIFICAT}/${CLIENT_TYPE}/clients/${CLIENT_NAME}"
     purge_directory "${REPERTOIRE_CONFIG}/${CLIENT_TYPE}"
@@ -196,9 +205,6 @@ if [ ! -f ${ENVIRONNEMENT_FILE} ]; then
     pki_logger "ERROR" "Cannot find environment file: ${ENVIRONNEMENT_FILE}"
     exit 1
 fi
-
-# Purge old certificates & vault
-rm -rf ${REPERTOIRE_CERTIFICAT}/*
 
 # Copy CA
 pki_logger "Recopie des clés publiques des CA"

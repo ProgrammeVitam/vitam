@@ -84,7 +84,7 @@ public class CheckVersionActionHandlerTest {
     public void givenWorkspaceExistWhenCheckIsTrueThenReturnResponseOK()
         throws ProcessingException, IOException, URISyntaxException {
         final List<String> invalidVersionList = new ArrayList<>();
-        Mockito.doReturn(invalidVersionList).when(sedaUtils).checkSupportedBinaryObjectVersion(anyObject());
+        Mockito.doReturn(invalidVersionList).when(sedaUtils).checkSupportedDataObjectVersion(anyObject());
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
         final ItemStatus response = handlerVersion.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
@@ -95,7 +95,7 @@ public class CheckVersionActionHandlerTest {
         throws ProcessingException, IOException, URISyntaxException {
         final List<String> invalidVersionList = new ArrayList<>();
         invalidVersionList.add("PhysicalMaste");
-        Mockito.doReturn(invalidVersionList).when(sedaUtils).checkSupportedBinaryObjectVersion(anyObject());
+        Mockito.doReturn(invalidVersionList).when(sedaUtils).checkSupportedDataObjectVersion(anyObject());
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
         final ItemStatus response = handlerVersion.execute(params, handlerIO);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
@@ -104,7 +104,7 @@ public class CheckVersionActionHandlerTest {
     @Test
     public void givenWorkspaceExistWhenExceptionExistThenReturnResponseFatal()
         throws ProcessingException, IOException, URISyntaxException {
-        Mockito.doThrow(new ProcessingException("")).when(sedaUtils).checkSupportedBinaryObjectVersion(anyObject());
+        Mockito.doThrow(new ProcessingException("")).when(sedaUtils).checkSupportedDataObjectVersion(anyObject());
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
         final ItemStatus response = handlerVersion.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());

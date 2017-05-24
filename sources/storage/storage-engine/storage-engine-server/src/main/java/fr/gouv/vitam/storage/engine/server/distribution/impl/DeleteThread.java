@@ -45,8 +45,6 @@ import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
  */
 public class DeleteThread implements Callable<Boolean> {
 
-    private static final StorageOfferProvider OFFER_PROVIDER = StorageOfferProviderFactory.getDefaultProvider();
-
     private Driver driver;
     private StorageRemoveRequest request;
     private String offerId;

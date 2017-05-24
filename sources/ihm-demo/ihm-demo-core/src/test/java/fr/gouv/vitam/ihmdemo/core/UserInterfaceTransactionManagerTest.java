@@ -30,14 +30,13 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.when;
 
-import java.io.IOException;
-
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
@@ -50,16 +49,16 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
-import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
-import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.client.AbstractMockClient;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.junit.AsyncResponseJunitTest;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
 /**
  * Tests UserInterfaceTransactionManager class
@@ -93,6 +92,7 @@ public class UserInterfaceTransactionManagerTest {
             "{#id:'ID025',Title:'ID025',#unitups:[],_tenant:0}]";
 
     final int TENANT_ID = 0;
+    final String CONTRACT_NAME = "contract";
     private static String ID_OBJECT_GROUP = "idOG1";
     private static RequestResponse unitDetails;
     private static RequestResponse searchResult;
@@ -103,6 +103,10 @@ public class UserInterfaceTransactionManagerTest {
 
     private static AccessExternalClientFactory accessClientFactory;
     private static AccessExternalClient accessClient;
+    
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @BeforeClass
     public static void setup() throws Exception {
@@ -122,10 +126,10 @@ public class UserInterfaceTransactionManagerTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testSuccessSearchUnits()
-        throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
-        InvalidParseOperationException {
-        when(accessClient.selectUnits(anyObject(), anyObject())).thenReturn(searchResult);
+        throws Exception {
+        when(accessClient.selectUnits(anyObject(), anyObject(), anyObject())).thenReturn(searchResult);
         // Test method
         final RequestResponseOK result = (RequestResponseOK) UserInterfaceTransactionManager
             .searchUnits(JsonHandler.getFromString(SEARCH_UNIT_DSL_QUERY), TENANT_ID);
@@ -133,10 +137,11 @@ public class UserInterfaceTransactionManagerTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testSuccessGetArchiveUnitDetails()
-        throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
-        InvalidParseOperationException {
-        when(accessClient.selectUnitbyId(JsonHandler.getFromString(SELECT_ID_DSL_QUERY), ID_UNIT, TENANT_ID))
+        throws Exception {
+        VitamThreadUtils.getVitamSession().setContractId(CONTRACT_NAME);
+        when(accessClient.selectUnitbyId(JsonHandler.getFromString(SELECT_ID_DSL_QUERY), ID_UNIT, TENANT_ID, CONTRACT_NAME))
             .thenReturn(unitDetails);
         // Test method
         final RequestResponseOK<JsonNode> archiveDetails =
@@ -146,10 +151,10 @@ public class UserInterfaceTransactionManagerTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testSuccessUpdateUnits()
-        throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
-        InvalidParseOperationException, NoWritingPermissionException {
-        when(accessClient.updateUnitbyId(anyObject(), anyObject(), anyObject())).thenReturn(updateResult);
+        throws Exception {
+        when(accessClient.updateUnitbyId(anyObject(), anyObject(), anyObject(), anyObject())).thenReturn(updateResult);
         // Test method
         final RequestResponseOK results = (RequestResponseOK) UserInterfaceTransactionManager.updateUnits(JsonHandler
             .getFromString(UPDATE_UNIT_DSL_QUERY), "1", TENANT_ID);
@@ -157,15 +162,16 @@ public class UserInterfaceTransactionManagerTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testSuccessSelectObjectbyId()
-        throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
-        InvalidParseOperationException {
+        throws Exception {
+        VitamThreadUtils.getVitamSession().setContractId(CONTRACT_NAME);
         final RequestResponse result =
             JsonHandler.getFromString(
                 "{$hits: {'total':'1'}, $results:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}],$context :" +
                     SEARCH_UNIT_DSL_QUERY + "}",
                 RequestResponseOK.class, JsonNode.class);
-        when(accessClient.selectObjectById(JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP, TENANT_ID))
+        when(accessClient.selectObjectById(JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP, TENANT_ID, CONTRACT_NAME))
             .thenReturn(result);
         // Test method
         final RequestResponseOK<JsonNode> objectGroup =
@@ -176,15 +182,16 @@ public class UserInterfaceTransactionManagerTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testSuccessGetObjectAsInputStream()
-        throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
-        InvalidParseOperationException, IOException {
+        throws Exception {
+        VitamThreadUtils.getVitamSession().setContractId(CONTRACT_NAME);
         when(accessClient.getObject(JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP, "usage", 1,
-            TENANT_ID))
+            TENANT_ID, CONTRACT_NAME))
                 .thenReturn(new AbstractMockClient.FakeInboundResponse(Status.OK, IOUtils.toInputStream("Vitam Test"),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
         assertTrue(UserInterfaceTransactionManager.getObjectAsInputStream(asynResponse,
-            JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP, "usage", 1, "vitam_test", TENANT_ID));
+            JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP, "usage", 1, "vitam_test", TENANT_ID, CONTRACT_NAME));
     }
 
     @Test

@@ -72,7 +72,7 @@ public class BenchmarkClientRest extends DefaultClient {
      * @return time in ns
      */
     public long upload(String method, long size) {
-        try (FakeInputStream fakeInputStream = new FakeInputStream(size, true)) {
+        try (FakeInputStream fakeInputStream = new FakeInputStream(size)) {
 
             final Response response =
                 performRequest(method, UPLOAD_URL + method,
@@ -105,7 +105,7 @@ public class BenchmarkClientRest extends DefaultClient {
      * @return time in ns
      */
     public long multipart(String filename, long size) {
-        try (FakeInputStream fakeInputStream = new FakeInputStream(size, true)) {
+        try (FakeInputStream fakeInputStream = new FakeInputStream(size)) {
             final StreamDataBodyPart stream = new StreamDataBodyPart("sip", fakeInputStream, filename);
             try (MultiPart multiPart = new MultiPart()) {
                 multiPart.bodyPart(new FormDataBodyPart("check", "test"))
@@ -178,9 +178,7 @@ public class BenchmarkClientRest extends DefaultClient {
             LOGGER.error(message);
             throw new VitamClientException(message);
         } finally {
-            if (response != null) {
-                response.close();
-            }
+            consumeAnyEntityAndClose(response);
         }
     }
 }

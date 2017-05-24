@@ -1,41 +1,30 @@
 /**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- *
+ * <p>
  * contact.vitam@culture.gouv.fr
- *
+ * <p>
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
- *
+ * <p>
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
  * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- *
+ * <p>
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
- *
+ * <p>
  * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- *
+ * <p>
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
 package fr.gouv.vitam.ihmrecette.appserver;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
-
-import javax.ws.rs.DELETE;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.guid.GUID;
@@ -68,8 +57,19 @@ import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 
+import javax.ws.rs.DELETE;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Queue;
+
 
 // TODO : appliquer le filtre sur le check de tenantId , US#1993
+
 
 /**
  * Web Application Resource class for delete features
@@ -88,6 +88,8 @@ public class WebApplicationResourceDelete {
     private static final String STP_DELETE_LOGBOOK_LIFECYCLE_UNIT = "STP_DELETE_LOGBOOK_LIFECYCLE_UNIT";
     private static final String STP_DELETE_METADATA_OG = "STP_DELETE_METADATA_OG";
     private static final String STP_DELETE_METADATA_UNIT = "STP_DELETE_METADATA_UNIT";
+    private static final String STP_DELETE_MASTERDATA = "STP_DELETE_MASTERDATA";
+
     private static final String STP_DELETE_ALL = "STP_DELETE_ALL";
     private static final String CANNOT_UPDATE_DELEGATE_LOGBOOK_OPERATION = "Cannot update delegate logbook operation";
 
@@ -112,13 +114,13 @@ public class WebApplicationResourceDelete {
             logbookConfiguration =
                 new LogbookConfiguration(webApplicationConfig.getMongoDbNodes(),
                     webApplicationConfig.getLogbookDbName(), webApplicationConfig.getClusterName(), webApplicationConfig
-                        .getElasticsearchNodes(),
+                    .getElasticsearchNodes(),
                     true, webApplicationConfig.getDbUserName(), webApplicationConfig.getDbPassword());
             metaDataConfiguration = new MetaDataConfiguration(webApplicationConfig.getMongoDbNodes(),
                 webApplicationConfig.getMetadataDbName(), webApplicationConfig.getClusterName(), webApplicationConfig
-                    .getElasticsearchNodes(),
+                .getElasticsearchNodes(),
                 true, webApplicationConfig.getDbUserName(), webApplicationConfig
-                    .getDbPassword());
+                .getDbPassword());
         } else {
             adminConfiguration =
                 new DbConfigurationImpl(webApplicationConfig.getMongoDbNodes(),
@@ -130,7 +132,7 @@ public class WebApplicationResourceDelete {
                         .getElasticsearchNodes());
             metaDataConfiguration = new MetaDataConfiguration(webApplicationConfig.getMongoDbNodes(),
                 webApplicationConfig.getMetadataDbName(), webApplicationConfig.getClusterName(), webApplicationConfig
-                    .getElasticsearchNodes());
+                .getElasticsearchNodes());
         }
         adminConfiguration.setTenants(webApplicationConfig.getTenants());
         logbookConfiguration.setTenants(webApplicationConfig.getTenants());
@@ -204,6 +206,10 @@ public class WebApplicationResourceDelete {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteRulesFile() {
+        return deleteRules();
+    }
+    
+    private Response deleteRules(){
         Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newEventGUID(tenantId);
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
@@ -243,6 +249,10 @@ public class WebApplicationResourceDelete {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteAccessionRegister() {
+        return deleteRegister();
+    }
+
+    private Response deleteRegister() {
         Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
@@ -255,7 +265,7 @@ public class WebApplicationResourceDelete {
             mongoDbAccessAdmin.deleteCollection(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
             parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_ACCESSION_REGISTER_SUMMARY)
                 .setStatus(StatusCode.OK).putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_SUMMARY, StatusCode.OK));
+                VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_SUMMARY, StatusCode.OK));
             helper.updateDelegate(parameters);
             mongoDbAccessLogbook.createBulkLogbookOperation(
                 helper.removeCreateDelegate(eip.getId()).toArray(new LogbookOperationParameters[2]));
@@ -282,7 +292,7 @@ public class WebApplicationResourceDelete {
             mongoDbAccessAdmin.deleteCollection(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
             parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_ACCESSION_REGISTER_DETAIL)
                 .setStatus(StatusCode.OK).putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_DETAIL, StatusCode.OK));
+                VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_DETAIL, StatusCode.OK));
             helper.updateDelegate(parameters);
             mongoDbAccessLogbook.createBulkLogbookOperation(
                 helper.removeCreateDelegate(eipDetail.getId()).toArray(new LogbookOperationParameters[2]));
@@ -310,6 +320,10 @@ public class WebApplicationResourceDelete {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteLogbookOperation() {
+        return deleteLogBook();
+    }
+
+    private Response deleteLogBook() {
         Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
@@ -359,6 +373,10 @@ public class WebApplicationResourceDelete {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteLogbookLifecycleOG() {
+        return deleteLifecycleOg();
+    }
+
+    private Response deleteLifecycleOg() {
         Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
@@ -396,6 +414,10 @@ public class WebApplicationResourceDelete {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteLogbookLifecycleUnit() {
+        return deleteLifecycleUnits();
+    }
+
+    private Response deleteLifecycleUnits() {
         Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
@@ -433,6 +455,10 @@ public class WebApplicationResourceDelete {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteMetadataObjectGroup() {
+        return deleteMetadataOg();
+    }
+
+    private Response deleteMetadataOg() {
         Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
@@ -470,6 +496,10 @@ public class WebApplicationResourceDelete {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteMetadataUnit() {
+        return deleteMetadataUnits();
+    }
+
+    private Response deleteMetadataUnits() {
         Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
@@ -496,6 +526,94 @@ public class WebApplicationResourceDelete {
             }
             return updateLogbookAndGetErrorResponse(helper, eip, exc);
         }
+    }
+
+    /**
+     * Delete the masterdata for accessContract in database
+     *
+     * @return Response
+     */
+    @Path("masterdata/accessContract")
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteMasterdaAccessContract() {
+        return deleteContract(FunctionalAdminCollections.ACCESS_CONTRACT);
+
+    }
+
+    /**
+     * Delete the masterdata for ingestContract in database
+     *
+     * @return Response
+     */
+    @Path("masterdata/ingestContract")
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteMasterdaIngestContract() {
+        return deleteContract(FunctionalAdminCollections.INGEST_CONTRACT);
+
+    }
+
+    private Response deleteContract(FunctionalAdminCollections collection) {
+        if (!(collection.equals(FunctionalAdminCollections.ACCESS_CONTRACT) ||
+            collection.equals(FunctionalAdminCollections.INGEST_CONTRACT))) {
+            throw new IllegalArgumentException("unsuported collection");
+        }
+
+        final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+        final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
+            eip, STP_DELETE_MASTERDATA + "_" + collection.name(), eip,
+            LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
+            VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA + "_" + collection.name(), StatusCode.STARTED), eip);
+        final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
+        try {
+            helper.createDelegate(parameters);
+            mongoDbAccessAdmin.deleteCollection(collection);
+            parameters.setStatus(StatusCode.OK).putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA + "_" + collection.name(), StatusCode.OK));
+            helper.updateDelegate(parameters);
+            mongoDbAccessLogbook.createBulkLogbookOperation(
+                helper.removeCreateDelegate(eip.getId()).toArray(new LogbookOperationParameters[2]));
+            return Response.status(Status.OK).build();
+        } catch (final Exception exc) {
+            parameters.setStatus(StatusCode.KO).putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA + "_" + collection.name(), StatusCode.KO));
+            try {
+                helper.updateDelegate(parameters);
+            } catch (final LogbookClientNotFoundException e) {
+                LOGGER.error(CANNOT_UPDATE_DELEGATE_LOGBOOK_OPERATION, e);
+            }
+            return updateLogbookAndGetErrorResponse(helper, eip, exc);
+        }
+    }
+
+    /**
+     * @deprecated
+     *
+     * Delete for tnr
+     * use only for tnr
+     */
+    @Path("deleteTnr")
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response purgeDataForTnr() {
+        Response response = deleteLogBook();
+        response.close();
+        response = deleteContract(FunctionalAdminCollections.INGEST_CONTRACT);
+        response.close();
+        response = deleteContract(FunctionalAdminCollections.ACCESS_CONTRACT);
+        response.close();
+        response = deleteLifecycleUnits();
+        response.close();
+        response = deleteLifecycleOg();
+        response.close();
+        response = deleteMetadataOg();
+        response.close();
+        response = deleteMetadataUnits();
+        response.close();
+        response = deleteAccessionRegister();
+        response.close();
+        return Response.status(Status.OK).build();
     }
 
     /**
@@ -572,7 +690,7 @@ public class WebApplicationResourceDelete {
         }
         parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_ACCESSION_REGISTER_SUMMARY)
             .setStatus(StatusCode.OK).putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_SUMMARY, StatusCode.OK));
+            VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_SUMMARY, StatusCode.OK));
         try {
             mongoDbAccessAdmin.deleteCollection(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
             helper.updateDelegate(parameters);
@@ -589,7 +707,7 @@ public class WebApplicationResourceDelete {
         }
         parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_ACCESSION_REGISTER_DETAIL)
             .setStatus(StatusCode.OK).putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_DETAIL, StatusCode.OK));
+            VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_DETAIL, StatusCode.OK));
         try {
             mongoDbAccessAdmin.deleteCollection(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
             helper.updateDelegate(parameters);
@@ -606,7 +724,7 @@ public class WebApplicationResourceDelete {
         }
         parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_LOGBOOK_OPERATION)
             .setStatus(StatusCode.OK).putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_OPERATION, StatusCode.OK));
+            VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_OPERATION, StatusCode.OK));
         try {
             mongoDbAccessLogbook.deleteCollection(LogbookCollections.OPERATION);
             helper.updateDelegate(parameters);
@@ -623,7 +741,7 @@ public class WebApplicationResourceDelete {
         }
         parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_LOGBOOK_LIFECYCLE_OG)
             .setStatus(StatusCode.OK).putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_LIFECYCLE_OG, StatusCode.OK));
+            VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_LIFECYCLE_OG, StatusCode.OK));
         try {
             mongoDbAccessLogbook.deleteCollection(LogbookCollections.LIFECYCLE_OBJECTGROUP);
             helper.updateDelegate(parameters);
@@ -640,7 +758,7 @@ public class WebApplicationResourceDelete {
         }
         parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_LOGBOOK_LIFECYCLE_UNIT)
             .setStatus(StatusCode.OK).putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_LIFECYCLE_UNIT, StatusCode.OK));
+            VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_LIFECYCLE_UNIT, StatusCode.OK));
         try {
             mongoDbAccessLogbook.deleteCollection(LogbookCollections.LIFECYCLE_UNIT);
             helper.updateDelegate(parameters);

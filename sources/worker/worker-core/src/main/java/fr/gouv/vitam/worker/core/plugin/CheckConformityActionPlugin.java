@@ -51,7 +51,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.common.utils.BinaryObjectInfo;
+import fr.gouv.vitam.worker.common.utils.DataObjectInfo;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
@@ -90,7 +90,7 @@ public class CheckConformityActionPlugin extends ActionHandler {
             final JsonNode jsonOG = handlerIO.getJsonFromWorkspace(
                 IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName());
 
-            final Map<String, BinaryObjectInfo> binaryObjects = getBinaryObjects(jsonOG);
+            final Map<String, DataObjectInfo> binaryObjects = getBinaryObjects(jsonOG);
 
             // checkMessageDigest
             final JsonNode qualifiers = jsonOG.get(SedaConstants.PREFIX_QUALIFIERS);
@@ -99,10 +99,10 @@ public class CheckConformityActionPlugin extends ActionHandler {
                 if (versions != null && !versions.isEmpty()) {
                     for (final JsonNode versionsArray : versions) {
                         for (final JsonNode version : versionsArray) {
-                            final String objectId = version.get(SedaConstants.PREFIX_ID).asText();
-                            checkMessageDigest(params, binaryObjects.get(objectId),
-                                version,
-                                itemStatus);
+                            if (version.get(SedaConstants.TAG_PHYSICAL_ID) == null) {
+                                final String objectId = version.get(SedaConstants.PREFIX_ID).asText();
+                                checkMessageDigest(params, binaryObjects.get(objectId), version, itemStatus);
+                            }
                         }
                     }
                 }
@@ -125,10 +125,10 @@ public class CheckConformityActionPlugin extends ActionHandler {
     }
 
     private void checkMessageDigest(WorkerParameters params,
-        BinaryObjectInfo binaryObject, JsonNode version, ItemStatus itemStatus)
+        DataObjectInfo binaryObject, JsonNode version, ItemStatus itemStatus)
         throws ProcessingException {
         String eventDetailData;
-        
+
         Response response = null;
 
         try {
@@ -196,11 +196,12 @@ public class CheckConformityActionPlugin extends ActionHandler {
         handler.checkHandlerIO(1, Arrays.asList(new Class[] {String.class}));
     }
 
-    private Map<String, BinaryObjectInfo> getBinaryObjects(JsonNode jsonOG) throws ProcessingException {
-        final Map<String, BinaryObjectInfo> binaryObjects = new HashMap<>();
+    private Map<String, DataObjectInfo> getBinaryObjects(JsonNode jsonOG) throws ProcessingException {
+        final Map<String, DataObjectInfo> binaryObjects = new HashMap<>();
 
         final JsonNode work = jsonOG.get(SedaConstants.PREFIX_WORK);
         final JsonNode qualifiers = work.get(SedaConstants.PREFIX_QUALIFIERS);
+
         if (qualifiers == null) {
             // KO
             return binaryObjects;
@@ -214,13 +215,15 @@ public class CheckConformityActionPlugin extends ActionHandler {
         for (final JsonNode version : versions) {
             LOGGER.debug(version.toString());
             for (final JsonNode jsonBinaryObject : version) {
-                binaryObjects.put(jsonBinaryObject.get(SedaConstants.PREFIX_ID).asText(),
-                    new BinaryObjectInfo()
-                        .setSize(jsonBinaryObject.get(SedaConstants.TAG_SIZE).asLong())
-                        .setId(jsonBinaryObject.get(SedaConstants.PREFIX_ID).asText())
-                        .setUri(jsonBinaryObject.get(SedaConstants.TAG_URI).asText())
-                        .setMessageDigest(jsonBinaryObject.get(SedaConstants.TAG_DIGEST).asText())
-                        .setAlgo(DigestType.fromValue(jsonBinaryObject.get(SedaConstants.ALGORITHM).asText())));
+                if (jsonBinaryObject.get(SedaConstants.TAG_PHYSICAL_ID) == null) {
+                    binaryObjects.put(jsonBinaryObject.get(SedaConstants.PREFIX_ID).asText(),
+                        new DataObjectInfo()
+                            .setSize(jsonBinaryObject.get(SedaConstants.TAG_SIZE).asLong())
+                            .setId(jsonBinaryObject.get(SedaConstants.PREFIX_ID).asText())
+                            .setUri(jsonBinaryObject.get(SedaConstants.TAG_URI).asText())
+                            .setMessageDigest(jsonBinaryObject.get(SedaConstants.TAG_DIGEST).asText())
+                            .setAlgo(DigestType.fromValue(jsonBinaryObject.get(SedaConstants.ALGORITHM).asText())));
+                }
             }
         }
         // OK

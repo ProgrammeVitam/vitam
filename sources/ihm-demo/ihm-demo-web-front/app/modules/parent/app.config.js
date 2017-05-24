@@ -31,18 +31,21 @@ angular.
 module('ihm.demo').
 config(['$locationProvider' ,'$routeProvider',
   function config($locationProvider, $routeProvider) {
-    $locationProvider.hashPrefix('!');
 
-    $routeProvider.
+    $locationProvider.hashPrefix('!');
+      $routeProvider.
     when('/login', {
       templateUrl: 'views/login.html'
     }).
     when('/archiveSearch', {
       template: '<archive-search></archive-search>',
-      title: 'Recherche d\'archives'
+      title: 'Recherche d\'archives',
+      permission: 'archivesearch:units:read'
     }).
     when('/admin', {
-      templateUrl: "views/admin.html"
+      templateUrl: "views/admin.html",
+      permission: 'ingest:create'
+
     }).
     when('/archiveGestion', {
       templateUrl: "views/in-progress.html"
@@ -50,120 +53,165 @@ config(['$locationProvider' ,'$routeProvider',
     when('/uploadSIP', {
       templateUrl: "views/upload-sip.html",
       controller: "uploadController",
-      title: 'Transfert'
+      title: 'Transfert',
+      permission: 'ingest:create'
     }).
     when('/uploadHoldingScheme', {
       templateUrl: "views/upload-sip.html",
       controller: "uploadController",
-      title: 'Transfert de l\'arbre de positionnement'
+      title: 'Transfert de l\'arbre de positionnement',
+      permission: 'rules:create'
     }).
     when('/uploadFilingsScheme', {
       templateUrl: "views/upload-sip.html",
       controller: "uploadController",
-      title: 'Transfert du plan de classement'
+      title: 'Transfert du plan de classement',
+      permission: 'ingest:create'
     }).
     when('/uploadSIP2', {
       templateUrl: "views/upload-sip-2.html",
-      controller: "uploadController"
+      controller: "uploadController",
+      permission: 'ingest:create'
     }).
     when('/archiveunit/:archiveId', {
       template: '<archive-unit></archive-unit>',
-      title: 'Détail de l\'unité archivistique'
+      title: 'Détail de l\'unité archivistique',
+      permission: 'archivesearch:units:read'
     }).
     when('/admin/logbookOperations', {
       template: '<logbook-operations></logbook-operations>',
-      title: 'Suivi des opérations d\'entrées'
+      title: 'Suivi des opérations d\'entrées',
+      permission: 'logbook:operations:read'
     }).
     when('/admin/formats', {
       template: '<file-format></file-format>',
-      title: 'Référentiel des formats'
+      title: 'Référentiel des formats',
+      permission: 'admin:formats:read'
     }).
     when('/admin/rules', {
       template: '<file-rules></file-rules>',
-      title: 'Référentiel des Règles de gestion'
+      title: 'Référentiel des Règles de gestion',
+      permission: 'admin:rules:read'
+    }).
+    when('/admin/profiles', {
+      templateUrl: 'pages/profiles-search/profiles-search.template.html',
+      controller: 'profilesSearchController',
+      title: 'Référentiel des profils',
+      permission: 'profiles:read'
+    }).
+    when('/admin/profiles/:id', {
+      templateUrl: 'pages/profiles-details/profiles-details.template.html',
+      controller: 'profilesDetailsController',
+      title: 'Détail d\'un profil',
+      permission: 'profiles:read'
     }).
     when('/admin/logbookLifecycle', {
-      templateUrl:  "views/in-progress.html"
+      templateUrl:  "views/in-progress.html",
+      permission: 'ingest:create'
     }).
     when('/admin/managementrules', {
-      templateUrl:  "views/in-progress.html"
+      templateUrl:  "views/in-progress.html",
+      permission: 'ingest:create'
     }).
     when('/admin/importPronoun', {
       templateUrl: "views/import-Pronoun.html",
-      title: 'Import du Référentiel des formats'
+      title: 'Import du Référentiel des formats',
+      permission: 'format:create'
     }).
     when('/admin/importFileRules', {
       templateUrl: "views/import-FileRules.html",
-      title: 'Import du Référentiel des Règles de gestion'
+      title: 'Import du Référentiel des Règles de gestion',
+      permission: 'rules:create'
     }).
     when('/admin/importContracts', {
         templateUrl: "views/import-contracts.html",
-        title: 'Import des contrats d\'entrée'
+        title: 'Import des contrats d\'entrée',
+        permission: 'contracts:create'
     }).
     when('/admin/importAccessContracts', {
         templateUrl: "views/import-access-contracts.html",
-        title: 'Import des contrats d\'accès'
+        title: 'Import des contrats d\'accès',
+        permission: 'contracts:create'
+    }).
+    when('/admin/importProfiles', {
+        templateUrl: "views/import-profiles.html",
+        title: 'Import des profils',
+        permission: 'profiles:create'
     }).
     when('/admin/journalOperations', {
       template: '<all-logbook-operation></all-logbook-operation>',
-      title: 'Journal des Opérations'
+      title: 'Journal des Opérations',
+      permission: 'logbook:operations:read'
     }).
     when('/admin/detailOperation/:entryId', {
       templateUrl: 'views/logbookEntryFull.html',
       controller: 'OperationLogbookEntryController',
-      title: 'Détail d\'une opération'
+      title: 'Détail d\'une opération',
+      permission: 'logbook:operations:read'
     }).
     when('/lifecycle/:type/:lifecycleId', {
       template: '<lifecycle></lifecycle>',
-      title: 'Journal du cycle de vie '
+      permission: 'unitlifecycles:read',
     }).
     when('/uploadperf', {
-      template: '<upload-sip-perf></upload-sip-perf>'
+      template: '<upload-sip-perf></upload-sip-perf>',
+      permission: 'ingest:create'
     }).
     when('/accessionRegister/search', {
       template: '<accession-register-search></accession-register-search>',
-      title: 'Recherche Registre des Fonds'
+      title: 'Recherche Registre des Fonds',
+      permission: 'admin:accession-register:read'
     }).
     when('/accessionRegister/detail/:accessionRegisterId', {
       template: '<accession-register-details></accession-register-details>',
-      title: 'Détail du Fonds'
+      title: 'Détail du Fonds',
+      permission: 'admin:accession-register:read'
     }).
     when('/admin/logbookOperations/:entryId', {
       templateUrl: 'views/logbookEntry.html',
       controller: 'logbookEntryController as entryCtrl',
-      title: 'Détail d\'une opération d\'entrée'
+      title: 'Détail d\'une opération d\'entrée',
+      permission: 'logbook:operations:read'
     }).
     when('/admin/workflows', {
         template: '<workflows></workflows>',
-        title: 'Gestion des versements'
+        title: 'Gestion des opérations',
+        permission: 'ingest:create'
     }).
      when('/admin/entryContracts', {
        templateUrl: 'pages/entry-contract-search/entry-contract.template.html',
        controller: 'entryContractsController',
-       title: 'Contrats d\'entrée'
+       title: 'Contrats d\'entrée',
+       permission: 'operations:read'
      }).
     when('/admin/entryContracts/:id', {
       templateUrl: 'pages/entry-contract-details/entry-contract-details.template.html',
       controller: 'entryContractsDetailsController',
-      title: 'Détail d\'un contrat d\'entrée'
+      title: 'Détail d\'un contrat d\'entrée',
+      permission: 'operations:read'
     }).
     when('/admin/accessContracts', {
       templateUrl: 'pages/access-contract-search/access-contract.template.html',
       controller: 'accessContractsController',
-      title: 'Contrats d\'accès'
+      title: 'Contrats d\'accès',
+      permission: 'operations:read'
     }).
     when('/admin/accessContracts/:id', {
       templateUrl: 'pages/access-contract-details/access-contract-details.template.html',
       controller: 'accessContractsDetailsController',
-      title: 'Détail d\'un contrat d\'accès'
-    }).
+      title: 'Détail d\'un contrat d\'accès',
+      permission: 'operations:read'
+
+      }).
     when('/admin/traceabilityOperationSearch', {
       template: '<traceability-operation-search></traceability-operation-search>',
-      title: 'Opérations de sécurisation'
+      title: 'Opérations de sécurisation',
+      permission: 'logbook:operations:read'
     }).
     when('/admin/traceabilityOperationDetail/:operationId', {
       template: '<traceability-operation-details></traceability-operation-details>',
-      title: 'Vérification d\'une opération de sécurisation'
+      title: 'Vérification d\'une opération de sécurisation',
+      permission: 'logbook:operations:read'
     }).
     otherwise('/uploadSIP');
   }

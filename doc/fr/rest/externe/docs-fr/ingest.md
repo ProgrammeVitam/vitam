@@ -13,17 +13,16 @@ Actuellement, seule l'API compatible strictement SEDA **ArchiveTransfer** est pr
 
 # Ingests
 
-**Ingests** est le point d'entrée pour toutes les opérations d'entrées.
+**Ingests** est le point de lancement des opérations d'entrées.
+**Operations** est le point d'entrée du suivi des opérations en asynchrone.
 
-- L'opération d'entrée commence par un POST sur la collection *Ingests*, qui retourne une réponse 202 (Accepted) avec un identifiant dans la collection *Ingests*.
+- L'opération d'entrée commence par un POST sur la collection *Ingests*, qui retourne une réponse 202 (Accepted) avec un identifiant dans la collection **Operations** avec l'Identifiant fournit par *Ingests*
 - Le client peut requêter ensuite de manière itérative cet item et obtiendra la réponse :
   - 202 si le traitement est toujours en cours
-  - 200 si le traitement est terminé et valide
   - un code d'erreur si le traitement est en erreur
 
 ## Statut après soumission d'une entrée
 
-**UNSUPPORTED**
 La structuration d'un Statut est la suivante :
 ```json
 {
@@ -43,3 +42,8 @@ Actuellement le mode opératoire est synchrone, aussi le statut de soumission es
 
 Le modèle de réponse est selon la demande (Accept) le message ArchiveTransferReply en mode XML ou JSON.
 Actuellement, seul le mode XML est proposé.
+
+Deux rapports sont disponibles une fois l'opération terminée :
+- **ATR (ArchiveTransferReply)** via GET /ingests/id/ATR
+- **Manifest (fichier SEDA d'origine)** via GET /ingests/id/Manifest
+

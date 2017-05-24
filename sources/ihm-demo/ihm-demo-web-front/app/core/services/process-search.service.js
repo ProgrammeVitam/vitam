@@ -96,13 +96,15 @@ angular.module('core')
         var triggerError = false;
 
         searchParams.searchScope.error.displayMessage = false;
-        if (!responseValidator.validateReceivedResponse(response) || response.data.$hits.total === 0) {
-          triggerError = true;
-        } else {
-          searchParams.searchScope.response.data = response.data.$results;
-          searchParams.searchScope.response.totalResult = response.data.$hits.total;
-          searchParams.searchScope.pagination.resultPages = Math.ceil(searchParams.searchScope.response.totalResult / searchParams.searchScope.pagination.itemsPerPage);
-          searchParams.searchScope.pagination.currentPage = Math.floor(searchParams.searchScope.pagination.startOffset / searchParams.searchScope.pagination.itemsPerPage) + 1;
+        if (!searchParams.overrideSuccess) {
+          if (!responseValidator.validateReceivedResponse(response) || response.data.$hits.total === 0) {
+            triggerError = true;
+          } else {
+            searchParams.searchScope.response.data = response.data.$results;
+            searchParams.searchScope.response.totalResult = response.data.$hits.total;
+            searchParams.searchScope.pagination.resultPages = Math.ceil(searchParams.searchScope.response.totalResult / searchParams.searchScope.pagination.itemsPerPage);
+            searchParams.searchScope.pagination.currentPage = Math.floor(searchParams.searchScope.pagination.startOffset / searchParams.searchScope.pagination.itemsPerPage) + 1;
+          }
         }
 
         if (triggerError || !searchParams.successCallback(response)) {
@@ -193,6 +195,7 @@ angular.module('core')
      * @param {Object} [preProcessParams] Some custom values for callbackPreProcess parameters.
      * @param {Function} [clearResults] a callback function to override the clear which is call any times the result may change.
      * @param {Integer} [displayMessageTime] Override the timer of message display (in ms).
+     * @param {Boolean} [overrideSuccess] Overrides the callbackSuccess
      *  Default: 0 (infinite)
      * @returns {Object} A set of function to use service.
      *  processSearch: The function that call the processSearch with initialized parameters
@@ -200,7 +203,7 @@ angular.module('core')
      *  onInputChange: Should be called by the controller when an input is updated. this function check if the form is empty and refresh the initial search if needed.
      * If any preProcessParams update is needed, it can be given as first parameter of that function
      */
-    ProcessSearchService.initAndServe = function(searchFunction, callbackPreProcess, successCallback, computeErrorMessage, searchScope, isAutoSearch, preProcessParams, clearResults, displayMessageTime) {
+    ProcessSearchService.initAndServe = function(searchFunction, callbackPreProcess, successCallback, computeErrorMessage, searchScope, isAutoSearch, preProcessParams, clearResults, displayMessageTime, overrideSuccess) {
       var params = {};
       params.displayMessageTime = 0;
       params.isInitalized = true;
@@ -209,6 +212,7 @@ angular.module('core')
       params.preProcessParams = null;
       params.successCallback = angular.noop;
       params.autoSearch = false;
+      params.overrideSuccess = false;
 
       params.autoSearch = checkParam(params, isAutoSearch, 'boolean', 'isAutoSearch', false, params.autoSearch);
       params.callbackPreProcess = checkParam(params, callbackPreProcess, 'function', 'callbackPreProcess', false, params.callbackPreProcess);
@@ -219,6 +223,7 @@ angular.module('core')
       params.computeErrorMessage = checkParam(params, computeErrorMessage, 'function', 'computeErrorMessage', true);
       params.searchScope = checkParam(params, searchScope, 'object', 'searchScope', true);
       params.searchFunction = checkParam(params, searchFunction, 'function', 'searchFunction', true);
+      params.overrideSuccess = checkParam(params, overrideSuccess, 'boolean', 'overrideSuccess', false);
       if (params.initError.indexOf('searchScope') === -1) {
         params.initialForm = checkParam(params, angular.copy(searchScope.form), 'object', 'searchForm', true);
       }

@@ -214,13 +214,8 @@ Il y a deux classes qui héritent les APIs. l'une utilise SWIFT et l'autre utili
 4- Détail de l'implémentation HashFileSystem
 --------------------------------------------
 
-Particularités aux bornes de l'implémentation : 
-
-- Seuls des objets  de la forme <GUID base32> ou <GUID base32>.extension sont acceptés . En effet, il est nécessaire que la partie avant l'extension ait une longueur fixe (36 caractères dans l'implémentation actuelle du GUID
-- L'implémentation actuelle n'est pas résistante à une augmentation de la taille du GUID
-
 Logique d'implémentation
 
 - /<storage-path> : défini par configuration
   * /container-name : sur les offres de stockage, cela est construit dans le CAS Manager par concaténation du type d'objet et du tenant . Cette configuration n'est pas la configuration cible (notamment par rapport à l'offre froide)
-    + /aaa/bbb/ccc/ddd/.../fff/ : 11 niveaux de répertoire correspondant au hachage des GUID fourni par bloc de 3 caractère et auquel on a ignoré le dernier bloc (pour permettre l'aggrégation)
+    + /0/a/b/c/<fichier> : avec 0abc les 4 premiers hexdigits du SHA-256 du nom du fichier stocké

@@ -190,6 +190,11 @@ public class VitamServerTest {
                 public void shutdown() {
                     // Empty
                 }
+
+                @Override
+                public void resume(Client client, boolean chunk) {
+                    // Empty
+                }
             }) {
 
                 @Override

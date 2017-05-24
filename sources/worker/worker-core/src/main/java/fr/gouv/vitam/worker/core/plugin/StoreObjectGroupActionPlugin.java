@@ -57,7 +57,6 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
     private static final String SIP = "SIP/";
     private HandlerIO handlerIO;
 
-
     /**
      * Constructor
      */
@@ -135,8 +134,10 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
         }
         for (final JsonNode version : versions) {
             for (final JsonNode binaryObject : version) {
-                binaryObjectsToStore.put(binaryObject.get(SedaConstants.PREFIX_ID).asText(),
-                    binaryObject.get(SedaConstants.TAG_URI).asText());
+                if (binaryObject.get(SedaConstants.TAG_PHYSICAL_ID) == null) {
+                    binaryObjectsToStore.put(binaryObject.get(SedaConstants.PREFIX_ID).asText(),
+                        binaryObject.get(SedaConstants.TAG_URI).asText());
+                }
             }
         }
 

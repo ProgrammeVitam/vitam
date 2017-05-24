@@ -44,8 +44,9 @@ public abstract  class AbstractConnection extends DefaultClient implements Conne
      */
     public AbstractConnection(String driverName, VitamClientFactoryInterface<? extends AbstractConnection> factory) {
         super(factory);
-        if (null == driverName)
+        if (null == driverName) {
             throw new IllegalArgumentException("The parameter driverName is requied");
+        }
         this.driverName = driverName;
     }
 

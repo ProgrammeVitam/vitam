@@ -47,11 +47,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -67,6 +64,7 @@ import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 public class PerformanceService {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PerformanceService.class);
+    public static final String DEFAULT_CONTRACT_NAME = "test_perf";
     private final IngestExternalClientFactory ingestClientFactory;
 
     private AtomicBoolean performanceTestInProgress = new AtomicBoolean(false);
@@ -150,7 +148,7 @@ public class PerformanceService {
         try {
             LOGGER.debug("generate report");
             final RequestResponse<JsonNode> requestResponse =
-                UserInterfaceTransactionManager.selectOperationbyId(operationId, tenantId);
+                UserInterfaceTransactionManager.selectOperationbyId(operationId, tenantId, DEFAULT_CONTRACT_NAME);
 
             if (requestResponse.isOk()) {
                 RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
@@ -166,18 +164,17 @@ public class PerformanceService {
     private String uploadSIP(PerformanceModel model, Integer tenantId) {
         // TODO: client is it thread safe ?
         LOGGER.debug("launch unitary test");
-        RequestResponse<JsonNode>  response = null;
         IngestExternalClient client = ingestClientFactory.getClient();
         try (InputStream sipInputStream = Files.newInputStream(sipDirectory.resolve(model.getFileName()),
             StandardOpenOption.READ)) {
 
-            response =
+            String requestId =
                 client.uploadAndWaitFinishingProcess(sipInputStream, tenantId, DEFAULT_WORKFLOW.name(), RESUME.name());
 
             LOGGER.debug("finish unitary test");
-            return response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+            return requestId;
         } catch (final Exception e) {
-            LOGGER.error("unable to close report", e);
+            LOGGER.error("unable to upload sip", e);
             return null;
         } finally {
             client.close();

@@ -44,6 +44,7 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFou
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -53,6 +54,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
 /**
@@ -71,12 +73,13 @@ public class UserInterfaceTransactionManager {
      * @throws AccessExternalClientServerException thrown when an errors occurs during the connection with the server
      * @throws AccessExternalClientNotFoundException thrown when access client is not found
      * @throws InvalidParseOperationException thrown when the Json node format is not correct
+     * @throws AccessUnauthorizedException 
      */
     public static RequestResponse<JsonNode> searchUnits(JsonNode parameters, Integer tenantId)
         throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
-        InvalidParseOperationException {
+        InvalidParseOperationException, AccessUnauthorizedException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            return client.selectUnits(parameters, tenantId);
+            return client.selectUnits(parameters, tenantId, VitamThreadUtils.getVitamSession().getContractId());
         }
     }
 
@@ -90,13 +93,14 @@ public class UserInterfaceTransactionManager {
      * @throws AccessExternalClientServerException thrown when an errors occurs during the connection with the server
      * @throws AccessExternalClientNotFoundException thrown when access client is not found
      * @throws InvalidParseOperationException thrown when the Json node format is not correct
+     * @throws AccessUnauthorizedException 
      */
     public static RequestResponse<JsonNode> getArchiveUnitDetails(JsonNode preparedDslQuery, String unitId,
         Integer tenantId)
         throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
-        InvalidParseOperationException {
+        InvalidParseOperationException, AccessUnauthorizedException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            return client.selectUnitbyId(preparedDslQuery, unitId, tenantId);
+            return client.selectUnitbyId(preparedDslQuery, unitId, tenantId, VitamThreadUtils.getVitamSession().getContractId());
         }
     }
 
@@ -111,12 +115,13 @@ public class UserInterfaceTransactionManager {
      * @throws AccessExternalClientNotFoundException thrown when access client is not found
      * @throws InvalidParseOperationException thrown when the Json node format is not correct
      * @throws NoWritingPermissionException 
+     * @throws AccessUnauthorizedException 
      */
     public static RequestResponse<JsonNode> updateUnits(JsonNode parameters, String unitId, Integer tenantId)
         throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
-        InvalidParseOperationException, NoWritingPermissionException {
+        InvalidParseOperationException, NoWritingPermissionException, AccessUnauthorizedException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            return client.updateUnitbyId(parameters, unitId, tenantId);
+            return client.updateUnitbyId(parameters, unitId, tenantId, VitamThreadUtils.getVitamSession().getContractId());
         }
     }
 
@@ -130,13 +135,14 @@ public class UserInterfaceTransactionManager {
      * @throws AccessExternalClientServerException if the server encountered an exception
      * @throws AccessExternalClientNotFoundException if the requested object does not exist
      * @throws InvalidParseOperationException if the query is not well formatted
+     * @throws AccessUnauthorizedException 
      */
     public static RequestResponse<JsonNode> selectObjectbyId(JsonNode preparedDslQuery, String objectId,
         Integer tenantId)
         throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
-        InvalidParseOperationException {
+        InvalidParseOperationException, AccessUnauthorizedException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            return client.selectObjectById(preparedDslQuery, objectId, tenantId);
+            return client.selectObjectById(preparedDslQuery, objectId, tenantId, VitamThreadUtils.getVitamSession().getContractId());
         }
     }
 
@@ -155,16 +161,17 @@ public class UserInterfaceTransactionManager {
      * @throws AccessExternalClientServerException if the server encountered an exception
      * @throws AccessExternalClientNotFoundException if the requested object does not exist
      * @throws UnsupportedEncodingException if unsupported encoding error for input file content
+     * @throws AccessUnauthorizedException 
      */
     // TODO: review this return (should theoretically be a void) because we got mock issue with this class on
     // web application resource
     public static boolean getObjectAsInputStream(AsyncResponse asyncResponse, JsonNode selectObjectQuery,
-        String objectGroupId, String usage, int version, String filename, Integer tenantId)
+        String objectGroupId, String usage, int version, String filename, Integer tenantId, String contractId)
         throws AccessExternalClientNotFoundException, AccessExternalClientServerException,
-        InvalidParseOperationException, UnsupportedEncodingException {
+        InvalidParseOperationException, UnsupportedEncodingException, AccessUnauthorizedException {
         Response response = null;
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            response = client.getObject(selectObjectQuery, objectGroupId, usage, version, tenantId);
+            response = client.getObject(selectObjectQuery, objectGroupId, usage, version, tenantId, contractId);
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
             final Response.ResponseBuilder responseBuilder = Response.status(Response.Status.OK)
                 .header(GlobalDataRest.X_QUALIFIER, response.getHeaderString(GlobalDataRest.X_QUALIFIER))
@@ -258,12 +265,13 @@ public class UserInterfaceTransactionManager {
      * @return JsonNode result
      * @throws InvalidParseOperationException if json data not well-formed 
      * @throws LogbookClientException if the request with illegal parameter
+     * @throws AccessUnauthorizedException 
      */
 
     public static RequestResponse<JsonNode> selectUnitLifeCycleById(String unitLifeCycleId, Integer tenantId)
-        throws LogbookClientException, InvalidParseOperationException {
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            return client.selectUnitLifeCycleById(unitLifeCycleId, tenantId);
+            return client.selectUnitLifeCycleById(unitLifeCycleId, tenantId, VitamThreadUtils.getVitamSession().getContractId());
 
         }
     }
@@ -274,11 +282,12 @@ public class UserInterfaceTransactionManager {
      * @return JsonNode result
      * @throws InvalidParseOperationException if json data not well-formed
      * @throws LogbookClientException if the request with illegal parameter
+     * @throws AccessUnauthorizedException 
      */
     public static RequestResponse<JsonNode> selectOperation(JsonNode query, Integer tenantId)
-        throws LogbookClientException, InvalidParseOperationException {
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            return client.selectOperation(query, tenantId);
+            return client.selectOperation(query, tenantId, VitamThreadUtils.getVitamSession().getContractId());
         }
     }
 
@@ -288,11 +297,12 @@ public class UserInterfaceTransactionManager {
      * @return JsonNode result
      * @throws InvalidParseOperationException if json data not well-formed
      * @throws LogbookClientException if the request with illegal parameter
+     * @throws AccessUnauthorizedException 
      */
-    public static RequestResponse<JsonNode> selectOperationbyId(String operationId, Integer tenantId)
-        throws LogbookClientException, InvalidParseOperationException {
+    public static RequestResponse<JsonNode> selectOperationbyId(String operationId, Integer tenantId, String contractName)
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            return client.selectOperationbyId(operationId, tenantId);
+            return client.selectOperationbyId(operationId, tenantId, contractName);
         }
     }
 
@@ -302,13 +312,14 @@ public class UserInterfaceTransactionManager {
      * @return JsonNode result
      * @throws InvalidParseOperationException if json data not well-formed
      * @throws LogbookClientException if the request with illegal parameter
+     * @throws AccessUnauthorizedException 
      */
 
     public static RequestResponse<JsonNode> selectObjectGroupLifeCycleById(String objectGroupLifeCycleId,
         Integer tenantId)
-        throws LogbookClientException, InvalidParseOperationException {
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            return client.selectObjectGroupLifeCycleById(objectGroupLifeCycleId, tenantId);
+            return client.selectObjectGroupLifeCycleById(objectGroupLifeCycleId, tenantId, VitamThreadUtils.getVitamSession().getContractId());
         }
     }
 
@@ -321,14 +332,15 @@ public class UserInterfaceTransactionManager {
      * @throws AccessExternalClientServerException if access internal server error
      * @throws AccessExternalClientNotFoundException if access external resource not found
      * @throws InvalidCreateOperationException if error when create query
+     * @throws AccessUnauthorizedException 
      */
     public static RequestResponse<JsonNode> findAccessionRegisterSummary(String options, Integer tenantId)
         throws LogbookClientException, InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException, InvalidCreateOperationException {
+        AccessExternalClientNotFoundException, InvalidCreateOperationException, AccessUnauthorizedException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
             final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
             final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-            return client.getAccessionRegisterSummary(query, tenantId);
+            return client.getAccessionRegisterSummary(query, tenantId, VitamThreadUtils.getVitamSession().getContractId());
         }
     }
 
@@ -341,17 +353,18 @@ public class UserInterfaceTransactionManager {
      * @throws AccessExternalClientServerException if access internal server error
      * @throws AccessExternalClientNotFoundException if access external resource not found
      * @throws InvalidCreateOperationException  if error when create query
+     * @throws AccessUnauthorizedException 
      */
 
 
     public static RequestResponse<JsonNode> findAccessionRegisterDetail(String id, String options, Integer tenantId)
         throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException, InvalidCreateOperationException {
+        AccessExternalClientNotFoundException, InvalidCreateOperationException, AccessUnauthorizedException {
 
         try (AccessExternalClient accessClient = AccessExternalClientFactory.getInstance().getClient()) {
             final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
             final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-            return accessClient.getAccessionRegisterDetail(id, query, tenantId);
+            return accessClient.getAccessionRegisterDetail(id, query, tenantId, VitamThreadUtils.getVitamSession().getContractId());
         }
     }
 
@@ -364,12 +377,13 @@ public class UserInterfaceTransactionManager {
      * @return A RequestResponse contains the created logbookOperation for verification process
      * @throws AccessExternalClientServerException
      * @throws InvalidParseOperationException
+     * @throws AccessUnauthorizedException 
      */
     @SuppressWarnings("unchecked")
     public static RequestResponse<JsonNode> checkTraceabilityOperation(JsonNode query, Integer tenantId)
-        throws AccessExternalClientServerException, InvalidParseOperationException {
+        throws AccessExternalClientServerException, InvalidParseOperationException, AccessUnauthorizedException {
         try (AccessExternalClient accessClient = AccessExternalClientFactory.getInstance().getClient()) {
-            return accessClient.checkTraceabilityOperation(query, tenantId);
+            return accessClient.checkTraceabilityOperation(query, tenantId, VitamThreadUtils.getVitamSession().getContractId());
         }
     }
 }

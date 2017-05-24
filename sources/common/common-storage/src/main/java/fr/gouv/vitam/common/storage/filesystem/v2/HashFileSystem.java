@@ -204,6 +204,7 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     }
 
     // TODO : To be modified when there will be a real method in ContentAddressableStorageJcloudsAbstract
+    // TODO P1 : asyncResponse not used !
     @Override
     public Response getObjectAsync(String containerName, String objectName, AsyncResponse asyncResponse)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
@@ -277,9 +278,14 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         // See if the retrieved XATTR attribute is correct. If so, return it.
         if (digestMetadata != null) {
             String[] digestTokens = digestMetadata.split(":");
-            if ((digestTokens.length == 2) && DigestType.valueOf(digestTokens[0]) == algo) {
-                return digestTokens[1];
+            try{
+                if ((digestTokens.length == 2) && DigestType.fromValue(digestTokens[0]) == algo) {
+                    return digestTokens[1];
+                }
+            }catch(IllegalArgumentException e){
+                LOGGER.warn("DigestAlgorithm in the extended attribute of file "+ containerName+"/"+objectName + " is unknown : "+ digestTokens[0],e);
             }
+            
         }
 
         // Calculate the digest via the common method

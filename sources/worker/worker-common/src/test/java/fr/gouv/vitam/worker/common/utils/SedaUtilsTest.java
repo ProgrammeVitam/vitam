@@ -40,6 +40,8 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -82,10 +84,12 @@ public class SedaUtilsTest {
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
     private static final String SIP = "sip1.xml";
+    private static final String SIP_PDO = "sip-physical-archive.xml";
     private static final String OBJ = "obj";
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
     private final InputStream seda;
+    private final InputStream sedaPdo;
 
     private final HandlerIO handlerIO = mock(HandlerIO.class);
     private final SedaUtils utils = SedaUtilsFactory.create(handlerIO);
@@ -96,6 +100,7 @@ public class SedaUtilsTest {
 
     public SedaUtilsTest() throws FileNotFoundException {
         seda = PropertiesUtils.getResourceAsStream(SIP);
+        sedaPdo = PropertiesUtils.getResourceAsStream(SIP_PDO);
     }
 
     @Before
@@ -165,15 +170,17 @@ public class SedaUtilsTest {
         final XMLInputFactory factory = XMLInputFactory.newInstance();
         final XMLEventReader evenReader = factory.createXMLEventReader(
             new FileReader(PropertiesUtils.getResourcePath("sip.xml").toString()));
-        List<String> versionList;
+        Map<String, Set<String>> versionList;
 
         versionList = utils.manifestVersionList(evenReader);
-        assertEquals(5, versionList.size());
-        assertTrue(versionList.contains("PhysicalMaster_1"));
-        assertTrue(versionList.contains("BinaryMaster"));
-        assertTrue(versionList.contains("Diffusion_1"));
-        assertTrue(versionList.contains("Thumbnail"));
-        assertTrue(versionList.contains("TextContent_1"));
+        assertEquals(2, versionList.size());
+        assertEquals(4, versionList.get(SedaConstants.TAG_BINARY_DATA_OBJECT).size());
+        assertEquals(1, versionList.get(SedaConstants.TAG_PHYSICAL_DATA_OBJECT).size());
+        assertTrue(versionList.get(SedaConstants.TAG_PHYSICAL_DATA_OBJECT).contains("PhysicalMaster_1"));
+        assertTrue(versionList.get(SedaConstants.TAG_BINARY_DATA_OBJECT).contains("BinaryMaster"));
+        assertTrue(versionList.get(SedaConstants.TAG_BINARY_DATA_OBJECT).contains("Dissemination_1"));
+        assertTrue(versionList.get(SedaConstants.TAG_BINARY_DATA_OBJECT).contains("Thumbnail"));
+        assertTrue(versionList.get(SedaConstants.TAG_BINARY_DATA_OBJECT).contains("TextContent_1"));
     }
 
     @Test
@@ -185,7 +192,7 @@ public class SedaUtilsTest {
         assertEquals(0, utils.compareVersionList(evenReader).size());
 
         evenReader = factory.createXMLEventReader(new FileReader("src/test/resources/sip-with-wrong-version.xml"));
-        assertEquals(1, utils.compareVersionList(evenReader).size());
+        assertEquals(3, utils.compareVersionList(evenReader).size());
     }
 
     @Test
@@ -193,6 +200,15 @@ public class SedaUtilsTest {
         when(workspaceClient.getObject(anyObject(), anyObject()))
             .thenReturn(Response.status(Status.OK).entity(seda).build());
         when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(seda);
+        final long totalSize = utils.computeTotalSizeOfObjectsInManifest(params);
+        assertTrue(totalSize > 0);
+    }
+
+    @Test
+    public void givenCorrectObjectGroupWhenCheckStorageAvailabilityWithPDOThenOK() throws Exception {
+        when(workspaceClient.getObject(anyObject(), anyObject()))
+            .thenReturn(Response.status(Status.OK).entity(sedaPdo).build());
+        when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(sedaPdo);
         final long totalSize = utils.computeTotalSizeOfObjectsInManifest(params);
         assertTrue(totalSize > 0);
     }

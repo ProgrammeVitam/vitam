@@ -53,6 +53,7 @@
     name: "{{consul_service}}"
     state: started
 
+# Changing the resolv.conf doesn't work into a docker container...
 - name: Add consul nameserver to resolv.conf
   blockinfile:
     backup: yes
@@ -61,4 +62,4 @@
     marker: "# {mark} ANSIBLE MANAGED BLOCK"
     block: |
       nameserver 127.0.0.1
-  when: ansible_virtualization_type != 'docker' # Changing the resolv.conf doesn't work into a docker container...
+  when: "inventory_hostname != 'localhost'"

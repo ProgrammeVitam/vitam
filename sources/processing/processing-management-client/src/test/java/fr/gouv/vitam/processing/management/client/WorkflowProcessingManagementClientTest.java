@@ -46,9 +46,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 
@@ -60,12 +57,11 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
-import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
-import fr.gouv.vitam.processing.common.exception.ProcessingUnauthorizeException;
 
 
 public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
@@ -120,9 +116,12 @@ public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
             return false;
         }
     }
+
+
     // Define your Configuration class if necessary
     public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
     }
+
 
     @Path("/processing/v1")
     public static class ProcessingResource {
@@ -189,48 +188,6 @@ public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
         public Response getOperationProcessStatus(@PathParam("id") String id) {
             return expectedResponse.head();
         }
-    }
-
-    @Test(expected = ProcessingInternalServerException.class)
-    public void givenNotFoundWorkflowWhenProcessingThenReturnNotFound() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.executeVitamProcess(CONTAINER, WORKFLOWID, CONTEXT_ID);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void givenIllegalArgumementWhenProcessingThenReturnIllegalPrecondtionFailed() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.executeVitamProcess(CONTAINER, WORKFLOWID, CONTEXT_ID);
-    }
-
-    @Test(expected = ProcessingUnauthorizeException.class)
-    public void givenUnauthorizedOperationWhenProcessingThenReturnUnauthorized() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
-        client.executeVitamProcess(CONTAINER, WORKFLOWID, CONTEXT_ID);
-    }
-
-    @Test
-    public void givenBadRequestWhenProcessingThenReturnBadRequest() throws Exception {
-        final ItemStatus desired = new ItemStatus("ID");
-        when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).entity(desired).build());
-        final Response ret = client.executeVitamProcess(CONTAINER, WORKFLOWID, CONTEXT_ID);
-        assertNotNull(ret);
-        // assertEquals(desired.getGlobalStatus(), ret.getGlobalStatus());
-    }
-
-    @Test(expected = ProcessingInternalServerException.class)
-    public void givenInternalServerErrorWhenProcessingThenReturnInternalServerError() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        client.executeVitamProcess(CONTAINER, WORKFLOWID, CONTEXT_ID);
-    }
-
-    @Test
-    public void executeVitamProcessOk() throws Exception {
-        final ItemStatus desired = new ItemStatus("ID");
-        when(mock.get()).thenReturn(Response.status(Status.OK).entity(desired).build());
-        final Response ret = client.executeVitamProcess(CONTAINER, WORKFLOWID, CONTEXT_ID);
-        assertNotNull(ret);
-        // assertEquals(desired.getGlobalStatus(), ret.getGlobalStatus());
     }
 
     @Test(expected = InternalServerException.class)
@@ -347,17 +304,11 @@ public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
         // assertEquals(desired.getGlobalStatus(), ret.getGlobalStatus());
     }
 
-    @Test(expected = InternalServerException.class)
-    public void givenInternalServerErrorWhenProcessingOperationThenReturnInternalServerError() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        client.executeOperationProcess(ID, WORKFLOWID, CONTEXT_ID, ACTION_ID);
-    }
-
     @Test
     public void executeOperationProcessOk() throws Exception {
         final ItemStatus desired = new ItemStatus("ID");
         when(mock.post()).thenReturn(Response.status(Status.OK).entity(desired).build());
-        final  RequestResponse<JsonNode> ret = client.executeOperationProcess(ID, WORKFLOWID, CONTEXT_ID, ACTION_ID);
+        final RequestResponse<JsonNode> ret = client.executeOperationProcess(ID, WORKFLOWID, CONTEXT_ID, ACTION_ID);
         assertNotNull(ret);
         assertTrue(ret.isOk());
 
@@ -404,7 +355,7 @@ public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
     public void CancelOperationProcessOk() throws Exception {
         final ItemStatus desired = new ItemStatus("ID");
         when(mock.delete()).thenReturn(Response.status(Status.OK).entity(desired).build());
-        final RequestResponse<JsonNode>  ret = client.cancelOperationProcessExecution(ID);
+        final RequestResponse<JsonNode> ret = client.cancelOperationProcessExecution(ID);
 
         assertTrue(ret.isOk());
 
@@ -518,8 +469,7 @@ public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
     public void givenBadRequestWhenInitProcessingOperationThenReturnBadRequest() throws Exception {
         final ItemStatus desired = new ItemStatus("ID");
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).entity(desired).build());
-        client.initVitamProcess(CONTEXT_ID, CONTAINER, WORKFLOWID);;
-
+        client.initVitamProcess(CONTEXT_ID, CONTAINER, WORKFLOWID);
     }
 
     @Test(expected = InternalServerException.class)
@@ -533,8 +483,7 @@ public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
     public void initOperationProcessOk() throws Exception {
         final ItemStatus desired = new ItemStatus("ID");
         when(mock.post()).thenReturn(Response.status(Status.OK).entity(desired).build());
-        client.initVitamProcess(CONTEXT_ID, CONTAINER, WORKFLOWID);;
-
+        client.initVitamProcess(CONTEXT_ID, CONTAINER, WORKFLOWID);
     }
 
     @Test(expected = InternalServerException.class)

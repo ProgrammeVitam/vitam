@@ -33,8 +33,6 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -43,7 +41,6 @@ import java.util.List;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import javax.xml.stream.XMLStreamException;
 
 import org.junit.After;
 import org.junit.Before;
@@ -58,7 +55,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -69,7 +65,6 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.IOParameter;
 import fr.gouv.vitam.processing.common.model.ProcessingUri;
 import fr.gouv.vitam.processing.common.model.UriPrefix;
@@ -134,13 +129,13 @@ public class CheckDataObjectPackageActionHandlerTest {
         out = new ArrayList<>();
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "UnitsLevel/ingestLevelStack.json")));
         out.add(
-            new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/BDO_TO_OBJECT_GROUP_ID_MAP.json")));
+            new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP.json")));
         out.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/BINARY_DATA_OBJECT_ID_TO_GUID_MAP.json")));
+            .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/DATA_OBJECT_ID_TO_GUID_MAP.json")));
         out.add(
             new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json")));
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "MapsMemory/OG_TO_ARCHIVE_ID_MAP.json")));
-        out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/BDO_TO_VERSION_BDO_MAP.json")));
+        out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP.json")));
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/ARCHIVE_ID_TO_GUID_MAP.json")));
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "ATR/globalSEDAParameters.json")));
         out.add(new IOParameter()
@@ -187,7 +182,7 @@ public class CheckDataObjectPackageActionHandlerTest {
         action.addInIOParameters(in);
         
         final List<String> invalidVersionList = new ArrayList<>();
-        Mockito.doReturn(invalidVersionList).when(sedaUtils).checkSupportedBinaryObjectVersion(anyObject());
+        Mockito.doReturn(invalidVersionList).when(sedaUtils).checkSupportedDataObjectVersion(anyObject());
         final ItemStatus response2 = handler.execute(params, action);
         assertEquals(StatusCode.KO, response2.getGlobalStatus());
     }

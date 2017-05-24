@@ -90,6 +90,8 @@
     - "jetty-config.xml"
     - "vitam.conf"
     - "vitam.metrics.conf"
+  tags:
+    - update_vitam_configuration
   notify:
     - restart service
 
@@ -105,6 +107,8 @@
   when: "{{ lookup('pipe', 'test -d {{role_path}}/templates/{{ vitam_component }} || echo nofolder') == \"\"}}"
   with_items: "{{ lookup('pipe','find {{role_path}}/templates/{{ vitam_component }}/ -type f  -exec basename {} .j2 \\; || true').split('\n') }}"
   no_log: false # OMA test as there may be secrets in verbose output
+  tags:
+    - update_vitam_configuration
   notify:
     - restart service
 

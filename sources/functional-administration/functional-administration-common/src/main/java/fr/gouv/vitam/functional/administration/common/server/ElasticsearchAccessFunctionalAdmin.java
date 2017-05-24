@@ -34,6 +34,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import fr.gouv.vitam.functional.administration.common.Profile;
+import fr.gouv.vitam.functional.administration.common.AccessContract;
+import fr.gouv.vitam.functional.administration.common.IngestContract;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -64,7 +67,11 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ElasticsearchAccessFunctionalAdmin.class);
     public static final String MAPPING_FORMAT_FILE = "/format-es-mapping.json";
     public static final String MAPPING_RULE_FILE = "/rule-es-mapping.json";
-    
+    public static final String MAPPING_INGESTCONTRACT_FILE = "/ingestcontract-es-mapping.json";
+    public static final String MAPPING_ACCESSCONTRACT_FILE = "/accesscontract-es-mapping.json";
+
+    public static final String MAPPING_PROFILE_FILE = "/profile-es-mapping.json";
+
     /**
      * @param clusterName
      * @param nodes
@@ -183,12 +190,12 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
     /**
      *
      * @param collection
-     * @param type
+     * @param query
      * @param query as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }" "{ "ids" : { "
      *        values" : [list of id] } }"
      * @param filter
      * @return a structure as ResultInterface
-     * @throws MetaDataExecutionException
+     * @throws ReferentialException
      */
     protected final SearchResponse search(final FunctionalAdminCollections collection, final QueryBuilder query,
         final QueryBuilder filter) throws ReferentialException {
@@ -214,6 +221,12 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
             return ElasticsearchUtil.transferJsonToMapping(FileFormat.class.getResourceAsStream(MAPPING_FORMAT_FILE));
         } else if (collection.equals(FunctionalAdminCollections.RULES)) {
             return ElasticsearchUtil.transferJsonToMapping(FileRules.class.getResourceAsStream(MAPPING_RULE_FILE));
+        } else if (collection.equals(FunctionalAdminCollections.INGEST_CONTRACT)) {
+            return ElasticsearchUtil.transferJsonToMapping(FileRules.class.getResourceAsStream(MAPPING_INGESTCONTRACT_FILE));
+        } else if (collection.equals(FunctionalAdminCollections.ACCESS_CONTRACT)) {
+            return ElasticsearchUtil.transferJsonToMapping(FileRules.class.getResourceAsStream(MAPPING_ACCESSCONTRACT_FILE));
+        } else if (collection.equals(FunctionalAdminCollections.PROFILE)) {
+            return ElasticsearchUtil.transferJsonToMapping(FileRules.class.getResourceAsStream(MAPPING_PROFILE_FILE));
         }
         return "";
     }
@@ -223,7 +236,14 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
             return FileFormat.TYPEUNIQUE;
         } else if (collection.equals(FunctionalAdminCollections.RULES)) {
             return FileRules.TYPEUNIQUE;
+        } else if (collection.equals(FunctionalAdminCollections.INGEST_CONTRACT)) {
+            return IngestContract.TYPEUNIQUE;
+        } else if (collection.equals(FunctionalAdminCollections.ACCESS_CONTRACT)) {
+            return AccessContract.TYPEUNIQUE;
+        } else if (collection.equals(FunctionalAdminCollections.PROFILE)) {
+            return Profile.TYPEUNIQUE;
         }
+
         return "";
     }
 }

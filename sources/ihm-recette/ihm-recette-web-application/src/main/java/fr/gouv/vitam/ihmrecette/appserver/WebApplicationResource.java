@@ -112,6 +112,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     // TODO FIX_TENANT_ID (LFET FOR ONLY stat API)
     private static final Integer TENANT_ID = 0;
+    public static final String DEFAULT_CONTRACT_NAME = "default_contract";
 
     /**
      * Constructor
@@ -184,7 +185,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         LOGGER.debug("/stat/id_op / id: " + operationId);
         try {
             final RequestResponse logbookOperationResult = UserInterfaceTransactionManager
-                .selectOperationbyId(operationId, TENANT_ID);
+                .selectOperationbyId(operationId, TENANT_ID, DEFAULT_CONTRACT_NAME);
             if (logbookOperationResult != null && logbookOperationResult.toJsonNode().has(RESULTS_FIELD)) {
                 final JsonNode logbookOperation = logbookOperationResult.toJsonNode().get(RESULTS_FIELD).get(0);
                 // Create csv file
@@ -364,7 +365,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             }
             tenantId = Integer.parseInt(xTenantId);
             final RequestResponse<JsonNode> result =
-                UserInterfaceTransactionManager.selectOperationbyId(operationId, tenantId);
+                UserInterfaceTransactionManager.selectOperationbyId(operationId, tenantId, DEFAULT_CONTRACT_NAME);
             return Response.status(Status.OK).entity(result).build();
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -424,7 +425,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
             int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
             final RequestResponse<JsonNode> result =
-                UserInterfaceTransactionManager.selectOperationbyId(operationId, tenantId);
+                UserInterfaceTransactionManager.selectOperationbyId(operationId, tenantId, DEFAULT_CONTRACT_NAME);
 
             RequestResponseOK<JsonNode> responseOK = (RequestResponseOK<JsonNode>) result;
             List<JsonNode> results = responseOK.getResults();

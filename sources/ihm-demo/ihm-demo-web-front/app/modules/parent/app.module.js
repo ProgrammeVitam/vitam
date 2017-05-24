@@ -49,5 +49,6 @@ angular.module('ihm.demo', [
   'accessContracts',
   'entryContracts',
   'traceability.operation.search',
-  'traceability.operation.details'
+  'traceability.operation.details',
+  'profiles.search'
 ]);

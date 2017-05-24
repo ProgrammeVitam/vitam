@@ -85,6 +85,7 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
         "AgIfTrans: { type: \"string\", index: \"not_analyzed\" }, " +
         "ArchivalAgreement: { type: \"string\", index: \"not_analyzed\" }, " +
         "ServiceLevel: { type: \"string\", index: \"not_analyzed\" }" +
+        "AccessStatus: { type: \"string\", index: \"not_analyzed\" }" +
         " } } " + // end eventDetailData
         ", evTypeProc : { type : \"string\", index : \"not_analyzed\" } " +
         ", evType : { type : \"string\", index : \"not_analyzed\" } " +

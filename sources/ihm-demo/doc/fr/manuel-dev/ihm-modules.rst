@@ -18,7 +18,7 @@ Directive display-field
 =======================
 
 Cette directive permet d'afficher un champ 'simple' en mode visualisation ou edition.
-Un champ 'simple' est un champ qui à simplement une valeur (Texte/nombre) et pas de sous-élément. 
+Un champ 'simple' est un champ qui à simplement une valeur (Texte/nombre) et pas de sous-élément.
 
 Usages:
 Pour utiliser cette directive il suffit d'appeler la balise '<display-field' en spécifiant les parametres suivants:
@@ -78,7 +78,7 @@ Affichage des Libéllés des champs
 =================================
 
 La fonction self.displayLabel du controller archive-unit permet de récupérer la valeur française des champs à afficher.
-- key: nom technique du champ à afficher 
+- key: nom technique du champ à afficher
 - parent: nom technique de son parent direct.
 	permet de reconstituer la clé parent.key pour les champs 'parent'
 - constantes: Nom du fichier de constantes à utiliser.
@@ -94,7 +94,7 @@ Exemple:
       var parent = fieldSet.parent;
       var constants = ARCHIVE_UNIT_MODULE_OG_FIELD_LABEL;
       fieldSet.fieldName = self.displayLabel(key, parent, constants);
-      
+
 Affichage dynamiqueTable
 ************************
 
@@ -102,7 +102,7 @@ Cette directive permet de dynamiser les tableaux de données pour sélectionner 
 - custom-fields: Ce sont les champs dynamiques pour le tableau.
   Ces objets doivent au moins avoir les champs 'id' (Valeur technique et unique) et 'label' (Valeur affichable à l'utilisateur).
  selected-objects: Ce sont les objets sélectionnés à afficher. L'objet en etrée peut être un tableau vide et sera nourri par la directive
- 
+
 Attention, pour des raisons d'ergonomie, il est demandé d'ajouter la classe CSS 'dynamic-table-box' au div 'panel-default' englobant.
 Cela permet à ce div de devenir dynamique et de dépasser de la page si plus de colones sont affichés. Ainsi la scrollbar horizontale est accessible directement.
 
@@ -136,3 +136,8 @@ Par la suite, ce service pourra être complété par des directives (liste non e
 * Messages d'erreur (On peut imaginer une directive à assossier à un formulaire qui affiche les boutons d'effactement multi-champs, le bouton de résultat et le message d'erreur en se basant sur le searchScope.form et searchScope.error)
 * Affichage des résultats (On peut imaginer une directive se basant sur searchScope.response déffinissant un pattern pour le tableau de résultat et le titre + Nb résultats).
 * Gestion de la pagination (On peut imaginer une directive se basant sur le searchScope.pagination et searchScope.response pour calculer les éléments de pagination).
+
+Service d'affichage des mesures d'un objet physique
+****************************************************
+
+Le service uneceMappingService à pour but d'aller chercher les unitées de mesures contenu dans le fichiers unece.json pour l'afficher dans une valeur compréhensible pour les utilisateurs

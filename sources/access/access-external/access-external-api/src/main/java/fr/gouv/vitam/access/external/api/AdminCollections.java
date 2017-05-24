@@ -48,7 +48,13 @@ public enum AdminCollections {
     /**
      * Access contracts collection
      */
-    ACCESS_CONTRACTS("accesscontracts");
+    ACCESS_CONTRACTS("accesscontracts"),
+
+    /**
+     * Profile collection
+     */
+    PROFILE("profiles");
+
 
     private String name;
 

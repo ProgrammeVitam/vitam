@@ -75,6 +75,9 @@ public class AccessContract extends VitamDocument<AccessContract> {
     public static final String DEACTIVATIONDATE = "DeactivationDate";
 
 
+    public static final String TYPEUNIQUE = "typeunique";
+
+
     /**
      * Empty Constructor
      */
@@ -118,7 +121,7 @@ public class AccessContract extends VitamDocument<AccessContract> {
     }
 
     /**
-     * @param id the id of ingest contract
+     * @param id the id of access contract
      * @return AccessionRegisterDetail
      */
     public AccessContract setId(String id) {
@@ -165,7 +168,7 @@ public class AccessContract extends VitamDocument<AccessContract> {
     
     /**
      * Get the contract status
-     * @return status of ingest contact
+     * @return status of access contact
      */
     public ContractStatus getStatus() {
         String status = getString(STATUS);

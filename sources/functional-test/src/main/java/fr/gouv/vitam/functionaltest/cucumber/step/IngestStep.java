@@ -34,6 +34,7 @@ import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -97,12 +98,11 @@ public class IngestStep {
     public void upload_this_sip() throws IOException, IngestExternalException, IOException {
         Path sip = Paths.get(world.getBaseDirectory(), fileName);
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
-            RequestResponse<JsonNode> response =
+            String operationId =
                 world.getIngestClient()
                     .uploadAndWaitFinishingProcess(inputStream, world.getTenantId(), DEFAULT_WORKFLOW.name(),
                         ProcessAction.RESUME.name());
 
-            String operationId = response.getHeaderString(X_REQUEST_ID);
             world.setOperationId(operationId);
             assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
         }
@@ -117,10 +117,9 @@ public class IngestStep {
     public void upload_this_plan() throws IOException, IngestExternalException {
         Path sip = Paths.get(world.getBaseDirectory(), fileName);
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
-            RequestResponse<JsonNode> response =
+            String operationId =
                 world.getIngestClient()
                     .uploadAndWaitFinishingProcess(inputStream, world.getTenantId(), FILING_SCHEME.name(), ProcessAction.RESUME.name());
-            String operationId = response.getHeaderString(X_REQUEST_ID);
             world.setOperationId(operationId);
             assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
         }
@@ -136,10 +135,10 @@ public class IngestStep {
     public void upload_this_tree() throws IOException, IngestExternalException {
         Path sip = Paths.get(world.getBaseDirectory(), fileName);
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
-            RequestResponse<JsonNode> response =
+            String operationId =
                 world.getIngestClient()
                     .uploadAndWaitFinishingProcess(inputStream, world.getTenantId(), HOLDING_SCHEME.name(), ProcessAction.RESUME.name());
-            String operationId = response.getHeaderString(X_REQUEST_ID);
+
             world.setOperationId(operationId);
             assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
         }
@@ -151,12 +150,13 @@ public class IngestStep {
      * @param status
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
+     * @throws AccessUnauthorizedException 
      */
     @Then("^le statut final du journal des opérations est (.*)$")
     public void the_logbook_operation_has_a_status(String status)
-        throws LogbookClientException, InvalidParseOperationException {
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         RequestResponse requestResponse =
-            world.getAccessClient().selectOperationbyId(world.getOperationId(), world.getTenantId());
+            world.getAccessClient().selectOperationbyId(world.getOperationId(), world.getTenantId(), world.getContractId());
         if (requestResponse instanceof RequestResponseOK) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
 
@@ -179,12 +179,13 @@ public class IngestStep {
      * @param eventStatus status of event
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
+     * @throws AccessUnauthorizedException 
      */
-    @Then("^le[s]? statut[s]? (?:de l'événement|des événements) (.*) (?:est|sont) (.*)$")
+    @Then("^le[s]? statut[s]? (?:de l'événement|des événements) (.*) (?:est|sont) (.*)$")    
     public void the_status_are(List<String> eventNames, String eventStatus)
-        throws LogbookClientException, InvalidParseOperationException {
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         RequestResponse requestResponse =
-            world.getAccessClient().selectOperationbyId(world.getOperationId(), world.getTenantId());
+            world.getAccessClient().selectOperationbyId(world.getOperationId(), world.getTenantId(), world.getContractId());
 
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;

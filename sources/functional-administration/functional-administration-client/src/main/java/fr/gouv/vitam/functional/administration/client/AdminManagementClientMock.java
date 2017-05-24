@@ -30,12 +30,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
@@ -44,6 +47,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
@@ -51,6 +55,7 @@ import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDet
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterSummaryModel;
 import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
 import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
+import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
 import fr.gouv.vitam.functional.administration.client.model.RegisterValueDetailModel;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterStatus;
 
@@ -58,8 +63,10 @@ import fr.gouv.vitam.functional.administration.common.exception.AdminManagementC
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
+import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
+import org.apache.commons.io.IOUtils;
 
 
 /**
@@ -258,6 +265,48 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
         LOGGER.debug("find ingest contracts by id request ");
         return ClientMockResultHelper.getIngestContracts();
     }
+
+    @Override
+    public RequestResponse createProfiles(List<ProfileModel> profileModelList)
+        throws InvalidParseOperationException, AdminManagementClientServerException {
+        return new RequestResponseOK().setHttpCode(Status.CREATED.getStatusCode());
+    }
+
+    @Override
+    public RequestResponse importProfileFile(String profileMetadataId, InputStream stream)
+        throws ReferentialException, DatabaseConflictException {
+        return new RequestResponseOK().setHttpCode(Status.CREATED.getStatusCode());
+    }
+
+    @Override
+    public Response downloadProfileFile(String profileMetadataId)
+        throws AdminManagementClientServerException, ProfileNotFoundException {
+        return new AbstractMockClient.FakeInboundResponse(Status.OK, IOUtils.toInputStream("Vitam Test"),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+    }
+
+    @Override
+    public RequestResponse<ProfileModel> findProfiles(JsonNode query)
+        throws InvalidParseOperationException, AdminManagementClientServerException {
+        LOGGER.debug("find profiles by id request ");
+        return ClientMockResultHelper.getProfiles(Status.OK.getStatusCode());
+    }
+
+    @Override
+    public RequestResponse<ProfileModel> findProfilesByID(String id)
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
+        LOGGER.debug("find profiles by id request ");
+        RequestResponse var = ClientMockResultHelper.getProfiles(Status.OK.getStatusCode());
+        RequestResponseOK<ObjectNode> onr = (RequestResponseOK<ObjectNode>) var;
+
+        ObjectNode on = onr.getResults().iterator().next();
+        JsonNode idin = on.get("_id");
+        if (null == idin || !idin.asText().equals(id)) {
+            throw new ReferentialNotFoundException("No profile found with id "+id);
+        }
+        return var;
+    }
+
 
     @Override
     public RequestResponse<AccessContractModel> updateAccessContract(JsonNode queryDsl)

@@ -47,7 +47,6 @@ public class ProcessingManagementClientMockTest {
         ProcessingManagementClientFactory.changeMode(null);
         final ProcessingManagementClient client = ProcessingManagementClientFactory.getInstance().getClient();
         client.checkStatus();
-        client.executeVitamProcess(null, null, null);
         client.registerWorker(null, null, null);
         client.unregisterWorker(null, null);
     }

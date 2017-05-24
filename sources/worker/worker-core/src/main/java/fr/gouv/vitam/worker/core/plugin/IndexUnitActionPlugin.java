@@ -150,18 +150,18 @@ public class IndexUnitActionPlugin extends ActionHandler {
                     query = new InsertMultiQuery();
                 }
                 // Add _up to archive unit json object
-                if (work.get("_up") != null) {
+                if (work != null && work.get("_up") != null) {
                     final ArrayNode parents = (ArrayNode) work.get("_up");
                     query.addRoots(parents);
                 }
                 if (Boolean.TRUE.equals(existing)) {
                     // update case
-                    computeExistingData(data, query);
+                    computeExistingData(containerId, query);
                     metadataClient.updateUnitbyId(((UpdateMultiQuery) query).getFinalUpdate(),
                         data.get("#id").asText());
                 } else {
                     // insert case
-                    if (handlerIO.getInput() != null && !handlerIO.getInput().isEmpty()){
+                    if (handlerIO.getInput() != null && !handlerIO.getInput().isEmpty()) {
                         String unitType = UnitType.getUnitTypeString((String) handlerIO.getInput(0));
                         data.put(VitamFieldsHelper.unitType(), unitType);
                     }
@@ -174,7 +174,7 @@ public class IndexUnitActionPlugin extends ActionHandler {
             }
 
         } catch (final MetaDataNotFoundException e) {
-            LOGGER.error("Unit references a non existing unit " + query != null ? query.toString() : "");
+            LOGGER.error("Unit references a non existing unit " + query.toString());
             throw new IllegalArgumentException(e);
         } catch (final MetaDataException | InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error("Internal Server Error", e);
@@ -183,7 +183,7 @@ public class IndexUnitActionPlugin extends ActionHandler {
             LOGGER.error("Workspace Server Error");
             throw new ProcessingException(e);
         } catch (IllegalArgumentException e) {
-            LOGGER.error("Illegal Argument Exception for " + query != null ? query.toString() : "");
+            LOGGER.error("Illegal Argument Exception for " + (query != null ? query.toString() : ""));
             throw e;
         } finally {
             handlerIO.consumeAnyEntityAndClose(response);
@@ -197,26 +197,10 @@ public class IndexUnitActionPlugin extends ActionHandler {
      * @param query update query
      * @throws InvalidCreateOperationException exception while adding an action to the query
      */
-    private void computeExistingData(final JsonNode data, RequestMultiple query)
+    private void computeExistingData(final String containerId, RequestMultiple query)
         throws InvalidCreateOperationException {
-        Iterator<String> fieldNames = data.fieldNames();
-        while (fieldNames.hasNext()) {
-            String fieldName = fieldNames.next();
-            if (data.get(fieldName).isArray()) {
-                // if field is multiple values
-                for (JsonNode fieldNode : (ArrayNode) data.get(fieldName)) {
-                    ((UpdateMultiQuery) query)
-                        .addActions(UpdateActionHelper.add(fieldName.replace("_", "#"), fieldNode.textValue()));
-                }
-            } else {
-                // if field is single value
-                String fieldValue = data.get(fieldName).textValue();
-                if (!"#id".equals(fieldName) && fieldValue != null && !fieldValue.isEmpty()) {
-                    ((UpdateMultiQuery) query)
-                        .addActions(UpdateActionHelper.set(fieldName.replace("_", "#"), fieldValue));
-                }
-            }
-        }
+        ((UpdateMultiQuery) query)
+            .addActions(UpdateActionHelper.add(VitamFieldsHelper.operations(), containerId));
     }
 
 
@@ -260,11 +244,12 @@ public class IndexUnitActionPlugin extends ActionHandler {
         }
 
         // replace Management by _mgt
-        ObjectNode managementNode = (ObjectNode)archiveUnitNode.get(TAG_MANAGEMENT);
+        ObjectNode managementNode = (ObjectNode) archiveUnitNode.get(TAG_MANAGEMENT);
         final JsonNode sedaParameters = JsonHandler.getFromFile((File) handlerIO.getInput(SEDA_PARAMETERS_RANK));
-        String prodService = sedaParameters.get(SedaConstants.TAG_ARCHIVE_TRANSFER).get(SedaConstants.TAG_DATA_OBJECT_PACKAGE).get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER).asText();
-        managementNode.put(SedaConstants.TAG_ORIGINATINGAGENCY, prodService);        
-        archiveUnitNode.set(SedaConstants.PREFIX_MGT,(JsonNode) managementNode);
+        String prodService = sedaParameters.get(SedaConstants.TAG_ARCHIVE_TRANSFER)
+            .get(SedaConstants.TAG_DATA_OBJECT_PACKAGE).get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER).asText();
+        managementNode.put(SedaConstants.TAG_ORIGINATINGAGENCY, prodService);
+        archiveUnitNode.set(SedaConstants.PREFIX_MGT, (JsonNode) managementNode);
         archiveUnitNode.remove(TAG_MANAGEMENT);
 
         // remove Content tag and move its content in ArchiveUnit
@@ -273,14 +258,14 @@ public class IndexUnitActionPlugin extends ActionHandler {
         while (contentFieldNames.hasNext()) {
             String fieldName = contentFieldNames.next();
             archiveUnitNode.set(fieldName, content.get(fieldName));
-        }        
+        }
         archiveUnitNode.remove(TAG_CONTENT);
 
         // remove DataObjectReference
         // FIXME is it normal to have this TAG "DataObjectReference" after ExtractSeda since "_og" contains the guids
         archiveUnitNode.remove("DataObjectReference");
 
-        
+
         // add #operations
         archiveUnitNode.putArray(VitamFieldsHelper.operations()).add(containerId);
 

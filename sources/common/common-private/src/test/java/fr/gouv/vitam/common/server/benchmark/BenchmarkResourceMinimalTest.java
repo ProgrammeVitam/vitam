@@ -31,21 +31,34 @@ import static org.junit.Assert.fail;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplicationFactory;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
 public class BenchmarkResourceMinimalTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BenchmarkResourceMinimalTest.class);
 
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+
     private static final String BENCHMARK_CONF = "benchmark-test.conf";
     private static BenchmarkApplication application;
     private static int serverPort = 8889;
+    private static final int NB_CLIENT = VitamConfiguration.getMaxClientPerHost();
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -110,5 +123,28 @@ public class BenchmarkResourceMinimalTest {
             fail("Cannot connect to server");
         }
         assertNotNull(BenchmarkClientFactory.getInstance().getDefaultConfigCient());
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void multipleClientTest() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        VitamThreadUtils.getVitamSession().setContractId("contractId");
+        BenchmarkClientFactory.getInstance().mode(BenchmarkConnectorProvider.APACHE);
+        assertNotNull(BenchmarkClientFactory.getInstance().getDefaultConfigCient());
+        try (BenchmarkClientRest client = BenchmarkClientFactory.getInstance().getClient()) {
+            for (int i = 0; i < NB_CLIENT; i++) {
+                client.checkStatus();
+            }
+        }
+        for (int j = 0; j < NB_CLIENT; j++) {
+            try (BenchmarkClientRest client = BenchmarkClientFactory.getInstance().getClient()) {
+                for (int i = 0; i < 10; i++) {
+                    client.checkStatus();
+                }
+            }
+        }
     }
 }

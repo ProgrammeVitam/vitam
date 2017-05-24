@@ -100,7 +100,8 @@ angular.module('core')
       '?usage=' + encodeURIComponent(options.usage) +
       '&version=' + encodeURIComponent(options.version) +
       '&filename=' + encodeURIComponent(options.filename) +
-      '&tenantId=' + (authVitamService.cookieValue(authVitamService.COOKIE_TENANT_ID) || 0);
+      '&tenantId=' + (authVitamService.cookieValue(authVitamService.COOKIE_TENANT_ID) || 0) +
+      '&contractId=' + (authVitamService.cookieValue('X-Access-Contract-Id') || '');
   };
 
   // LifeCycle details
@@ -159,9 +160,9 @@ angular.module('core')
       RestangularConfigurer.setFullResponse(true);
       function addMandatoryHeader(element, operation, route, url, headers, params, httpConfig) {
           headers['X-Tenant-Id'] = $cookies.get('tenantId');
-          //if ($cookies.get('X-Access-Contrat-Id')) {
-          //  headers['X-Access-Contrat-Id'] = $cookies.get('X-Access-Contrat-Id')
-          //}
+          if ($cookies.get('X-Access-Contract-Id')) {
+            headers['X-Access-Contract-Id'] = decodeURIComponent($cookies.get('X-Access-Contract-Id'));
+          }
           return {
             element: element,
             headers: headers,
@@ -204,8 +205,20 @@ angular.module('core')
 	var COOKIE_TENANT_ID = 'tenantId';
     var lastUrl = '';
 
+    var user = {};
+    var currentContract = {};
+
+    if (localStorage.getItem('user')) {
+        user = JSON.parse(localStorage.getItem('user'));
+    }
+
     function createCookie(key, value) {
       $cookies.put(key, value);
+    }
+
+    function login(_user) {
+        localStorage.setItem('user' ,JSON.stringify(_user));
+        user = _user;
     }
 
     function deleteCookie(key) {
@@ -223,11 +236,28 @@ angular.module('core')
       return $cookies.get(key);
     }
 
+    function getContract() {
+      return currentContract;
+    }
+
+    function setContract(contract) {
+      return currentContract = angular.copy(contract);
+    }
+
     function logout() {
       deleteCookie('userCredentials');
       deleteCookie('role');
       deleteCookie(COOKIE_TENANT_ID);
+      deleteCookie('X-Access-Contract-Id');
+      localStorage.removeItem('user');
       return ihmDemoCLient.getClient('').one('logout').post();
+    }
+
+    function hasPermission(permission) {
+      if(!user.permissions) {
+          return false;
+      }
+      return user.permissions.indexOf(permission) > -1;
     }
 
     return {
@@ -235,8 +265,12 @@ angular.module('core')
       cookieValue: cookieValue,
       deleteCookie: deleteCookie,
       createCookie: createCookie,
+      setContract : setContract,
+      getContract : getContract,
       isConnect: isConnect,
       logout: logout,
+      login: login,
+      hasPermission: hasPermission,
       COOKIE_TENANT_ID: COOKIE_TENANT_ID
     };
   })

@@ -196,3 +196,33 @@ traits:
             description: one Logbook object life cycle item
             type: LogbookTypes.LogbookResponse
             example: !include examples/logbookResponseLifeCycle.json
+
+  TraceabilityCheckResponse:
+      description: Response model for one Traceability Object
+      is: [ StandardTraits.StandardOptionalHeader,
+        StandardTraits.StandardHeader200,
+        StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+      body:
+        application/json:
+          description: Body contains a Query in DSL Vitam to filter the traceability operations
+          type: DslTypes.DslQuery
+          example: !include examples/dslQuery.json
+      responses:
+        200:
+          description: Returns one traceability object
+          body:
+            application/json:
+              description: one traceability object
+              example: !include examples/traceabilityResponse.json
+
+  TraceabilityDownloadResponse:
+      description: Response model for downloading Traceability Object
+      is: [ StandardTraits.StandardOptionalHeader,
+        StandardTraits.StandardHeader200,
+        StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+      responses:
+        200:
+          description: Returns one traceability zip file
+          body:
+            application/octet-stream:
+              description: Binary object

@@ -118,6 +118,7 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
         LOGGER.info(" create container : " + containerName);
         ParametersChecker
             .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
+        // TODO: is it thread safe ?
         try {
             if (!context.getBlobStore().createContainerInLocation(null, containerName)) {
                 LOGGER.error(ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage() + containerName);
@@ -230,6 +231,7 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
     }
 
     @Override
+    // TODO P1 : asyncResponse not used !
     public Response getObjectAsync(String containerName, String objectName, AsyncResponse asyncResponse)
         throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),

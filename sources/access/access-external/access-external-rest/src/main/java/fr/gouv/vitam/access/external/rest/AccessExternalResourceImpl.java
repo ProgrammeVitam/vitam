@@ -30,6 +30,9 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -59,10 +62,14 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServer
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -80,6 +87,10 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
+import fr.gouv.vitam.functional.administration.common.AccessContract;
+import fr.gouv.vitam.functional.administration.common.ContractStatus;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 
 /**
@@ -89,9 +100,6 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFo
 @javax.ws.rs.ApplicationPath("webresources")
 public class AccessExternalResourceImpl extends ApplicationStatusResource {
 
-
-    // FIXME P0 : Add a filter to protect the tenantId (check if it exists + return Unauthorized response or so). @see :
-    // AuthorizationFilter
     private static final String ORIGINATING_AGENCY = "OriginatingAgency";
     private static final String PREDICATES_FAILED_EXCEPTION = "Predicates Failed Exception ";
     private static final String ACCESS_EXTERNAL_MODULE = "ACCESS_EXTERNAL";
@@ -134,6 +142,10 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         } catch (final AccessInternalClientNotFoundException e) {
             LOGGER.error("Request resources does not exits ", e);
             status = Status.NOT_FOUND;
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error("Contract access does not allow ", e);
+            status = Status.UNAUTHORIZED;
             return Response.status(status).entity(getErrorEntity(status)).build();
         }
     }
@@ -212,6 +224,10 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             LOGGER.error("Request resources does not exits", e);
             status = Status.NOT_FOUND;
             return Response.status(status).entity(getErrorEntity(status)).build();
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error("Contract access does not allow ", e);
+            status = Status.UNAUTHORIZED;
+            return Response.status(status).entity(getErrorEntity(status)).build();
         }
     }
 
@@ -267,7 +283,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             return Response.status(status).entity(getErrorEntity(status)).build();
         } catch (final AccessInternalClientServerException e) {
             LOGGER.error(e.getMessage(), e);
-            status = Status.UNAUTHORIZED;
+            status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(getErrorEntity(status)).build();
         } catch (final AccessInternalClientNotFoundException e) {
             LOGGER.error(e.getMessage(), e);
@@ -276,6 +292,10 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         } catch (NoWritingPermissionException e) {
             LOGGER.error(e.getMessage(), e);
             status = Status.METHOD_NOT_ALLOWED;
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error("Contract access does not allow ", e);
+            status = Status.UNAUTHORIZED;
             return Response.status(status).entity(getErrorEntity(status)).build();
         }
     }
@@ -329,6 +349,10 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         } catch (final AccessInternalClientNotFoundException e) {
             LOGGER.error(e);
             status = Status.NOT_FOUND;
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error("Contract access does not allow ", e);
+            status = Status.UNAUTHORIZED;
             return Response.status(status).entity(getErrorEntity(status)).build();
         }
     }
@@ -419,6 +443,11 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             status = Status.NOT_FOUND;
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(status).build());
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error("Contract access does not allow ", e);
+            status = Status.UNAUTHORIZED;
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                Response.status(status).build());
         }
     }
 
@@ -454,6 +483,11 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         } catch (final AccessInternalClientNotFoundException e) {
             LOGGER.error("Request resources does not exits", e);
             status = Status.NOT_FOUND;
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                Response.status(status).build());
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error("Contract access does not allow ", e);
+            status = Status.UNAUTHORIZED;
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(status).build());
         }
@@ -500,7 +534,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
 
     private String idObjectGroup(String idu)
         throws InvalidParseOperationException, AccessInternalClientServerException,
-        AccessInternalClientNotFoundException {
+        AccessInternalClientNotFoundException, AccessUnauthorizedException {
         // Select "Object from ArchiveUNit idu
         JsonNode result = null;
         ParametersChecker.checkParameter("unit id is required", idu);
@@ -585,6 +619,11 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
                 Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR)
                     .toString()).build();
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
+        } catch (AccessUnauthorizedException e) {
+            final Response errorResponse =
+                Response.status(Status.UNAUTHORIZED).entity(getErrorEntity(Status.UNAUTHORIZED)
+                    .toString()).build();
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         }
     }
 
@@ -609,8 +648,14 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             final Status status = Status.PRECONDITION_FAILED;
             return Response.status(status).entity(status).build();
         }
-        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            final RequestResponse result = client.getAccessionRegister(select);
+        
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {            
+            Set<String> prodServices = getOriginatingAgencies(VitamThreadUtils.getVitamSession().getContractId());
+            SelectParserSingle parser = new SelectParserSingle();
+            parser.parse(select);
+            parser.addCondition(QueryHelper.in(ORIGINATING_AGENCY, 
+                prodServices.stream().toArray(String[]::new)).setDepthLimit(0));
+            final RequestResponse result = client.getAccessionRegister(parser.getRequest().getFinalSelect());
             return Response.status(Status.OK).entity(result).build();
         } catch (final ReferentialNotFoundException e) {
             LOGGER.error(e);
@@ -668,6 +713,11 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         }
         ParametersChecker.checkParameter("accession register id is a mandatory parameter", documentId);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            Set<String> prodServices = getOriginatingAgencies(VitamThreadUtils.getVitamSession().getContractId());
+            if (!prodServices.contains(documentId)) {
+                final Status status = Status.UNAUTHORIZED;
+                return Response.status(status).entity(getErrorEntity(status)).build();
+            }
             final SelectParserSingle parser = new SelectParserSingle();
             parser.parse(select);
             parser.addCondition(eq(ORIGINATING_AGENCY, URLDecoder.decode(documentId, CharsetUtils.UTF_8)));
@@ -688,4 +738,30 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         }
     }
 
+    private static Set<String> getOriginatingAgencies(String contratId) throws InvalidParseOperationException, 
+    InvalidCreateOperationException, AdminManagementClientServerException {
+        Set<String> prodServices = new HashSet<>();
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            JsonNode queryDsl = getQueryDsl(contratId);            
+            RequestResponse<AccessContractModel> response = client.findAccessContracts(queryDsl);
+            if (!response.isOk() || ((RequestResponseOK<AccessContractModel>)response).getResults().size() == 0){
+                final Status status = Status.UNAUTHORIZED;
+            }
+            List<AccessContractModel> list = ((RequestResponseOK<AccessContractModel>)response).getResults();             
+            prodServices = list.get(0).getOriginatingAgencies();
+        }
+        return prodServices;
+    }
+    
+    private static JsonNode getQueryDsl(String headerAccessContratId) 
+        throws InvalidParseOperationException, InvalidCreateOperationException{
+
+        Select select = new Select();        
+        Query query = QueryHelper.and().add(QueryHelper.eq(AccessContract.NAME, headerAccessContratId),
+            QueryHelper.eq(AccessContract.STATUS, ContractStatus.ACTIVE.name()));
+        select.setQuery(query);        
+        JsonNode queryDsl = select.getFinalSelect();
+        
+        return queryDsl;
+    }
 }

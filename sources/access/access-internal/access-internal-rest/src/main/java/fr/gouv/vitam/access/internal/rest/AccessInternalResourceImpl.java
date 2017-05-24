@@ -212,7 +212,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkParameter(idUnit);
             SanityChecker.checkParameter(requestId);
             if (!VitamThreadUtils.getVitamSession().isWritingPermission()){
-                status = Status.METHOD_NOT_ALLOWED;
+                status = Status.UNAUTHORIZED;
                 return Response.status(status).entity(getErrorEntity(status)).build();
             }
             result = accessModule.updateUnitbyId(queryDsl, idUnit, requestId);
@@ -248,8 +248,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             } else {
                 final SelectParserMultiple parser = new SelectParserMultiple();
                 parser.parse(query);
-                parser.addCondition(
-                    QueryHelper.in(SedaConstants.TAG_ORIGINATINGAGENCY, prodServices.stream().toArray(String[]::new)));
+                parser.getRequest().addQueries(
+                    QueryHelper.in(SedaConstants.TAG_ORIGINATINGAGENCY, prodServices.stream().toArray(String[]::new))
+                    .setDepthLimit(0));
                 result = accessModule.selectObjectGroupById(parser.getRequest().getFinalSelect(), idObjectGroup);
             }
             
@@ -301,6 +302,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 .entity(getErrorEntity(Status.UNAUTHORIZED).toString())
                 .build();
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
+            return;
         }
         
         try {

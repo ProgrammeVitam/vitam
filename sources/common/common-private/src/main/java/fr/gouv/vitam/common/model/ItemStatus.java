@@ -194,8 +194,8 @@ public class ItemStatus {
     }
 
     /**
-     * @param statusCode the statusCode to increment
-     * @param increment
+     * @param itemStatus1 the statusCode to increment
+     * @param itemStatus2
      *
      * @return this
      */
@@ -393,7 +393,7 @@ public class ItemStatus {
 
     /**
      * set EvDetailData
-     * 
+     *
      * @param evDetailData
      * @return this
      */

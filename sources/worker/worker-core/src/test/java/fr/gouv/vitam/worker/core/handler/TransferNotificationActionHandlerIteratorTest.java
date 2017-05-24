@@ -86,12 +86,12 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 public class TransferNotificationActionHandlerIteratorTest {
     private static final String ARCHIVE_ID_TO_GUID_MAP =
         "transferNotificationActionHandler/ARCHIVE_ID_TO_GUID_MAP_objKO.json";
-    private static final String BINARY_DATA_OBJECT_ID_TO_GUID_MAP =
-        "transferNotificationActionHandler/BINARY_DATA_OBJECT_ID_TO_GUID_MAP_objKO.json";
-    private static final String BDO_TO_OBJECT_GROUP_ID_MAP =
-        "transferNotificationActionHandler/BDO_TO_OBJECT_GROUP_ID_MAP_objKO.json";
-    private static final String BDO_TO_VERSION_BDO_MAP =
-        "transferNotificationActionHandler/BDO_TO_VERSION_BDO_MAP_objKO.json";
+    private static final String DATA_OBJECT_ID_TO_GUID_MAP =
+        "transferNotificationActionHandler/DATA_OBJECT_ID_TO_GUID_MAP_objKO.json";
+    private static final String DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP =
+        "transferNotificationActionHandler/DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP_objKO.json";
+    private static final String DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP =
+        "transferNotificationActionHandler/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP_objKO.json";
     private static final String ATR_GLOBAL_SEDA_PARAMETERS = "globalSEDAParameters.json";
     private static final String OBJECT_GROUP_ID_TO_GUID_MAP =
         "transferNotificationActionHandler/OBJECT_GROUP_ID_TO_GUID_MAPKO.json";
@@ -146,9 +146,9 @@ public class TransferNotificationActionHandlerIteratorTest {
         }
         action.addOutIOParameters(in);
         action.addOuputResult(0, PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP));
-        action.addOuputResult(1, PropertiesUtils.getResourceFile(BINARY_DATA_OBJECT_ID_TO_GUID_MAP));
-        action.addOuputResult(2, PropertiesUtils.getResourceFile(BDO_TO_OBJECT_GROUP_ID_MAP));
-        action.addOuputResult(3, PropertiesUtils.getResourceFile(BDO_TO_VERSION_BDO_MAP));
+        action.addOuputResult(1, PropertiesUtils.getResourceFile(DATA_OBJECT_ID_TO_GUID_MAP));
+        action.addOuputResult(2, PropertiesUtils.getResourceFile(DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP));
+        action.addOuputResult(3, PropertiesUtils.getResourceFile(DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP));
         action.addOuputResult(4, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS));
         action.addOuputResult(5, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP));
         action.reset();

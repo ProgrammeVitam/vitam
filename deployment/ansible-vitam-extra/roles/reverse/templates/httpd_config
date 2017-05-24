@@ -7,7 +7,7 @@
     # Enable SSL for the Reverse proxy
     SSLProxyEngine on
     # Client certificate path
-    SSLProxyMachineCertificateFile /etc/{{apache_service}}/certs/keystore_client_{{environnement}}.pem
+    # SSLProxyMachineCertificateFile /etc/{{apache_service}}/certs/keystore_client_{{environnement}}.pem
     # Client CA path
     SSLProxyCACertificatePath /etc/{{apache_service}}/ca/{{environnement}}
     # Don't check the CN of the server's certificate

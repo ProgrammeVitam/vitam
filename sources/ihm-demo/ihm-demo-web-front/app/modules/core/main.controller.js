@@ -26,7 +26,7 @@
  */
 
 angular.module('core')
-    .controller('mainViewController', function ($rootScope, $scope, $window, $location, $translate, IHM_URLS, authVitamService,
+    .controller('mainViewController', function ($rootScope, $scope, $location, $translate, IHM_URLS, authVitamService,
                                                 $window, Restangular, subject, usernamePasswordToken, ihmDemoFactory,
                                                 $timeout) {
         $scope.showMenuBar = true;
@@ -34,17 +34,18 @@ angular.module('core')
         $scope.session = {};
         $scope.tenants = ['0', '1'];
         if (!!authVitamService.cookieValue('userCredentials')) {
-          ihmDemoFactory.getAccessContracts({ContractName : "all", ContractID : "all"}).then(function (repsonse) {
+          ihmDemoFactory.getAccessContracts({ContractName : "all", Status : "ACTIVE"}).then(function (repsonse) {
             if (repsonse.status == 200 && repsonse.data['$results'] && repsonse.data['$results'].length > 0) {
               $scope.contracts = repsonse.data['$results'];
+              authVitamService.setContract($scope.contracts);
             }
           }, function (error) {
             console.log('Error while get contrat. Set default list : ', error);
           });
         }
 
-        if (!!authVitamService.cookieValue("X-Access-Contrat-Id")){
-            $scope.accessContratId = authVitamService.cookieValue("X-Access-Contrat-Id");
+        if (!!authVitamService.cookieValue("X-Access-Contract-Id")){
+            $scope.accessContratId = authVitamService.cookieValue("X-Access-Contract-Id");
         }
 
         $window.addEventListener('storage', function(event) {
@@ -52,7 +53,7 @@ angular.module('core')
                 $rootScope.restartTimeout();
                 localStorage.removeItem('reset-timeout');
             }
-        })
+        });
 
         if (localStorage.getItem('user')) {
             $rootScope.user = JSON.parse(localStorage.getItem('user'));
@@ -85,12 +86,7 @@ angular.module('core')
             $scope.tenantId = '' + $scope.tenants[0];
         });
 
-        $rootScope.hasPermission = function (permission) {
-            if(!$rootScope.user) {
-                return false;
-            }
-            return $rootScope.user.permissions.indexOf(permission) > -1;
-        };
+        $rootScope.hasPermission = authVitamService.hasPermission;
 
         $rootScope.$on('$routeChangeSuccess', function (event, next, current) {
             $scope.session.status = authVitamService.isConnect('userCredentials');
@@ -111,7 +107,13 @@ angular.module('core')
             if ($scope.session.status != 'logged') {
                 $location.path('/login');
             } else if ($location.path() == '/login') {
-                $location.path($rootScope.hasPermission('ingest:create') ? IHM_URLS.IHM_DEFAULT_URL : IHM_URLS.IHM_DEFAULT_URL_FOR_GUEST);
+                $location.path(authVitamService.hasPermission('ingest:create') ? IHM_URLS.IHM_DEFAULT_URL : IHM_URLS.IHM_DEFAULT_URL_FOR_GUEST);
+            } else {
+                var permission = next.$$route.permission;
+                if (!authVitamService.hasPermission(permission)) {
+                    $location.path(authVitamService.hasPermission('ingest:create') ? IHM_URLS.IHM_DEFAULT_URL : IHM_URLS.IHM_DEFAULT_URL_FOR_GUEST);
+                }
+
             }
 
         });
@@ -123,7 +125,8 @@ angular.module('core')
         });
 
         $scope.changeContract = function(accessContratId) {
-            //authVitamService.createCookie("X-Access-Contrat-Id", accessContratId);
+          authVitamService.createCookie("X-Access-Contract-Id", accessContratId);
+          $window.location.reload();
         };
 
         $scope.connectUser = function (tenantId) {
@@ -135,26 +138,31 @@ angular.module('core')
                         authVitamService.createCookie(authVitamService.COOKIE_TENANT_ID, tenantId || 0);
                         $scope.session.status = 'logged';
                         $scope.logginError = false;
-                        $rootScope.user = {
+
+                        var user = {
                             userName: res.userName,
                             tenantId: tenantId,
                             permissions: res.permissions,
                             sessionTimeout: res.sessionTimeout
                         };
-                        localStorage.setItem('user' ,JSON.stringify($rootScope.user));
+                        authVitamService.login(user);
+
+                        $rootScope.user = user;
                         if (authVitamService.url && authVitamService.url != '') {
                             $location.path(authVitamService.url);
                             delete authVitamService.url;
                         } else {
-                            $location.path($rootScope.hasPermission('ingest:create') ? IHM_URLS.IHM_DEFAULT_URL : IHM_URLS.IHM_DEFAULT_URL_FOR_GUEST);
+                            $location.path(authVitamService.hasPermission('ingest:create') ? IHM_URLS.IHM_DEFAULT_URL : IHM_URLS.IHM_DEFAULT_URL_FOR_GUEST);
                             $translate.refresh();
                         }
 
-                        ihmDemoFactory.getAccessContracts({ContractName : "all", ContractID : "all"}).then(function (repsonse) {
+                        ihmDemoFactory.getAccessContracts({ContractName : "all", Status : "ACTIVE"}).then(function (repsonse) {
 
                             if (repsonse.status == 200 && repsonse.data['$results'] && repsonse.data['$results'].length > 0) {
                                 $scope.contracts = repsonse.data['$results'];
+                                authVitamService.setContract($scope.contracts);
                                 $scope.accessContratId = $scope.contracts[0].Name;
+                                authVitamService.createCookie("X-Access-Contract-Id", $scope.accessContratId);
                             }
                         }, function (error) {
                             console.log('Error while get tenant. Set default list : ', error);
@@ -171,7 +179,6 @@ angular.module('core')
             $scope.session.status = 'notlogged';
 
             delete $rootScope.user;
-            localStorage.removeItem('user');
 
 
             delete authVitamService.url;

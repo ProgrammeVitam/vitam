@@ -43,6 +43,26 @@ documentation:
       Response model for the listing of Logbook operations. The request is using POST with X-Http-Method-Override: GET
     is: [LogbookTraits.OperationListingResponse, StandardTraits.OverrideGet]
 
+
+  /traceability:
+    displayName: Operation Logbook
+    description: |
+      Lancement d'une opération de sécurisation des journaux d'opération.
+    post:
+      description: |
+        Permet de lancer une opération de sécurisation des journaux d'opération sur un tenant donné.
+      is: [StandardTraits.StandardOptionalHeader]
+      responses:
+       200:
+         description: |
+           L'opération a été réalisée avec succès. L'ID de l'opération est retournée.
+       400:
+         description: |
+           Le tenant n'est pas indiqué, l'opération n'a pu être réalisée.
+       500:
+         description: |
+           Un problème interne a empêché l'opération de se dérouler.
+
   /{idop}:
     displayName: Operation Logbook
     description: Accès à une opération.
@@ -142,7 +162,7 @@ documentation:
       is: [LogbookTraits.UnitLifeCycleItemResponse]
     post:
       description : |
-        **UNSUPPORTED** Response model for one Logbook unit life cycle item. The request is using POST with X-Http-Method-Override: GET
+        Response model for one Logbook unit life cycle item. The request is using POST with X-Http-Method-Override: GET
       is: [LogbookTraits.UnitLifeCycleItemResponse, StandardTraits.OverrideGet]
 
 /objectlifecycles:
@@ -170,7 +190,7 @@ documentation:
       is: [LogbookTraits.ObjectLifeCycleItemResponse]
     post:
       description : |
-        **UNSUPPORTED** Response model for one Logbook object life cycle item. The request is using POST with X-Http-Method-Override: GET
+        Response model for one Logbook object life cycle item. The request is using POST with X-Http-Method-Override: GET
       is: [LogbookTraits.ObjectLifeCycleItemResponse, StandardTraits.OverrideGet]
 
 /status:

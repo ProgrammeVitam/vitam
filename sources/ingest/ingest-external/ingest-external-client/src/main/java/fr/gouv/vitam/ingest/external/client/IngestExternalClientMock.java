@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.client;
 
+import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
+
 import java.io.InputStream;
 
 import javax.ws.rs.core.MediaType;
@@ -81,20 +83,21 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
 
         RequestResponseOK r = new RequestResponseOK<JsonNode>();
         r.setHttpCode(Status.ACCEPTED.getStatusCode());
-        r.addHeader(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID);
+        r.addHeader(FAKE_X_REQUEST_ID, X_REQUEST_ID);
 
         return r;
     }
 
     @Override
-    public RequestResponse<JsonNode> uploadAndWaitFinishingProcess(InputStream stream, Integer tenantId, String contextId, String action)
+    public String uploadAndWaitFinishingProcess(InputStream stream, Integer tenantId, String contextId, String action)
         throws IngestExternalException {
         try {
             Thread.sleep(100);
         } catch (InterruptedException e) {
             throw new IngestExternalException("Ingest External Mock Internal Server Error", e);
         }
-        return upload(stream, tenantId, contextId, action);
+        RequestResponse<JsonNode> upload = upload(stream, tenantId, contextId, action);
+        return upload.getHeaderString(X_REQUEST_ID);
     }
 
     /**
@@ -105,7 +108,7 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
      */
     private MultivaluedHashMap<String, Object> getDefaultHeaders(String requestId, Integer tenantId) {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_REQUEST_ID, requestId);
+        headers.add(X_REQUEST_ID, requestId);
     	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         return headers;
     }
@@ -121,7 +124,7 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
 
         final RequestResponseOK r = new RequestResponseOK<JsonNode>();
         r.setHttpCode(Status.ACCEPTED.getStatusCode());
-        r.addHeader(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID);
+        r.addHeader(X_REQUEST_ID, FAKE_X_REQUEST_ID);
 
         return r;
     }

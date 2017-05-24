@@ -104,7 +104,7 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
 
             // 2- Get operations.json file
             String operationFilePath = SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
-                    OPERATIONS_JSON;
+                OPERATIONS_JSON;
             InputStream operationsInputStream = handler.getInputStreamFromWorkspace(operationFilePath);
 
             // 3- Calculate MerkelTree hash
@@ -126,14 +126,11 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
             final String currentRootHash = currentRootHash(merkleTreeAlgo);
 
             // compare to secured and indexed hashs
-            // TODO Add these items to the final itemStatus
             final ItemStatus subSecuredItem = compareToSecuredHash(params, handler, currentRootHash);
+            itemStatus.setItemsStatus(HANDLER_SUB_ACTION_COMPARE_WITH_SAVED_HASH, subSecuredItem);
             final ItemStatus subLoggedItemStatus = compareToLoggedHash(params, currentRootHash);
+            itemStatus.setItemsStatus(HANDLER_SUB_ACTION_COMPARE_WITH_INDEXED_HASH, subLoggedItemStatus);
 
-            itemStatus.increment(StatusCode.OK);
-        } catch (IllegalArgumentException e) {
-            LOGGER.error(e);
-            itemStatus.increment(StatusCode.FATAL);
         } catch (ContentAddressableStorageNotFoundException | IOException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
@@ -171,7 +168,7 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
         final ItemStatus subItemStatus = new ItemStatus(HANDLER_SUB_ACTION_COMPARE_WITH_SAVED_HASH);
 
         String merkleTreeFile = SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
-                MERKLE_TREE_JSON;
+            MERKLE_TREE_JSON;
 
         final JsonNode merkleTree = handler.getJsonFromWorkspace(merkleTreeFile);
 
@@ -239,7 +236,7 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
                 if (inputStream != null) {
                     inputStream.close();
                 }
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 LOGGER.error(e.getMessage());
             }
         }

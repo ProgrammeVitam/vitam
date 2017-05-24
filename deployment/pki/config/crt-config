@@ -1,0 +1,78 @@
+# Configuration used to create non-CA certificates
+
+# Signing CA parameters
+
+[ ca ]
+default_ca      = ca_intermediate
+
+[ ca_intermediate ]
+dir             = ./pki
+certs           = $dir/ca/${ENV::OPENSSL_CRT_DIR}
+new_certs_dir   = $dir/tempcerts
+database        = $dir/config/${ENV::OPENSSL_CRT_DIR}/index.txt
+certificate     = $dir/ca/${ENV::OPENSSL_CRT_DIR}/ca-intermediate.crt
+serial          = $dir/config/${ENV::OPENSSL_CRT_DIR}/serial
+private_key     = $dir/ca/${ENV::OPENSSL_CRT_DIR}/ca-intermediate.key
+default_days    = 1095
+default_md      = sha256
+preserve        = no
+policy          = policy_match
+unique_subject  = no
+
+[ policy_match ]
+countryName             = match
+stateOrProvinceName     = match
+localityName		    = match
+organizationName        = match
+organizationalUnitName  = optional
+commonName              = supplied
+emailAddress            = optional
+
+[ req ]
+# Options for the `req` tool (`man req`).
+prompt                  = no
+default_bits            = 4096
+string_mask             = utf8only
+distinguished_name      = req_distinguished_name
+
+[ req_distinguished_name ]
+# prompt = no in req options above ; so following are real values, not prompts
+C = fr
+ST = idf
+L = paris
+O = vitam
+CN = ${ENV::OPENSSL_CN}
+
+
+# Certificates creation parameters : extensions
+
+[ extension_server ]
+nsComment                       = "Certificat Serveur SSL"
+subjectKeyIdentifier            = hash
+authorityKeyIdentifier          = keyid,issuer:always
+issuerAltName                   = issuer:copy
+subjectAltName                  = ${ENV::OPENSSL_SAN}
+basicConstraints                = critical,CA:FALSE
+keyUsage                        = digitalSignature, nonRepudiation, keyEncipherment
+nsCertType                      = server
+extendedKeyUsage                = serverAuth
+
+[ extension_client ]
+nsComment                       = "Certificat Client SSL"
+subjectKeyIdentifier            = hash
+authorityKeyIdentifier          = keyid,issuer:always
+issuerAltName                   = issuer:copy
+basicConstraints                = critical,CA:FALSE
+keyUsage                        = digitalSignature, nonRepudiation, keyEncipherment
+nsCertType                      = client
+extendedKeyUsage                = clientAuth
+
+[ extension_timestamping ]
+nsComment                       = "Certificat Serveur SSL"
+subjectKeyIdentifier            = hash
+authorityKeyIdentifier          = keyid,issuer:always
+issuerAltName                   = issuer:copy
+basicConstraints                = critical,CA:FALSE
+keyUsage                        = digitalSignature, nonRepudiation, keyEncipherment
+nsCertType                      = server
+extendedKeyUsage                = critical,timeStamping

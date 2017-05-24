@@ -53,14 +53,13 @@ public class StorageLogSecurisationListener implements ServletContextListener {
         LOGGER.debug("ServletContextListener started");
         //TODO RETRY TO Secure LOG When Server not shutdown correctly Or securisation fail
     }
-
+    //FIME  secure logs after rebooting server
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
         LOGGER.debug("ServletContextListener destroyed");
-
         try {
             for ( Integer tenant : configuration.getTenants()) {
-                storageResource.secureStorageLogbook(tenant.toString());
+                storageResource.getStorageLogbookService().stopAppenderLoggerAndSecureLastLogs(tenant);
             }
         } catch (final Exception e) {
             LOGGER.error("Fail to Backup Storage log " , e);

@@ -94,10 +94,9 @@ public interface IngestInternalClient extends OperationManagementClient {
      * 
      * @param guid
      * @param input
-     * @return Response OK
      * @throws VitamClientException
      */
-    Response storeATR(GUID guid, InputStream input)
+    void storeATR(GUID guid, InputStream input)
         throws VitamClientException;
 
 

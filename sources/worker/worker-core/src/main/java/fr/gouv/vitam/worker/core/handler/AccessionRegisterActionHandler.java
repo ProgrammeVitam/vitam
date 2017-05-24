@@ -76,7 +76,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
     private static final int HANDLER_IO_PARAMETER_NUMBER = 4;
     private static final int ARCHIVE_UNIT_MAP_RANK = 0;
     private static final int OBJECTGOUP_MAP_RANK = 1;
-    private static final int BDO_TO_VERSION_BDO_MAP_RANK = 2;
+    private static final int DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP_RANK = 2;
     private static final int SEDA_PARAMETERS_RANK = 3;
 
     /**
@@ -141,7 +141,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
             final InputStream objectGoupMapStream =
                 new FileInputStream((File) handlerIO.getInput(OBJECTGOUP_MAP_RANK));
             final InputStream bdoToVersionMapTmpFile =
-                new FileInputStream((File) handlerIO.getInput(BDO_TO_VERSION_BDO_MAP_RANK))) {
+                new FileInputStream((File) handlerIO.getInput(DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP_RANK))) {
             final Map<String, Object> bdoVersionMap = JsonHandler.getMapFromInputStream(bdoToVersionMapTmpFile);
             final Map<String, Object> archiveUnitMap = JsonHandler.getMapFromInputStream(archiveUnitMapStream);
             final Map<String, Object> objectGroupMap = JsonHandler.getMapFromInputStream(objectGoupMapStream);
@@ -151,9 +151,13 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
             String originalAgency = "OriginatingAgencyUnknown";
             String submissionAgency = "SubmissionAgencyUnknown";
             String archivalAgreement = "ArchivalAgreementUnknow";
+            int nbAUExisting = 0;
             if (sedaParameters != null) {
                 final JsonNode dataObjectNode = sedaParameters.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE);
                 if (dataObjectNode != null) {
+                    if (dataObjectNode.has(SedaUtils.NB_AU_EXISTING)){
+                        nbAUExisting = dataObjectNode.get(SedaUtils.NB_AU_EXISTING).intValue();
+                    }
                     final JsonNode nodeOrigin = dataObjectNode.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
                     if (nodeOrigin != null && !Strings.isNullOrEmpty(nodeOrigin.asText())) {
                         originalAgency = nodeOrigin.asText();
@@ -183,7 +187,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
             final SedaUtils sedaUtils = SedaUtilsFactory.create(handlerIO);
             register =
                 mapParamsToAccessionRegisterDetailModel(params, bdoVersionMap, archiveUnitMap, objectGroupMap,
-                    originalAgency, submissionAgency, archivalAgreement, sedaUtils);
+                    originalAgency, submissionAgency, archivalAgreement, sedaUtils, nbAUExisting);
         } catch (InvalidParseOperationException | IOException e) {
             LOGGER.error("Inputs/outputs are not correct", e);
             throw new ProcessingException(e);
@@ -194,7 +198,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
 
     private AccessionRegisterDetailModel mapParamsToAccessionRegisterDetailModel(WorkerParameters params,
         Map<String, Object> bdoVersionMap, Map<String, Object> archiveUnitMap, Map<String, Object> objectGroupMap,
-        String originalAgency, String submissionAgency, String archivalAgreement, SedaUtils sedaUtils) throws ProcessingException {
+        String originalAgency, String submissionAgency, String archivalAgreement, SedaUtils sedaUtils, int nbAUExisting) throws ProcessingException {
 
         SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
@@ -204,7 +208,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
             new RegisterValueDetailModel(objectGroupMap.size(), 0, objectGroupMap.size());
 
         RegisterValueDetailModel totalUnits =
-            new RegisterValueDetailModel(archiveUnitMap.size(), 0, archiveUnitMap.size());
+            new RegisterValueDetailModel(archiveUnitMap.size()-nbAUExisting, 0, archiveUnitMap.size()-nbAUExisting);
 
         RegisterValueDetailModel totalObjects =
             new RegisterValueDetailModel(bdoVersionMap.size(), 0, bdoVersionMap.size());

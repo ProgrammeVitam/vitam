@@ -48,7 +48,8 @@ angular.module('archive.unit')
     'INHERITED_RULE_LABEL': 'inheritedRule',
     'LIST_ITEM_LABEL': 'Valeur',
     'UNIT_PRENT_LIST': '_up',
-    'MGT_WITH_CSHARP_KEY': '#mgt'
+    'MGT_WITH_CSHARP_KEY': '#mgt',
+    'RULES_CATEGORY_KEYS': ['AccessRule','AppraisalRule','ClassificationRule','DisseminationRule','ReuseRule','StorageRule']
   })
   .filter('filterSize', function() {
     return function(bytes, precision) {
@@ -61,7 +62,8 @@ angular.module('archive.unit')
   .controller('ArchiveUnitController', function($scope, $routeParams, $filter, ihmDemoFactory, $window,
                                                 ARCHIVE_UNIT_MODULE_CONST, ARCHIVE_UNIT_MODULE_FIELD_LABEL,
                                                 ARCHIVE_UNIT_MODULE_OG_FIELD_LABEL, archiveDetailsService, $mdToast,
-                                                $mdDialog, transferToIhmResult, RuleUtils){
+                                                $mdDialog, transferToIhmResult, RuleUtils, authVitamService, accessContractResource,
+                                                uneceMappingService, $q){
 
     var self = this;
 
@@ -85,14 +87,30 @@ angular.module('archive.unit')
     //******************************* Alert diplayed ******************************* //
     self.showAlert = function($event, dialogTitle, message) {
       $mdDialog.show($mdDialog.alert().parent(angular.element(document.querySelector('#popupContainer')))
-        .clickOutsideToClose(true)
-        .title(dialogTitle)
-        .textContent(message)
-        .ariaLabel('Alert Dialog Demo')
-        .ok('OK')
-        .targetEvent($event)
+          .clickOutsideToClose(true)
+          .title(dialogTitle)
+          .textContent(message)
+          .ariaLabel('Alert Dialog Demo')
+          .ok('OK')
+          .targetEvent($event)
       );
     };
+
+    if (authVitamService.cookieValue("X-Access-Contract-Id")) {
+      ihmDemoFactory.getAccessContracts({ContractName : decodeURIComponent(authVitamService.cookieValue("X-Access-Contract-Id")) || 'all'}).then(function (repsonse) {
+        if (repsonse.status == 200 && repsonse.data['$results'] && repsonse.data['$results'].length > 0) {
+          repsonse.data['$results'].forEach(function(contract) {
+            if (contract.Name == authVitamService.cookieValue("X-Access-Contract-Id")) {
+              $scope.userContract = contract;
+            }
+          });
+          console.log($scope.userContract);
+        }
+      }, function (error) {
+        console.log('Error while get tenant. Set default list : ', error);
+      });
+    }
+
     // **************************************************************************** //
 
     // *************** Set Edit mode ********************** //
@@ -259,21 +277,24 @@ angular.module('archive.unit')
               // Archive unit found
               self.archiveFields = transferToIhmResult.transferUnit(data.$results)[0];
               //get archive object groups informations to be displayed in the table
-              ihmDemoFactory.getArchiveObjectGroup(self.archiveFields._og)
-                .then(function (response) {
-                  var dataOG = response.data;
-                  if (dataOG.nbObjects == null || dataOG.nbObjects == undefined ||
-                    dataOG.versions == null || dataOG.versions == undefined){
-                    // ObjectGroups Not Found
+              if (!!self.archiveFields._og) {
+                ihmDemoFactory.getArchiveObjectGroup(self.archiveFields._id)
+                  .then(function (response) {
+                    var dataOG = response.data;
+                    if (dataOG.nbObjects == null || dataOG.nbObjects == undefined ||
+                      dataOG.versions == null || dataOG.versions == undefined){
+                      // ObjectGroups Not Found
+                      console.log("errorMsg");
+                    } else {
+                      $scope.archiveObjectGroups = dataOG;
+                      $scope.archiveObjectGroupsOgId = self.archiveFields._og;
+                      self.displayTechnicalMetadata();
+                    }
+                  },function () {
                     console.log("errorMsg");
-                  } else {
-                    $scope.archiveObjectGroups = dataOG;
-                    $scope.archiveObjectGroupsOgId = self.archiveFields._og;
-                    self.displayTechnicalMetadata();
-                  }
-                },function () {
-                  console.log("errorMsg");
-                });
+                  });
+              }
+
               self.archiveArray=[];
               self.displayArchiveDetails();
 
@@ -307,24 +328,24 @@ angular.module('archive.unit')
           // Archive unit found
           var results = transferToIhmResult.transferUnit(data.$results);
           self.archiveFields = results[0];
-
-          //get archive object groups informations to be displayed in the table
-          ihmDemoFactory.getArchiveObjectGroup(self.archiveFields._og)
-            .then(function (response) {
-              var dataOG = response.data;
-              if (dataOG.nbObjects == null || dataOG.nbObjects == undefined ||
-                dataOG.versions == null || dataOG.versions == undefined){
-                // ObjectGroups Not Found
+          if (!!self.archiveFields._og) {
+            //get archive object groups informations to be displayed in the table
+            ihmDemoFactory.getArchiveObjectGroup(self.archiveFields._id)
+              .then(function (response) {
+                var dataOG = response.data;
+                if (dataOG.nbObjects == null || dataOG.nbObjects == undefined ||
+                  dataOG.versions == null || dataOG.versions == undefined) {
+                  // ObjectGroups Not Found
+                  console.log("errorMsg");
+                } else {
+                  $scope.archiveObjectGroups = dataOG;
+                  $scope.archiveObjectGroupsOgId = self.archiveFields._og;
+                  self.displayTechnicalMetadata();
+                }
+              }, function () {
                 console.log("errorMsg");
-              } else {
-                $scope.archiveObjectGroups = dataOG;
-                $scope.archiveObjectGroupsOgId = self.archiveFields._og;
-                self.displayTechnicalMetadata();
-              }
-            },function () {
-              console.log("errorMsg");
-            });
-
+              });
+          }
           // Get Archive Tree
           ihmDemoFactory.getArchiveTree(self.archiveFields._id, self.archiveFields._us)
             .then(function (response) {
@@ -383,11 +404,11 @@ angular.module('archive.unit')
       } return e.slice(0,10);
     };
     $scope.exitRule = function(array){
-        for (var i = 0; i < array.length; i++){
-            if (array[i]["ruleId"])
-                return true;
-        }
-        return false;
+      for (var i = 0; i < array.length; i++){
+        if (array[i]["ruleId"])
+          return true;
+      }
+      return false;
     }
     $scope.title = {};
     $scope.displayRule = {};
@@ -396,27 +417,30 @@ angular.module('archive.unit')
       $scope.displayRule[rule.ruleId] = !$scope.displayRule[rule.ruleId] ;
 
       if (!$scope.title[rule.ruleId]) {
-          ihmDemoFactory.getArchiveUnitDetails(rule.originId)
-              .then(function (response) {
-                  $scope.title[rule.ruleId] = response.data.$results[0].Title;
-              });
+        ihmDemoFactory.getArchiveUnitDetails(rule.originId)
+          .then(function (response) {
+            $scope.title[rule.ruleId] = response.data.$results[0].Title;
+          });
       }
 
     };
     $scope.getSourcePath = function(rule) {
-      return "#!/archiveunit/" + rule.path[0][0];
+      if (rule.path) {
+        return "#!/archiveunit/" + rule.path[0][0];
+      }
+      return '';
     };
     $scope.checkUpOrDown = function(rule){
-        if ($scope.displayRule[rule.ruleId]) {
-            return true;
-        } else {
-            return false;
-        }
+      if ($scope.displayRule[rule.ruleId]) {
+        return true;
+      } else {
+        return false;
+      }
     };
     $scope.hasSortFinal = function(c){
-        if (c == 'Durée d\'utilité Administrative' || c == 'Durée d\'utilité courante'){
-            return true;
-        } else return false;
+      if (c == 'Durée d\'utilité Administrative' || c == 'Durée d\'utilité courante'){
+        return true;
+      } else return false;
     };
     self.displayArchiveDetails = function(){
       self.mainFields={};
@@ -436,84 +460,93 @@ angular.module('archive.unit')
 
         $scope.refNonId = {};
 
-        for (var key in inheritedRule) {
-            var translateKey = RuleUtils.translate(key);
-            var currentRef = [];
-            var tf = false;
-            for (var n in inheritedRule[key]) {
-                var refArray = inheritedRule[key][n]["RefNonRuleId"];
-                for (var ref in refArray) {
-                    currentRef.push(refArray[ref]);
-                }
-                if (!tf) {
-                    var tf = inheritedRule[key][n]["PreventInheritance"];
-                }
+        for (var key in management) {
+          if(ARCHIVE_UNIT_MODULE_CONST.RULES_CATEGORY_KEYS.indexOf(key) === -1) {
+            continue;
+          }
+          var translateKey = RuleUtils.translate(key);
+          var currentRef = [];
+          var tf = false;
+          for (var n in management[key]) {
+            var refArray = management[key][n].RefNonRuleId;
+            for (var ref in refArray) {
+              currentRef.push(refArray[ref]);
             }
-            if (typeof currentRef[0] !== 'undefined' && currentRef[0] !== null){
-                $scope.refNonId[translateKey] = currentRef;
+            if (!tf) {
+              var tf = management[key][n].PreventInheritance;
             }
-            $scope.preventInheritance[translateKey] = tf;
+          }
+          if (typeof currentRef[0] !== 'undefined' && currentRef[0] !== null){
+            $scope.refNonId[translateKey] = currentRef;
+          }
+          $scope.preventInheritance[translateKey] = tf;
         }
 
         self.ruleDisplay = {};
-          var selfManagement = self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.MGT_KEY];
-          if (Array.isArray(selfManagement)) {
-              selfManagement.forEach(function (element) {
-                  for (var key in element) {
-                      var translateKey = RuleUtils.translate(key);
-                      var rule = selfManagement[key];
-                      var displayArray = [];
-                      var displayObject = {};
-                      displayObject.ruleId = rule.Rule;
-                      delete rule.Rule;
-                      for (var detail in rule) {
-                          displayObject[detail] = rule[detail];
-                      }
-                      displayObject.originId = idField;
-                      displayArray.push(displayObject);
-                      displayObject = {};
-                      self.ruleDisplay[translateKey] = {};
-                      self.ruleDisplay[translateKey]['displayArray'] = displayArray;
-                  }
-              })
-          } else {
-              for (var key in selfManagement) {
-                  var translateKey = RuleUtils.translate(key);
-                  var rule = selfManagement[key];
-                  if(angular.isArray(rule)) {
-                      // in case we have an array of rules
-                      var displayArray = [];
-                      var displayObject = {};
-                      for (var ruleKey in rule) {
-                          var oneRule = selfManagement[key][ruleKey];
-                          displayObject.ruleId = oneRule.Rule;
-                          delete oneRule.Rule;
-                          for (var detail in oneRule) {
-                              displayObject[detail] = oneRule[detail];
-                          }
-                          displayObject.originId = idField;
-                          displayArray.push(displayObject);
-                          displayObject = {};
-                          self.ruleDisplay[translateKey] = {};
-                          self.ruleDisplay[translateKey]['displayArray'] = displayArray;
-                      }
-                  } else {
-                      // in case we just have one rule (should not happen)
-                      var displayArray = [];
-                      var displayObject = {};
-                      displayObject.ruleId = rule.Rule;
-                      delete rule.Rule;
-                      for (var detail in rule) {
-                          displayObject[detail] = rule[detail];
-                      }
-                      displayObject.originId = idField;
-                      displayArray.push(displayObject);
-                      displayObject = {};
-                      self.ruleDisplay[translateKey] = {};
-                      self.ruleDisplay[translateKey]['displayArray'] = displayArray;
-                  }
+        var selfManagement = self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.MGT_KEY];
+        if (Array.isArray(selfManagement)) {
+          selfManagement.forEach(function (element) {
+            for (var key in element) {
+              if(ARCHIVE_UNIT_MODULE_CONST.RULES_CATEGORY_KEYS.indexOf(key) === -1) {
+                continue;
               }
+              var translateKey = RuleUtils.translate(key);
+              var rule = selfManagement[key];
+              var displayArray = [];
+              var displayObject = {};
+              displayObject.ruleId = rule.Rule;
+              delete rule.Rule;
+              for (var detail in rule) {
+                displayObject[detail] = rule[detail];
+              }
+              displayObject.originId = idField;
+              displayArray.push(displayObject);
+              displayObject = {};
+              self.ruleDisplay[translateKey] = {};
+              self.ruleDisplay[translateKey]['displayArray'] = displayArray;
+            }
+          })
+        } else {
+          for (var key in selfManagement) {
+            if(ARCHIVE_UNIT_MODULE_CONST.RULES_CATEGORY_KEYS.indexOf(key) === -1) {
+              continue;
+            }
+            var translateKey = RuleUtils.translate(key);
+            var rule = selfManagement[key];
+            if(angular.isArray(rule)) {
+              // in case we have an array of rules
+              var displayArray = [];
+              var displayObject = {};
+              for (var ruleKey in rule) {
+                var oneRule = selfManagement[key][ruleKey];
+                displayObject.ruleId = oneRule.Rule;
+                delete oneRule.Rule;
+                for (var detail in oneRule) {
+                  displayObject[detail] = oneRule[detail];
+                }
+                displayObject.originId = idField;
+                displayArray.push(displayObject);
+                displayObject = {};
+                self.ruleDisplay[translateKey] = {};
+                self.ruleDisplay[translateKey]['displayArray'] = displayArray;
+              }
+            } else {
+              // in case we just have one rule (should not happen)
+              var displayArray = [];
+              var displayObject = {};
+              displayObject.ruleId = rule.Rule;
+              delete rule.Rule;
+              for (var detail in rule) {
+                displayObject[detail] = rule[detail];
+              }
+              displayObject.originId = idField;
+              displayArray.push(displayObject);
+              displayObject = {};
+              self.ruleDisplay[translateKey] = {};
+              self.ruleDisplay[translateKey]['displayArray'] = displayArray;
+            }
           }
+        }
         for (var key in inheritedRule) {
           var translateKey = RuleUtils.translate(key);
           var rule = inheritedRule[key];
@@ -553,23 +586,24 @@ angular.module('archive.unit')
             fieldSet.isModificationAllowed = false;
             self.mainFields[fieldSet.fieldName] =  fieldSet;
           }
-          //get archive object groups informations to be displayed in the table
-          ihmDemoFactory.getArchiveObjectGroup(self.archiveFields._og)
-            .then(function (response) {
-              var dataOG = response.data;
-              if (dataOG.nbObjects == null || dataOG.nbObjects == undefined ||
-                dataOG.versions == null || dataOG.versions == undefined){
-                // ObjectGroups Not Found
+          if (!!self.archiveFields._og) {
+            //get archive object groups informations to be displayed in the table
+            ihmDemoFactory.getArchiveObjectGroup(self.archiveFields._id)
+              .then(function (response) {
+                var dataOG = response.data;
+                if (dataOG.nbObjects == null || dataOG.nbObjects == undefined ||
+                  dataOG.versions == null || dataOG.versions == undefined) {
+                  // ObjectGroups Not Found
+                  console.log("errorMsg");
+                } else {
+                  $scope.archiveObjectGroups = dataOG;
+                  $scope.archiveObjectGroupsOgId = self.archiveFields._og;
+                  self.displayTechnicalMetadata();
+                }
+              }, function () {
                 console.log("errorMsg");
-              } else {
-                $scope.archiveObjectGroups = dataOG;
-                $scope.archiveObjectGroupsOgId = self.archiveFields._og;
-                self.displayTechnicalMetadata();
-              }
-            },function () {
-              console.log("errorMsg");
-            });
-
+              });
+          }
 
           // Get Archive Tree
           ihmDemoFactory.getArchiveTree(self.archiveFields._id, self.archiveFields._us)
@@ -733,9 +767,41 @@ angular.module('archive.unit')
       angular.forEach($scope.archiveObjectGroups.versions, function(version) {
         var fieldSet = [];
         angular.forEach(version.metadatas, function(value, key) {
-          var fieldSetSecond = buildSingleField(value, key, key, [], ARCHIVE_UNIT_MODULE_OG_FIELD_LABEL, false);
-          fieldSetSecond.isChild = false;
-          fieldSet.push(fieldSetSecond);
+
+          if (key === 'PhysicalDimensions') {
+            var allPromises = [];
+            angular.forEach(value, function(value, kind) {
+              allPromises.push(uneceMappingService.getDimensionWithDisplayableUnit(value, kind))
+            });
+            $q.all(allPromises).then(
+              function onSuccess(allResolvePromise) {
+                var physicalDimensions = {};
+                angular.forEach(allResolvePromise, function(item) {
+                  physicalDimensions[item.key] = item.value;
+                });
+                var canPush = true;
+                angular.forEach(self.technicalItems[version['DataObjectVersion']], function(value) {
+                  if (value.fieldName === "PhysicalDimensions") {
+                    canPush = false;
+                  }
+                });
+                if (canPush) {
+                  var physicalMetadata = self.technicalItems[version['DataObjectVersion']];
+                  var fieldSetSecond = buildSingleField(physicalDimensions, key, key, [],
+                    ARCHIVE_UNIT_MODULE_OG_FIELD_LABEL, false);
+                  fieldSetSecond.isChild = false;
+                  physicalMetadata.push(fieldSetSecond);
+                }
+              }, function onError(error) {
+
+              }
+            );
+
+          } else {
+            var fieldSetSecond = buildSingleField(value, key, key, [], ARCHIVE_UNIT_MODULE_OG_FIELD_LABEL, false);
+            fieldSetSecond.isChild = false;
+            fieldSet.push(fieldSetSecond);
+          }
         });
         self.technicalItems[version['DataObjectVersion']] = fieldSet;
       });
@@ -794,12 +860,15 @@ angular.module('archive.unit')
     };
     // ********************************************************************************* //
 
-    self.hasPermission = function(permission) {
-      if (localStorage.getItem('user')) {
-          var user = JSON.parse(localStorage.getItem('user'));
-          return user && user.permissions.indexOf(permission) > -1;
+    self.hasPermission = authVitamService.hasPermission;
+    $scope.isPhysicalArchive = function(version){
+        return version.metadatas.PhysicalId != undefined;
+    }
+    $scope.getClassVersion = function(version) {
+      if ($scope.userContract.DataObjectVersion.indexOf(version.split('_')[0]) < 0) {
+        return 'grayColor';
       }
-      return false;
+      return '';
     }
 
   });

@@ -69,6 +69,9 @@ public final class DslQueryHelper {
     private static final String EVENT_ID_PROCESS = "evIdProc";
     private static final String CONTRACT_ID = "ContractID";
     private static final String CONTRACT_NAME = "ContractName";
+    private static final String PROFILE_ID = "ProfileID";
+    private static final String PROFILE_IDENTIFIER = "ProfileIdentifier";
+    private static final String PROFILE_NAME = "ProfileName";
     private static final String DESCRIPTION = "Description";
     private static final String TITLE = "Title";
     private static final String EVENT_DATE_TIME = "evDateTime";
@@ -146,10 +149,25 @@ public final class DslQueryHelper {
                 String sortField = sortSetting.get(SORT_FIELD_ENTRY);
                 String sortType = sortSetting.get(SORT_TYPE_ENTRY);
 
+                String realSortField = sortField;
+                switch (sortField) {
+                    case CONTRACT_NAME:
+                        realSortField = "Name";
+                        break;
+
+                    case PROFILE_IDENTIFIER:
+                        realSortField = "Identifier";
+                        break;
+                    case PROFILE_NAME:
+                        realSortField = "Name";
+                        break;
+                    default:
+                }
+
                 if (ASC_SORT_TYPE.equalsIgnoreCase(sortType)) {
-                    select.addOrderByAscFilter(sortField);
+                    select.addOrderByAscFilter(realSortField);
                 } else {
-                    select.addOrderByDescFilter(sortField);
+                    select.addOrderByDescFilter(realSortField);
                 }
             } else {
                 final String searchValue = (String) entry.getValue();
@@ -271,6 +289,30 @@ public final class DslQueryHelper {
                             query.add(eq("#id", searchValue));
                         }
                         break;
+
+                    case PROFILE_IDENTIFIER:
+                        if ("all".equals(searchValue)) {
+                            query.add(exists("Identifier"));
+                        }
+                        else  if (!searchValue.isEmpty()) {
+                            query.add(match("Identifier", searchValue));
+                        }
+                        break;
+
+                    case PROFILE_ID:
+                        if (!"all".equals(searchValue)) {
+                            query.add(eq("#id", searchValue));
+                        }
+                        break;
+                    case PROFILE_NAME:
+                        if ("all".equals(searchValue)) {
+                            query.add(exists("Name"));
+                        }
+                        else  if (!searchValue.isEmpty()) {
+                            query.add(match("Name", searchValue));
+                        }
+                        break;
+
                     default:
                         if (!searchValue.isEmpty()) {
                             query.add(eq(searchKeys, searchValue));
@@ -376,7 +418,7 @@ public final class DslQueryHelper {
                 Map<String, String> sortSetting = (Map<String, String>) searchValue;
                 String sortField = sortSetting.get(SORT_FIELD_ENTRY);
                 String sortType = sortSetting.get(SORT_TYPE_ENTRY);
-                
+
                 if (ASC_SORT_TYPE.equalsIgnoreCase(sortType)) {
                     select.addOrderByAscFilter(sortField);
                 } else {

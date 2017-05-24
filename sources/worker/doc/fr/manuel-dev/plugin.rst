@@ -120,7 +120,7 @@ Voici un exemple, de ce que l'on pourrait trouver au seun d'une action en terme 
             "behavior": "NOBLOCKING",
             "in": [
               {
-                "name": "mapsBDOtoOG.file",
+                "name": "mapsDOtoOG.file",
                 "uri": "MEMORY:MapsMemory/OG_TO_ARCHIVE_ID_MAP.json"
               },
               {

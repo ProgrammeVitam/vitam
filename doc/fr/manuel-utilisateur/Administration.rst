@@ -60,6 +60,34 @@ Suite à la recherche, le résultat de la recherche est affiché sous forme de t
 
 .. image:: images/op_resultat.png
 
+L'utilisateur a la possibilité d'afficher des colonnes supplémentaires afin de faire apparaître les autres informations contenues dans le journal des opérations. 
+
+Pour cela il clique sur le bouton "Informations complémentaires" et sélectionne les informations qu'il souhaite afficher. 
+
+Celles-ci sont :
+
+- Identifiant de l'évènement
+- Détail des données de l'évènement
+- Identifiant de l'opération
+- Code d'erreur technique
+- Identifiant de l'agent interne
+- Identifiant de l'application externe
+- Identifiant donné par l'application externe
+- Identifiant de la requête
+- Identifiant du service versant
+- Identifiant du service producteur
+- Identifiant interne de l'objet
+- Identifiant externe de l'objet
+- Identifiant du tenant
+
+L'utilisateur a la possibité d'afficher toutes les colonnes supplémentaires en cliquant sur "Tout  sélectionner". 
+
+.. image:: images/op_tout_selectionner.png
+
+Une fois l'ensemble des colonnes affichées, l'utilisateur peut cliquer sur "Tout désélectionner" afin de revenir à l'affichage d'origine.
+
+.. image:: images/op_tout_deselectionner.png
+
 Consultation du détail d'une opération
 --------------------------------------
 
@@ -306,7 +334,7 @@ Contrats d'entrée
 
 **Importer un contrat d'entrée**
 
-Pour importer un contrat d'entrée, l'utilisateur clique sur le menu "Administration" puis sur le sous-menu "importer un contrat d'entrée".
+Pour importer un contrat d'entrée, l'utilisateur clique sur le menu "Administration" puis sur le sous-menu "importer des contrats d'entrée".
 
 .. image:: images/CONTRACTS_Menu_import_ingest.png
 
@@ -315,8 +343,6 @@ Les contrats d'entrée sont des fichiers JSON constitués des champs suivants :
 * Name : nom du contrat (obligatoire)
 * Description : description du contrat (obligatoire)
 * Status : statut du contrat. ACTIVE ou INACTIVE
-* CreationDate : date de dernière mise à jour du contrat. Doit être contribué sous la forme JJ/MM/AAAA
-* ActivationDate : date d'activation du contrat. Doit être contribué sous la forme JJ/MM/AAAA
 
 Il sélectionne ensuite le fichier à importer en cliquant sur "parcourir", puis clique sur "importer" pour lancer l'opération.
 
@@ -367,16 +393,16 @@ La page "Détail d'un contrat d'entrée" contient les informations suivantes :
 * Date d'activation
 * Date de mise à jour
 * Date de désactivation
+* Profils d'archivage
 
 .. image:: images/CONTRACTS_ingest_contract_detail.png
 
 Contrats d'accès
 -----------------
----
 
 **Importer un contrat d'accès**
 
-Pour importer un contrat d'accès, l'utilisateur clique sur le menu "Administration" puis sur le sous-menu "importer un contrat d'accès".
+Pour importer un contrat d'accès, l'utilisateur clique sur le menu "Administration" puis sur le sous-menu "importer des contrats d'accès".
 
 .. image:: images/CONTRACTS_Menu_import_acess.png
 
@@ -385,10 +411,7 @@ Les contrats d'accès sont des fichiers JSON constitués des champs suivants :
 * Name : nom du contrat (obligatoire)
 * Description : description du contrat (obligatoire)
 * Status : statut du contrat. ACTIVE ou INACTIVE
-* CreationDate : date de dernière mise à jour du contrat. Doit être contribué sous la forme JJ/MM/AAAA
-* ActivationDate : date d'activation du contrat. Doit être contribué sous la forme JJ/MM/AAAA
 * "OriginatingAgencies": tableau contenant le(s) service(s) producteur(s) pour le(s)quel(s) le détenteur du contrat peut accéder aux unités archivistiques (obligatoire)
-
 
 Il sélectionne ensuite le fichier à importer en cliquant sur "parcourir", puis clique sur "importer" pour lancer l'opération.
 
@@ -441,6 +464,96 @@ La page "Détail d'un contrat d'accès" contient les informations suivantes :
 
 .. image:: images/CONTRACTS_acces_contract_detail.png
 
+Profils d'archivage
+===================
+
+Accès aux menus de gestion des profils d'archivage
+---------------------------------------------------
+
+Les sous-menus permettant d’accéder aux interfaces de recherche et d’import de profils d'archivage sont disponibles dans le menu “Administration”.
+
+.. image:: images/profil_acces.png
+
+Importer un profil d'archivage
+--------------------------------
+
+Pour importer un profil d'archivage, l'utilisateur clique sur le menu "Administration" puis sur le sous-menu "importer des profils".
+
+Les profils d'archivage sont des fichiers JSON constitués des champs suivants :
+
+* Name : nom du profil d'archivage (obligatoire)
+* Description : description du profil d'archivage (obligatoire)
+* Status : statut du profil d'archivage. ACTIVE ou INACTIVE
+* Format : format attendu pour le fichier de règle. XSD ou RNG
+
+Pour importer un profil d'archivage, l'utilisateur sélectionne ensuite le fichier à importer en cliquant sur “parcourir”, puis clique sur “importer” pour lancer l’opération.
+
+.. image:: images/profil_import.png
+
+Une fenêtre modale indique alors soit :
+
+* Les contrats ont bien été importés
+* Échec de l’import du fichier. Ceci peut être causé par :
+	* le fait que le(s) profil(s) d'archivage mentionnés existent déjà pour le tenant
+	* le fait que le fichier JSON est invalide
+
+Cette opération est journalisée et disponible dans le Journal des Opérations.
+
+Rechercher un profil d'archivage
+---------------------------------
+
+Pour accéder à la recherche de profils d'archivage, l’utilisateur clique sur le menu “Administration”, puis sur le sous-menu “Référentiel des profils”.
+
+La page affiche un formulaire de recherche composé des champs suivants :
+
+* Nom du profil : permet d’effectuer une recherche approchante sur les noms des profils d'archivage disponibles dans la solution logicielle Vitam.
+* Identifiant : permet d’effectuer une recherche exacte sur les identifiants des profils d'archivage.
+
+Par défaut, la solution logicielle Vitam affiche tous les profils d'archivage disponibles dans la liste de résultats et l’affine en fonction de la recherche effectuée. La liste des résultats est composée des colonnes suivantes :
+
+* Identifiant
+* Nom
+* Description
+* Etat
+* Profil
+
+En cliquant sur une ligne, l’utilisateur ouvre le détail du profil d'archivage dans un nouvel onglet.
+
+Lorsqu'un fichier de règle a été associé au profil, une flèche indiquant la possibilité de le télecharger apparaît. L'utilisateur peut lancer le télechargement en cliquant dessus.
+
+.. image:: images/profil_search.png
+
+Consulter le détail d'un profil d'archivage
+--------------------------------------------
+
+La page "Détail d'un profil d'archivage" contient les informations suivantes :
+
+* ID
+* Nom
+* Description
+* Fichier
+* Format
+* Date de création
+* Statut
+* Date de mise à jour
+* Tenant(s)
+* Date de désactivation
+ 
+.. image:: images/profil_detail.png
+
+Assoccier un fichier de règles à un profil d'archivage
+-------------------------------------------------------
+
+Pour importer un fichier de règles à associer à un profil d'archivage, l'utilisateur clique sur le bouton "parcourir" à coté du champ "fichier" puis clique sur "importer". Le format du fichier doit correspondre au format attendu, indiqué dans le champ format.
+
+la fin de l'opération d'import, une fenêtre modale indique un des deux messages suivants :
+
+* Le profil a bien été importé
+* Echec de l'import du fichier
+
+L'opération est journalisée et disponible depuis l'écran de consultation des journaux d'opérations. 
+
+En cas de succès de l'import de fichier de règle, la date de mise à jour du profil est ajustée en conséquence. Si l'utilisateur importe un fichier de règle alors qu'un autre fichier de règles a déjà été importé, alors le nouveau fichier remplace l'ancien.
 
 Import d'un arbre de positionnement
 =================================
@@ -520,22 +633,26 @@ La page affiche la liste de toutes les opérations d’entrée en cours d’éx�
 La liste est composée des colonnes suivantes :
 
 * Identifiant de l’opération - identifiant unique de l’opération d’entrée
-* Catégorie de l’opération - indique le type d’opération d’entrée
-* INGEST - indique une opération d’entrée normale
-* INGEST_TEST - indique une opération d’entrée en test à blanc
+* Catégorie de l’opération - indique le type d’opération d’entrée :
+	* INGEST - indique une opération d’entrée normale
+	* INGEST_TEST - indique une opération d’entrée en test à blanc
 * Date de l’entrée - date à laquelle l’entrée à été soumise à la solution logicielle Vitam
 * Mode d’exécution - indique le mode d’exécution choisi. Celui-ci peut-être
 	* Continu
 	* Pas à pas
-* Etat global de l’opération d’entrée - indique si l’opération est :
+* Précédente étape du workflow / étape en cours 
+* Prochaine étape du workflow
+* Statut - indique si l’opération est :
 	* En attente
 	* En cours
 	* Terminée
-* Statut : Statut de la dernière étape du workflow réalisée au cours de l’opération d’entrée
-* Actions : Contient des boutons d’action permettant d’interagir avec l'entrée réalisée en mode d’exécution pas à
-pas
+* Actions : Contient des boutons d’action permettant d’interagir avec l'entrée réalisée en mode d’exécution pas à pas
 
-Les opérations d’entrée sont classées par ordre alphabétique selon leur identifiant.
+Les opérations d’entrée sont classées par ordre antéchronologique selon leur date d'entrée.
+
+Seules les opérations en cours de traitement sont affichées sur cet écran.
+
+.. image:: images/GESTION_VERSEMENT_ecran.png
 
 Utilisation du mode pas à pas
 -----------------------------

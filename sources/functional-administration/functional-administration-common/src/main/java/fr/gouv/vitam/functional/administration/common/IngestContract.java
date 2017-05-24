@@ -33,6 +33,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 
+import java.util.Set;
+
 /**
  * Defines an Ingest contract model for SIP transfer control. </BR>
  * It's an implementation of the SEDA specification and NF Z44022 MEDONA concerning the communication between a
@@ -57,6 +59,12 @@ public class IngestContract extends VitamDocument<IngestContract> {
      * the contract status
      */
     public static final String STATUS = "Status";
+
+    /**
+     * Archive profile
+     */
+    public static final String ARCHIVEPROFILES = "ArchiveProfiles";
+
     /**
      * the creatation date of contract 
      */
@@ -74,6 +82,8 @@ public class IngestContract extends VitamDocument<IngestContract> {
      */
     public static final String DEACTIVATIONDATE = "DeactivationDate";
 
+
+    public static final String TYPEUNIQUE = "typeunique";
 
     /**
      * Empty Constructor
@@ -190,6 +200,23 @@ public class IngestContract extends VitamDocument<IngestContract> {
         return this;
     }
 
+    /**
+     *
+     * @return collection of archive profiles
+     */
+    public Set<String> getArchiveProfiles() {
+        return (Set<String>) get(ARCHIVEPROFILES);
+    }
+
+    /**
+     * Set the collection of archive profiles
+     * @param archiveProfiles
+     * @return
+     */
+    public IngestContract setArchiveProfiles(Set<String> archiveProfiles) {
+        append(ARCHIVEPROFILES, archiveProfiles);
+        return this;
+    }
     /**
      * @return creation date of contract
      */

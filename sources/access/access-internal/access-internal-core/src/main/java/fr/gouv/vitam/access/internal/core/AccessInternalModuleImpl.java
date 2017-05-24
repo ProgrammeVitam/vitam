@@ -282,7 +282,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     }
 
     @Override
-    public AccessBinaryData getOneObjectFromObjectGroup(AsyncResponse asyncResponse, String idObjectGroup,
+    public void getOneObjectFromObjectGroup(AsyncResponse asyncResponse, String idObjectGroup,
         JsonNode queryJson, String qualifier, int version)
         throws MetaDataNotFoundException, StorageNotFoundException, AccessInternalExecutionException,
         InvalidParseOperationException {
@@ -353,7 +353,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     .header("Content-Disposition", "attachment; filename=\"" + filename + "\"")
                     .type(mimetype);
             helper.writeResponse(responseBuilder);
-            return new AccessBinaryData(filename, mimetype, response);
         } catch (final StorageServerClientException e) {
             throw new AccessInternalExecutionException(e);
         } finally {
@@ -418,6 +417,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             logbookOpStpParamStart = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
                 StatusCode.STARTED, VitamLogbookMessages.getCodeOp(STP_UPDATE_UNIT, StatusCode.STARTED), idGUID,
                 STP_UPDATE_UNIT);
+            logbookOpStpParamStart.putParameterValue(LogbookParameterName.outcomeDetail, STP_UPDATE_UNIT + "." +
+                StatusCode.STARTED);
             logbookOperationClient.create(logbookOpStpParamStart);
 
             // Update logbook operation TASK INDEXATION
@@ -482,6 +483,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             logbookOpStpParamEnd = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
                 StatusCode.OK, VitamLogbookMessages.getCodeOp(STP_UPDATE_UNIT, StatusCode.OK), idGUID,
                 STP_UPDATE_UNIT);
+            logbookOpStpParamEnd.putParameterValue(LogbookParameterName.outcomeDetail, STP_UPDATE_UNIT + "." +
+                StatusCode.OK);
             logbookOperationClient.update(logbookOpStpParamEnd);
 
             /**
@@ -553,7 +556,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * @throws StorageClientException
      * @throws AccessInternalException
      * @throws ContentAddressableStorageServerException
-     * @throws ContentAddressableStorageExceptionException
      */
     private void replaceStoredUnitMetadata(String idUnit, String requestId)
         throws InvalidParseOperationException, ContentAddressableStorageException,
@@ -609,15 +611,12 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     /**
      * The function is used for retrieving ObjectGroup in workspace and storing metaData in storage offer
      *
-     * @param params work parameters
-     * @param itemStatus item status
+     * @param description
      * @throws StorageServerClientException
      * @throws StorageNotFoundClientException
      * @throws StorageAlreadyExistsClientException
      * @throws ProcessingException when error in execution
      */
-
-
     private void storeMetaDataUnit(ObjectDescription description) throws StorageClientException {
         final StorageClient storageClient =
             storageClientMock == null ? StorageClientFactory.getInstance().getClient() : storageClientMock;

@@ -37,7 +37,9 @@ import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
  * AdminManagementConfiguration inherated from DbConfigurationImpl
  */
 public class AdminManagementConfiguration extends DbConfigurationImpl {
-    
+
+    private String workspaceUrl;
+
     private String clusterName;
     private List<ElasticsearchNode> elasticsearchNodes;
     // constructor
@@ -59,7 +61,22 @@ public class AdminManagementConfiguration extends DbConfigurationImpl {
         this.clusterName = clusterName;
         this.elasticsearchNodes = elasticsearchNodes;
     }
-    
+
+
+
+    /**
+     * @return url workspace
+     */
+    public String getWorkspaceUrl() {
+        return workspaceUrl;
+    }
+
+    /**
+     * @param workspaceUrl to set
+     */
+    public void setWorkspaceUrl(String workspaceUrl) {
+        this.workspaceUrl = workspaceUrl;
+    }
 
     /**
      * @return the clusterName

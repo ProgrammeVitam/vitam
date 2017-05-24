@@ -1,13 +1,6 @@
 package fr.gouv.vitam.access.external.client;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.access.external.api.AccessCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
@@ -15,6 +8,7 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
@@ -22,11 +16,16 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 /**
  * Rest client implementation for Access External
@@ -60,9 +59,9 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse selectUnits(JsonNode selectQuery, Integer tenantId)
+    public RequestResponse selectUnits(JsonNode selectQuery, Integer tenantId, String contractName)
         throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException {
+        AccessExternalClientNotFoundException, AccessUnauthorizedException {
         Response response = null;
 
         SanityChecker.checkJsonAll(selectQuery);
@@ -70,15 +69,15 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             throw new IllegalArgumentException(BLANK_DSL);
         }
 
-    	MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-    	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-    	headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, VitamThreadUtils.getVitamSession().getContractId());
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
         try {
             response = performRequest(HttpMethod.GET, "/units", headers,
                 selectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                throw new AccessExternalClientServerException(UNAUTHORIZED);
+                throw new AccessUnauthorizedException(UNAUTHORIZED);
             } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 throw new AccessExternalClientNotFoundException(NOT_FOUND_EXCEPTION);
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
@@ -95,14 +94,14 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse selectUnitbyId(JsonNode selectQuery, String unitId, Integer tenantId)
+    public RequestResponse selectUnitbyId(JsonNode selectQuery, String unitId, Integer tenantId, String contractName)
         throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException {
+        AccessExternalClientNotFoundException, AccessUnauthorizedException {
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, VitamThreadUtils.getVitamSession().getContractId());
+        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
 
         SanityChecker.checkJsonAll(selectQuery);
         if (selectQuery == null || selectQuery.size() == 0) {
@@ -115,7 +114,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 selectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                throw new AccessExternalClientServerException(UNAUTHORIZED);
+                throw new AccessUnauthorizedException(UNAUTHORIZED);
             } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 throw new AccessExternalClientNotFoundException(NOT_FOUND_EXCEPTION);
             } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
@@ -132,31 +131,31 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse updateUnitbyId(JsonNode updateQuery, String unitId, Integer tenantId)
+    public RequestResponse updateUnitbyId(JsonNode updateQuery, String unitId, Integer tenantId, String contractName)
         throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException, NoWritingPermissionException {
+        AccessExternalClientNotFoundException, NoWritingPermissionException, AccessUnauthorizedException {
         Response response = null;
         SanityChecker.checkJsonAll(updateQuery);
         if (updateQuery == null || updateQuery.size() == 0) {
             throw new IllegalArgumentException(BLANK_DSL);
         }
         ParametersChecker.checkParameter(BLANK_UNIT_ID, unitId);
-    	MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-    	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, VitamThreadUtils.getVitamSession().getContractId());
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
 
         try {
             response = performRequest(HttpMethod.PUT, UNITS + unitId, headers,
                 updateQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                throw new AccessExternalClientServerException(UNAUTHORIZED);
+                throw new AccessUnauthorizedException(UNAUTHORIZED);
             } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 throw new AccessExternalClientNotFoundException(NOT_FOUND_EXCEPTION);
             } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
                 throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
-            }else if (response.getStatus() == Status.METHOD_NOT_ALLOWED.getStatusCode()){
-                throw new NoWritingPermissionException(NO_WRITING_PERMISSION); 
+            } else if (response.getStatus() == Status.METHOD_NOT_ALLOWED.getStatusCode()) {
+                throw new NoWritingPermissionException(NO_WRITING_PERMISSION);
             }
 
             return RequestResponse.parseFromResponse(response);
@@ -171,9 +170,10 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse selectObjectById(JsonNode selectObjectQuery, String objectId, Integer tenantId)
+    public RequestResponse selectObjectById(JsonNode selectObjectQuery, String objectId, Integer tenantId,
+        String contractName)
         throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException {
+        AccessExternalClientNotFoundException, AccessUnauthorizedException {
         SanityChecker.checkJsonAll(selectObjectQuery);
         if (selectObjectQuery == null || selectObjectQuery.size() == 0) {
             throw new IllegalArgumentException(BLANK_DSL);
@@ -181,9 +181,9 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, objectId);
 
         Response response = null;
-    	MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-    	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, VitamThreadUtils.getVitamSession().getContractId());
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
         try {
             response = performRequest(HttpMethod.GET, "/objects/" + objectId, headers,
                 selectObjectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
@@ -191,7 +191,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             final Status status = Status.fromStatusCode(response.getStatus());
             if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
                 LOGGER.error("Internal Server Error" + " : " + status.getReasonPhrase());
-                throw new AccessExternalClientServerException(UNAUTHORIZED);
+                throw new AccessUnauthorizedException(UNAUTHORIZED);
             } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 throw new AccessExternalClientNotFoundException(status.getReasonPhrase());
             } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
@@ -204,16 +204,15 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {
-            if (response == null || response.getStatus() != Status.OK.getStatusCode()) {
-                consumeAnyEntityAndClose(response);
-            }
+            consumeAnyEntityAndClose(response);
         }
     }
 
     @Override
-    public Response getObject(JsonNode selectObjectQuery, String objectId, String usage, int version, Integer tenantId)
+    public Response getObject(JsonNode selectObjectQuery, String objectId, String usage, int version, Integer tenantId,
+        String contractName)
         throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException {
+        AccessExternalClientNotFoundException, AccessUnauthorizedException {
         SanityChecker.checkJsonAll(selectObjectQuery);
         if (selectObjectQuery == null || selectObjectQuery.size() == 0) {
             throw new IllegalArgumentException(BLANK_DSL);
@@ -227,8 +226,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
         headers.add(GlobalDataRest.X_QUALIFIER, usage);
         headers.add(GlobalDataRest.X_VERSION, version);
-    	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, VitamThreadUtils.getVitamSession().getContractId());
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
 
 
         try {
@@ -244,6 +243,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
                 throw new AccessExternalClientServerException(response.getStatusInfo().getReasonPhrase());
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new AccessUnauthorizedException(response.getStatusInfo().getReasonPhrase());
             }
 
             return response;
@@ -257,62 +258,16 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         }
     }
 
-    @Override
-    public Response getUnitObject(JsonNode selectObjectQuery, String unitId, String usage, int version,
-        Integer tenantId)
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException {
-        SanityChecker.checkJsonAll(selectObjectQuery);
-        if (selectObjectQuery == null || selectObjectQuery.size() == 0) {
-            throw new IllegalArgumentException(BLANK_DSL);
-        }
-        ParametersChecker.checkParameter(BLANK_OBJECT_GROUP_ID, unitId);
-        ParametersChecker.checkParameter(BLANK_USAGE, usage);
-        ParametersChecker.checkParameter(BLANK_VERSION, version);
-
-        Response response = null;
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
-        headers.add(GlobalDataRest.X_QUALIFIER, usage);
-        headers.add(GlobalDataRest.X_VERSION, version);
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, VitamThreadUtils.getVitamSession().getContractId());
-
-        try {
-            response = performRequest(HttpMethod.POST, UNITS + unitId + "/object", headers,
-                selectObjectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-            if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-                LOGGER.error("Internal Server Error" + " : " + status.getReasonPhrase());
-                throw new AccessExternalClientServerException("Internal Server Error");
-            } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                throw new AccessExternalClientNotFoundException(status.getReasonPhrase());
-            } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
-                throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
-            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                throw new AccessExternalClientServerException(response.getStatusInfo().getReasonPhrase());
-            }
-
-            return response;
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
-                consumeAnyEntityAndClose(response);
-            }
-        }
-    }
     /* Logbook external */
 
     @Override
-    public RequestResponse selectOperation(JsonNode select, Integer tenantId)
-        throws LogbookClientException, InvalidParseOperationException {
+    public RequestResponse selectOperation(JsonNode select, Integer tenantId, String contractName)
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         Response response = null;
         try {
-        	MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-            headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, VitamThreadUtils.getVitamSession().getContractId());
+            MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+            headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+            headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
             response = performRequest(HttpMethod.GET, LOGBOOK_OPERATIONS_URL, headers,
                 select, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
@@ -322,6 +277,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
                 LOGGER.error("Illegal Entry Parameter");
                 throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new AccessUnauthorizedException(response.getStatusInfo().getReasonPhrase());
             }
 
             return RequestResponse.parseFromResponse(response);
@@ -334,12 +291,12 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse selectOperationbyId(String processId, Integer tenantId)
-        throws LogbookClientException, InvalidParseOperationException {
+    public RequestResponse selectOperationbyId(String processId, Integer tenantId, String contractName)
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         Response response = null;
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-    	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, VitamThreadUtils.getVitamSession().getContractId());
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
         try {
             response = performRequest(HttpMethod.GET, LOGBOOK_OPERATIONS_URL + "/" + processId, headers,
                 emptySelectQuery, MediaType.APPLICATION_JSON_TYPE,
@@ -351,6 +308,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
                 LOGGER.error("Illegal Entry Parameter");
                 throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new AccessUnauthorizedException(response.getStatusInfo().getReasonPhrase());
             }
 
             return RequestResponse.parseFromResponse(response);
@@ -363,12 +322,12 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse selectUnitLifeCycleById(String idUnit, Integer tenantId)
-        throws LogbookClientException, InvalidParseOperationException {
+    public RequestResponse selectUnitLifeCycleById(String idUnit, Integer tenantId, String contractName)
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         Response response = null;
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-    	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, VitamThreadUtils.getVitamSession().getContractId());
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
         try {
             response =
                 performRequest(HttpMethod.GET, LOGBOOK_UNIT_LIFECYCLE_URL + "/" + idUnit, headers,
@@ -381,6 +340,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
                 LOGGER.error("Illegal Entry Parameter");
                 throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new AccessUnauthorizedException(response.getStatusInfo().getReasonPhrase());
             }
 
             return RequestResponse.parseFromResponse(response);
@@ -393,13 +354,13 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse selectUnitLifeCycle(JsonNode queryDsl, Integer tenantId)
-        throws LogbookClientException, InvalidParseOperationException {
+    public RequestResponse selectUnitLifeCycle(JsonNode queryDsl, Integer tenantId, String contractName)
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         Response response = null;
         SanityChecker.checkJsonAll(queryDsl);
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, VitamThreadUtils.getVitamSession().getContractId());
+        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
 
         try {
             response = performRequest(HttpMethod.GET, LOGBOOK_UNIT_LIFECYCLE_URL, headers, queryDsl,
@@ -411,6 +372,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
                 LOGGER.error("Illegal Entry Parameter");
                 throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new AccessUnauthorizedException(response.getStatusInfo().getReasonPhrase());
             }
 
             return RequestResponse.parseFromResponse(response);
@@ -423,15 +386,15 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse selectObjectGroupLifeCycleById(String idObject, Integer tenantId)
-        throws LogbookClientException, InvalidParseOperationException {
+    public RequestResponse selectObjectGroupLifeCycleById(String idObject, Integer tenantId, String contractName)
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         Response response = null;
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-    	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, VitamThreadUtils.getVitamSession().getContractId());
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
         try {
             response = performRequest(HttpMethod.GET, LOGBOOK_OBJECT_LIFECYCLE_URL + "/" + idObject,
-            	headers,
+                headers,
                 emptySelectQuery, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE, false);
 
@@ -441,6 +404,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
                 LOGGER.error("Illegal Entry Parameter");
                 throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new AccessUnauthorizedException(response.getStatusInfo().getReasonPhrase());
             }
 
             return RequestResponse.parseFromResponse(response);
@@ -454,21 +419,21 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse getAccessionRegisterSummary(JsonNode query, Integer tenantId)
+    public RequestResponse getAccessionRegisterSummary(JsonNode query, Integer tenantId, String contractName)
         throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException {
+        AccessExternalClientNotFoundException, AccessUnauthorizedException {
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
-    	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, VitamThreadUtils.getVitamSession().getContractId());
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
 
         try {
             response = performRequest(HttpMethod.POST, AccessCollections.ACCESSION_REGISTER.getName(), headers,
                 query, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                throw new AccessExternalClientServerException(UNAUTHORIZED);
+                throw new AccessUnauthorizedException(response.getStatusInfo().getReasonPhrase());
             } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 throw new AccessExternalClientNotFoundException(NOT_FOUND_EXCEPTION);
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
@@ -485,14 +450,14 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse getAccessionRegisterDetail(String id, JsonNode query, Integer tenantId)
+    public RequestResponse getAccessionRegisterDetail(String id, JsonNode query, Integer tenantId, String contractName)
         throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException {
+        AccessExternalClientNotFoundException, AccessUnauthorizedException {
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
-    	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, VitamThreadUtils.getVitamSession().getContractId());
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
 
         try {
             response = performRequest(HttpMethod.POST,
@@ -502,7 +467,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 query, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                throw new AccessExternalClientServerException(UNAUTHORIZED);
+                throw new AccessUnauthorizedException(response.getStatusInfo().getReasonPhrase());
             } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 throw new AccessExternalClientNotFoundException(NOT_FOUND_EXCEPTION);
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
@@ -518,13 +483,13 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse checkTraceabilityOperation(JsonNode query, Integer tenantId)
-        throws AccessExternalClientServerException {
+    public RequestResponse checkTraceabilityOperation(JsonNode query, Integer tenantId, String contractName)
+        throws AccessExternalClientServerException, AccessUnauthorizedException {
         Response response = null;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-            headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, VitamThreadUtils.getVitamSession().getContractId());
+            headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
 
             response = performRequest(HttpMethod.POST, LOGBOOK_CHECK, headers, query, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
@@ -532,6 +497,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             switch (status) {
                 case OK:
                     return RequestResponse.parseFromResponse(response);
+                case UNAUTHORIZED:
+                    throw new AccessUnauthorizedException(status.getReasonPhrase());
                 default:
                     LOGGER.error("checks operation tracebility is " + status.name() + ":" + status.getReasonPhrase());
                     throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
@@ -546,13 +513,13 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public Response downloadTraceabilityOperationFile(String operationId, Integer tenantId)
-        throws AccessExternalClientServerException {
+    public Response downloadTraceabilityOperationFile(String operationId, Integer tenantId, String contractName)
+        throws AccessExternalClientServerException, AccessUnauthorizedException {
         Response response = null;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-            headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, VitamThreadUtils.getVitamSession().getContractId());
+            headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
 
             response = performRequest(HttpMethod.GET, "traceability/" + operationId + "/content", headers, null,
                 null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
@@ -561,6 +528,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             switch (status) {
                 case OK:
                     return response;
+                case UNAUTHORIZED:
+                    throw new AccessUnauthorizedException(status.getReasonPhrase());
                 default:
                     LOGGER.error("checks operation tracebility is " + status.name() + ":" + status.getReasonPhrase());
                     throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());

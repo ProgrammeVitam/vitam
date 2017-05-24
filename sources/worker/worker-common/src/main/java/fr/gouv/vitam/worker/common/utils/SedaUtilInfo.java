@@ -30,26 +30,26 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * the class SedaUtilInfo is used for storing the BinaryObjectId and BinaryObjectInfo in a map
+ * the class SedaUtilInfo is used for storing the DataObjectId and BinaryObjectInfo in a map
  */
 public final class SedaUtilInfo {
 
-    Map<String, BinaryObjectInfo> binaryObjectMap = new HashMap<>();
+    Map<String, DataObjectInfo> dataObjectMap = new HashMap<>();
 
     /**
-     * @return binaryObjectMap
+     * @return dataObjectMap
      */
-    public Map<String, BinaryObjectInfo> getBinaryObjectMap() {
-        return binaryObjectMap;
+    public Map<String, DataObjectInfo> getDataObjectMap() {
+        return dataObjectMap;
     }
 
     /**
-     * Add binaryObjectInfo to the Map
+     * Add dataObjectInfo to the Map
      *
-     * @param binaryObjectInfo info of a binary object
+     * @param dataObjectInfo info of a data object
      */
-    public void setBinaryObjectMap(BinaryObjectInfo binaryObjectInfo) {
-        binaryObjectMap.put(binaryObjectInfo.getId(), binaryObjectInfo);
+    public void setDataObjectMap(DataObjectInfo binaryObjectInfo) {
+        dataObjectMap.put(binaryObjectInfo.getId(), binaryObjectInfo);
     }
 
 

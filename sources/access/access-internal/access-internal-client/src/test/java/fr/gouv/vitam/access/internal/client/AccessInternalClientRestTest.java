@@ -62,7 +62,6 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServer
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -245,8 +244,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     @RunWithCustomExecutor
     @Test(expected = AccessInternalClientNotFoundException.class)
     public void givenRessourceNotFound_whenSelectUnit_ThenRaiseAnException()
-        throws AccessInternalClientNotFoundException, AccessInternalClientServerException,
-        InvalidParseOperationException {
+        throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
         final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
@@ -256,8 +254,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     @RunWithCustomExecutor
     @Test(expected = InvalidParseOperationException.class)
     public void givenBadRequest_whenSelectUnit_ThenRaiseAnException()
-        throws InvalidParseOperationException, AccessInternalClientServerException,
-        AccessInternalClientNotFoundException {
+        throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
@@ -267,8 +264,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     @RunWithCustomExecutor
     @Test(expected = InvalidParseOperationException.class)
     public void givenBlankRequest_whenSelectUnit_ThenRaiseAnException()
-        throws IllegalArgumentException, AccessInternalClientServerException, AccessInternalClientNotFoundException,
-        InvalidParseOperationException {
+        throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         final JsonNode queryJson = JsonHandler.getFromString("");
         assertThat(client.selectUnits(queryJson)).isNotNull();
@@ -289,8 +285,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     @RunWithCustomExecutor
     @Test(expected = AccessInternalClientNotFoundException.class)
     public void givenResourceNotFound_whenSelectUnitById_ThenRaiseAnException()
-        throws AccessInternalClientNotFoundException, AccessInternalClientServerException,
-        InvalidParseOperationException {
+        throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
@@ -300,8 +295,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     @RunWithCustomExecutor
     @Test(expected = InvalidParseOperationException.class)
     public void givenBadRequest_whenSelectUnitById_ThenRaiseAnException()
-        throws InvalidParseOperationException, AccessInternalClientServerException,
-        AccessInternalClientNotFoundException {
+        throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
@@ -311,8 +305,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     @RunWithCustomExecutor
     @Test(expected = InvalidParseOperationException.class)
     public void givenBlankRequest_whenSelectUnitById_ThenRaiseAnException()
-        throws IllegalArgumentException, AccessInternalClientServerException, AccessInternalClientNotFoundException,
-        InvalidParseOperationException {
+        throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         final JsonNode queryJson = JsonHandler.getFromString("");
         assertThat(client.selectUnitbyId(queryJson, "")).isNotNull();
@@ -321,8 +314,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     @RunWithCustomExecutor
     @Test(expected = IllegalArgumentException.class)
     public void givenBlankID_whenSelectUnitById_ThenRaiseAnException()
-        throws IllegalArgumentException, AccessInternalClientServerException, AccessInternalClientNotFoundException,
-        InvalidParseOperationException {
+        throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         assertThat(client.selectUnitbyId(queryJson, "")).isNotNull();
@@ -331,8 +323,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     @RunWithCustomExecutor
     @Test(expected = InvalidParseOperationException.class)
     public void givenBlankRequest_IDFilledwhenSelectUnitById_ThenRaiseAnException()
-        throws IllegalArgumentException, AccessInternalClientServerException, AccessInternalClientNotFoundException,
-        InvalidParseOperationException {
+        throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         final JsonNode queryJson = JsonHandler.getFromString("");
         assertThat(client.selectUnitbyId(queryJson, ID)).isNotNull();
@@ -341,8 +332,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     @RunWithCustomExecutor
     @Test(expected = InvalidParseOperationException.class)
     public void givenBadRequest_whenUpdateUnitById_ThenRaiseAnException()
-        throws InvalidParseOperationException, AccessInternalClientServerException,
-        AccessInternalClientNotFoundException, NoWritingPermissionException {
+        throws Exception {
         when(mock.put()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
@@ -353,8 +343,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     @RunWithCustomExecutor
     @Test(expected = InvalidParseOperationException.class)
     public void givenBlankRequest_whenUpdateUnitById_ThenRaiseAnException()
-        throws IllegalArgumentException, AccessInternalClientServerException, AccessInternalClientNotFoundException,
-        InvalidParseOperationException, NoWritingPermissionException {
+        throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         final JsonNode queryJson = JsonHandler.getFromString("");
         assertThat(client.updateUnitbyId(queryJson, "")).isNotNull();
@@ -364,8 +353,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     @RunWithCustomExecutor
     @Test(expected = IllegalArgumentException.class)
     public void givenIdBlank_whenUpdateUnitById_ThenRaiseAnException()
-        throws IllegalArgumentException, AccessInternalClientServerException, AccessInternalClientNotFoundException,
-        InvalidParseOperationException, NoWritingPermissionException {
+        throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         assertThat(client.updateUnitbyId(queryJson, "")).isNotNull();
@@ -375,8 +363,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     @RunWithCustomExecutor
     @Test(expected = InvalidParseOperationException.class)
     public void givenBlankRequest_IDFilledWhenUpdateUnitById_ThenRaiseAnException()
-        throws IllegalArgumentException, AccessInternalClientServerException, AccessInternalClientNotFoundException,
-        InvalidParseOperationException, NoWritingPermissionException {
+        throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         final JsonNode queryJson = JsonHandler.getFromString("");
         assertThat(client.updateUnitbyId(queryJson, ID)).isNotNull();
@@ -385,8 +372,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     @RunWithCustomExecutor
     @Test(expected = InvalidParseOperationException.class)
     public void givenBadRequest_whenUpdateUnit_ThenRaiseAnException()
-        throws InvalidParseOperationException, AccessInternalClientServerException,
-        AccessInternalClientNotFoundException, NoWritingPermissionException {
+        throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.put()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
@@ -396,8 +382,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     @RunWithCustomExecutor
     @Test(expected = AccessInternalClientServerException.class)
     public void given500_whenUpdateUnit_ThenRaiseAnException()
-        throws InvalidParseOperationException, AccessInternalClientServerException,
-        AccessInternalClientNotFoundException, NoWritingPermissionException {
+        throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.put()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
@@ -520,10 +505,10 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     @RunWithCustomExecutor
     @Test
     public void givenCorrectDslQueryWhenCheckTraceabilityOperationThenOK() throws Exception {
-        
+
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.post()).thenReturn(Response.ok().entity(ClientMockResultHelper.checkOperationTraceability()).build());
-        
+
         final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         @SuppressWarnings("rawtypes")
         final RequestResponse requestResponse = client.checkTraceabilityOperation(queryJson);

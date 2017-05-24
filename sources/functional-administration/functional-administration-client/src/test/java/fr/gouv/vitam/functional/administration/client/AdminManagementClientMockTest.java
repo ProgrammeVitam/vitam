@@ -37,8 +37,10 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.functional.administration.common.exception.*;
 import org.assertj.core.api.Assertions;
 import org.junit.Assert;
@@ -252,6 +254,50 @@ public class AdminManagementClientMockTest {
         assertThat(RequestResponseOK.class).isAssignableFrom(resp.getClass());
         assertThat(((RequestResponseOK)resp).isOk());
         assertThat(((RequestResponseOK)resp).getResults()).hasSize(1);
+    }
+
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenClientMockWhenCreateProfiles() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        RequestResponse resp = client.createProfiles(new ArrayList<>());
+        assertEquals(resp.getHttpCode(), Status.CREATED.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenClientMockWhenImportProfileFile() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        RequestResponse resp = client.importProfileFile("fakeId", new FakeInputStream(0));
+        assertEquals(resp.getHttpCode(), Status.CREATED.getStatusCode());
+    }
+
+
+    @Test(expected = ReferentialNotFoundException.class)
+    @RunWithCustomExecutor
+    public void givenClientMockWhenfindProfilesByFakeID() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        client.findProfilesByID("FakeId");
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenClientMockWhenfindProfiles() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        RequestResponse resp = client.findProfiles(JsonHandler.createObjectNode());
+        assertThat(RequestResponseOK.class).isAssignableFrom(resp.getClass());
+        assertThat(((RequestResponseOK)resp).isOk());
+        assertThat(((RequestResponseOK)resp).getResults()).hasSize(1);
+    }
+
+
+    @Test
+    public void givenMockExistsWhenDownloadProfileFileThenReturnOK() throws Exception {
+        final Response response = client.downloadProfileFile("FameProfileId");
+        assertNotNull(response);
     }
 
 }

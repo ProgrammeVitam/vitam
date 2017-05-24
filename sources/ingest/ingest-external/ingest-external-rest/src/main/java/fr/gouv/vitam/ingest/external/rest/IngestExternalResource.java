@@ -25,6 +25,9 @@
  * accept its terms.
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.rest;
+
+import java.io.InputStream;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -75,9 +78,6 @@ import fr.gouv.vitam.ingest.external.core.IngestExternalImpl;
 import fr.gouv.vitam.ingest.external.core.PreUploadResume;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
-import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalException;
-
-import java.io.InputStream;
 
 /**
  * The Ingest External Resource
@@ -86,8 +86,6 @@ import java.io.InputStream;
 @javax.ws.rs.ApplicationPath("webresources")
 public class IngestExternalResource extends ApplicationStatusResource {
 
-    // FIXME P0 : Add a filter to protect the tenantId (check if it exists + return Unauthorized response or so). @see :
-    // AuthorizationFilter
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalResource.class);
     private final IngestExternalConfiguration ingestExternalConfiguration;
 
@@ -107,10 +105,10 @@ public class IngestExternalResource extends ApplicationStatusResource {
      *
      * @param contextId the context id of upload
      * @param action in workflow
-     * @param uploadedInputStream data input stream 
+     * @param uploadedInputStream data input stream
      * @param asyncResponse the asynchronized response
      * 
-
+     * 
      */
     @Path("ingests")
     @POST
@@ -133,8 +131,8 @@ public class IngestExternalResource extends ApplicationStatusResource {
             // TODO ? ParametersChecker.checkParameter("HTTP Request must contains stream", uploadedInputStream);
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             final IngestExternalImpl ingestExtern = new IngestExternalImpl(ingestExternalConfiguration);
-            PreUploadResume
-                preUploadResume = ingestExtern.preUploadAndResume(uploadedInputStream, contextId, action, guid, asyncResponse);
+            PreUploadResume preUploadResume =
+                ingestExtern.preUploadAndResume(uploadedInputStream, contextId, action, guid, asyncResponse);
             Response response = ingestExtern.upload(preUploadResume, guid);
             response.close();
         } catch (final Exception exc) {
@@ -157,7 +155,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
      * @param objectId the id of object to download
      * @param type of collection
      * @param asyncResponse the asynchronized response
-
+     * 
      */
     @GET
     @Path("/ingests/{objectId}/{type}")
@@ -191,8 +189,8 @@ public class IngestExternalResource extends ApplicationStatusResource {
      *
      * Execute the process of an operation related to the id.
      *
-     * @param headers             contain X-Action and X-Context-ID
-     * @param id                  operation identifier
+     * @param headers contain X-Action and X-Context-ID
+     * @param id operation identifier
      * @param uploadedInputStream input stream to upload
      * @return http response
      * @throws InternalServerException if request resources server exception
@@ -259,8 +257,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
     }
 
     /**
-     * TODO FIXE ME
-     * get the operation status
+     * TODO FIXE ME get the operation status
      *
      * @param id operation identifier
      * @return http response
@@ -270,20 +267,17 @@ public class IngestExternalResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getWorkFlowExecutionStatus(@PathParam("id") String id) {
-        Status status =Status.ACCEPTED;
+        Status status = Status.ACCEPTED;
         ItemStatus pwork = null;
         try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
             JsonNode body = JsonHandler.createObjectNode();
             pwork = ingestInternalClient.getOperationProcessExecutionDetails(id, body);
-            if (pwork == null ) {
-                return Response.status(Status.ACCEPTED).entity(pwork).header(GlobalDataRest.X_REQUEST_ID,id).build();
+            if (pwork == null) {
+                return Response.status(Status.ACCEPTED).entity(pwork).header(GlobalDataRest.X_REQUEST_ID, id).build();
             }
-            if  (
-                pwork.getGlobalExecutionStatus().equals(ProcessExecutionStatus.COMPLETED)||
-                    pwork.getGlobalExecutionStatus().equals(ProcessExecutionStatus.CANCELLED) ||
-                    pwork.getGlobalExecutionStatus().equals(ProcessExecutionStatus.FAILED)
-                )
-            {
+            if (pwork.getGlobalExecutionStatus().equals(ProcessExecutionStatus.COMPLETED) ||
+                pwork.getGlobalExecutionStatus().equals(ProcessExecutionStatus.CANCELLED) ||
+                pwork.getGlobalExecutionStatus().equals(ProcessExecutionStatus.FAILED)) {
                 status = Status.OK;
             }
 
@@ -324,10 +318,11 @@ public class IngestExternalResource extends ApplicationStatusResource {
         }
         return Response.status(status).build();
     }
+
     /**
      * get the workflow status
      *
-     * @param id    operation identifier
+     * @param id operation identifier
      * @return http response
      */
     @Path("operations/{id}")
@@ -381,8 +376,8 @@ public class IngestExternalResource extends ApplicationStatusResource {
     /**
      * Update the status of an operation.
      *
-     * @param headers       contain X-Action and X-Context-ID
-     * @param id            operation identifier
+     * @param headers contain X-Action and X-Context-ID
+     * @param id operation identifier
      * @param asyncResponse asyncResponse
      * @return http response
      */

@@ -60,7 +60,8 @@ public class PerformanceServiceTest {
     public void should_list_file_in_sip_directory() throws IOException {
         // Given
         Path sipDirectory = generateThreeZipFileSipWithSubDirectory();
-        PerformanceService performanceService = new PerformanceService(ingestClientFactory, sipDirectory, null);
+        Path reportDirectory = temporaryFolder.newFolder().toPath();
+        PerformanceService performanceService = new PerformanceService(ingestClientFactory, sipDirectory, reportDirectory);
 
         // When
         List<Path> files = performanceService.listSipDirectory();

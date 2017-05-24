@@ -23,7 +23,7 @@ Les méthodes utilisées :
 Les codes retours HTTP standards utilisés sont :
 - 200: Sur des opérations de GET, PUT, DELETE, HEAD, OPTIONS
 - 201: Sur l'opération POST (sans X-Http-Method-Override)
-- 202: Pour les réponses asynchrones (**UNSUPPORTED**)
+- 202: Pour les réponses asynchrones
 - 204: Pour des réponses sans contenu (type HEAD sans options)
 - 206: Pour des réponses partielles ou des réponses en mode Warning (OK mais avec une alerte)
 
@@ -35,24 +35,25 @@ Les codes d'erreurs HTTP standards utilisés sont :
 - 412: Des préconditions ne sont pas respectées
 - 413: La requête dépasse les capacités du service
 - 415: Le Media Type demandé n'est pas supporté
+- 500: si une erreur interne est survenue dans le back-office (peut être un bug ou un effet de bord d'une mauvaise commande)
 - 501: Le service n'est pas implémenté
 
-## Modèle asynchrone **UNSUPPORTED**
+## Modèle asynchrone
 
 Dans le cas d'une opération asynchrone, deux options sont possibles :
 
-### Mode Pooling **UNSUPPORTED**
+### Mode Pooling
 
 Dans le mode pooling, le client est responsable de requêter de manière répétée l'URI de vérification du statut, et ce de manière raisonnée (pas trop souvent).
 
 Le principe est le suivant :
 - Création de l'opération à effectuer
-  - Exemple: POST /ingests et retourne 202 + #id
+  - Exemple: POST /ingests et retourne 202 + X-Request-Id noté id
 - Pooling sur l'opération demandée
-  - Exemple: GET /ingests/#id et retourne 202 + #id tant que non terminé
+  - Exemple: GET /operations/id et retourne 202 + X-Request-Id tant que non terminé
   - Intervalle recommandé : pas moins que la minute
 - Fin de pooling sur l'opération demandée
-  - Exemple : GET /ingests/#id et retourne 200 + le résultat
+  - Exemple : GET /operations/id et retourne 200 + le résultat
 
 ### Mode Callback **UNSUPPORTED**
 
@@ -85,10 +86,10 @@ L'authentification dans Vitam authentifie l'application Front-Office qui se conn
 Vitam étant un service REST, il est "State Less". Il ne dispose donc pas de notion de session en propre.
 Cependant chaque requête retourne un identifiant de requête "**X-Request-Id**" qui est traçé dans les logs et journaux du SAE et permet donc de faire une corrélation avec les événements de l'application Front-Office cliente si celle-ci enregistre elle-aussi cet identifiant.
 
-Considérant que cela peut rendre difficile le suivi d'une session utilisateur connecté sur un Front-Office, il est proposé que l'application Front-Office puisse passer en paramètre dans le Header l'argument "**X-Application-Id**" correspondant à un identifiant de session de l'utilisateur connecté. Cet identifiant DOIT être non signifiant car il sera lui aussi dans les logs et les journaux de Vitam. Il est inclus dans chaque réponse de Vitam si celui-ci est exprimé dans la requête correspondante.
+**UNSUPPORTED** Considérant que cela peut rendre difficile le suivi d'une session utilisateur connecté sur un Front-Office, il est proposé que l'application Front-Office puisse passer en paramètre dans le Header l'argument "**X-Application-Id**" correspondant à un identifiant de session de l'utilisateur connecté. Cet identifiant DOIT être non signifiant car il sera lui aussi dans les logs et les journaux de Vitam. Il est inclus dans chaque réponse de Vitam si celui-ci est exprimé dans la requête correspondante.
 Grâce à cet identifiant externe de session, il est alors plus facile de retracer l'activité d'un utilisateur grâce d'une part au regroupement de l'ensemble des actions dans Vitam au travers de cet identifiant, et d'autre part grâce aux logs de l'application Front-Office utilisant ce même identifiant de session.
 
-Afin de gérer plusieurs tenants, il est proposé que l'application Front-Office puisse passer en paramètre 
+Afin de gérer plusieurs tenants, il est imposé (pour le moment) que l'application Front-Office puisse passer en paramètre 
 dans le Header l'argument **X-Tenant-Id** correspondant au tenant sur lequel se baser pour exécuter la requête.  
 
 ## Pagination

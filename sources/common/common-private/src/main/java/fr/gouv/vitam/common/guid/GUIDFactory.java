@@ -251,7 +251,20 @@ public final class GUIDFactory {
         return new GUIDImplPrivate(type, tenantId, serverIdentity.getGlobalPlatformId(),
             GUIDObjectType.getDefaultWorm(type));
     }
-    
+
+    /**
+     * Create a Profile GUID
+     *
+     * @param tenantId tenant id between 0 and 2^30-1
+     * @return a new GUID
+     * @throws IllegalArgumentException if any of the argument are out of range
+     */
+    public static final GUID newProfileGUID(final int tenantId) {
+        final int type = GUIDObjectType.PROFILE_TYPE;
+        return new GUIDImplPrivate(type, tenantId, serverIdentity.getGlobalPlatformId(),
+            GUIDObjectType.getDefaultWorm(type));
+    }
+
     
 
     /**

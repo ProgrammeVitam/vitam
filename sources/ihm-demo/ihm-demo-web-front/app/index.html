@@ -56,6 +56,7 @@
   <script src="js/controller/import-pronoun-controller.js"></script>
   <script src="js/controller/import-contracts-controller.js"></script>
   <script src="js/controller/import-access-contracts-controller.js"></script>
+  <script src="js/controller/import-profiles-controller.js"></script>
   <script src="modules/file-rules/filerules-component.js"></script>
   <script src="modules/file-rules/filerules-controller.js"></script>
   <script src="js/controller/import-rulesfile-controller.js"></script>
@@ -105,6 +106,12 @@
   <script src="pages/entry-contract-search/entry-contract.component.js"></script>
   <script src="pages/entry-contract-details/entry-contract-details.controller.js"></script>
 
+  <script src="resources/profile-details.resource.js"></script>
+  <script src="pages/profiles-search/profiles-search.module.js"></script>
+  <script src="pages/profiles-search/profiles-search.controller.js"></script>
+  <script src="pages/profiles-search/profiles-search.component.js"></script>
+  <script src="pages/profiles-details/profiles-details.controller.js"></script>
+
   <script src="resources/messages.resource.js"></script>
 
   <script src="pages/accession-register-details/accession-register-details.module.js"></script>
@@ -116,6 +123,8 @@
 
   <script src="core/services/process-response.service.js"></script>
   <script src="core/services/process-search.service.js"></script>
+  <script src="core/services/unece-mapping.service.js"></script>
+
   <script src="core/filters/pagination-start.filter.js"></script>
   <script src="core/factory/http-interceptor.filter.js"></script>
   <script src="services/logbook-entry-full.service.js"></script>
@@ -136,6 +145,9 @@
   <script src="pages/workflows/workflows.module.js"></script>
   <script src="pages/workflows/workflows.controller.js"></script>
   <script src="pages/workflows/workflows.component.js"></script>
+
+  <script src="resources/profile-download.resource.js"></script>
+  <script src="services/profile-download.service.js"></script>
 
   <script src="resources/traceability-operation-search.resource.js"></script>
   <script src="services/traceability-operation-search.service.js"></script>
@@ -238,8 +250,9 @@
             <ul class="dropdown-menu" role="menu" aria-labelledby="AdminFonctionnelle">
               <li><a href="#!/admin/rules" ng-show="hasPermission('admin:rules:read')">Référentiel des règles de gestion</a></li>
               <li><a href="#!/admin/formats" ng-show="hasPermission('admin:formats:read')">Référentiel des formats</a></li>
+              <li><a href="#!/admin/profiles" ng-show="hasPermission('profiles:read')">Référentiel des profils</a></li>
               <li><a href="#!/admin/journalOperations" ng-show="hasPermission('logbook:operations:read')">Journal des Opérations</a></li>
-              <li><a href="#!/admin/workflows" ng-show="hasPermission('operations:read')">Gestion des versements</a></li>
+              <li><a href="#!/admin/workflows" ng-show="hasPermission('operations:read')">Gestion des opérations</a></li>
               <li><a href="#!/admin/entryContracts" ng-show="hasPermission('operations:read')">Contrats d'entrée</a></li>
               <li><a href="#!/admin/accessContracts" ng-show="hasPermission('operations:read')">Contrats d'accès</a></li>
 
@@ -250,6 +263,7 @@
               <li><a href="#!/admin/importPronoun" ng-show="hasPermission('format:create')">Import du Référentiel des formats</a></li>
               <li><a href="#!/admin/importContracts" ng-show="hasPermission('contracts:create')">Import des contrats d'entrée</a></li>
               <li><a href="#!/admin/importAccessContracts" ng-show="hasPermission('contracts:create')">Import des contrats d'accès</a></li>
+              <li><a href="#!/admin/importProfiles" ng-show="hasPermission('profiles:create')">Import des profils</a></li>
             </ul>
           </li>
           <li class="@@mainMenu2">
@@ -260,10 +274,11 @@
           </li>
         </ul>
         <ul class="nav navbar-nav navbar-right">
-          <li class="dropdown" style="right:100px">
-            <label for="accessContractId" style="display:inline">Contrat d'access</label>
-            <select ng-model="accessContratId" id = "accessContractId"  ng-change="changeContract(accessContratId)">
+          <li class="dropdown" style="padding-top: 25px; right:50px">
+            <span for="accessContractId" style="display:inline">Contrat d'accès :</span>
+            <select style="margin-left: 5px; max-width: 300px" ng-model="accessContratId" id = "accessContractId"  ng-change="changeContract(accessContratId)">
               <option ng-repeat='contract in contracts' value="{{contract.Name}}">{{contract.Name}}</option>
+              <option value=" "> </option>
             </select>
           </li>
           <li class="dropdown" style ="padding-top: 25px" ng-show="user">

@@ -1,0 +1,80 @@
+{
+  "httpCode" : 200,
+  "$hits" : {
+    "total" : 1,
+    "offset" : 0,
+    "limit" : 1,
+    "size" : 1
+  },
+  "$results" : [ {
+    "#id" : "aebaaaaaaagbcaacaassyak37r2qrbiaaaaq",
+    "#qualifiers" : {
+      "PhysicalMaster" : {
+        "_nbc" : 1,
+        "versions" : [ {
+          "_id" : "aeaaaaaaaagbcaacaassyak37r2qsaiaaaaq",
+          "DataObjectGroupId" : "aebaaaaaaagbcaacaassyak37r2qrbiaaaaq",
+          "DataObjectVersion" : "PhysicalMaster_1",
+          "PhysicalId" : 123456789,
+          "PhysicalDimensions" : {
+            "Height" : {
+              "unit" : "centimetre",
+              "value" : 21
+            },
+            "Length" : {
+              "unit" : "centimetre",
+              "value" : 29.7
+            },
+            "Weight" : {
+              "unit" : "kilogram",
+              "value" : 1
+            }
+          }
+        } ]
+      },
+      "BinaryMaster" : {
+        "_nbc" : 1,
+        "versions" : [ {
+          "_id" : "aeaaaaaaaagbcaacaassyak37r2qraqaaaaq",
+          "DataObjectGroupId" : "aebaaaaaaagbcaacaassyak37r2qrbiaaaaq",
+          "DataObjectVersion" : "BinaryMaster_1",
+          "FormatIdentification" : {
+            "FormatLitteral" : "Acrobat PDF 1.4 - Portable Document Format",
+            "MimeType" : "application/pdf",
+            "FormatId" : "fmt/18"
+          },
+          "FileInfo" : {
+            "Filename" : "Filename0",
+            "CreatingApplicationName" : "CreatingApplicationName0",
+            "CreatingApplicationVersion" : "CreatingApplicationVersion0",
+            "DateCreatedByApplication" : "2006-05-04T18:13:51.0",
+            "CreatingOs" : "CreatingOs0",
+            "CreatingOsVersion" : "CreatingOsVersion0",
+            "LastModified" : "2006-05-04T18:13:51.0"
+          },
+          "Size" : 29403,
+          "Uri" : "Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf",
+          "MessageDigest" : "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
+          "Algorithm" : "SHA-512"
+        } ]
+      }
+    },
+    "#tenant" : 0
+  } ],
+  "$context" : {
+    "$roots" : [ ],
+    "$query" : [ {
+      "$in" : {
+        "OriginatingAgency" : [ "BBBBB", "FRAN_NP_050056", "FRAAA", "CCCCC" ]
+      }
+    } ],
+    "$filter" : {
+      "$limit" : 10000
+    },
+    "$projection" : {
+      "$fields" : {
+        "_qualifiers" : 1
+      }
+    }
+  }
+} 

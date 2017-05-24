@@ -29,6 +29,7 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFou
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -78,6 +79,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     final String USAGE = "BinaryMaster";
     final int VERSION = 1;
     final int TENANT_ID = 0;
+    final String CONTRACT = "contract";
 
     public AccessExternalClientRestTest() {
         super(AccessExternalClientFactory.getInstance());
@@ -325,13 +327,12 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     @Test
     @RunWithCustomExecutor
     public void givenRessourceOKWhenSelectTehnReturnOK()
-        throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
-        InvalidParseOperationException {
+        throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getFormat()).build());
-        assertThat(client.selectUnits(JsonHandler.getFromString(queryDsql), TENANT_ID)).isNotNull();
+        assertThat(client.selectUnits(JsonHandler.getFromString(queryDsql), TENANT_ID, CONTRACT)).isNotNull();
     }
 
-    @Test(expected = AccessExternalClientServerException.class)
+    @Test(expected = AccessUnauthorizedException.class)
     @RunWithCustomExecutor
     public void givenInternalServerError_whenSelect_ThenRaiseAnExeption() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
@@ -340,14 +341,13 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
                 " $filter : { $orderby : '#id' }," +
                 " $projection : {$fields : {#id : 1, title:2, transacdate:1}}" +
                 " }";
-        assertThat(client.selectUnits(JsonHandler.getFromString(queryDsql), TENANT_ID)).isNotNull();
+        assertThat(client.selectUnits(JsonHandler.getFromString(queryDsql), TENANT_ID, CONTRACT)).isNotNull();
     }
 
     @Test(expected = AccessExternalClientNotFoundException.class)
     @RunWithCustomExecutor
     public void givenRessourceNotFound_whenSelectUnit_ThenRaiseAnException()
-        throws AccessExternalClientNotFoundException, AccessExternalClientServerException,
-        InvalidParseOperationException {
+        throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
         final String queryDsql =
             "{ $query : [ { $eq : { 'title' : 'test' } } ], " +
@@ -355,24 +355,22 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
                 " $projection : {$fields : {#id : 1, title:2, transacdate:1}}" +
                 " }";
 
-        assertThat(client.selectUnits(JsonHandler.getFromString(queryDsql), TENANT_ID)).isNotNull();
+        assertThat(client.selectUnits(JsonHandler.getFromString(queryDsql), TENANT_ID, CONTRACT)).isNotNull();
     }
 
     @Test(expected = InvalidParseOperationException.class)
     @RunWithCustomExecutor
     public void givenBadRequest_whenSelectUnit_ThenRaiseAnException()
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException {
+        throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        assertThat(client.selectUnits(JsonHandler.getFromString(queryDsql), TENANT_ID)).isNotNull();
+        assertThat(client.selectUnits(JsonHandler.getFromString(queryDsql), TENANT_ID, CONTRACT)).isNotNull();
     }
 
     @Test(expected = IllegalArgumentException.class)
     @RunWithCustomExecutor
     public void givenRequestBlank_whenSelectUnit_ThenRaiseAnException()
-        throws IllegalArgumentException, AccessExternalClientServerException, AccessExternalClientNotFoundException,
-        InvalidParseOperationException {
-        assertThat(client.selectUnits(JsonHandler.createObjectNode(), TENANT_ID)).isNotNull();
+        throws Exception {
+        assertThat(client.selectUnits(JsonHandler.createObjectNode(), TENANT_ID, CONTRACT)).isNotNull();
     }
 
     /****
@@ -380,7 +378,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
      * Select Unit By Id
      *
      ***/
-    @Test(expected = AccessExternalClientServerException.class)
+    @Test(expected = AccessUnauthorizedException.class)
     @RunWithCustomExecutor
     public void givenInternalServerError_whenSelectById_ThenRaiseAnExeption() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
@@ -390,14 +388,13 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
                 " $projection : {$fields : {#id : 1, title:2, transacdate:1}}" +
                 " }";
 
-        assertThat(client.selectUnitbyId(JsonHandler.getFromString(queryDsql), ID, TENANT_ID)).isNotNull();
+        assertThat(client.selectUnitbyId(JsonHandler.getFromString(queryDsql), ID, TENANT_ID, CONTRACT)).isNotNull();
     }
 
     @Test(expected = AccessExternalClientNotFoundException.class)
     @RunWithCustomExecutor
     public void givenRessourceNotFound_whenSelectUnitById_ThenRaiseAnException()
-        throws AccessExternalClientNotFoundException, AccessExternalClientServerException,
-        InvalidParseOperationException {
+        throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
         final String queryDsql =
             "{ $query : [ { $eq : { 'title' : 'test' } } ], " +
@@ -405,176 +402,166 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
                 " $projection : {$fields : {#id : 1, title:2, transacdate:1}}" +
                 " }";
 
-        assertThat(client.selectUnitbyId(JsonHandler.getFromString(queryDsql), ID, TENANT_ID)).isNotNull();
+        assertThat(client.selectUnitbyId(JsonHandler.getFromString(queryDsql), ID, TENANT_ID, CONTRACT)).isNotNull();
     }
 
     @Test(expected = InvalidParseOperationException.class)
     @RunWithCustomExecutor
     public void givenBadRequest_whenSelectUnitById_ThenRaiseAnException()
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException {
+        throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        client.selectUnitbyId(JsonHandler.getFromString(queryDsql), ID, TENANT_ID);
+        client.selectUnitbyId(JsonHandler.getFromString(queryDsql), ID, TENANT_ID, CONTRACT);
     }
 
     @Test(expected = IllegalArgumentException.class)
     @RunWithCustomExecutor
     public void givenRequestBlank_whenSelectUnitById_ThenRaiseAnException()
-        throws IllegalArgumentException, AccessExternalClientServerException, AccessExternalClientNotFoundException,
-        InvalidParseOperationException {
-        assertThat(client.selectUnitbyId(JsonHandler.createObjectNode(), "", TENANT_ID)).isNotNull();
+        throws Exception {
+        assertThat(client.selectUnitbyId(JsonHandler.createObjectNode(), "", TENANT_ID, CONTRACT)).isNotNull();
     }
 
     @Test(expected = IllegalArgumentException.class)
     @RunWithCustomExecutor
     public void givenIDBlank_whenSelectUnitById_ThenRaiseAnException()
-        throws IllegalArgumentException, AccessExternalClientServerException, AccessExternalClientNotFoundException,
-        InvalidParseOperationException {
-        assertThat(client.selectUnitbyId(JsonHandler.getFromString(queryDsql), "", TENANT_ID)).isNotNull();
+        throws Exception {
+        assertThat(client.selectUnitbyId(JsonHandler.getFromString(queryDsql), "", TENANT_ID, CONTRACT)).isNotNull();
     }
 
     @Test(expected = IllegalArgumentException.class)
     @RunWithCustomExecutor
     public void givenrEQUESTBlank_IDFilledwhenSelectUnitById_ThenRaiseAnException()
-        throws IllegalArgumentException, AccessExternalClientServerException, AccessExternalClientNotFoundException,
-        InvalidParseOperationException {
-        assertThat(client.selectUnitbyId(JsonHandler.createObjectNode(), ID, TENANT_ID)).isNotNull();
+        throws Exception {
+        assertThat(client.selectUnitbyId(JsonHandler.createObjectNode(), ID, TENANT_ID, CONTRACT)).isNotNull();
     }
 
     @Test(expected = AccessExternalClientNotFoundException.class)
     @RunWithCustomExecutor
     public void givenBadRequest_whenUpdateUnitById_ThenRaiseAnException()
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException, NoWritingPermissionException {
+        throws Exception {
         when(mock.put()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        assertThat(client.updateUnitbyId(JsonHandler.getFromString(queryDsql), ID, TENANT_ID)).isNotNull();
+        assertThat(client.updateUnitbyId(JsonHandler.getFromString(queryDsql), ID, TENANT_ID, CONTRACT)).isNotNull();
     }
 
 
     @Test(expected = IllegalArgumentException.class)
     @RunWithCustomExecutor
     public void givenRequestBlank_whenUpdateUnitById_ThenRaiseAnException()
-        throws IllegalArgumentException, AccessExternalClientServerException, AccessExternalClientNotFoundException,
-        InvalidParseOperationException, NoWritingPermissionException {
-        assertThat(client.updateUnitbyId(JsonHandler.createObjectNode(), "", TENANT_ID)).isNotNull();
+        throws Exception {
+        assertThat(client.updateUnitbyId(JsonHandler.createObjectNode(), "", TENANT_ID, CONTRACT)).isNotNull();
     }
 
 
     @Test(expected = IllegalArgumentException.class)
     @RunWithCustomExecutor
     public void givenIdBlank_whenUpdateUnitById_ThenRaiseAnException()
-        throws IllegalArgumentException, AccessExternalClientServerException, AccessExternalClientNotFoundException,
-        InvalidParseOperationException, NoWritingPermissionException {
-        assertThat(client.updateUnitbyId(JsonHandler.getFromString(queryDsql), "", TENANT_ID)).isNotNull();
+        throws Exception {
+        assertThat(client.updateUnitbyId(JsonHandler.getFromString(queryDsql), "", TENANT_ID, CONTRACT)).isNotNull();
     }
 
 
     @Test(expected = IllegalArgumentException.class)
     @RunWithCustomExecutor
     public void givenrEquestBlank_IDFilledwhenUpdateUnitById_ThenRaiseAnException()
-        throws IllegalArgumentException, AccessExternalClientServerException, AccessExternalClientNotFoundException,
-        InvalidParseOperationException, NoWritingPermissionException {
-        assertThat(client.updateUnitbyId(JsonHandler.createObjectNode(), ID, TENANT_ID)).isNotNull();
+        throws Exception {
+        assertThat(client.updateUnitbyId(JsonHandler.createObjectNode(), ID, TENANT_ID, CONTRACT)).isNotNull();
     }
 
     @Test(expected = InvalidParseOperationException.class)
     @RunWithCustomExecutor
     public void givenBadRequest_whenUpdateUnit_ThenRaiseAnException()
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException, NoWritingPermissionException {
+        throws Exception {
         when(mock.put()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        assertThat(client.updateUnitbyId(JsonHandler.getFromString(queryDsql), ID, TENANT_ID)).isNotNull();
+        assertThat(client.updateUnitbyId(JsonHandler.getFromString(queryDsql), ID, TENANT_ID, CONTRACT)).isNotNull();
     }
 
-    @Test(expected = AccessExternalClientServerException.class)
+    @Test(expected = AccessUnauthorizedException.class)
     @RunWithCustomExecutor
     public void given500_whenUpdateUnit_ThenRaiseAnException()
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException, NoWritingPermissionException {
+        throws Exception {
         when(mock.put()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
-        assertThat(client.updateUnitbyId(JsonHandler.getFromString(queryDsql), ID, TENANT_ID)).isNotNull();
+        assertThat(client.updateUnitbyId(JsonHandler.getFromString(queryDsql), ID, TENANT_ID, CONTRACT)).isNotNull();
     }
 
     @Test(expected = InvalidParseOperationException.class)
     @RunWithCustomExecutor
     public void givenQueryNullWhenSelectObjectByIdThenRaiseAnInvalidParseOperationException() throws Exception {
-        client.selectObjectById(null, ID, TENANT_ID);
+        client.selectObjectById(null, ID, TENANT_ID, CONTRACT);
     }
 
-    @Test(expected = AccessExternalClientServerException.class)
+    @Test(expected = AccessUnauthorizedException.class)
     @RunWithCustomExecutor
     public void givenQueryCorrectWhenSelectObjectByIdThenRaiseInternalServerError() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
-        client.selectObjectById(JsonHandler.getFromString(queryDsql), ID, TENANT_ID);
+        client.selectObjectById(JsonHandler.getFromString(queryDsql), ID, TENANT_ID, CONTRACT);
     }
 
     @Test(expected = InvalidParseOperationException.class)
     @RunWithCustomExecutor
     public void givenQueryCorrectWhenSelectObjectByIdThenRaiseBadRequest() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        client.selectObjectById(JsonHandler.getFromString(queryDsql), ID, TENANT_ID);
+        client.selectObjectById(JsonHandler.getFromString(queryDsql), ID, TENANT_ID, CONTRACT);
     }
 
     @Test(expected = AccessExternalClientServerException.class)
     @RunWithCustomExecutor
     public void givenQueryCorrectWhenSelectObjectByIdThenRaisePreconditionFailed() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.selectObjectById(JsonHandler.getFromString(queryDsql), ID, TENANT_ID);
+        client.selectObjectById(JsonHandler.getFromString(queryDsql), ID, TENANT_ID, CONTRACT);
     }
 
     @Test(expected = AccessExternalClientNotFoundException.class)
     @RunWithCustomExecutor
     public void givenQueryCorrectWhenSelectObjectByIdThenNotFound() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.selectObjectById(JsonHandler.getFromString(queryDsql), ID, TENANT_ID);
+        client.selectObjectById(JsonHandler.getFromString(queryDsql), ID, TENANT_ID, CONTRACT);
     }
 
     @Test
     @RunWithCustomExecutor
     public void givenQueryCorrectWhenSelectObjectByIdThenOK() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getEmptyResult()).build());
-        assertThat(client.selectObjectById(JsonHandler.getFromString(queryDsql), ID, TENANT_ID)).isNotNull();
+        assertThat(client.selectObjectById(JsonHandler.getFromString(queryDsql), ID, TENANT_ID, CONTRACT)).isNotNull();
     }
 
     @Test(expected = InvalidParseOperationException.class)
     @RunWithCustomExecutor
     public void givenQueryNullWhenGetObjectAsInputStreamThenRaiseAnInvalidParseOperationException() throws Exception {
-        client.getObject(null, ID, USAGE, VERSION, TENANT_ID);
+        client.getObject(null, ID, USAGE, VERSION, TENANT_ID, CONTRACT);
     }
 
     @Test(expected = AccessExternalClientServerException.class)
     @RunWithCustomExecutor
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenRaiseInternalServerError() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        client.getObject(JsonHandler.getFromString(queryDsql), ID, USAGE, VERSION, TENANT_ID);
+        client.getObject(JsonHandler.getFromString(queryDsql), ID, USAGE, VERSION, TENANT_ID, CONTRACT);
     }
 
     @Test(expected = InvalidParseOperationException.class)
     @RunWithCustomExecutor
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenRaiseBadRequest() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        client.getObject(JsonHandler.getFromString(queryDsql), ID, USAGE, VERSION, TENANT_ID);
+        client.getObject(JsonHandler.getFromString(queryDsql), ID, USAGE, VERSION, TENANT_ID, CONTRACT);
     }
 
     @Test(expected = AccessExternalClientServerException.class)
     @RunWithCustomExecutor
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenRaisePreconditionFailed() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.getObject(JsonHandler.getFromString(queryDsql), ID, USAGE, VERSION, TENANT_ID);
+        client.getObject(JsonHandler.getFromString(queryDsql), ID, USAGE, VERSION, TENANT_ID, CONTRACT);
     }
 
     @Test(expected = AccessExternalClientNotFoundException.class)
     @RunWithCustomExecutor
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenNotFound() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.getObject(JsonHandler.getFromString(queryDsql), ID, USAGE, VERSION, TENANT_ID);
+        client.getObject(JsonHandler.getFromString(queryDsql), ID, USAGE, VERSION, TENANT_ID, CONTRACT);
     }
 
     @Test
     @RunWithCustomExecutor
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenOK() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("Vitam test")).build());
-        final Response response = client.getObject(JsonHandler.getFromString(queryDsql), ID, USAGE, VERSION, TENANT_ID);
+        final Response response = client.getObject(JsonHandler.getFromString(queryDsql), ID, USAGE, VERSION, TENANT_ID, CONTRACT);
         assertNotNull(response);
     }
 
@@ -589,21 +576,21 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     public void selectLogbookOperations() throws Exception {
         when(mock.post())
             .thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getLogbooksRequestResponse()).build());
-        assertThat(client.selectOperation(JsonHandler.getFromString(queryDsql), TENANT_ID)).isNotNull();
+        assertThat(client.selectOperation(JsonHandler.getFromString(queryDsql), TENANT_ID, CONTRACT)).isNotNull();
     }
 
     @Test(expected = LogbookClientNotFoundException.class)
     @RunWithCustomExecutor
     public void givenSelectLogbookNotFoundThenNotFound() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.selectOperation(JsonHandler.getFromString(queryDsql), TENANT_ID);
+        client.selectOperation(JsonHandler.getFromString(queryDsql), TENANT_ID, CONTRACT);
     }
 
     @Test(expected = LogbookClientException.class)
     @RunWithCustomExecutor
     public void givenSelectLogbookBadQueryThenPreconditionFailed() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.selectOperation(JsonHandler.getFromString(queryDsql), TENANT_ID);
+        client.selectOperation(JsonHandler.getFromString(queryDsql), TENANT_ID, CONTRACT);
     }
 
     /***
@@ -616,21 +603,21 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     public void selectLogbookOperationByID() throws Exception {
         when(mock.post())
             .thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getLogbookRequestResponse()).build());
-        assertThat(client.selectOperationbyId(ID, TENANT_ID)).isNotNull();
+        assertThat(client.selectOperationbyId(ID, TENANT_ID, CONTRACT)).isNotNull();
     }
 
     @Test(expected = LogbookClientNotFoundException.class)
     @RunWithCustomExecutor
     public void givenSelectLogbookOperationByIDNotFoundThenNotFound() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.selectOperationbyId(ID, TENANT_ID);
+        client.selectOperationbyId(ID, TENANT_ID, CONTRACT);
     }
 
     @Test(expected = LogbookClientException.class)
     @RunWithCustomExecutor
     public void givenSelectLogbookOperationByIDBadQueryThenPreconditionFailed() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.selectOperationbyId(ID, TENANT_ID);
+        client.selectOperationbyId(ID, TENANT_ID, CONTRACT);
     }
 
 
@@ -644,7 +631,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     public void selectLogbookLifeCyclesUnitById() throws Exception {
         when(mock.get())
             .thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getLogbookRequestResponse()).build());
-        assertThat(client.selectUnitLifeCycleById(ID, TENANT_ID)).isNotNull();
+        assertThat(client.selectUnitLifeCycleById(ID, TENANT_ID, CONTRACT)).isNotNull();
     }
 
     @Test
@@ -652,35 +639,35 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     public void selectLogbookLifeCyclesUnit() throws Exception {
         when(mock.get())
             .thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getLogbookRequestResponseWithObId()).build());
-        assertThat(client.selectUnitLifeCycle(JsonHandler.getFromString(BODY_WITH_ID), TENANT_ID)).isNotNull();
+        assertThat(client.selectUnitLifeCycle(JsonHandler.getFromString(BODY_WITH_ID), TENANT_ID, CONTRACT)).isNotNull();
     }
 
     @Test(expected = LogbookClientNotFoundException.class)
     @RunWithCustomExecutor
     public void givenSelectLogbookLifeCyclesUnitByIdNotFoundThenNotFound() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.selectUnitLifeCycleById(ID, TENANT_ID);
+        client.selectUnitLifeCycleById(ID, TENANT_ID, CONTRACT);
     }
 
     @Test(expected = LogbookClientNotFoundException.class)
     @RunWithCustomExecutor
     public void givenSelectLogbookLifeCyclesUnitNotFoundThenNotFound() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.selectUnitLifeCycle(JsonHandler.getFromString(BODY_WITH_ID), TENANT_ID);
+        client.selectUnitLifeCycle(JsonHandler.getFromString(BODY_WITH_ID), TENANT_ID, CONTRACT);
     }
 
     @Test(expected = LogbookClientException.class)
     @RunWithCustomExecutor
     public void givenSelectLogbookLifeCyclesUnitByIdBadQueryThenPreconditionFailed() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.selectUnitLifeCycleById(ID, TENANT_ID);
+        client.selectUnitLifeCycleById(ID, TENANT_ID, CONTRACT);
     }
 
     @Test(expected = LogbookClientException.class)
     @RunWithCustomExecutor
     public void givenSelectLogbookLifeCyclesUnitBadQueryThenPreconditionFailed() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.selectUnitLifeCycle(JsonHandler.getFromString(BODY_WITH_ID), TENANT_ID);
+        client.selectUnitLifeCycle(JsonHandler.getFromString(BODY_WITH_ID), TENANT_ID, CONTRACT);
     }
 
     /***
@@ -693,21 +680,21 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     public void selectLogbookLifeCyclesObject() throws Exception {
         when(mock.get())
             .thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getLogbookRequestResponse()).build());
-        assertThat(client.selectObjectGroupLifeCycleById(ID, TENANT_ID)).isNotNull();
+        assertThat(client.selectObjectGroupLifeCycleById(ID, TENANT_ID, CONTRACT)).isNotNull();
     }
 
     @Test(expected = LogbookClientNotFoundException.class)
     @RunWithCustomExecutor
     public void givenSelectLogbookLifeCyclesObjectsNotFoundThenNotFound() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.selectObjectGroupLifeCycleById(ID, TENANT_ID);
+        client.selectObjectGroupLifeCycleById(ID, TENANT_ID, CONTRACT);
     }
 
     @Test(expected = LogbookClientException.class)
     @RunWithCustomExecutor
     public void givenSelectLogbookLifeCyclesObjectBadQueryThenPreconditionFailed() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.selectObjectGroupLifeCycleById(ID, TENANT_ID);
+        client.selectObjectGroupLifeCycleById(ID, TENANT_ID, CONTRACT);
     }
 
     /***
@@ -721,14 +708,14 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     public void selectAccessionExternalSumary() throws Exception {
         when(mock.post()).thenReturn(
             Response.status(Status.OK).entity(ClientMockResultHelper.getAccessionRegisterSummary()).build());
-        assertThat(client.getAccessionRegisterSummary(JsonHandler.getFromString(queryDsql), TENANT_ID)).isNotNull();
+        assertThat(client.getAccessionRegisterSummary(JsonHandler.getFromString(queryDsql), TENANT_ID, CONTRACT)).isNotNull();
     }
 
     @Test(expected = AccessExternalClientNotFoundException.class)
     @RunWithCustomExecutor
     public void selectAccessionExternalSumaryError() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.getAccessionRegisterSummary(JsonHandler.getFromString(queryDsql), TENANT_ID);
+        client.getAccessionRegisterSummary(JsonHandler.getFromString(queryDsql), TENANT_ID, CONTRACT);
     }
 
     @Test
@@ -736,14 +723,14 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     public void selectAccessionExternalDetail() throws Exception {
         when(mock.post()).thenReturn(
             Response.status(Status.OK).entity(ClientMockResultHelper.getAccessionRegisterSummary()).build());
-        client.getAccessionRegisterDetail(ID, JsonHandler.getFromString(queryDsql), TENANT_ID);
+        client.getAccessionRegisterDetail(ID, JsonHandler.getFromString(queryDsql), TENANT_ID, CONTRACT);
     }
 
     @Test(expected = AccessExternalClientNotFoundException.class)
     @RunWithCustomExecutor
     public void selectAccessionExternalDetailError() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.getAccessionRegisterDetail(ID, JsonHandler.getFromString(queryDsql), TENANT_ID);
+        client.getAccessionRegisterDetail(ID, JsonHandler.getFromString(queryDsql), TENANT_ID, CONTRACT);
     }
 
 
@@ -756,18 +743,18 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     @Test
     @RunWithCustomExecutor
     public void testCheckTraceabilityOperation()
-        throws InvalidParseOperationException, AccessExternalClientServerException {
+        throws Exception {
         when(mock.post()).thenReturn(
             Response.status(Status.OK).entity(ClientMockResultHelper.getLogbooksRequestResponse()).build());
-        client.checkTraceabilityOperation(JsonHandler.getFromString(queryDsql), TENANT_ID);
+        client.checkTraceabilityOperation(JsonHandler.getFromString(queryDsql), TENANT_ID, CONTRACT);
     }
 
     @Test
     @RunWithCustomExecutor
     public void testDownloadTraceabilityOperationFile()
-        throws InvalidParseOperationException, AccessExternalClientServerException {
+        throws Exception {
         when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
-        client.downloadTraceabilityOperationFile(ID, TENANT_ID);
+        client.downloadTraceabilityOperationFile(ID, TENANT_ID, CONTRACT);
     }
 
 }

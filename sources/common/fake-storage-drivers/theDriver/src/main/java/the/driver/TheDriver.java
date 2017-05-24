@@ -124,6 +124,11 @@ public class TheDriver extends AbstractDriver {
 
             public void shutdown() {
             }
+
+            @Override
+            public void resume(Client client, boolean chunk) {
+                // Empty
+            }
         };
         return factory;
     }

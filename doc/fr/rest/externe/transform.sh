@@ -40,3 +40,6 @@ do
 	echo ${I}
 	raml2html -i ${I}.raml -t template/template.nunjucks -o ${OUTPUT_DIR}/${I}.html
 done
+# Copy images to output dir
+cp docs-fr/*.png ${OUTPUT_DIR}/
+

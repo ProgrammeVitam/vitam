@@ -1,0 +1,22 @@
+{
+  "ID011" : {
+    "Version" : "BinaryMaster",
+    "Physical" : false
+  },
+  "ID012" : {
+    "Version" : "Dissemination",
+    "Physical" : false
+  },
+  "ID013" : {
+    "Version" : "Thumbnail",
+    "Physical" : false
+  },
+  "ID014" : {
+    "Version" : "TextContent",
+    "Physical" : false
+  },
+  "ID015" : {
+    "Version" : "PhysicalMaster",
+    "Physical" : true
+  }
+}

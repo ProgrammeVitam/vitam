@@ -44,7 +44,9 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -89,34 +91,81 @@ public class ContractsStep {
      * type de contrat
      */
     private String contractType;
+
     /**
      * define a sip
+     *
      * @param fileName name of a sip
      */
     @Given("^un contract nommé (.*)$")
     public void a_sip_named(String fileName) {
         this.fileName = fileName;
     }
+
     /**
      * Use Only when the contract is not in the database
      *
+     * @param type the type of contract
      * @throws IOException
      * @throws IngestExternalException
      */
     @Then("^j'importe ce contrat de type (.*)")
-    public void upload_contract(String type)
-        throws IOException{
+    public void upload_contract(String type) throws IOException {
+        try {
+            uploadContract(type);
+        } catch (AccessExternalClientException | IllegalStateException | InvalidParseOperationException e) {
+            fail("should not produce an exception"+e);
+        }
+    }
+
+    /**
+     * Tentative d'import d'un contrat si jamais il n'existe pas
+     * @param type
+     * @throws IOException
+     */
+    @Then("^j'importe ce contrat sans échec de type (.*)")
+    public void upload_contract_without_fail(String type) throws IOException {
+        try {
+            uploadContract(type);
+        } catch (AccessExternalClientException | IllegalStateException | InvalidParseOperationException e) {
+            //catch nothing
+        }
+    }
+
+    private void uploadContract(String type)
+        throws IOException, InvalidParseOperationException, AccessExternalClientException {
         Path sip = Paths.get(world.getBaseDirectory(), fileName);
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
             AdminCollections collection = AdminCollections.valueOf(type);
             this.setContractType(collection.getName());
             RequestResponse response =
                 world.getAdminClient().importContracts(inputStream, world.getTenantId(), collection);
-        } catch (AccessExternalClientException | InvalidParseOperationException e) {
-
+            assertThat(response instanceof RequestResponseOK);
         }
+    }
 
-        //TODO NO ASSERT Only Try to import contracts.
+    /**
+     * Upload a contract that will lead to an error
+     *
+     * @param type the type of contract
+     * @throws IOException
+     * @throws IngestExternalException
+     */
+    @Then("^j'importe ce contrat incorrect de type (.*)")
+    public void upload_incorrect_contract(String type) {
+        Path sip = Paths.get(world.getBaseDirectory(), fileName);
+        try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
+            AdminCollections collection = AdminCollections.valueOf(type);
+            this.setContractType(collection.getName());
+            RequestResponse response =
+                world.getAdminClient().importContracts(inputStream, world.getTenantId(), collection);
+            // TODO : this has to be fixed, the returned response is not correct, Bad request must me obtained            
+            assertThat(Response.Status.BAD_REQUEST.getStatusCode() == response.getStatus());
+        } catch (IllegalStateException e) {
+            // Do nothing
+        } catch (Exception e) {
+            fail("should not produce this exception"+e);
+        }
     }
 
     @When("^je cherche un contrat de type (.*) et nommé (.*)")

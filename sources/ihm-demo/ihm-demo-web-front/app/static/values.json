@@ -2,5 +2,7 @@
   "lifeCycleMandatoryFields": ["EVTYPE", "EVDATETIME", "OUTCOME", "OUTMESSG"],
   "lifeCycleCustomFields": ["EVID","EVIDPROC","EVTYPEPROC","OUTDETAIL","EVDETDATA","AGID","OBID","TENANT"],
   "logbookIngestCustomFields": ["evIdProc","ArchivalProfile","EvDateTimeReq","ServiceLevel","Signature"],
-  "logbookOperationCustomFields": ["evId","evIdProc","outDetail","agId","obId","evIdReq","obIdReq","obIdIn","_tenant"]
+  "logbookOperationCustomFields": ["evId","evIdProc","outDetail","agId","obId","evIdReq","obIdReq","obIdIn","_tenant"],
+  "profilesMandatoryFields": ["Name", "Id", "Description", "Status", "Profile"],
+  "profilesCustomFields": ["CreationDate", "LastUpdate", "ActivationDate", "DeactivationDate"]
 }

@@ -14,9 +14,11 @@ import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
+import fr.gouv.vitam.access.external.common.exception.AccessExternalNotFoundException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -156,7 +158,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             // FIXME quick fix for response OK, adapt response for all response types
             if (response.getStatus() == Response.Status.OK.getStatusCode() ||
                 response.getStatus() == Response.Status.CREATED.getStatusCode()) {
-                return new RequestResponseOK();
+                return new RequestResponseOK().setHttpCode(Status.OK.getStatusCode());
             } else {
                 return RequestResponse.parseFromResponse(response);
             }
@@ -206,4 +208,81 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         }
     }
 
+    @Override
+    public RequestResponse createProfiles(InputStream profiles, Integer tenantId)
+        throws InvalidParseOperationException, AccessExternalClientException {
+        ParametersChecker.checkParameter("The input profile json is mandatory", profiles, AdminCollections.PROFILE);
+        Response response = null;
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        try {
+            response = performRequest(HttpMethod.POST, AdminCollections.PROFILE.getName(), headers,
+                profiles, MediaType.APPLICATION_JSON_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new AccessExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse importProfileFile(String profileMetadataId, InputStream profile, Integer tenantId)
+        throws InvalidParseOperationException, AccessExternalClientException {
+        ParametersChecker.checkParameter("The input profile stream is mandatory", profile, AdminCollections.PROFILE);
+        ParametersChecker.checkParameter(profileMetadataId, "The profile id is mandatory");
+        Response response = null;
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        try {
+            response = performRequest(HttpMethod.PUT, AdminCollections.PROFILE.getName() + "/" + profileMetadataId, headers,
+                profile, MediaType.APPLICATION_OCTET_STREAM_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new AccessExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public Response downloadProfileFile(String profileMetadataId, Integer tenantId) throws AccessExternalClientException,
+        AccessExternalNotFoundException {
+        ParametersChecker.checkParameter("Profile is is required", profileMetadataId);
+
+
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        Response response = null;
+
+        Status status = Status.BAD_REQUEST;
+        try {
+            response = performRequest(HttpMethod.GET, AdminCollections.PROFILE.getName() +"/"+ profileMetadataId, headers, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            status = Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK:
+                    return response;
+                default: {
+                    String msgErr = "Error while download profile file : "+profileMetadataId;
+                    final RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
+                    if (!requestResponse.isOk()) {
+                        VitamError error = (VitamError) requestResponse;
+                        msgErr = error.getDescription();
+                    }
+                    throw new AccessExternalNotFoundException(msgErr);
+                }
+            }
+
+        } catch (final VitamClientInternalException e) {
+            throw new AccessExternalClientException(INTERNAL_SERVER_ERROR, e); // access-common
+        } finally {
+            if (status != Status.OK) {
+                consumeAnyEntityAndClose(response);
+            }
+        }
+    }
 }

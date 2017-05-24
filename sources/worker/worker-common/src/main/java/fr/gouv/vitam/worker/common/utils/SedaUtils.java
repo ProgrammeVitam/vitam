@@ -34,8 +34,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventReader;
@@ -82,10 +84,15 @@ public class SedaUtils {
     private static final String SEDA_VALIDATION_FILE = "seda-vitam-2.0-main.xsd";
 
     private static final String MSG_PARSING_BDO = "Parsing Binary Data Object";
-    
+
     private static final String CANNOT_READ_SEDA = "Can not read SEDA";
     private static final String MANIFEST_NOT_FOUND = "Manifest.xml Not Found";
     private static final int VERSION_POSITION = 0;
+
+    /**
+     * nbAUExisting: number of the AU already existing
+     */
+    public static final String NB_AU_EXISTING = "nbAUExisting";
 
     private final Map<String, String> binaryDataObjectIdToGuid;
     private final Map<String, String> objectGroupIdToGuid;
@@ -224,11 +231,11 @@ public class SedaUtils {
         ParameterHelper.checkNullOrEmptyParameters(params);
         final InputStream input;
         try {
-            input = checkExistenceManifest();            
-            if (checkMultiManifest()){
+            input = checkExistenceManifest();
+            if (checkMultiManifest()) {
                 return CheckSedaValidationStatus.MORE_THAN_ONE_MANIFEST;
             }
-            if (!checkFolderContentNumber()){
+            if (!checkFolderContentNumber()) {
                 return CheckSedaValidationStatus.MORE_THAN_ONE_FOLDER_CONTENT;
             }
             new ValidationXsdUtils().checkWithXSD(input, SEDA_VALIDATION_FILE);
@@ -269,7 +276,7 @@ public class SedaUtils {
         /**
          * File not found
          */
-        NO_FILE, 
+        NO_FILE,
         /**
          * more than one manifest in SIP
          */
@@ -281,8 +288,8 @@ public class SedaUtils {
     }
 
     /**
-    * check if there is manifest.xml file in the SIP
-    */    
+     * check if there is manifest.xml file in the SIP
+     */
     private InputStream checkExistenceManifest()
         throws IOException, ProcessingException {
         InputStream manifest = null;
@@ -295,19 +302,19 @@ public class SedaUtils {
         }
         return manifest;
     }
-    
+
     /**
-    * check if there are many folder content in the SIP
-    */
+     * check if there are many folder content in the SIP
+     */
     private boolean checkFolderContentNumber() throws ProcessingException {
         List<URI> list = handlerIO.getUriList(handlerIO.getContainerName(), IngestWorkflowConstants.SEDA_FOLDER);
         String contentName = null;
-        for (int i=0; i<list.size(); i++){
+        for (int i = 0; i < list.size(); i++) {
             String s = list.get(i).toString();
             if (s.contains("/")) {
                 String directory = s.split("/")[0];
-                if (directory.equalsIgnoreCase("content")){
-                    if (contentName == null){
+                if (directory.equalsIgnoreCase("content")) {
+                    if (contentName == null) {
                         contentName = directory;
                     } else {
                         if (!contentName.equals(directory)) {
@@ -317,25 +324,25 @@ public class SedaUtils {
                 } else {
                     return false;
                 }
-                
+
             }
         }
-        
+
         return true;
     }
 
     /**
-    * check if there are many file manifest.xml another in the SIP root
-    */    
+     * check if there are many file manifest.xml another in the SIP root
+     */
     private boolean checkMultiManifest() throws ProcessingException {
         List<URI> listURI = handlerIO.getUriList(handlerIO.getContainerName(), IngestWorkflowConstants.SEDA_FOLDER);
         int countManifest = 0;
-        for (int i=0; i<listURI.size(); i++){
+        for (int i = 0; i < listURI.size(); i++) {
             if (!listURI.get(i).toString().contains("/")) {
-                countManifest ++;
-                if (countManifest>1) {
-                        return true;
-                    }
+                countManifest++;
+                if (countManifest > 1) {
+                    return true;
+                }
             }
         }
         return false;
@@ -465,7 +472,7 @@ public class SedaUtils {
      * @return list of unsupported version
      * @throws ProcessingException throws when error occurs
      */
-    public List<String> checkSupportedBinaryObjectVersion(WorkerParameters params)
+    public List<String> checkSupportedDataObjectVersion(WorkerParameters params)
         throws ProcessingException {
         ParameterHelper.checkNullOrEmptyParameters(params);
         return isSedaVersionValid();
@@ -505,16 +512,15 @@ public class SedaUtils {
         return invalidVersionList;
     }
 
-
     /**
      * @param evenReader of seda
      * @return Seda Info object
      * @throws ProcessingException if cannot get BinaryObject info
      */
-    public SedaUtilInfo getBinaryObjectInfo(XMLEventReader evenReader)
+    public SedaUtilInfo getDataObjectInfo(XMLEventReader evenReader)
         throws ProcessingException {
         final SedaUtilInfo sedaUtilInfo = new SedaUtilInfo();
-        BinaryObjectInfo binaryObjectInfo = new BinaryObjectInfo();
+        DataObjectInfo dataObjectInfo = new DataObjectInfo();
         while (evenReader.hasNext()) {
             XMLEvent event;
             try {
@@ -524,9 +530,9 @@ public class SedaUtils {
                     StartElement startElement = event.asStartElement();
 
                     if (SedaConstants.TAG_BINARY_DATA_OBJECT.equals(startElement.getName().getLocalPart())) {
-                        event = evenReader.nextEvent();
                         final String id = ((Attribute) startElement.getAttributes().next()).getValue();
-                        binaryObjectInfo.setId(id);
+                        dataObjectInfo.setId(id);
+                        evenReader.nextEvent();
 
                         while (evenReader.hasNext()) {
                             event = evenReader.nextEvent();
@@ -537,22 +543,23 @@ public class SedaUtils {
                                 switch (tag) {
                                     case SedaConstants.TAG_URI:
                                         final String uri = evenReader.getElementText();
-                                        binaryObjectInfo.setUri(uri);
+                                        dataObjectInfo.setUri(uri);
                                         break;
                                     case SedaConstants.TAG_DO_VERSION:
                                         final String version = evenReader.getElementText();
-                                        binaryObjectInfo.setVersion(version);
+                                        dataObjectInfo.setVersion(version);
                                         break;
                                     case SedaConstants.TAG_DIGEST:
-                                        binaryObjectInfo
-                                            .setAlgo(DigestType.fromValue(
-                                                ((Attribute) startElement.getAttributes().next()).getValue()));
+                                        dataObjectInfo.setAlgo(DigestType
+                                            .fromValue(((Attribute) startElement.getAttributes().next()).getValue()));
                                         final String messageDigest = evenReader.getElementText();
-                                        binaryObjectInfo.setMessageDigest(messageDigest);
+                                        dataObjectInfo.setMessageDigest(messageDigest);
                                         break;
                                     case SedaConstants.TAG_SIZE:
                                         final long size = Long.parseLong(evenReader.getElementText());
-                                        binaryObjectInfo.setSize(size);
+                                        dataObjectInfo.setSize(size);
+                                        break;
+                                    default:
                                         break;
                                 }
                             }
@@ -560,8 +567,34 @@ public class SedaUtils {
                             if (event.isEndElement() &&
                                 SedaConstants.TAG_BINARY_DATA_OBJECT
                                     .equals(event.asEndElement().getName().getLocalPart())) {
-                                sedaUtilInfo.setBinaryObjectMap(binaryObjectInfo);
-                                binaryObjectInfo = new BinaryObjectInfo();
+                                sedaUtilInfo.setDataObjectMap(dataObjectInfo);
+                                dataObjectInfo = new DataObjectInfo();
+                                break;
+                            }
+
+                        }
+                    }
+                    if (SedaConstants.TAG_PHYSICAL_DATA_OBJECT.equals(startElement.getName().getLocalPart())) {
+                        final String id = ((Attribute) startElement.getAttributes().next()).getValue();
+                        dataObjectInfo.setId(id);
+                        evenReader.nextEvent();
+
+                        while (evenReader.hasNext()) {
+                            event = evenReader.nextEvent();
+                            if (event.isStartElement()) {
+                                startElement = event.asStartElement();
+
+                                final String tag = startElement.getName().getLocalPart();
+                                if (SedaConstants.TAG_DO_VERSION.equals(tag)) {
+                                    dataObjectInfo.setVersion(evenReader.getElementText());
+                                }
+                            }
+
+                            if (event.isEndElement() &&
+                                SedaConstants.TAG_PHYSICAL_DATA_OBJECT
+                                    .equals(event.asEndElement().getName().getLocalPart())) {
+                                sedaUtilInfo.setDataObjectMap(dataObjectInfo);
+                                dataObjectInfo = new DataObjectInfo();
                                 break;
                             }
 
@@ -569,7 +602,7 @@ public class SedaUtils {
                     }
                 }
             } catch (final XMLStreamException e) {
-                LOGGER.error("Can not get BinaryObject info");
+                LOGGER.error("Can not get DataObject info");
                 throw new ProcessingException(e);
             }
         }
@@ -582,19 +615,28 @@ public class SedaUtils {
      * @throws ProcessingException when error in execution
      */
 
-    public List<String> manifestVersionList(XMLEventReader evenReader)
+    public Map<String, Set<String>> manifestVersionList(XMLEventReader evenReader)
         throws ProcessingException {
-        final List<String> versionList = new ArrayList<>();
-        final SedaUtilInfo sedaUtilInfo = getBinaryObjectInfo(evenReader);
-        final Map<String, BinaryObjectInfo> binaryObjectMap = sedaUtilInfo.getBinaryObjectMap();
+        final Map<String, Set<String>> versionListByType = new HashMap<>();
+        final SedaUtilInfo sedaUtilInfo = getDataObjectInfo(evenReader);
+        final Map<String, DataObjectInfo> dataObjectMap = sedaUtilInfo.getDataObjectMap();
 
-        for (final String mapKey : binaryObjectMap.keySet()) {
-            if (!versionList.contains(binaryObjectMap.get(mapKey).getVersion())) {
-                versionList.add(binaryObjectMap.get(mapKey).getVersion());
+        // init
+        Set<String> physicalObjectsVersion = new HashSet<>();
+        Set<String> binaryObjectsVersion = new HashSet<>();
+
+
+        for (final String mapKey : dataObjectMap.keySet()) {
+            // add physicalId ?
+            if (dataObjectMap.get(mapKey).getUri() == null) {
+                physicalObjectsVersion.add(dataObjectMap.get(mapKey).getVersion());
+            } else {
+                binaryObjectsVersion.add(dataObjectMap.get(mapKey).getVersion());
             }
         }
-
-        return versionList;
+        versionListByType.put(SedaConstants.TAG_BINARY_DATA_OBJECT, binaryObjectsVersion);
+        versionListByType.put(SedaConstants.TAG_PHYSICAL_DATA_OBJECT, physicalObjectsVersion);
+        return versionListByType;
     }
 
     /**
@@ -616,23 +658,27 @@ public class SedaUtils {
             throw new ProcessingException(e);
         }
 
-        List<String> fileVersionList;
+        SedaVersion sedaVersion;
 
         try {
-            fileVersionList = SedaVersion.fileVersionList(file);
+            sedaVersion = PropertiesUtils.readYaml(file, SedaVersion.class);
         } catch (final IOException e) {
             LOGGER.error("Can not read config file");
+            LOGGER.error(e);
             throw new ProcessingException(e);
         }
 
-        final List<String> manifestVersionList = manifestVersionList(eventReader);
+        final Map<String, Set<String>> manifestVersionListByType = manifestVersionList(eventReader);
         final List<String> invalidVersionList = new ArrayList<>();
 
-        for (final String version : manifestVersionList) {
-            if (version != null) {
-                final String versionParts[] = version.split("_");
-                if (versionParts.length > 2 || !fileVersionList.contains(versionParts[VERSION_POSITION])) {
-                    invalidVersionList.add(version);
+        for (Map.Entry<String, Set<String>> manifestVersionEntry : manifestVersionListByType.entrySet()) {
+            for (final String version : manifestVersionEntry.getValue()) {
+                List<String> fileVersions = sedaVersion.getVersionForType(manifestVersionEntry.getKey());
+                if (version != null) {
+                    final String versionParts[] = version.split("_");
+                    if (versionParts.length > 2 || !fileVersions.contains(versionParts[VERSION_POSITION])) {
+                        invalidVersionList.add(version);
+                    }
                 }
             }
         }
@@ -664,7 +710,7 @@ public class SedaUtils {
 
             final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
             reader = xmlInputFactory.createXMLEventReader(xmlFile);
-            sedaUtilInfo = getBinaryObjectInfo(reader);
+            sedaUtilInfo = getDataObjectInfo(reader);
             return sedaUtilInfo;
         } catch (final XMLStreamException e) {
             LOGGER.error(CANNOT_READ_SEDA);
@@ -709,10 +755,10 @@ public class SedaUtils {
         throws ProcessingException {
         long size = 0;
         final SedaUtilInfo sedaUtilInfo = getSedaUtilInfo();
-        final Map<String, BinaryObjectInfo> binaryObjectMap = sedaUtilInfo.getBinaryObjectMap();
-        for (final String mapKey : binaryObjectMap.keySet()) {
-            final long binaryObjectSize = binaryObjectMap.get(mapKey).getSize();
-            if (binaryObjectSize > 0) {
+        final Map<String, DataObjectInfo> dataObjectMap = sedaUtilInfo.getDataObjectMap();
+        for (final String mapKey : dataObjectMap.keySet()) {
+            final Long binaryObjectSize = dataObjectMap.get(mapKey).getSize();
+            if (binaryObjectSize != null && binaryObjectSize > 0) {
                 size += binaryObjectSize;
             }
         }
@@ -724,7 +770,7 @@ public class SedaUtils {
      *
      * @param params worker parameters
      * @return the size of the manifest
-     * @throws ProcessingException if json seda data is null or seda does not contain size attribute 
+     * @throws ProcessingException if json seda data is null or seda does not contain size attribute
      */
     public long getManifestSize(WorkerParameters params)
         throws ProcessingException {

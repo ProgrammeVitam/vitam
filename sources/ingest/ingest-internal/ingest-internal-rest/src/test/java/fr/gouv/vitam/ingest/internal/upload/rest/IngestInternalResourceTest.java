@@ -261,51 +261,6 @@ public class IngestInternalResourceTest {
 
 
     @Test
-    public void givenAllServicesAvailableAndVirusWhenUploadSipAsAsyncStreamThenReturnOK() throws Exception {
-        reset(workspaceClient);
-        reset(processingClient);
-
-        Mockito.doReturn(false).when(workspaceClient).isExistingContainer(Matchers.anyObject());
-        Mockito.doNothing().when(workspaceClient).createContainer(Matchers.anyObject());
-        Mockito.doNothing().when(workspaceClient).uncompressObject(Matchers.anyObject(), Matchers.anyObject(),
-            Matchers.anyObject(),
-            Matchers.anyObject());
-
-        final GUID processId = GUIDFactory.newGUID();
-
-        RestAssured.given().header(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId())
-            .body(JsonHandler.unprettyPrint(operationList)).contentType(MediaType.APPLICATION_JSON)
-            .then().statusCode(Status.CREATED.getStatusCode())
-            .when().post(LOGBOOK_URL);
-
-        final ItemStatus itemStatus = new ItemStatus(processId.toString()).increment(StatusCode.OK);
-        itemStatus.setGlobalExecutionStatus(ProcessExecutionStatus.PAUSE);
-        Mockito.doReturn(Response.ok().entity(itemStatus).build()).when(processingClient).executeVitamProcess(
-            Matchers.anyObject(),
-            Matchers.anyObject(), Matchers.anyObject());
-
-        Mockito
-            .doReturn(new RequestResponseOK<JsonNode>().parseHeadersFromResponse(Response.ok()
-                .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, ProcessExecutionStatus.COMPLETED.name()).build()))
-            .when(processingClient).executeOperationProcess(Matchers.anyObject(),
-                Matchers.anyObject(), Matchers.anyObject(), Matchers.anyObject());
-
-        // to launch mode non step by step :
-        RestAssured.given()
-            .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.START,
-                GlobalDataRest.X_CONTEXT_ID, START_CONTEXT)
-            .body(inputStream).contentType(CommonMediaType.ZIP)
-            .then().statusCode(Status.ACCEPTED.getStatusCode())
-            .when().post(INGEST_URL);
-
-        RestAssured.given().header(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId())
-            .body(JsonHandler.unprettyPrint(operationList2)).contentType(MediaType.APPLICATION_JSON)
-            .then().statusCode(Status.OK.getStatusCode())
-            .when().put(LOGBOOK_URL);
-    }
-
-
-    @Test
     public void givenNoZipWhenUploadSipAsStreamThenReturnKO()
         throws Exception {
         reset(workspaceClient);
@@ -315,29 +270,6 @@ public class IngestInternalResourceTest {
             .body(operationList).contentType(MediaType.APPLICATION_JSON)
             .when().post(INGEST_URL)
             .then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
-    }
-
-    @Test
-    public void givenUnzipNonZipErrorWhenUploadSipAsStreamThenReturnKO()
-        throws Exception {
-        reset(workspaceClient);
-        reset(processingClient);
-        Mockito.doThrow(new ContentAddressableStorageCompressedFileException("Test")).when(workspaceClient)
-            .uncompressObject(Matchers.anyString(), Matchers.anyString(), Matchers.anyString(), Matchers.anyObject());
-
-        Mockito.doReturn(Response.ok().build()).when(processingClient).executeVitamProcess(Matchers.anyObject(),
-            Matchers.anyObject(), Matchers.anyObject());
-
-        final InputStream inputStreamZip =
-            PropertiesUtils.getResourceAsStream("SIP_mauvais_format.pdf");
-
-        RestAssured.given()
-            .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.START,
-                GlobalDataRest.X_CONTEXT_ID, START_CONTEXT)
-            .body(inputStreamZip).contentType(CommonMediaType.ZIP)
-            .when().post(INGEST_URL)
-            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
-
     }
 
     @Ignore
@@ -393,56 +325,6 @@ public class IngestInternalResourceTest {
             .when().post(INGEST_URL)
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
-    }
-
-    @Test
-    public void givenProcessBadRequestWhenUploadSipAsStreamThenRaiseAnExceptionProcessingException()
-        throws Exception {
-        reset(workspaceClient);
-        reset(processingClient);
-        Mockito.doThrow(new ProcessingBadRequestException("Test")).when(processingClient).executeVitamProcess(
-            Matchers.anyObject(),
-            Matchers.anyObject(), Matchers.anyObject());
-
-        RestAssured.given()
-            .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.RESUME,
-                GlobalDataRest.X_CONTEXT_ID, DEFAULT_CONTEXT)
-            .body(inputStream).contentType(CommonMediaType.ZIP)
-            .when().post(INGEST_URL)
-            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
-    }
-
-    @Test
-    public void givenProcessInternalExceptionWhenUploadSipAsStreamThenRaiseAnExceptionProcessingException()
-        throws Exception {
-        reset(workspaceClient);
-        reset(processingClient);
-        Mockito.doThrow(new ProcessingInternalServerException("Test1")).when(processingClient).executeVitamProcess(
-            Matchers.anyObject(),
-            Matchers.anyObject(), Matchers.anyObject());
-
-        RestAssured.given()
-            .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.RESUME,
-                GlobalDataRest.X_CONTEXT_ID, DEFAULT_CONTEXT)
-            .body(inputStream).contentType(CommonMediaType.ZIP)
-            .when().post(INGEST_URL)
-            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
-    }
-
-    @Test
-    public void givenProcessUnavailableWhenUploadSipAsStreamThenRaiseAnExceptionProcessingException()
-        throws Exception {
-        reset(workspaceClient);
-        reset(processingClient);
-        Mockito.doThrow(new ProcessingException("")).when(processingClient).executeVitamProcess(Matchers.anyObject(),
-            Matchers.anyObject(), Matchers.anyObject());
-
-        RestAssured.given()
-            .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.RESUME,
-                GlobalDataRest.X_CONTEXT_ID, DEFAULT_CONTEXT)
-            .body(inputStream).contentType(CommonMediaType.ZIP)
-            .when().post(INGEST_URL)
-            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
     @Test

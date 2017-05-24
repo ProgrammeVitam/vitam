@@ -38,6 +38,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -120,6 +121,8 @@ public interface DefaultOfferService {
      *            the part of the object to create (chunk style)
      * @param ending
      *            true if objectPart is the last part
+     * @param type
+     *            the object type to create
      * @return the digest of the complete file or the digest of the chunk
      *
      * @throws IOException
@@ -129,8 +132,8 @@ public interface DefaultOfferService {
      */
     // TODO P1 : add chunk number to be able to retry and check error
     // TODO P1 : better chunk management
-    String createObject(String containerName, String objectId, InputStream objectPart, boolean ending)
-            throws IOException, ContentAddressableStorageException;
+    String createObject(String containerName, String objectId, InputStream objectPart, boolean ending, DataCategory
+        type) throws IOException, ContentAddressableStorageException;
 
     /**
      * Check if object exists
@@ -200,15 +203,16 @@ public interface DefaultOfferService {
      *            the digest to be compared with
      * @param digestAlgorithm
      *            the digest Algorithm
-     *
+     *@param type
+     *            the object type to delete
      * @throws ContentAddressableStorageNotFoundException
      *             Thrown when the container cannot be located or the blob
      *             cannot be located in the container.
      * @throws ContentAddressableStorageException
      *             Thrown when delete action failed due some other failure
      */
-    void deleteObject(String containerName, String objectId, String digest, DigestType digestAlgorithm)
-            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
+    void deleteObject(String containerName, String objectId, String digest, DigestType digestAlgorithm, DataCategory
+        type) throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 
     /**
      * Check digest (UNIMPLEMENTED)

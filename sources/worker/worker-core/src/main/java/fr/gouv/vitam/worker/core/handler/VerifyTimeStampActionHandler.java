@@ -37,9 +37,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
  */
 public class VerifyTimeStampActionHandler extends ActionHandler {
 
-
     private static final String HANDLER_ID = "VERIFY_TIMESTAMP";
-
 
     /**
      * @return HANDLER_ID
@@ -53,8 +51,7 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
     public ItemStatus execute(WorkerParameters param, HandlerIO handler)
         throws ProcessingException, ContentAddressableStorageServerException {
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
-
-
+        //TODO : check timestamp obtained vs timestamp calculated
         return itemStatus;
     }
 

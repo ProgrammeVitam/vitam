@@ -189,7 +189,7 @@ public class FileDriverMapper implements DriverMapper {
             Files.write(Paths.get(configuration.getDriverMappingPath() + driverName), getContentFrom(offerIds).getBytes());
         } catch (final IOException exc) {
             final String log = VitamCodeHelper.getLogMessage(VitamCode.STORAGE_DRIVER_MAPPING_SAVE, driverName);
-            LOGGER.error(log);
+            LOGGER.error(log + " File: " + Paths.get(configuration.getDriverMappingPath() + driverName).toAbsolutePath());
             throw new StorageDriverMapperException(log, exc);
         }
     }

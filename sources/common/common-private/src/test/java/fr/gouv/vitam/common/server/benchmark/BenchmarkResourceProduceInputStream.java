@@ -96,7 +96,7 @@ public class BenchmarkResourceProduceInputStream extends ApplicationStatusResour
     }
 
     private void buildReponse(AsyncResponse asyncResponse) {
-        new AsyncInputStreamHelper(asyncResponse, new FakeInputStream(size, true))
+        new AsyncInputStreamHelper(asyncResponse, new FakeInputStream(size, true, true))
             .writeResponse(Response.ok());
     }
 

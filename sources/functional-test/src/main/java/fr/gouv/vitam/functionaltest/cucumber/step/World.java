@@ -26,6 +26,11 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
+import java.io.File;
+import java.io.IOException;
+
+import org.assertj.core.api.Fail;
+
 import cucumber.api.Scenario;
 import cucumber.api.java.After;
 import cucumber.api.java.Before;
@@ -34,25 +39,34 @@ import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
+import fr.gouv.vitam.client.IhmRecetteClient;
+import fr.gouv.vitam.client.IhmRecetteClientFactory;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.functionaltest.services.WorkSpaceClientConfiguration;
+import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.functionaltest.configuration.TnrClientConfiguration;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
-import java.io.File;
-import java.io.IOException;
-
 public class World {
 
     public static final String TNR_BASE_DIRECTORY = "tnrBaseDirectory";
-    public static final String WORKSPACE_URI = "workSpaceURI";
+
+    private static final String TNR_CONF = "tnr.conf";
+    public static final String DEFAULT_ACCESS_CONTRACT_NAME = "ContratTNR";
 
 
     private int tenantId;
+    private static boolean beforeTest = true;
+
+
+    private String contractId;
 
     /**
      * id of the operation
@@ -70,34 +84,44 @@ public class World {
     private AccessExternalClient accessClient;
 
     /**
-     * admin eternal client
+     * admin external client
      */
     private AdminExternalClient adminClient;
+
     /**
-     *
+     * logbook operations client
+     */
+    private LogbookOperationsClient logbookOperationsClient;
+    /**
+     * Storage Client
      */
     StorageClient storageClient;
+    /**
+     * tnr configuration
+     */
+    private TnrClientConfiguration tnrClientConfiguration;
 
-    private String workspaceUri;
 
     /**
      *
      */
     WorkspaceClient workspaceClient;
+
     /**
      * base path of all the feature
      */
     private String baseDirectory = System.getProperty(TNR_BASE_DIRECTORY);
 
-
-
     @Before
     public void init() throws IOException {
+        configuration();
         ingestClient = IngestExternalClientFactory.getInstance().getClient();
         accessClient = AccessExternalClientFactory.getInstance().getClient();
         adminClient = AdminExternalClientFactory.getInstance().getClient();
         storageClient = StorageClientFactory.getInstance().getClient();
-        configureWorSpaceClient();
+        WorkspaceClientFactory.changeMode(tnrClientConfiguration.getUrlWorkspace());
+        configureLogbookClient();
+        logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient();
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
     }
 
@@ -110,6 +134,17 @@ public class World {
     @Given("^les tests effectués sur le tenant (\\d+)$")
     public void the_test_are_done_on_tenant(int tenantId) throws Throwable {
         this.tenantId = tenantId;
+    }
+    
+    /**
+     * define a contractId
+     *
+     * @param contractId id of the access contract
+     * @throws Throwable
+     */
+    @Given("^les tests effectués sur le contrat id (.*)$")
+    public void the_test_are_done_on_contract(String contractId) throws Throwable {
+        this.contractId = contractId;
     }
 
     /**
@@ -141,12 +176,23 @@ public class World {
     }
 
     /**
-     * Workspace  client
+     * Workspace client
      *
      * @return
      */
     public WorkspaceClient getWorkspaceClient() {
         return workspaceClient;
+    }
+
+
+
+    /**
+     * Workspace client
+     *
+     * @return
+     */
+    public LogbookOperationsClient getLogbookOperationsClient() {
+        return logbookOperationsClient;
     }
 
     /**
@@ -163,6 +209,25 @@ public class World {
         this.operationId = operationId;
     }
 
+    /**
+     * @return
+     */
+    public String getContractId() {
+        if (contractId == null) {
+            return DEFAULT_ACCESS_CONTRACT_NAME;
+        }
+        return contractId;
+    }
+
+    /**
+     * @param contractId
+     * @return
+     */
+    public World setContractId(String contractId) {
+        this.contractId = contractId;
+        return this;
+    }
+
     @After
     public void finish() {
         adminClient.close();
@@ -170,6 +235,7 @@ public class World {
         ingestClient.close();
         storageClient.close();
         workspaceClient.close();
+        logbookOperationsClient.close();
     }
 
     /**
@@ -186,14 +252,40 @@ public class World {
      * @return base directory on .feature file
      */
     public String getBaseDirectory() {
-        return baseDirectory;
+        return baseDirectory;        
     }
 
+    private void configuration() {
+        File confFile = null;
+        try {
+            confFile = PropertiesUtils.findFile(TNR_CONF);
+            tnrClientConfiguration = PropertiesUtils.readYaml(confFile, TnrClientConfiguration.class);
 
+        } catch (IOException e) {
+            Fail.fail("Unable to load configuration File: \n"+e.getMessage());
+        }
 
-    private void configureWorSpaceClient() throws IOException {
-        File confFile = PropertiesUtils.findFile("workspace-client.conf");
-        WorkSpaceClientConfiguration conf = PropertiesUtils.readYaml(confFile, WorkSpaceClientConfiguration.class);
-        WorkspaceClientFactory.changeMode(conf.getUrlWorkspace());
+    }
+
+    /**
+     * delete data before testion
+     */
+    private void purgeData() {
+        try(IhmRecetteClient ihmRecetteClient = IhmRecetteClientFactory.getInstance().getClient() ) {
+            tnrClientConfiguration.getTenantsTest().stream().forEach((i) -> {
+                try {
+                    ihmRecetteClient.deleteTnrCollectionsTenant(i.toString());
+                } catch (VitamException e) {
+                    // FAIL WHEN unable purge ?
+                    Fail.fail("Unable purge data "+i.toString()+" on tenant: " + i+e.getStackTrace());
+                }
+            });
+        }
+    }
+
+    private void configureLogbookClient() throws IOException {
+        File confFile = PropertiesUtils.findFile("logbook-client.conf");
+        ClientConfigurationImpl conf = PropertiesUtils.readYaml(confFile, ClientConfigurationImpl.class);
+        LogbookOperationsClientFactory.changeMode(conf);
     }
 }

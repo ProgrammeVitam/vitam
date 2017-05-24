@@ -34,78 +34,83 @@ documentation:
     API de versement (Ingest). Ce point d'entrée permet de chercher ou de créer une transaction de versement. Une transaction d'entrée est volatile, c'est à dire qu'elle disparaîtra dès qu'elle sera terminée. Sa terminaison est liée à la production du rapport et sa récupération par le service de transfert ayant effectué l'entrée.
 
     Crée une transaction d'entrée :
-    - une requête unique, avec un 'body' contenant toutes les informations dans un ZIP ou un TAR ou un TAR.GZ ou TAR.BZ2 :
+    - une requête unique, avec un 'body' contenant toutes les informations dans un ZIP ou un TAR ou un TAR.GZ ou TAR.BZ2:
       - Métadonnées dans un format SEDA XML ou Json de nom manifest.xml ou manifest.json (json **UNSUPPORTED**)
       - Tous les binaires dans le répertoire "/content"
     - d'autres formes pourront être implémentées dans des versions ultérieures (multipart/form-data) avec de multiples requêtes utilisant les sous-collections futures *Units* et *Objects*
-  get:
-    description: |
-      **UNSUPPORTED** Request that will return a listing of ingests operations
-    is: [IngestTraits.IngestListingResponse ]
+
   post:
     description: |
-      Two different type of requests can be done in POST :
-
-      - (**UNSUPPORTED**) when there is a X-Http-Method-Override: GET header, the behavior is the same as GET /ingests with a body
-        - request body : JSON of query in DSL Vitam
-        - response : JSON of selected Ingest operations / HTTP CODE 200 or 206
-      - when there is no X-Http-Method-Override: GET header
-        - request body : ZIP or TAR or TAR.GZ or TAR.BZ2 of uploaded SIP
-        - response : JSON asynchronous state / HTTP CODE 202 **UNSUPPORTED**
-        - response : XML synchronous ArchiveTransferReply using HTTP CODE 200 for OK, 206 for OK with Warning, 400 for KO
-    is: [IngestTraits.IngestCreationResponse,IngestTraits.IngestListingResponse, StandardTraits.OverrideGet]
+          response : JSON asynchronous state / HTTP CODE 202 or  500 for KO
+    is: [IngestTraits.IngestCreationResponseAsync]
+    responses:
+          202:
+            body:
     headers:
-      X-Context-Id: (string)
-      description: |
-      - Il indique le type du workflow à exécuter :
-      - Soit le workflow ordinaire incluant toutes les étapes : DefaultIngestWorkflow
-      - Soit le worflow test à blanc qui exclut les étapes d'indéxation des unités archivestiques et des groupes d'objets techniques : DefaultIngestWorkflowBlankTest
-
-      X-ACTION: (string)
-      description: |
-      - Au lancement d'un workflow, on indique désormais le mode d'exécution du workflow : en mode continu (RESUME) ou en mode pas à pas(NEXT)
-
-/operations/{id}:
-    displayName: Operations
-    description: |
-      Cette API permet de mettre à jour un workflow lancé.
-
-    get:
-      description: |
-      Retourne le statut d'une opération donnée
-
-      is: [IngestTraits.IngestListingResponse ]
-    put:
-      description: |
-      headers:
-        X-ACTION: (string)
+      X-Action:
+        required: true
+      X-Context-Id:
+        required: false
         description: |
-        - Au lancement d'un workflow, on indique désormais le mode d'exécution du workflow : en mode continu (RESUME) ou en mode pas à pas(NEXT)
+            Il indique le workflow à exécuter DefaultIngestWorkflow pour lancer le workflow INGEST (avec toutes les étapes) ou DefaultIngestWorkflowBlankTest pour lancer le workflow INGEST-TEST (test à blanc sans les étapes de stockage d'objets et d'indéxation des UA et des GOT)
+        enum: [ "DefaultIngestWorkflow", "DefaultIngestWorkflowBlankTest" ]
 
-      is: [IngestTraits.IngestListingResponse ]
-    delete:
+  /{objectId}/{type}:
+      displayName: IngestsType
       description: |
+        Télécharger un objet associé au processus INGEST (ATR ou Manifest)
+      is: [ StandardTraits.StandardOptionalHeader,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+      StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
+      get:
+        description:  |
+          Permet de télécharger un objet en précisant son identifiant et son type (ATR ou Manifest)
 
-      is: [IngestTraits.IngestListingResponse ]
 
 /operations:
-    displayName: Operations
+  # root endpoint request
+  displayName: Opérations
+  description: |
+    Administration des Workflows Asynchrones (opérations). Certaines opérations devraient être limitées aux seuls administrateurs car elles impactent le back-office.
+  is: [ StandardTraits.StandardOptionalHeader,
+  StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+  StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
+  get:
     description: |
-      Cette API permet de mettre à jour un workflow lancé.
-
+      Request that will return a listing of ingests operations
+    is: [IngestTraits.IngestListingResponse ]
+    
+  /{id}:
+    displayName: Operation
+    is: [ StandardTraits.StandardOptionalHeader,
+    StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+    StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
     get:
+      description:  |
+        Permet de récupérer le statut de l'opération dont l'identifiant est passée en paramètre
+    put:
       description: |
-
-      is: [IngestTraits.IngestListingResponse ]
-    get:
-      description: |
-
-      is: [IngestTraits.IngestListingResponse ]
+       Permet de mettre à jour une opération lancée en précisant l'action à exécuter dans le header X-Action-Id; PAUSE pour la mettre en pause,
+       NEXT pour exécuter l'étape suivante, RESUME pour continuer l'exécution de l'opération jusqu'au bout.
+       **Cette opération ne devrait être ouverte qu'aux administrateurs**
+      headers:
+       X-Action:
+        required: true
+        enum: [ "RESUME", "NEXT", "PAUSE" ]
     delete:
+     description: |
+       Permet d'annuler un workflow lancé.
+       **Cette opération ne devrait être ouverte qu'aux administrateurs**
+    head:
       description: |
-
-      is: [IngestTraits.IngestListingResponse ]
-
+        Permet d'obtenir le statut d'une opération
+      responses:
+       200:
+         description: |
+           L'opération existe et le statut est retourné avec succès
+       204:
+         description: |
+           Opération introuvable
 /status:
   get:
     is: [ StandardTraits.StandardHeader204,

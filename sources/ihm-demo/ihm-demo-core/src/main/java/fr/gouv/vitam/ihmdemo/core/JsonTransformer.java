@@ -92,35 +92,50 @@ public final class JsonTransformer {
         final ArrayNode arrayNode = JsonHandler.createArrayNode();
         for (final JsonNode version : versions) {
             for (final JsonNode object : version) {
-                final ObjectNode objectNode = JsonHandler.createObjectNode();
-                objectNode.put("#id", object.get("_id").asText());
-                final String usage = object.get("DataObjectVersion").asText();
-                if (usages.containsKey(usage)) {
-                    final Integer rank = usages.get(usage) + 1;
-                    objectNode.put("Rank", rank);
-                } else {
-                    usages.put(usage, 0);
-                    objectNode.put("Rank", 0);
-                }
-                objectNode.put("DataObjectVersion", usage);
-                objectNode.put("Size", object.get("Size").asText());
-                if (object.get("FileInfo").get("LastModified") != null) {
-                    objectNode.put("LastModified", object.get("FileInfo").get("LastModified").asText());
-                }
-                if (object.get("FormatIdentification").get("FormatLitteral") != null) {
-                    objectNode.put("FormatLitteral", object.get("FormatIdentification").get("FormatLitteral").asText());
-                }
-                if (object.get("FileInfo").get("Filename") != null) {
-                    objectNode.put("FileName", object.get("FileInfo").get("Filename").asText());
-                }
-                objectNode.set("metadatas", object);
-                arrayNode.add(objectNode);
+                arrayNode.add(getDataObject(usages, object));
                 nbObjects++;
             }
         }
         resultNode.put("nbObjects", nbObjects);
         resultNode.set("versions", arrayNode);
         return resultNode;
+    }
+
+    /**
+     * Retrieve DataObject infos from object version.
+     * 
+     * @param usages usage
+     * @param object object
+     * @return ObjectNode for DataObject version
+     */
+    private static ObjectNode getDataObject(final Map<String, Integer> usages, final JsonNode object) {
+        final ObjectNode objectNode = JsonHandler.createObjectNode();
+        objectNode.put("#id", object.get("_id").asText());
+        final String usage = object.get("DataObjectVersion").asText();
+        final JsonNode finalInfo = object.get("FileInfo");
+        if (usages.containsKey(usage)) {
+            final Integer rank = usages.get(usage) + 1;
+            objectNode.put("Rank", rank);
+        } else {
+            usages.put(usage, 0);
+            objectNode.put("Rank", 0);
+        }
+        objectNode.put("DataObjectVersion", usage);
+        if (object.get("Size") != null) {
+            objectNode.put("Size", object.get("Size").asText());
+        }
+        if (finalInfo != null && finalInfo.get("LastModified") != null) {
+            objectNode.put("LastModified", finalInfo.get("LastModified").asText());
+        }
+        if (object.get("FormatIdentification") != null &&
+            object.get("FormatIdentification").get("FormatLitteral") != null) {
+            objectNode.put("FormatLitteral", object.get("FormatIdentification").get("FormatLitteral").asText());
+        }
+        if (finalInfo != null && finalInfo.get("Filename") != null) {
+            objectNode.put("FileName", finalInfo.get("Filename").asText());
+        }
+        objectNode.set("metadatas", object);
+        return objectNode;
     }
 
     /**
@@ -170,7 +185,7 @@ public final class JsonTransformer {
      *
      * @param logbookOperation logbook operation in JsonNode format
      * @return CSV report logbook
-     * @throws VitamException if unexpected error in CSV file generation process 
+     * @throws VitamException if unexpected error in CSV file generation process
      * @throws IOException if error when write output stream
      * @throws Exception if error in others cases
      */

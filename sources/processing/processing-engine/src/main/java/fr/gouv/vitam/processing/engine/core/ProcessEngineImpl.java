@@ -326,8 +326,7 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
 
         // Add mandatory headers
         ProcessExecutionStatus processExecutionStatus = processWorkflow.getExecutionStatus();
-        String logbookTypeProcess =
-            processWorkflow.getLogbookTypeProcess().toString();
+        String logbookTypeProcess = processWorkflow.getLogbookTypeProcess().toString();
 
         ResponseBuilder currentResponse =
             Response.status(lastStatus).header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, processExecutionStatus)

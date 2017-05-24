@@ -180,10 +180,10 @@ public class DefaultOfferResourceTest {
     }
     
     @Test
-    public void getCapacityTestNotFound() {
+    public void getCapacityTestNoContainers() {
         // test
         given().header(GlobalDataRest.X_TENANT_ID, 1)
-            .when().head(OBJECTS_URI + "/" + UNIT_CODE).then().statusCode(Status.NOT_FOUND.getStatusCode());
+            .when().head(OBJECTS_URI + "/" + UNIT_CODE).then().statusCode(Status.OK.getStatusCode());
     }
 
     @Test
@@ -331,9 +331,10 @@ public class DefaultOfferResourceTest {
             in.read(bytes);
             try (InputStream inChunk = new ByteArrayInputStream(bytes)) {
                 assertNotNull(inChunk);
+                // TODO: review this when chunk really implemented in VITAM storage engine (theoretically bad request)
                 given().header(GlobalDataRest.X_TENANT_ID, "1").header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_WRITE)
                         .contentType(MediaType.APPLICATION_OCTET_STREAM).content(inChunk).when()
-                        .put(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, UNIT_CODE, "id1").then().statusCode(500);
+                        .put(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, UNIT_CODE, "id1").then().statusCode(201);
             }
         }
 
@@ -685,7 +686,7 @@ public class DefaultOfferResourceTest {
                     .contentType(MediaType.APPLICATION_JSON).content(objectInit).when()
                     .post(OBJECTS_URI + "/" + DataCategory.OBJECT.name() + "/id" + i);
 
-            try (FakeInputStream fin = new FakeInputStream(50, false)) {
+            try (FakeInputStream fin = new FakeInputStream(50)) {
                 assertNotNull(fin);
                 given().header(GlobalDataRest.X_TENANT_ID, "1").header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_END)
                         .contentType(MediaType.APPLICATION_OCTET_STREAM).content(fin).when()

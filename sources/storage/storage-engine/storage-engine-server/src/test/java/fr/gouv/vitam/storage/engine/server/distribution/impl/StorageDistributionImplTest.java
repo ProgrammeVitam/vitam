@@ -253,6 +253,26 @@ public class StorageDistributionImplTest {
         assertNotNull(info);
         assertTrue(info.contains("Logbook") && info.contains("successfully"));
 
+        // Store storageLog
+        stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
+        stream2 = new FileInputStream(PropertiesUtils.findFile("object.zip"));
+        reset(client);
+        when(client.getObject("container1" + this, "SIP/content/test.pdf"))
+            .thenReturn(Response.status(Status.OK).entity(stream)
+                .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).build())
+            .thenReturn(Response.status(Status.OK).entity(stream2).build());
+        try {
+            storedInfoResult =
+                customDistribution.storeData(STRATEGY_ID, objectId, createObjectDescription, DataCategory.STORAGELOG,
+                    "testRequester");
+        } finally {
+            IOUtils.closeQuietly(stream);
+        }
+        assertNotNull(storedInfoResult);
+        assertEquals(objectId, storedInfoResult.getId());
+        info = storedInfoResult.getInfo();
+        assertNotNull(info);
+        assertTrue(info.contains("Storagelog") && info.contains("successfully"));
         // Store object group
         stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         stream2 = new FileInputStream(PropertiesUtils.findFile("object.zip"));
@@ -342,18 +362,23 @@ public class StorageDistributionImplTest {
         createObjectDescription.setWorkspaceContainerGUID("container1" + this);
         createObjectDescription.setWorkspaceObjectURI("SIP/content/test.pdf");
 
-        final FileInputStream stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         reset(client);
         when(client.getObject("container1" + this, "SIP/content/test.pdf"))
-            .thenReturn(Response.status(Status.OK).entity(stream)
+            .thenReturn(Response.status(Status.OK).entity(new FileInputStream(PropertiesUtils.findFile("object.zip")))
+                .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).build())
+            .thenReturn(Response.status(Status.OK).entity(new FileInputStream(PropertiesUtils.findFile("object.zip")))
+                .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).build())
+            .thenReturn(Response.status(Status.OK).entity(new FileInputStream(PropertiesUtils.findFile("object.zip")))
+                .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).build())
+            .thenReturn(Response.status(Status.OK).entity(new FileInputStream(PropertiesUtils.findFile("object.zip")))
+                .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).build())
+            .thenReturn(Response.status(Status.OK).entity(new FileInputStream(PropertiesUtils.findFile("object.zip")))
+                .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).build())
+            .thenReturn(Response.status(Status.OK).entity(new FileInputStream(PropertiesUtils.findFile("object.zip")))
                 .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).build());
-        try {
-            // Store object
-            customDistribution
-                .storeData(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
-        } finally {
-            IOUtils.closeQuietly(stream);
-        }
+        // Store object
+        customDistribution
+            .storeData(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
     }
 
     @Test
@@ -504,7 +529,7 @@ public class StorageDistributionImplTest {
         createObjectDescription.setWorkspaceContainerGUID("container1" + this);
         createObjectDescription.setWorkspaceObjectURI("SIP/content/test.pdf");
 
-        FakeInputStream stream = new FakeInputStream(500, false);
+        FakeInputStream stream = new FakeInputStream(500);
         reset(client);
 
         when(client.getObject("container1" + this, "SIP/content/test.pdf")).thenReturn(

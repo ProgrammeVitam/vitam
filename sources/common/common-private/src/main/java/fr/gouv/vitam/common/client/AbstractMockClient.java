@@ -51,6 +51,7 @@ import javax.ws.rs.core.Response;
  * Abstract Mock common client
  */
 public class AbstractMockClient implements MockOrRestClient {
+    protected static final String INTERNAL_SERVER_ERROR = "Internal Server Error";
 
     @Override
     public void checkStatus() {

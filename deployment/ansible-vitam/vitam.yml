@@ -101,7 +101,6 @@
 - hosts: hosts-storage-offer-default
   roles:
     - {role: vitam, vitam_component: offer, java_args: /vitam/conf/offer/default-offer.conf, port_http: "{{vitam_storageofferdefault_port}}", port_http_admin: "{{vitam_storageofferdefault_port_admin}}", secret_platform: "true", port_https: "{{vitam_storageofferdefault_port_https}}", tls_active: true, password_keystore: "{{keystores.server.offer}}", password_manager_keystore: "{{keystores.server.offer}}", password_truststore: "{{truststores.client_storage}}", password_grantedstore: "{{grantedstores.client_storage}}", vitam_certificate_client_type: "storage"}
-    - fix_storage_fs # TEMPORARY FIX !!!!
 
 - hosts: hosts-storage-engine
   roles:

@@ -600,8 +600,6 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     private MongoCursor selectExecute(final LogbookCollections collection, SelectParserSingle parser)
         throws InvalidParseOperationException {
         final SelectToMongoDb selectToMongoDb = new SelectToMongoDb(parser);
-        // FIXME - add a method to VitamDocument to specify if the tenant should be filtered for collection.
-        // if the collection should not be filtered, then the method should be overridden
         Integer tenantId = ParameterHelper.getTenantParameter();
         final Bson condition = and(QueryToMongodb.getCommand(selectToMongoDb.getSelect().getQuery()),
             eq(VitamDocument.TENANT_ID, tenantId));

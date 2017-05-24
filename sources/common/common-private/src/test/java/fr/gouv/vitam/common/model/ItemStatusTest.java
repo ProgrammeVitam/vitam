@@ -27,6 +27,7 @@
 
 package fr.gouv.vitam.common.model;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
@@ -78,4 +79,13 @@ public class ItemStatusTest {
             statusMeter, new HashMap<>(), null, "", ProcessExecutionStatus.COMPLETED);
         assertEquals(StatusCode.OK, itemStatus4.getGlobalStatus());
     }
+
+    @Test
+    public void should_stop_when_blocking_and_KO() throws Exception {
+        ItemStatus itemStatus = new ItemStatus();
+        ItemStatus increment = itemStatus.increment(StatusCode.KO);
+
+        assertThat(increment.shallStop(true)).isTrue();
+    }
+
 }

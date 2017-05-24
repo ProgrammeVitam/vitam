@@ -40,6 +40,7 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServer
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
@@ -66,6 +67,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     private static final String INVALID_PARSE_OPERATION = "Invalid Parse Operation";
     private static final String REQUEST_PRECONDITION_FAILED = "Request precondition failed";
     private static final String NOT_FOUND_EXCEPTION = "Not Found Exception";
+    private static final String ACCESS_CONTRACT_EXCEPTION = "Access by Contract Exception";
     private static final String NO_WRITING_PERMISSION = "No Writing Permission";
     private static final String BLANK_DSL = "select DSL is blank";
     private static final String BLANK_UNIT_ID = "unit identifier should be filled";
@@ -88,7 +90,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
 
     @Override
     public RequestResponse<JsonNode> selectUnits(JsonNode selectQuery) throws InvalidParseOperationException,
-        AccessInternalClientServerException, AccessInternalClientNotFoundException {
+        AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException {
         ParametersChecker.checkParameter(BLANK_DSL, selectQuery);
         VitamThreadUtils.getVitamSession().checkValidRequestId();
 
@@ -102,6 +104,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                 throw new AccessInternalClientNotFoundException(NOT_FOUND_EXCEPTION);
             } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
                 throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);// common
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
             }
 
             return new RequestResponseOK().addResult(response.readEntity(JsonNode.class));
@@ -115,7 +119,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     @Override
     public RequestResponse<JsonNode> selectUnitbyId(JsonNode selectQuery, String idUnit)
         throws InvalidParseOperationException,
-        AccessInternalClientServerException, AccessInternalClientNotFoundException {
+        AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException {
         ParametersChecker.checkParameter(BLANK_DSL, selectQuery);
         ParametersChecker.checkParameter(BLANK_UNIT_ID, idUnit);
         VitamThreadUtils.getVitamSession().checkValidRequestId();
@@ -130,6 +134,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                 throw new AccessInternalClientNotFoundException(NOT_FOUND_EXCEPTION);
             } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
                 throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);// common
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
             }
 
             return new RequestResponseOK().addResult(response.readEntity(JsonNode.class));
@@ -143,7 +149,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     @Override
     public RequestResponse<JsonNode> updateUnitbyId(JsonNode updateQuery, String unitId)
         throws InvalidParseOperationException,
-        AccessInternalClientServerException, AccessInternalClientNotFoundException, NoWritingPermissionException {
+        AccessInternalClientServerException, AccessInternalClientNotFoundException, NoWritingPermissionException,
+        AccessUnauthorizedException {
         ParametersChecker.checkParameter(BLANK_DSL, updateQuery);
         ParametersChecker.checkParameter(BLANK_DSL, updateQuery);
         ParametersChecker.checkParameter(BLANK_UNIT_ID, unitId);
@@ -159,8 +166,10 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                 throw new AccessInternalClientNotFoundException(NOT_FOUND_EXCEPTION);
             } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
                 throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);// common
-            } else if (response.getStatus() == Status.METHOD_NOT_ALLOWED.getStatusCode()){
-                throw new NoWritingPermissionException(NO_WRITING_PERMISSION); 
+            } else if (response.getStatus() == Status.METHOD_NOT_ALLOWED.getStatusCode()) {
+                throw new NoWritingPermissionException(NO_WRITING_PERMISSION);
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
             }
             return new RequestResponseOK().addResult(response.readEntity(JsonNode.class));
         } catch (final VitamClientInternalException e) {
@@ -173,7 +182,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     @Override
     public RequestResponse<JsonNode> selectObjectbyId(JsonNode selectObjectQuery, String objectId)
         throws InvalidParseOperationException,
-        AccessInternalClientServerException, AccessInternalClientNotFoundException {
+        AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException {
         ParametersChecker.checkParameter(BLANK_DSL, selectObjectQuery);
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, objectId);
 
@@ -194,6 +203,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                 throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
                 throw new AccessInternalClientServerException(response.getStatusInfo().getReasonPhrase());
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
             }
 
             return new RequestResponseOK().addResult(response.readEntity(JsonNode.class));
@@ -208,7 +219,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     @Override
     public Response getObject(JsonNode selectObjectQuery, String objectGroupId, String usage, int version)
         throws InvalidParseOperationException, AccessInternalClientServerException,
-        AccessInternalClientNotFoundException {
+        AccessInternalClientNotFoundException, AccessUnauthorizedException {
         ParametersChecker.checkParameter(BLANK_DSL, selectObjectQuery);
         ParametersChecker.checkParameter(BLANK_OBJECT_GROUP_ID, objectGroupId);
         ParametersChecker.checkParameter(BLANK_USAGE, usage);
@@ -235,6 +246,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                     throw new AccessInternalClientServerException(response.getStatusInfo().getReasonPhrase());
                 case OK:
                     break;
+                case UNAUTHORIZED:
+                    throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
                 default:
                     LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
                     throw new AccessInternalClientServerException(
@@ -254,7 +267,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
 
     @Override
     public RequestResponse<JsonNode> selectOperation(JsonNode select)
-        throws LogbookClientException, InvalidParseOperationException {
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         Response response = null;
         try {
             response = performRequest(HttpMethod.GET, LOGBOOK_OPERATIONS_URL, null, select,
@@ -266,6 +279,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
                 LOGGER.error("Illegal Entry Parameter");
                 throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
             }
 
             return new RequestResponseOK().addResult(JsonHandler.getFromString(response.readEntity(String.class)));
@@ -279,7 +294,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
 
     @Override
     public RequestResponse<JsonNode> selectOperationById(String processId, JsonNode select)
-        throws LogbookClientException, InvalidParseOperationException {
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         Response response = null;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
@@ -292,6 +307,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
                 LOGGER.error("Illegal Entry Parameter");
                 throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
             }
 
             return new RequestResponseOK().addResult(JsonHandler.getFromString(response.readEntity(String.class)));
@@ -305,7 +322,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
 
     @Override
     public RequestResponse<JsonNode> selectUnitLifeCycleById(String idUnit, JsonNode queryDsl)
-        throws LogbookClientException, InvalidParseOperationException {
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         VitamThreadUtils.getVitamSession().checkValidRequestId();
         Response response = null;
 
@@ -319,6 +336,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
                 LOGGER.error("Illegal Entry Parameter");
                 throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
             }
 
             return new RequestResponseOK().addResult(JsonHandler.getFromString(response.readEntity(String.class)));
@@ -332,7 +351,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
 
     @Override
     public RequestResponse<JsonNode> selectUnitLifeCycle(JsonNode queryDsl)
-        throws LogbookClientException, InvalidParseOperationException {
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         VitamThreadUtils.getVitamSession().checkValidRequestId();
         Response response = null;
 
@@ -346,6 +365,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
                 LOGGER.error("Illegal Entry Parameter");
                 throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
             }
 
             return new RequestResponseOK().addResult(JsonHandler.getFromString(response.readEntity(String.class)));
@@ -359,7 +380,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
 
     @Override
     public RequestResponse<JsonNode> selectObjectGroupLifeCycleById(String idObject, JsonNode queryDsl)
-        throws LogbookClientException, InvalidParseOperationException {
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         VitamThreadUtils.getVitamSession().checkValidRequestId();
 
         Response response = null;
@@ -374,6 +395,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
                 LOGGER.error("Illegal Entry Parameter");
                 throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
             }
 
             return new RequestResponseOK().addResult(JsonHandler.getFromString(response.readEntity(String.class)));
@@ -388,7 +411,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
 
     @Override
     public RequestResponse<JsonNode> checkTraceabilityOperation(JsonNode query)
-        throws LogbookClientServerException, InvalidParseOperationException {
+        throws LogbookClientServerException, InvalidParseOperationException, AccessUnauthorizedException {
         Response response = null;
         try {
             response = performRequest(HttpMethod.POST, LOGBOOK_CHECK, null, query, MediaType.APPLICATION_JSON_TYPE,
@@ -399,6 +422,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                     LOGGER.info(CHECKS_OPERATION_TRACEABILITY_OK);
                     return new RequestResponseOK()
                         .addResult(JsonHandler.getFromString(response.readEntity(String.class)));
+                case UNAUTHORIZED:
+                    throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
                 default:
                     LOGGER.error("checks operation tracebility is " + status.name() + ":" + status.getReasonPhrase());
                     throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
@@ -415,7 +440,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     @Override
     public Response downloadTraceabilityFile(String operationId)
         throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
-        InvalidParseOperationException {
+        InvalidParseOperationException, AccessUnauthorizedException {
 
         ParametersChecker.checkParameter(BLANK_TRACEABILITY_OPERATION_ID, operationId);
 
@@ -436,6 +461,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                     throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
                 case OK:
                     break;
+                case UNAUTHORIZED:
+                    throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
                 default:
                     LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
                     throw new AccessInternalClientServerException(

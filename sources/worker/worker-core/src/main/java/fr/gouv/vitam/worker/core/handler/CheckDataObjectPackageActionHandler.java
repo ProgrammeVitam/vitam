@@ -62,7 +62,7 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
     /**
      * @return HANDLER_ID
      */
-    public static final String getId() {
+    public static String getId() {
         return HANDLER_ID;
     }
 
@@ -86,13 +86,21 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
                 ItemStatus extractSedaStatus = extractSedaActionHandler.execute(params, handlerIO);
                 itemStatus.setItemsStatus(ExtractSedaActionHandler.getId(), extractSedaStatus);
 
+                if (extractSedaStatus.shallStop(true)) {
+                    return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+                }
+
                 checkNoObjectsActionHandler.close();
                 checkObjectsNumberActionHandler.close();
                 extractSedaActionHandler.close();
             } else {
                 CheckVersionActionHandler checkVersionActionHandler = new CheckVersionActionHandler();
-                ItemStatus checkNoObjectStatus = checkVersionActionHandler.execute(params, handlerIO);
-                itemStatus.setItemsStatus(CheckVersionActionHandler.getId(), checkNoObjectStatus);
+                ItemStatus checkVersionStatus = checkVersionActionHandler.execute(params, handlerIO);
+                itemStatus.setItemsStatus(CheckVersionActionHandler.getId(), checkVersionStatus);
+
+                if (checkVersionStatus.shallStop(true)) {
+                    return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+                }
 
                 CheckObjectsNumberActionHandler checkObjectsNumberActionHandler = new CheckObjectsNumberActionHandler();
                 ItemStatus checkObjectNumberStatus = checkObjectsNumberActionHandler.execute(params, handlerIO);
@@ -103,6 +111,10 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
                 ExtractSedaActionHandler extractSedaActionHandler = new ExtractSedaActionHandler();
                 ItemStatus extractSedaStatus = extractSedaActionHandler.execute(params, handlerIO);
                 itemStatus.setItemsStatus(ExtractSedaActionHandler.getId(), extractSedaStatus);
+
+                if (extractSedaStatus.shallStop(true)) {
+                    return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+                }
 
                 List<IOParameter> inputList = new ArrayList<>();
                 inputList.add(new IOParameter().setUri(handlerIO.getOutput(ExtractSedaActionHandler.OG_ID_TO_UNID_ID_IO_RANK)));
@@ -122,7 +134,6 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
         }
-
 
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }

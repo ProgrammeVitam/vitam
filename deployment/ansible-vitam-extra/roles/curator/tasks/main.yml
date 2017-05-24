@@ -11,7 +11,7 @@
     - "delete_index_topbeat.yml"
     - "delete_index_packetbeat.yml"
   when:
-    - ansible_virtualization_type != 'docker'
+    - inventory_hostname != 'localhost'
 
 - name: copy the systemd unit & timer files for curator
   template:
@@ -19,7 +19,7 @@
     dest: "/usr/lib/systemd/system/{{item}}"
   with_items: "{{ lookup('pipe','find {{role_path}}/templates/systemd/ -type f  -exec basename {} .j2 \\; || true').split('\n') }}"
   when:
-    - ansible_virtualization_type != 'docker'
+    - inventory_hostname != 'localhost'
     - ansible_distribution == 'CentOS'
     - "{{ lookup('pipe', 'test -d {{role_path}}/templates/systemd || echo nofolder') == \"\" }}"
 
@@ -29,7 +29,7 @@
     dest: "/lib/systemd/system/{{item}}"
   with_items: "{{ lookup('pipe','find {{role_path}}/templates/systemd/ -type f  -exec basename {} .j2 \\; || true').split('\n') }}"
   when:
-    - ansible_virtualization_type != 'docker'
+    - inventory_hostname != 'localhost'
     - ansible_distribution == 'Debian'
     - "{{ lookup('pipe', 'test -d {{role_path}}/templates/systemd || echo nofolder') == \"\" }}"
 
@@ -41,5 +41,5 @@
     state: "started"
   with_items: "{{ lookup('pipe','find {{role_path}}/templates/systemd/ -type f -name *.timer.j2 -exec basename {} .j2 \\; || true').split('\n') }}"
   when:
-    - ansible_virtualization_type != 'docker'
+    - inventory_hostname != 'localhost'
     - "{{ lookup('pipe', 'test -d {{role_path}}/templates/systemd || echo nofolder') == \"\" }}"

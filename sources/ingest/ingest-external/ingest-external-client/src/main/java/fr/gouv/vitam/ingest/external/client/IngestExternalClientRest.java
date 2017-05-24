@@ -74,7 +74,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     private static final String NOT_FOUND_EXCEPTION = "Not Found Exception";
     private static final String UNAUTHORIZED = "Unauthorized";
     private static final int TIME_TO_SLEEP = 1000; // one seconds
-    private static final int NB_TRY = 100;
+    private static final int NB_TRY = 500;
 
     IngestExternalClientRest(IngestExternalClientFactory factory) {
         super(factory);
@@ -113,61 +113,55 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
                 default:
                     throw new IngestExternalException("Unknown error");
             }
-
+            // TODO: 5/22/17 return also VitamError when needed
             return  new RequestResponseOK<JsonNode>().parseHeadersFromResponse(response).setHttpCode(response.getStatus());
 
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Ingest External Internal Server Error", e);
             throw new IngestExternalException("Ingest External Internal Server Error", e);
         } finally {
-            if (response != null && response.getStatus() != Status.ACCEPTED.getStatusCode() &&
-                response.getStatus() != Status.BAD_REQUEST.getStatusCode() &&
-                response.getStatus() != Status.PARTIAL_CONTENT.getStatusCode() &&
-                response.getStatus() != Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-                consumeAnyEntityAndClose(response);
-            }
+            consumeAnyEntityAndClose(response);
         }
 
 
     }
 
     @Override
-    public RequestResponse<JsonNode> uploadAndWaitFinishingProcess(InputStream stream, Integer tenantId, String contextId,
+    public String uploadAndWaitFinishingProcess(InputStream stream, Integer tenantId, String contextId,
         String action) throws IngestExternalException {
-        int nb_try = NB_TRY;
-        String x_request_id = null;
+        int nbTry = NB_TRY;
         RequestResponse<JsonNode> response = this.upload(stream, tenantId, contextId, action);
 
 
         int responseStatus = response.getHttpCode();
-        x_request_id = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+        final String xRequestId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 
         if (!Status.fromStatusCode(responseStatus).equals(Status.ACCEPTED)) {
-            return response;
+            return xRequestId;
         }
-        while (Status.fromStatusCode(responseStatus).equals(Status.ACCEPTED) && nb_try > 0) {
+        while (Status.fromStatusCode(responseStatus).equals(Status.ACCEPTED) && nbTry > 0) {
             //SLEEP
-            nb_try--;
+            nbTry--;
             try {
                 Thread.sleep(TIME_TO_SLEEP);
             } catch (InterruptedException ex) {
                 LOGGER.error(ex);
                 Thread.currentThread().interrupt();
-                return response;
+                return xRequestId;
             }
 
             try {
-                response = this.getOperationStatus(x_request_id, tenantId);
+                response = this.getOperationStatus(xRequestId, tenantId);
                 responseStatus = response.getHttpCode();
             } catch (Exception e) {
                 LOGGER.error(e);
                 throw new IngestExternalException(e);
             }
         }
-        if (nb_try < 0) {
+        if (nbTry <= 0) {
             throw new IngestExternalException("Timeout");
         }
-        return    response;
+        return xRequestId;
     }
 
     public Response downloadObjectAsync(String objectId, IngestCollection type, Integer tenantId)
@@ -282,23 +276,29 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
                 performRequest(HttpMethod.PUT, OPERATION_URI + "/" + operationId,
                     headers,
                     MediaType.APPLICATION_JSON_TYPE);
+
+
+            if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                LOGGER.warn("SIP Warning : " + Response.Status.NOT_FOUND.getReasonPhrase());
+                throw new VitamClientInternalException(NOT_FOUND_EXCEPTION);
+            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
+                LOGGER.warn("SIP Warning : " + Response.Status.PRECONDITION_FAILED.getReasonPhrase());
+                throw new VitamClientInternalException(REQUEST_PRECONDITION_FAILED);
+
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                consumeAnyEntityAndClose(response);
+                LOGGER.warn("SIP Warning : " + Response.Status.UNAUTHORIZED.getReasonPhrase());
+                throw new ProcessingException(UNAUTHORIZED);
+            } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+                LOGGER.warn("SIP Warning : " + Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
+                throw new VitamClientInternalException(INTERNAL_SERVER_ERROR);
+            }
+
         } catch (VitamClientInternalException e) {
+            // close only for exception
+            consumeAnyEntityAndClose(response);
             LOGGER.error("VitamClientInternalException: ", e);
             throw new VitamClientException(e);
-        }
-        if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-            LOGGER.warn("SIP Warning : " + Response.Status.NOT_FOUND.getReasonPhrase());
-            throw new VitamClientInternalException(NOT_FOUND_EXCEPTION);
-        } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-            LOGGER.warn("SIP Warning : " + Response.Status.PRECONDITION_FAILED.getReasonPhrase());
-            throw new VitamClientInternalException(REQUEST_PRECONDITION_FAILED);
-
-        } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-            LOGGER.warn("SIP Warning : " + Response.Status.UNAUTHORIZED.getReasonPhrase());
-            throw new ProcessingException(UNAUTHORIZED);
-        } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-            LOGGER.warn("SIP Warning : " + Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
-            throw new VitamClientInternalException(INTERNAL_SERVER_ERROR);
         }
 
         return response;

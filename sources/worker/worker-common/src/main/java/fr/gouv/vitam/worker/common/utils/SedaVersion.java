@@ -26,38 +26,31 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.common.utils;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
- * The class SedaVersion used to get the list the version from the file version.conf
+ * The class SedaVersion used to get the list the versions by type of Data Object from the file version.conf
  */
 public class SedaVersion {
 
-    /**
-     * @param file the file to be processed
-     * @return List of supported version from file
-     * @throws IOException throws when can not read file
-     */
-    public static final List<String> fileVersionList(File file) throws IOException {
-        final List<String> versionList = new ArrayList<>();
+    private List<String> binaryDataObjectVersions;
+    private List<String> physicalDataObjectVersions;
 
-        final FileReader fr = new FileReader(file);
-        final BufferedReader br = new BufferedReader(fr);
-        String line = null;
-
-        while ((line = br.readLine()) != null) {
-            versionList.add(line);
+    public List<String> getVersionForType(String type) {
+        if (SedaConstants.TAG_BINARY_DATA_OBJECT.equals(type)) {
+            return binaryDataObjectVersions;
+        } else if (SedaConstants.TAG_PHYSICAL_DATA_OBJECT.equals(type)) {
+            return physicalDataObjectVersions;
         }
-
-        br.close();
-        fr.close();
-
-        return versionList;
+        return null;
     }
 
+    public void setBinaryDataObjectVersions(String[] binaryDataObjectVersions) {
+        this.binaryDataObjectVersions = Arrays.asList(binaryDataObjectVersions);
+    }
+
+    public void setPhysicalDataObjectVersions(String[] physicalDataObjectVersions) {
+        this.physicalDataObjectVersions = Arrays.asList(physicalDataObjectVersions);
+    }
 }

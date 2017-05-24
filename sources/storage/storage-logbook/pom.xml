@@ -4,12 +4,11 @@
     <parent>
         <groupId>fr.gouv.vitam</groupId>
         <artifactId>storage</artifactId>
-        <version>0.18.0-SNAPSHOT</version>
+        <version>0.19.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>storage-logbook</artifactId>
     <name>Storage Logbook</name>
-
     <dependencies>
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
@@ -90,29 +89,18 @@
                     </execution>
                 </executions>
             </plugin>
-
             <plugin>
-                <artifactId>maven-resources-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>copy-script-resources</id>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/script</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>${basedir}/src/main/script</directory>
-                                    <filtering>true</filtering>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                </executions>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <mainClass>fr.gouv.vitam.storage.logbook.SecureStorageLogbook</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
             </plugin>
         </plugins>
     </build>
-
 </project>

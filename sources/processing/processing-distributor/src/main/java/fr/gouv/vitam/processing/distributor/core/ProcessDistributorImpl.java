@@ -38,11 +38,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -148,10 +151,16 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
                     // Test regarding Unit to be indexed
                     if (ELEMENT_UNITS.equalsIgnoreCase(step.getDistribution().getElement())) {
                         // get the file to retrieve the GUID
-                        final InputStream levelFile =
-                            (InputStream) workspaceClient.getObject(workParams.getContainerName(),
-                                UNITS_LEVEL + "/" + INGEST_LEVEL_STACK).getEntity();
-                        final JsonNode levelFileJson = JsonHandler.getFromInputStream(levelFile);
+                        final Response response = workspaceClient.getObject(workParams.getContainerName(),
+                            UNITS_LEVEL + "/" + INGEST_LEVEL_STACK);
+                        final JsonNode levelFileJson;
+                        try {
+                            final InputStream levelFile =
+                                (InputStream) response.getEntity();
+                            levelFileJson = JsonHandler.getFromInputStream(levelFile);
+                        } finally {
+                            workspaceClient.consumeAnyEntityAndClose(response);
+                        }
                         final Iterator<Entry<String, JsonNode>> iteratorlLevelFile = levelFileJson.fields();
 
                         while (iteratorlLevelFile.hasNext()) {

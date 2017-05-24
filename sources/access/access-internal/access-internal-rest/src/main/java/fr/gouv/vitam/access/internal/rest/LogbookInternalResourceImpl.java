@@ -97,6 +97,11 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  * AccessResourceImpl implements AccessResource
@@ -326,6 +331,7 @@ public class LogbookInternalResourceImpl {
         // Get TenantID
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         Response response = null;
+        GUID checkOperationGUID = null;
         try (LogbookOperationsClient logbookOperationsClient =
             LogbookOperationsClientFactory.getInstance().getClient();
             ProcessingManagementClient processManagementClient =
@@ -334,9 +340,9 @@ public class LogbookInternalResourceImpl {
             LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
 
             // Initialize a new process
-            GUID checkOperationGUID = GUIDFactory.newOperationLogbookGUID(tenantId);
+            checkOperationGUID = GUIDFactory.newOperationLogbookGUID(tenantId);
             processManagementClient.initVitamProcess(LogbookTypeProcess.CHECK.toString(), checkOperationGUID.getId(),
-                DEFAULT_CHECK_TRACEABILITY_WORKFLOW);
+                DEFAULT_CHECK_TRACEABILITY_WORKFLOW);            
 
             // Create logbookOperation for check TRACEABILITY process
             createOrUpdateLogbookOperation(helper, true, checkOperationGUID, StatusCode.STARTED);
@@ -357,9 +363,10 @@ public class LogbookInternalResourceImpl {
 
             // Get the created logbookOperation and return the response
             final JsonNode result = logbookOperationsClient.selectOperationById(checkOperationGUID.getId(), null);
-            return Response.ok().entity(RequestResponseOK.getFromJsonNode(result)).build();
-
-        } catch (BadRequestException | IllegalArgumentException | LogbookClientBadRequestException e) {
+            cleanWorkspace(checkOperationGUID.getId());
+            return Response.ok().entity(RequestResponseOK.getFromJsonNode(result)).build();            
+            
+        } catch (BadRequestException | LogbookClientBadRequestException e) {            
             LOGGER.error(e);
             final Status status = Status.BAD_REQUEST;
             return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
@@ -369,7 +376,7 @@ public class LogbookInternalResourceImpl {
                 .setDescription(e.getMessage())).build();
 
         } catch (InternalServerException | VitamClientException | LogbookClientException |
-            InvalidParseOperationException e) {
+            InvalidParseOperationException | ContentAddressableStorageException e) {
             LOGGER.error(e);
             final Status status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
@@ -386,7 +393,7 @@ public class LogbookInternalResourceImpl {
                 .setState("code_vitam")
                 .setMessage(status.getReasonPhrase())
                 .setDescription(e.getMessage())).build();
-        } finally {
+        } finally {            
             DefaultClient.staticConsumeAnyEntityAndClose(response);
         }
     }
@@ -406,7 +413,7 @@ public class LogbookInternalResourceImpl {
         LogbookOperation operationToCheck = null;
         try (LogbookOperationsClient logbookOperationsClient =
             LogbookOperationsClientFactory.getInstance().getClient()) {
-
+            
             RequestResponseOK requestResponseOK =
                 RequestResponseOK.getFromJsonNode(logbookOperationsClient.selectOperationById(operationId, null));
 
@@ -491,4 +498,15 @@ public class LogbookInternalResourceImpl {
             helper.updateDelegate(parameters);
         }
     }
+        
+    private void cleanWorkspace(final String containerName)
+        throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException {
+        // call workspace
+        try (WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
+            if (workspaceClient.isExistingContainer(containerName)) {
+                workspaceClient.deleteContainer(containerName, true);
+            }
+        }
+    }
+    
 }

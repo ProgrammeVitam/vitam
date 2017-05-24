@@ -125,40 +125,40 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
         LOGGER.debug("FormatIdentificationActionHandler running ...");
 
         final ItemStatus itemStatus = new ItemStatus(FILE_FORMAT);
+
         try {
+            formatIdentifier = FormatIdentifierFactory.getInstance().getFormatIdentifierFor(FORMAT_IDENTIFIER_ID);
+        } catch (final FormatIdentifierNotFoundException e) {
+            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.WORKER_FORMAT_IDENTIFIER_NOT_FOUND,
+                FORMAT_IDENTIFIER_ID), e);
+            itemStatus.increment(StatusCode.FATAL);
+            return new ItemStatus(FILE_FORMAT).setItemsStatus(FILE_FORMAT, itemStatus);
+        } catch (final FormatIdentifierFactoryException e) {
+            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.WORKER_FORMAT_IDENTIFIER_IMPLEMENTATION_NOT_FOUND,
+                FORMAT_IDENTIFIER_ID), e);
+            itemStatus.increment(StatusCode.FATAL);
+            return new ItemStatus(FILE_FORMAT).setItemsStatus(FILE_FORMAT, itemStatus);
+        } catch (final FormatIdentifierTechnicalException e) {
+            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.WORKER_FORMAT_IDENTIFIER_TECHNICAL_INTERNAL_ERROR),
+                e);
+            itemStatus.increment(StatusCode.FATAL);
+            return new ItemStatus(FILE_FORMAT).setItemsStatus(FILE_FORMAT, itemStatus);
+        }
+        File file = null;
+        try {
+            // Get objectGroup metadatas
+            final JsonNode jsonOG = handlerIO.getJsonFromWorkspace(
+                IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName());
 
-            try {
-                formatIdentifier = FormatIdentifierFactory.getInstance().getFormatIdentifierFor(FORMAT_IDENTIFIER_ID);
-            } catch (final FormatIdentifierNotFoundException e) {
-                LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.WORKER_FORMAT_IDENTIFIER_NOT_FOUND,
-                    FORMAT_IDENTIFIER_ID), e);
-                itemStatus.increment(StatusCode.FATAL);
-                return new ItemStatus(FILE_FORMAT).setItemsStatus(FILE_FORMAT, itemStatus);
-            } catch (final FormatIdentifierFactoryException e) {
-                LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.WORKER_FORMAT_IDENTIFIER_IMPLEMENTATION_NOT_FOUND,
-                    FORMAT_IDENTIFIER_ID), e);
-                itemStatus.increment(StatusCode.FATAL);
-                return new ItemStatus(FILE_FORMAT).setItemsStatus(FILE_FORMAT, itemStatus);
-            } catch (final FormatIdentifierTechnicalException e) {
-                LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.WORKER_FORMAT_IDENTIFIER_TECHNICAL_INTERNAL_ERROR),
-                    e);
-                itemStatus.increment(StatusCode.FATAL);
-                return new ItemStatus(FILE_FORMAT).setItemsStatus(FILE_FORMAT, itemStatus);
-            }
-            File file = null;
-            try {
-                // Get objectGroup metadatas
-                final JsonNode jsonOG = handlerIO.getJsonFromWorkspace(
-                    IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName());
+            final Map<String, String> objectIdToUri = getMapOfObjectsIdsAndUris(jsonOG);
 
-                final Map<String, String> objectIdToUri = getMapOfObjectsIdsAndUris(jsonOG);
-
-                final JsonNode qualifiers = jsonOG.get(SedaConstants.PREFIX_QUALIFIERS);
-                if (qualifiers != null) {
-                    final List<JsonNode> versions = qualifiers.findValues(SedaConstants.TAG_VERSIONS);
-                    if (versions != null && !versions.isEmpty()) {
-                        for (final JsonNode versionsArray : versions) {
-                            for (final JsonNode version : versionsArray) {
+            final JsonNode qualifiers = jsonOG.get(SedaConstants.PREFIX_QUALIFIERS);
+            if (qualifiers != null) {
+                final List<JsonNode> versions = qualifiers.findValues(SedaConstants.TAG_VERSIONS);
+                if (versions != null && !versions.isEmpty()) {
+                    for (final JsonNode versionsArray : versions) {
+                        for (final JsonNode version : versionsArray) {
+                            if (version.get(SedaConstants.TAG_PHYSICAL_ID) == null) {
                                 try {
                                     final JsonNode jsonFormatIdentifier =
                                         version.get(SedaConstants.TAG_FORMAT_IDENTIFICATION);
@@ -167,8 +167,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                                     file = loadFileFromWorkspace(objectIdToUri.get(objectId));
 
                                     final ObjectCheckFormatResult result =
-                                        executeOneObjectFromOG(objectId, jsonFormatIdentifier, file,
-                                            version);
+                                        executeOneObjectFromOG(objectId, jsonFormatIdentifier, file, version);
 
                                     itemStatus.increment(result.getStatus());
                                     itemStatus.setSubTaskStatus(objectId, itemStatus);
@@ -185,43 +184,41 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                         }
                     }
                 }
+            }
 
-                if (metadatasUpdated) {
-                    try (final InputStreamFromOutputStream<String> isos = new InputStreamFromOutputStream<String>() {
+            if (metadatasUpdated) {
+                try (final InputStreamFromOutputStream<String> isos = new InputStreamFromOutputStream<String>() {
 
-                        @Override
-                        protected String produce(OutputStream sink) throws Exception {
-                            JsonHandler.writeAsOutputStream(jsonOG, sink);
-                            return params.getObjectName();
-                        }
-                    }) {
-                        handlerIO.transferInputStreamToWorkspace(
-                            IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName(),
-                            isos);
-                    } catch (final IOException e) {
-                        throw new ProcessingException("Issue while reading/writing the ObjectGroup", e);
+                    @Override
+                    protected String produce(OutputStream sink) throws Exception {
+                        JsonHandler.writeAsOutputStream(jsonOG, sink);
+                        return params.getObjectName();
                     }
-                }
-
-            } catch (final ProcessingException e) {
-                LOGGER.error(e);
-                itemStatus.increment(StatusCode.FATAL);
-            } finally {
-                // delete the file
-                if (file != null) {
-                    file.delete();
+                }) {
+                    handlerIO.transferInputStreamToWorkspace(
+                        IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName(),
+                        isos);
+                } catch (final IOException e) {
+                    throw new ProcessingException("Issue while reading/writing the ObjectGroup", e);
                 }
             }
 
-
-            if (itemStatus.getGlobalStatus().getStatusLevel() == StatusCode.UNKNOWN.getStatusLevel()) {
-                itemStatus.increment(StatusCode.OK);
-            }
-
-            LOGGER.debug("FormatIdentificationActionHandler response: " + itemStatus.getGlobalStatus());
-            return new ItemStatus(FILE_FORMAT).setItemsStatus(FILE_FORMAT, itemStatus);
+        } catch (final ProcessingException e) {
+            LOGGER.error(e);
+            itemStatus.increment(StatusCode.FATAL);
         } finally {
+            // delete the file
+            if (file != null) {
+                file.delete();
+            }
         }
+
+        if (itemStatus.getGlobalStatus().getStatusLevel() == StatusCode.UNKNOWN.getStatusLevel()) {
+            itemStatus.increment(StatusCode.OK);
+        }
+
+        LOGGER.debug("FormatIdentificationActionHandler response: " + itemStatus.getGlobalStatus());
+        return new ItemStatus(FILE_FORMAT).setItemsStatus(FILE_FORMAT, itemStatus);
     }
 
 
@@ -255,14 +252,14 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
             }
 
             // TODO P1 : what should we do if more than 1 result (for the moment, we take into account the first one)
-            if (!result.isOk() ||  ((RequestResponseOK<FileFormatModel>) result).getResults().size() == 0 ) {
+            if (!result.isOk() || ((RequestResponseOK<FileFormatModel>) result).getResults().size() == 0) {
                 // format not found in vitam referential
                 objectCheckFormatResult.setStatus(StatusCode.KO);
                 objectCheckFormatResult.setSubStatus(FILE_FORMAT_PUID_NOT_FOUND);
             } else {
                 // check formatIdentification
 
-                RequestResponseOK<FileFormatModel> requestResponseOK = (RequestResponseOK<FileFormatModel>)result;
+                RequestResponseOK<FileFormatModel> requestResponseOK = (RequestResponseOK<FileFormatModel>) result;
                 List<FileFormatModel> results = requestResponseOK.getResults();
                 FileFormatModel refFormat = results.get(0);
                 final JsonNode newFormatIdentification =
@@ -315,7 +312,8 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
             ((ObjectNode) version).set(SedaConstants.TAG_FORMAT_IDENTIFICATION, newFormatIdentification);
         }
         if (newFormatIdentification != null) {
-            final String fiPuid = newFormatIdentification.get(SedaConstants.TAG_FORMAT_ID) != null ? newFormatIdentification.get(SedaConstants.TAG_FORMAT_ID).asText() : null;
+            final String fiPuid = newFormatIdentification.get(SedaConstants.TAG_FORMAT_ID) != null
+                ? newFormatIdentification.get(SedaConstants.TAG_FORMAT_ID).asText() : null;
             if (!puid.equals(fiPuid)) {
                 objectCheckFormatResult.setStatus(StatusCode.WARNING);
                 if (fiPuid != null) {
@@ -329,7 +327,8 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                 metadatasUpdated = true;
             }
             final String name = refFormat.getName();
-            final String fiFormatLitteral = newFormatIdentification.get(SedaConstants.TAG_FORMAT_LITTERAL)!= null ? newFormatIdentification.get(SedaConstants.TAG_FORMAT_LITTERAL).asText() : null;
+            final String fiFormatLitteral = newFormatIdentification.get(SedaConstants.TAG_FORMAT_LITTERAL) != null
+                ? newFormatIdentification.get(SedaConstants.TAG_FORMAT_LITTERAL).asText() : null;
             if (!name.equals(fiFormatLitteral)) {
                 if (diff.length() != 0) {
                     diff.append('\n');
@@ -346,12 +345,13 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                 metadatasUpdated = true;
             }
             final String mimeType = refFormat.getMimeType();
-            final String fiMimeType = newFormatIdentification.get(SedaConstants.TAG_MIME_TYPE)!= null ? newFormatIdentification.get(SedaConstants.TAG_MIME_TYPE).asText() : null;
+            final String fiMimeType = newFormatIdentification.get(SedaConstants.TAG_MIME_TYPE) != null
+                ? newFormatIdentification.get(SedaConstants.TAG_MIME_TYPE).asText() : null;
             if (!mimeType.equals(fiMimeType)) {
                 if (diff.length() != 0) {
                     diff.append('\n');
                 }
-                if (fiMimeType != null ) {
+                if (fiMimeType != null) {
                     diff.append("- " + SedaConstants.TAG_MIME_TYPE + " : ");
                     diff.append(fiMimeType);
                     diff.append('\n');
@@ -406,6 +406,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
         // informations linked to the ObjectGroup
         final JsonNode work = jsonOG.get(SedaConstants.PREFIX_WORK);
         final JsonNode qualifiers = work.get(SedaConstants.PREFIX_QUALIFIERS);
+
         if (qualifiers == null) {
             return binaryObjectsToStore;
         }
@@ -416,8 +417,10 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
         }
         for (final JsonNode version : versions) {
             for (final JsonNode binaryObject : version) {
-                binaryObjectsToStore.put(binaryObject.get(SedaConstants.PREFIX_ID).asText(),
-                    binaryObject.get(SedaConstants.TAG_URI).asText());
+                if (binaryObject.get(SedaConstants.TAG_PHYSICAL_ID) == null) {
+                    binaryObjectsToStore.put(binaryObject.get(SedaConstants.PREFIX_ID).asText(),
+                        binaryObject.get(SedaConstants.TAG_URI).asText());
+                }
             }
         }
         return binaryObjectsToStore;
