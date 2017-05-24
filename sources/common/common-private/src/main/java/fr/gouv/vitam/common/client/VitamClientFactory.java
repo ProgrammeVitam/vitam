@@ -28,6 +28,8 @@ package fr.gouv.vitam.common.client;
 
 import java.io.FileNotFoundException;
 import java.util.Optional;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -86,6 +88,8 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
     public static final MediaType MULTIPART_MIXED_TYPE = new MediaType("multipart", "mixed");
 
     static final AtomicBoolean INIT_STATIC_CONFIG = new AtomicBoolean(false);
+    
+    
     /**
      * Global configuration for Apache: Pooling connection
      */
@@ -106,7 +110,15 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
      */
     static final SocketConfig SOCKETCONFIG = SocketConfig.custom()
         .setTcpNoDelay(true).setSoKeepAlive(true).setSoReuseAddress(true).build();
-    
+
+    /**
+     * Pool of JerseyClient for chunk mode
+     */
+    final Queue<Client> clientJerseyPool = new ConcurrentLinkedQueue<>();
+    /**
+     * Pool JerseyClient for non chunk mode
+     */
+    final Queue<Client> nonChunkedClientJerseyPool = new ConcurrentLinkedQueue<>();
     /**
      * Global configuration for Apache: Idle Monitor
      */
@@ -359,15 +371,45 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
      * Specific to handle Junit tests with given Client
      *
      * @param config
+     * @param useChunkedMode
      * @return the associated client
      */
-    private Client buildClient(ClientConfig config) {
+    private synchronized Client buildClient(ClientConfig config, boolean useChunkedMode) {
         if (givenClient != null) {
             return givenClient;
         }
-        return ClientBuilder.newClient(config);
+        if (useChunkedMode) {
+            if (clientJerseyPool.isEmpty()) {
+                return ClientBuilder.newClient(config);
+            }
+            return clientJerseyPool.poll();
+        } else {
+            if (nonChunkedClientJerseyPool.isEmpty()) {
+                return ClientBuilder.newClient(config);
+            }
+            return nonChunkedClientJerseyPool.poll();
+        }
     }
 
+    @Override
+    public synchronized void resume(Client client, boolean chunk) {
+        if (client == givenClient) {
+            return;
+        }
+        if (chunk) {
+            if (clientJerseyPool.size() > VitamConfiguration.getMaxClientPerHost()) {
+                client.close();
+            } else {
+                clientJerseyPool.add(client);
+            }
+        } else {
+            if (nonChunkedClientJerseyPool.size() > VitamConfiguration.getMaxClientPerHost()) {
+                client.close();
+            } else {
+                nonChunkedClientJerseyPool.add(client);
+            }
+        }
+    }
     /**
      *
      * @return the client chunked mode default configuration
@@ -390,9 +432,9 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
             return givenClient;
         }
         if (useChunkedMode) {
-            return buildClient(config);
+            return buildClient(config, useChunkedMode);
         } else {
-            return buildClient(configNotChunked);
+            return buildClient(configNotChunked, useChunkedMode);
         }
     }
 
@@ -458,6 +500,14 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
             idleMonitor.shutdown();
             idleMonitor.interrupt();
         }
+        for (Client client : clientJerseyPool) {
+            client.close();
+        }
+        clientJerseyPool.clear();
+        for (Client client : nonChunkedClientJerseyPool) {
+            client.close();
+        }
+        nonChunkedClientJerseyPool.clear();
         if (chunkedPoolingManager != null && chunkedPoolingManager != POOLING_CONNECTION_MANAGER) {
             chunkedPoolingManager.close();
         }

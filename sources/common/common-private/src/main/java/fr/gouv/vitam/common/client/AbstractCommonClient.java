@@ -33,7 +33,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.ProcessingException;
@@ -46,7 +45,6 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.apache.http.HttpClientConnection;
 import org.apache.http.conn.ConnectTimeoutException;
 
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -480,12 +478,12 @@ abstract class AbstractCommonClient implements BasicClient {
     @Override
     public void close() {
         if (client != null) {
-            /* clientFactory.chunkedPoolingManager.releaseConnection(client, null,
-                VitamConfiguration.getMaxDelayUnusedConnection(), TimeUnit.MILLISECONDS);*/
+            clientFactory.resume(client, true);
+            //client.close();
         }
         if (clientNotChunked != null) {
-            /* clientFactory.notChunkedPoolingManager.releaseConnection(clientNotChunked, null,
-                VitamConfiguration.getMaxDelayUnusedConnection(), TimeUnit.MILLISECONDS); */
+            clientFactory.resume(clientNotChunked, false);
+            //clientNotChunked.close();
         }
     }
 
