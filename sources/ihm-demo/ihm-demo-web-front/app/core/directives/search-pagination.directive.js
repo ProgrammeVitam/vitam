@@ -56,7 +56,7 @@ angular.module('ihm.demo')
 
       // Check limits (1 - nbPages)
       if ($scope.paginationScope.resultPages != 0 && (pageNumber < 1)) {
-        pageNumber = 1;
+        pageNumber = "";
       }
       if (pageNumber > $scope.paginationScope.resultPages) {
         pageNumber = $scope.paginationScope.resultPages;
