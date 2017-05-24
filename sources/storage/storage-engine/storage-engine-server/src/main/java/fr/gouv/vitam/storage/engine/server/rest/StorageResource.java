@@ -1091,7 +1091,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
                     .addAllResults(resultAsJson))
                 .build();
 
-        } catch (LogbookClientServerException | ArchiveException | TraceabilityException | IOException |
+        } catch (LogbookClientServerException | TraceabilityException | IOException |
             StorageLogException | LogbookClientAlreadyExistsException | LogbookClientBadRequestException e) {
             LOGGER.error("unable to generate secure  log", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
