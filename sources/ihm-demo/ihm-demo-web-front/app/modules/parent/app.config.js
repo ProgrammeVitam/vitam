@@ -48,7 +48,8 @@ config(['$locationProvider' ,'$routeProvider',
 
     }).
     when('/archiveGestion', {
-      templateUrl: "views/in-progress.html"
+      templateUrl: "views/in-progress.html",
+      permission: 'ingest:create'
     }).
     when('/uploadSIP', {
       templateUrl: "views/upload-sip.html",
