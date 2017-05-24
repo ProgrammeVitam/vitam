@@ -71,7 +71,7 @@ public class ContractResource {
     static final String ACCESS_CONTRACTS_URI = "/accesscontracts";
     static final String UPDATE_ACCESS_CONTRACT_URI = "/accesscontract";
     static final String UPDATE_INGEST_CONTRACTS_URI = "/contract";
-    
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ContractResource.class);
     private static final String INGEST_CONTRACT_JSON_IS_MANDATORY_PATAMETER =
         "The json input of ingest contracts is mandatory";
@@ -212,13 +212,13 @@ public class ContractResource {
     }
 
 
-    @Path(UPDATE_ACCESS_CONTRACT_URI)
+    @Path(UPDATE_ACCESS_CONTRACT_URI + "/{id}")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response updateAccessContract(JsonNode queryDsl) {
+    public Response updateAccessContract(@PathParam("id") String contractId, JsonNode queryDsl) {
         try (ContractService<AccessContractModel> accessContract = new AccessContractImpl(mongoAccess)) {
-            RequestResponse requestResponse = accessContract.updateContract(queryDsl);
+            RequestResponse requestResponse = accessContract.updateContract(contractId, queryDsl);
             if (!requestResponse.isOk()) {
                 ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
                 return Response.status(Status.BAD_REQUEST).entity(requestResponse).build();
@@ -236,14 +236,14 @@ public class ContractResource {
                 .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
         }
     }
-    
-    @Path(UPDATE_INGEST_CONTRACTS_URI)
+
+    @Path(UPDATE_INGEST_CONTRACTS_URI + "/{id}")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response updateIngestContract(JsonNode queryDsl) {
+    public Response updateIngestContract(@PathParam("id") String contractId, JsonNode queryDsl) {
         try (ContractService<IngestContractModel> ingestContract = new IngestContractImpl(mongoAccess)) {
-            RequestResponse requestResponse = ingestContract.updateContract(queryDsl);
+            RequestResponse requestResponse = ingestContract.updateContract(contractId, queryDsl);
             if (!requestResponse.isOk()) {
                 ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
                 return Response.status(Status.BAD_REQUEST).entity(requestResponse).build();
@@ -277,9 +277,11 @@ public class ContractResource {
 
             final List<AccessContractModel> accessContractModelList = accessContract.findContracts(queryDsl);
 
-            return Response.status(Status.OK)
+            return Response
+                .status(Status.OK)
                 .entity(
-                    new RequestResponseOK().setHits(accessContractModelList.size(), 0, accessContractModelList.size()).addAllResults(accessContractModelList))
+                    new RequestResponseOK().setHits(accessContractModelList.size(), 0, accessContractModelList.size())
+                        .addAllResults(accessContractModelList))
                 .build();
 
         } catch (ReferentialException e) {

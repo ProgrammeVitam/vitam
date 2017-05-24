@@ -36,8 +36,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
 
     private static final String URI_NOT_FOUND = "URI not found";
     private static final String REQUEST_PRECONDITION_FAILED = "Request precondition failed";
-    private static final String UPDATE_ACCESS_CONTRACT = "/accesscontract";
-    private static final String UPDATE_INGEST_CONTRACT = "/contract";
+    private static final String UPDATE_ACCESS_CONTRACT = "/accesscontract/";
+    private static final String UPDATE_INGEST_CONTRACT = "/contract/";
 
     AdminExternalClientRest(AdminExternalClientFactory factory) {
         super(factory);
@@ -171,13 +171,13 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public RequestResponse updateAccessContract(JsonNode queryDsl, Integer tenantId)
+    public RequestResponse updateAccessContract(String id, JsonNode queryDsl, Integer tenantId)
         throws AccessExternalClientException {
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.PUT, UPDATE_ACCESS_CONTRACT, headers,
+            response = performRequest(HttpMethod.PUT, UPDATE_ACCESS_CONTRACT + id, headers,
                 queryDsl, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response);
@@ -190,13 +190,13 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public RequestResponse updateIngestContract(JsonNode queryDsl, Integer tenantId)
+    public RequestResponse updateIngestContract(String id, JsonNode queryDsl, Integer tenantId)
         throws InvalidParseOperationException, AccessExternalClientException {
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.PUT, UPDATE_INGEST_CONTRACT, headers,
+            response = performRequest(HttpMethod.PUT, UPDATE_INGEST_CONTRACT + id, headers,
                 queryDsl, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response);
@@ -237,9 +237,10 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         try {
-            response = performRequest(HttpMethod.PUT, AdminCollections.PROFILE.getName() + "/" + profileMetadataId, headers,
-                profile, MediaType.APPLICATION_OCTET_STREAM_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
+            response =
+                performRequest(HttpMethod.PUT, AdminCollections.PROFILE.getName() + "/" + profileMetadataId, headers,
+                    profile, MediaType.APPLICATION_OCTET_STREAM_TYPE,
+                    MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
@@ -250,7 +251,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public Response downloadProfileFile(String profileMetadataId, Integer tenantId) throws AccessExternalClientException,
+    public Response downloadProfileFile(String profileMetadataId, Integer tenantId)
+        throws AccessExternalClientException,
         AccessExternalNotFoundException {
         ParametersChecker.checkParameter("Profile is is required", profileMetadataId);
 
@@ -261,13 +263,15 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
 
         Status status = Status.BAD_REQUEST;
         try {
-            response = performRequest(HttpMethod.GET, AdminCollections.PROFILE.getName() +"/"+ profileMetadataId, headers, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            response =
+                performRequest(HttpMethod.GET, AdminCollections.PROFILE.getName() + "/" + profileMetadataId, headers,
+                    MediaType.APPLICATION_OCTET_STREAM_TYPE);
             status = Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
                     return response;
                 default: {
-                    String msgErr = "Error while download profile file : "+profileMetadataId;
+                    String msgErr = "Error while download profile file : " + profileMetadataId;
                     final RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
                     if (!requestResponse.isOk()) {
                         VitamError error = (VitamError) requestResponse;

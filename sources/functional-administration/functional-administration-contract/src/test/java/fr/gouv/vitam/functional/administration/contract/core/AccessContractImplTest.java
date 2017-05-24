@@ -41,6 +41,7 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
@@ -289,8 +290,10 @@ public class AccessContractImplTest {
         update.addActions(setActionStatusInactive, setActionDesactivationDateInactive, setActionLastUpdateInactive);
         updateParser.parse(update.getFinalUpdate());
         JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
+        
+       
         RequestResponse<AccessContractModel> updateContractStatus =
-            accessContractService.updateContract(queryDslForUpdate);
+            accessContractService.updateContract(accessContractModelList.get(0).getId(), queryDslForUpdate);
         assertThat(updateContractStatus).isNotExactlyInstanceOf(VitamError.class);
 
         List<AccessContractModel> accessContractModelListForassert =
@@ -314,7 +317,9 @@ public class AccessContractImplTest {
             setActionLastUpdateActive);
         updateParserActive.parse(updateStatusActive.getFinalUpdate());
         JsonNode queryDslStatusActive = updateParserActive.getRequest().getFinalUpdate();
-        accessContractService.updateContract(queryDslStatusActive);
+        
+        
+        accessContractService.updateContract(accessContractModelList.get(0).getId(), queryDslStatusActive);
 
 
         List<AccessContractModel> accessContractModelListForassert2 =

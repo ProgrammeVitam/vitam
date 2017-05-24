@@ -37,8 +37,8 @@ import javax.ws.rs.core.Response.Status;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
-
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
@@ -58,7 +58,6 @@ import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
 import fr.gouv.vitam.functional.administration.client.model.RegisterValueDetailModel;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterStatus;
-
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
@@ -66,6 +65,7 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesExcepti
 import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
+
 import org.apache.commons.io.IOUtils;
 
 
@@ -309,7 +309,7 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
 
 
     @Override
-    public RequestResponse<AccessContractModel> updateAccessContract(JsonNode queryDsl)
+    public RequestResponse<AccessContractModel> updateAccessContract(String id, JsonNode queryDsl)
         throws InvalidParseOperationException, AdminManagementClientServerException {
         LOGGER.debug("uddate access contract");
         // TODO 2219
@@ -317,7 +317,7 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     }
 
     @Override
-    public RequestResponse<IngestContractModel> updateIngestContract(JsonNode queryDsl)
+    public RequestResponse<IngestContractModel> updateIngestContract(String id, JsonNode queryDsl)
         throws InvalidParseOperationException, AdminManagementClientServerException {
         LOGGER.debug("uddate ingest contract");
         // TODO 2195

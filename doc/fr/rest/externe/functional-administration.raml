@@ -146,24 +146,25 @@ documentation:
     is: [ StandardTraits.StandardHeader204,
       StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader503 ]
 
-/accesscontract:
+/accesscontract/{id}:
   displayName: Access contract
   description: |
    API qui permet de mettre à jour les contrats d'accès via une requête de mise à jour
   put:
-    description: Update access contract
+    description: Update the given access contract
     is: [RegisterTraits.RegisterUpload]
     headers:
       X-Http-Method-Override:
         required: false
 
-/contract:
+/contract/{id}:
   displayName: Ingest contract
   description: |
     API qui permet de mettre à jour les contrats d'entrées via une requête de mise à jour
   put:
-     description: Update access contract
+     description: Update the given ingest contract
      is: [RegisterTraits.RegisterUpload]
      headers:
        X-Http-Method-Override:
          required: false
+

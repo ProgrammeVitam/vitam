@@ -1,5 +1,5 @@
 package fr.gouv.vitam.functional.administration.contract.core;
 
-public enum AccessContractStatus {
+public enum ContractStatus {
     ACTIVE, INACTIVE
 }

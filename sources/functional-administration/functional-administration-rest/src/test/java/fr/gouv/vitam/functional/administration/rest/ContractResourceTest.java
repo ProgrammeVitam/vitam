@@ -124,12 +124,12 @@ public class ContractResourceTest {
     private static int databasePort;
     private static File adminConfigFile;
     private static AdminManagementApplication application;
-    
+
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-    
+
     private static ElasticsearchTestConfiguration configEs = null;
 
     @ClassRule
@@ -232,9 +232,9 @@ public class ContractResourceTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok_unique.json");
         JsonNode json = JsonHandler.getFromFile(fileContracts);
-        
+
         MetaDataClientFactory.changeMode(null);
-        
+
         // transform to json
         given().contentType(ContentType.JSON).body(json)
             .header(GlobalDataRest.X_TENANT_ID, 0)
@@ -245,7 +245,7 @@ public class ContractResourceTest {
             new fr.gouv.vitam.common.database.builder.request.single.Select();
         final BooleanQuery query = and();
         query.add(match("Name", "aUniqueName"));
-        select.setQuery(query);                
+        select.setQuery(query);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         List<String> result = given().contentType(ContentType.JSON).body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, 0)
@@ -336,9 +336,35 @@ public class ContractResourceTest {
             updateParser.parse(update.getFinalUpdate());
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {}
         JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
+
+        List<String> ids = selectContractByName("aName", ContractResource.ACCESS_CONTRACTS_URI);
+
         given().contentType(ContentType.JSON).body(queryDslForUpdate).header(GlobalDataRest.X_TENANT_ID, 0)
-            .when().put(ContractResource.UPDATE_ACCESS_CONTRACT_URI).then().statusCode(Status.OK.getStatusCode());
+            .when().put(ContractResource.UPDATE_ACCESS_CONTRACT_URI + "/" + ids.get(0)).then()
+            .statusCode(Status.OK.getStatusCode());
     }
+
+    private List<String> selectContractByName(String name, String resource) throws Exception {
+        final SelectParserSingle parser = new SelectParserSingle(new VarNameAdapter());
+        Select select = new Select();
+        parser.parse(select.getFinalSelect());
+        parser.addCondition(QueryHelper.eq("Name", name));
+        JsonNode queryDsl = parser.getRequest().getFinalSelect();
+
+
+        // find accessContract with the id1 should return Status.OK
+        JsonPath body = given().contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .body(queryDsl)
+            .when()
+            .get(resource)
+            .then().statusCode(Status.OK.getStatusCode()).extract().body().jsonPath();
+
+        List<String> ids = body.get("$results._id");
+        return ids;
+    }
+
+
 
     @Test
     @RunWithCustomExecutor
@@ -357,10 +383,17 @@ public class ContractResourceTest {
             update.setQuery(QueryHelper.eq("Name", "aName"));
             update.addActions(setActionStatusInactive, setActionDesactivationDateInactive, setActionLastUpdateInactive);
             updateParser.parse(update.getFinalUpdate());
+
+
+
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {}
+
+        List<String> ids = selectContractByName("aName", ContractResource.INGEST_CONTRACTS_URI);
+
         JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
         given().contentType(ContentType.JSON).body(queryDslForUpdate).header(GlobalDataRest.X_TENANT_ID, 0)
-            .when().put(ContractResource.UPDATE_INGEST_CONTRACTS_URI).then().statusCode(Status.OK.getStatusCode());
+            .when().put(ContractResource.UPDATE_INGEST_CONTRACTS_URI + "/" + ids.get(0)).then()
+            .statusCode(Status.OK.getStatusCode());
     }
 
 

@@ -194,6 +194,28 @@ documentation:
       X-Http-Method-Override:
         required: false
 
+/accesscontract/{id}:
+  displayName: Access contract
+  description: |
+   API qui permet de mettre à jour les contrats d'accès via une requête de mise à jour
+  put:
+    description: Update the given access contract
+    is: [RegisterTraits.RegisterUpload]
+    headers:
+      X-Http-Method-Override:
+        required: false
+
+/contract/{id}:
+  displayName: Ingest contract
+  description: |
+    API qui permet de mettre à jour les contrats d'entrées via une requête de mise à jour
+  put:
+     description: Update the given ingest contract
+     is: [RegisterTraits.RegisterUpload]
+     headers:
+       X-Http-Method-Override:
+         required: false
+
 /status:
   get:
     is: [ StandardTraits.StandardHeader204,
