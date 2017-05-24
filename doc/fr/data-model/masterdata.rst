@@ -4,7 +4,7 @@ Base MasterData
 Collections contenues dans la base
 ===================================
 
-Il s'agit des collections relatives aux référentiels utilisés par Vitam.
+La base contient les collections relatives aux référentiels utilisés par la solution logicielle Vitam.
 
 Collection Formats (FileFormat)
 ===============================
@@ -12,7 +12,7 @@ Collection Formats (FileFormat)
 Utilisation de la collection Formats (FileFormat)
 --------------------------------------------------
 
-La collection format permet de stocker les différents formats de fichiers ainsi que leur description.
+La collection Formats permet de stocker les différents formats de fichiers ainsi que leur description. La collection est initialisée à partir de l'import du fichier de signature PRONOM, mis à disposition par le National Archive (UK).
 
 Exemple de JSON stocké en base
 ------------------------------
@@ -54,15 +54,17 @@ Ci-après, la portion d'un bordereau (DROID_SignatureFile_VXX.xml) utilisée pou
 Détail des champs du JSON stocké en base
 ------------------------------------------
 
-"_id": Il s'agit de l'identifiant unique du format dans VITAM.
-    C'est une chaine de caractères composée de 36 signes.
+"_id": identifiant unique du format dans la solution logicielle Vitam.
+    Il s'agit d'une chaîne de caractères composée de 36 caractères.
 
-"CreatedDate": Il s'agit la date de création de la version du fichier de signatures PRONOM.
+"CreatedDate": date de création de la version du fichier de signatures PRONOM utilisé pour initialiser la collection.
+    Il s'agit d'une date au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
     Il est utilisé pour alimenter l’enregistrement correspondant au format dans Vitam (balise DateCreated dans le fichier).
-    Le format de la date correspond à la norme ISO 8601.
+    
 
-"VersionPronom": Il s'agit du numéro de version du fichier de signatures PRONOM utilisé.
-    Ce chiffre est toujours un entier. Le numéro de version de pronom est à l'origine déclaré dans le XML au niveau de la balise <FFSignatureFile> au niveau de l'attribut "version ".
+"VersionPronom": numéro de version du fichier de signatures PRONOM utilisé.
+    Il s'agit d'un entier. 
+    Le numéro de version de PRONOM est à l'origine déclaré dans le XML au niveau de la balise <FFSignatureFile> au niveau de l'attribut "version ".
 
 Dans cet exemple, le numéro de version est 88 :
 
@@ -70,17 +72,18 @@ Dans cet exemple, le numéro de version est 88 :
 
  <FFSignatureFile DateCreated="2016-09-27T15:37:53" Version="88" xmlns="http://www.nationalarchives.gov.uk/pronom/SignatureFile">
 
-"MIMEType": Ce champ contient le MIMEtype du format de fichier.
-    C'est une chaine de caractères renseignée avec le contenu de l'attribut "MIMEType" de la balise <FileFormat>. Cet attribut est facultatif dans le XML.
+"MIMEType": MIMEtype correspondant au format de fichier.
+    Il s'agit d'une chaîne de caractères.
+    Elle est renseignée avec le contenu de l'attribut "MIMEType" de la balise <FileFormat>. Cet attribut est facultatif dans le XML.
 
-"HasPriorityOverFileFormatID" : Liste des PUID des formats sur lesquels le format a la priorité.
+**"HasPriorityOverFileFormatID"** : liste des PUID des formats sur lesquels le format a la priorité.
 
 ::
 
   <HasPriorityOverFileFormatID>1121</HasPriorityOverFileFormatID>
 
 Cet ID est ensuite utilisé dans Vitam pour retrouver le PUID correspondant.
-    S'il existe plusieurs balises <HasPriorityOverFileFormatID> dans le xml pour un format donné, alors les PUID seront stocké dans le JSON sou la forme suivante :
+    S'il existe plusieurs balises <HasPriorityOverFileFormatID> dans le xml pour un format donné, alors les PUID seront stocké dans le JSON sous la forme suivante :
 
 ::
 
@@ -91,7 +94,8 @@ Cet ID est ensuite utilisé dans Vitam pour retrouver le PUID correspondant.
   ],
 
 "PUID": ce champ contient le PUID du format.
-    Il s'agit de l'identifiant unique du format au sein du référentiel pronom. Il est issu du champ "PUID" de la balise <FileFormat>. La valeur est composée du préfixe fmt ou x-fmt, puis d'un nombre correspondant au numéro d'entrée du format dans le référentiel pronom. Les deuéléments sont séparés par un "/"
+    Il s'agit d'une chaîne de caractères.
+    Ce PUID est l'identifiant unique du format au sein du référentiel PRONOM. Il est issu du champ "PUID" de la balise <FileFormat>. La valeur est composée du préfixe fmt ou x-fmt, puis d'un nombre correspondant au numéro d'entrée du format dans le référentiel pronom. Les deux éléments sont séparés par un "/"
 
 Par exemple
 
@@ -101,8 +105,8 @@ Par exemple
 
 Les PUID comportant un préfixe "x-fmt" indiquent que ces formats sont en cours de validation par The National Archives (UK). Ceux possédant un préfixe "fmt" sont validés.
 
-"Version": Ce champ contient la version du format.
-    Il s'agit d'une chaîne de caractère.
+"Version": Version du format.
+    Il s'agit d'une chaîne de caractères.
 
 Exemples de formats :
 
@@ -114,10 +118,12 @@ Exemples de formats :
 
 L'attribut "version" n'est pas obligatoire dans la balise <fileformat> du XML.
 
-"Name": Il s'agit du nom du format.
-    Le champ contient une chaîne de caractère. Le nom du format est issu de la valeur de l'attribut "Name" de la balise <FileFormat> du XML d'entrée.
+"Name": nom du format.
+    Il s'agit d'une chaîne de caractères.
+    Le nom du format est issu de la valeur de l'attribut "Name" de la balise <FileFormat> du XML d'entrée.
 
-"Extension" : Ce champ est un tableau.
+"Extension" : Extension(s) du format.
+    Il s'agit d'un tableau de chaînes de caractères.
     Il contient les valeurs situées entre les balises <Extension> elles-mêmes encapsulées entre les balises <FileFormat>. Le champ <Extension> peut-être multivalué. Dans ce cas, les différentes valeurs situées entre les différentes balises <Extensions> sont placées dans le tableau et séparées par une virgule.
 
 Par exemple, pour le format PUID : fmt/918 on la XML suivant :
@@ -142,21 +148,26 @@ Les valeurs des balises extensions seront stockées de la façon suivante dans l
   ],
 
 "Alert": Alerte sur l'obsolescence du format.
-    C'est un booléen dont la valeur est par défaut placée à False.
+    Il s'agit d'un booléen dont la valeur est par défaut placée à False.
 
-"Comment": Ce champ n'est pas renseigné avec une valeur issue du XML.
-    C'est un champ propre à VITAM qui contient une chaîne de caractère.
+"Comment": Champs permettant d'ajouter un commentaire.
+	Il s'agit d'une chaîne de caractères
+	Ce champ n'est pas renseigné avec une valeur issue du XML. C'est un champ propre à VITAM qui contient une chaîne de caractère.
 
-"Group": Ce champ n'est pas renseigné avec une valeur issue du XML.
-    C'est un champ propre à VITAM qui contient une chaîne de caractère.
 
-Collection Règles de gestion (FileRules)
-=========================================
+"Group": Champs permettant d'indiquer le nom d'une famille de format.
+	Il s'agit d'une chaîne de caractères
+	Ce champ n'est pas renseigné avec une valeur issue du XML. C'est un champ propre à VITAM qui contient une chaîne de caractère.
 
-Utilisation de la collection règles de gestions
------------------------------------------------
+Collection Rules
+================
 
-La collection règles de gestion permet de stocker unitairement les différentes règles de gestion du réferentiel.
+Utilisation de la collection Rules
+-----------------------------------
+
+La collection Rules permet de stocker unitairement les différentes règles de gestion utilisées dans la solution logicielle Vitam pour calculer les échéances associées aux unités archivistiques.
+
+Cette collection est alimentée par l'import d'un fichier csv contenant l'ensemble des règles.
 
 Exemple de JSON stocké en base
 ------------------------------
@@ -186,20 +197,22 @@ RuleId            RuleType          RuleValue               RuleDescription     
 Id de la règle    Type de règle     Intitulé de la règle    Description de la règle     Durée            Unité de mesure de la durée
 ================ ================= ======================= =========================== =============== ===============================
 
-La liste des type de règle disponibles est en annexe 5.4
+La liste des type de règle disponibles est en annexe 5.4.
+
 Les valeurs renseignées dans la colonne unité de mesure doivent correspondre à une valeur de l'énumération RuleMeasurementEnum, à savoir :
-* MOUNTH
-* DAY
-* YEAR
-* SECOND
+  * MOUNTH
+  * DAY
+  * YEAR
+  * SECOND
 
 Détail des champs
 -----------------
 
 "_id": Identifiant unique par tenant de la règle de gestion généré dans VITAM.
-    C'est une chaîne de caractère composée de 36 caractères.
+    Il s'agit d'une chaîne de caractères composée de 36 caractères.
 
-"RuleId": Il s'agit de l'identifiant de la règle dans le référentiel utilisé.
+"RuleId": Identifiant unique par tenant de la règle dans le référentiel utilisé.
+    Il s'agit d'une chaîne de caractères.
     Par commodité, les exemples sont composés d'un Préfixe puis d'une nombre séparés par un tiret, mais ce formalisme n'est pas obligatoire.
 
 Par exemple :
@@ -210,21 +223,32 @@ Par exemple :
 
 Les préfixes indiquent le type de règle dont il s'agit. La liste des valeurs pouvant être utilisée comme préfixe ainsi que les types de règles auxquelles elles font référence sont disponibles en annexe.
 
-"RuleType": *Champ obligatoire* Il s'agit du type de règle.
+"RuleType": *Champ obligatoire* type de règle.
+    Il s'agit d'une chaîne de caractères.
     Il correspond à la valeur située dans la colonne RuleType du fichier csv référentiel. Les valeurs possibles pour ce champ sont indiquées en annexe.
 
-"RuleValue": *Champ obligatoire* Chaîne de caractères décrivant l'intitulé de la règle.
+"RuleValue": *Champ obligatoire* Intitulé de la règle.
+    Il s'agit d'une chaîne de caractères.
     Elle correspond à la valeur située dans la colonne RuleValue du fichier csv référentiel.
 
-"RuleDescription": Chaîne de caractère permettant de décrire la règle.
+"RuleDescription": description de la règle.
+    Il s'agit d'une chaîne de caractères.
     Elle correspond à la valeur située dans la colonne RuleDescriptionRule du fichier csv référentiel.
 
-"RuleDuration": *Champ obligatoire* Chiffre entier compris entre 0 et 9999.
+"RuleDuration": *Champ obligatoire* Durée de la règle.
+    Il s'agit d'un entier compris entre 0 et 9999.
     Associé à la valeur "RuleMeasurement", il permet de décrire la durée d'application de la règle de gestion. Il correspond à la valeur située dans la colonne RuleDuration du fichier csv référentiel.
 
-"RuleMeasurement": *Champ obligatoire* Correspond à l'unité de mesure de la durée décrite dans le champ "RuleDuration".
+"RuleMeasurement": *Champ obligatoire* Unité de mesure de la durée décrite dans la colonne "RuleDuration" du csv.
+    Il s'agit d'une chaîne de caractères devant correspondre à une valeur de l'énumération RuleMeasurementEnum, à savoir :
+      * MOUNTH
+      * DAY
+      * YEAR
+      * SECOND
 
 "CreationDate": Date de création de la règle
+    Il s'agit d'une date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes]
+    ``Exemple : "2016-08-17T08:26:04.227"``
 
 "UpdateDate": Date de mise à jour de la règle
        - Pour l'instant identique à la date de création. Ces deux dates sont mises à jour à chaque import de référentiel.
@@ -289,27 +313,38 @@ Les champs à renseigner obligatoirement à la création d'un contrat sont :
 Détail des champs
 -----------------
 
-"_id": identifiant unique. Il s'agit d'une chaîne de 36 caractères.
+"_id": identifiant unique par tenant. 
+  Il s'agit d'une chaîne de 36 caractères.
 
-"_tenant": nom du tenant
+"_tenant": information sur le tenant
+  Il s'agit de l'identifiant du tenant
 
-"Name" : Unique par tenant. nom du contrat d'entrée. Il s'agit d'une chaîne de caractères.
+"Name" : nom du contrat d'entrée unique par tenant. 
+  Il s'agit d'une chaîne de caractères.
 
-"Description": description du contrat d'entrée. Il s'agit d'une chaîne de caractères.
+"Description": description du contrat d'entrée. 
+  Il s'agit d'une chaîne de caractères.
 
-"Status": statut du contrat. Peut être ACTIVE ou INACTIVE
+"Status": statut du contrat. 
+  Peut être ACTIVE ou INACTIVE
 
-"CreationDate": date de création du contrat. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+"CreationDate": date de création du contrat. 
+  La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
 
-"LastUpdate": date de dernière mise à jour du contrat. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+"LastUpdate": date de dernière mise à jour du contrat. 
+  La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
 
-"ActivationDate": date d'activation. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+"ActivationDate": date d'activation du contrat. 
+  La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
 
-"DeactivationDate": date de désactivation du contrat. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+"DeactivationDate": date de désactivation du contrat. 
+  La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
 
-"ArchiveProfiles": Tableau de chaînes de caractères. Contient la liste des profils d'archivage pouvant être utilisés par le contrat d'entrée.
+"ArchiveProfiles": liste des profils d'archivage pouvant être utilisés par le contrat d'entrée.
+  Tableau de chaînes de caractères. 
 
 "FilingParentId": le point de rattachement -- id d’une unité archivistique dans le plan de classement
+  Il s'agit d'une chaîne de 36 caractères
 
 Collection AccessContract
 =========================
@@ -371,27 +406,37 @@ Les champs à renseigner obligatoirement à la création d'un contrat sont :
 Détail des champs
 -----------------
 
-"_id": identifiant unique. Il s'agit d'une chaîne de 36 caractères.
+"_id": identifiant unique par tenant. 
+  Il s'agit d'une chaîne de 36 caractères.
 
-"_tenant": nom du tenant
+"_tenant": information sur le tenant
+  Il s'agit de l'identifiant du tenant
 
-"Name" : Unique par tenant. nom du contrat d'accès. Il s'agit d'une chaîne de caractères.
+"Name" : nom du contrat d'entrée unique par tenant. 
+  Il s'agit d'une chaîne de caractères.
 
-"Description": description du contrat d'accès. Il s'agit d'une chaîne de caractères.
+"Description": description du contrat d'accès. 
+  Il s'agit d'une chaîne de caractères.
 
-"Status": statut du contrat. Peut être ACTIVE ou INACTIVE
+"Status": statut du contrat. 
+  Peut être ACTIVE ou INACTIVE
 
-"CreationDate": date de création du contrat. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+"CreationDate": date de création du contrat. 
+  La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
 
-"LastUpdate": date de dernière mise à jour du contrat. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+"LastUpdate": date de dernière mise à jour du contrat. 
+  La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
 
-"ActivationDate": date d'activation. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+"ActivationDate": date d'activation du contrat. 
+  La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
 
-"DeactivationDate": date de désactivation du contrat. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+"DeactivationDate": date de désactivation du contrat. 
+  La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
 
-"OriginatingAgencies": tableau contenant les services producteurs pour lesquels le détenteur du contrat a accès peut consulter les archives. Il s'agit d'un tableau de chaînes de caractères.
+"OriginatingAgencies": services producteurs pour lesquels le détenteur du contrat a accès peut consulter les archives. 
+  Il s'agit d'un tableau de chaînes de caractères.
 
-"DataObjectVersion": tableau contenant tous les usages d'un groupe d'objet à qui l'utilisateur souhaite d'avoir d'access.
+"DataObjectVersion": usages d'un groupe d'objet à qui l'utilisateur souhaite d'avoir d'access.
 
 "WritingPermission": droit d'écriture. Peut être true ou false. S'il est true, on peut éditer des métadonnées d’une unité archivistique.
 
@@ -474,9 +519,9 @@ Détail des champs
 
 "ActivationDate": date d'activation du profil d'archivage. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
 
-"DeactivationDate": date de desactivation du profil d'archivage. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+"DeactivationDate": date de désactivation du profil d'archivage. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
 
-"Path": Chaine de caractères. Indique le nom du fichier de règles associé au profil d'archivage.
+"Path": Chaîne de caractères. Indique le nom du fichier de règles associé au profil d'archivage.
 
 Collection AccessionRegisterSummary
 ===================================
@@ -533,7 +578,7 @@ Les seuls élements issus des bordereaux (manifest.xml), utilisés ici sont ceux
 Détail des champs
 -----------------
 
-"_id": Identifiant unique. Il s'agit d'une chaine de 36 caractères.
+"_id": Identifiant unique. Il s'agit d'une chaîne de 36 caractères.
 
 "_tenant": 0
 
@@ -642,7 +687,7 @@ Détail des champs
 -----------------
 
 "_id": Identifiant unique.
-    Il s'agit d'une chaine de 36 caractères.
+    Il s'agit d'une chaîne de 36 caractères.
 
 "_tenant": 0, Identifiant du tenant
     *Utilisation post-béta*
