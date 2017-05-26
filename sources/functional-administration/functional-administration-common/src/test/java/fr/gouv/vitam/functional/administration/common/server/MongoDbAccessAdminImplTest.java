@@ -256,6 +256,7 @@ public class MongoDbAccessAdminImplTest {
         if (esConfig != null) {
             JunitHelper.stopElasticsearchForTest(esConfig);
         }
+        esClient.close();
         mongod.stop();
         mongodExecutable.stop();
         junitHelper.releasePort(port);

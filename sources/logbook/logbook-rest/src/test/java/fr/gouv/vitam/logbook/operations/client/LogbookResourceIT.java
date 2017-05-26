@@ -231,7 +231,7 @@ public class LogbookResourceIT {
                 "\"MinusOneMonthLogbookTraceabilityDate\":\"2017-01-16T23:01:03.49\",\"MinusOneYearLogbookTraceabilityDate\":\"2016-02-16T23:01:03.49\"," +
                 "\"NumberOfElement\":112,\"FileName\":\"0_LogbookOperation_20170220_094625.zip\",\"Size\":3089204}";
         LogbookOperationParameters traceabilityParametersStart = LogbookParametersFactory.newLogbookOperationParameters(
-            eip1, "LOGBOOK_OP_SECURISATION", eip1, LogbookTypeProcess.TRACEABILITY,
+            eip1, "STP_OP_SECURISATION", eip1, LogbookTypeProcess.TRACEABILITY,
             StatusCode.STARTED, "Début de la sécurisation des journaux", eip1);
         LogbookOperationParameters traceabilityParametersStpStart =
             LogbookParametersFactory.newLogbookOperationParameters(
@@ -261,7 +261,7 @@ public class LogbookResourceIT {
 
         LogbookOperationParameters traceabilityParameters2Start =
             LogbookParametersFactory.newLogbookOperationParameters(
-                eip2, "LOGBOOK_OP_SECURISATION", eip2, LogbookTypeProcess.TRACEABILITY,
+                eip2, "STP_OP_SECURISATION", eip2, LogbookTypeProcess.TRACEABILITY,
                 StatusCode.STARTED, "Début de la sécurisation des journaux", eip2);
         LogbookOperationParameters traceabilityParameters2StpStart =
             LogbookParametersFactory.newLogbookOperationParameters(

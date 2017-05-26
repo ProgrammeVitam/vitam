@@ -205,14 +205,14 @@ public class LogbookOperationsImplWithDatabasesTest {
 
         logbookParameters4 = LogbookParametersFactory.newLogbookOperationParameters(
             eip4,
-            "LOGBOOK_OP_SECURISATION", eip4, LogbookTypeProcess.TRACEABILITY,
+            "STP_OP_SECURISATION", eip4, LogbookTypeProcess.TRACEABILITY,
             StatusCode.STARTED, null, null, eip4);
 
         logbookParameters4.putParameterValue(LogbookParameterName.eventDateTime, datestring4);
 
         logbookParameters5 = LogbookParametersFactory.newLogbookOperationParameters(
             eip6,
-            "LOGBOOK_OP_SECURISATION", eip6, LogbookTypeProcess.TRACEABILITY,
+            "STP_OP_SECURISATION", eip6, LogbookTypeProcess.TRACEABILITY,
             StatusCode.STARTED, null, null, eip6);
 
         logbookParameters5.putParameterValue(LogbookParameterName.eventDateTime, datestring6);
