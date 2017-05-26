@@ -380,6 +380,7 @@ public class LogbookAdministration {
             digest.update(hash);
             final byte[] hashDigest = digest.digest();
 
+            // TODO maybe nonce could be different than null ? If so, think about changing VerifyTimeStampActionHandler
             final byte[] timeStampToken = timestampGenerator.generateToken(hashDigest, digestType, null);
 
             createLogbookOperationEvent(eip, tenantId, TIMESTAMP, OK, null);

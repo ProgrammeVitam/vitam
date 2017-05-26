@@ -6,15 +6,15 @@ Cette partie décrit les fonctionnalités de recherche et de consultation d'une 
 Recherche d'une unité archivistique
 ===================================
 
-La recherche d'une unité archivistique s'effectue depuis le menu "Recherche d'archives". 
+La recherche d'une unité archivistique s'effectue depuis le menu "Recherche d'archives".
 
 .. image:: images/menu_recherche.jpg
 
-L'accès à deux modes de recherche est proposé sur la page "Recherche d'archives" : 
+L'accès à deux modes de recherche est proposé sur la page "Recherche d'archives" :
 
 - l'un simple, de type recherche libre
-- l'autre, complexe ciblant certains types de métadonnées. 
-  
+- l'autre, complexe ciblant certains types de métadonnées.
+
 Chacun de ces modes est accessible par un onglet spécifique.
 
 Par défaut, le mode recherche simple est affiché.
@@ -28,7 +28,7 @@ En cliquant sur l'onglet "Recherche avancée", la page affiche le formulaire de 
 Recherche simple
 ----------------
 
-Pour effectuer une recherche simple, l'utilisateur saisit un ou plusieurs mots dans le champ de recherche puis presse la touche "Entrée" de son clavier ou clique sur le bouton "Rechercher". 
+Pour effectuer une recherche simple, l'utilisateur saisit un ou plusieurs mots dans le champ de recherche puis presse la touche "Entrée" de son clavier ou clique sur le bouton "Rechercher".
 Le ou les mots saisis vont être recherchés dans les métadonnées "Titre" et "Description" des unités archivistiques. La recherche simple s'effectue sur chacun des mots entrés de manière indépendante et permet de trouver les mots appartenant à l'un, à l'autre, ou aux deux ensembles de métadonnées visés. Il n’est pas possible de la paramétrer.
 
 .. image:: images/search_v1.png
@@ -150,6 +150,19 @@ Chaque objet est listé dans une ligne du tableau, Les colonnes affichent les in
 - une icône téléchargement : une icône, flèche bleue pointant vers le bas, permet de consulter l'objet.
 
 .. image:: images/detail_v3.png
+
+En ce qui concerne les objets physiques, les colonnes affichent les informations suivantes :
+- l'identifiant
+- l'identifiant du groupe d'objets techniques
+- le PhysicalId
+- son usage (PhysicalMaster)
+- la taille complète correspondante à l'objet physique (longueur, largeur, hauteur, épaisseur, diamètree)
+- le poids
+- le nombre de pages
+
+Les unités disponibles sont celles répertoriées par l'UNECE.
+
+.. image:: images/detail_v4.png
 
 
 Journaux du cycle de vie

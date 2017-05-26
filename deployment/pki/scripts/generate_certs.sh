@@ -224,6 +224,7 @@ generateHostCertAndStorePassphrase          offer                    hosts-stora
 pki_logger "Génération des certificats timestamping"
 # Method                                    # Component name         # Host group name
 generateTimestampCertAndStorePassphrase     logbook                  hosts-logbook
+generateTimestampCertAndStorePassphrase     worker                   hosts-worker
 
 # Generate clients certificates
 pki_logger "Génération des certificats clients"
