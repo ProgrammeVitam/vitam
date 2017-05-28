@@ -61,6 +61,10 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
         // Empty
     }
 
+    @Override public boolean isOperationCompleted(String operationId) {
+        return false;
+    }
+
     @Override
     public ItemStatus getOperationProcessStatus(String id)
         throws VitamClientException, InternalServerException, BadRequestException {
@@ -119,10 +123,11 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
 
 
 
+
     @Override
     public RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId, String actionId)
         throws InternalServerException, BadRequestException, VitamClientException {
-        return new RequestResponseOK<JsonNode>().addHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, FAKE_EXECUTION_STATUS);
+        return new RequestResponseOK<JsonNode>().addHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, FAKE_EXECUTION_STATUS);
 
     }
 

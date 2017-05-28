@@ -24,49 +24,18 @@
  *  The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  *  accept its terms.
  */
-package fr.gouv.vitam.processing.engine.api;
 
-
-import fr.gouv.vitam.processing.common.automation.IEventsProcessEngine;
-import fr.gouv.vitam.processing.common.exception.ProcessingEngineException;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.ProcessStep;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-
-import java.util.Map;
+package fr.gouv.vitam.common.exception;
 
 /**
- * Process Engine Interface Provides access to all the services and to manage a workflow of operations.
+ * This exception is thrown only if transition for the currentState to the given new state is not allowed
+ * Possible case:
+ * current state is completed, any action (next, resume, cancel, pause)
+ * current state is running, action is next or resume
+ *
  */
-
-public interface ProcessEngine {
-
-
-    /**
-     * Set the state machine where the ProcessEngine return response on complete or on error
-     * @param callback
-     */
-    void setCallback(IEventsProcessEngine callback);
-
-    /**
-     * Start the execution of the given step
-     *
-     * @param step
-     * @param workerParameters
-     * @throws ProcessingException
-     */
-    void start(ProcessStep step, WorkerParameters workerParameters, Map<String, String> params)
-        throws ProcessingEngineException;
-
-    /**
-     * Pause the execution of the current step
-     * Send message to the distributor to cancel the execution of the current step
-     */
-    void pause();
-
-    /**
-     * Cancel the execution of the current step
-     * Send message to the distributor to cancel the execution of the current step
-     */
-    void cancel();
+public class StateNotAllowedException extends VitamException {
+    public StateNotAllowedException(String message) {
+        super(message);
+    }
 }

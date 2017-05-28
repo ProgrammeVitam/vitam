@@ -69,6 +69,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.model.ProcessState;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.apache.shiro.subject.Subject;
@@ -116,7 +117,6 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ProcessExecutionStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.security.SanityChecker;
@@ -1566,14 +1566,14 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
         try (IngestExternalClient ingestExternalClient = IngestExternalClientFactory.getInstance().getClient()) {
             response = ingestExternalClient.updateOperationActionProcess(xAction, id);
+            final String globalExecutionState =
+                response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATE);
             final String globalExecutionStatus =
                 response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS);
 
             final boolean isCompletedProcess =
-                globalExecutionStatus != null && (ProcessExecutionStatus.COMPLETED
-                    .equals(ProcessExecutionStatus.valueOf(globalExecutionStatus)) ||
-                    ProcessExecutionStatus.FAILED
-                        .equals(ProcessExecutionStatus.valueOf(globalExecutionStatus)));
+                globalExecutionState != null && ProcessState.COMPLETED
+                    .equals(ProcessState.valueOf(globalExecutionState));
 
             if (isCompletedProcess) {
                 final InputStream inputStream = (InputStream) response.getEntity();
@@ -1591,6 +1591,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                         .header("Content-Disposition",
                             "attachment; filename=ATR_" + id + ".xml")
                         .header(GlobalDataRest.X_REQUEST_ID, id)
+                        .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, globalExecutionState)
                         .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, globalExecutionStatus)
                         .build();
                 } else {

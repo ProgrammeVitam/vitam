@@ -32,6 +32,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import fr.gouv.vitam.common.exception.StateNotAllowedException;
+import fr.gouv.vitam.common.model.ProcessState;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -47,8 +49,6 @@ import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.ProcessAction;
-import fr.gouv.vitam.common.model.ProcessExecutionStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -94,31 +94,19 @@ public class ProcessManagementImplTest {
         PowerMockito.when(WorkspaceProcessDataManagement.getInstance()).thenReturn(processDataManagement);
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void givenProcessingManagementWhenWorkflowIsNullThenThrowIllegalArgumentException()
-        throws ProcessingException {
-        PowerMockito.doReturn(new HashMap<String, List<Object>>()).when(processDataManagement).getProcessWorkflowFor
-            (Matchers.anyInt(), Matchers.anyString());
-        processManagementImpl = new ProcessManagementImpl(new ServerConfiguration());
-        processManagementImpl.submitWorkflow(WorkerParametersFactory.newWorkerParameters(), CONTAINER_NAME,
-            ProcessAction.RESUME, null, TENANT_ID);
-    }
-
-    @Test(expected = WorkflowNotFoundException.class)
+    @Test(expected = ProcessingException.class)
     @RunWithCustomExecutor
-    public void testSubmitWorkFlow() throws ProcessingException {
+    public void testResumeNotInitiatedWorkflow() throws ProcessingException, StateNotAllowedException {
         VitamThreadUtils.getVitamSession().setTenantId(1);
         PowerMockito.verifyNoMoreInteractions(processDataManagement);
         PowerMockito.when(processDataManagement.getProcessWorkflowFor(Matchers.eq(1), Matchers.anyString()))
             .thenReturn(new HashMap<>());
         processManagementImpl =
             new ProcessManagementImpl(new ServerConfiguration());
-        processManagementImpl.submitWorkflow(
+        processManagementImpl.resume(
             WorkerParametersFactory.newWorkerParameters(ID, ID, CONTAINER_NAME, ID, ID,
                 "http://localhost:8083",
-                "http://localhost:8083"),
-            "XXX",
-            ProcessAction.RESUME, null, 1);
+                "http://localhost:8083"), 1);
     }
 
     @RunWithCustomExecutor
@@ -131,7 +119,7 @@ public class ProcessManagementImplTest {
             .thenReturn(new HashMap<>());
         processManagementImpl = new ProcessManagementImpl(new ServerConfiguration());
         Assert.assertNotNull(processManagementImpl);
-        List<ProcessWorkflow> processWorkflowList = processManagementImpl.getAllWorkflowProcess(2);
+        List<ProcessWorkflow> processWorkflowList = processManagementImpl.findAllProcessWorkflow(2);
         Assert.assertNotNull(processWorkflowList);
         Assert.assertTrue(processWorkflowList.isEmpty());
     }
@@ -148,7 +136,7 @@ public class ProcessManagementImplTest {
         serverConfiguration.setUrlWorkspace("fakeurl:1112");
         processManagementImpl = new ProcessManagementImpl(serverConfiguration);
         Assert.assertNotNull(processManagementImpl);
-        List<ProcessWorkflow> processWorkflowList = processManagementImpl.getAllWorkflowProcess(3);
+        List<ProcessWorkflow> processWorkflowList = processManagementImpl.findAllProcessWorkflow(3);
         Assert.assertNotNull(processWorkflowList);
         Assert.assertFalse(processWorkflowList.isEmpty());
     }
@@ -157,17 +145,15 @@ public class ProcessManagementImplTest {
         Map<String, ProcessWorkflow> result = new HashMap<>();
         ProcessWorkflow processWorkflow = new ProcessWorkflow();
         processWorkflow.setTenantId(3);
-        processWorkflow.setExecutionMode(ProcessAction.PAUSE);
-        processWorkflow.setExecutionStatus(ProcessExecutionStatus.PAUSE);
-        processWorkflow.setGlobalStatusCode(StatusCode.OK);
+        processWorkflow.setState(ProcessState.PAUSE);
+        processWorkflow.setStatus(StatusCode.OK);
         processWorkflow.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
         processWorkflow.setMessageIdentifier("MessageIdentifier");
         processWorkflow.setOperationId("operationId");
         Map<String, ProcessStep> mapProcessStep = new HashMap<>();
         for(int i = 0; i < 20; i++) {
-            mapProcessStep.put("key-map-" + i, getProcessStep("name-" + i, "element-" + i, "groupID-" + i));
+            processWorkflow.getSteps().add(getProcessStep("key-map-" + i, "name-" + i, "element-" + i, "groupID-" + i));
         }
-        processWorkflow.setOrderedProcessStep(mapProcessStep);
         processWorkflow.setProcessDate(new Date());
 
         result.put(processWorkflow.getOperationId(), processWorkflow);
@@ -200,8 +186,9 @@ public class ProcessManagementImplTest {
         return actionsList;
     }
 
-    private ProcessStep getProcessStep(String name, String element, String groupId) {
+    private ProcessStep getProcessStep(String id, String name, String element, String groupId) {
         Step step = new Step();
+        step.setId(id);
         step.setActions(getActions());
         step.setBehavior(ProcessBehavior.NOBLOCKING);
         Distribution distrib = new Distribution();
@@ -213,7 +200,7 @@ public class ProcessManagementImplTest {
         itemStatus.setMessage("message");
         itemStatus.setItemId("itemId");
         itemStatus.setEvDetailData("evDetailData");
-        itemStatus.setGlobalExecutionStatus(ProcessExecutionStatus.PAUSE);
+        itemStatus.setGlobalState(ProcessState.PAUSE);
         step.setStepResponses(itemStatus);
         step.setWorkerGroupId(groupId);
         ProcessStep ps = new ProcessStep(step, 0, 0, "id");

@@ -41,18 +41,15 @@ import javax.xml.stream.XMLStreamException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.ProcessExecutionStatus;
+import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -160,7 +157,7 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
         @Produces(MediaType.APPLICATION_JSON)
         public Response getWorkFlowStatus(@PathParam("id") String id, JsonNode query) {
             ItemStatus pwok = new ItemStatus();
-            return Response.accepted().entity(pwok.setGlobalExecutionStatus(ProcessExecutionStatus.CANCELLED)).build();
+            return Response.accepted().entity(pwok.setGlobalState(ProcessState.COMPLETED)).build();
         }
 
         @Path("/operations/{id}")

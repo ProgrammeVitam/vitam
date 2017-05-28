@@ -26,45 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.integration.test;
 
-import static com.jayway.restassured.RestAssured.get;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.common.model.RequestResponse;
-import org.bson.Document;
-import org.junit.AfterClass;
-import org.junit.Assume;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
@@ -72,7 +33,6 @@ import com.mongodb.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.MongoIterable;
 import com.mongodb.client.model.Filters;
-
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -92,7 +52,6 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -102,8 +61,10 @@ import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
-import fr.gouv.vitam.common.model.ProcessExecutionStatus;
+import fr.gouv.vitam.common.model.ProcessState;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -129,7 +90,8 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.UnitInheritedRule;
 import fr.gouv.vitam.metadata.rest.MetaDataApplication;
 import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
-import fr.gouv.vitam.processing.common.model.ProcessStep;
+import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
+import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
@@ -140,6 +102,41 @@ import fr.gouv.vitam.worker.server.rest.WorkerApplication;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
+import org.bson.Document;
+import org.junit.AfterClass;
+import org.junit.Assume;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import static com.jayway.restassured.RestAssured.get;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Processing integration test
@@ -147,6 +144,8 @@ import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
 public class ProcessingIT {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessingIT.class);
     private static final int DATABASE_PORT = 12346;
+    private static final long SLEEP_TIME = 100l;
+    private static final long NB_TRY = 4800; // equivalent to 4 minutes
     private static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
     private static final Integer tenantId = 0;
@@ -386,6 +385,8 @@ public class ProcessingIT {
     }
 
     private void tryImportFile() {
+        flush();
+
         if (!imported) {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 client
@@ -395,7 +396,7 @@ public class ProcessingIT {
                 // Import Rules
                 client.importRulesFile(
                     PropertiesUtils.getResourceAsStream("integration-processing/jeu_donnees_OK_regles_CSV_regles.csv"));
-                
+
                 // import contract
                 File fileContracts = PropertiesUtils.getResourceFile("integration-processing/referential_contracts_ok.json");
                 List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>(){});
@@ -408,6 +409,21 @@ public class ProcessingIT {
         }
     }
 
+    private void flush() {
+        ProcessDataAccessImpl.getInstance().clearWorkflow();
+    }
+    private void wait(String operationId) {
+        int nbTry = 0;
+        while (! processingClient.isOperationCompleted(operationId)) {
+            try {
+                Thread.sleep(SLEEP_TIME);
+            } catch (InterruptedException e) {
+                //nothing to do
+            }
+            if (nbTry == NB_TRY) break;
+            nbTry ++;
+        }
+    }
     /**
      * This test needs Siegfried already running and started as:<br/>
      * sf -server localhost:8999<br/>
@@ -464,27 +480,23 @@ public class ProcessingIT {
             final Response ret =
                 processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
             assertNotNull(ret);
-            // check conformity in warning state
-            // File format warning state
-            assertEquals(Status.PARTIAL_CONTENT.getStatusCode(), ret.getStatus());
+            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-            assertEquals(ProcessExecutionStatus.COMPLETED.toString(),
-                ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
+            wait(containerName);
+            ProcessWorkflow processWorkflow =
+                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
 
-            assertEquals(ProcessExecutionStatus.COMPLETED.toString(),
-                ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
             LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
             fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
                 new fr.gouv.vitam.common.database.builder.request.single.Select();
             selectQuery.setQuery(QueryHelper.eq("evIdProc", containerName));
             JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
-            
-            assertEquals(logbookResult.get("$results").get(0).get("events").get(1).get("outDetail").asText(),
+
+            assertEquals(logbookResult.get("$results").get(0).get("events").get(0).get("outDetail").asText(),
                 "STP_INGEST_FINALISATION.OK");
-            
-            // checkMonitoring - meaning something has been added in the monitoring tool
-            final StatusCode status = processMonitoring.getProcessWorkflowStatus(containerName, tenantId);
-            assertNotNull(status);
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
@@ -521,14 +533,15 @@ public class ProcessingIT {
             final Response ret =
                 processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
             assertNotNull(ret);
-            
-            assertEquals(Status.OK.getStatusCode(), ret.getStatus());
 
-            assertEquals(ProcessExecutionStatus.COMPLETED.toString(),
-                ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
+            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-            assertEquals(ProcessExecutionStatus.COMPLETED.toString(),
-                ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
+            wait(containerName);
+            ProcessWorkflow processWorkflow =
+                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.OK, processWorkflow.getStatus());
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
@@ -565,20 +578,21 @@ public class ProcessingIT {
             final Response ret =
                 processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
             assertNotNull(ret);
-            
-            assertEquals(Status.OK.getStatusCode(), ret.getStatus());
 
-            assertEquals(ProcessExecutionStatus.COMPLETED.toString(),
-                ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
+            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-            assertEquals(ProcessExecutionStatus.COMPLETED.toString(),
-                ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
+            wait(containerName);
+            ProcessWorkflow processWorkflow =
+                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.OK, processWorkflow.getStatus());
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
         }
     }
-    
+
     @RunWithCustomExecutor
     @Test
     public void testWorkflowWithSIPContainsSystemId() throws Exception {
@@ -610,15 +624,14 @@ public class ProcessingIT {
                 processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
                     LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
             assertNotNull(ret);
-            // check conformity in warning state
-            // File format warning state
-            assertEquals(Status.PARTIAL_CONTENT.getStatusCode(), ret.getStatus());
+            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-            assertEquals(ProcessExecutionStatus.COMPLETED.toString(),
-                ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
-            // checkMonitoring - meaning something has been added in the monitoring tool
-            StatusCode status = processMonitoring.getProcessWorkflowStatus(containerName, tenantId);
-            assertNotNull(status);
+            wait(containerName);
+            ProcessWorkflow processWorkflow =
+                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
@@ -658,15 +671,14 @@ public class ProcessingIT {
                     LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
 
             assertNotNull(ret);
-            // File format warning state
-            assertEquals(Status.PARTIAL_CONTENT.getStatusCode(), ret.getStatus());
+            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-            assertEquals(ProcessExecutionStatus.COMPLETED.toString(),
-                ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
-
-            // checkMonitoring - meaning something has been added in the monitoring tool
-            StatusCode statusCode = processMonitoring.getProcessWorkflowStatus(containerName, tenantId);
-            assertNotNull(statusCode);
+            wait(containerName);
+            ProcessWorkflow processWorkflow =
+                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
@@ -707,15 +719,14 @@ public class ProcessingIT {
                     LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
 
             assertNotNull(ret);
-            // File format warning state
-            assertEquals(Status.PARTIAL_CONTENT.getStatusCode(), ret.getStatus());
+            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-            assertEquals(ProcessExecutionStatus.COMPLETED.toString(),
-                ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
-
-            // checkMonitoring - meaning something has been added in the monitoring tool
-            StatusCode statusCode = processMonitoring.getProcessWorkflowStatus(containerName, tenantId);
-            assertNotNull(statusCode);
+            wait(containerName);
+            ProcessWorkflow processWorkflow =
+                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
@@ -756,11 +767,15 @@ public class ProcessingIT {
                     LogbookTypeProcess.INGEST.toString(),
                     ProcessAction.RESUME.getValue());
             assertNotNull(ret);
-            // File format warning state
-            assertEquals(Status.PARTIAL_CONTENT.getStatusCode(), ret.getStatus());
 
-            assertEquals(ProcessExecutionStatus.COMPLETED.toString(),
-                ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
+            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+            wait(containerName);
+            ProcessWorkflow processWorkflow =
+                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
 
             MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
             SelectMultiQuery query = new SelectMultiQuery();
@@ -770,9 +785,6 @@ public class ProcessingIT {
                     .put(GLOBAL.RULES.exactToken(), 1).put("Title", 1)
                     .put(PROJECTIONARGS.MANAGEMENT.exactToken(), 1)));
             JsonNode result = metaDataClient.selectUnits(query.getFinalSelect());
-            // checkMonitoring - meaning something has been added in the monitoring tool
-            StatusCode statusCode = processMonitoring.getProcessWorkflowStatus(containerName, tenantId);
-            assertNotNull(statusCode);
             assertNotNull(
                 result.get("$results").get(0).get(UnitInheritedRule.INHERITED_RULE).get("StorageRule").get("R1"));
         } catch (final Exception e) {
@@ -812,12 +824,14 @@ public class ProcessingIT {
                 processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
                     LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
             assertNotNull(ret);
+            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-            // File format warning state
-            assertEquals(Status.PARTIAL_CONTENT.getStatusCode(), ret.getStatus());
-            // completed execution status
-            assertEquals(ProcessExecutionStatus.COMPLETED.toString(),
-                ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
+            wait(containerName);
+            ProcessWorkflow processWorkflow =
+                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
 
             MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
             SelectMultiQuery query = new SelectMultiQuery();
@@ -827,9 +841,7 @@ public class ProcessingIT {
                     .put(GLOBAL.RULES.exactToken(), 1).put("Title", 1)
                     .put(PROJECTIONARGS.MANAGEMENT.exactToken(), 1)));
             JsonNode result = metaDataClient.selectUnits(query.getFinalSelect());
-            // checkMonitoring - meaning something has been added in the monitoring tool
-            StatusCode processStatus = processMonitoring.getProcessWorkflowStatus(containerName, tenantId);
-            assertNotNull(processStatus);
+
             assertNotNull(
                 result.get("$results").get(0).get(UnitInheritedRule.INHERITED_RULE).get("StorageRule").get("R1"));
         } catch (final Exception e) {
@@ -871,15 +883,14 @@ public class ProcessingIT {
                 processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
                     LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
             assertNotNull(ret);
-            // File format warning state
-            assertEquals(Status.PARTIAL_CONTENT.getStatusCode(), ret.getStatus());
-            // completed execution status
-            assertEquals(ProcessExecutionStatus.COMPLETED.toString(),
-                ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
+            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-            // checkMonitoring - meaning something has been added in the monitoring tool
-            StatusCode statusCode = processMonitoring.getProcessWorkflowStatus(containerName, tenantId);
-            assertNotNull(statusCode);
+            wait(containerName);
+            ProcessWorkflow processWorkflow =
+                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
@@ -916,7 +927,14 @@ public class ProcessingIT {
             processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
                 LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
         assertNotNull(ret);
-        assertEquals(Status.BAD_REQUEST.getStatusCode(), ret.getStatus());
+        assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+        wait(containerName);
+        ProcessWorkflow processWorkflow =
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.KO, processWorkflow.getStatus());
     }
 
     @RunWithCustomExecutor
@@ -951,16 +969,14 @@ public class ProcessingIT {
                 processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
                     LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
             assertNotNull(ret);
-            // format file warning state
-            // assertEquals(StatusCode.WARNING, ret.getGlobalStatus()); // File format warning state
-            assertEquals(Status.PARTIAL_CONTENT.getStatusCode(), ret.getStatus());
-            // completed execution status
-            assertEquals(ProcessExecutionStatus.COMPLETED.toString(),
-                ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
+            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-            // checkMonitoring - meaning something has been added in the monitoring tool
-            StatusCode statusCode = processMonitoring.getProcessWorkflowStatus(containerName, tenantId);
-            assertNotNull(statusCode);
+            wait(containerName);
+            ProcessWorkflow processWorkflow =
+                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
@@ -996,11 +1012,14 @@ public class ProcessingIT {
             processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
                 LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
         assertNotNull(ret);
-        assertEquals(Status.BAD_REQUEST.getStatusCode(), ret.getStatus());
+        assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-        // completed execution status
-        assertEquals(ProcessExecutionStatus.COMPLETED.toString(),
-            ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
+        wait(containerName);
+        ProcessWorkflow processWorkflow =
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.KO, processWorkflow.getStatus());
     }
 
     @RunWithCustomExecutor
@@ -1034,14 +1053,14 @@ public class ProcessingIT {
             processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
                 LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
         assertNotNull(ret);
-        // format file ko state
-        assertEquals(Status.BAD_REQUEST.getStatusCode(), ret.getStatus());
-        // completed execution status
-        assertEquals(ProcessExecutionStatus.COMPLETED.toString(),
-            ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
-        // checkMonitoring - meaning something has been added in the monitoring tool
-        StatusCode statusCode = processMonitoring.getProcessWorkflowStatus(containerName, tenantId);
-        assertNotNull(statusCode);
+        assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+        wait(containerName);
+        ProcessWorkflow processWorkflow =
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.KO, processWorkflow.getStatus());
     }
 
 
@@ -1078,12 +1097,14 @@ public class ProcessingIT {
                 LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
         assertNotNull(ret);
 
-        // File formar warning state
-        assertEquals(Status.BAD_REQUEST.getStatusCode(), ret.getStatus());
+        assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-        // completed execution status
-        assertEquals(ProcessExecutionStatus.COMPLETED.toString(),
-            ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
+        wait(containerName);
+        ProcessWorkflow processWorkflow =
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.KO, processWorkflow.getStatus());
     }
 
     @RunWithCustomExecutor
@@ -1117,7 +1138,14 @@ public class ProcessingIT {
             processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
                 LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
         assertNotNull(ret);
-        assertEquals(Status.BAD_REQUEST.getStatusCode(), ret.getStatus());
+        assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+        wait(containerName);
+        ProcessWorkflow processWorkflow =
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.KO, processWorkflow.getStatus());
     }
 
 
@@ -1154,14 +1182,14 @@ public class ProcessingIT {
                 processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
                     LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
             assertNotNull(ret);
-            // File format warning state
-            assertEquals(Status.PARTIAL_CONTENT.getStatusCode(), ret.getStatus());
-            // completed execution status
-            assertEquals(ProcessExecutionStatus.COMPLETED.toString(),
-                ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
-            // checkMonitoring - meaning something has been added in the monitoring tool
-            StatusCode statusCode = processMonitoring.getProcessWorkflowStatus(containerName, tenantId);
-            assertNotNull(statusCode);
+            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+            wait(containerName);
+            ProcessWorkflow processWorkflow =
+                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
@@ -1199,12 +1227,19 @@ public class ProcessingIT {
             processingClient.executeOperationProcess(containerName, WORFKLOW_NAME, LogbookTypeProcess.INGEST.name(),
                 ProcessAction.RESUME.getValue());
         assertNotNull(ret);
+
+        assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+        wait(containerName);
+
+        ProcessWorkflow processWorkflow =
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+
         // check conformity in warning state
         // File format warning state
-        assertEquals(Status.PARTIAL_CONTENT.getStatusCode(), ret.getStatus());
+        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
         // completed execution status
-        assertEquals(ProcessExecutionStatus.COMPLETED.toString(),
-            ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
+        assertEquals(ProcessState.COMPLETED,processWorkflow.getState());
         // checkMonitoring - meaning something has been added in the monitoring tool
 
     }
@@ -1239,11 +1274,15 @@ public class ProcessingIT {
             processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
                 LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
         assertNotNull(ret);
-        assertEquals(Status.BAD_REQUEST.getStatusCode(), ret.getStatus());
 
-        // checkMonitoring - meaning something has been added in the monitoring tool
-        StatusCode statusCode = processMonitoring.getProcessWorkflowStatus(containerName, tenantId);
-        assertNotNull(statusCode);
+        assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+        wait(containerName);
+        ProcessWorkflow processWorkflow =
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.KO, processWorkflow.getStatus());
     }
 
     @RunWithCustomExecutor
@@ -1278,10 +1317,17 @@ public class ProcessingIT {
             processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
                 LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
         assertNotNull(ret);
-        assertEquals(Status.BAD_REQUEST.getStatusCode(), ret.getStatus());
+        assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
+        wait(containerName);
+        ProcessWorkflow processWorkflow =
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.KO, processWorkflow.getStatus());
     }
 
+    // Status Warn
     @RunWithCustomExecutor
     @Test
     public void testWorkflowAddAndLinkSIP() throws Exception {
@@ -1315,15 +1361,14 @@ public class ProcessingIT {
                     LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
 
             assertNotNull(ret);
-            // check conformity in warning state
-            // File format warning state
-            assertEquals(Status.PARTIAL_CONTENT.getStatusCode(), ret.getStatus());
-            // completed execution status
-            assertEquals(ProcessExecutionStatus.COMPLETED.toString(),
-                ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
-            // checkMonitoring - meaning something has been added in the monitoring tool
-            final Map<String, ProcessStep> map = processMonitoring.getProcessSteps(containerName, tenantId);
-            assertNotNull(map);
+            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+            wait(containerName);
+            ProcessWorkflow processWorkflow =
+                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
@@ -1375,15 +1420,15 @@ public class ProcessingIT {
                 processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
                     LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
             assertNotNull(ret);
-            // check conformity in warning state
-            // File format warning state
-            assertEquals(Status.PARTIAL_CONTENT.getStatusCode(), ret.getStatus());
-            // completed execution status
-            assertEquals(ProcessExecutionStatus.COMPLETED.toString(),
-                ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
-            // checkMonitoring - meaning something has been added in the monitoring tool
-            final Map<String, ProcessStep> map = processMonitoring.getProcessSteps(containerName, tenantId);
-            assertNotNull(map);
+            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+            wait(containerName);
+            ProcessWorkflow processWorkflow =
+                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+            assertNotNull(processWorkflow.getSteps());
 
             // check results
             MongoIterable<Document> modifiedParentUnit = db.getCollection("Unit").find(Filters.eq("_id", idUnit));
@@ -1449,12 +1494,15 @@ public class ProcessingIT {
                 processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
                     LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
             assertNotNull(ret);
-            // File formar warning state
-            assertEquals(Status.BAD_REQUEST.getStatusCode(), ret.getStatus());
+            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-            // checkMonitoring - meaning something has been added in the monitoring tool
-            final Map<String, ProcessStep> map = processMonitoring.getProcessSteps(containerName, tenantId);
-            assertNotNull(map);
+            wait(containerName);
+            ProcessWorkflow processWorkflow =
+                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.KO, processWorkflow.getStatus());
+            assertNotNull(processWorkflow.getSteps());
         }
     }
 
@@ -1541,13 +1589,14 @@ public class ProcessingIT {
             final RequestResponse<JsonNode> ret = processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
                 LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
             assertNotNull(ret);
-            // check conformity in warning state
-            assertEquals(Status.PARTIAL_CONTENT.getStatusCode(), ret.getStatus());
-            assertEquals(ProcessExecutionStatus.COMPLETED.toString(),
-                ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
-            // checkMonitoring - meaning something has been added in the monitoring tool
-            StatusCode statusCode = processMonitoring.getProcessWorkflowStatus(containerName, tenantId);
-            assertNotNull(statusCode);
+            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+            wait(containerName);
+            ProcessWorkflow processWorkflow =
+                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
@@ -1591,11 +1640,15 @@ public class ProcessingIT {
             processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
                 LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
         assertNotNull(ret);
-        assertEquals(Status.BAD_REQUEST.getStatusCode(), ret.getStatus());
+        assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-        // checkMonitoring - meaning something has been added in the monitoring tool
-        final Map<String, ProcessStep> map = processMonitoring.getProcessSteps(containerName, tenantId);
-        assertNotNull(map);
+        wait(containerName);
+        ProcessWorkflow processWorkflow =
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.KO, processWorkflow.getStatus());
+        assertNotNull(processWorkflow.getSteps());
     }
 
     @RunWithCustomExecutor
@@ -1652,12 +1705,14 @@ public class ProcessingIT {
             processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
                 LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
         assertNotNull(ret);
-        assertEquals(Status.BAD_REQUEST.getStatusCode(), ret.getStatus());
+        assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-        // checkMonitoring - meaning something has been added in the monitoring tool
-        StatusCode statusCode = processMonitoring.getProcessWorkflowStatus(containerName, tenantId);
-        assertNotNull(statusCode);
-        assertEquals(StatusCode.KO, statusCode);
+        wait(containerName);
+        ProcessWorkflow processWorkflow =
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.KO, processWorkflow.getStatus());
     }
 
 
@@ -1692,7 +1747,14 @@ public class ProcessingIT {
             processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
                 LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
         assertNotNull(ret);
-        assertEquals(Status.BAD_REQUEST.getStatusCode(), ret.getStatus());
+        assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+        wait(containerName);
+        ProcessWorkflow processWorkflow =
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.KO, processWorkflow.getStatus());
     }
 
     @RunWithCustomExecutor
@@ -1725,37 +1787,60 @@ public class ProcessingIT {
 
             Response ret = processingClient.updateOperationActionProcess(ProcessAction.NEXT.getValue(),
                 containerName);
-            // Let the processing do the job
-            Thread.sleep(10000);
-            assertEquals(Status.OK.getStatusCode(), ret.getStatus());
+            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
+            wait(containerName);
+            ProcessWorkflow processWorkflow =
+                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.PAUSE, processWorkflow.getState());
+            assertEquals(StatusCode.OK, processWorkflow.getStatus());
+            // Let the processing do the job
             ret = processingClient.updateOperationActionProcess(ProcessAction.NEXT.getValue(),
                 containerName);
-            // Let the processing do the job
-            Thread.sleep(10000);
-            assertEquals(Status.PARTIAL_CONTENT.getStatusCode(), ret.getStatus());
+
+            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+            wait(containerName);
+            processWorkflow =
+                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.PAUSE, processWorkflow.getState());
+            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+
 
             ret = processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(),
                 containerName);
             // Let the processing do the job
-            Thread.sleep(10000);
-            assertEquals(ProcessExecutionStatus.COMPLETED.toString(), ret.getHeaderString(GlobalDataRest
-                .X_GLOBAL_EXECUTION_STATUS));
+            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+            wait(containerName);
+            processWorkflow =
+                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+
             boolean exc = false;
             try {
                 dataManagement.getProcessWorkflow(String.valueOf(ServerIdentity.getInstance().getServerId()),
-                containerName);
+                    containerName);
             } catch (ProcessingStorageWorkspaceException e) {
                 exc = true;
             }
-            assertTrue(exc);
+
+            // TODO the #2627 the workflow is not removed from workspace until 24h
+            // assertTrue(exc);
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
         }
     }
-    
-    
+
+
     @RunWithCustomExecutor
     @Test
     public void testWorkflowJsonValidationKOCA1() throws Exception {
@@ -1787,16 +1872,22 @@ public class ProcessingIT {
             final Response ret =
                 processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
             assertNotNull(ret);
-            // BAD REQUEST as title is empty
-            assertEquals(Status.BAD_REQUEST.getStatusCode(), ret.getStatus());
-            
+            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+            wait(containerName);
+            ProcessWorkflow processWorkflow =
+                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.KO, processWorkflow.getStatus());
+
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
         }
     }
 
-    
+
     @RunWithCustomExecutor
     @Test
     public void testWorkflowJsonValidationKOCA2() throws Exception {
@@ -1828,15 +1919,21 @@ public class ProcessingIT {
             final Response ret =
                 processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
             assertNotNull(ret);
-            // BAD REQUEST as date is incorrect
-            assertEquals(Status.BAD_REQUEST.getStatusCode(), ret.getStatus());
-            
+            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+            wait(containerName);
+            ProcessWorkflow processWorkflow =
+                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.KO, processWorkflow.getStatus());
+
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
         }
     }
-    
+
     @RunWithCustomExecutor
     @Test
     public void testWorkflowWithContractKO() throws Exception {
@@ -1869,7 +1966,14 @@ public class ProcessingIT {
                 processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
                     LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
             assertNotNull(ret);
-            assertEquals(Status.BAD_REQUEST.getStatusCode(), ret.getStatus());
+            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+            wait(containerName);
+            ProcessWorkflow processWorkflow =
+                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.KO, processWorkflow.getStatus());
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
@@ -1880,6 +1984,8 @@ public class ProcessingIT {
     @Test
     public void testWorkflowSIPContractProdService() throws Exception {
         try {
+            flush();
+
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             tryImportFile();
             final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
@@ -1907,27 +2013,25 @@ public class ProcessingIT {
             final Response ret =
                 processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
             assertNotNull(ret);
-            // check conformity in warning state
-            // File format warning state
-            assertEquals(Status.PARTIAL_CONTENT.getStatusCode(), ret.getStatus());
 
-            assertEquals(ProcessExecutionStatus.COMPLETED.toString(),
-                ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
+            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-            assertEquals(ProcessExecutionStatus.COMPLETED.toString(),
-                ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
+            wait(containerName);
+            ProcessWorkflow processWorkflow =
+                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+
             LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
             fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
                 new fr.gouv.vitam.common.database.builder.request.single.Select();
             selectQuery.setQuery(QueryHelper.eq("evIdProc", containerName));
             JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
-            
-            assertEquals(logbookResult.get("$results").get(0).get("events").get(1).get("outDetail").asText(),
+
+            assertEquals(logbookResult.get("$results").get(0).get("events").get(0).get("outDetail").asText(),
                 "STP_INGEST_FINALISATION.OK");
-            
-            // checkMonitoring - meaning something has been added in the monitoring tool
-            final StatusCode status = processMonitoring.getProcessWorkflowStatus(containerName, tenantId);
-            assertNotNull(status);
+
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");

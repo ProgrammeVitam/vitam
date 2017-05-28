@@ -30,6 +30,7 @@ import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.model.StatusCode;
 
@@ -38,52 +39,64 @@ import fr.gouv.vitam.common.model.StatusCode;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ProcessStep extends Step {
-    private String id;
     private long elementProcessed;
     private long elementToProcess;
     private StatusCode stepStatusCode = StatusCode.UNKNOWN;
 
-    /**
-     * Constructor to initialize a Process Step with a Step object
-     *
-     * @param step the Step object
-     * @param elementToProcess number of element to process
-     * @param elementProcessed number of element processed
-     * @param id the step ID
-     * @throws IllegalArgumentException if the step is null
-     */
+
+    @VisibleForTesting
     public ProcessStep(Step step, long elementToProcess, long elementProcessed, String id) {
+        this(step, elementToProcess, elementProcessed);
+        setId(id);
+    }
+        /**
+         * Constructor to initialize a Process Step with a Step object
+         *
+         * @param step the Step object
+         * @param elementToProcess number of element to process
+         * @param elementProcessed number of element processed
+         * @throws IllegalArgumentException if the step is null
+         */
+    public ProcessStep(Step step, long elementToProcess, long elementProcessed) {
         ParametersChecker.checkParameter("Step could not be null", step);
         setActions(step.getActions());
         setDistribution(step.getDistribution());
         setStepName(step.getStepName());
         setBehavior(step.getBehavior());
         setWorkerGroupId(step.getWorkerGroupId());
-        this.id = id;
+        setId(step.getId());
         this.elementProcessed = elementProcessed;
         this.elementToProcess = elementToProcess;
     }
 
-    /**
-     * Constructor to initalize a Process Step with a Step object
-     *
-     * @param step the Step object
-     * @param stepId the Step Id
-     * @param containerName the container name concerned by the process
-     * @param workflowId the workflow ID concerned by the process
-     * @param position the position of the step
-     * @param elementToProcess number of element to process
-     * @param elementProcessed number of element processed
-     * @throws IllegalArgumentException if the step is null
-     */
-    public ProcessStep(Step step, String stepId, String containerName, String workflowId, int position,
+    @VisibleForTesting
+    public ProcessStep(Step step, String id, String containerName, String workflowId, int position,
+        long elementToProcess,
+        long elementProcessed) {
+        this(step,containerName, workflowId, position, elementToProcess, elementProcessed);
+        setId(id);
+
+
+    }
+        /**
+         * Constructor to initalize a Process Step with a Step object
+         *
+         * @param step the Step object
+         * @param containerName the container name concerned by the process
+         * @param workflowId the workflow ID concerned by the process
+         * @param position the position of the step
+         * @param elementToProcess number of element to process
+         * @param elementProcessed number of element processed
+         * @throws IllegalArgumentException if the step is null
+         */
+    public ProcessStep(Step step, String containerName, String workflowId, int position,
         long elementToProcess,
         long elementProcessed) {
         ParametersChecker.checkParameter("containerName could not be null", containerName);
         ParametersChecker.checkParameter("workflowId could not be null", workflowId);
         ParametersChecker.checkParameter("position could not be null", position);
         ParametersChecker.checkParameter("Step could not be null", step);
-        this.id = stepId;
+        setId(step.getId());
         setActions(step.getActions());
         setDistribution(step.getDistribution());
         setStepName(step.getStepName());
@@ -150,12 +163,6 @@ public class ProcessStep extends Step {
         return this;
     }
 
-    /**
-     * @return process unique ID
-     */
-    public String getId() {
-        return id;
-    }
 
     /**
      * {@inheritDoc}
@@ -166,7 +173,7 @@ public class ProcessStep extends Step {
     public boolean equals(Object object) {
         if (object instanceof ProcessStep) {
             final ProcessStep processStep = (ProcessStep) object;
-            return id.equals(processStep.getId()) && getStepName().equals(processStep.getStepName()) &&
+            return getId().equals(processStep.getId()) && getStepName().equals(processStep.getStepName()) &&
                 getWorkerGroupId().equals(processStep.getWorkerGroupId());
         } else {
             return false;
@@ -175,6 +182,6 @@ public class ProcessStep extends Step {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, getStepName(), getWorkerGroupId());
+        return Objects.hash(getId(), getStepName(), getWorkerGroupId());
     }
 }

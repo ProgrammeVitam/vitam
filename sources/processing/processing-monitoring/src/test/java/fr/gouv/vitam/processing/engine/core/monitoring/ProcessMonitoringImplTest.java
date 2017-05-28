@@ -33,6 +33,7 @@ import org.junit.Test;
 
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 
+// TODO: 5/27/17 ProcessEngine 
 public class ProcessMonitoringImplTest {
 
     private static final Integer TENANT_ID = 0;
@@ -48,7 +49,7 @@ public class ProcessMonitoringImplTest {
     @Test(expected = WorkflowNotFoundException.class)
     public void processMonitoringGetWorkflowStatusUnknownThrowsException() throws Exception {
         final ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
-        processMonitoring.getProcessWorkflowStatus("UNKNOWN_PROCESS_ID", TENANT_ID);
+        processMonitoring.findOneProcessWorkflow("UNKNOWN_PROCESS_ID", TENANT_ID);
     }
 
 
@@ -57,7 +58,7 @@ public class ProcessMonitoringImplTest {
     public void processMonitoringGetWorkflowStatusKnownThenWorkFlowNotFound() throws Exception {
         final ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
         // assertNotNull(processMonitoring.initOrderedWorkflow(new WorkFlow(), "containerName"));
-        assertNotNull(processMonitoring.getProcessWorkflowStatus("EXISTING_PROCESS_ID", TENANT_ID));
+        assertNotNull(processMonitoring.findOneProcessWorkflow("EXISTING_PROCESS_ID", TENANT_ID));
     }
 
     @Test

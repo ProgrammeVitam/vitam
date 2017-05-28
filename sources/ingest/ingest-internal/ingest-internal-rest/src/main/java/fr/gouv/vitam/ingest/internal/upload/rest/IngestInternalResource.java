@@ -70,9 +70,8 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
-import fr.gouv.vitam.common.model.ProcessExecutionStatus;
+import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
@@ -109,7 +108,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.apache.http.util.EntityUtils;
 
 /**
  * IngestInternalResource implements UploadService
@@ -751,11 +749,11 @@ public class IngestInternalResource extends ApplicationStatusResource {
                     }
 
                     try {
-                        ProcessExecutionStatus processExecutionStatus =
+                        ProcessState processState =
                             startProcessing(parameters, logbookOperationsClient, containerGUID.getId(), actionId,
                                 process.getWorkFlowId(), logbookTypeProcess);
 
-                        isCompletedProcess = isCompletedProcess(processExecutionStatus);
+                        isCompletedProcess = isCompletedProcess(processState);
 
                       if(!isInitMode) {
                           //Asynchrone
@@ -831,7 +829,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
         }
     }
 
-    private ProcessExecutionStatus startProcessing(final LogbookOperationParameters parameters, final LogbookOperationsClient client,
+    private ProcessState startProcessing(final LogbookOperationParameters parameters, final LogbookOperationsClient client,
         final String containerName, final String actionId, final String workflowId, LogbookTypeProcess logbookTypeProcess)
         throws IngestInternalException, ProcessingException, LogbookClientNotFoundException,
         LogbookClientBadRequestException, LogbookClientServerException, InternalServerException, VitamClientException {
@@ -847,18 +845,18 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 logbookTypeProcess.toString(), actionId);
 
             // Check global execution status
-            String globalExecutionStatus = response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS);
+            String globalExecutionState = response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATE);
 
-            if (globalExecutionStatus == null) {
+            if (globalExecutionState == null) {
                 throw new IngestInternalException("Global Execution Status not found.");
             }
 
-            if (isCompletedProcess(ProcessExecutionStatus.valueOf(globalExecutionStatus))) {
+            if (isCompletedProcess(ProcessState.valueOf(globalExecutionState))) {
                 callLogbookUpdate(client, parameters, fromStatusToStatusCode(response.getStatus()),
                     VitamLogbookMessages.getCodeOp(INGEST_WORKFLOW, fromStatusToStatusCode(response.getStatus())));
             }
 
-            return ProcessExecutionStatus.valueOf(globalExecutionStatus);
+            return ProcessState.valueOf(globalExecutionState);
         } catch (WorkflowNotFoundException | IllegalArgumentException | BadRequestException exc) {
             LOGGER.error(exc);
             callLogbookUpdate(client, parameters, StatusCode.FATAL,
@@ -929,7 +927,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * Executes an action on the given process
      * 
      * @param asyncResponse Async response
-     * @param actionId the action to execute
+     * @param actionId the action to start
      * @param containerGUID
      * @throws LogbookClientAlreadyExistsException
      * @throws LogbookClientBadRequestException
@@ -963,8 +961,8 @@ public class IngestInternalResource extends ApplicationStatusResource {
 
             // Check mandatory headers
             // Check global execution status
-            String globalExecutionStatus = updateResponse.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS);
-            if (globalExecutionStatus == null) {
+            String globalExecutionState = updateResponse.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATE);
+            if (globalExecutionState == null) {
                 throw new IngestInternalException("Global Execution Status not found.");
             }
 
@@ -977,11 +975,11 @@ public class IngestInternalResource extends ApplicationStatusResource {
 
 
             // Process the returned response
-            ProcessExecutionStatus processExecutionStatus = ProcessExecutionStatus.valueOf(globalExecutionStatus);
+            ProcessState processState = ProcessState.valueOf(globalExecutionState);
             int stepExecutionStatus = updateResponse.getStatus();
 
             Response response = Response.status(stepExecutionStatus).build();
-            if (isCompletedProcess(processExecutionStatus)) {
+            if (isCompletedProcess(processState)) {
                 // 1- Add last log
                 addFinalLogbookOperationEvent(containerGUID, logbookTypeProcess,
                     fromStatusToStatusCode(stepExecutionStatus));
@@ -997,7 +995,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
             }
 
             // Add Global execution status to response
-            response.getHeaders().add(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, processExecutionStatus.toString());
+            response.getHeaders().add(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, processState.toString());
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
             helper.writeAsyncResponse(Response.fromResponse(response), Status.fromStatusCode(stepExecutionStatus));
 
@@ -1143,10 +1141,8 @@ public class IngestInternalResource extends ApplicationStatusResource {
 
 
 
-    private boolean isCompletedProcess(ProcessExecutionStatus processExecutionStatus) {
-        return processExecutionStatus != null &&
-            (ProcessExecutionStatus.COMPLETED.equals(processExecutionStatus) ||
-                ProcessExecutionStatus.FAILED.equals(processExecutionStatus));
+    private boolean isCompletedProcess(ProcessState processState) {
+        return processState != null && (ProcessState.COMPLETED.equals(processState));
     }
 
 

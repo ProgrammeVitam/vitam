@@ -65,8 +65,9 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.ProcessExecutionStatus;
+import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
@@ -140,7 +141,8 @@ public class IngestExternalResource extends ApplicationStatusResource {
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR)
                     .header(GlobalDataRest.X_REQUEST_ID, guid.getId())
-                    .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, ProcessExecutionStatus.FAILED)
+                    .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED)
+                    .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.FATAL)
                     .build());
         } finally {
             StreamUtils.closeSilently(uploadedInputStream);
@@ -195,7 +197,6 @@ public class IngestExternalResource extends ApplicationStatusResource {
      * @return http response
      * @throws InternalServerException if request resources server exception
      * @throws VitamClientException if the server is unreachable
-     * @throws IngestInternalException if error when request to ingest internal server
      * @throws InvalidGuidOperationException if error when create guid
      * @throws ProcessingException if error in workflow execution
      */
@@ -275,9 +276,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
             if (pwork == null) {
                 return Response.status(Status.ACCEPTED).entity(pwork).header(GlobalDataRest.X_REQUEST_ID, id).build();
             }
-            if (pwork.getGlobalExecutionStatus().equals(ProcessExecutionStatus.COMPLETED) ||
-                pwork.getGlobalExecutionStatus().equals(ProcessExecutionStatus.CANCELLED) ||
-                pwork.getGlobalExecutionStatus().equals(ProcessExecutionStatus.FAILED)) {
+            if (pwork.getGlobalState().equals(ProcessState.COMPLETED)) {
                 status = Status.OK;
             }
 

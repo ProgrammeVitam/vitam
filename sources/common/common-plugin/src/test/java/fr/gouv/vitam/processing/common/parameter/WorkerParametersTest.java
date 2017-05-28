@@ -124,18 +124,15 @@ public class WorkerParametersTest {
         parameters.setProcessId("processId");
         assertEquals(6, parameters.getMapParameters().size());
         assertEquals("processId", parameters.getProcessId());
-        parameters.setStepUniqId("stepUniqId");
-        assertEquals(7, parameters.getMapParameters().size());
-        assertEquals("stepUniqId", parameters.getStepUniqId());
         parameters.setUrlMetadata("urlMetadata");
-        assertEquals(8, parameters.getMapParameters().size());
+        assertEquals(7, parameters.getMapParameters().size());
         assertEquals("urlMetadata", parameters.getUrlMetadata());
         parameters.setUrlWorkspace("urlWorkspace");
-        assertEquals(9, parameters.getMapParameters().size());
+        assertEquals(8, parameters.getMapParameters().size());
         assertEquals("urlWorkspace", parameters.getUrlWorkspace());
         final GUID guid = GUIDFactory.newGUID();
         parameters.setWorkerGUID(guid);
-        assertEquals(10, parameters.getMapParameters().size());
+        assertEquals(9, parameters.getMapParameters().size());
         assertEquals(guid.getId(), parameters.getWorkerGUID());
     }
 

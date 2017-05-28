@@ -24,49 +24,41 @@
  *  The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  *  accept its terms.
  */
-package fr.gouv.vitam.processing.engine.api;
+package fr.gouv.vitam.processing.engine.core;
 
-
-import fr.gouv.vitam.processing.common.automation.IEventsProcessEngine;
-import fr.gouv.vitam.processing.common.exception.ProcessingEngineException;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.ProcessStep;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-
-import java.util.Map;
+import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 
 /**
- * Process Engine Interface Provides access to all the services and to manage a workflow of operations.
+ * Class ProcessEngineFactory Goal : create an instance of ProcessEngineImpl
  */
+final public class ProcessEngineFactory {
 
-public interface ProcessEngine {
+    private final static ProcessEngineFactory INSTANCE = new ProcessEngineFactory();
 
+    private ProcessEngineFactory(){}
 
+    public static ProcessEngineFactory get() {
+        return INSTANCE;
+    }
     /**
-     * Set the state machine where the ProcessEngine return response on complete or on error
-     * @param callback
+     * @param workParams the work Params
+     * @return ProcessEngineImpl object created
      */
-    void setCallback(IEventsProcessEngine callback);
+    public ProcessEngineImpl create(WorkerParameters workParams) {
+        return new ProcessEngineImpl(workParams);
+    }
 
     /**
-     * Start the execution of the given step
+     * For test purpose
      *
-     * @param step
-     * @param workerParameters
-     * @throws ProcessingException
+     * @param processDistributor the wanted processDistributor
+     * @return ProcessEngineImpl object created
+     * @throws IllegalArgumentException if processDistributor is null
      */
-    void start(ProcessStep step, WorkerParameters workerParameters, Map<String, String> params)
-        throws ProcessingEngineException;
-
-    /**
-     * Pause the execution of the current step
-     * Send message to the distributor to cancel the execution of the current step
-     */
-    void pause();
-
-    /**
-     * Cancel the execution of the current step
-     * Send message to the distributor to cancel the execution of the current step
-     */
-    void cancel();
+    public ProcessEngineImpl create(WorkerParameters workParams, ProcessDistributor processDistributor) {
+        ParametersChecker.checkParameter("ProcessDistributor cannot be null", processDistributor);
+        return new ProcessEngineImpl(workParams, processDistributor);
+    }
 }

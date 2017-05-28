@@ -24,49 +24,41 @@
  *  The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  *  accept its terms.
  */
-package fr.gouv.vitam.processing.engine.api;
+package fr.gouv.vitam.processing.common.exception;
 
-
-import fr.gouv.vitam.processing.common.automation.IEventsProcessEngine;
-import fr.gouv.vitam.processing.common.exception.ProcessingEngineException;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.ProcessStep;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-
-import java.util.Map;
+import fr.gouv.vitam.common.exception.VitamException;
 
 /**
- * Process Engine Interface Provides access to all the services and to manage a workflow of operations.
+ * Exception handled by the ProcessEngine.
  */
-
-public interface ProcessEngine {
-
-
-    /**
-     * Set the state machine where the ProcessEngine return response on complete or on error
-     * @param callback
-     */
-    void setCallback(IEventsProcessEngine callback);
+public class ProcessingEngineException extends VitamException {
+    private static final long serialVersionUID = 6288951051488329582L;
 
     /**
-     * Start the execution of the given step
+     * ProcessingException constructor Construct the processing exception with a message and a throwable exception
      *
-     * @param step
-     * @param workerParameters
-     * @throws ProcessingException
+     * @param message associated message
+     * @param cause associated cause
      */
-    void start(ProcessStep step, WorkerParameters workerParameters, Map<String, String> params)
-        throws ProcessingEngineException;
+    public ProcessingEngineException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
     /**
-     * Pause the execution of the current step
-     * Send message to the distributor to cancel the execution of the current step
+     * ProcessingException constructor Construct the processing exception with a throwable exception
+     *
+     * @param cause associated cause
      */
-    void pause();
+    public ProcessingEngineException(Throwable cause) {
+        super(cause);
+    }
 
     /**
-     * Cancel the execution of the current step
-     * Send message to the distributor to cancel the execution of the current step
+     * ProcessingException constructor Construct the processing exception with a message
+     *
+     * @param message associated message
      */
-    void cancel();
+    public ProcessingEngineException(String message) {
+        super(message);
+    }
 }

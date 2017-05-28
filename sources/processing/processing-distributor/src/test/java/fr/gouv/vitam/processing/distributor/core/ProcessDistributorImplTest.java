@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Rule;
@@ -127,15 +128,8 @@ public class ProcessDistributorImplTest {
         processData = ProcessDataAccessImpl.getInstance();
         // processData.nextStep(workParams.getContainerName());
 
-        processData.initProcessWorkflow(ProcessPopulator.populate(WORKFLOW_ID), params.getContainerName(),
-            ProcessAction.INIT, LogbookTypeProcess.INGEST, TENANT_ID);
+        processData.initProcessWorkflow(ProcessPopulator.populate(WORKFLOW_ID), params.getContainerName(), LogbookTypeProcess.INGEST, TENANT_ID);
 
-        processData.prepareToRelaunch(params.getContainerName(), ProcessAction.RESUME, TENANT_ID);
-        for (final Map.Entry<String, ProcessStep> entry : processMonitoring
-            .getProcessSteps(params.getContainerName(), TENANT_ID)
-            .entrySet()) {
-            params.setStepUniqId(entry.getKey());
-        }
     }
 
 
@@ -250,14 +244,13 @@ public class ProcessDistributorImplTest {
 
         PROCESS_DISTRIBUTOR.distribute(params, processStep, WORKFLOW_ID);
 
-        final StatusCode statusCode = processMonitoring.getProcessWorkflowStatus(params.getContainerName(), TENANT_ID);
-        assertNotNull(statusCode);
+
+        ProcessWorkflow processWorkflow =
+            processMonitoring.findOneProcessWorkflow(params.getContainerName(), TENANT_ID);
+        assertNotNull(processWorkflow);
         // At least one element has been added to be processed
 
-        for (final Map.Entry<String, ProcessStep> entry : processData
-            .getWorkflowProcessSteps(params.getContainerName(), TENANT_ID).entrySet()) {
-            assertTrue(entry.getValue().getElementToProcess() >= 0);
-        }
+        processWorkflow.getSteps().forEach(o -> assertTrue(o.getElementToProcess() >= 0));
 
     }
 }

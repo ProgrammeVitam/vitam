@@ -52,8 +52,10 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -299,6 +301,43 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         } catch (final VitamClientInternalException e) {
             LOGGER.error(PROCESSING_INTERNAL_SERVER_ERROR, e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    /**
+     * Return false if status accepted
+     * Return true otherwise
+     * @param operationId
+     * @return
+     */
+    @Override
+    public boolean isOperationCompleted(String operationId) {
+        ParametersChecker.checkParameter(BLANK_OPERATION_ID, operationId);
+        Response response = null;
+        try {
+            response =
+                performRequest(HttpMethod.HEAD, OPERATION_URI + "/" + operationId,
+                    null,
+                    MediaType.APPLICATION_JSON_TYPE);
+
+            if (response.getStatus() == Status.ACCEPTED.getStatusCode()) {
+                final ProcessState state =
+                    ProcessState.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATE));
+                final  StatusCode status =
+                    StatusCode.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
+
+                if (ProcessState.PAUSE.equals(state) && StatusCode.STARTED.compareTo(status) <= 0) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return true;
+            }
+        } catch (final Exception e) {
+            return true;
         } finally {
             consumeAnyEntityAndClose(response);
         }

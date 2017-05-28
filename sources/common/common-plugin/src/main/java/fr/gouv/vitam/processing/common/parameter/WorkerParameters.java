@@ -185,21 +185,6 @@ public interface WorkerParameters extends VitamParameter<WorkerParameterName> {
      */
     WorkerParameters setProcessId(String processId);
 
-    /**
-     * Get the step unique id parameter
-     *
-     * @return the step unique id value
-     */
-    String getStepUniqId();
-
-    /**
-     * Set the step unique id value
-     *
-     * @param stepUniqId the step unique id value
-     * @return the current instance of WorkerParameters
-     * @throws IllegalArgumentException if stepUniqId is null or empty
-     */
-    WorkerParameters setStepUniqId(String stepUniqId);
 
     /**
      * Get the url of metadata resource parameter
