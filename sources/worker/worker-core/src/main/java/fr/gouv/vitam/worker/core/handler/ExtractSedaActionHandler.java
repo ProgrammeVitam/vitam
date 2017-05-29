@@ -56,8 +56,6 @@ import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.BooleanNode;
@@ -93,7 +91,6 @@ import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
-import fr.gouv.vitam.functional.administration.common.ContractStatus;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -580,7 +577,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                             evDetData.put(EV_DETAIL_REQ, comment);
                         }
 
-                        evDetData.put(EV_DETAIL_REQ + (StringUtils.isEmpty(lang) ? "" : "_" + lang), comment);
+                        evDetData.put(EV_DETAIL_REQ + (ParametersChecker.isNotEmpty(lang) ? "_" + lang : ""), comment);
                         LOGGER.debug("evDetData after comment: " + evDetData);
                     }
 
@@ -986,7 +983,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             rules.append(listRulesForAuRoot);
         }
 
-        if (!StringUtils.isBlank(rules)) {
+        if (ParametersChecker.isNotEmpty(rules.toString())) {
             rulesNode.add(rules.toString());
         }
 

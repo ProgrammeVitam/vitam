@@ -36,8 +36,6 @@ import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.apache.commons.lang3.StringUtils;
-
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.ServerIdentity;
@@ -153,7 +151,7 @@ public class ProcessManagementImpl implements ProcessManagement {
         dataManagement.createFolder(String.valueOf(ServerIdentity.getInstance().getServerId()));
 
         ProcessWorkflow createdProcessWorkflow = null;
-        if (StringUtils.isNotBlank(workflowId)) {
+        if (ParametersChecker.isNotEmpty(workflowId)) {
             createdProcessWorkflow =
                 processData.initProcessWorkflow(poolWorkflows.get(workflowId), workParams.getContainerName(),
                     ProcessAction.INIT, logbookTypeProcess, tenantId);

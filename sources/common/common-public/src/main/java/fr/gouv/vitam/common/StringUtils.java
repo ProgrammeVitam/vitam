@@ -97,4 +97,28 @@ public final class StringUtils {
         }
     }
 
+    /**
+     * Gets the String that is nested in between two Strings. Only the first match is returned.
+     * 
+     * @param source
+     * @param start
+     * @param end
+     * @return the substring, null if no match
+     */
+    public static final String substringBetween(String source, String start, String end) {
+        return org.apache.commons.lang3.StringUtils.substringBetween(source, start, end);
+    }
+
+    /**
+     * Gets the substring before the last occurrence of a separator. The separator is not returned.
+     * 
+     * @param source
+     * @param separator
+     * @return the substring before the last occurrence of the separator, null if null String input
+     */
+    public static final String substringBeforeLast(String source, String separator) {
+        return org.apache.commons.lang3.StringUtils.substringBeforeLast(source, separator);
+    }
+
 }
+

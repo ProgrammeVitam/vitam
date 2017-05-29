@@ -39,14 +39,13 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.commons.lang.StringUtils;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Sets;
 
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -296,7 +295,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
 
 
     private JsonNode getRuleNodeByID(String ruleId, String ruleType, JsonNode jsonResult) {
-        if (jsonResult != null && !StringUtils.isBlank(ruleId) && !StringUtils.isBlank(ruleType)) {
+        if (jsonResult != null && ParametersChecker.isNotEmpty(ruleId, ruleType)) {
             final ArrayNode rulesResult = (ArrayNode) jsonResult.get("$results");
             for (final JsonNode rule : rulesResult) {
                 if (rule.get(FileRules.RULEID) != null && rule.get(FileRules.RULETYPE) != null) {
@@ -314,10 +313,10 @@ public class UnitsRulesComputePlugin extends ActionHandler {
     private Date getEndDate(String startDateString, String ruleId, JsonNode rulesResults, String currentRuleType)
         throws FileRulesException, InvalidParseOperationException, ParseException, ProcessingException {
 
-        if (StringUtils.isBlank(startDateString)) {
+        if (!ParametersChecker.isNotEmpty(startDateString)) {
             return null;
         }
-        if (!StringUtils.isBlank(ruleId) && !StringUtils.isBlank(currentRuleType)) {
+        if (ParametersChecker.isNotEmpty(ruleId, currentRuleType)) {
 
             final Date startDate = SIMPLE_DATE_FORMAT.parse(startDateString);
             final JsonNode ruleNode = getRuleNodeByID(ruleId, currentRuleType, rulesResults);

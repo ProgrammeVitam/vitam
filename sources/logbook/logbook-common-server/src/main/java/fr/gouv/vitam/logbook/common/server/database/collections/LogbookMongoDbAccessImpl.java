@@ -39,7 +39,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
@@ -166,7 +165,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      * @param mongoClient MongoClient
      * @param dbname MongoDB database name
      * @param recreate True to recreate the index
-     * @param esClient elastic search client 
+     * @param esClient elastic search client
      * @param tenants the tenants list
      * @throws IllegalArgumentException if mongoClient or dbname is null
      */
@@ -1009,7 +1008,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             LOGGER.debug(collection.getName() + " count before: " + count);
         }
         if (count > 0) {
-            final DeleteResult result = collection.getCollection().deleteMany(new Document().append("_tenant", tenantId));
+            final DeleteResult result =
+                collection.getCollection().deleteMany(new Document().append("_tenant", tenantId));
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(collection.getName() + " result.result.getDeletedCount(): " + result.getDeletedCount());
             }
@@ -1439,11 +1439,12 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         }
         return false;
     }
-    
-    private void checkCopyToMaster(LogbookCollections collection, LogbookParameters item) throws LogbookNotFoundException {
+
+    private void checkCopyToMaster(LogbookCollections collection, LogbookParameters item)
+        throws LogbookNotFoundException {
         String evDetData = item.getParameterValue(LogbookParameterName.eventDetailData);
         boolean copyToMaster = false;
-        if (StringUtils.isNotEmpty(evDetData)) {
+        if (ParametersChecker.isNotEmpty(evDetData)) {
             try {
                 copyToMaster = shouldCopyToMaster(JsonHandler.getFromString(evDetData));
             } catch (InvalidParseOperationException e) {
@@ -1451,7 +1452,6 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                 LOGGER.warn("evDetData is not parsable as a json. Analyse cancelled: " + evDetData);
             }
         }
-
         final String mainLogbookDocumentId = getDocumentForUpdate(item).getId();
 
         if (copyToMaster) {
@@ -1461,7 +1461,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                 Updates.set(LogbookDocument.EVENT_DETAILS, evDetData));
 
             if (updateResult.getModifiedCount() != 1) {
-                LOGGER.error("Error while update document " + mainLogbookDocumentId + " With values [" + LogbookDocument.EVENT_DETAILS + ", " + evDetData + "]");
+                LOGGER.error("Error while update document " + mainLogbookDocumentId + " With values [" +
+                    LogbookDocument.EVENT_DETAILS + ", " + evDetData + "]");
                 throw new LogbookNotFoundException(UPDATE_NOT_FOUND_ITEM + mainLogbookDocumentId);
             }
         }

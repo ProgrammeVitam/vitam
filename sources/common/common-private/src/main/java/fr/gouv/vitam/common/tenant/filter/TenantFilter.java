@@ -39,8 +39,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response.Status;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -102,11 +100,12 @@ public class TenantFilter implements Filter {
         }
         final Enumeration<String> headerNames = request.getHeaderNames();
         if (headerNames != null) {
-            if (StringUtils.isNumeric(request.getHeader(GlobalDataRest.X_TENANT_ID))) {
+            try {
+                int itenant  = Integer.parseInt(request.getHeader(GlobalDataRest.X_TENANT_ID));
                 try {
                     JsonNode tenants = JsonHandler.getFromString(tenantsAsString);
                     for (JsonNode tenant : tenants) {
-                        if (Integer.parseInt(request.getHeader(GlobalDataRest.X_TENANT_ID)) == tenant.asInt()) {
+                        if (itenant == tenant.asInt()) {
                             return Status.OK;
                         }
                     }
@@ -115,6 +114,8 @@ public class TenantFilter implements Filter {
                     LOGGER.error("TenantId check failed - tenants list incorrect");
                     return Status.PRECONDITION_FAILED;
                 }
+            } catch (NumberFormatException e) {
+                LOGGER.error("Tenant not Integer, e");
             }
         }
         return Status.PRECONDITION_FAILED;

@@ -49,7 +49,6 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response.Status;
 
-import org.apache.commons.lang.StringUtils;
 import org.assertj.core.api.AutoCloseableSoftAssertions;
 import org.assertj.core.api.Fail;
 
@@ -164,8 +163,11 @@ public class AccessStep {
         String[] paths = rawCopy.split("\\.");
         for (String path : paths) {
             if (lastJsonNode.isArray()) {
-                if (StringUtils.isNumeric(path)) {
-                    lastJsonNode = lastJsonNode.get(Integer.valueOf(path));
+                try {
+                    int value = Integer.valueOf(path);
+                    lastJsonNode = lastJsonNode.get(value);
+                } catch (NumberFormatException e) {
+                    LOGGER.warn(e);
                 }
             } else {
                 lastJsonNode = lastJsonNode.get(path);

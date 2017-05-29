@@ -44,7 +44,6 @@ import java.util.stream.Collectors;
 
 import fr.gouv.vitam.common.security.SanityChecker;
 
-import org.apache.commons.lang3.BooleanUtils;
 import org.bson.conversions.Bson;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -609,7 +608,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
     private Map<String, Object> createMapForUpdate(Boolean status) {
         final Map<String, Object> mapForUpdate = new HashMap<String, Object>();
         String now = LocalDateUtil.now().toString();
-        if (BooleanUtils.isTrue(status)) {
+        if (status != null && status) {
             mapForUpdate.put(AccessContract.STATUS, true);
             mapForUpdate.put(AccessContract.ACTIVATIONDATE, now);
             mapForUpdate.put(AccessContract.LAST_UPDATE, now);

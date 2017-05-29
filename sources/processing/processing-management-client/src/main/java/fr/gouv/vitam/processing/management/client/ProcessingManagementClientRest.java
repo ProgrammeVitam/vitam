@@ -157,6 +157,8 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
                 throw new InternalServerException(INTERNAL_SERVER_ERROR2);
             } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
                 throw new BadRequestException(BAD_REQUEST_EXCEPTION);
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new IllegalArgumentException(Status.UNAUTHORIZED.getReasonPhrase());
             }
 
             // XXX: theoretically OK status case
@@ -280,6 +282,8 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
                 throw new InternalServerException(INTERNAL_SERVER_ERROR2);
             } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
                 throw new BadRequestException(BAD_REQUEST_EXCEPTION);
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new IllegalArgumentException(Status.UNAUTHORIZED.getReasonPhrase());
             }
 
             // XXX: theoretically OK status case
@@ -318,6 +322,8 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
                 throw new InternalServerException(INTERNAL_SERVER_ERROR2);
             } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
                 throw new BadRequestException(BAD_REQUEST_EXCEPTION);
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new IllegalArgumentException(Status.UNAUTHORIZED.getReasonPhrase());
             }
 
             // XXX: theoretically OK status case
