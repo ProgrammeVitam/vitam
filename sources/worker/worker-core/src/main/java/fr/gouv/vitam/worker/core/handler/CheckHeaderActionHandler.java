@@ -29,6 +29,8 @@ package fr.gouv.vitam.worker.core.handler;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.google.common.base.Strings;
+
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -87,6 +89,10 @@ public class CheckHeaderActionHandler extends ActionHandler {
 
         if (!madatoryValueMap.containsKey(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER) &&
             Boolean.valueOf((String) handlerIO.getInput(CHECK_ORIGINATING_AGENCY_RANK))) {
+            itemStatus.increment(StatusCode.KO);
+            return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+
+        } else if (Strings.isNullOrEmpty((String) madatoryValueMap.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER))) {
             itemStatus.increment(StatusCode.KO);
             return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
         }

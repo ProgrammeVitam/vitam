@@ -37,7 +37,6 @@ import java.util.Map;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -71,33 +70,27 @@ import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 public class CheckHeaderActionHandlerTest {
     private static final String CONTRACT_NAME = "Un contrat";
     CheckHeaderActionHandler handler = new CheckHeaderActionHandler();
-    private HandlerIOImpl action;
     private SedaUtils sedaUtils;
     private GUID guid;
     private static final Integer TENANT_ID = 0;
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Before
     public void setUp() {
         PowerMockito.mockStatic(SedaUtilsFactory.class);
         sedaUtils = mock(SedaUtils.class);
         guid = GUIDFactory.newGUID();
-        action = new HandlerIOImpl(guid.getId(), "workerId");
-        PowerMockito.when(SedaUtilsFactory.create(action)).thenReturn(sedaUtils);
-    }
-
-    @After
-    public void clean() {
-        action.partialClose();
     }
 
     @Test
     @RunWithCustomExecutor
     public void testHandlerWorking()
         throws XMLStreamException, IOException, ProcessingException {
+        HandlerIOImpl action = new HandlerIOImpl(guid.getId(), "workerId");
+        PowerMockito.when(SedaUtilsFactory.create(action)).thenReturn(sedaUtils);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         Map<String, Object> sedaMap = new HashMap<>();
         sedaMap.put(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER, SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
@@ -108,8 +101,9 @@ public class CheckHeaderActionHandlerTest {
         assertNotNull(CheckHeaderActionHandler.getId());
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+            .setUrlMetadata("http://localhost:8083")
+            .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+        action.getInput().add("true");
         action.getInput().add("true");
         final ItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
@@ -118,10 +112,22 @@ public class CheckHeaderActionHandlerTest {
         assertEquals(SedaConstants.TAG_MESSAGE_IDENTIFIER,
             response.getData().get(SedaConstants.TAG_MESSAGE_IDENTIFIER));
 
+        action.getInput().clear();
+        action.getInput().add("true");
+        action.getInput().add("true");
+        sedaMap.put(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER, "");
+        Mockito.doReturn(sedaMap).when(sedaUtils).getMandatoryValues(anyObject());
+        assertEquals(handler.execute(params, action).getGlobalStatus(), StatusCode.KO);
 
+
+        action.getInput().clear();
+        action.getInput().add("true");
+        action.getInput().add("true");
         sedaMap.remove(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
         Mockito.doReturn(sedaMap).when(sedaUtils).getMandatoryValues(anyObject());
         assertEquals(handler.execute(params, action).getGlobalStatus(), StatusCode.KO);
+
+        action.partialClose();
 
     }
 
