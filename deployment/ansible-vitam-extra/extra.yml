@@ -17,9 +17,9 @@
   roles:
     - vitam_browser
 
-- hosts: hosts-mongo-express
-  roles:
-    - {role: mongo-express, when: "inventory_hostname != 'localhost'"}
+# - hosts: hosts-mongo-express
+#   roles:
+#     - {role: mongo-express, when: "inventory_hostname != 'localhost'"}
 
 - hosts: elasticsearch
   roles:
