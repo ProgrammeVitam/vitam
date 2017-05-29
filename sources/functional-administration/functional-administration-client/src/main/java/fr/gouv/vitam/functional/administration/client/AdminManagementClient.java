@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterSummaryModel;
+import fr.gouv.vitam.functional.administration.client.model.ContextModel;
 import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
 import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
@@ -355,5 +356,13 @@ public interface AdminManagementClient extends MockOrRestClient {
     RequestResponse<ProfileModel> findProfilesByID(String id)
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException;
 
-
+    
+    /**
+     * Import a set of context
+     * 
+     * @param ContextModelList
+     * @return
+     * @throws ReferentialException
+     */
+    Status importContexts(List<ContextModel> ContextModelList) throws ReferentialException;
 }

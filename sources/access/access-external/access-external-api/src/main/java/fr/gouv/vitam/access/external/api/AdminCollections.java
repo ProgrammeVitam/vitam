@@ -53,7 +53,12 @@ public enum AdminCollections {
     /**
      * Profile collection
      */
-    PROFILE("profiles");
+    PROFILE("profiles"),
+    
+    /**
+     * Context collection
+     */
+    CONTEXTS("contexts");
 
 
     private String name;

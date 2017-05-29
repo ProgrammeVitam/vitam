@@ -57,6 +57,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterSummaryModel;
+import fr.gouv.vitam.functional.administration.client.model.ContextModel;
 import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
 import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
@@ -94,6 +95,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     private static final String UPDATE_ACCESS_CONTRACT_URI = "/accesscontract/";
     private static final String UPDATE_INGEST_CONTRACT_URI = "/contract/";
     private static final String PROFILE_URI = "/profiles";
+    private static final String CONTEXT_URI = "/contexts";
 
     AdminManagementClientRest(AdminManagementClientFactory factory) {
         super(factory);
@@ -845,6 +847,27 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 return new RequestResponseOK<IngestContractModel>();
             }
             return RequestResponse.parseFromResponse(response);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public Status importContexts(List<ContextModel> ContextModelList) 
+        throws ReferentialException{
+        ParametersChecker.checkParameter("The input ingest contracts json is mandatory", ContextModelList);
+        Response response = null;
+
+        try {
+            response = performRequest(HttpMethod.POST, CONTEXT_URI, null,
+                ContextModelList, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE,
+                false);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            
+            return status;
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);

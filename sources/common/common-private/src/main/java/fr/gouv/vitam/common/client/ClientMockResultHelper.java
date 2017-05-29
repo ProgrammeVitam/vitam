@@ -148,6 +148,14 @@ public class ClientMockResultHelper {
         "\"LastUpdate\":\"2016-11-02\", " +
         "\"ActivationDate\":\"2016-11-02\", " +
         "\"DeactivationDate\":\"2016-11-02\"}";
+    
+    public static final String CONTEXTS = "{\"Name\": \"My_Context_1\", " +
+        "\"Status\": true," + 
+        "\"Permissions\": [{" +
+            "\"_tenant\": 0," +
+            "\"AccessContracts\": []," +
+            "\"IngestContracts\": []" +
+        "}]}";
 
     private static final String FORMAT = "{\"_id\":\"aeaaaaaaaaaaaaabaa44qakyetenaeyaaawq\", " +
             "\"CreatedDate\":\"2016-01-21T10:36:46\", " +
@@ -413,7 +421,13 @@ public class ClientMockResultHelper {
     }
 
 
-
+    /**
+     * @return context json
+     * @throws InvalidParseOperationException
+     */
+    public static RequestResponse getContexts(int statusCode) throws InvalidParseOperationException{
+        return createReponse(CONTEXTS, statusCode);
+    }
 
     public static RequestResponse getProfiles(int statusCode)throws InvalidParseOperationException {
         return createReponse(PROFILES, statusCode);

@@ -73,6 +73,7 @@ public final class ElasticsearchAccessAdminFactory {
             FunctionalAdminCollections.INGEST_CONTRACT.initialize(elasticsearchAccess);
             FunctionalAdminCollections.ACCESS_CONTRACT.initialize(elasticsearchAccess);
             FunctionalAdminCollections.PROFILE.initialize(elasticsearchAccess);
+            FunctionalAdminCollections.CONTEXT.initialize(elasticsearchAccess);
             return elasticsearchAccess;
         } catch (VitamException e) {
             throw new IllegalArgumentException(e);

@@ -83,6 +83,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
+import fr.gouv.vitam.functional.administration.client.model.ContextModel;
 import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
@@ -341,6 +342,14 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         public Response downloadTraceabilityOperationFile(@PathParam("id") String id)
             throws InvalidParseOperationException {
             return expectedResponse.get();
+        }
+        
+        @POST
+        @Path("/contexts")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response importContexts(List<ContextModel> ContextModelList) {
+            return expectedResponse.post();
         }
 
     }
@@ -799,5 +808,20 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     private List<ProfileModel> getProfiles() throws FileNotFoundException, InvalidParseOperationException {
         File fileProfiles = PropertiesUtils.getResourceFile("profile_ok.json");
         return JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>(){});
+    }
+    
+    @Test
+    @RunWithCustomExecutor
+    public void importContextsWithCorrectJsonReturnCreated() throws ReferentialException, FileNotFoundException, InvalidParseOperationException{
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(new RequestResponseOK<ContextModel>().addAllResults(getContexts())).build());
+        Status resp = client.importContexts(new ArrayList<>());
+        assertEquals(resp, Status.CREATED);
+    }
+    
+    private List<ContextModel> getContexts() throws FileNotFoundException, InvalidParseOperationException{
+        File fileContexts = PropertiesUtils.getResourceFile("contexts_ok.json");
+        return JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>(){});
     }
 }

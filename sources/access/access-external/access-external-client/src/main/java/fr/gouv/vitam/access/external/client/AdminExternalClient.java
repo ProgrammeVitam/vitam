@@ -197,4 +197,15 @@ public interface AdminExternalClient extends BasicClient {
      * @return
      */
     Response downloadProfileFile(String profileMetadataId, Integer tenantId) throws AccessExternalClientException, AccessExternalNotFoundException;
+
+    /**
+     * import a set of context
+     * 
+     * @param contexts
+     * @param tenantId
+     * @return
+     * @throws InvalidParseOperationException
+     * @throws AccessExternalClientServerException
+     */
+    RequestResponse importContexts(InputStream contexts, Integer tenantId) throws InvalidParseOperationException, AccessExternalClientServerException;
 }

@@ -46,6 +46,11 @@
 			<artifactId>functional-administration-contract</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>functional-administration-context</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>

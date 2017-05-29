@@ -48,6 +48,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
+import fr.gouv.vitam.functional.administration.client.model.ContextModel;
 import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
 import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
@@ -179,6 +180,13 @@ public class AdminManagementExternalResourceImpl {
                     SanityChecker.checkJsonAll(json);
                     status = client.importAccessContracts(JsonHandler.getFromStringAsTypeRefence(json.toString(),
                         new TypeReference<List<AccessContractModel>>() {}));
+                }
+                
+                if (AdminCollections.CONTEXTS.compareTo(collection)) {
+                    JsonNode json = JsonHandler.getFromInputStream(document);
+                    SanityChecker.checkJsonAll(json);
+                    status = client.importContexts(JsonHandler.getFromStringAsTypeRefence(json.toString(),
+                        new TypeReference<List<ContextModel>>() {}));
                 }
 
                 // Send the http response with no entity and the status got from internalService;

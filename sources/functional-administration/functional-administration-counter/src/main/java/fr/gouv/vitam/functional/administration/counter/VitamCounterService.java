@@ -76,6 +76,7 @@ public class VitamCounterService {
                     .put("AC", FunctionalAdminCollections.ACCESS_CONTRACT)
                     .put("IC", FunctionalAdminCollections.INGEST_CONTRACT)
                     .put("PR", FunctionalAdminCollections.PROFILE)
+                    .put("CT", FunctionalAdminCollections.CONTEXT)
                     .build();
 
     /**

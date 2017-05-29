@@ -21,5 +21,6 @@
 		<module>functional-administration-accession-register</module>
 		<module>functional-administration-contract</module>
         <module>functional-administration-profile</module>
+        <module>functional-administration-context</module>
     </modules>
 </project>

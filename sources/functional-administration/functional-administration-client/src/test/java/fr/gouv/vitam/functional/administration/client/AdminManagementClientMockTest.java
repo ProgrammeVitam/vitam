@@ -299,5 +299,13 @@ public class AdminManagementClientMockTest {
         final Response response = client.downloadProfileFile("FameProfileId");
         assertNotNull(response);
     }
+    
+    @Test
+    @RunWithCustomExecutor
+    public void givenClientMockWhenImportContexts() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        Status resp = client.importContexts(new ArrayList<>());
+        assertEquals(resp, Status.OK);
+    }
 
 }

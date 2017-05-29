@@ -53,6 +53,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterSummaryModel;
+import fr.gouv.vitam.functional.administration.client.model.ContextModel;
 import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
 import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
@@ -322,5 +323,12 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
         LOGGER.debug("uddate ingest contract");
         // TODO 2195
         return null;
+    }
+
+    @Override
+    public Status importContexts(List<ContextModel> ContextModelList)
+        throws ReferentialException {
+        LOGGER.debug("import context ");
+        return Status.OK;
     }
 }

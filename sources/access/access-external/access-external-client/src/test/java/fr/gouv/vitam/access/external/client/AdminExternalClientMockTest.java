@@ -67,6 +67,10 @@ public class AdminExternalClientMockTest {
         assertEquals(
             client.findDocumentById(AdminCollections.RULES, DOCUMENT_ID, TENANT_ID).toString(),
             ClientMockResultHelper.getRule().toString());
+        
+        assertEquals(
+            client.importContexts(new ByteArrayInputStream("test".getBytes()), TENANT_ID).getHttpCode(),
+            Status.CREATED.getStatusCode());
     }
 
 }
