@@ -12,6 +12,7 @@
 	<packaging>pom</packaging>
 
 	<modules>
+		<module>functional-administration-counter</module>
 		<module>functional-administration-common</module>
 		<module>functional-administration-format</module>
 		<module>functional-administration-rest</module>
