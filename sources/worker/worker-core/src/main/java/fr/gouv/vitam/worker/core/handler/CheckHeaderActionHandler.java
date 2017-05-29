@@ -47,6 +47,8 @@ public class CheckHeaderActionHandler extends ActionHandler {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckHeaderActionHandler.class);
     private static final String HANDLER_ID = "CHECK_HEADER";
+    private static final int CHECK_CONTRACT_RANK = 0;
+    private static final int CHECK_ORIGINATING_AGENCY_RANK = 1;
 
     /**
      * empty Constructor
@@ -83,13 +85,14 @@ public class CheckHeaderActionHandler extends ActionHandler {
                 madatoryValueMap.get(SedaConstants.TAG_MESSAGE_IDENTIFIER));
         }
 
-        if (!madatoryValueMap.containsKey(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER)) {
+        if (!madatoryValueMap.containsKey(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER) &&
+            Boolean.valueOf((String) handlerIO.getInput(CHECK_ORIGINATING_AGENCY_RANK))) {
             itemStatus.increment(StatusCode.KO);
             return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
         }
 
         if (madatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT) != null &&
-            Boolean.valueOf((String) handlerIO.getInput(0))) {
+            Boolean.valueOf((String) handlerIO.getInput(CHECK_CONTRACT_RANK))) {
             handlerIO.getInput().clear();
             handlerIO.getInput().add(madatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT));
             CheckIngestContractActionHandler checkIngestContractActionHandler = new CheckIngestContractActionHandler();
