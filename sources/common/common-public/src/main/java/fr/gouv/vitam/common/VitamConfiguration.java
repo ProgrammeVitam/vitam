@@ -180,7 +180,7 @@ public class VitamConfiguration {
     private int connectTimeout = CONNECT_TIMEOUT;
     // 262 MB max
     // TODO make it configurable
-    public static final int MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER = 1000;
+    public static final int MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER = 200;
 
     static {
         getConfiguration().setDefault();

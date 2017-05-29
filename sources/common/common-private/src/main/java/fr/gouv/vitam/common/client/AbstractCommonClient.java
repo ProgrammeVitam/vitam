@@ -84,8 +84,8 @@ abstract class AbstractCommonClient implements BasicClient {
      */
     final VitamClientFactory<?> clientFactory;
 
-    private final Client client;
-    private final Client clientNotChunked;
+    private Client client;
+    private Client clientNotChunked;
     private final Random random = new Random(System.currentTimeMillis());
 
     /**
@@ -95,9 +95,19 @@ abstract class AbstractCommonClient implements BasicClient {
      */
     protected AbstractCommonClient(VitamClientFactoryInterface<?> factory) {
         clientFactory = (VitamClientFactory<?>) factory;
-        client = clientFactory.getHttpClient();
-        clientNotChunked = clientFactory.getHttpClient(false);
+        client = checkClient(true);
+        clientNotChunked = checkClient(false);
         // External client or with no Session context are excluded
+    }
+    
+    protected Client checkClient(boolean chunked) throws IllegalStateException {
+        Client clientCheck;
+        if (chunked) {
+            clientCheck = clientFactory.getHttpClient();
+        } else {
+            clientCheck = clientFactory.getHttpClient(false);
+        }
+        return clientCheck;
     }
 
     @Override
@@ -136,13 +146,17 @@ abstract class AbstractCommonClient implements BasicClient {
         this.checkStatus(null);
     }
 
-
     @Override
     public void checkStatus(MultivaluedHashMap<String, Object> headers)
         throws VitamApplicationServerException {
+        checkStatus(headers, false);
+    }
+
+    private void checkStatus(MultivaluedHashMap<String, Object> headers, boolean chunk)
+        throws VitamApplicationServerException {
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, STATUS_URL, headers, MediaType.APPLICATION_JSON_TYPE, false);
+            response = performRequest(HttpMethod.GET, STATUS_URL, headers, MediaType.APPLICATION_JSON_TYPE, chunk);
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             if (status == Status.OK || status == Status.NO_CONTENT) {
                 return;
@@ -474,11 +488,9 @@ abstract class AbstractCommonClient implements BasicClient {
     public void close() {
         if (client != null) {
             clientFactory.resume(client, true);
-            //client.close();
         }
         if (clientNotChunked != null) {
             clientFactory.resume(clientNotChunked, false);
-            //clientNotChunked.close();
         }
     }
 

@@ -28,6 +28,9 @@ package fr.gouv.vitam.common.stream;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -41,6 +44,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -99,7 +103,7 @@ public class MultipleInputStreamHandler implements VitamAutoCloseable {
     /**
      * Real InputStream
      */
-    private final InputStream source;
+    private final ReadableByteChannel source;
     /**
      * Number of substreams
      */
@@ -154,7 +158,7 @@ public class MultipleInputStreamHandler implements VitamAutoCloseable {
         if (!SERVICE_AVAILABLE.get()) {
             throw new IllegalArgumentException(GLOBAL_SERVICE_OF_MULTIPLE_INPUT_STREAM_HANDLER_IS_DOWN);
         }
-        this.source = source;
+        this.source = Channels.newChannel(source);
         this.nbCopy = nbCopy;
         activeSubStreams = new CountDownLatch(nbCopy);
         subInputStreams = new StreamBufferInputStream[nbCopy];
@@ -288,7 +292,19 @@ public class MultipleInputStreamHandler implements VitamAutoCloseable {
     public void close() {
         LOGGER.info("Closing: {} {}", this, threadReader, new Exception("trace"));
         endOfReadSource.set(true);
-        StreamUtils.closeSilently(source);
+        final ByteBuffer buffer = ByteBuffer.allocate(VitamConfiguration.getChunkSize());
+        try {
+            while (source.read(buffer) != -1) {
+                buffer.flip();
+            }
+        } catch (IOException e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+        }
+        try {
+            source.close();
+        } catch (IOException e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+        }
         // empty all perCopyBuffers
         for (int i = 0; i < nbCopy; i++) {
             if (subInputStreams[i] != null && !subInputStreams[i].closed) {
@@ -325,7 +341,7 @@ public class MultipleInputStreamHandler implements VitamAutoCloseable {
         private final MultipleInputStreamHandler mish;
         private CountDownLatch started = new CountDownLatch(1);
         private volatile StatusCode status = StatusCode.UNKNOWN;
-
+        
         private ThreadReader(MultipleInputStreamHandler mish) {
             this.mish = mish;
         }
@@ -396,11 +412,12 @@ public class MultipleInputStreamHandler implements VitamAutoCloseable {
             mish.currentChunk++;
             try {
                 checkAbnormalEnd(buffer);
-                read = mish.source.read(buffer.buffer);
+                buffer.byteBuffer.clear();
+                read = mish.source.read(buffer.byteBuffer);
                 while (read == 0) {
                     Thread.sleep(5);
                     checkAbnormalEnd(buffer);
-                    read = mish.source.read(buffer.buffer);
+                    read = mish.source.read(buffer.byteBuffer);
                 }
             } catch (final IOException e) {
                 LOGGER.error(ERROR_NOT_READABLE.exception.getMessage(), e);
@@ -608,7 +625,7 @@ public class MultipleInputStreamHandler implements VitamAutoCloseable {
             int available = available();
             while (available >= 0) {
                 if (available > 0) {
-                    final int value = current.buffer[position++];
+                    final int value = current.byteBuffer.get(position++);
                     checkEnd();
                     return value;
                 } else {
@@ -696,7 +713,7 @@ public class MultipleInputStreamHandler implements VitamAutoCloseable {
      * Internal StreamBuffer pooled in the this.availableBuffers
      */
     private static final class StreamBuffer {
-        private final byte[] buffer;
+        private final ByteBuffer byteBuffer; 
         private int available;
         private IOException exception;
         private volatile int toRead;
@@ -705,12 +722,12 @@ public class MultipleInputStreamHandler implements VitamAutoCloseable {
          * Standard builder
          */
         private StreamBuffer() {
-            buffer = new byte[VitamConfiguration.getChunkSize()];
+            byteBuffer = ByteBuffer.allocateDirect(VitamConfiguration.getChunkSize());
             clear();
         }
 
         private StreamBuffer(IOException exception, int available) {
-            buffer = null;
+            byteBuffer = null;
             this.available = available;
             this.toRead = 0;
             this.exception = exception;
@@ -721,14 +738,17 @@ public class MultipleInputStreamHandler implements VitamAutoCloseable {
          * position for the current subStream
          * 
          * @param position
-         * @param b
+         * @param dest
          * @param off
          * @param len
          * @return the length really copied
          */
-        private int copy(int position, byte[] b, int off, int len) {
+        private synchronized int copy(int position, byte[] dest, int off, int len) {
             final int newLen = Math.min(available - position, len);
-            System.arraycopy(buffer, position, b, off, newLen);
+            int oldPosition = byteBuffer.position();
+            byteBuffer.position(position);
+            byteBuffer.get(dest, off, newLen);
+            byteBuffer.position(oldPosition);
             return newLen;
         }
 
@@ -756,6 +776,9 @@ public class MultipleInputStreamHandler implements VitamAutoCloseable {
             toRead = 0;
             available = 0;
             exception = null;
+            if (byteBuffer != null) {
+                byteBuffer.clear();
+            }
             return this;
         }
 
