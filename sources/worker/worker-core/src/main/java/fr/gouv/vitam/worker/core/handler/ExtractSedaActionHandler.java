@@ -161,6 +161,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String LFC_CREATION_SUB_TASK_FULL_ID = HANDLER_ID + "." + LFC_CREATION_SUB_TASK_ID;
     private HandlerIO handlerIO;
 
+
+    private static final String EV_DETAIL_REQ = "EvDetailReq";
     private static final String JSON_EXTENSION = ".json";
     private static final String BINARY_DATA_OBJECT = "BinaryDataObject";
     private static final String PHYSICAL_DATA_OBJECT = "PhysicalDataObject";
@@ -568,22 +570,22 @@ public class ExtractSedaActionHandler extends ActionHandler {
                             comment = node.get("$").asText();
                         }
 
-                        JsonNode oldComment = evDetData.get("EvDetailReq");
+                        JsonNode oldComment = evDetData.get(EV_DETAIL_REQ);
                         String evDetReq = null;
                         if (oldComment != null) {
                             evDetReq = oldComment.asText();
                         }
 
                         if (evDetReq == null || "fr".equalsIgnoreCase(lang)) {
-                            evDetData.put("EvDetailReq", comment);
+                            evDetData.put(EV_DETAIL_REQ, comment);
                         }
 
-                        evDetData.put("EvDetailReq" + (StringUtils.isEmpty(lang) ? "" : "_" + lang), comment);
+                        evDetData.put(EV_DETAIL_REQ + (StringUtils.isEmpty(lang) ? "" : "_" + lang), comment);
                         LOGGER.debug("evDetData after comment: " + evDetData);
                     }
 
                 } else if (comments != null && comments.isTextual()) {
-                    evDetData.put("EvDetailReq", comments.asText());
+                    evDetData.put(EV_DETAIL_REQ, comments.asText());
                 }
 
                 JsonNode date = metadataAsJson.get(SedaConstants.TAG_DATE);

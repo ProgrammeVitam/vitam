@@ -29,12 +29,16 @@ package fr.gouv.vitam.worker.core.handler;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.logbook.common.parameters.LogbookEvDetDataType;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -47,11 +51,12 @@ import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
  */
 public class CheckHeaderActionHandler extends ActionHandler {
 
+    private static final String EV_DET_DATA_TYPE = "evDetDataType";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckHeaderActionHandler.class);
     private static final String HANDLER_ID = "CHECK_HEADER";
     private static final int CHECK_CONTRACT_RANK = 0;
     private static final int CHECK_ORIGINATING_AGENCY_RANK = 1;
-
+    private static final String EV_DETAIL_REQ = "EvDetailReq";
     /**
      * empty Constructor
      *
@@ -87,14 +92,18 @@ public class CheckHeaderActionHandler extends ActionHandler {
                 madatoryValueMap.get(SedaConstants.TAG_MESSAGE_IDENTIFIER));
         }
 
-        if (!madatoryValueMap.containsKey(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER) &&
-            Boolean.valueOf((String) handlerIO.getInput(CHECK_ORIGINATING_AGENCY_RANK))) {
+        if (Boolean.valueOf((String) handlerIO.getInput(CHECK_ORIGINATING_AGENCY_RANK)) && 
+            Strings.isNullOrEmpty((String) madatoryValueMap.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER))) {
             itemStatus.increment(StatusCode.KO);
             return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
 
-        } else if (Strings.isNullOrEmpty((String) madatoryValueMap.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER))) {
-            itemStatus.increment(StatusCode.KO);
-            return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+        }
+
+        if (madatoryValueMap.get(SedaConstants.TAG_COMMENT) != null) {
+            ObjectNode evDetData = JsonHandler.createObjectNode();
+            evDetData.put(EV_DETAIL_REQ, (String) madatoryValueMap.get(SedaConstants.TAG_COMMENT));
+            evDetData.put(EV_DET_DATA_TYPE, LogbookEvDetDataType.MASTER.name());
+            itemStatus.setData(LogbookParameterName.eventDetailData.name(), evDetData.toString());
         }
 
         if (madatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT) != null &&
