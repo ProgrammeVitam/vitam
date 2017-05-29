@@ -137,6 +137,13 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         final String xRequestId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 
         if (!Status.fromStatusCode(responseStatus).equals(Status.ACCEPTED)) {
+            try {
+                // ProcessEngine update state and status but logbook not yet persisted
+                // Wait ~ 5 second until logbook persist
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+               // do nothing
+            }
             return xRequestId;
         }
         while (Status.fromStatusCode(responseStatus).equals(Status.ACCEPTED) && nbTry > 0) {
@@ -160,6 +167,14 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         }
         if (nbTry <= 0) {
             throw new IngestExternalException("Timeout");
+        }
+
+        try {
+            // ProcessEngine update state and status but logbook not yet persisted
+            // Wait ~ 10 second until logbook persist
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            // do nothing
         }
         return xRequestId;
     }
