@@ -261,13 +261,19 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.NOT_FOUND).build());
         } catch (final Exception e) {
-            processResponse.setStatus(StatusCode.FATAL);
-            processData.updateProcessExecutionStatus(operationId, ProcessExecutionStatus.FAILED, tenantId);
-
-            buildAndSendAsyncResponse(workflowStatus, asyncResponse,
-                processData.getProcessWorkflow(operationId, tenantId));
-
             LOGGER.error(RUNTIME_EXCEPTION_MESSAGE, e);
+            processResponse.setStatus(StatusCode.FATAL);
+            try {
+                processData.updateProcessExecutionStatus(operationId, ProcessExecutionStatus.FAILED, tenantId);
+            } catch (WorkflowNotFoundException ex) {
+                LOGGER.error("Update process workflow error > ", e);
+            } finally {
+                buildAndSendAsyncResponse(workflowStatus, asyncResponse,
+                    processData.getProcessWorkflow(operationId, tenantId));
+            }
+
+
+
         } finally {
             LOGGER.info(ELAPSED_TIME_MESSAGE + (System.currentTimeMillis() - time) / 1000 + "s, Status: " +
                 processResponse.getStatus());
