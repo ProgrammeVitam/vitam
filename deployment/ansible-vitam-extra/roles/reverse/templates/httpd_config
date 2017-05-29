@@ -127,21 +127,6 @@
     ProxyPass /logbook http://{{groups['hosts-logbook'][0]}}:{{vitam_logbook_port}}/logbook acquire=5000 connectiontimeout=3500 timeout=50 retry=5
     ProxyPassReverse  /logbook http://{{groups['hosts-logbook'][0]}}:{{vitam_logbook_port}}/logbook
 
-    #  ProxyPass /metadata http://vitam-iaas-metadata-01.int3:8082/metadata acquire=5000 connectiontimeout=3500 timeout=50 retry=5
-    #  ProxyPassReverse  /metadata http://vitam-iaas-metadata-01.int3:8082/metadata
-
-    #  ProxyPass /workspace http://vitam-iaas-workspace-01.int3:8082/workspace acquire=5000 connectiontimeout=3500 timeout=50 retry=5
-    #  ProxyPassReverse  /workspace http://vitam-iaas-workspace-01.int3:8082/workspace
-
-    #  ProxyPass /processing http://vitam-iaas-processing-01.int3:8082/processing acquire=5000 connectiontimeout=3500 timeout=50 retry=5
-    #  ProxyPassReverse  /processing http://vitam-iaas-processing-01.int3:8082/processing
-
-    #  ProxyPass /ingest http://vitam-iaas-ingest-01.int3:8082/ingest acquire=5000 connectiontimeout=3500 timeout=50 retry=5
-    #  ProxyPassReverse  /ingest http://vitam-iaas-ingest-01.int3:8082/ingest
-
-    #  ProxyPass /access http://vitam-iaas-access-01.int3:8082/access acquire=5000 connectiontimeout=3500 timeout=50 retry=5
-    #  ProxyPassReverse  /access http://vitam-iaas-access-01.int3:8082/access
-
     # /vitam subdir browser
     {% for item in groups['vitam'] %}
     ProxyPass /nodes/{{item}}/browse http://{{item}}/browse  acquire=5000 connectiontimeout=3500 timeout=50 retry=5
@@ -154,10 +139,29 @@
     ProxyPassReverse  /mongoclient http://{{groups['hosts-mongoclient'][0]}}:{{mongoclientPort}}/mongoclient
     {% endif %}
 
-    {% if groups['hosts-mongo-express']|length >0 %}
+    {% if groups['hosts-dev-tools']|length >0 %}
     # Mongo express
-    ProxyPass /mongo-express http://{{groups['hosts-mongo-express'][0]}}:8081/mongo-express acquire=5000 connectiontimeout=3500 timeout=50 retry=5
-    ProxyPassReverse  /mongo-express http://{{groups['hosts-mongo-express'][0]}}:8081/mongo-express
+    ProxyPass /mongo-express http://{{groups['hosts-dev-tools'][0]}}:8081/mongo-express acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+    ProxyPassReverse  /mongo-express http://{{groups['hosts-dev-tools'][0]}}:8081/mongo-express
+    # Elasticsearch-head
+    ProxyPass /head http://{{groups['hosts-dev-tools'][0]}}:9100/ acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+    ProxyPassReverse  /head http://{{groups['hosts-dev-tools'][0]}}:9100/
+    ProxyPass /base http://{{groups['hosts-dev-tools'][0]}}:9100/base acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+    ProxyPassReverse  /base http://{{groups['hosts-dev-tools'][0]}}:9100/base
+    ProxyPass /app.css http://{{groups['hosts-dev-tools'][0]}}:9100/app.css acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+    ProxyPassReverse  /app.css http://{{groups['hosts-dev-tools'][0]}}:9100/app.css
+    ProxyPass /vendor.css http://{{groups['hosts-dev-tools'][0]}}:9100/vendor.css acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+    ProxyPassReverse  /vendor.css http://{{groups['hosts-dev-tools'][0]}}:9100/vendor.css
+    ProxyPass /i18n.js http://{{groups['hosts-dev-tools'][0]}}:9100/i18n.js acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+    ProxyPassReverse  /i18n.js http://{{groups['hosts-dev-tools'][0]}}:9100/i18n.js
+    ProxyPass /vendor.js http://{{groups['hosts-dev-tools'][0]}}:9100/vendor.js acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+    ProxyPassReverse  /vendor.js http://{{groups['hosts-dev-tools'][0]}}:9100/vendor.js
+    ProxyPass /app.js http://{{groups['hosts-dev-tools'][0]}}:9100/app.js acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+    ProxyPassReverse  /app.js http://{{groups['hosts-dev-tools'][0]}}:9100/app.js
+    ProxyPass /fonts http://{{groups['hosts-dev-tools'][0]}}:9100/fonts acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+    ProxyPassReverse  /fonts http://{{groups['hosts-dev-tools'][0]}}:9100/fonts
+    ProxyPass /lang http://{{groups['hosts-dev-tools'][0]}}:9100/lang acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+    ProxyPassReverse  /lang http://{{groups['hosts-dev-tools'][0]}}:9100/lang
     {% endif %}
 
     {% if groups['hosts-kibana']|length >0 %}
@@ -177,15 +181,6 @@
     # Documentation
     ProxyPass /doc http://{{groups['library'][0]}}:{{vitam_library_port}}/doc
     ProxyPassReverse /doc http://{{groups['library'][0]}}:{{vitam_library_port}}/doc
-    {% endif %}
-
-    {% if groups['hosts-elasticsearch-log']|length >0 %}
-    # Elasticsearch
-    ProxyPass /_plugin http://{{groups['hosts-elasticsearch-log'][0]}}:{{elasticsearch_log_http_port}}/_plugin
-    ProxyPassReverse _plugin/ http://{{groups['hosts-elasticsearch-log'][0]}}:{{elasticsearch_log_http_port}}/_plugin
-    {% elif groups['hosts-elasticsearch-data']|length >0 %}
-    ProxyPass /_plugin http://{{groups['hosts-elasticsearch-data'][0]}}:{{elasticsearch_data_http_port}}/_plugin
-    ProxyPassReverse _plugin/ http://{{groups['hosts-elasticsearch-data'][0]}}:{{elasticsearch_data_http_port}}/_plugin
     {% endif %}
 
     {% if groups['hosts-elasticsearch-log']|length >0 %}

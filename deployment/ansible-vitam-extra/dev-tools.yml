@@ -1,0 +1,5 @@
+---
+
+- hosts: hosts-dev-tools
+  roles:
+    - dev-tools
