@@ -34,7 +34,6 @@ import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -57,7 +56,6 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
 import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.common.ContractStatus;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
@@ -66,6 +64,7 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
+import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -109,16 +108,21 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
     private LogbookOperationsClient logBookclient;
 
     private static final String FILING_UNIT = "FILING_UNIT";
+    private final VitamCounterService vitamCounterService;
 
     /**
      * Constructor
      *
      * @param dbConfiguration
+     * @param vitamCounterService
      */
-    public IngestContractImpl(MongoDbAccessAdminImpl dbConfiguration) {
+    public IngestContractImpl(MongoDbAccessAdminImpl dbConfiguration, VitamCounterService vitamCounterService) {
         mongoAccess = dbConfiguration;
+        this.vitamCounterService = vitamCounterService;
         this.logBookclient = LogbookOperationsClientFactory.getInstance().getClient();
     }
+
+
 
 
 
@@ -187,12 +191,6 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     final JsonNode ingestContractModel = JsonHandler.toJsonNode(acm);
 
 
-                    /* contract is valid, add it to the list to persist */
-                    if (contractsToPersist == null) {
-                        contractsToPersist = JsonHandler.createArrayNode();
-                    }
-
-                    contractsToPersist.add(ingestContractModel);
                 }
 
 
@@ -205,6 +203,16 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     error.getErrors().stream().map(c -> c.getMessage()).collect(Collectors.joining(","));
                 manager.logValidationError(errorsDetails);
                 return error;
+            }
+
+            contractsToPersist = JsonHandler.createArrayNode();
+            for (final IngestContractModel acm : contractModelList) {
+                String code = vitamCounterService.getNextSequence(ParameterHelper.getTenantParameter(),"IC");
+                acm.setIdentifier(code);
+                final JsonNode accessContractNode = JsonHandler.toJsonNode(acm);
+
+                    /* contract is valid, add it to the list to persist */
+                contractsToPersist.add(accessContractNode);
             }
 
             // at this point no exception occurred and no validation error detected

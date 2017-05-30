@@ -112,7 +112,8 @@ public class ContractResource {
     public Response importContracts(List<IngestContractModel> ingestContractModelList, @Context UriInfo uri) {
         ParametersChecker.checkParameter(INGEST_CONTRACT_JSON_IS_MANDATORY_PATAMETER, ingestContractModelList);
 
-        try (ContractService<IngestContractModel> ingestContract = new IngestContractImpl(mongoAccess)) {
+        try (ContractService<IngestContractModel> ingestContract = new IngestContractImpl(mongoAccess,
+            vitamCounterService)) {
             RequestResponse requestResponse = ingestContract.createContracts(ingestContractModelList);
 
             if (!requestResponse.isOk()) {
@@ -147,7 +148,7 @@ public class ContractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response findIngestContracts(JsonNode queryDsl) {
 
-        try (ContractService<IngestContractModel> ingestContract = new IngestContractImpl(mongoAccess)) {
+        try (ContractService<IngestContractModel> ingestContract = new IngestContractImpl(mongoAccess,vitamCounterService)) {
 
             final List<IngestContractModel> ingestContractModelList = ingestContract.findContracts(queryDsl);
 
@@ -188,7 +189,8 @@ public class ContractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response importAccessContracts(List<AccessContractModel> accessContractModelList, @Context UriInfo uri) {
         ParametersChecker.checkParameter(ACCESS_CONTRACT_JSON_IS_MANDATORY_PATAMETER, accessContractModelList);
-        try (ContractService<AccessContractModel> accessContract = new AccessContractImpl(mongoAccess)) {
+        try (ContractService<AccessContractModel> accessContract = new AccessContractImpl(mongoAccess,
+            vitamCounterService)) {
             RequestResponse requestResponse = accessContract.createContracts(accessContractModelList);
 
             if (!requestResponse.isOk()) {
@@ -217,7 +219,8 @@ public class ContractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateAccessContract(@PathParam("id") String contractId, JsonNode queryDsl) {
-        try (ContractService<AccessContractModel> accessContract = new AccessContractImpl(mongoAccess)) {
+        try (ContractService<AccessContractModel> accessContract = new AccessContractImpl(mongoAccess,
+            vitamCounterService)) {
             RequestResponse requestResponse = accessContract.updateContract(contractId, queryDsl);
             if (!requestResponse.isOk()) {
                 ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
@@ -242,7 +245,8 @@ public class ContractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateIngestContract(@PathParam("id") String contractId, JsonNode queryDsl) {
-        try (ContractService<IngestContractModel> ingestContract = new IngestContractImpl(mongoAccess)) {
+        try (ContractService<IngestContractModel> ingestContract = new IngestContractImpl(mongoAccess,
+            vitamCounterService)) {
             RequestResponse requestResponse = ingestContract.updateContract(contractId, queryDsl);
             if (!requestResponse.isOk()) {
                 ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
@@ -273,7 +277,8 @@ public class ContractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response findAccessContracts(JsonNode queryDsl) {
-        try (ContractService<AccessContractModel> accessContract = new AccessContractImpl(mongoAccess)) {
+        try (ContractService<AccessContractModel> accessContract = new AccessContractImpl(mongoAccess,
+            vitamCounterService)) {
 
             final List<AccessContractModel> accessContractModelList = accessContract.findContracts(queryDsl);
 

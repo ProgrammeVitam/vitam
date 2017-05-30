@@ -44,6 +44,8 @@ import java.util.stream.Collectors;
 
 import fr.gouv.vitam.common.security.SanityChecker;
 
+import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
+import org.apache.commons.lang3.BooleanUtils;
 import org.bson.conversions.Bson;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -103,14 +105,18 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessContractImpl.class);
     private final MongoDbAccessAdminImpl mongoAccess;
     private LogbookOperationsClient logBookclient;
+    private final VitamCounterService vitamCounterService ;
+
 
     /**
      * Constructor
      *
      * @param mongoAccess MongoDB client
+     * @param vitamCounterService
      */
-    public AccessContractImpl(MongoDbAccessAdminImpl mongoAccess) {
+    public AccessContractImpl(MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService) {
         this.mongoAccess = mongoAccess;
+        this.vitamCounterService = vitamCounterService;
         this.logBookclient = LogbookOperationsClientFactory.getInstance().getClient();
     }
 
@@ -134,52 +140,31 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
 
         final VitamError error = new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem())
             .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
-
         try {
 
             for (final AccessContractModel acm : contractModelList) {
-
-
                 // if a contract have and id
                 if (null != acm.getId()) {
                     error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem())
                         .setMessage(GenericRejectionCause.rejectIdNotAllowedInCreate(acm.getName()).getReason()));
                     continue;
                 }
-
                 // if a contract with the same name is already treated mark the current one as duplicated
                 if (contractNames.contains(acm.getName())) {
                     error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem())
                         .setMessage(GenericRejectionCause.rejectDuplicatedEntry(acm.getName()).getReason()));
                     continue;
                 }
-
-
-
                 // mark the current contract as treated
                 contractNames.add(acm.getName());
-
                 // validate contract
                 if (manager.validateContract(acm, acm.getName(), error)) {
-
                     // TODO: 5/16/17 newIngestContractGUID used for access contract, should create
                     // newAccessContractGUID?
                     acm.setId(GUIDFactory.newIngestContractGUID(ParameterHelper.getTenantParameter()).getId());
-
-                    final JsonNode accessContractNode = JsonHandler.toJsonNode(acm);
-
-
-                    /* contract is valid, add it to the list to persist */
-                    if (contractsToPersist == null) {
-                        contractsToPersist = JsonHandler.createArrayNode();
-                    }
-
-                    contractsToPersist.add(accessContractNode);
                 }
 
-
             }
-
             if (null != error.getErrors() && !error.getErrors().isEmpty()) {
                 // log book + application log
                 // stop
@@ -187,6 +172,16 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                     error.getErrors().stream().map(c -> c.getMessage()).collect(Collectors.joining(","));
                 manager.logValidationError(errorsDetails);
                 return error;
+            }
+
+            contractsToPersist = JsonHandler.createArrayNode();
+            for (final AccessContractModel acm : contractModelList) {
+                String code = vitamCounterService.getNextSequence(ParameterHelper.getTenantParameter(),"AC");
+                acm.setIdentifier(code);
+                final JsonNode accessContractNode = JsonHandler.toJsonNode(acm);
+
+                    /* contract is valid, add it to the list to persist */
+                contractsToPersist.add(accessContractNode);
             }
 
             // at this point no exception occurred and no validation error detected

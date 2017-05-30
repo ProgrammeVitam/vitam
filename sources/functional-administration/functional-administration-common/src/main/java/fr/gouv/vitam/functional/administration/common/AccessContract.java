@@ -38,7 +38,10 @@ import java.util.Set;
  * 
  */
 public class AccessContract extends VitamDocument<AccessContract> {
-
+    /**
+     * the contract id
+     */
+    public static final String IDENTIFIER = "Identifier";
     /**
      * the contract name
      */

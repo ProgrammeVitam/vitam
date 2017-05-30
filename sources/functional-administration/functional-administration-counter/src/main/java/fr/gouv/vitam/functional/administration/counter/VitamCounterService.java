@@ -32,9 +32,12 @@ import com.google.common.collect.ImmutableMap;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
+
 import static com.mongodb.client.model.Filters.and;
+
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.ReturnDocument;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -60,26 +63,30 @@ import java.util.List;
 import java.util.Map;
 
 /***
- *
+ *Vitam functionnal counter service
  */
 public class VitamCounterService {
+    private static final String ARGUMENT_MUST_NOT_BE_NULL = "Argument must not be null";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamCounterService.class);
-    final MongoDbAccessAdminImpl mongoAccess;
+    private final MongoDbAccessAdminImpl mongoAccess;
     private final Map<Integer, Integer> tenants;
     private final Map<String, FunctionalAdminCollections> collections =
-        ImmutableMap.<String, FunctionalAdminCollections>builder()
-            .put("AC", FunctionalAdminCollections.ACCESS_CONTRACT)
-            .put("IC", FunctionalAdminCollections.INGEST_CONTRACT)
-            .put("PR", FunctionalAdminCollections.PROFILE)
-            .build();
+            ImmutableMap.<String, FunctionalAdminCollections>builder()
+                    .put("AC", FunctionalAdminCollections.ACCESS_CONTRACT)
+                    .put("IC", FunctionalAdminCollections.INGEST_CONTRACT)
+                    .put("PR", FunctionalAdminCollections.PROFILE)
+                    .build();
+
     /**
      * Constructor
      *
      * @param dbConfiguration
      */
     public VitamCounterService(MongoDbAccessAdminImpl dbConfiguration, List<Integer> tenants)
-        throws VitamException {
+            throws VitamException {
+        ParametersChecker.checkParameter(ARGUMENT_MUST_NOT_BE_NULL, tenants);
+
         mongoAccess = dbConfiguration;
         this.tenants = new HashMap<Integer, Integer>();
         tenants.stream().forEach((i) -> {
@@ -100,7 +107,7 @@ public class VitamCounterService {
                         for (Map.Entry<String, FunctionalAdminCollections> entry : collections.entrySet()) {
                             JsonNode query = generateQuery(entry.getKey());
                             MongoCursor<VitamDocument<?>> cursor =
-                                mongoAccess.findDocuments(query, FunctionalAdminCollections.VITAM_SEQUENCE);
+                                    mongoAccess.findDocuments(query, FunctionalAdminCollections.VITAM_SEQUENCE);
                             if (!cursor.hasNext()) {
                                 createSequence(tenantId, entry);
                             }
@@ -123,7 +130,6 @@ public class VitamCounterService {
     }
 
     /**
-     *
      * @param tenant
      * @param entry
      * @throws VitamException
@@ -136,15 +142,11 @@ public class VitamCounterService {
         JsonNode firstSequence = JsonHandler.getFromString(node.toString());
         //  sequenceCollection.
         mongoAccess.insertDocument(firstSequence, FunctionalAdminCollections.VITAM_SEQUENCE);
-        try {
-            getNextSequence(tenant, entry.getKey());
-        } catch (InvalidCreateOperationException e) {
-            e.printStackTrace();
-        }
     }
 
     /**
      * Atomically find a sequence  and update it.
+     *
      * @param tenant
      * @param code
      * @return
@@ -153,25 +155,25 @@ public class VitamCounterService {
      * @throws ReferentialException
      */
     public String getNextSequence(Integer tenant, String code) throws InvalidCreateOperationException,
-        InvalidParseOperationException, ReferentialException {
-        String sequence = "";
+            InvalidParseOperationException, ReferentialException {
+        Integer sequence;
 
         final BasicDBObject incQuery = new BasicDBObject();
         incQuery.append("$inc", new BasicDBObject(VitamSequence.COUNTER, 1));
         Bson query = and(
-            Filters.eq(VitamSequence.NAME, code),
-            Filters.eq(VitamDocument.TENANT_ID, ParameterHelper.getTenantParameter()));
+                Filters.eq(VitamSequence.NAME, code),
+                Filters.eq(VitamDocument.TENANT_ID, ParameterHelper.getTenantParameter()));
         FindOneAndUpdateOptions findOneAndUpdateOptions = new FindOneAndUpdateOptions();
         findOneAndUpdateOptions.returnDocument(ReturnDocument.AFTER);
         try {
             final Object result = FunctionalAdminCollections.VITAM_SEQUENCE.getCollection()
-                .findOneAndUpdate(query, incQuery, findOneAndUpdateOptions);
+                    .findOneAndUpdate(query, incQuery, findOneAndUpdateOptions);
             sequence = ((VitamSequence) result).getCounter();
         } catch (final Exception e) {
             LOGGER.error("find Document Exception", e);
             throw new ReferentialException(e);
         }
-        return code + sequence;
+        return code + "-" + String.format("%06d", sequence);
     }
 
     /**
