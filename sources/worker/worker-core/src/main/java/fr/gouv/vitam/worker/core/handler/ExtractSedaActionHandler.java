@@ -88,6 +88,7 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.objectgroup.ObjectGroupJsonData;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -125,6 +126,10 @@ import fr.gouv.vitam.processing.common.exception.ProcessingManifestReferenceExce
 import fr.gouv.vitam.processing.common.exception.ProcessingUnauthorizeException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnitNotFoundException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.DataObjectDetail;
 import fr.gouv.vitam.worker.common.utils.DataObjectInfo;
@@ -136,10 +141,9 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 /**
- * Handler class used to extract metaData. </br>
- * Create and put a new file (metadata extracted) json.json into container GUID
+ * Handler class used to extract metaData. </br> Create and put a new file (metadata extracted) json.json into container
+ * GUID
  */
-
 public class ExtractSedaActionHandler extends ActionHandler {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ExtractSedaActionHandler.class);
@@ -200,6 +204,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String GLOBAL_MGT_RULE_TAG = "GLOBAL_MGT_RULE";
     private static final String CONTRACT_NAME = "Name";
     private static final String FILING_UNIT = "FILING_UNIT";
+    private static final String DEFAULT_STRATEGY = "default";
 
     private final Map<String, String> dataObjectIdToGuid;
     private final Map<String, String> objectGroupIdToGuid;
@@ -234,8 +239,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private String filingParentId = null;
 
     private ObjectNode archiveUnitTree;
-
-
     private UnitType workflowUnitTYpe = UnitType.INGEST;
 
 
@@ -1630,6 +1633,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 : isObjectGroup ? LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters()
                 : LogbookParametersFactory.newLogbookOperationParameters();
 
+
             logbookLifeCycleParameters.putParameterValue(LogbookParameterName.objectIdentifier, guid);
         }
         return logbookLifeCycleParameters;
@@ -2010,8 +2014,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * Update unit file with existing archive unit. Will set the existing in the file.
      *
      * @param elementGuid archive unit guid
-     * @param tmpFile     unit xml file
-     * @param unitName    xml unit qualifier
+     * @param tmpFile unit xml file
+     * @param unitName xml unit qualifier
      * @return the modified unit file
      * @throws ProcessingException thrown when an exception occurred while adding the data
      */
@@ -2077,6 +2081,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
         for (final Entry<String, List<String>> entry : objectGroupIdToDataObjectId.entrySet()) {
             final ObjectNode objectGroup = JsonHandler.createObjectNode();
+            // TODO #2604 Refactor JsonNode to Java pojo
+            final ObjectGroupJsonData ObjectGroupJsonData = new ObjectGroupJsonData();
             ObjectNode fileInfo = JsonHandler.createObjectNode();
             final ArrayNode unitParent = JsonHandler.createArrayNode();
             String objectGroupType = "";
@@ -2084,6 +2090,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             final File tmpFile = handlerIO.getNewLocalFile(objectGroupGuid + JSON_EXTENSION);
 
             try {
+
                 final Map<String, ArrayList<JsonNode>> categoryMap = new HashMap<>();
                 objectGroup.put(SedaConstants.PREFIX_ID, objectGroupGuid);
                 objectGroup.put(SedaConstants.PREFIX_TENANT_ID, ParameterHelper.getTenantParameter());
@@ -2093,6 +2100,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     final File dataObjectFile =
                         handlerIO.getNewLocalFile(dataObjectIdToGuid.get(id) + JSON_EXTENSION);
                     JsonNode dataObjectNode = JsonHandler.getFromFile(dataObjectFile).get(BINARY_DATA_OBJECT);
+
                     if (dataObjectNode == null) {
                         dataObjectNode = JsonHandler.getFromFile(dataObjectFile).get(PHYSICAL_DATA_OBJECT);
                     }
@@ -2142,7 +2150,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
                 objectGroup.put(SedaConstants.PREFIX_TYPE, objectGroupType);
                 objectGroup.set(SedaConstants.TAG_FILE_INFO, fileInfo);
-                final ObjectNode qualifiersNode = getObjectGroupQualifiers(categoryMap);
+                final ArrayNode qualifiersNode = getObjectGroupQualifiers(categoryMap);
                 objectGroup.set(SedaConstants.PREFIX_QUALIFIERS, qualifiersNode);
                 final ObjectNode workNode = getObjectGroupWork(categoryMap);
                 objectGroup.set(SedaConstants.PREFIX_WORK, workNode);
@@ -2201,10 +2209,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
         }
     }
 
-    private ObjectNode getObjectGroupQualifiers(Map<String, ArrayList<JsonNode>> categoryMap) {
-        final ObjectNode qualifierObject = JsonHandler.createObjectNode();
+    private ArrayNode getObjectGroupQualifiers(Map<String, ArrayList<JsonNode>> categoryMap) {
+        final ArrayNode qualifiersArray = JsonHandler.createArrayNode();
         for (final Entry<String, ArrayList<JsonNode>> entry : categoryMap.entrySet()) {
             final ObjectNode objectNode = JsonHandler.createObjectNode();
+            objectNode.put(SedaConstants.PREFIX_QUALIFIER, entry.getKey());
             objectNode.put(SedaConstants.TAG_NB, entry.getValue().size());
             final ArrayNode arrayNode = JsonHandler.createArrayNode();
             for (final JsonNode node : entry.getValue()) {
@@ -2214,9 +2223,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 arrayNode.add(node);
             }
             objectNode.set(SedaConstants.TAG_VERSIONS, arrayNode);
-            qualifierObject.set(entry.getKey(), objectNode);
+            qualifiersArray.add(objectNode);
         }
-        return qualifierObject;
+        return qualifiersArray;
     }
 
     private ObjectNode getObjectGroupWork(Map<String, ArrayList<JsonNode>> categoryMap) {
@@ -2247,8 +2256,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * Update data object json node with data from maps
      *
      * @param objectNode data object json node
-     * @param guid       guid of data object
+     * @param guid guid of data object
      */
+
     private void updateObjectNode(final ObjectNode objectNode, String guid) {
         objectNode.put(SedaConstants.PREFIX_ID, guid);
         if (objectGuidToDataObject.get(guid).getSize() != null) {
@@ -2265,8 +2275,40 @@ public class ExtractSedaActionHandler extends ActionHandler {
             objectNode.put(SedaConstants.ALGORITHM,
                 objectGuidToDataObject.get(guid).getAlgo().getName());
         }
+        objectNode.set(SedaConstants.STORAGE, createStorageFieldInObjectGroup());
+
     }
 
+    /**
+     * Create _storage objectNode for create objectGroup
+     * 
+     * @return JsonObject _storage for objectGroup
+     * 
+     */
+    private ObjectNode createStorageFieldInObjectGroup() {
+        ObjectNode storage = JsonHandler.createObjectNode();
+        try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
+            JsonNode storageInformation = storageClient.getStorageInformation(DEFAULT_STRATEGY);
+            if (storageInformation != null) {
+                ArrayNode capacities = (ArrayNode) storageInformation.get("capacities");
+                ArrayNode offersIds = JsonHandler.createArrayNode();
+                Integer nbc = null;
+                for (JsonNode capacity : capacities) {
+                    offersIds.add(capacity.get("offerId").asText());
+                    JsonNode nbcNode = capacity.get("nbc");
+                    if (nbcNode != null) {
+                        nbc = nbcNode.asInt();
+                    }
+                }
+                storage.put(SedaConstants.TAG_NB, nbc);
+                storage.set(SedaConstants.OFFER_IDS, offersIds);
+                storage.put(SedaConstants.STRATEGY_ID, DEFAULT_STRATEGY);
+            }
+        } catch (StorageNotFoundClientException | StorageServerClientException e) {
+            LOGGER.error(e);
+        }
+        return storage;
+    }
 
     /**
      * Load data of an existing archive unit by its vitam id.
@@ -2274,7 +2316,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * @param archiveUnitId guid of archive unit
      * @return AU response
      * @throws ProcessingUnitNotFoundException thrown if unit not found
-     * @throws ProcessingException             thrown if a metadata exception occured
+     * @throws ProcessingException thrown if a metadata exception occured
      */
     private JsonNode loadExistingArchiveUnit(String archiveUnitId) throws ProcessingException {
 

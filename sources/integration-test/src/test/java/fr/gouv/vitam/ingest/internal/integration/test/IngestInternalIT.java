@@ -498,7 +498,7 @@ public class IngestInternalIT {
             // Try to check OG
             select = new SelectMultiQuery();
             select.addRoots(og);
-            select.setProjectionSliceOnQualifier("BinaryMaster", 0);
+            select.setProjectionSliceOnQualifier("BinaryMaster", 1);
             final JsonNode jsonResponse = metadataClient.selectObjectGrouptbyId(select.getFinalSelect(), og);
             LOGGER.warn("Result: " + jsonResponse);
             final List<String> valuesAsText = jsonResponse.get("$results").findValuesAsText("_id");
@@ -515,7 +515,7 @@ public class IngestInternalIT {
 
             // Now redo Object with access internal
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
-            responseStorage = accessClient.getObject(new SelectMultiQuery().getFinalSelect(), og, "BinaryMaster", 0);
+            responseStorage = accessClient.getObject(new SelectMultiQuery().getFinalSelect(), og, "BinaryMaster", 1);
             inputStream = responseStorage.readEntity(InputStream.class);
 
             RequestResponse response = accessClient.updateUnitbyId(new UpdateMultiQuery().getFinalUpdate(),

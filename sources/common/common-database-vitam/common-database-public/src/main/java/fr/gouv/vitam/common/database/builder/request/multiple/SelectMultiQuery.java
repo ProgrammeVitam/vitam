@@ -235,21 +235,29 @@ public class SelectMultiQuery extends RequestMultiple {
      * @param qualifier might be either Xxx or Xxx_n
      * @param version the version ob object group
      * @param additionalFields additional fields
-     * @throws InvalidParseOperationException when projection parse exception occurred  
+     * @throws InvalidParseOperationException when projection parse exception occurred
      */
     public void setProjectionSliceOnQualifier(String qualifier, int version, String... additionalFields)
         throws InvalidParseOperationException {
         // FIXME P1 : it would be nice to be able to handle $slice in projection via builder
         String projection =
-            "{\"$fields\":{\"#qualifiers." + qualifier.trim().split("_")[0] + ".versions\": { $slice: [" + version +
-                ",1]},\"#id\":0," + "\"#qualifiers." + qualifier.trim().split("_")[0] + ".versions._id\":1";
+            "{\"$fields\":{\"#qualifiers.versions\":1,\"#id\":0," + "\"#qualifiers.versions._id\":1,"
+                + "\"#qualifiers.qualifier\":1"
+                + ",\"#qualifiers.versions.DataObjectVersion\":1";
         for (final String field : additionalFields) {
-            projection += ",\"#qualifiers." + qualifier.trim().split("_")[0] + ".versions." + field + "\":1";
+            projection += ",\"#qualifiers.versions." + field + "\":1";
         }
         projection += "}}";
-
-
         parseProjection(projection);
+
+        // String projection =
+        // "{\"$fields\":{\"#qualifiers." + qualifier.trim().split("_")[0] + ".versions\": { $slice: [" + version +
+        // ",1]},\"#id\":0," + "\"#qualifiers." + qualifier.trim().split("_")[0] + ".versions._id\":1";
+        // for (final String field : additionalFields) {
+        // projection += ",\"#qualifiers." + qualifier.trim().split("_")[0] + ".versions." + field + "\":1";
+        // }
+        // projection += "}}";
+        // parseProjection(projection);
     }
 
     /**
@@ -281,8 +289,7 @@ public class SelectMultiQuery extends RequestMultiple {
         throws InvalidParseOperationException {
         resetUsageProjection();
         if (projectionContent.has(PROJECTION.USAGE.exactToken())) {
-            setUsageProjection(
-                projectionContent.get(PROJECTION.USAGE.exactToken()).asText());
+            setUsageProjection(projectionContent.get(PROJECTION.USAGE.exactToken()).asText());
         }
         return this;
     }

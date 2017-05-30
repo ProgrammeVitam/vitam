@@ -746,7 +746,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             }
             ArrayNode resultArray = JsonHandler.createArrayNode();
             for (OfferReference offerReference : offerReferences) {
-                resultArray.add(getOfferInformation(offerReference, tenantId));
+                resultArray.add(getOfferInformation(offerReference, tenantId, hotStrategy.getCopy()));
             }
             return JsonHandler.createObjectNode().set("capacities", resultArray);
         }
@@ -754,13 +754,14 @@ public class StorageDistributionImpl implements StorageDistribution {
         throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
     }
 
-    private JsonNode getOfferInformation(OfferReference offerReference, Integer tenantId) throws StorageException {
+    private JsonNode getOfferInformation(OfferReference offerReference, Integer tenantId, int nbCopy) throws StorageException {
         final Driver driver = retrieveDriverInternal(offerReference.getId());
         final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
         try (Connection connection = driver.connect(offer.getId())) {
             final ObjectNode ret = JsonHandler.createObjectNode();
             ret.put("offerId", offerReference.getId());
             ret.put("usableSpace", connection.getStorageCapacity(tenantId).getUsableSpace());
+            ret.put("nbc", nbCopy);
             return ret;
         } catch (StorageDriverException | RuntimeException exc) {
             if (exc instanceof StorageDriverNotFoundException) {

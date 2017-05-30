@@ -37,6 +37,7 @@ import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -1004,7 +1005,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
      *
      * @param headers HTTP Headers
      * @param objectGroupId the object group Id
-     * @param usage additional mandatory parameters usage
      * @param version additional mandatory parameters version
      * @param filename additional mandatory parameters filename
      * @param tenantId the tenant id
@@ -1015,13 +1015,13 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @RequiresPermissions("archiveunit:objects:read")
     public void getObjectAsInputStreamAsync(@Context HttpHeaders headers, @PathParam("idOG") String objectGroupId,
-        @QueryParam("usage") String usage, @QueryParam("version") String version,
-        @QueryParam("filename") String filename, @QueryParam("tenantId") Integer tenantId,
+        @QueryParam("usage") String usage, @QueryParam("filename") String filename,
+        @QueryParam("tenantId") Integer tenantId,
         @QueryParam("contractId") String contractId,
         @Suspended final AsyncResponse asyncResponse) {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         VitamThreadPoolExecutor.getDefaultExecutor()
-            .execute(() -> asyncGetObjectStream(asyncResponse, objectGroupId, usage, version, filename, tenantId,
+            .execute(() -> asyncGetObjectStream(asyncResponse, objectGroupId, usage, filename, tenantId,
                 contractId));
     }
 
@@ -1067,16 +1067,14 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
-    private void asyncGetObjectStream(AsyncResponse asyncResponse, String objectGroupId, String usage, String version,
-        String filename, Integer tenantId, String contractId) {
+    private void asyncGetObjectStream(AsyncResponse asyncResponse, String objectGroupId, String usage, String filename,
+        Integer tenantId, String contractId) {
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(objectGroupId));
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(version));
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(usage));
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(filename));
             ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, objectGroupId);
             ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, usage);
-            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, version);
             ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, filename);
         } catch (final InvalidParseOperationException exc) {
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.BAD_REQUEST).build());
@@ -1089,8 +1087,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
         try {
             final HashMap<String, String> emptyMap = new HashMap<>();
             final JsonNode preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(emptyMap);
+            String[] usageAndVersion = usage.split("_");
+            if (usageAndVersion.length != 2) {
+                throw new InvalidParameterException();
+            }
             UserInterfaceTransactionManager.getObjectAsInputStream(asyncResponse, preparedQueryDsl, objectGroupId,
-                usage, Integer.parseInt(version), filename, tenantId, contractId);
+                usageAndVersion[0], Integer.parseInt(usageAndVersion[1]), filename, tenantId, contractId);
         } catch (InvalidParseOperationException | InvalidCreateOperationException exc) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, exc);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.BAD_REQUEST).build());

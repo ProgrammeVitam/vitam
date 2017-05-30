@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -100,7 +101,6 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
     private void indexObjectGroup(WorkerParameters params, ItemStatus itemStatus) throws ProcessingException {
         ParameterHelper.checkNullOrEmptyParameters(params);
         final String objectName = params.getObjectName();
-
         try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
             final ObjectNode json = (ObjectNode) handlerIO.getJsonFromWorkspace(OBJECT_GROUP + "/" + objectName);
             json.remove(SedaConstants.PREFIX_WORK);

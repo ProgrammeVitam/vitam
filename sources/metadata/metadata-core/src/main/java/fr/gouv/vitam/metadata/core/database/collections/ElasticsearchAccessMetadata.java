@@ -168,7 +168,8 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
     final boolean addEntryIndex(final MetadataCollections collection, final Integer tenantId, final String id,
         final String json) {
         final String type = collection == MetadataCollections.C_UNIT ? Unit.TYPEUNIQUE : ObjectGroup.TYPEUNIQUE;
-        return client.prepareIndex(getIndexName(collection, tenantId), type, id).setSource(json).setOpType(OpType.INDEX)
+        return client.prepareIndex(getIndexName(collection, tenantId), type, id).setSource(json)
+            .setOpType(OpType.INDEX)
             .get().getVersion() > 0;
     }
 
@@ -325,7 +326,8 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
                 LOGGER.error("ES insert in error since result to insert is empty");
                 throw new MetaDataExecutionException("Result to insert is empty");
             }
-            bulkRequest.add(client.prepareIndex(getIndexName(MetadataCollections.C_UNIT, tenantId), Unit.TYPEUNIQUE, id)
+            bulkRequest.add(client
+                .prepareIndex(getIndexName(MetadataCollections.C_UNIT, tenantId), Unit.TYPEUNIQUE, id)
                 .setSource(toInsert));
         }
         final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
@@ -466,10 +468,10 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * Build the filter for depth = 0
      *
      * @param collection the working collection
+     * @param tenantId the tenant for opeation
      * @param currentNodes current parent nodes
      * @param condition the query
      * @param filterCond the filter query
-     * @param tenantId the tenant for opeation
      * @return the Result associated with this request. Note that the exact depth is not checked, so it must be checked
      *         after (using MongoDb)
      * @throws MetaDataExecutionException if query operation exception occurred
@@ -510,7 +512,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
          * filter where _id in (currentNodes as list of ids)
          */
         QueryBuilder domdepths = null;
-        final IdsQueryBuilder filter = QueryBuilders.idsQuery((String[]) currentNodes.toArray());
+        IdsQueryBuilder filter = QueryBuilders.idsQuery((String[]) currentNodes.toArray(new String[currentNodes.size()]));
         if (filterCond != null) {
             domdepths = QueryBuilders.boolQuery().must(filter).must(filterCond);
         } else {

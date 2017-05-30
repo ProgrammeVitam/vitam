@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -81,7 +82,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.HEAD, "/", getDefaultHeaders(tenantId, strategyId, null, null),
+            response = performRequest(HttpMethod.GET, "/", getDefaultHeaders(tenantId, strategyId, null, null),
                     MediaType.APPLICATION_JSON_TYPE, false);
             return handleCommonResponseStatus(response, JsonNode.class);
         } catch (final VitamClientInternalException e) {

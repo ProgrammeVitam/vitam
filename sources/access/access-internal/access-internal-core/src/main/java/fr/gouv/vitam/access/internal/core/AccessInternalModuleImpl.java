@@ -29,7 +29,6 @@ package fr.gouv.vitam.access.internal.core;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.List;
 
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.container.AsyncResponse;
@@ -42,7 +41,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 
-import fr.gouv.vitam.access.internal.api.AccessBinaryData;
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.api.DataCategory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalException;
@@ -65,10 +63,12 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
+import fr.gouv.vitam.common.model.objectgroup.QualifiersJson;
+import fr.gouv.vitam.common.model.objectgroup.VersionsJson;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
@@ -305,42 +305,56 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             throw new AccessInternalExecutionException("Null json response node from metadata");
         }
 
+        ObjectGroupResponse objectGroupResponse =
+            JsonHandler.getFromJsonNode(jsonResponse.get(RESULTS), ObjectGroupResponse.class);
+
+
+        VersionsJson finalversionsResponse = null;
         // FIXME P1: do not use direct access but POJO
-        final List<String> valuesAsText = jsonResponse.get(RESULTS).findValuesAsText(_ID);
-        if (valuesAsText.size() > 1) {
-            final String ids = valuesAsText.stream().reduce((s, s2) -> s + ", " + s2).get();
-            throw new AccessInternalExecutionException("More than one object founds. Ids are : " + ids);
+        // #2604 : Filter the given result for not having false positif in the request result
+        // && objectGroupResponse.getQualifiers().size() > 1
+        if (objectGroupResponse.getQualifiers() != null) {
+            final String dataObjectVersion = qualifier + "_" + version;
+            for (QualifiersJson qualifiersResponse : objectGroupResponse.getQualifiers()) {
+                if (qualifier.equals(qualifiersResponse.getQualifier())) {
+                    for (VersionsJson versionResponse : qualifiersResponse.getVersions()) {
+                        if (dataObjectVersion.equals(versionResponse.getDataObjectVersion())) {
+                            finalversionsResponse = versionResponse;
+                            break;
+                        }
+                    }
+                }
+            }
         }
-        LOGGER.debug(JsonHandler.prettyPrint(jsonResponse.get(RESULTS).get(0)));
         String mimetype = null;
         String filename = null;
+        String objectId = null;
+        if (finalversionsResponse != null) {
+            if (finalversionsResponse.getFormatIdentification() != null &&
+                !finalversionsResponse.getFormatIdentification().getMimeType().isEmpty()) {
+                mimetype = finalversionsResponse.getFormatIdentification().getMimeType();
 
-
-        final List<String> mimeTypesAsText = jsonResponse.get(RESULTS).findValuesAsText(MIME_TYPE);
-        if (mimeTypesAsText.size() > 1) {
-            final String multipleMimetype = mimeTypesAsText.stream().reduce((s, s2) -> s + ", " + s2).get();
-            LOGGER.warn("Multiple mimetypes found {}, using the first.", multipleMimetype);
-        }
-        if (!mimeTypesAsText.isEmpty()) {
-            mimetype = mimeTypesAsText.get(0);
-        }
-
-        final List<String> fileNamesAsText = jsonResponse.get(RESULTS).findValuesAsText("Filename");
-        if (fileNamesAsText.size() > 1) {
-            final String multipleFilenames = fileNamesAsText.stream().reduce((s, s2) -> s + ", " + s2).get();
-            LOGGER.warn("Multiple filenames found {}, using the first", multipleFilenames);
-        }
-        if (!fileNamesAsText.isEmpty()) {
-            filename = fileNamesAsText.get(0);
+            }
+            if (finalversionsResponse.getFileInfoResponse() != null &&
+                !finalversionsResponse.getFileInfoResponse().getFilename().isEmpty()) {
+                filename = finalversionsResponse.getFileInfoResponse().getFilename();
+            }
+            objectId = finalversionsResponse.getId();
+        } else {
+            // throw new AccessInternalExecutionException(String.format(
+            // "Can't find Archive unit Because qualifier or version are not the same in storage result: %s, " +
+            // "request : %s,  finalversionsResponse.getId(): %s, ",
+            // jsonResponse.get(RESULTS), request.getFinalSelect(), finalversionsResponse.getId()));
         }
 
         if (Strings.isNullOrEmpty(mimetype)) {
             mimetype = MediaType.APPLICATION_OCTET_STREAM;
         }
-        final String objectId = valuesAsText.get(0);
+
         if (Strings.isNullOrEmpty(filename)) {
             filename = objectId;
         }
+        
         final StorageClient storageClient =
             storageClientMock == null ? StorageClientFactory.getInstance().getClient() : storageClientMock;
         try {
@@ -436,8 +450,10 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             jsonNode = metaDataClient.updateUnitbyId(newQuery, idUnit);
 
             // update logbook TASK INDEXATION
-            logbookOpParamEnd = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
-                StatusCode.OK, VitamLogbookMessages.getCodeOp(UNIT_METADATA_UPDATE, StatusCode.OK), idGUID, UNIT_METADATA_UPDATE);
+            logbookOpParamEnd =
+                getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
+                    StatusCode.OK, VitamLogbookMessages.getCodeOp(UNIT_METADATA_UPDATE, StatusCode.OK), idGUID,
+                    UNIT_METADATA_UPDATE);
             logbookOperationClient.update(logbookOpParamEnd);
 
             // update global logbook lifecycle TASK INDEXATION
@@ -478,7 +494,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             logbookLCParamEnd.putParameterValue(LogbookParameterName.eventDetailData,
                 getDiffMessageFor(jsonNode, idUnit));
             logbookLifeCycleClient.update(logbookLCParamEnd);
-            
+
             // update logbook operation STP
             logbookOpStpParamEnd = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
                 StatusCode.OK, VitamLogbookMessages.getCodeOp(STP_UPDATE_UNIT, StatusCode.OK), idGUID,
@@ -529,7 +545,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             rollBackLogbook(logbookLifeCycleClient, logbookOperationClient, updateOpGuidStart, newQuery, idGUID);
             throw new AccessInternalExecutionException(e);
         } catch (StorageClientException e) {
-            // NO since metadata is already updated: rollBackLogbook(logbookLifeCycleClient, logbookOperationClient, updateOpGuidStart, newQuery, idGUID);
+            // NO since metadata is already updated: rollBackLogbook(logbookLifeCycleClient, logbookOperationClient,
+            // updateOpGuidStart, newQuery, idGUID);
             LOGGER.error(STORAGE_SERVER_EXCEPTION, e);
             throw new AccessInternalExecutionException(STORAGE_SERVER_EXCEPTION, e);
         } catch (ContentAddressableStorageException e) {
