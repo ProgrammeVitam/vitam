@@ -74,7 +74,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     private static final String NOT_FOUND_EXCEPTION = "Not Found Exception";
     private static final String UNAUTHORIZED = "Unauthorized";
     private static final int TIME_TO_SLEEP = 1000; // one seconds
-    private static final int NB_TRY = 500;
+    private static final int NB_TRY = 100;
 
     IngestExternalClientRest(IngestExternalClientFactory factory) {
         super(factory);
@@ -137,13 +137,6 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         final String xRequestId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 
         if (!Status.fromStatusCode(responseStatus).equals(Status.ACCEPTED)) {
-            try {
-                // ProcessEngine update state and status but logbook not yet persisted
-                // Wait ~ 5 second until logbook persist
-                Thread.sleep(5000);
-            } catch (InterruptedException e) {
-               // do nothing
-            }
             return xRequestId;
         }
         while (Status.fromStatusCode(responseStatus).equals(Status.ACCEPTED) && nbTry > 0) {
@@ -172,7 +165,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         try {
             // ProcessEngine update state and status but logbook not yet persisted
             // Wait ~ 10 second until logbook persist
-            Thread.sleep(5000);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             // do nothing
         }

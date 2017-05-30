@@ -162,6 +162,9 @@ public class WebApplicationResourceDelete {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteFormat() {
+        return deleteFormats();
+    }
+    private  Response deleteFormats() {
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         // FIXME tenantDefault for operation to replace with one from config
         if (tenantId == null) {
@@ -612,6 +615,10 @@ public class WebApplicationResourceDelete {
         response = deleteMetadataUnits();
         response.close();
         response = deleteAccessionRegister();
+        response.close();
+        response = deleteRules();
+        response.close();
+        response = deleteFormats();
         response.close();
         return Response.status(Status.OK).build();
     }
