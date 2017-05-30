@@ -127,6 +127,10 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
         append(TENANT, ParameterHelper.getTenantParameter());
     }
 
+    @Override
+    public VitamDocument<AccessionRegisterSummary> newInstance(JsonNode content) {
+        return new AccessionRegisterSummary(content);
+    }
 
     /**
      * @param id as String to set

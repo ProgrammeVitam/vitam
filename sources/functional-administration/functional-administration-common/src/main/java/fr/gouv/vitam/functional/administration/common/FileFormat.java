@@ -137,6 +137,11 @@ public class FileFormat extends VitamDocument<FileFormat> {
         super(content);
     }
 
+    @Override
+    public VitamDocument<FileFormat> newInstance(JsonNode content) {
+        return new FileFormat(content);
+    }
+
     /**
      * setPUID
      *

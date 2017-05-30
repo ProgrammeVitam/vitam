@@ -141,6 +141,11 @@ public class IngestContract extends VitamDocument<IngestContract> {
         return this;
     }
 
+    @Override
+    public VitamDocument<IngestContract> newInstance(JsonNode content) {
+        return new IngestContract(content);
+    }
+
     /**
      * Name of the contract
      * @return name of contract

@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.database.parser.request.adapter;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
@@ -59,21 +60,20 @@ public class SingleVarNameAdapter extends VarNameAdapter {
             // Check on prefix (preceding '.')
             int pos = name.indexOf('.');
             final String realname;
-            final String extension;
             if (pos > 1) {
                 realname = name.substring(1, pos);
-                extension = name.substring(pos);
             } else {
                 realname = name.substring(1);
-                extension = "";
             }
             try {
                 final PROJECTIONARGS proj = ParserTokens.PROJECTIONARGS.parse(realname);
                 switch (proj) {
                     case TENANT:
-                        return "_tenant";
+                        return VitamDocument.TENANT_ID;
                     case ID:
-                        return "_id";
+                        return VitamDocument.ID;
+                    case VERSION:
+                    	return VitamDocument.VERSION;
                     default:
                         break;
                 }

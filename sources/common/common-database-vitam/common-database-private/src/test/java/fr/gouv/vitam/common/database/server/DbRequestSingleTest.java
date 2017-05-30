@@ -5,6 +5,7 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assume.assumeTrue;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 

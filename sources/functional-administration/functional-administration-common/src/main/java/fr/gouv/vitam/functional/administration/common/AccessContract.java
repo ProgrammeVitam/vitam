@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 
 import org.bson.Document;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -129,6 +130,11 @@ public class AccessContract extends VitamDocument<AccessContract> {
      */
     public AccessContract(Integer tenantId) {
         append(TENANT_ID, tenantId);
+    }
+
+    @Override
+    public VitamDocument<AccessContract> newInstance(JsonNode content) {
+        return new AccessContract(content);
     }
 
     /**
@@ -286,6 +292,5 @@ public class AccessContract extends VitamDocument<AccessContract> {
         append(DEACTIVATIONDATE, deactivationdate);
         return this;
     }
-
 
 }

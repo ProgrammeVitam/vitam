@@ -1,6 +1,9 @@
 {
   "typeunique": {
     "properties": {
+      "_v": {
+        "type": "long"
+      },
       "_nbc": {
         "type": "long"
       },

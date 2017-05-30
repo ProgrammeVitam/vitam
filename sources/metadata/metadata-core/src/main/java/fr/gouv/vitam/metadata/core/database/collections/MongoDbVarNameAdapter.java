@@ -134,6 +134,9 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                     case ORIGINATING_AGENCIES:
                         // Valid for Unit and OG
                         return MetadataDocument.ORIGINATING_AGENCIES;
+                    case VERSION:
+                    	// Valid for Unit and OG (And for VitamDocument items)
+                    	return MetadataDocument.VERSION;
                     case ALL:
                     default:
                         break;

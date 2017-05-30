@@ -590,7 +590,11 @@ public abstract class BuilderToken {
         /**
          * Unit or GOT's list of participating operations
          */
-        OPERATIONS("operations");
+        OPERATIONS("operations"),
+        /**
+         * Document's version (nomber of update on document)
+         */
+        VERSION("version");
 
         private final String exactToken;
 

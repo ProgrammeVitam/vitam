@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.common.utils;
+package fr.gouv.vitam.common.json;
 
 import static org.junit.Assert.assertTrue;
 
@@ -35,7 +35,9 @@ import org.junit.Test;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.worker.common.utils.SchemaValidationStatus.SchemaValidationStatusEnum;
+import fr.gouv.vitam.common.json.SchemaValidationStatus;
+import fr.gouv.vitam.common.json.SchemaValidationUtils;
+import fr.gouv.vitam.common.json.SchemaValidationStatus.SchemaValidationStatusEnum;
 
 public class SchemaValidationUtilsTest {
 

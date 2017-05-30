@@ -24,35 +24,85 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.common.utils;
+package fr.gouv.vitam.common.json;
 
-import static org.junit.Assert.assertEquals;
+public class SchemaValidationStatus {
 
-import org.junit.Test;
 
-import fr.gouv.vitam.worker.common.utils.SchemaValidationStatus.SchemaValidationStatusEnum;
+    private String validationMessage;
+    private SchemaValidationStatusEnum validationStatus;
 
-public class SchemaValidationStatusTest {
 
-    @Test
-    public void testSchemaValidationStatus() {
-        SchemaValidationStatus schemaValidationStatus1 =
-            new SchemaValidationStatus("message1", SchemaValidationStatusEnum.VALID);
-        SchemaValidationStatus schemaValidationStatus2 =
-            new SchemaValidationStatus("message2", SchemaValidationStatusEnum.NOT_AU_JSON_VALID);
-        SchemaValidationStatus schemaValidationStatus3 =
-            new SchemaValidationStatus("message3", SchemaValidationStatusEnum.NOT_JSON_FILE);
-        assertEquals("message1", schemaValidationStatus1.getValidationMessage());
-        assertEquals(SchemaValidationStatusEnum.VALID, schemaValidationStatus1.getValidationStatus());
-        assertEquals("message2", schemaValidationStatus2.getValidationMessage());
-        assertEquals(SchemaValidationStatusEnum.NOT_AU_JSON_VALID, schemaValidationStatus2.getValidationStatus());
-        assertEquals("message3", schemaValidationStatus3.getValidationMessage());
-        assertEquals(SchemaValidationStatusEnum.NOT_JSON_FILE, schemaValidationStatus3.getValidationStatus());
 
-        schemaValidationStatus3.setValidationMessage("message3bis")
-            .setValidationStatus(SchemaValidationStatusEnum.VALID);
-        assertEquals("message3bis", schemaValidationStatus3.getValidationMessage());
-        assertEquals(SchemaValidationStatusEnum.VALID, schemaValidationStatus3.getValidationStatus());
-
+    /**
+     * @param validationMessage
+     * @param validationStatus
+     */
+    public SchemaValidationStatus(String validationMessage, SchemaValidationStatusEnum validationStatus) {
+        this.validationMessage = validationMessage;
+        this.validationStatus = validationStatus;
     }
+
+
+
+    /**
+     * @return the validationMessage
+     */
+    public String getValidationMessage() {
+        return validationMessage;
+    }
+
+
+
+    /**
+     * @param validationMessage the validationMessage to set
+     *
+     * @return this
+     */
+    public SchemaValidationStatus setValidationMessage(String validationMessage) {
+        this.validationMessage = validationMessage;
+        return this;
+    }
+
+
+
+    /**
+     * @return the validationStatus
+     */
+    public SchemaValidationStatusEnum getValidationStatus() {
+        return validationStatus;
+    }
+
+
+
+    /**
+     * @param validationStatus the validationStatus to set
+     *
+     * @return this
+     */
+    public SchemaValidationStatus setValidationStatus(SchemaValidationStatusEnum validationStatus) {
+        this.validationStatus = validationStatus;
+        return this;
+    }
+
+
+
+    /**
+     * Check AU Validation status values
+     */
+    public enum SchemaValidationStatusEnum {
+        /**
+         * VALID AU Json File
+         */
+        VALID,
+        /**
+         * AU Json File not valid against schema
+         */
+        NOT_AU_JSON_VALID,
+        /**
+         * Not a json file
+         */
+        NOT_JSON_FILE;
+    }
+
 }

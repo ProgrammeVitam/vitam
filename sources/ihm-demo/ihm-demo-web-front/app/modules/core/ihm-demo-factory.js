@@ -321,6 +321,8 @@ angular.module('core')
           delete unit["#max"];
           unit._mgt = unit["#management"];
           delete unit["#management"];
+          unit._v = unit['#version'];
+          delete unit["#version"];
         });
         return Result;
       }

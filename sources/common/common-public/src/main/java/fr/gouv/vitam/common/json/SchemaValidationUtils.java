@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.common.utils;
+package fr.gouv.vitam.common.json;
 
 import java.io.FileNotFoundException;
 
@@ -42,10 +42,9 @@ import com.github.fge.msgsimple.load.MessageBundles;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.json.SchemaValidationStatus.SchemaValidationStatusEnum;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.worker.common.utils.SchemaValidationStatus.SchemaValidationStatusEnum;
 
 public class SchemaValidationUtils {
 

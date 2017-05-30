@@ -142,7 +142,11 @@ public class ParserTokens extends BuilderToken {
         /**
          * originating agencies
          */
-        ORIGINATING_AGENCIES("originating_agencies");
+        ORIGINATING_AGENCIES("originating_agencies"),
+        /**
+         * Document's version (number of update on document)
+         */
+        VERSION("version");
 
         private static final String NOT_FOUND = "Not found";
         private final String exactToken;
@@ -226,6 +230,7 @@ public class ParserTokens extends BuilderToken {
                         case UNITTYPE:
                         case ORIGINATING_AGENCY:
                         case ORIGINATING_AGENCIES:
+                        case VERSION:
                             return true;
                         default:
                     }

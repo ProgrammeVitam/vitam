@@ -53,6 +53,7 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.TYPE;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.UNITTYPE;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.UNITUPS;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.VERSION;
 
 
 /**
@@ -232,5 +233,12 @@ public class VitamFieldsHelper {
      */
     public static final String originatingAgencies() {
         return ORIGINATING_AGENCIES.exactToken();
+    }
+
+    /**
+     * @return #version
+     */
+    public static final String version() {
+        return VERSION.exactToken();
     }
 }
