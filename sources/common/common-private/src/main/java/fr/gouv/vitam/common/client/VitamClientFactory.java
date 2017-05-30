@@ -381,14 +381,14 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
 
     private final synchronized void addToCache(Client client, boolean chunk) {
         if (chunk) {
-            if (clientJerseyPool.size() >= VitamConfiguration.getMaxTotalClient()) {
+            if (clientJerseyPool.size() >= VitamConfiguration.getMaxClientPerHost()) {
                 // Remove oldest client
                 Client client2 = clientJerseyPool.poll();
                 client2.close();
             }
             clientJerseyPool.add(client);
         } else {
-            if (nonChunkedClientJerseyPool.size() >= VitamConfiguration.getMaxTotalClient()) {
+            if (nonChunkedClientJerseyPool.size() >= VitamConfiguration.getMaxClientPerHost()) {
                 // Remove oldest client
                 Client client2 = nonChunkedClientJerseyPool.poll();
                 client2.close();

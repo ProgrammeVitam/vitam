@@ -184,10 +184,6 @@
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-lang3</artifactId>
-		</dependency>
 		<!-- Keep for test case -->
 		<dependency>
 			<groupId>org.glassfish.jersey.connectors</groupId>

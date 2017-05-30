@@ -29,8 +29,8 @@ package fr.gouv.vitam.storage.engine.common.model.request;
 
 import java.io.File;
 
-import org.apache.commons.lang3.StringUtils;
-
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 
 /**
@@ -79,7 +79,7 @@ public class ObjectDescription {
      * @return workspaceObjectURI
      */
     public String getWorkspaceObjectURI() {
-        if (StringUtils.isNotBlank(workspaceObjectURI) || this.type == null) {
+        if (ParametersChecker.isNotEmpty(workspaceObjectURI) || this.type == null) {
             return workspaceObjectURI;
         }
         return this.type.getCollectionName() + File.separator + objectName;

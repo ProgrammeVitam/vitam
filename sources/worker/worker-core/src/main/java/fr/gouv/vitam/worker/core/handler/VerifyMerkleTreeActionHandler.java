@@ -36,12 +36,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;

@@ -27,10 +27,7 @@
 
 package fr.gouv.vitam.functional.administration.profile.core;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.gson.JsonObject;
-import com.google.json.JsonSanitizer;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.error.VitamCode;
@@ -58,10 +55,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.bson.conversions.Bson;
 import org.w3c.dom.Document;
-import org.w3c.dom.TypeInfo;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -72,7 +67,6 @@ import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 

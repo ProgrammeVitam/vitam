@@ -79,6 +79,24 @@ public final class ParametersChecker {
             }
         }
     }
+    /**
+     * Check if any parameter are null or empty and if so, return false
+     *
+     * @param errorMessage the error message
+     * @param parameters set of parameters
+     * return True if not null and not empty neither containing only spaces
+     */
+    public static final boolean isNotEmpty(String... parameters) {
+        if (parameters == null) {
+            return false;
+        }
+        for (final String parameter : parameters) {
+            if (Strings.isNullOrEmpty(parameter) || parameter.trim().isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
     
     /**
      * Check if any parameter are null or empty and if so, throw an IllegalArgumentException

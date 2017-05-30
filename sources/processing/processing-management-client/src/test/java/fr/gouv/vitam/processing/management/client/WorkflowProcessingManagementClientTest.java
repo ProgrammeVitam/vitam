@@ -47,6 +47,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -202,7 +203,7 @@ public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
         client.updateVitamProcess(CONTEXT_ID, ACTION_ID, CONTAINER, WORKFLOWID);
     }
 
-    @Test(expected = InternalServerException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void givenUnauthorizedOperationWhenUpdatingThenReturnUnauthorized() throws Exception {
         when(mock.put()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
         client.updateVitamProcess(CONTEXT_ID, ACTION_ID, CONTAINER, WORKFLOWID);
@@ -375,7 +376,7 @@ public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
         client.getOperationProcessStatus(ID);
     }
 
-    @Test(expected = InternalServerException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void givenUnauthorizedOperationWhenHeadProcessingOperationStatusThenReturnUnauthorized() throws Exception {
         when(mock.head()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
         client.getOperationProcessStatus(ID);
@@ -418,7 +419,7 @@ public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
         client.getOperationProcessExecutionDetails(ID, body);
     }
 
-    @Test(expected = InternalServerException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void givenUnauthorizedOperationWhenGETProcessingOperationStatusThenReturnUnauthorized() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
         JsonNode body = JsonHandler.createObjectNode();
