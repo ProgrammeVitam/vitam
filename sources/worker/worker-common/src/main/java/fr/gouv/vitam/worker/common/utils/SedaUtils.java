@@ -183,7 +183,8 @@ public class SedaUtils {
             final QName messageObjectName = new QName(NAMESPACE_URI, SedaConstants.TAG_MESSAGE_IDENTIFIER);
             final QName originatingAgencyName = new QName(NAMESPACE_URI, SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
             final QName contractName = new QName(NAMESPACE_URI, SedaConstants.TAG_ARCHIVAL_AGREEMENT);
-
+            final QName commentName = new QName(NAMESPACE_URI, SedaConstants.TAG_COMMENT);
+            String sedaComment = "";
             reader = xmlInputFactory.createXMLEventReader(xmlFile);
             while (true) {
                 final XMLEvent event = reader.nextEvent();
@@ -195,6 +196,14 @@ public class SedaUtils {
                     if (element.getName().equals(messageObjectName)) {
                         madatoryValueMap.put(SedaConstants.TAG_MESSAGE_IDENTIFIER, reader.getElementText());
                     }
+                    if (element.getName().equals(commentName)) {
+                        if (sedaComment != "") {
+                            sedaComment = sedaComment + "_" + reader.getElementText();
+                        } else {
+                            sedaComment = reader.getElementText();
+                        }
+
+                    }
                     if (element.getName().equals(originatingAgencyName)) {
                         madatoryValueMap.put(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER, reader.getElementText());
                         break;
@@ -204,6 +213,11 @@ public class SedaUtils {
                     break;
                 }
             }
+
+            if (!sedaComment.isEmpty()) {
+                madatoryValueMap.put(SedaConstants.TAG_COMMENT, sedaComment);
+            }
+
         } catch (final XMLStreamException e) {
             LOGGER.error(CANNOT_READ_SEDA, e);
             throw new ProcessingException(e);

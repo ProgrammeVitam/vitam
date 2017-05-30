@@ -19,6 +19,10 @@
               {
                 "name": "checkContract",
                 "uri": "VALUE:true"
+              },
+              {
+                "name": "checkOriginatingAgency",
+                "uri": "VALUE:true"
               }
             ]
           }
