@@ -30,6 +30,7 @@
 // Define the `ihm-demo` module
 angular.module('ihm.demo', [
   'ngAnimate',
+  'ngFileUpload',
   'ui.bootstrap',
   'ui.multiselect',
   'ngRoute',

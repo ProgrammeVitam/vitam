@@ -9,13 +9,7 @@
 
 	 <!-- ////////////////////////////////////////////////////////////////////////////// -->
 
- 			<div class="panel panel-default col-md-12" flow-init="{target: '/ihm-demo/v1/api/ingest/upload',
-  				testChunks:false, method:'octet', simultaneousUploads: 1, ctrlScope: ctrl,
-  				requiredParams: ['x-request-id'], tenantId: ctrl.tenantId, tenantKey: ctrl.tenantKey,
-          actionKey: ctrl.actionKey, contextIdKey: ctrl.contextIdKey}"
-  			 flow-file-success="startUpload($flow.files[0].chunks[0].savedParams)"
-                 flow-error="uploadHandlerError( $file, $message, $flow )"
-  			 flow-files-submitted="$flow.upload()">
+ 			<div class="panel panel-default col-md-12">
 
     			<table class="table upload">
     				<tbody>
@@ -27,8 +21,9 @@
         				<tr>
           					<h3>Fichier</h3>
           					<td height="150" width="50%" >
-          			      <input type="file" flow-btn flow-single-file ng-disabled="disableSelect" />
-          		      </td>
+                                <button ng-disabled="fileItem.isProcessing == true" ngf-select ng-model="file" name="file" min-height="25">Choisissez un fichier</button>
+                                <span>{{file.name || 'Aucun fichier choisi'}}</span>
+          		            </td>
                     <td>
                       <label for="executionModeList">Mode d'exécution</label>
             				  <select ng-model="ctrl.action" class="form-control" name="executionModeList">
@@ -47,7 +42,7 @@
                     </td>
 
           		      <td>
-                        <button type="button" class="btn btn-primary" ng-disabled="disableUpload" flow-launch>
+                        <button type="button" class="btn btn-primary" ng-disabled="fileItem.isProcessing == true" ng-click="submit()">
                   				<i class="material-icons pull-left">file_download</i>
                   				<span>Importer</span>
                   			</button>
@@ -66,7 +61,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr ng-repeat="file in $flow.files">
+                <tr>
                     <td><strong>{{file.name}}</strong></td>
                     <td> {{ getSize(file.size,2)}}</td>
                     <td>
@@ -87,7 +82,7 @@
             <div align="center">
                 <div>
                     <div class="progress" style="">
-              				<div class="progress-bar" role="progressbar" ng-style="{ 'width': $flow.files[0].progress()*100 + '%' }" style="width: 0;"></div>
+              				<div class="progress-bar" role="progressbar" ng-style="{ 'width': getUploadedSize() }" style="width: 0;"></div>
               			</div>
                 </div>
             </div>
