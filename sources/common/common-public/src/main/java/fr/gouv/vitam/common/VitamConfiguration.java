@@ -77,6 +77,10 @@ public class VitamConfiguration {
      */
     private static final int CHUNK_SIZE = 65536;
     /**
+     * Default Recv Buffer Size
+     */
+    private static final int RECV_BUFFER_SIZE = 0;
+    /**
      * Default Connection timeout
      */
     private static final int CONNECT_TIMEOUT = 2000;
@@ -96,7 +100,7 @@ public class VitamConfiguration {
     /**
      * Max delay to check an unused client in pool before being returned (Apache Only)
      */
-    public static final int DELAY_VALIDATION_AFTER_INACTIVITY = 10000;
+    public static final int DELAY_VALIDATION_AFTER_INACTIVITY = 60000;
     /**
      * Max delay to check if no buffer is available while trying to continue to read (MultipleInputStreamHandler Only)
      * 
@@ -118,15 +122,19 @@ public class VitamConfiguration {
     /**
      * Max delay to get a client (Apache Only)
      */
-    private static final int DELAY_GET_CLIENT = 10000;
+    private static final int DELAY_GET_CLIENT = 60000;
     /**
      * Specify the delay where connections returned to pool will be checked (Apache Only)
      */
-    private static final int INTERVAL_DELAY_CHECK_IDLE = 5000;
+    private static final int INTERVAL_DELAY_CHECK_IDLE = 50000;
     /**
      * Specify the delay of unused connection returned in the pool before being really closed (Apache Only)
      */
-    private static final int MAX_DELAY_UNUSED_CONNECTION = 10000;
+    private static final int MAX_DELAY_UNUSED_CONNECTION = 100000;
+    /**
+     * Use a new JAX_RS client each time
+     */
+    private static final boolean USE_NEW_JAXR_CLIENT = true;
     /**
      * General Admin path
      */
@@ -152,7 +160,7 @@ public class VitamConfiguration {
      */
     private static final DigestType DEFAULT_TIMESTAMP_DIGEST_TYPE = DigestType.SHA512;
     /**
-     * Acceptable Request Time
+     * Acceptable Request Time elaps
      */
     private static final long ACCEPTABLE_REQUEST_TIME = 10;
     /**
@@ -171,6 +179,23 @@ public class VitamConfiguration {
      * Waiting delay (for wait(delay) method)
      */
     private static final int WAITING_DELAY = 1000;
+    /**
+     * Allow client and Server Encoding request or response in GZIP format
+     */
+    public static final boolean ALLOW_GZIP_ENCODING = false;
+    /**
+     * Allow client to receive GZIP encoded response
+     */
+    public static final boolean ALLOW_GZIP_DECODING = false;
+    /**
+     * Read ahead x4 Buffers
+     */
+    public static final int BUFFER_NUMBER = 4;
+    // TODO make it configurable
+    /**
+     * Max concurrent multiple inputstream (memory size bounded = n x BUFFER_NUMBER * CHUNK_SIZE) 
+     */
+    public static final int MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER = 200;
 
     private String config;
     private String log;
@@ -179,9 +204,6 @@ public class VitamConfiguration {
     private static String secret;
     private static boolean filterActivation;
     private int connectTimeout = CONNECT_TIMEOUT;
-    // 262 MB max
-    // TODO make it configurable
-    public static final int MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER = 200;
 
     public static final boolean ENABLE_JAXB_PARSER = true;
 
@@ -601,5 +623,18 @@ public class VitamConfiguration {
     public static int getWaitingDelay() {
         return WAITING_DELAY;
     }
+    
+    /**
+     * @return the receive Buffer Size
+     */
+    public static int getRecvBufferSize() {
+        return RECV_BUFFER_SIZE;
+    }
 
+    /**
+     * @return the use New Jaxr Client each time a getClient() from Factory is used
+     */
+    public static boolean isUseNewJaxrClient() {
+        return USE_NEW_JAXR_CLIENT;
+    }
 }

@@ -14,7 +14,7 @@
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
  *
- *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
@@ -276,18 +276,21 @@ public class PausedProcessingIT {
     private void flush() {
         ProcessDataAccessImpl.getInstance().clearWorkflow();
     }
+
     private void wait(String operationId) {
         int nbTry = 0;
-        while (! processingClient.isOperationCompleted(operationId)) {
+        while (!processingClient.isOperationCompleted(operationId)) {
             try {
                 Thread.sleep(SLEEP_TIME);
             } catch (InterruptedException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
-            if (nbTry == NB_TRY) break;
-            nbTry ++;
+            if (nbTry == NB_TRY)
+                break;
+            nbTry++;
         }
     }
+
     private void tryImportFile() {
         flush();
 
@@ -300,19 +303,22 @@ public class PausedProcessingIT {
                 // Import Rules
                 client.importRulesFile(
                     PropertiesUtils.getResourceAsStream("integration-processing/jeu_donnees_OK_regles_CSV_regles.csv"));
-                
+
                 File fileProfiles = PropertiesUtils.getResourceFile("integration-processing/OK_profil.json");
-                List<ProfileModel> profileModelList = JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>(){});
+                List<ProfileModel> profileModelList =
+                    JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {});
                 RequestResponse improrResponse = client.createProfiles(profileModelList);
-                
-                RequestResponseOK<ProfileModel> response = (RequestResponseOK<ProfileModel>) client.findProfiles(new Select().getFinalSelect());
-                client.importProfileFile(response.getResults().get(0).getId(), 
+
+                RequestResponseOK<ProfileModel> response =
+                    (RequestResponseOK<ProfileModel>) client.findProfiles(new Select().getFinalSelect());
+                client.importProfileFile(response.getResults().get(0).getId(),
                     PropertiesUtils.getResourceAsStream("integration-processing/Profil20.rng"));
 
                 // import contract
-                File fileContracts = PropertiesUtils.getResourceFile("integration-processing/referential_contracts_ok.json");
+                File fileContracts =
+                    PropertiesUtils.getResourceFile("integration-processing/referential_contracts_ok.json");
                 List<IngestContractModel> IngestContractModelList = JsonHandler
-                    .getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>(){});
+                    .getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
 
                 client.importIngestContracts(IngestContractModelList);
             } catch (final Exception e) {
@@ -356,7 +362,7 @@ public class PausedProcessingIT {
             zipInputStreamSipObject);
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-       processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName,
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName,
             WORFKLOW_NAME);
         // wait a little bit
 
@@ -409,7 +415,7 @@ public class PausedProcessingIT {
         assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
 
 
-        ret =  processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(),
+        ret = processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(),
             containerName);
         assertNotNull(ret);
 
@@ -435,9 +441,16 @@ public class PausedProcessingIT {
             }
             nbTry --;
 
-            if (nbTry < 0) break;
+            if (nbTry < 0) {
+                LOGGER.error("CANNOT CONNECT TO SERVER {}", ProcessingManagementClientFactory.getInstance().getServiceUrl());
+                break;
+            }
+        }
+        if (nbTry >= 0) {
+            LOGGER.debug("CONNECTED TO SERVER");
         }
     }
+
     private boolean checkStatus() {
         try {
             processingClient.checkStatus();

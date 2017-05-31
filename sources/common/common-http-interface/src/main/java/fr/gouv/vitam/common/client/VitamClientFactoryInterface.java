@@ -26,9 +26,9 @@
  */
 package fr.gouv.vitam.common.client;
 
-import javax.ws.rs.client.Client;
+import java.util.Map;
 
-import org.glassfish.jersey.client.ClientConfig;
+import javax.ws.rs.client.Client;
 
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
 
@@ -79,14 +79,14 @@ public interface VitamClientFactoryInterface<T extends MockOrRestClient> {
      *
      * @return the Default Client configuration (Chunked Mode)
      */
-    ClientConfig getDefaultConfigCient();
+    Map<VitamRestEasyConfiguration, Object> getDefaultConfigCient();
 
     /**
      *
      * @param chunkedMode
      * @return the Default Client configuration according to the chunked mode
      */
-    ClientConfig getDefaultConfigCient(boolean chunkedMode);
+    Map<VitamRestEasyConfiguration, Object> getDefaultConfigCient(boolean chunkedMode);
 
     /**
      *

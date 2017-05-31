@@ -40,9 +40,12 @@ import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+
 import org.glassfish.jersey.jackson.JacksonFeature;
+import org.glassfish.jersey.message.GZipEncoder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
+import org.glassfish.jersey.server.filter.EncodingFilter;
 import org.glassfish.jersey.servlet.ServletContainer;
 
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
@@ -74,7 +77,7 @@ import fr.gouv.vitam.common.server.application.configuration.VitamMetricsConfigu
  * @param <C> VitamApplicationConfiguration final class
  */
 public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>, C extends VitamApplicationConfiguration>
-        implements VitamApplication<A, C> {
+    implements VitamApplication<A, C> {
     private static final String APPLICATION_SERVER = " Application Server";
     private static final String CANNOT_START_THE = "Cannot start the ";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractVitamApplication.class);
@@ -89,6 +92,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
     private final String configurationFilename;
     private VitamServer vitamServer;
     private final String role = ServerIdentity.getInstance().getRole();
+    private boolean enableGzip = VitamConfiguration.ALLOW_GZIP_ENCODING;
 
     /**
      * Protected constructor assigning application and configuration types </br>
@@ -147,7 +151,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
         try {
             try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
                 final C buildConfiguration = PropertiesUtils.readYaml(yamlIS,
-                        getConfigurationType());
+                    getConfigurationType());
                 configure(buildConfiguration);
             }
         } catch (final IOException e) {
@@ -163,7 +167,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
         // Load Platform secret from vitam.conf file
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(VITAM_CONF_FILE_NAME)) {
             final VitamConfigurationParameters vitamConfigurationParameters =
-                    PropertiesUtils.readYaml(yamlIS, VitamConfigurationParameters.class);
+                PropertiesUtils.readYaml(yamlIS, VitamConfigurationParameters.class);
 
             VitamConfiguration.setSecret(vitamConfigurationParameters.getSecret());
             VitamConfiguration.setFilterActivation(vitamConfigurationParameters.isFilterActivation());
@@ -187,9 +191,9 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
             setConfiguration(configuration);
             applicationHandlers = new ContextHandlerCollection();
             /*
-             * Order is important, first add buildApplicationHandler, then add buildAdminHandler
-             * In most sub-classes, an instantiation of VitamServiceRegistry
-             * is already done in buildApplicationHandler, so we use the instantiated one as argument of AdminResource
+             * Order is important, first add buildApplicationHandler, then add buildAdminHandler In most sub-classes, an
+             * instantiation of VitamServiceRegistry is already done in buildApplicationHandler, so we use the
+             * instantiated one as argument of AdminResource
              */
 
             applicationHandlers.addHandler(buildApplicationHandler());
@@ -249,7 +253,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
     protected void checkJerseyMetrics(final ResourceConfig resourceConfig) {
         if (metrics.containsKey(VitamMetricsType.JERSEY)) {
             resourceConfig.register(new VitamInstrumentedResourceMethodApplicationListener(
-                    metrics.get(VitamMetricsType.JERSEY).getRegistry()));
+                metrics.get(VitamMetricsType.JERSEY).getRegistry()));
         }
     }
 
@@ -297,12 +301,18 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
      */
     protected Handler buildApplicationHandler() throws VitamApplicationServerException {
         final ResourceConfig resourceConfig = new ResourceConfig();
-        resourceConfig.register(JacksonJsonProvider.class)
-                .register(JacksonFeature.class)
-                // Register a Generic Exception Mapper
-                .register(new GenericExceptionMapper())
-                // Register container filters to copy the header's parameters (tenant_id, request_id and contract_id)
-                .register(HeaderIdContainerFilter.class);
+        if (enableGzip) {
+            resourceConfig
+                .register(EncodingFilter.class)
+                .register(GZipEncoder.class);
+        }
+        resourceConfig
+            .register(JacksonJsonProvider.class)
+            .register(JacksonFeature.class)
+            // Register a Generic Exception Mapper
+            .register(new GenericExceptionMapper())
+            // Register container filters to copy the header's parameters (tenant_id, request_id and contract_id)
+            .register(HeaderIdContainerFilter.class);
 
         // Register Jersey Metrics Listener
         clearAndconfigureMetrics();
@@ -323,19 +333,18 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
         // Authorization Filter
         if (VitamConfiguration.isFilterActivation() && !Strings.isNullOrEmpty(VitamConfiguration.getSecret())) {
             context.addFilter(AuthorizationFilter.class, "/*", EnumSet.of(
-                    DispatcherType.INCLUDE, DispatcherType.REQUEST,
-                    DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
+                DispatcherType.INCLUDE, DispatcherType.REQUEST,
+                DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
         }
 
-        context.setVirtualHosts(new String[]{"@business"});
+        context.setVirtualHosts(new String[] {"@business"});
         setFilter(context);
         return context;
     }
 
     /**
-     * This is (admin config) an other implementation of the method @see buildApplicationHandler
-     * The default implementation is for business api
-     * </br>
+     * This is (admin config) an other implementation of the method @see buildApplicationHandler The default
+     * implementation is for business api </br>
      *
      * @return the generated Handler
      * @throws VitamApplicationServerException
@@ -349,12 +358,12 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
         }
 
         resourceConfig.register(JacksonJsonProvider.class)
-                .register(JacksonFeature.class)
-                // Register a Generic Exception Mapper
-                .register(new GenericExceptionMapper());
+            .register(JacksonFeature.class)
+            // Register a Generic Exception Mapper
+            .register(new GenericExceptionMapper());
 
         // Register Jersey Metrics Listener
-        //clearAndconfigureMetrics();
+        // clearAndconfigureMetrics();
         checkJerseyMetrics(resourceConfig);
         // Use chunk size also in response
         resourceConfig.property(ServerProperties.OUTBOUND_CONTENT_LENGTH_BUFFER, VitamConfiguration.getChunkSize());
@@ -367,13 +376,13 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
         context.addServlet(sh, "/*");
 
         // Authorization Filter
-//        if (VitamConfiguration.isFilterActivation() && !Strings.isNullOrEmpty(VitamConfiguration.getSecret())) {
-//            context.addFilter(AuthorizationFilter.class, "/*", EnumSet.of(
-//                    DispatcherType.INCLUDE, DispatcherType.REQUEST,
-//                    DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
-//        }
+        // if (VitamConfiguration.isFilterActivation() && !Strings.isNullOrEmpty(VitamConfiguration.getSecret())) {
+        // context.addFilter(AuthorizationFilter.class, "/*", EnumSet.of(
+        // DispatcherType.INCLUDE, DispatcherType.REQUEST,
+        // DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
+        // }
 
-        context.setVirtualHosts(new String[]{"@admin"});
+        context.setVirtualHosts(new String[] {"@admin"});
         setFilter(context);
         return context;
     }

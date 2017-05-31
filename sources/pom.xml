@@ -91,6 +91,7 @@
 		<slf4j.version>1.7.25</slf4j.version>
 		<logback.version>1.2.3</logback.version>
 		<jersey.version>2.25.1</jersey.version>
+		<resteasy.client.version>3.1.3.Final</resteasy.client.version>
 		<jclouds.version>2.0.1</jclouds.version>
 		<jclouds-ceph.version>2.0.1</jclouds-ceph.version>
 		<thaiopensource.version>20091111</thaiopensource.version>
@@ -876,10 +877,17 @@
 				<version>${jersey.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.glassfish.jersey.core</groupId>
-				<artifactId>jersey-client</artifactId>
-				<version>${jersey.version}</version>
+				<groupId>org.jboss.resteasy</groupId>
+				<artifactId>resteasy-client</artifactId>
+				<version>${resteasy.client.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>org.jboss.resteasy</groupId>
+				<artifactId>resteasy-jackson2-provider</artifactId>
+				<version>${resteasy.client.version}</version>
+			</dependency>
+			<!-- <dependency> <groupId>org.glassfish.jersey.core</groupId> <artifactId>jersey-client</artifactId> 
+				<version>${jersey.version}</version> </dependency> -->
 			<dependency>
 				<groupId>org.glassfish.jersey.containers</groupId>
 				<artifactId>jersey-container-servlet-core</artifactId>
@@ -931,6 +939,7 @@
 				<artifactId>jetty-client</artifactId>
 				<version>${jetty.version}</version>
 			</dependency>
+			<!-- Utility? -->
 			<dependency>
 				<groupId>org.eclipse.jetty</groupId>
 				<artifactId>jetty-servlet</artifactId>
@@ -1019,9 +1028,6 @@
 				<artifactId>xercesImpl-xsd11</artifactId>
 				<version>${xerces-xsd11.version}</version>
 			</dependency>
-			<!-- Removed to put xerces with 1.1 support <dependency> <groupId>xerces</groupId> 
-				<artifactId>xercesImpl</artifactId> <version>${xerces.version}</version> 
-				</dependency> -->
 			<dependency>
 				<groupId>xml-resolver</groupId>
 				<artifactId>xml-resolver</artifactId>
@@ -1124,24 +1130,9 @@
 
 			<dependency>
 				<!-- Keep for test case -->
-				<groupId>org.glassfish.jersey.connectors</groupId>
-				<artifactId>jersey-grizzly-connector</artifactId>
-				<version>${jersey.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<!-- Keep for test case -->
-				<groupId>org.glassfish.jersey.connectors</groupId>
-				<artifactId>jersey-netty-connector</artifactId>
-				<version>${jersey.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<!-- Keep for test case -->
 				<groupId>io.netty</groupId>
 				<artifactId>netty-all</artifactId>
 				<version>${netty.version}</version>
-				<scope>test</scope>
 			</dependency>
 			<dependency>
 				<groupId>junit</groupId>

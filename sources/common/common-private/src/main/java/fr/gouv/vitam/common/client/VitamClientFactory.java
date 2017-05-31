@@ -27,33 +27,27 @@
 package fr.gouv.vitam.common.client;
 
 import java.io.FileNotFoundException;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
+import javax.net.ssl.SSLContext;
 import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.core.MediaType;
 
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.Registry;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.glassfish.jersey.apache.connector.ApacheClientProperties;
-import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
-import org.glassfish.jersey.apache.connector.VitamClientProperties;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.client.ClientProperties;
-import org.glassfish.jersey.client.JerseyInvocation;
-import org.glassfish.jersey.client.RequestEntityProcessing;
-import org.glassfish.jersey.jackson.JacksonFeature;
-
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
+import org.jboss.resteasy.plugins.interceptors.AcceptEncodingGZIPFilter;
+import org.jboss.resteasy.plugins.interceptors.GZIPDecodingInterceptor;
+import org.jboss.resteasy.plugins.interceptors.GZIPEncodingInterceptor;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -77,17 +71,7 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutorProvider;
 public abstract class VitamClientFactory<T extends MockOrRestClient> implements VitamClientFactoryInterface<T> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamClientFactory.class);
 
-    /**
-     * Multipart response from Server side
-     */
-    public static final String MULTIPART_MIXED = "multipart/mixed";
-    /**
-     * Multipart response from Server side
-     */
-    public static final MediaType MULTIPART_MIXED_TYPE = new MediaType("multipart", "mixed");
-
     static final AtomicBoolean INIT_STATIC_CONFIG = new AtomicBoolean(false);
-
 
     /**
      * Global configuration for Apache: Pooling connection
@@ -99,6 +83,11 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
      */
     static final PoolingHttpClientConnectionManager POOLING_CONNECTION_MANAGER_NOT_CHUNKED =
         new PoolingHttpClientConnectionManager(VitamConfiguration.getMaxDelayUnusedConnection(), TimeUnit.MILLISECONDS);
+
+    /**
+     * Global PoolingHttpClientConnectionManager active list
+     */
+    static final Queue<PoolingHttpClientConnectionManager> allManagers = new ConcurrentLinkedQueue<>();
     /**
      * Global configuration for Apache: Idle Monitor
      */
@@ -108,7 +97,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
      * Specific Socket Configuration
      */
     static final SocketConfig SOCKETCONFIG = SocketConfig.custom()
-        .setRcvBufSize(0).setSndBufSize(VitamConfiguration.getChunkSize())
+        .setRcvBufSize(VitamConfiguration.getRecvBufferSize()).setSndBufSize(VitamConfiguration.getChunkSize())
         .setSoKeepAlive(true).setSoReuseAddress(true).setTcpNoDelay(true)
         .setSoTimeout(VitamConfiguration.getReadTimeout()).build();
 
@@ -116,64 +105,49 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
      * Specific Socket Configuration not chunked
      */
     static final SocketConfig SOCKETCONFIG_NONCHUNKED = SocketConfig.custom()
-        .setRcvBufSize(0).setSndBufSize(0)
+        .setRcvBufSize(VitamConfiguration.getRecvBufferSize()).setSndBufSize(0)
         .setSoKeepAlive(true).setSoReuseAddress(true).setTcpNoDelay(true)
         .setSoTimeout(VitamConfiguration.getReadTimeout()).build();
 
-    /**
-     * Global PoolingHttpClientConnectionManager active list
-     */
-    static final Queue<PoolingHttpClientConnectionManager> allManagers = new ConcurrentLinkedQueue<>();
-    
     static {
         if (INIT_STATIC_CONFIG.compareAndSet(false, true)) {
             setupApachePool(POOLING_CONNECTION_MANAGER);
             POOLING_CONNECTION_MANAGER.setDefaultSocketConfig(SOCKETCONFIG);
             setupApachePool(POOLING_CONNECTION_MANAGER_NOT_CHUNKED);
-            POOLING_CONNECTION_MANAGER.setDefaultSocketConfig(SOCKETCONFIG_NONCHUNKED);
+            POOLING_CONNECTION_MANAGER_NOT_CHUNKED.setDefaultSocketConfig(SOCKETCONFIG_NONCHUNKED);
             allManagers.add(POOLING_CONNECTION_MANAGER);
             allManagers.add(POOLING_CONNECTION_MANAGER_NOT_CHUNKED);
         }
     }
     
-    /**
-     * Pool of JerseyClient for chunk mode
-     */
-    final Queue<Client> clientJerseyPool = new ConcurrentLinkedQueue<>();
-    /**
-     * Pool JerseyClient for non chunk mode
-     */
-    final Queue<Client> nonChunkedClientJerseyPool = new ConcurrentLinkedQueue<>();
 
     /**
      * Global configuration for Apache: Idle Monitor
      */
     final ExpiredConnectionMonitorThread idleMonitor;
 
-    /**
-     * Global configuration
-     */
-    final ClientConfig config = new ClientConfig();
-    /**
-     * Global configuration not chunked
-     */
-    final ClientConfig configNotChunked = new ClientConfig();
-
     private String serviceUrl;
 
     private String resourcePath;
     protected ClientConfiguration clientConfiguration;
     private boolean chunkedMode;
-    private final Client givenClient;
+    private Client givenClient;
+    private Client givenClientNotChunked;
     private VitamClientType vitamClientType = VitamClientType.MOCK;
+    private final RequestConfig requestConfig = RequestConfig.custom()
+        .setConnectionRequestTimeout(VitamConfiguration.getDelayGetClient()).build();
     PoolingHttpClientConnectionManager chunkedPoolingManager;
     PoolingHttpClientConnectionManager notChunkedPoolingManager;
     VitamThreadPoolExecutor vitamThreadPoolExecutor = VitamThreadPoolExecutor.getDefaultExecutor();
-    private final RequestConfig requestConfig = RequestConfig.custom()
-        .setConnectionRequestTimeout(VitamConfiguration.getDelayGetClient()).build();
     SSLConfiguration sslConfiguration = null;
     private boolean useAuthorizationFilter = true;
-    
+    private boolean allowGzipEncoded = VitamConfiguration.ALLOW_GZIP_ENCODING;
+    private boolean allowGzipDecoded = VitamConfiguration.ALLOW_GZIP_DECODING;
+
+    private final Map<VitamRestEasyConfiguration, Object> config = new EnumMap<>(VitamRestEasyConfiguration.class);
+    private final Map<VitamRestEasyConfiguration, Object> configNotChunked =
+        new EnumMap<>(VitamRestEasyConfiguration.class);
+
     /**
      * Constructor with standard configuration
      *
@@ -186,9 +160,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
     }
 
     /**
-     * Constructor to allow to enable Multipart support or Chunked mode.<br/>
-     * <br/>
-     * HACK: to support Storage DriverImpl!
+     * Constructor to allow to enable Multipart support or Chunked mode.
      *
      * @param configuration The client configuration
      * @param resourcePath the resource path of the server for the client calls
@@ -197,13 +169,10 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
      */
     protected VitamClientFactory(ClientConfiguration configuration, String resourcePath,
         boolean chunkedMode) {
-        internalConfigure();
         initialisation(configuration, resourcePath);
-        config.property(ClientProperties.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, true);
-        configNotChunked.property(ClientProperties.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, true);
         this.chunkedMode = chunkedMode;
-        disableChunkMode(configNotChunked);
         givenClient = null;
+        givenClientNotChunked = null;
         if (STATIC_IDLE_MONITOR.compareAndSet(false, true)) {
             idleMonitor = new ExpiredConnectionMonitorThread();
             startupMonitor();
@@ -225,12 +194,12 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
      */
     protected VitamClientFactory(ClientConfiguration configuration, String resourcePath, Client client) {
         ParametersChecker.checkParameter("Client cannot be null", client);
-        internalConfigure();
         initialisation(configuration, resourcePath);
         this.givenClient = client;
+        givenClientNotChunked = client;
         idleMonitor = new ExpiredConnectionMonitorThread();
     }
-    
+
     protected void disableUseAuthorizationFilter() {
         useAuthorizationFilter = false;
     }
@@ -243,6 +212,47 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
         return useAuthorizationFilter;
     }
 
+    /**
+     * Allow or not the GzipEncoded output from client
+     * 
+     * @param allowGzipEncoded
+     */
+    public void setGzipEncoded(boolean allowGzipEncoded) {
+        this.allowGzipEncoded = allowGzipEncoded;
+        config.put(VitamRestEasyConfiguration.contentCompressionEnabled, allowGzipEncoded);
+        configNotChunked.put(VitamRestEasyConfiguration.contentCompressionEnabled, allowGzipEncoded);
+    }
+
+    /**
+     * @return true if client is allowed to gzip encoded
+     */
+    protected boolean isAllowGzipEncoded() {
+        return this.allowGzipEncoded;
+    }
+
+    /**
+     * Allow or not the GzipDecoded input from server
+     * 
+     * @param allowGzipDecoded
+     */
+    public void setGzipdecoded(boolean allowGzipDecoded) {
+        this.allowGzipDecoded = allowGzipDecoded;
+    }
+
+    /**
+     * @return true if client is allowed to gzip decoded
+     */
+    protected boolean isAllowGzipDecoded() {
+        return this.allowGzipDecoded;
+    }
+
+    /**
+     * Initialize default resource path, service Url, pool manager, ssl configuration and the VitamApacheHttpClient for
+     * RestEasy
+     * 
+     * @param configuration
+     * @param resourcePath
+     */
     protected final void initialisation(ClientConfiguration configuration, String resourcePath) {
         if (configuration == null) {
             setVitamClientType(VitamClientType.MOCK);
@@ -269,13 +279,18 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
             allManagers.remove(notChunkedPoolingManager);
             notChunkedPoolingManager.close();
         }
+        configure(config, true);
+        configure(configNotChunked, false);
         if (clientConfiguration.isSecure()) {
             final SecureClientConfiguration sclientConfiguration = (SecureClientConfiguration) clientConfiguration;
             sslConfiguration = sclientConfiguration.getSslConfiguration();
             ParametersChecker.checkParameter("sslConfiguration is a mandatory parameter", sslConfiguration);
             Registry<ConnectionSocketFactory> registry;
             try {
-                registry = sslConfiguration.getRegistry(sslConfiguration.createSSLContext());
+                SSLContext context = sslConfiguration.createSSLContext();
+                config.put(VitamRestEasyConfiguration.SSL_CONTEXT, context);
+                configNotChunked.put(VitamRestEasyConfiguration.SSL_CONTEXT, context);
+                registry = sslConfiguration.getRegistry(context);
             } catch (FileNotFoundException | VitamException e) {
                 LOGGER.error(e);
                 throw new IllegalArgumentException("SSLConfiguration issue while reading KeyStore or TrustStore", e);
@@ -296,8 +311,8 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
             chunkedPoolingManager = POOLING_CONNECTION_MANAGER;
             notChunkedPoolingManager = POOLING_CONNECTION_MANAGER_NOT_CHUNKED;
         }
-        config.property(ApacheClientProperties.CONNECTION_MANAGER, chunkedPoolingManager);
-        configNotChunked.property(ApacheClientProperties.CONNECTION_MANAGER, notChunkedPoolingManager);
+        config.put(VitamRestEasyConfiguration.CONNECTION_MANAGER, chunkedPoolingManager);
+        configNotChunked.put(VitamRestEasyConfiguration.CONNECTION_MANAGER, notChunkedPoolingManager);
     }
 
     @Override
@@ -329,88 +344,27 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
     }
 
     /**
-     * To be overridden if necessary (Benchmark Test)
-     */
-    void internalConfigure() {
-        startup();
-        internalConfigure(config, true);
-        internalConfigure(configNotChunked, false);
-    }
-
-    private void internalConfigure(ClientConfig config, boolean chunkedMode) {
-        commonConfigure(config);
-        commonApacheConfigure(config, chunkedMode);
-    }
-
-    private final Client getFromCache(boolean useChunkedMode) {
-        Client client = null;
-        if (useChunkedMode) {
-            client = clientJerseyPool.poll();
-        } else {
-            client = nonChunkedClientJerseyPool.poll();
-        }
-        return client;
-    }
-
-    private final synchronized void addToCache(Client client, boolean chunk) {
-        if (chunk) {
-            if (clientJerseyPool.size() >= VitamConfiguration.getMaxClientPerHost()) {
-                // Remove oldest client
-                Client client2 = clientJerseyPool.poll();
-                client2.close();
-            }
-            clientJerseyPool.add(client);
-        } else {
-            if (nonChunkedClientJerseyPool.size() >= VitamConfiguration.getMaxClientPerHost()) {
-                // Remove oldest client
-                Client client2 = nonChunkedClientJerseyPool.poll();
-                client2.close();
-            }
-            nonChunkedClientJerseyPool.add(client);
-        }
-    }
-
-    /**
      * Specific to handle Junit tests with given Client
      *
      * @param config
      * @param useChunkedMode
      * @return the associated client
      */
-    private Client buildClient(ClientConfig config, boolean useChunkedMode) {
+    private Client buildClient(Map<VitamRestEasyConfiguration, Object> config) {
         if (givenClient != null) {
             return givenClient;
         }
-        synchronized (this) {
-            if (useChunkedMode) {
-                if (clientJerseyPool.isEmpty()) {
-                    return buildClientWithFilter(config);
-                }
-                return getFromCache(useChunkedMode);
-            } else {
-                if (nonChunkedClientJerseyPool.isEmpty()) {
-                    return buildClientWithFilter(config);
-                }
-                return getFromCache(useChunkedMode);
-            }
-        }
-    }
-
-    private Client buildClientWithFilter(ClientConfig config) {
-        Client client = ClientBuilder.newClient(config);
-        // TODO: Find a better check (a specific one, instead of inferring the context from another constraint ?);
-        if (useAuthorizationFilter()) {
-            client.register(HeaderIdClientFilter.class);
-        }
-        return client;
+        VitamApacheHttpClientEngine engine = new VitamApacheHttpClientEngine(config);
+        ResteasyClientBuilder builder = configureRestEasy(config, engine);
+        return builder.build();
     }
 
     @Override
     public void resume(Client client, boolean chunk) {
-        if (client == givenClient) {
+        if (client == givenClient || client == givenClientNotChunked) {
             return;
         }
-        addToCache(client, chunk);
+        client.close();
     }
 
     /**
@@ -422,21 +376,30 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
 
     @Override
     public Client getHttpClient() {
-        if (givenClient != null) {
-            return givenClient;
-        }
         return getHttpClient(chunkedMode);
     }
 
     @Override
     public Client getHttpClient(boolean useChunkedMode) {
-        if (givenClient != null) {
+        if (useChunkedMode && givenClient != null) {
             return givenClient;
+        } else if (!useChunkedMode && givenClientNotChunked != null) {
+            return givenClientNotChunked;
+    
         }
         if (useChunkedMode) {
-            return buildClient(config, useChunkedMode);
+            Client client = buildClient(config);
+            if (! VitamConfiguration.isUseNewJaxrClient()) {
+                givenClient = client;
+            }
+            return client;
         } else {
-            return buildClient(configNotChunked, useChunkedMode);
+            Client client = buildClient(configNotChunked);
+            if (! VitamConfiguration.isUseNewJaxrClient()) {
+                givenClientNotChunked = client;
+    
+            }
+            return client;
         }
     }
 
@@ -456,8 +419,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
             .append("ServiceUrl: ").append(serviceUrl)
             .append(", ResourcePath: ").append(resourcePath)
             .append(", ChunkedMode: ").append(chunkedMode)
-            .append(", Configuration: { Classes: \"").append(config.getClasses())
-            .append("\", Properties: \"").append(config.getProperties())
+            .append(", Configuration: { Properties: \"").append(config)
             .append("\" }")
             .append(" }").toString();
     }
@@ -467,27 +429,17 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
         return clientConfiguration;
     }
 
-    /**
-     * To allow specific client to disable ChunkMode until all API remove Multipart
-     *
-     * @param config
-     */
-    private final void disableChunkMode(ClientConfig config) {
-        config.property(ClientProperties.CHUNKED_ENCODING_SIZE, 0)
-            .property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED);
+    @Override
+    public final Map<VitamRestEasyConfiguration, Object> getDefaultConfigCient() {
+        return Collections.unmodifiableMap(config);
     }
 
     @Override
-    public final ClientConfig getDefaultConfigCient() {
-        return config;
-    }
-
-    @Override
-    public final ClientConfig getDefaultConfigCient(boolean chunkedMode) {
+    public final Map<VitamRestEasyConfiguration, Object> getDefaultConfigCient(boolean chunkedMode) {
         if (chunkedMode) {
-            return config;
+            return Collections.unmodifiableMap(config);
         } else {
-            return configNotChunked;
+            return Collections.unmodifiableMap(configNotChunked);
         }
     }
 
@@ -500,14 +452,6 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
             idleMonitor.shutdown();
             idleMonitor.interrupt();
         }
-        for (Client client : clientJerseyPool) {
-            client.close();
-        }
-        clientJerseyPool.clear();
-        for (Client client : nonChunkedClientJerseyPool) {
-            client.close();
-        }
-        nonChunkedClientJerseyPool.clear();
         if (chunkedPoolingManager != null && chunkedPoolingManager != POOLING_CONNECTION_MANAGER) {
             allManagers.remove(chunkedPoolingManager);
             chunkedPoolingManager.close();
@@ -515,13 +459,6 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
         if (notChunkedPoolingManager != null && notChunkedPoolingManager != POOLING_CONNECTION_MANAGER_NOT_CHUNKED) {
             allManagers.remove(notChunkedPoolingManager);
             notChunkedPoolingManager.close();
-        }
-    }
-
-    static void startup() {
-        if (INIT_STATIC_CONFIG.compareAndSet(false, true)) {
-            setupApachePool(POOLING_CONNECTION_MANAGER);
-            setupApachePool(POOLING_CONNECTION_MANAGER_NOT_CHUNKED);
         }
     }
 
@@ -539,32 +476,66 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
         }
     }
 
-    void commonConfigure(ClientConfig config) {
-        // Prevent Warning on misusage of non standard Calls
-        Logger.getLogger(JerseyInvocation.class.getName()).setLevel(Level.OFF);
-        config.register(JacksonJsonProvider.class)
-            .register(JacksonFeature.class)
-            .register(new VitamThreadPoolExecutorProvider("Vitam"))
-            // Not supported MultiPartFeature.class
-            .property(ClientProperties.CHUNKED_ENCODING_SIZE, VitamConfiguration.getChunkSize())
-            .property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.CHUNKED)
-            .property(ClientProperties.CONNECT_TIMEOUT, VitamConfiguration.getConnectTimeout())
-            .property(ClientProperties.READ_TIMEOUT, VitamConfiguration.getReadTimeout())
-            .property(ClientProperties.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, true);
+    /**
+     * 
+     * @param config
+     * @param chunked
+     * @return the ResteasyClientBuilder
+     */
+    private ResteasyClientBuilder configureRestEasy(Map<VitamRestEasyConfiguration, Object> config,
+        VitamApacheHttpClientEngine engine) {
+        ResteasyClientBuilder clientBuilder = new ResteasyClientBuilder();
+        clientBuilder.httpEngine(engine);
+        clientBuilder.connectionCheckoutTimeout(
+            VitamRestEasyConfiguration.connectionRequestTimeout.getInt(config, 1000),
+            TimeUnit.MILLISECONDS);
+        clientBuilder.establishConnectionTimeout(VitamRestEasyConfiguration.CONNECT_TIMEOUT.getInt(config, 1000),
+            TimeUnit.MILLISECONDS);
+        clientBuilder.socketTimeout(VitamRestEasyConfiguration.READ_TIMEOUT.getInt(config, 100000),
+            TimeUnit.MILLISECONDS);
+        clientBuilder.asyncExecutor(vitamThreadPoolExecutor);
+        clientBuilder.register(new VitamThreadPoolExecutorProvider("Vitam"));
+        if (isAllowGzipDecoded()) {
+            clientBuilder.register(AcceptEncodingGZIPFilter.class);
+            clientBuilder.register(GZIPDecodingInterceptor.class);
+        }
+        if (isAllowGzipEncoded()) {
+            clientBuilder.register(GZIPEncodingInterceptor.class);
+        }
+        // Jackson automatically included
+        if (useAuthorizationFilter()) {
+            clientBuilder.register(HeaderIdClientFilter.class);
+        }
+        return clientBuilder;
     }
 
-    final void commonApacheConfigure(ClientConfig config, boolean chunkedMode) {
+    /**
+     * Configure the configuration MAP according to chunked mode
+     * 
+     * @param config
+     * @param chunkedMode
+     */
+    void configure(Map<VitamRestEasyConfiguration, Object> config, boolean chunkedMode) {
+        // Prevent Warning on misusage of non standard Calls
+        config.put(VitamRestEasyConfiguration.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, true);
+        config.put(VitamRestEasyConfiguration.CONNECT_TIMEOUT, VitamConfiguration.getConnectTimeout());
+        config.put(VitamRestEasyConfiguration.connectTimeout, VitamConfiguration.getConnectTimeout());
+        config.put(VitamRestEasyConfiguration.connectionRequestTimeout, VitamConfiguration.getDelayGetClient());
+        config.put(VitamRestEasyConfiguration.READ_TIMEOUT, VitamConfiguration.getReadTimeout());
+        config.put(VitamRestEasyConfiguration.socketTimeout, VitamConfiguration.getReadTimeout());
+        config.put(VitamRestEasyConfiguration.contentCompressionEnabled, allowGzipEncoded);
+        config.put(VitamRestEasyConfiguration.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, true);
         if (chunkedMode) {
-            config.property(ApacheClientProperties.CONNECTION_MANAGER, POOLING_CONNECTION_MANAGER);
+            config.put(VitamRestEasyConfiguration.CHUNKED_ENCODING_SIZE, VitamConfiguration.getChunkSize());
+            config.put(VitamRestEasyConfiguration.REQUEST_ENTITY_PROCESSING, VitamRestEasyConfiguration.CHUNKED);
         } else {
-            config.property(ApacheClientProperties.CONNECTION_MANAGER, POOLING_CONNECTION_MANAGER_NOT_CHUNKED);
+            config.put(VitamRestEasyConfiguration.CHUNKED_ENCODING_SIZE, 0);
+            config.put(VitamRestEasyConfiguration.REQUEST_ENTITY_PROCESSING, VitamRestEasyConfiguration.BUFFERED);
         }
-        final RequestConfig requestConfig = RequestConfig.custom()
-            .setConnectionRequestTimeout(VitamConfiguration.getDelayGetClient()).build();
-        config.property(ApacheClientProperties.CONNECTION_MANAGER_SHARED, true)
-            .property(VitamClientProperties.DISABLE_AUTOMATIC_RETRIES, true)
-            .property(ApacheClientProperties.REQUEST_CONFIG, requestConfig);
-        config.connectorProvider(new ApacheConnectorProvider());
+        config.put(VitamRestEasyConfiguration.RECV_BUFFER_SIZE, VitamConfiguration.getRecvBufferSize());
+        config.put(VitamRestEasyConfiguration.CONNECTION_MANAGER_SHARED, true);
+        config.put(VitamRestEasyConfiguration.DISABLE_AUTOMATIC_RETRIES, true);
+        config.put(VitamRestEasyConfiguration.REQUEST_CONFIG, requestConfig);
     }
 
     /**
@@ -584,6 +555,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
          * Constructor
          */
         ExpiredConnectionMonitorThread() {
+            //Empty
         }
 
         @Override
@@ -595,8 +567,8 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
                         // Close expired connections
                         for (PoolingHttpClientConnectionManager poolingHttpClientConnectionManager : allManagers) {
                             poolingHttpClientConnectionManager.closeExpiredConnections();
-                            poolingHttpClientConnectionManager.closeIdleConnections(
-                                VitamConfiguration.getDelayValidationAfterInactivity(), TimeUnit.MILLISECONDS);
+                            /*poolingHttpClientConnectionManager.closeIdleConnections(
+                                VitamConfiguration.getDelayValidationAfterInactivity(), TimeUnit.MILLISECONDS);*/
                         }
                     }
                 }

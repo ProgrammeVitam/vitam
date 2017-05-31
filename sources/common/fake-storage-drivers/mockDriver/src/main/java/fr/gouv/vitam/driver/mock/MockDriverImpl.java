@@ -28,6 +28,7 @@ package fr.gouv.vitam.driver.mock;
 
 import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
+import fr.gouv.vitam.common.client.VitamRestEasyConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -42,8 +43,6 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.ws.rs.client.Client;
-
-import org.glassfish.jersey.client.ClientConfig;
 
 /**
  * Driver implementation for test only
@@ -88,12 +87,12 @@ public class MockDriverImpl extends AbstractDriver {
         }
 
         @Override
-        public ClientConfig getDefaultConfigCient() {
+        public Map<VitamRestEasyConfiguration, Object> getDefaultConfigCient() {
             return null;
         }
 
         @Override
-        public ClientConfig getDefaultConfigCient(boolean chunkedMode) {
+        public Map<VitamRestEasyConfiguration, Object> getDefaultConfigCient(boolean chunkedMode) {
             return null;
         }
 

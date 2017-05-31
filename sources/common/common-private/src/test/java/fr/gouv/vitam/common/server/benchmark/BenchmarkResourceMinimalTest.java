@@ -115,7 +115,6 @@ public class BenchmarkResourceMinimalTest {
 
     @Test
     public final void testStatus() {
-        BenchmarkClientFactory.getInstance().mode(BenchmarkConnectorProvider.APACHE);
         try (BenchmarkClientRest client = BenchmarkClientFactory.getInstance().getClient()) {
             client.checkStatus();
         } catch (final VitamApplicationServerException e) {
@@ -131,7 +130,6 @@ public class BenchmarkResourceMinimalTest {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         VitamThreadUtils.getVitamSession().setContractId("contractId");
-        BenchmarkClientFactory.getInstance().mode(BenchmarkConnectorProvider.APACHE);
         assertNotNull(BenchmarkClientFactory.getInstance().getDefaultConfigCient());
         try (BenchmarkClientRest client = BenchmarkClientFactory.getInstance().getClient()) {
             for (int i = 0; i < NB_CLIENT; i++) {

@@ -435,7 +435,7 @@ public class JunitHelper extends ExternalResource {
     }
 
     /**
-     * Helper to start an Elasticsearch server (unrecommended version)
+     * Helper to start an Elasticsearch server (recommended version)
      *
      * @param tempFolder the TemporaryFolder declared as ClassRule within the Junit class
      * @param clusterName the cluster name

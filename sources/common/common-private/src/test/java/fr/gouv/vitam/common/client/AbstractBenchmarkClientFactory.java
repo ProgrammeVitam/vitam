@@ -28,23 +28,11 @@ package fr.gouv.vitam.common.client;
 
 import javax.ws.rs.client.Client;
 
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.grizzly.connector.GrizzlyConnectorProvider;
-import org.glassfish.jersey.netty.connector.NettyConnectorProvider;
-
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.server.benchmark.BenchmarkConnectorProvider;
 
 /**
  * Abstract client class for all vitam client not using SSL
  */
 public abstract class AbstractBenchmarkClientFactory<T extends BasicClient> extends TestVitamClientFactory<T> {
-
-    /**
-     * Connector Provider : connector used
-     */
-    private BenchmarkConnectorProvider benchmarkConnectorProvider;
 
     /**
      * Constructor with standard configuration
@@ -68,70 +56,5 @@ public abstract class AbstractBenchmarkClientFactory<T extends BasicClient> exte
      */
     protected AbstractBenchmarkClientFactory(int serverPort, String resourcePath, Client client) {
         super(serverPort, resourcePath, client);
-    }
-
-    @Override
-    void internalConfigure() {
-        // Default value
-        benchmarkConnectorProvider = BenchmarkConnectorProvider.APACHE;
-        startup();
-        benchmarkConfigure(config, true);
-        benchmarkConfigure(configNotChunked, false);
-    }
-
-    /**
-     * Replace internalConfigure(ClientConfig, boolean)
-     *
-     * @param config
-     * @param chunkedMode
-     */
-    private void benchmarkConfigure(ClientConfig config, boolean chunkedMode) {
-        commonConfigure(config);
-        internalConfigure(config, chunkedMode);
-    }
-
-    /**
-     * Change the underlying Connector Provider. Equivalent to call the constructor with new ConnectorProvider
-     *
-     * @param mode
-     * @param chunkedMode
-     */
-    public void mode(BenchmarkConnectorProvider mode) {
-        ParametersChecker.checkParameter("ConnectorProvider must not be null", mode);
-        benchmarkConnectorProvider = mode;
-        internalConfigure(config, true);
-        internalConfigure(configNotChunked, false);
-    }
-
-    /**
-     *
-     * @return the current underlying Connector Provider
-     */
-    public BenchmarkConnectorProvider getMode() {
-        return benchmarkConnectorProvider;
-    }
-
-    private void internalConfigure(ClientConfig config, boolean chunkedMode) {
-        switch (benchmarkConnectorProvider) {
-            case APACHE:
-                commonApacheConfigure(config, chunkedMode);
-                POOLING_CONNECTION_MANAGER
-                    .setValidateAfterInactivity(VitamConfiguration.getDelayValidationAfterInactivity());
-                break;
-            case APACHE_NOCHECK:
-                commonApacheConfigure(config, chunkedMode);
-                POOLING_CONNECTION_MANAGER
-                    .setValidateAfterInactivity(VitamConfiguration.NO_VALIDATION_AFTER_INACTIVITY);
-                break;
-            case GRIZZLY:
-                config.connectorProvider(new GrizzlyConnectorProvider());
-                break;
-            case NETTY:
-                config.connectorProvider(new NettyConnectorProvider());
-                break;
-            case STANDARD:
-            default:
-                break;
-        }
     }
 }

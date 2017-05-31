@@ -50,6 +50,7 @@ import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplication
 public class BenchmarkResourceIT {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BenchmarkResourceIT.class);
 
+    private static final int REPEAT_TIME = 5;
     private static final int START_SIZE = 100;
     private static final long MAX_SIZE_CHECKED = 1000000L;
 
@@ -92,14 +93,21 @@ public class BenchmarkResourceIT {
 
     private static void checkSizeLimit(BenchmarkClientRest client, String method, long size, List<String> list) {
         final long start = System.nanoTime();
-        final long receivedSize = client.upload(method, size);
-        if (receivedSize != size) {
-            LOGGER.error(method + ":" + size + " = " + receivedSize);
+        for (int i = 0; i < REPEAT_TIME; i++) {
+            final long receivedSize = client.upload(method, size);
+            if (receivedSize != size) {
+                LOGGER.error(method + ":" + size + " = " + receivedSize);
+            }
+            assertEquals(size, receivedSize);
+            final long receivedSize2 = client.download(method, size);
+            if (receivedSize2 != size) {
+                LOGGER.error(method + ":" + size + " = " + receivedSize2);
+            }
+            assertEquals(size, receivedSize2);
         }
-        assertEquals(size, receivedSize);
         final long stop = System.nanoTime();
-        list.add(stop - start + " (" + (stop - start) / size + ")");
-        LOGGER.info("Size: " + size + " Time: " + (stop - start) / size + " ns/bytes");
+        list.add(stop - start + " (" + (stop - start) / (size * REPEAT_TIME) + ")");
+        LOGGER.info("Size: " + size + " Time: " + (stop - start) / (size * REPEAT_TIME) + " ns/bytes");
     }
 
     private static void printFinalResul(List<List<String>> globalTests) {
@@ -133,63 +141,53 @@ public class BenchmarkResourceIT {
         testList.add(HttpMethod.PUT + size);
         testList.add("MEMORY_USED");
         globalTests.add(testList);
-        for (final BenchmarkConnectorProvider mode : BenchmarkConnectorProvider.values()) {
-            if (mode == BenchmarkConnectorProvider.STANDARD) {
-                continue;
-            }
-            testList = new ArrayList<>();
-            testList.add(mode.name());
-            JunitHelper.awaitFullGc();
-            final long available = Runtime.getRuntime().freeMemory();
-            BenchmarkClientFactory.getInstance().mode(mode);
-            LOGGER.warn("START " + mode.name());
-            testBenchmark(globalTests, testList);
-            final long availableEnd = Runtime.getRuntime().freeMemory();
-            final long used = available - availableEnd;
-            testList.add("" + used);
-            globalTests.add(testList);
-        }
+        final BenchmarkConnectorProvider mode = BenchmarkConnectorProvider.APACHE;
+        testList = new ArrayList<>();
+        testList.add(mode.name());
+        JunitHelper.awaitFullGc();
+        final long available = Runtime.getRuntime().freeMemory();
+        LOGGER.warn("START " + mode.name());
+        testBenchmark(globalTests, testList);
+        final long availableEnd = Runtime.getRuntime().freeMemory();
+        final long used = available - availableEnd;
+        testList.add("" + used);
+        globalTests.add(testList);
         printFinalResul(globalTests);
     }
 
     public static final void testBenchmark(List<List<String>> globalTests, List<String> list) {
-        try (final BenchmarkClientRest client =
-            BenchmarkClientFactory.getInstance().getClient()) {
-            long start = System.nanoTime();
-            client.checkStatus();
-            long stop = System.nanoTime();
-            list.add("" + (stop - start));
-            start = System.nanoTime();
-            assertTrue(client.getStatus(HttpMethod.HEAD));
-            stop = System.nanoTime();
-            list.add("" + (stop - start));
-            start = System.nanoTime();
-            assertTrue(client.getStatus(HttpMethod.OPTIONS));
-            stop = System.nanoTime();
-            list.add("" + (stop - start));
-            long size = START_SIZE;
-            checkSizeLimit(client, HttpMethod.POST, size, list);
-            if (BenchmarkClientFactory.getInstance().getMode() != BenchmarkConnectorProvider.STANDARD) {
+        for (int i = 0; i < REPEAT_TIME; i++) {
+            try (final BenchmarkClientRest client =
+                BenchmarkClientFactory.getInstance().getClient()) {
+                long start = System.nanoTime();
+                client.checkStatus();
+                long stop = System.nanoTime();
+                list.add("" + (stop - start));
+                start = System.nanoTime();
+                assertTrue(client.getStatus(HttpMethod.HEAD));
+                stop = System.nanoTime();
+                list.add("" + (stop - start));
+                start = System.nanoTime();
+                assertTrue(client.getStatus(HttpMethod.OPTIONS));
+                stop = System.nanoTime();
+                list.add("" + (stop - start));
+                long size = START_SIZE;
+                checkSizeLimit(client, HttpMethod.POST, size, list);
                 checkSizeLimit(client, HttpMethod.GET, size, list);
-            } else {
-                list.add("" + -1L);
-            }
-            checkSizeLimit(client, HttpMethod.DELETE, size, list);
-            checkSizeLimit(client, HttpMethod.PUT, size, list);
-            size = MAX_SIZE_CHECKED;
-            checkSizeLimit(client, HttpMethod.POST, size, list);
-            if (BenchmarkClientFactory.getInstance().getMode() != BenchmarkConnectorProvider.STANDARD) {
+                checkSizeLimit(client, HttpMethod.DELETE, size, list);
+                checkSizeLimit(client, HttpMethod.PUT, size, list);
+                size = MAX_SIZE_CHECKED;
+                checkSizeLimit(client, HttpMethod.POST, size, list);
                 checkSizeLimit(client, HttpMethod.GET, size, list);
-            } else {
-                list.add("" + -1L);
+                checkSizeLimit(client, HttpMethod.DELETE, size, list);
+                checkSizeLimit(client, HttpMethod.PUT, size, list);
+                list.add("\n\t");
+            } catch (final VitamClientException | VitamApplicationServerException e1) {
+                list.add("" + -2L);
+                globalTests.add(list);
+                printFinalResul(globalTests);
+                fail("Cannot connect to server");
             }
-            checkSizeLimit(client, HttpMethod.DELETE, size, list);
-            checkSizeLimit(client, HttpMethod.PUT, size, list);
-        } catch (final VitamClientException | VitamApplicationServerException e1) {
-            list.add("" + -2L);
-            globalTests.add(list);
-            printFinalResul(globalTests);
-            fail("Cannot connect to server");
         }
     }
 }
