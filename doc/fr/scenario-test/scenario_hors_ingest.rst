@@ -129,7 +129,7 @@ Cas KO : contrat d'entrée non reconnu
 Cas KO : référentiel des contrat d'entrée déjà présent
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
  - Se rendre sur l'IHM de démo > Administration > Import du Référentiel des contrats d'entrée
- - Ajouter un fichier au format json, correct (ex. :download:'<files/DROID_SignatureFile_V86.xml>'.) et cliquer sur le bouton "Valider".
+ - Ajouter un fichier au format json, correct (ex. :download:'<files/referential_contracts_ingest_ok.json>'.) et cliquer sur le bouton "Valider".
  - Une pop-up apparaît indiquant "Fichier valide" et avec deux options, "Annuler l'import" ou "Lancer l'import".
  - Cliquer sur le bouton "Lancer l'import"
  - Une pop-up apparaît avec le message suivant : "Referentiel de contrats déjà existant"
@@ -140,7 +140,7 @@ Cas KO : référentiel des contrat d'entrée déjà présent
 Cas OK
 ^^^^^^
  - Se rendre sur l'IHM de démo, Administration > Import du Référentiel des contrat d'entrée
- - Ajouter un fichier au format json, correct (ex. :download:'<files/DROID_SignatureFile_V86.xml>'.) et cliquer sur le bouton "Valider"
+ - Ajouter un fichier au format json, correct (ex. :download:'<files/referential_contracts_ingest_ok.json>'.) et cliquer sur le bouton "Valider"
  - Une pop-up apparaît indiquant "Fichier valide" et avec deux options , "Annuler l'import" ou "Lancer l'import"
  - Cliquer sur le bouton "Annuler l'import" (l'import est annulé), rien n'a été effectué.
  - Dans le menu se rendre dans Administration > Référentiel des contrat d'entrée, et constater qu'aucun contrat n'est présent.
@@ -166,7 +166,7 @@ Cas KO : contrat d'accès non reconnu
 Cas KO : référentiel des contrat d'accès déjà présent
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
  - Se rendre sur l'IHM de démo > Administration > Import du Référentiel des contrats d'accès
- - Ajouter un fichier au format json, correct (ex. :download:'<files/DROID_SignatureFile_V86.xml>'.) et cliquer sur le bouton "Valider".
+ - Ajouter un fichier au format json, correct (ex. :download:'<files/referential_contracts_access_ok.json>'.) et cliquer sur le bouton "Valider".
  - Une pop-up apparaît indiquant "Fichier valide" et avec deux options, "Annuler l'import" ou "Lancer l'import".
  - Cliquer sur le bouton "Lancer l'import"
  - Une pop-up apparaît avec le message suivant : "Referentiel de contrats déjà existant"
@@ -177,7 +177,7 @@ Cas KO : référentiel des contrat d'accès déjà présent
 Cas OK
 ^^^^^^
  - Se rendre sur l'IHM de démo, Administration > Import du Référentiel des contrat d'accès
- - Ajouter un fichier au format json, correct (ex. :download:'<files/DROID_SignatureFile_V86.xml>'.) et cliquer sur le bouton "Valider"
+ - Ajouter un fichier au format json, correct (ex. :download:'<files/referential_contracts_access_ok.json>'.) et cliquer sur le bouton "Valider"
  - Une pop-up apparaît indiquant "Fichier valide" et avec deux options , "Annuler l'import" ou "Lancer l'import"
  - Cliquer sur le bouton "Annuler l'import" (l'import est annulé), rien n'a été effectué.
  - Dans le menu se rendre dans Administration > Référentiel des contrat d'accès, et constater qu'aucun contrat n'est présent.
