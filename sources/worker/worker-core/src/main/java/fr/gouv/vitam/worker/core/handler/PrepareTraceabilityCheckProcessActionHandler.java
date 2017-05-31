@@ -33,8 +33,6 @@ import java.util.List;
 
 import javax.ws.rs.core.Response;
 
-import fr.gouv.vitam.common.client.DefaultClient;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -42,6 +40,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Iterables;
 
 import fr.gouv.vitam.common.CommonMediaType;
+import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;

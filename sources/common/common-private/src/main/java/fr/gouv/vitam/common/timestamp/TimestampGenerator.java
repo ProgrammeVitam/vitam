@@ -75,7 +75,8 @@ public class TimestampGenerator {
         TimeStampResponse timeStampResponse = null;
         try {
             timeStampResponse = timeStampSignature.sign(request);
-
+            //lets validate de the timestamp
+            timeStampResponse.validate(request);
             return timeStampResponse.getEncoded();
         } catch (OperatorCreationException | TSPException | CertificateEncodingException | IOException e) {
             throw new TimeStampException("unable to generate timestamp token", e);

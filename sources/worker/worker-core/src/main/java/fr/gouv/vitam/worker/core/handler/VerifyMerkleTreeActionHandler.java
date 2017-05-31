@@ -136,7 +136,7 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
             itemStatus.increment(StatusCode.FATAL);
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
-            itemStatus.increment(StatusCode.FATAL);
+            itemStatus.increment(StatusCode.FATAL);            
         }
 
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);

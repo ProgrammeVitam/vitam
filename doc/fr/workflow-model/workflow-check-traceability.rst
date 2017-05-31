@@ -13,8 +13,10 @@ Le processus de vérification des journaux sécurisés débute lorsqu'un identif
 
 Pour cela, il calcule un arbre de merkle à partir des journaux d'opérations que contient le journal sécurisé, puis en calcule un second à partir des journaux correspondants disponibles dans la solution logicielle Vitam. Une comparaison est ensuite effectuée entre ces deux arbres et celui contenu dans les métadonnées du journal sécurisé.
 
+Ensuite, dans une dernière étape, le tampon d'horodatage est vérifié et validé.
+
 Préparation du processus de vérification des journaux sécurisés (STP_PREPARE_TRACEABILITY_CHECK)
-=======================================================================
+================================================================================================
 
 PREPARE_TRACEABILITY_CHECK (PrepareTraceabilityCheckProcessActionHandler.java)
 ------------------------------------------------------------------------------
@@ -54,6 +56,35 @@ CHECK_MERKLE_TREE (VerifyMerkleTreeActionHandler.java)
 	* Status : 
 		* OK : l'arbre de merkle des journaux indexés correspond à celui stocké dans les métadonnées du journal sécurisé (CHECK_MERKLE_TREE.COMPARE_MERKLE_HASH_WITH_INDEXED_HASH.OK=Succès de la comparaison de l'arbre de MERKLE avec le Hash indexé)
 		* KO : l'arbre de merkle des journaux indexés ne correspond pas à celui stocké dans les métadonnées du journal sécurisé (CHECK_MERKLE_TREE.COMPARE_MERKLE_HASH_WITH_INDEXED_HASH.KO=Échec de la comparaison de l'arbre de MERKLE avec le Hash indexé)
+
+
+Vérification de l'horodatage (STP_VERIFY_STAMP)
+===============================================
+
+VERIFY_TIMESTAMP (VerifyTimeStampActionHandler.java)
+----------------------------------------------------
+
+* Règle : La tâche consiste à vérifier et à valider le tampon d'horodatage. 
+* Type : bloquant
+* Statuts :
+   * OK : le tampon d'horadatage est correct (VERIFY_TIMESTAMP.OK=Succès de la vérification de l''horodatage)
+   * KO : le tampon d'horadatage est incorrect (VERIFY_TIMESTAMP.KO=Échec de la vérification de l''horodatage)
+   * FATAL : erreur technique lors de la vérification du tampon d'horodatage (VERIFY_TIMESTAMP.FATAL=Erreur lors de la vérification de l''horodatage)
+
+**La tâche contient les traitements suivants**
+* Comparaison du tampon dans le fichier par rapport au tampon enregistré dans le logbook (COMPARE_TOKEN_TIMESTAMP)
+   * Règle : le tampon enregistré dans le logbook doit être le même que celui dans le fichier zip généré
+   * Type : bloquant
+   * Status :
+      * OK : les tampons sont identiques (VERIFY_TIMESTAMP.COMPARE_TOKEN_TIMESTAMP.OK=Succès de la comparaison des tampons d''horodatage)
+      * KO : les tampons sont différents (VERIFY_TIMESTAMP.COMPARE_TOKEN_TIMESTAMP.KO=Échec de la comparaison des tampons d''horodatage)
+  
+* Validation du tampon d'horodatage (VALIDATE_TOKEN_TIMESTAMP)
+   * Règle : le tampon d'horodatage doit être validé par rapport à la signature
+   * Type : bloquant
+   * Status :
+      * OK : le tampons est validé (VERIFY_TIMESTAMP.VALIDATE_TOKEN_TIMESTAMP.OK=Succès de la validation du tampon d''horodatage)
+      * KO : le tampons est invalidé (VERIFY_TIMESTAMP.VALIDATE_TOKEN_TIMESTAMP.KO=Échec de la validation du tampon d''horodatage)
 
 Structure du Workflow (implémenté en v1)
 ========================================
@@ -109,6 +140,29 @@ Le workflow mis en place dans la solution logicielle Vitam est défini dans le f
 	          }
 	        }
 	      ]
-	    }
+	    }, 
+       ,
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_VERIFY_STAMP",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "VERIFY_TIMESTAMP",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "traceabilityevent.file",
+                "uri": "WORKSPACE:TraceabilityOperationDetails/EVENT_DETAIL_DATA.json"
+              }
+            ]
+          }
+        }
+      ]
+    }
 	  ]
 	}

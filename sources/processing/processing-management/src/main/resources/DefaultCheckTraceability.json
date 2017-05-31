@@ -45,6 +45,28 @@
           }
         }
       ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_VERIFY_STAMP",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "VERIFY_TIMESTAMP",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "traceabilityevent.file",
+                "uri": "WORKSPACE:TraceabilityOperationDetails/EVENT_DETAIL_DATA.json"
+              }
+            ]
+          }
+        }
+      ]
     }
   ]
 }

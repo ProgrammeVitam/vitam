@@ -106,7 +106,6 @@ public class TraceabilityEvent {
      * @param minusOneMonthLogbookTraceabilityDate  the minus One Month Logbook Traceability Date
      * @param minusOneYearLogbookTraceabilityDate   the minus One Year Logbook Traceability Date
      * @param timeStampToken  timestamp token
-     * @param timeStampToken  timestamp token
      * @param numberOfElement number of document to secure
      * @param fileName        path on the archive in workspace
      * @param size            the size
