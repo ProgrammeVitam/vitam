@@ -77,10 +77,15 @@
     <script src="pages/functional-test/functional-test.component.js"></script>
     <script src="pages/functional-test/functional-tests-details.controller.js"></script>
 
+    <script src="pages/dsl-query-test/dsl-query-test.module.js"></script>
+    <script src="pages/dsl-query-test/dsl-query-test.controller.js"></script>
+    <script src="pages/dsl-query-test/dsl-query-test.component.js"></script>
+
     <!-- Services -->
     <script src="services/admin.service.js"></script>
     <script src="services/operation-traceability.service.js"></script>
     <script src="services/functional-test.service.js"></script>
+    <script src="services/dsl-query-test.service.js"></script>
 
 
     <!-- Resources -->
@@ -89,6 +94,7 @@
     <script src="resources/upload-sip-perf.resource.js"></script>
     <script src="resources/operation-traceability.resource.js"></script>
     <script src="resources/functional-test.resource.js"></script>
+    <script src="resources/dsl-query-test.resource.js"></script>
 </head>
 
 <body ng-controller='mainViewController'>
@@ -129,6 +135,7 @@
                             <li><a href="#!/uploadperf">Transfert (Test de performance)</a></li>
                             <li><a href="#!/operationTraceability">Sécurisation du journal des opérations </a></li>
                             <li><a href="#!/applicativeTest">Tests fonctionnels</a></li>
+                            <li><a href="#!/dslQueryTest">Tests requêtes DSL</a></li>
                         </ul>
                     </li>
                 </ul>

@@ -27,19 +27,5 @@
 
 'use strict';
 
-// Define the `ihm-demo` module
-angular.module('ihm.demo', [
-  'ngAnimate',
-  'ui.bootstrap',
-  'ngRoute',
-  'core',
-  'ngMaterial',
-  'vAccordion',
-  'ngCookies',
-  'pascalprecht.translate',
-  'upload.sip.perf',
-  'admin.home',
-  'operation.traceability',
-  'functional.test',
-  'dsl.query.test'
-]);
+// Define the `dsl.query.test` module
+angular.module('dsl.query.test', []);

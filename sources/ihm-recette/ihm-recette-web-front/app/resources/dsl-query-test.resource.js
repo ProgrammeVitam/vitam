@@ -25,21 +25,45 @@
  * accept its terms.
  */
 
-'use strict';
+// Define resources in order to call WebApp http endpoints for administration
+angular.module('dsl.query.test')
+  .constant('IHM_DSL_URLS', {
+    'TENANTS': 'tenants',
+    'ACCESS_CONTRACTS': 'accesscontracts',
+    'DSL_QUERY_TEST': 'dslQueryTest',
+    'IHM_BASE_URL':'/ihm-recette/v1/api'
+  })
+  .factory('dslQueryResource', function($http, IHM_DSL_URLS, tenantService) {
 
-// Define the `ihm-demo` module
-angular.module('ihm.demo', [
-  'ngAnimate',
-  'ui.bootstrap',
-  'ngRoute',
-  'core',
-  'ngMaterial',
-  'vAccordion',
-  'ngCookies',
-  'pascalprecht.translate',
-  'upload.sip.perf',
-  'admin.home',
-  'operation.traceability',
-  'functional.test',
-  'dsl.query.test'
-]);
+    var DslQueryResource = {};
+
+    /** get tenant of session and put it into header
+    *
+    * @returns set tenant to header
+    */    
+    var getTenantHeader = function() { 
+    	return {headers : {'X-Tenant-Id' : tenantService.getTenant()}} 
+    };
+
+    var getRequestHeader = function (tenantId, contractId, requestedCollection, requestMethod) {
+      return { headers : {
+        'X-Tenant-Id' : tenantId,
+        'X-Access-Contract-Id' : contractId,
+        'X-Requested-Collection' : requestedCollection,
+        'X-Http-Method-Override' : requestMethod
+      }}
+    }
+
+    DslQueryResource.getContracts = function() {
+      return $http.post(IHM_DSL_URLS.IHM_BASE_URL + "/" + IHM_DSL_URLS.ACCESS_CONTRACTS , '{ContractID: "all", ContractName: "all", orderby: {field: "Name", sortType: "ASC"}}', getTenantHeader());
+    };
+
+    DslQueryResource.executeRequest = function(tenantId, contractId, requestedCollection, requestMethod, query, objectId) {
+      return $http.post(IHM_DSL_URLS.IHM_BASE_URL + "/" + IHM_DSL_URLS.DSL_QUERY_TEST , query,
+                               getRequestHeader(tenantId, contractId, requestedCollection, requestMethod));
+
+    }
+
+    return DslQueryResource;
+
+  });

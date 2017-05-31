@@ -94,6 +94,14 @@ angular.module('core')
       return ihmDemoCLient.getClient('').one('logout').post();
     }
 
+//    function getContract() {
+//      return currentContract;
+//    }
+//
+//    function setContract(contract) {
+//      currentContract = angular.copy(contract);
+//    }
+
     return {
       url: lastUrl,
       cookieValue: cookieValue,
@@ -102,6 +110,8 @@ angular.module('core')
       isConnect: isConnect,
       login: login,
       logout: logout
+//      getContract: getContract,
+//      setContract: setContract
     };
   })
   .factory('redirectInterceptor', function($q, $location, $cookies) {
@@ -134,7 +144,7 @@ angular.module('core')
     function deleteTenant() {
         $cookies.remove(tenant);
     }
-    
+
     return {
     	setTenant: setTenant,
     	getTenant: getTenant,
