@@ -246,9 +246,13 @@ public class IndexUnitActionPlugin extends ActionHandler {
         // replace Management by _mgt
         ObjectNode managementNode = (ObjectNode) archiveUnitNode.get(TAG_MANAGEMENT);
         final JsonNode sedaParameters = JsonHandler.getFromFile((File) handlerIO.getInput(SEDA_PARAMETERS_RANK));
-        String prodService = sedaParameters.get(SedaConstants.TAG_ARCHIVE_TRANSFER)
-            .get(SedaConstants.TAG_DATA_OBJECT_PACKAGE).get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER).asText();
-        managementNode.put(SedaConstants.TAG_ORIGINATINGAGENCY, prodService);
+        if (sedaParameters.get(SedaConstants.TAG_ARCHIVE_TRANSFER)
+            .get(SedaConstants.TAG_DATA_OBJECT_PACKAGE).get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER) != null) {
+            String prodService = sedaParameters.get(SedaConstants.TAG_ARCHIVE_TRANSFER)
+                .get(SedaConstants.TAG_DATA_OBJECT_PACKAGE).get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER).asText();
+            managementNode.put(SedaConstants.TAG_ORIGINATINGAGENCY, prodService);
+
+        }
         archiveUnitNode.set(SedaConstants.PREFIX_MGT, (JsonNode) managementNode);
         archiveUnitNode.remove(TAG_MANAGEMENT);
 

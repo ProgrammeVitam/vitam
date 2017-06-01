@@ -1406,7 +1406,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     private void tranformEvDetDataForElastic(VitamDocument vitamDocument) {
         if (vitamDocument.get(LogbookMongoDbName.eventDetailData.getDbname()) != null) {
             String evDetDataString = (String) vitamDocument.get(LogbookMongoDbName.eventDetailData.getDbname());
-            LOGGER.error(evDetDataString);
+            LOGGER.info(evDetDataString);
             try {
                 JsonNode evDetData = JsonHandler.getFromString(evDetDataString);
                 vitamDocument.remove(LogbookMongoDbName.eventDetailData.getDbname());

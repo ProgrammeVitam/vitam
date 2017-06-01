@@ -45,6 +45,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.api.AccessInternalResource;
@@ -60,6 +61,7 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
@@ -68,6 +70,7 @@ import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.parameters.UnitType;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
@@ -129,11 +132,12 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     public Response getUnits(JsonNode queryDsl) {
         LOGGER.debug(EXECUTION_OF_DSL_VITAM_FROM_ACCESS_ONGOING);
         Status status;
-        JsonNode result = null;
+        ObjectNode result = null;
         
         try {
             SanityChecker.checkJsonAll(queryDsl);
-            result = accessModule.selectUnit(addProdServicesToQuery(queryDsl));
+            result = (ObjectNode) accessModule.selectUnit(addProdServicesToQuery(queryDsl));
+            resetQuery(result, queryDsl);
         } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
             // Unprocessable Entity not implemented by Jersey
@@ -167,12 +171,13 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         LOGGER.debug(EXECUTION_OF_DSL_VITAM_FROM_ACCESS_ONGOING);
 
         Status status;
-        JsonNode result = null;
+        ObjectNode result = null;
         try {
 
             SanityChecker.checkJsonAll(queryDsl);
             SanityChecker.checkParameter(idUnit);
-            result = accessModule.selectUnitbyId(addProdServicesToQuery(queryDsl), idUnit);
+            result = (ObjectNode) accessModule.selectUnitbyId(addProdServicesToQuery(queryDsl), idUnit);
+            resetQuery(result, queryDsl);
         } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
             // Unprocessable Entity not implemented by Jersey
@@ -355,9 +360,12 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         } else {
             final SelectParserMultiple parser = new SelectParserMultiple();
             parser.parse(queryDsl);
-            parser.getRequest().addQueries(QueryHelper.in(
-                PROJECTIONARGS.MANAGEMENT.exactToken() + "." + SedaConstants.TAG_ORIGINATINGAGENCY, 
-                prodServices.stream().toArray(String[]::new)).setDepthLimit(0));
+            parser.getRequest().addQueries(QueryHelper.or()
+                .add(QueryHelper.in(
+                    PROJECTIONARGS.MANAGEMENT.exactToken() + "." + SedaConstants.TAG_ORIGINATINGAGENCY, 
+                    prodServices.stream().toArray(String[]::new)))
+                .add(QueryHelper.eq(PROJECTIONARGS.UNITTYPE.exactToken(), UnitType.HOLDING_UNIT.name()))
+                .setDepthLimit(0));
             return parser.getRequest().getFinalSelect();
         }
     }
@@ -384,5 +392,11 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
             .setHttpCode(status.getStatusCode()).setState(CODE_VITAM).setMessage(status.getReasonPhrase())
             .setDescription(status.getReasonPhrase());
+    }
+    
+    private void resetQuery(ObjectNode result, JsonNode queryDsl) {
+        if (result != null && result.has(RequestResponseOK.CONTEXT)) {
+            result.set(RequestResponseOK.CONTEXT, queryDsl);
+        }
     }
 }
