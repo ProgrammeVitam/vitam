@@ -185,7 +185,7 @@ public class IngestInternalIT {
     private static AccessInternalApplication accessInternalApplication;
 
     private static final String WORKSPACE_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE;
-
+    private static String SIP_TREE = "integration-ingest-internal/test_arbre.zip";
     private static String SIP_FILE_OK_NAME = "integration-ingest-internal/SIP-ingest-internal-ok.zip";
     private static String SIP_NB_OBJ_INCORRECT_IN_MANIFEST = "integration-ingest-internal/SIP_Conformity_KO.zip";
     private static String SIP_OK_WITH_MGT_META_DATA_ONLY_RULES = "integration-ingest-internal/SIP-MGTMETADATA-ONLY.zip";
@@ -1135,7 +1135,7 @@ public class IngestInternalIT {
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
             RequestResponse<JsonNode> response = accessClient.selectUnits(select.getFinalSelect());
             assertTrue(response.isOk());
-
+            
             // Get GOT
             final JsonNode node = response.toJsonNode().get("$results").get(0);
             final JsonNode unit = node.get("$results").get(0);
@@ -1151,7 +1151,36 @@ public class IngestInternalIT {
             select.addQueries(QueryHelper.eq("evType", "Process_SIP_unitary"));
             response = accessClient.selectOperation(select3.getFinalSelect());
             assertTrue(response.isOk());
+            
 
+            final GUID operationGuid2 = GUIDFactory.newOperationLogbookGUID(tenantId);
+            final InputStream zipInputStreamSipObject2 =
+                PropertiesUtils.getResourceAsStream(SIP_TREE);
+
+            // init default logbook operation
+            final List<LogbookOperationParameters> params2 = new ArrayList<>();
+            final LogbookOperationParameters initParameters2 = LogbookParametersFactory.newLogbookOperationParameters(
+                operationGuid2, "Process_SIP_unitary", operationGuid2,
+                LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
+                operationGuid2 != null ? operationGuid2.toString() : "outcomeDetailMessage",
+                operationGuid2);
+            params2.add(initParameters2);
+            
+            final IngestInternalClient client2 = IngestInternalClientFactory.getInstance().getClient();
+            final Response response3 = client2.uploadInitialLogbook(params2);
+            assertEquals(response3.getStatus(), Status.CREATED.getStatusCode());
+
+            // init workflow before execution
+            client2.initWorkFlow("HOLDING_SCHEME_RESUME");
+            client2.upload(zipInputStreamSipObject2, CommonMediaType.ZIP_TYPE, "HOLDING_SCHEME_RESUME");
+
+            VitamThreadUtils.getVitamSession().setContractId("aName4");
+            SelectMultiQuery selectTree = new SelectMultiQuery();
+            selectTree.addQueries(QueryHelper.eq("Title", "testArbre2").setDepthLimit(5));
+            // Get AU
+            RequestResponse<JsonNode> responseTree = accessClient.selectUnits(selectTree.getFinalSelect());
+            assertTrue(responseTree.isOk());
+            assertEquals(responseTree.toJsonNode().get("$results").get(0).get("$hits").get("total").asInt(), 1);
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
