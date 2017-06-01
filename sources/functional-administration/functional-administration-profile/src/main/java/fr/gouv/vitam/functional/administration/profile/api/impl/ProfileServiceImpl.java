@@ -34,8 +34,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -49,7 +47,6 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.guid.GUIDObjectType;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -59,7 +56,6 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
-import fr.gouv.vitam.common.server.application.VitamStreamingOutput;
 import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
 import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.embed.ProfileFormat;
@@ -67,10 +63,10 @@ import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundE
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.profile.api.ProfileService;
 import fr.gouv.vitam.functional.administration.profile.core.ProfileManager;
 import fr.gouv.vitam.functional.administration.profile.core.ProfileValidator.RejectionCause;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
@@ -95,10 +91,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -121,17 +115,19 @@ public class ProfileServiceImpl implements ProfileService {
     private LogbookOperationsClient logBookclient;
     private final WorkspaceClientFactory workspaceClientFactory;
     private static final String DEFAULT_STORAGE_STRATEGY = "default";
-
+    private final VitamCounterService vitamCounterService;
     private ProfileManager manager;
 
     /**
      * Constructor
      *
      * @param mongoAccess MongoDB client
+     * @param vitamCounterService
      */
-    public ProfileServiceImpl(MongoDbAccessAdminImpl mongoAccess, WorkspaceClientFactory workspaceClientFactory) {
+    public ProfileServiceImpl(MongoDbAccessAdminImpl mongoAccess, WorkspaceClientFactory workspaceClientFactory, VitamCounterService vitamCounterService) {
         this.mongoAccess = mongoAccess;
         this.workspaceClientFactory = workspaceClientFactory;
+        this.vitamCounterService = vitamCounterService;
         this.logBookclient = LogbookOperationsClientFactory.getInstance().getClient();
         this.manager = new ProfileManager(logBookclient);
     }
@@ -188,18 +184,7 @@ public class ProfileServiceImpl implements ProfileService {
 
                 // validate profile
                 if (manager.validateProfile(pm, error)) {
-
                     pm.setId(GUIDFactory.newProfileGUID(ParameterHelper.getTenantParameter()).getId());
-
-                    final JsonNode profileNode = JsonHandler.toJsonNode(pm);
-
-
-                    /* profile is valid, add it to the list to persist */
-                    if (profilesToPersist == null) {
-                        profilesToPersist = JsonHandler.createArrayNode();
-                    }
-
-                    profilesToPersist.add(profileNode);
                 }
 
 
@@ -214,6 +199,15 @@ public class ProfileServiceImpl implements ProfileService {
                 return error;
             }
 
+
+            profilesToPersist = JsonHandler.createArrayNode();
+            for (final ProfileModel pm : profileModelList) {
+                String code = vitamCounterService.getNextSequence(ParameterHelper.getTenantParameter(),"PR");
+                pm.setIdentifier(code);
+                final JsonNode profileNode = JsonHandler.toJsonNode(pm);
+                    /* contract is valid, add it to the list to persist */
+                profilesToPersist.add(profileNode);
+            }
             // at this point no exception occurred and no validation error detected
             // persist in collection
             // profilesToPersist.values().stream().map();

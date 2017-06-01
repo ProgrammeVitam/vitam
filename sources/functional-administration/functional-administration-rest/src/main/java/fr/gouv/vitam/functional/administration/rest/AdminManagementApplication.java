@@ -27,14 +27,6 @@
 
 package fr.gouv.vitam.functional.administration.rest;
 
-import static java.lang.String.format;
-
-import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.glassfish.jersey.server.ResourceConfig;
-
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -44,7 +36,11 @@ import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
 import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import static java.lang.String.format;
+import org.glassfish.jersey.server.ResourceConfig;
 
 /**
  * Admin management web application
@@ -98,24 +94,32 @@ public class AdminManagementApplication
     }
 
     @Override
-    protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-        setServiceRegistry(new VitamServiceRegistry());
-        final AdminManagementResource resource = new AdminManagementResource(getConfiguration());
+    protected void registerInResourceConfig(ResourceConfig resourceConfig)  {
+        try {
 
-        serviceRegistry
-            .register(LogbookOperationsClientFactory.getInstance())
-            .register(resource.getLogbookDbAccess());
-        // TODO: 5/12/17 dependency to workspace, metadata, storage
+            AdminManagementConfiguration configuration = getConfiguration();
+            setServiceRegistry(new VitamServiceRegistry());
+            final AdminManagementResource resource = new AdminManagementResource(configuration);
 
+            serviceRegistry
+                .register(LogbookOperationsClientFactory.getInstance())
+                .register(resource.getLogbookDbAccess());
+            // TODO: 5/12/17 dependency to workspace, metadata, storage
 
-        final MongoDbAccessAdminImpl mongoDbAccess = resource.getLogbookDbAccess();
-        final ProfileResource profileResource = new ProfileResource(getConfiguration(), mongoDbAccess);
+            final MongoDbAccessAdminImpl mongoDbAccess = resource.getLogbookDbAccess();
+            final VitamCounterService vitamCounterService =
+                new VitamCounterService(mongoDbAccess, configuration.getTenants());
 
+            final ProfileResource profileResource = new ProfileResource(getConfiguration(), mongoDbAccess,vitamCounterService);
+            resourceConfig
+                .register(resource)
+                .register(new ContractResource(mongoDbAccess, vitamCounterService))
+                .register(profileResource);
+        } catch (Exception e) {
+            LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
+            System.exit(1);
 
-        resourceConfig
-            .register(resource)
-            .register(new ContractResource(mongoDbAccess))
-            .register(profileResource);
+        }
     }
 
     @Override

@@ -54,13 +54,13 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.profile.api.ProfileService;
 import fr.gouv.vitam.functional.administration.profile.api.impl.ProfileServiceImpl;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.server.rest.StorageApplication;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
 import org.jhades.JHades;
@@ -114,7 +114,8 @@ public class FunctionalAdminIT {
     private static int workspacePort;
     private static StorageApplication storageApplication;
     private static WorkspaceApplication workspaceApplication;
-
+    private static VitamCounterService vitamCounterService;
+    private static MongoDbAccessAdminImpl dbImpl;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -134,7 +135,10 @@ public class FunctionalAdminIT {
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, mongoPort));
-
+        dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
+        List tenants = new ArrayList<>();
+        tenants.add(new Integer(TENANT_ID));
+        vitamCounterService = new VitamCounterService(dbImpl, tenants);
 
         workspacePort = junitHelper.findAvailablePort();
         // launch workspace
@@ -160,7 +164,6 @@ public class FunctionalAdminIT {
         serverConfiguration
             .setUrlWorkspace(serverConfiguration.getUrlWorkspace() + ":" + Integer.toString(workspacePort));
 
-        ArrayList<Integer> tenants = new ArrayList<Integer>();
         serverConfiguration.setTenants(tenants);
         serverConfiguration.setZippingDirecorty(TMP_FOLDER);
         serverConfiguration.setLoggingDirectory(TMP_FOLDER);
@@ -182,7 +185,7 @@ public class FunctionalAdminIT {
         final WorkspaceClientFactory workspaceClientFactory = WorkspaceClientFactory.getInstance();
 
         profileService =
-            new ProfileServiceImpl(MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)), workspaceClientFactory);
+            new ProfileServiceImpl(MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)), workspaceClientFactory, vitamCounterService);
     }
 
 

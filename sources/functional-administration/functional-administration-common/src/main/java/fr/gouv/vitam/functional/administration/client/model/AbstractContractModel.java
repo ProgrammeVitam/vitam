@@ -52,6 +52,9 @@ public class AbstractContractModel {
     @JsonProperty("Name")
     private String name;
 
+    @JsonProperty("Identifier")
+    private String identifier;
+
     @JsonProperty("Description")
     private String description;
 
@@ -109,6 +112,25 @@ public class AbstractContractModel {
      */
     public AbstractContractModel setTenant(long tenant) {
         this.tenant = tenant;
+        return this;
+    }
+
+    /**
+     * Get the identifier of the contract
+     * @return
+     */
+    public String getIdentifier() {
+        return identifier;
+    }
+
+    /**
+     * Set the identifier of the contract
+     * This value must be unique by tenant
+     * @param identifier as String
+     * @return
+     */
+    public AbstractContractModel setIdentifier(String identifier) {
+        this.identifier = identifier;
         return this;
     }
 

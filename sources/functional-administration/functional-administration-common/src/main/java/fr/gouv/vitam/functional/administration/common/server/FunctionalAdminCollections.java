@@ -73,6 +73,12 @@ public enum FunctionalAdminCollections {
     ACCESS_CONTRACT(AccessContract.class),
 
     /**
+     * Access contract collection
+     *
+     */
+    VITAM_SEQUENCE(VitamSequence.class),
+
+    /**
      * Profile collection
      */
     PROFILE(Profile.class)
@@ -147,7 +153,7 @@ public enum FunctionalAdminCollections {
     public long getCount() {
         return vitamCollection.getCollection().count();
     }
-    
+
     
     /**
      * get ElasticSearch Client

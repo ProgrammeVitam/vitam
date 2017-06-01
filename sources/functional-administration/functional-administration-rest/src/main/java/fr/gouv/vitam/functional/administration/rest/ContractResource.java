@@ -27,8 +27,6 @@
 package fr.gouv.vitam.functional.administration.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -37,27 +35,27 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
 import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
-import fr.gouv.vitam.functional.administration.common.IngestContract;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
 import fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl;
 import fr.gouv.vitam.functional.administration.contract.core.IngestContractImpl;
+import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
 
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
-
 import java.util.List;
 
 /**
@@ -72,6 +70,7 @@ public class ContractResource {
     static final String UPDATE_ACCESS_CONTRACT_URI = "/accesscontract";
     static final String UPDATE_INGEST_CONTRACTS_URI = "/contract";
 
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ContractResource.class);
     private static final String INGEST_CONTRACT_JSON_IS_MANDATORY_PATAMETER =
         "The json input of ingest contracts is mandatory";
@@ -79,13 +78,14 @@ public class ContractResource {
         "The json input of access contracts is mandatory";
 
     private final MongoDbAccessAdminImpl mongoAccess;
-
+    private final VitamCounterService vitamCounterService;
     /**
      *
      * @param mongoAccess
      */
-    public ContractResource(MongoDbAccessAdminImpl mongoAccess) {
+    public ContractResource(MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService ) throws VitamException {
         this.mongoAccess = mongoAccess;
+        this.vitamCounterService = vitamCounterService;
         LOGGER.debug("init Admin Management Resource server");
     }
 
@@ -112,7 +112,8 @@ public class ContractResource {
     public Response importContracts(List<IngestContractModel> ingestContractModelList, @Context UriInfo uri) {
         ParametersChecker.checkParameter(INGEST_CONTRACT_JSON_IS_MANDATORY_PATAMETER, ingestContractModelList);
 
-        try (ContractService<IngestContractModel> ingestContract = new IngestContractImpl(mongoAccess)) {
+        try (ContractService<IngestContractModel> ingestContract = new IngestContractImpl(mongoAccess,
+            vitamCounterService)) {
             RequestResponse requestResponse = ingestContract.createContracts(ingestContractModelList);
 
             if (!requestResponse.isOk()) {
@@ -147,7 +148,7 @@ public class ContractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response findIngestContracts(JsonNode queryDsl) {
 
-        try (ContractService<IngestContractModel> ingestContract = new IngestContractImpl(mongoAccess)) {
+        try (ContractService<IngestContractModel> ingestContract = new IngestContractImpl(mongoAccess,vitamCounterService)) {
 
             final List<IngestContractModel> ingestContractModelList = ingestContract.findContracts(queryDsl);
 
@@ -188,7 +189,8 @@ public class ContractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response importAccessContracts(List<AccessContractModel> accessContractModelList, @Context UriInfo uri) {
         ParametersChecker.checkParameter(ACCESS_CONTRACT_JSON_IS_MANDATORY_PATAMETER, accessContractModelList);
-        try (ContractService<AccessContractModel> accessContract = new AccessContractImpl(mongoAccess)) {
+        try (ContractService<AccessContractModel> accessContract = new AccessContractImpl(mongoAccess,
+            vitamCounterService)) {
             RequestResponse requestResponse = accessContract.createContracts(accessContractModelList);
 
             if (!requestResponse.isOk()) {
@@ -217,7 +219,8 @@ public class ContractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateAccessContract(@PathParam("id") String contractId, JsonNode queryDsl) {
-        try (ContractService<AccessContractModel> accessContract = new AccessContractImpl(mongoAccess)) {
+        try (ContractService<AccessContractModel> accessContract = new AccessContractImpl(mongoAccess,
+            vitamCounterService)) {
             RequestResponse requestResponse = accessContract.updateContract(contractId, queryDsl);
             if (!requestResponse.isOk()) {
                 ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
@@ -242,7 +245,8 @@ public class ContractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateIngestContract(@PathParam("id") String contractId, JsonNode queryDsl) {
-        try (ContractService<IngestContractModel> ingestContract = new IngestContractImpl(mongoAccess)) {
+        try (ContractService<IngestContractModel> ingestContract = new IngestContractImpl(mongoAccess,
+            vitamCounterService)) {
             RequestResponse requestResponse = ingestContract.updateContract(contractId, queryDsl);
             if (!requestResponse.isOk()) {
                 ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
@@ -273,7 +277,8 @@ public class ContractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response findAccessContracts(JsonNode queryDsl) {
-        try (ContractService<AccessContractModel> accessContract = new AccessContractImpl(mongoAccess)) {
+        try (ContractService<AccessContractModel> accessContract = new AccessContractImpl(mongoAccess,
+            vitamCounterService)) {
 
             final List<AccessContractModel> accessContractModelList = accessContract.findContracts(queryDsl);
 

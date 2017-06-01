@@ -48,6 +48,10 @@ public class IngestContract extends VitamDocument<IngestContract> {
      */
     private static final long serialVersionUID = -3547871388720359674L;
     /**
+     * the contract id
+     */
+    public static final String IDENTIFIER = "Identifier";
+    /**
      * the contract name
      */
     public static final String NAME = "Name";
