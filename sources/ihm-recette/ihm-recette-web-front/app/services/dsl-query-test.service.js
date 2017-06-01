@@ -25,21 +25,19 @@
  * accept its terms.
  */
 
-'use strict';
+// Define service in order to process the resource promise for administration operation
+angular.module('dsl.query.test')
+  .service('dslQueryService', function(dslQueryResource) {
 
-// Define the `ihm-demo` module
-angular.module('ihm.demo', [
-  'ngAnimate',
-  'ui.bootstrap',
-  'ngRoute',
-  'core',
-  'ngMaterial',
-  'vAccordion',
-  'ngCookies',
-  'pascalprecht.translate',
-  'upload.sip.perf',
-  'admin.home',
-  'operation.traceability',
-  'functional.test',
-  'dsl.query.test'
-]);
+    var DslQueryService = this;
+
+    DslQueryService.getContracts = function(successCallback, errorCallback) {
+      dslQueryResource.getContracts().then(successCallback, errorCallback);
+    }
+
+    DslQueryService.executeRequest = function(successCallback, errorCallback, tenantId, contractId, requestedCollection, requestMethod, query, objectId) {
+      dslQueryResource.executeRequest(tenantId, contractId, requestedCollection, requestMethod, query, objectId).then(successCallback, errorCallback);
+    }
+
+
+  });

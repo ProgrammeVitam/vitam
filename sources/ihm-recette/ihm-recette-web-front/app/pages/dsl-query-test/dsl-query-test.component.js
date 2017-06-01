@@ -27,19 +27,10 @@
 
 'use strict';
 
-// Define the `ihm-demo` module
-angular.module('ihm.demo', [
-  'ngAnimate',
-  'ui.bootstrap',
-  'ngRoute',
-  'core',
-  'ngMaterial',
-  'vAccordion',
-  'ngCookies',
-  'pascalprecht.translate',
-  'upload.sip.perf',
-  'admin.home',
-  'operation.traceability',
-  'functional.test',
-  'dsl.query.test'
-]);
+// Register `dslQueryTest` component, along with its associated controller and template
+angular.
+  module('dsl.query.test').
+  component('dslQueryTest', {
+    templateUrl: 'pages/dsl-query-test/dsl-query-test.template.html',
+    controller: 'dslQueryTestController'
+  });

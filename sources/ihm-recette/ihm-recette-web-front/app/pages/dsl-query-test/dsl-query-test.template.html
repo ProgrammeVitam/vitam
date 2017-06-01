@@ -1,0 +1,86 @@
+<div id="global" class="container-fluid" >
+  <ol class="breadcrumb">
+    <li>Menu</li>
+    <li><a href="#!/dslQueryTest">Test des requêtes DSL</a></li>
+  </ol>
+
+  <div class="panel panel-default col-md-12">
+    <span class="panel-header no-toggle">
+      <h2>Requêtes DSL</h2>
+    </span>
+
+    <div class="panel-body col-md-12">
+
+      <div class="text-justify form-group col-md-1">
+        <label>Tenant</label>
+        <input type="text" size="1" ng-model="tenantId" value="{{tenantId}}" ng-disabled="true"/>
+      </div>
+
+      <div class="text-justify form-group col-md-3">
+        <label>Contrat</label>
+        <select ng-model="contractId">
+          <option ng-repeat='contract in contracts' value="{{contract.Name}}">{{contract.Name}}</option>
+        </select>
+      </div>
+
+      <div class="text-justify form-group col-md-2">
+        <label>Collection</label>
+        <select ng-model="requestedCollection">
+          <option value="units">Unit</option>
+          <!--<option value="GOT">Groupe d'objets</option>-->
+        </select>
+      </div>
+
+      <div class="text-justify form-group col-md-2">
+        <label>Action</label>
+        <select ng-model="requestMethod">
+          <option value="GET">Rechercher</option>
+          <!--<option value="POST">POST</option>-->
+          <!--<option value="PUT">Modifier</option>-->
+          <!--<option value="DELETE">DELETE</option>-->
+        </select>
+      </div>
+
+      <div class="col-md-2" ng-show="requestMethod=='GET' && requestedCollection=='units'">
+        <label>Identifiant</label>
+        <input type="text" size="30" ng-model="objectId" value="{{objectId}}" />
+      </div>
+
+    </div>
+
+
+
+    <div class="panel-body col-md-12">
+      <div class="text-justify form-group">
+        <label>Requête DSL (format JSON)</label>
+        <textarea class="col-md-4" rows="20" ng-model="jsonInput"></textarea>
+      </div>
+    </div>
+
+    <div class="panel-body col-md-6">
+      <div class="col-md-2">
+        <button class="btn btn-primary" type="button" ng-click="isValidJson(jsonInput)">
+          <span>Vérifier JSON</span>
+        </button>
+      </div>
+
+      <div class="col-md-2">
+        <button class="btn btn-primary" type="button" ng-click="getRequestResults(jsonInput)">
+          <span>Envoyer requête</span>
+        </button>
+      </div>
+
+      <div class="col-md-2 col-md-offset-2">
+        <span ng-show="validRequest != null">Json {{validRequest}}</span>
+      </div>
+    </div>
+
+    <div class="panel-body col-md-12" ng-show="requestResponse">
+      <div class="text-justify form-group">
+        <label>Réponse</label>
+        <textarea class="col-md-4" rows="20" ng-model="requestResponse"></textarea>
+      </div>
+    </div>
+  </div>
+
+</div>
