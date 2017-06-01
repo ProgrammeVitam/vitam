@@ -265,7 +265,8 @@ public class WebApplicationResourceTest {
         JsonNode jsonNode = JsonHandler.createObjectNode();
         Mockito.doReturn("Atr").when(mockResponse).getHeaderString(anyObject());
         Mockito.doReturn(200).when(mockResponse).getStatus();
-        Mockito.doReturn(mockResponse).when(adminExternalClient).updateAccessContract("azercdsqsdf", jsonNode, TENANT_ID);
+        Mockito.doReturn(mockResponse).when(adminExternalClient).updateAccessContract("azercdsqsdf", jsonNode,
+            TENANT_ID);
     }
 
 
@@ -944,7 +945,7 @@ public class WebApplicationResourceTest {
 
         PowerMockito.when(
             DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(JsonHandler
-            .getFromString(FAKE_STRING_RETURN));
+                .getFromString(FAKE_STRING_RETURN));
         PowerMockito.when(
             UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject()))
             .thenReturn(RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN));
@@ -988,7 +989,7 @@ public class WebApplicationResourceTest {
         throws Exception {
         PowerMockito.when(
             DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(JsonHandler
-            .getFromString(FAKE_STRING_RETURN));
+                .getFromString(FAKE_STRING_RETURN));
 
         PowerMockito.when(
             UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject()))
@@ -1005,7 +1006,7 @@ public class WebApplicationResourceTest {
         throws Exception {
         PowerMockito.when(
             DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(JsonHandler
-            .getFromString(FAKE_STRING_RETURN));
+                .getFromString(FAKE_STRING_RETURN));
 
         PowerMockito.when(
             UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject()))
@@ -1022,7 +1023,7 @@ public class WebApplicationResourceTest {
         throws InvalidCreateOperationException, VitamException {
         PowerMockito.when(
             DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(JsonHandler
-            .getFromString(FAKE_STRING_RETURN));
+                .getFromString(FAKE_STRING_RETURN));
         PowerMockito.when(
             UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject()))
             .thenReturn(RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN));
@@ -1375,7 +1376,8 @@ public class WebApplicationResourceTest {
         // Mock AccessExternal response
         AccessExternalClient accessExternalClient = Mockito.mock(AccessExternalClient.class);
 
-        final AccessExternalClientFactory accessExternalClientFactory = PowerMockito.mock(AccessExternalClientFactory.class);
+        final AccessExternalClientFactory accessExternalClientFactory =
+            PowerMockito.mock(AccessExternalClientFactory.class);
         PowerMockito.when(accessExternalClientFactory.getClient()).thenReturn(accessExternalClient);
         PowerMockito.when(AccessExternalClientFactory.getInstance()).thenReturn(accessExternalClientFactory);
 
@@ -1387,6 +1389,31 @@ public class WebApplicationResourceTest {
         RestAssured.given()
             .when().get("traceability" + "/1/" + "content?contractId=" + contractName)
             .then().statusCode(Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void testExtractTimestampInformation() throws Exception {
+
+        PowerMockito.when(UserInterfaceTransactionManager.extractInformationFromTimestamp(anyObject()))
+            .thenCallRealMethod();
+
+        final InputStream tokenFile =
+            PropertiesUtils.getResourceAsStream("token.tsp");
+        String encodedTimeStampToken = IOUtils.toString(tokenFile, "UTF-8");
+        String timestampExtractMap = "{timestamp: \"" + encodedTimeStampToken + "\"}";
+        given().contentType(ContentType.JSON).body(timestampExtractMap).expect()
+            .statusCode(Status.OK.getStatusCode()).when()
+            .post("/traceability/extractTimestamp");
+
+        timestampExtractMap = "{timestamp: \"FakeTimeStamp\"}";
+        given().contentType(ContentType.JSON).body(timestampExtractMap).expect()
+            .statusCode(Status.BAD_REQUEST.getStatusCode()).when()
+            .post("/traceability/extractTimestamp");
+
+        timestampExtractMap = "{fakeTimestamp: \"FakeTimeStamp\"}";
+        given().contentType(ContentType.JSON).body(timestampExtractMap).expect()
+            .statusCode(Status.BAD_REQUEST.getStatusCode()).when()
+            .post("/traceability/extractTimestamp");
     }
 
 }
