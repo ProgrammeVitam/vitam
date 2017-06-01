@@ -63,7 +63,7 @@
 					<tbody ng-repeat="log in search.response.data | startFrom:startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage, search.pagination.startOffset) | limitTo:search.pagination.itemsPerPage">
 					<tr>
 						<td ng-click="goToDetails(log._id)">{{log.Name}}</td>
-						<td ng-click="goToDetails(log._id)">{{log._id}}</td>
+						<td ng-click="goToDetails(log._id)">{{log.Identifier}}</td>
 						<td ng-click="goToDetails(log._id)">{{log.Description}}</td>
 						<td ng-click="goToDetails(log._id)">{{log.Status | StrReplace }}</td> <!--TODO-->
 						<td ng-show="hasPermission('profiles:read')">

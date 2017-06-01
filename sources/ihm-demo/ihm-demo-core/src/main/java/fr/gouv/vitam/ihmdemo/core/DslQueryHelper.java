@@ -286,7 +286,7 @@ public final class DslQueryHelper {
 
                     case CONTRACT_ID:
                         if (!"all".equals(searchValue)) {
-                            query.add(eq("#id", searchValue));
+                            query.add(eq("Identifier", searchValue));
                         }
                         break;
 
@@ -301,7 +301,7 @@ public final class DslQueryHelper {
 
                     case PROFILE_ID:
                         if (!"all".equals(searchValue)) {
-                            query.add(eq("#id", searchValue));
+                            query.add(eq("Identifier", searchValue));
                         }
                         break;
                     case PROFILE_NAME:
