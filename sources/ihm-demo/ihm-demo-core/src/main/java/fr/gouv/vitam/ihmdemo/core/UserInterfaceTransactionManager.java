@@ -26,25 +26,38 @@
  *******************************************************************************/
 package fr.gouv.vitam.ihmdemo.core;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.time.LocalDateTime;
 import java.util.Map;
 
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
 
+import org.bouncycastle.asn1.ASN1InputStream;
+import org.bouncycastle.asn1.ASN1Primitive;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.cms.SignerId;
+import org.bouncycastle.tsp.TSPException;
+import org.bouncycastle.tsp.TimeStampResponse;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
+import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -63,7 +76,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
  */
 public class UserInterfaceTransactionManager {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(UserInterfaceTransactionManager.class);
-    
+
     /**
      * Gets search units result
      *
@@ -73,7 +86,7 @@ public class UserInterfaceTransactionManager {
      * @throws AccessExternalClientServerException thrown when an errors occurs during the connection with the server
      * @throws AccessExternalClientNotFoundException thrown when access client is not found
      * @throws InvalidParseOperationException thrown when the Json node format is not correct
-     * @throws AccessUnauthorizedException 
+     * @throws AccessUnauthorizedException
      */
     public static RequestResponse<JsonNode> searchUnits(JsonNode parameters, Integer tenantId)
         throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
@@ -86,21 +99,23 @@ public class UserInterfaceTransactionManager {
     /**
      *
      * Gets archive unit details
+     * 
      * @param preparedDslQuery search criteria as DSL query
      * @param unitId archive unit id to find
-     * @param tenantId  the working tenant
+     * @param tenantId the working tenant
      * @return result
      * @throws AccessExternalClientServerException thrown when an errors occurs during the connection with the server
      * @throws AccessExternalClientNotFoundException thrown when access client is not found
      * @throws InvalidParseOperationException thrown when the Json node format is not correct
-     * @throws AccessUnauthorizedException 
+     * @throws AccessUnauthorizedException
      */
     public static RequestResponse<JsonNode> getArchiveUnitDetails(JsonNode preparedDslQuery, String unitId,
         Integer tenantId)
         throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
         InvalidParseOperationException, AccessUnauthorizedException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            return client.selectUnitbyId(preparedDslQuery, unitId, tenantId, VitamThreadUtils.getVitamSession().getContractId());
+            return client.selectUnitbyId(preparedDslQuery, unitId, tenantId,
+                VitamThreadUtils.getVitamSession().getContractId());
         }
     }
 
@@ -109,19 +124,20 @@ public class UserInterfaceTransactionManager {
      *
      * @param parameters search criteria as DSL query
      * @param unitId unitIdentifier
-     * @param tenantId  the working tenant
+     * @param tenantId the working tenant
      * @return result
      * @throws AccessExternalClientServerException thrown when an errors occurs during the connection with the server
      * @throws AccessExternalClientNotFoundException thrown when access client is not found
      * @throws InvalidParseOperationException thrown when the Json node format is not correct
-     * @throws NoWritingPermissionException 
-     * @throws AccessUnauthorizedException 
+     * @throws NoWritingPermissionException
+     * @throws AccessUnauthorizedException
      */
     public static RequestResponse<JsonNode> updateUnits(JsonNode parameters, String unitId, Integer tenantId)
         throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
         InvalidParseOperationException, NoWritingPermissionException, AccessUnauthorizedException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            return client.updateUnitbyId(parameters, unitId, tenantId, VitamThreadUtils.getVitamSession().getContractId());
+            return client.updateUnitbyId(parameters, unitId, tenantId,
+                VitamThreadUtils.getVitamSession().getContractId());
         }
     }
 
@@ -130,19 +146,20 @@ public class UserInterfaceTransactionManager {
      *
      * @param preparedDslQuery the query to be executed
      * @param objectId the Id of the ObjectGroup
-     * @param tenantId  the working tenant
+     * @param tenantId the working tenant
      * @return JsonNode object including DSL queries, context and results
      * @throws AccessExternalClientServerException if the server encountered an exception
      * @throws AccessExternalClientNotFoundException if the requested object does not exist
      * @throws InvalidParseOperationException if the query is not well formatted
-     * @throws AccessUnauthorizedException 
+     * @throws AccessUnauthorizedException
      */
     public static RequestResponse<JsonNode> selectObjectbyId(JsonNode preparedDslQuery, String objectId,
         Integer tenantId)
         throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
         InvalidParseOperationException, AccessUnauthorizedException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            return client.selectObjectById(preparedDslQuery, objectId, tenantId, VitamThreadUtils.getVitamSession().getContractId());
+            return client.selectObjectById(preparedDslQuery, objectId, tenantId,
+                VitamThreadUtils.getVitamSession().getContractId());
         }
     }
 
@@ -155,13 +172,13 @@ public class UserInterfaceTransactionManager {
      * @param usage the requested usage
      * @param version the requested version of the usage
      * @param filename the name od the file
-     * @param tenantId  the working tenant
+     * @param tenantId the working tenant
      * @return boolean for test purpose (solve mock issue)
      * @throws InvalidParseOperationException if the query is not well formatted
      * @throws AccessExternalClientServerException if the server encountered an exception
      * @throws AccessExternalClientNotFoundException if the requested object does not exist
      * @throws UnsupportedEncodingException if unsupported encoding error for input file content
-     * @throws AccessUnauthorizedException 
+     * @throws AccessUnauthorizedException
      */
     // TODO: review this return (should theoretically be a void) because we got mock issue with this class on
     // web application resource
@@ -263,15 +280,16 @@ public class UserInterfaceTransactionManager {
      * @param unitLifeCycleId the unit lifecycle id to select
      * @param tenantId the working tenant
      * @return JsonNode result
-     * @throws InvalidParseOperationException if json data not well-formed 
+     * @throws InvalidParseOperationException if json data not well-formed
      * @throws LogbookClientException if the request with illegal parameter
-     * @throws AccessUnauthorizedException 
+     * @throws AccessUnauthorizedException
      */
 
     public static RequestResponse<JsonNode> selectUnitLifeCycleById(String unitLifeCycleId, Integer tenantId)
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            return client.selectUnitLifeCycleById(unitLifeCycleId, tenantId, VitamThreadUtils.getVitamSession().getContractId());
+            return client.selectUnitLifeCycleById(unitLifeCycleId, tenantId,
+                VitamThreadUtils.getVitamSession().getContractId());
 
         }
     }
@@ -282,7 +300,7 @@ public class UserInterfaceTransactionManager {
      * @return JsonNode result
      * @throws InvalidParseOperationException if json data not well-formed
      * @throws LogbookClientException if the request with illegal parameter
-     * @throws AccessUnauthorizedException 
+     * @throws AccessUnauthorizedException
      */
     public static RequestResponse<JsonNode> selectOperation(JsonNode query, Integer tenantId)
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
@@ -297,9 +315,10 @@ public class UserInterfaceTransactionManager {
      * @return JsonNode result
      * @throws InvalidParseOperationException if json data not well-formed
      * @throws LogbookClientException if the request with illegal parameter
-     * @throws AccessUnauthorizedException 
+     * @throws AccessUnauthorizedException
      */
-    public static RequestResponse<JsonNode> selectOperationbyId(String operationId, Integer tenantId, String contractName)
+    public static RequestResponse<JsonNode> selectOperationbyId(String operationId, Integer tenantId,
+        String contractName)
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
             return client.selectOperationbyId(operationId, tenantId, contractName);
@@ -312,14 +331,15 @@ public class UserInterfaceTransactionManager {
      * @return JsonNode result
      * @throws InvalidParseOperationException if json data not well-formed
      * @throws LogbookClientException if the request with illegal parameter
-     * @throws AccessUnauthorizedException 
+     * @throws AccessUnauthorizedException
      */
 
     public static RequestResponse<JsonNode> selectObjectGroupLifeCycleById(String objectGroupLifeCycleId,
         Integer tenantId)
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            return client.selectObjectGroupLifeCycleById(objectGroupLifeCycleId, tenantId, VitamThreadUtils.getVitamSession().getContractId());
+            return client.selectObjectGroupLifeCycleById(objectGroupLifeCycleId, tenantId,
+                VitamThreadUtils.getVitamSession().getContractId());
         }
     }
 
@@ -332,7 +352,7 @@ public class UserInterfaceTransactionManager {
      * @throws AccessExternalClientServerException if access internal server error
      * @throws AccessExternalClientNotFoundException if access external resource not found
      * @throws InvalidCreateOperationException if error when create query
-     * @throws AccessUnauthorizedException 
+     * @throws AccessUnauthorizedException
      */
     public static RequestResponse<JsonNode> findAccessionRegisterSummary(String options, Integer tenantId)
         throws LogbookClientException, InvalidParseOperationException, AccessExternalClientServerException,
@@ -340,7 +360,8 @@ public class UserInterfaceTransactionManager {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
             final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
             final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-            return client.getAccessionRegisterSummary(query, tenantId, VitamThreadUtils.getVitamSession().getContractId());
+            return client.getAccessionRegisterSummary(query, tenantId,
+                VitamThreadUtils.getVitamSession().getContractId());
         }
     }
 
@@ -352,8 +373,8 @@ public class UserInterfaceTransactionManager {
      * @throws InvalidParseOperationException if json data not well-formed
      * @throws AccessExternalClientServerException if access internal server error
      * @throws AccessExternalClientNotFoundException if access external resource not found
-     * @throws InvalidCreateOperationException  if error when create query
-     * @throws AccessUnauthorizedException 
+     * @throws InvalidCreateOperationException if error when create query
+     * @throws AccessUnauthorizedException
      */
 
 
@@ -364,7 +385,8 @@ public class UserInterfaceTransactionManager {
         try (AccessExternalClient accessClient = AccessExternalClientFactory.getInstance().getClient()) {
             final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
             final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-            return accessClient.getAccessionRegisterDetail(id, query, tenantId, VitamThreadUtils.getVitamSession().getContractId());
+            return accessClient.getAccessionRegisterDetail(id, query, tenantId,
+                VitamThreadUtils.getVitamSession().getContractId());
         }
     }
 
@@ -377,13 +399,45 @@ public class UserInterfaceTransactionManager {
      * @return A RequestResponse contains the created logbookOperation for verification process
      * @throws AccessExternalClientServerException
      * @throws InvalidParseOperationException
-     * @throws AccessUnauthorizedException 
+     * @throws AccessUnauthorizedException
      */
     @SuppressWarnings("unchecked")
     public static RequestResponse<JsonNode> checkTraceabilityOperation(JsonNode query, Integer tenantId)
         throws AccessExternalClientServerException, InvalidParseOperationException, AccessUnauthorizedException {
         try (AccessExternalClient accessClient = AccessExternalClientFactory.getInstance().getClient()) {
-            return accessClient.checkTraceabilityOperation(query, tenantId, VitamThreadUtils.getVitamSession().getContractId());
+            return accessClient.checkTraceabilityOperation(query, tenantId,
+                VitamThreadUtils.getVitamSession().getContractId());
         }
     }
+
+
+    /**
+     * Extract information from timestamp
+     * 
+     * @param timestamp the timestamp to be used for extraction
+     * @return json node containing genTime and issuer certificate information
+     * @throws BadRequestException if the timestamp cant be extracted
+     */
+    public static JsonNode extractInformationFromTimestamp(String timestamp) throws BadRequestException {
+        final ObjectNode result = JsonHandler.createObjectNode();
+        try {
+            ASN1InputStream bIn = new ASN1InputStream(new ByteArrayInputStream(
+                org.bouncycastle.util.encoders.Base64.decode(timestamp.getBytes())));
+            ASN1Primitive obj = bIn.readObject();
+            TimeStampResponse tsResp = new TimeStampResponse(obj.toASN1Primitive().getEncoded());
+            SignerId signerId = tsResp.getTimeStampToken().getSID();
+            X500Name signerCertIssuer = signerId.getIssuer();
+            result.put("genTime", LocalDateUtil.getString(
+                LocalDateUtil.fromDate(tsResp.getTimeStampToken().getTimeStampInfo().getGenTime())));
+            result.put("signerCertIssuer", signerCertIssuer.toString());
+        } catch (TSPException | IOException e) {
+            LOGGER.error("Error while transforming timestamp", e);
+            throw new BadRequestException("Error while transforming timestamp", e);
+        }
+
+        return result;
+    }
+
+
+
 }

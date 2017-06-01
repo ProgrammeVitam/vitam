@@ -166,7 +166,7 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
         if (traceabilityEvent != null && !timeStampToken.equals(traceabilityTimeStamp)) {
             throw new ProcessingException("TimeStamp tokens are different");
         }
-    }
+    }    
 
     private void validateTimestamp(ItemStatus itemStatus, String encodedTimeStampToken) throws ProcessingException {
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());

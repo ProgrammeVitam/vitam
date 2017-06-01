@@ -1762,7 +1762,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 SetAction setActionDesactivationDateActive = null;
                 if (updateData.get(ACTIVATION_DATE_FIELD_QUERY) != null) {
                     setActionDesactivationDateActive =
-                        UpdateActionHelper.set(ACTIVATION_DATE_FIELD_QUERY, updateData.get(ACTIVATION_DATE_FIELD_QUERY));
+                        UpdateActionHelper.set(ACTIVATION_DATE_FIELD_QUERY,
+                            updateData.get(ACTIVATION_DATE_FIELD_QUERY));
                 } else if (updateData.get(DEACTIVATION_DATE_FIELD_QUERY) != null) {
                     setActionDesactivationDateActive = UpdateActionHelper.set(DEACTIVATION_DATE_FIELD_QUERY,
                         updateData.get(DEACTIVATION_DATE_FIELD_QUERY));
@@ -1786,7 +1787,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             updateStatusActive.addActions(setActionLastUpdateActive);
             updateParserActive.parse(updateStatusActive.getFinalUpdate());
             JsonNode queryDsl = updateParserActive.getRequest().getFinalUpdate();
-            final RequestResponse archiveDetails = adminClient.updateIngestContract(contractId, queryDsl, getTenantId(headers));
+            final RequestResponse archiveDetails =
+                adminClient.updateIngestContract(contractId, queryDsl, getTenantId(headers));
             return Response.status(Status.OK).entity(archiveDetails).build();
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
@@ -1950,7 +1952,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 setActionLastUpdateActive);
             updateParserActive.parse(updateStatusActive.getFinalUpdate());
             JsonNode queryDsl = updateParserActive.getRequest().getFinalUpdate();
-            final RequestResponse archiveDetails = adminClient.updateAccessContract(contractId, queryDsl, getTenantId(headers));
+            final RequestResponse archiveDetails =
+                adminClient.updateAccessContract(contractId, queryDsl, getTenantId(headers));
             return Response.status(Status.OK).entity(archiveDetails).build();
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
@@ -2296,6 +2299,34 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 Response.status(Status.INTERNAL_SERVER_ERROR).build());
         } catch (AccessUnauthorizedException e) {
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.UNAUTHORIZED).build());
+        }
+    }
+
+
+    /**
+     * Extract information from timestamp
+     * 
+     * @param timestamp the timestamp to be transformed
+     * @return Response
+     */
+    @POST
+    @Path("/traceability/extractTimestamp")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("logbook:operations:read")
+    public Response extractTimeStampInformation(String timestamp) {
+        try {
+            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, timestamp);
+            final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(timestamp);
+            if (optionsMap.get("timestamp") != null) {
+                JsonNode jsonNode =
+                    UserInterfaceTransactionManager.extractInformationFromTimestamp(optionsMap.get("timestamp"));
+                return Response.status(Status.OK).entity(jsonNode).build();
+            } else {
+                return Response.status(Status.BAD_REQUEST).build();
+            }
+        } catch (BadRequestException | InvalidParseOperationException e) {
+            return Response.status(Status.BAD_REQUEST).build();
         }
     }
 }

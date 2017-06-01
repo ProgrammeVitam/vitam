@@ -34,13 +34,24 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.apache.commons.io.IOUtils;
+import org.bouncycastle.asn1.ASN1InputStream;
+import org.bouncycastle.asn1.ASN1Primitive;
+import org.bouncycastle.asn1.cms.AttributeTable;
+import org.bouncycastle.asn1.ess.SigningCertificateV2;
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.cms.SignerId;
+import org.bouncycastle.tsp.TimeStampResponse;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -80,18 +91,18 @@ public class VerifyTimeStampActionHandlerTest {
     private static final String DETAIL_EVENT_TRACEABILITY = "VerifyTimeStamp/EVENT_DETAIL_DATA.json";
 
     private static final String TOKEN = "VerifyTimeStamp/token.tsp";
-    
+
     private static final String TOKEN_FAKE = "VerifyTimeStamp/token_fake.tsp";
 
     private static final String FAKE_URL = "http://localhost:8080";
     private HandlerIOImpl action;
-    private GUID guid;    
+    private GUID guid;
     private WorkerParameters params;
     private static final Integer TENANT_ID = 0;
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
     private List<IOParameter> in;
-    
+
     private static final String HANDLER_SUB_ACTION_COMPARE_TOKEN_TIMESTAMP = "COMPARE_TOKEN_TIMESTAMP";
     private static final String HANDLER_SUB_ACTION_VALIDATE_TOKEN_TIMESTAMP = "VALIDATE_TOKEN_TIMESTAMP";
 
@@ -119,7 +130,7 @@ public class VerifyTimeStampActionHandlerTest {
         action.partialClose();
     }
 
-    @Test    
+    @Test
     @RunWithCustomExecutor
     public void testVerifyTimeStampThenOK()
         throws Exception {
@@ -147,8 +158,8 @@ public class VerifyTimeStampActionHandlerTest {
             .getItemsStatus().get(HANDLER_SUB_ACTION_COMPARE_TOKEN_TIMESTAMP).getGlobalStatus());
         assertEquals(StatusCode.OK, response.getItemsStatus().get(verifyTimeStampActionHandler.getId())
             .getItemsStatus().get(HANDLER_SUB_ACTION_VALIDATE_TOKEN_TIMESTAMP).getGlobalStatus());
-    }    
-    
+    }
+
     @Test
     @RunWithCustomExecutor
     public void testVerifyTimeStampWithErrorWorkspaceThenFATAL()
@@ -171,7 +182,7 @@ public class VerifyTimeStampActionHandlerTest {
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
 
-    
+
     @Test
     @RunWithCustomExecutor
     public void testVerifyTimeStampWithFakeKeystoreThenKO()
@@ -186,7 +197,7 @@ public class VerifyTimeStampActionHandlerTest {
         action.addInIOParameters(in);
 
         verifyTimeStampActionHandler = new VerifyTimeStampActionHandler();
-        
+
         verifyTimeStampActionHandler.setConfPathForTest("verify-timestamp-fake.conf");
         final InputStream tokenFile =
             PropertiesUtils.getResourceAsStream(TOKEN);
@@ -203,7 +214,7 @@ public class VerifyTimeStampActionHandlerTest {
         assertEquals(StatusCode.KO, response.getItemsStatus().get(verifyTimeStampActionHandler.getId())
             .getItemsStatus().get(HANDLER_SUB_ACTION_VALIDATE_TOKEN_TIMESTAMP).getGlobalStatus());
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public void testVerifyTimeStampWithUnexistingKeystoreThenKO()
@@ -218,7 +229,7 @@ public class VerifyTimeStampActionHandlerTest {
         action.addInIOParameters(in);
 
         verifyTimeStampActionHandler = new VerifyTimeStampActionHandler();
-        
+
         verifyTimeStampActionHandler.setConfPathForTest("verify-timestamp-fake-unexisting.conf");
         final InputStream tokenFile =
             PropertiesUtils.getResourceAsStream(TOKEN);
@@ -235,8 +246,8 @@ public class VerifyTimeStampActionHandlerTest {
         assertEquals(StatusCode.KO, response.getItemsStatus().get(verifyTimeStampActionHandler.getId())
             .getItemsStatus().get(HANDLER_SUB_ACTION_VALIDATE_TOKEN_TIMESTAMP).getGlobalStatus());
     }
-    
-    
+
+
     @Test
     @RunWithCustomExecutor
     public void testVerifyTimeStampWithMultipleKeysInKeystoreThenKO()
@@ -251,7 +262,7 @@ public class VerifyTimeStampActionHandlerTest {
         action.addInIOParameters(in);
 
         verifyTimeStampActionHandler = new VerifyTimeStampActionHandler();
-        
+
         verifyTimeStampActionHandler.setConfPathForTest("verify-timestamp-mulitple-keys.conf");
         final InputStream tokenFile =
             PropertiesUtils.getResourceAsStream(TOKEN);
@@ -268,7 +279,7 @@ public class VerifyTimeStampActionHandlerTest {
         assertEquals(StatusCode.KO, response.getItemsStatus().get(verifyTimeStampActionHandler.getId())
             .getItemsStatus().get(HANDLER_SUB_ACTION_VALIDATE_TOKEN_TIMESTAMP).getGlobalStatus());
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public void testVerifyTimeStampCorruptThenKO()
@@ -296,6 +307,30 @@ public class VerifyTimeStampActionHandlerTest {
         assertEquals(StatusCode.KO, response.getItemsStatus().get(verifyTimeStampActionHandler.getId())
             .getItemsStatus().get(HANDLER_SUB_ACTION_COMPARE_TOKEN_TIMESTAMP).getGlobalStatus());
     }
-    
-   
+
+    @Test
+    @RunWithCustomExecutor
+    public void testG1() throws Exception {
+        final InputStream tokenFile =
+            PropertiesUtils.getResourceAsStream(TOKEN);
+        String encodedTimeStampToken = IOUtils.toString(tokenFile, "UTF-8");
+        System.out.println(encodedTimeStampToken);
+        byte[] decodedBytes = org.bouncycastle.util.encoders.Base64.decode(encodedTimeStampToken.getBytes());
+        ASN1InputStream bIn = new ASN1InputStream(new ByteArrayInputStream(
+            org.bouncycastle.util.encoders.Base64.decode(encodedTimeStampToken.getBytes())));
+        ASN1Primitive obj = bIn.readObject();
+        TimeStampResponse tsResp = new TimeStampResponse(obj.toASN1Primitive().getEncoded());
+        System.out.println(tsResp.getTimeStampToken().getTimeStampInfo().getGenTime());
+        SignerId signerId = tsResp.getTimeStampToken().getSID();
+        BigInteger signerCertSerialNumber = signerId.getSerialNumber();
+        X500Name signerCertIssuer = signerId.getIssuer();
+        System.out.println(signerCertSerialNumber);
+        System.out.println(signerCertIssuer.toString());
+        
+        
+        //System.out.println(tsResp.getTimeStampToken().getTimeStampInfo().);
+        
+    }
+
+
 }

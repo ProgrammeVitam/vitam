@@ -27,9 +27,10 @@
 
 // Define resources in order to call WebApp http endpoints for accession-register
 angular.module('core')
-  .factory('traceabilityOperationResource', function(ihmDemoCLient) {
+  .factory('traceabilityOperationResource', function($q,ihmDemoCLient) {
 
     var TRACEABILITY_OPERATION_DETAIL = '/logbook/operations';
+    var EXTRACT_TIMESTAMP = '/traceability/extractTimestamp';
     var CHECK_TRACEABILITY_OPERATION = '/traceability/check';
     var traceabilityOperationResource = {};
 
@@ -56,11 +57,24 @@ angular.module('core')
     traceabilityOperationResource.checkTraceabilityOperation = function (id) {
       var criteriaSearch = {
         // EventType: 'TRACEABILITY',
-        EventID: id
+        EventID: id        
       };
 
       return ihmDemoCLient.getClient('').all(CHECK_TRACEABILITY_OPERATION).post(criteriaSearch);
     };
+    
+    /** Extract timestamp information
+    *
+    * @param {String} timestampValue - The requested timestamp 
+    * @returns {HttpPromise} The promise returned by the http call containing traceability operation verification result
+    */
+   traceabilityOperationResource.extractTimeStampInformation = function (timestampValue) {
+     var criteriaSearch = {
+       timestamp: timestampValue
+     };
+
+     return ihmDemoCLient.getClient('').all(EXTRACT_TIMESTAMP).post(criteriaSearch);
+   };
 
     return traceabilityOperationResource;
   });
