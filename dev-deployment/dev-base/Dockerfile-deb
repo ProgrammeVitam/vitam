@@ -93,9 +93,13 @@ RUN apt-get update && apt-get install -y sudo net-tools \
 # Editor & unzip
 RUN apt-get install -y vim unzip wget
 
-RUN apt-get install -y golang golang-1.6
+RUN apt-get install -y golang golang-1.6 
 
-RUN apt-get install -y --force-yes libssl1.0.0=1.0.1t-1+deb8u5 && \
+#RUN apt-get install -y -t jessie-backports node-gyp nodejs-dev libssl1.0.0
+
+#RUN apt-get install -y --force-yes -t jessie-backports libssl1.0.0>=1.0.1t-1+deb8u5 && \
+RUN apt-get install -y --force-yes -t jessie-backports libssl1.0.0 libssl-dev && \
+    apt-get install -y node-gyp  nodejs-dev && \
     apt-get install -y npm && \
     apt-get install -y nodejs && \
     ln -s /usr/bin/nodejs /usr/bin/node
