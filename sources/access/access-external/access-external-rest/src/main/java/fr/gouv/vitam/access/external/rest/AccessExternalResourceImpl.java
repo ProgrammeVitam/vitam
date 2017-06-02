@@ -68,8 +68,11 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
+import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -92,6 +95,7 @@ import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.ContractStatus;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
+import fr.gouv.vitam.storage.engine.common.model.response.RequestResponseError;
 
 /**
  * AccessResourceImpl implements AccessResource
@@ -147,6 +151,9 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             LOGGER.error("Contract access does not allow ", e);
             status = Status.UNAUTHORIZED;
             return Response.status(status).entity(getErrorEntity(status)).build();
+        } catch (BadRequestException e) {
+            LOGGER.error("No search query specified, this is mandatory", e);
+            return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY);
         }
     }
 
@@ -648,12 +655,12 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             final Status status = Status.PRECONDITION_FAILED;
             return Response.status(status).entity(status).build();
         }
-        
-        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {            
+
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             Set<String> prodServices = getOriginatingAgencies(VitamThreadUtils.getVitamSession().getContractId());
             SelectParserSingle parser = new SelectParserSingle();
             parser.parse(select);
-            parser.addCondition(QueryHelper.in(ORIGINATING_AGENCY, 
+            parser.addCondition(QueryHelper.in(ORIGINATING_AGENCY,
                 prodServices.stream().toArray(String[]::new)).setDepthLimit(0));
             final RequestResponse result = client.getAccessionRegister(parser.getRequest().getFinalSelect());
             return Response.status(Status.OK).entity(result).build();
@@ -738,30 +745,39 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         }
     }
 
-    private static Set<String> getOriginatingAgencies(String contratId) throws InvalidParseOperationException, 
-    InvalidCreateOperationException, AdminManagementClientServerException {
+    private static Set<String> getOriginatingAgencies(String contratId) throws InvalidParseOperationException,
+        InvalidCreateOperationException, AdminManagementClientServerException {
         Set<String> prodServices = new HashSet<>();
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            JsonNode queryDsl = getQueryDsl(contratId);            
+            JsonNode queryDsl = getQueryDsl(contratId);
             RequestResponse<AccessContractModel> response = client.findAccessContracts(queryDsl);
-            if (!response.isOk() || ((RequestResponseOK<AccessContractModel>)response).getResults().size() == 0){
+            if (!response.isOk() || ((RequestResponseOK<AccessContractModel>) response).getResults().size() == 0) {
                 final Status status = Status.UNAUTHORIZED;
             }
-            List<AccessContractModel> list = ((RequestResponseOK<AccessContractModel>)response).getResults();             
+            List<AccessContractModel> list = ((RequestResponseOK<AccessContractModel>) response).getResults();
             prodServices = list.get(0).getOriginatingAgencies();
         }
         return prodServices;
     }
-    
-    private static JsonNode getQueryDsl(String headerAccessContratId) 
-        throws InvalidParseOperationException, InvalidCreateOperationException{
 
-        Select select = new Select();        
+    private static JsonNode getQueryDsl(String headerAccessContratId)
+        throws InvalidParseOperationException, InvalidCreateOperationException {
+
+        Select select = new Select();
         Query query = QueryHelper.and().add(QueryHelper.eq(AccessContract.NAME, headerAccessContratId),
             QueryHelper.eq(AccessContract.STATUS, ContractStatus.ACTIVE.name()));
-        select.setQuery(query);        
+        select.setQuery(query);
         JsonNode queryDsl = select.getFinalSelect();
-        
+
         return queryDsl;
     }
+
+    private Response buildErrorResponse(VitamCode vitamCode) {
+        return Response.status(vitamCode.getStatus())
+            .entity(new RequestResponseError().setError(new VitamError(VitamCodeHelper.getCode(vitamCode))
+                .setContext(vitamCode.getService().getName()).setState(vitamCode.getDomain().getName())
+                .setMessage(vitamCode.getMessage()).setDescription(vitamCode.getMessage())).toString())
+            .build();
+    }
+
 }

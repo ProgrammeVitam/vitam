@@ -51,6 +51,9 @@ public enum VitamCode {
     GLOBAL_INTERNAL_SERVER_ERROR(ServiceName.VITAM, DomainName.NETWORK, "00", Status.INTERNAL_SERVER_ERROR,
         "Internal Server Error"),
 
+    GLOBAL_EMPTY_QUERY(ServiceName.VITAM, DomainName.ILLEGAL, "00", Status.FORBIDDEN,
+        "No search query specified, this is mandatory"),
+
     STORAGE_MISSING_HEADER(ServiceName.STORAGE, DomainName.ILLEGAL, "00", Status.PRECONDITION_FAILED, "Header are " +
         "missing"),
     STORAGE_BAD_REQUEST(ServiceName.STORAGE, DomainName.ILLEGAL, "01", Status.PRECONDITION_FAILED,
@@ -112,7 +115,7 @@ public enum VitamCode {
     CONTRACT_NOT_FOUND_ERROR(ServiceName.FUNCTIONAL_ADMINISTRATION, DomainName.VALIDATION, "11",
         Status.BAD_REQUEST,
         "Contract not found for update"),
-    
+
     CONTEXT_VALIDATION_ERROR(ServiceName.FUNCTIONAL_ADMINISTRATION, DomainName.VALIDATION, "12",
         Status.BAD_REQUEST,
         "Request context validation error");

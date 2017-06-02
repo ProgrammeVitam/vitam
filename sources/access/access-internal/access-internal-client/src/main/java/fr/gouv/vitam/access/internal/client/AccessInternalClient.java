@@ -54,10 +54,11 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @throws AccessInternalClientServerException if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested unit does not exist
      * @throws AccessUnauthorizedException 
+     * @throws BadRequestException if empty query is found
      */
     RequestResponse<JsonNode> selectUnits(JsonNode selectQuery)
         throws InvalidParseOperationException, AccessInternalClientServerException,
-        AccessInternalClientNotFoundException, AccessUnauthorizedException;
+        AccessInternalClientNotFoundException, AccessUnauthorizedException, fr.gouv.vitam.common.exception.BadRequestException;
 
     /**
      * select Unit By Id

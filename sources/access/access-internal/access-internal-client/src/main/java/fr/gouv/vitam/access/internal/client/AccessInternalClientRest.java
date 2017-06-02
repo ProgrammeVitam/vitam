@@ -27,6 +27,7 @@
 
 package fr.gouv.vitam.access.internal.client;
 
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -65,6 +66,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessInternalClientRest.class);
 
     private static final String INVALID_PARSE_OPERATION = "Invalid Parse Operation";
+    private static final String FORBIDDEN_OPERATION = "Enpty query cannot be executed";
     private static final String REQUEST_PRECONDITION_FAILED = "Request precondition failed";
     private static final String NOT_FOUND_EXCEPTION = "Not Found Exception";
     private static final String ACCESS_CONTRACT_EXCEPTION = "Access by Contract Exception";
@@ -90,7 +92,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
 
     @Override
     public RequestResponse<JsonNode> selectUnits(JsonNode selectQuery) throws InvalidParseOperationException,
-        AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException {
+        AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
+        fr.gouv.vitam.common.exception.BadRequestException {
         ParametersChecker.checkParameter(BLANK_DSL, selectQuery);
         VitamThreadUtils.getVitamSession().checkValidRequestId();
 
@@ -106,6 +109,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                 throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);// common
             } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
                 throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
+            } else if (response.getStatus() == Status.FORBIDDEN.getStatusCode()) {
+                throw new fr.gouv.vitam.common.exception.BadRequestException(FORBIDDEN_OPERATION);
             }
 
             return new RequestResponseOK().addResult(response.readEntity(JsonNode.class));
