@@ -56,6 +56,7 @@ import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
@@ -536,11 +537,14 @@ public class WebApplicationResource extends ApplicationStatusResource {
     //    @RequiresPermissions("archivesearch:units:read")
     public Response getAndExecuteTestRequest(@Context HttpHeaders headers, @CookieParam("JSESSIONID") String sessionId,
         JsonNode criteria) {
-
-        //        ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, criteria);
         String requestId;
         RequestResponse result;
         OffsetBasedPagination pagination = null;
+        Integer tenantId = getTenantId(headers);
+        String contractId = getContractId(headers);
+        String requestMethod = headers.getHeaderString(GlobalDataRest.X_HTTP_METHOD_OVERRIDE);
+        String requestedCollection = headers.getHeaderString(X_REQUESTED_COLLECTION);
+        String objectID = headers.getHeaderString(X_OBJECT_ID);
 
         try {
             pagination = new OffsetBasedPagination(headers);
@@ -549,12 +553,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return Response.status(Status.BAD_REQUEST).build();
         }
         final List<String> requestIds = HttpHeaderHelper.getHeaderValues(headers, IhmWebAppHeader.REQUEST_ID.name());
-        //TODO write header
-        Integer tenantId = getTenantId(headers);
-        String contractId = getContractId(headers);
-        String requestMethod = headers.getHeaderString(GlobalDataRest.X_HTTP_METHOD_OVERRIDE);
-        String requestCollection = headers.getHeaderString(X_REQUESTED_COLLECTION);
-        String objectID = headers.getHeaderString(X_OBJECT_ID);
+
         if (requestIds != null) {
             requestId = requestIds.get(0);
             // get result from shiro session
@@ -569,29 +568,93 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 return Response.status(Status.BAD_REQUEST).header(GlobalDataRest.X_REQUEST_ID, requestId).build();
             }
         } else {
-            requestId = GUIDFactory.newRequestIdGUID(tenantId).toString();
-
-            try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(criteria));
-                // TODO Add constants for each case
-                if (requestCollection != null && requestCollection.equalsIgnoreCase("units")) {
-                    switch (requestMethod) {
-//                        case "POST" : //Update unit
-//                            break;
-                        case "GET" :
-                            if (objectID == null) {
-                                result = client.selectUnits(criteria, tenantId,
-                                    contractId);
-                            } else {
-                                result = client.selectUnitbyId(criteria, objectID, tenantId,
-                                    contractId);
+            try {
+                AdminCollections requestedAdminCollection = existsInAdminCollections(requestedCollection);
+                if (requestedCollection != null && requestedAdminCollection == null) {
+                    try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+                        SanityChecker.checkJsonAll(JsonHandler.toJsonNode(criteria));
+                        if (requestedCollection.equalsIgnoreCase("units")) {
+                            switch (requestMethod) {
+                                case "GET":
+                                    if (StringUtils.isBlank(objectID)) {
+                                        result = client.selectUnits(criteria, tenantId,
+                                            contractId);
+                                    } else {
+                                        result = client.selectUnitbyId(criteria, objectID, tenantId,
+                                            contractId);
+                                    }
+                                    break;
+                                default:
+                                    throw new InvalidParseOperationException(
+                                        "Request method undefined for collection" + requestedCollection);
                             }
-                            break;
-                        default:
-                            throw new InvalidParseOperationException("Request method undefined for this collection.");
+                        } else if (requestedCollection.equalsIgnoreCase("logbooks")) {
+                            switch (requestMethod) {
+                                case "GET":
+                                    if (StringUtils.isBlank(objectID)) {
+                                        result = client.selectOperation(criteria, tenantId,
+                                            contractId);
+                                    } else {
+                                        result = client.selectOperationbyId(objectID, tenantId,
+                                            contractId);
+                                    }
+                                    break;
+                                default:
+                                    throw new InvalidParseOperationException(
+                                        "Request method undefined for collection " + requestedCollection);
+                            }
+                        } else if (requestedCollection.equalsIgnoreCase("objectgroup")) {
+                            switch (requestMethod) {
+                                case "GET":
+                                    if (StringUtils.isBlank(objectID)) {
+                                        throw new InvalidParseOperationException(
+                                            "Object ID should not be empty for collection " + requestedCollection);
+                                    } else {
+                                        result = client.selectObjectById(criteria, objectID, tenantId,
+                                            contractId);
+                                    }
+                                    break;
+                                default:
+                                    throw new InvalidParseOperationException(
+                                        "Request method undefined for collection " + requestedCollection);
+                            }
+                        } else if (requestedCollection.equalsIgnoreCase("accessionregisters")) {
+                            switch (requestMethod) {
+                                case "GET":
+                                    if (StringUtils.isBlank(objectID)) {
+                                        result = client.getAccessionRegisterSummary(criteria, tenantId,
+                                            contractId);
+                                    } else {
+                                        result = client.getAccessionRegisterDetail(objectID, criteria, tenantId,
+                                            contractId);
+                                    }
+                                    break;
+                                default:
+                                    throw new InvalidParseOperationException(
+                                        "Request method undefined for collection " + requestedCollection);
+                            }
+                        } else {
+                            throw new InvalidParseOperationException("Collection unrecognized");
+                        }
                     }
                 } else {
-                    throw new InvalidParseOperationException("Collection unrecognized");
+                    requestedAdminCollection = AdminCollections.valueOf(requestedCollection);
+                    try (AdminExternalClient adminExternalClient = AdminExternalClientFactory.getInstance().getClient()) {
+                        switch (requestMethod) {
+                            case "GET":
+                                if (StringUtils.isBlank(objectID)) {
+                                    result = adminExternalClient.findDocuments(requestedAdminCollection, criteria,
+                                        tenantId);
+                                } else {
+                                    result = adminExternalClient.findDocumentById(requestedAdminCollection, objectID,
+                                        tenantId);
+                                }
+                                break;
+                            default:
+                                throw new InvalidParseOperationException(
+                                    "Request method undefined for collection " + requestedCollection);
+                        }
+                    }
                 }
                 // save result
                 PaginationHelper.setResult(sessionId, result.toJsonNode());
@@ -641,5 +704,15 @@ public class WebApplicationResource extends ApplicationStatusResource {
         VitamThreadUtils.getVitamSession().setContractId(contractId);
         return contractId;
     }
+
+    private AdminCollections existsInAdminCollections(String valueToCheck) {
+        try {
+            AdminCollections requestedAdminCollection = AdminCollections.valueOf(valueToCheck);
+            return requestedAdminCollection;
+        } catch (IllegalArgumentException e){
+            return null;
+        }
+    }
+
 }
 

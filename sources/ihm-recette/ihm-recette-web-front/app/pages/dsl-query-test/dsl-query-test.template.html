@@ -25,15 +25,21 @@
 
       <div class="text-justify form-group col-md-2">
         <label>Collection</label>
-        <select ng-model="requestedCollection">
+        <select ng-model="requestedCollection" ng-change="displayIdInput()">
           <option value="units">Unit</option>
+          <option value="logbooks">Journal des opérations</option>
+          <option value="PROFILE">Profils</option>
+          <option value="ACCESS_CONTRACTS">Contrats d'accès</option>
+          <option value="CONTRACTS">Contrats d'entrée</option>
+          <option value="objectgroup">Groupe d'objets</option>
+          <option value="accessionregisters">Registre des fonds</option>
           <!--<option value="GOT">Groupe d'objets</option>-->
         </select>
       </div>
 
       <div class="text-justify form-group col-md-2">
         <label>Action</label>
-        <select ng-model="requestMethod">
+        <select ng-model="requestMethod" ng-change="displayIdInput()">
           <option value="GET">Rechercher</option>
           <!--<option value="POST">POST</option>-->
           <!--<option value="PUT">Modifier</option>-->
@@ -41,24 +47,32 @@
         </select>
       </div>
 
-      <div class="col-md-2" ng-show="requestMethod=='GET' && requestedCollection=='units'">
+      <div class="col-md-2" ng-show="displayIdInput()">
         <label>Identifiant</label>
         <input type="text" size="30" ng-model="objectId" value="{{objectId}}" />
       </div>
 
     </div>
 
-
-
     <div class="panel-body col-md-12">
-      <div class="text-justify form-group">
-        <label>Requête DSL (format JSON)</label>
-        <textarea class="col-md-4" rows="20" ng-model="jsonInput"></textarea>
+
+      <div class="form-group col-md-6">
+          <label>Requête DSL (format JSON)</label>
+          <textarea class="col-md-12" rows="20" ng-model="jsonInput"></textarea>
       </div>
+      <div class="form-group col-md-6" ng-show="requestResponse">
+          <label>Réponse</label>
+          <textarea class="col-md-12" rows="20" ng-model="requestResponse"></textarea>
+      </div>
+
     </div>
 
-    <div class="panel-body col-md-6">
-      <div class="col-md-2">
+    <div class="panel-body col-md-12">
+      <div class="col-md-2 col-md-offset-2">
+        <span ng-show="validRequest != null">Json {{validRequest}}</span>
+      </div>
+
+      <div class="col-md-1">
         <button class="btn btn-primary" type="button" ng-click="isValidJson(jsonInput)">
           <span>Vérifier JSON</span>
         </button>
@@ -68,17 +82,6 @@
         <button class="btn btn-primary" type="button" ng-click="getRequestResults(jsonInput)">
           <span>Envoyer requête</span>
         </button>
-      </div>
-
-      <div class="col-md-2 col-md-offset-2">
-        <span ng-show="validRequest != null">Json {{validRequest}}</span>
-      </div>
-    </div>
-
-    <div class="panel-body col-md-12" ng-show="requestResponse">
-      <div class="text-justify form-group">
-        <label>Réponse</label>
-        <textarea class="col-md-4" rows="20" ng-model="requestResponse"></textarea>
       </div>
     </div>
   </div>
