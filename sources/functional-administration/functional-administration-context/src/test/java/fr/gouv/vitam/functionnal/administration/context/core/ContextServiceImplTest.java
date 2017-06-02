@@ -40,6 +40,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
@@ -52,8 +53,14 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.action.PushAction;
+import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.model.AccessContractModel;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
@@ -63,9 +70,13 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.model.ContextModel;
+import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.context.api.ContextService;
+import fr.gouv.vitam.functional.administration.contract.api.ContractService;
+import fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl;
+import fr.gouv.vitam.functional.administration.contract.core.IngestContractImpl;
 import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
 
 public class ContextServiceImplTest {
@@ -74,7 +85,7 @@ public class ContextServiceImplTest {
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
         VitamThreadPoolExecutor.getDefaultExecutor());
 
-    private static final Integer TENANT_ID = 1;
+    private static final Integer TENANT_ID = 0;
 
     static JunitHelper junitHelper;
     static final String COLLECTION_NAME = "Context";
@@ -87,6 +98,8 @@ public class ContextServiceImplTest {
     private static MongoDbAccessAdminImpl dbImpl;
 
     static ContextService contextService;
+    static ContractService ingestContractService;
+    static ContractService accessContractService;
     static int mongoPort;
     
     @BeforeClass
@@ -112,6 +125,8 @@ public class ContextServiceImplTest {
         contextService =
             new ContextServiceImpl(MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)), vitamCounterService);
 
+        ingestContractService = new IngestContractImpl(dbImpl, vitamCounterService);
+        accessContractService = new AccessContractImpl(dbImpl, vitamCounterService);
     }
 
     @AfterClass
@@ -133,6 +148,17 @@ public class ContextServiceImplTest {
     @RunWithCustomExecutor
     public void givenTestWellFormedContextThenImportSuccessfully() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        
+        File fileIngest = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
+        List<IngestContractModel> IngestContractModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileIngest, new TypeReference<List<IngestContractModel>>() {});
+        ingestContractService.createContracts(IngestContractModelList);
+        
+        File fileAccess = PropertiesUtils.getResourceFile("contracts_access_ok.json");
+        List<AccessContractModel> accessContractModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileAccess, new TypeReference<List<AccessContractModel>>() {});
+        accessContractService.createContracts(accessContractModelList);
+        
         File fileContexts = PropertiesUtils.getResourceFile("contexts_ok.json");
         List<ContextModel> ModelList =
             JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {});
@@ -142,6 +168,41 @@ public class ContextServiceImplTest {
         assertThat(response.isOk());
         RequestResponseOK<ContextModel> responseCast = (RequestResponseOK<ContextModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
+    }
+    
+    @Test
+    @RunWithCustomExecutor
+    public void givenContextUpdateTest() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        File fileIngest = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
+        List<IngestContractModel> IngestContractModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileIngest, new TypeReference<List<IngestContractModel>>() {});
+        ingestContractService.createContracts(IngestContractModelList);
+        ingestContractService.findContracts(new Select().getFinalSelect());
+        File fileContexts = PropertiesUtils.getResourceFile("contexts_empty.json");
+        List<ContextModel> ModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {});
+        
+        RequestResponse response = contextService.createContexts(ModelList);
+        
+        PushAction addIdentifierAction = UpdateActionHelper.push("Permissions.0.AccessContracts", "AC-000011");
+        Select select = new Select();
+        select.setQuery(QueryHelper.eq("Name", "My_Context_1"));
+        ContextModel context = contextService.findContexts(select.getFinalSelect()).get(0);
+        
+        
+        Update update = new Update();
+        update.addActions(addIdentifierAction);
+        update.setQuery(QueryHelper.and().add(QueryHelper.eq("Permissions._tenant", 0))
+            .add(QueryHelper.eq("#id", context.getId())));
+        update.getActions().get(0).getCurrentAction();
+
+        JsonNode queryDslForUpdate = update.getFinalUpdate();
+        contextService.updateContext(context.getId(), queryDslForUpdate);
+
+       
+        queryDslForUpdate = update.getFinalUpdate();     
+        
     }
 
 }

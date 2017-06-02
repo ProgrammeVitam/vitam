@@ -43,7 +43,9 @@ public interface ContextValidator {
         public static String ERR_ID_NOT_ALLOWED_IN_CREATE = "Id must be null when creating context (%s)";
         public static String ERR_DUPLICATE_CONTEXT_ENTRY = "One or many contexts in the imported list have the same name : %s";
         public static String ERR_MANDATORY_FIELD = "The field %s is mandatory";
-        public static String ERR_DUPLICATE_CONTEXT = "The context %s already exists in database";;
+        public static String ERR_DUPLICATE_CONTEXT = "The context %s already exists in database";
+        public static String ERR_NO_EXISTANCE_INGEST = "The ingest contract %s does not exist";
+        public static String ERR_NO_EXISTANCE_ACCESS = "The access contract %s does not exist";
         
         private String reason;
 
@@ -90,6 +92,14 @@ public interface ContextValidator {
          */
         public static ContextRejectionCause rejectDuplicatedInDatabase(String contextName){
             return new ContextRejectionCause(String.format(ERR_DUPLICATE_CONTEXT , contextName));
+        }
+        
+        public static ContextRejectionCause rejectNoExistanceOfIngestContract(String contextName){
+            return new ContextRejectionCause(String.format(ERR_NO_EXISTANCE_INGEST , contextName));
+        }
+        
+        public static ContextRejectionCause rejectNoExistanceOfAccessContract(String contextName){
+            return new ContextRejectionCause(String.format(ERR_NO_EXISTANCE_ACCESS , contextName));
         }
         
         public String getReason() {

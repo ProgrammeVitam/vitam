@@ -331,4 +331,24 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
         LOGGER.debug("import context ");
         return Status.OK;
     }
+
+    @Override
+    public RequestResponse<ContextModel> updateContext(String id, JsonNode queryDsl) throws InvalidParseOperationException {        
+        ContextModel model = JsonHandler.getFromString(ClientMockResultHelper.CONTEXTS, ContextModel.class);
+        return ClientMockResultHelper.createReponse(model);
+    }
+
+    @Override
+    public RequestResponse<ContextModel> findContexts(JsonNode queryDsl) throws InvalidParseOperationException {
+        ContextModel model = JsonHandler.getFromString(ClientMockResultHelper.CONTEXTS, ContextModel.class);
+        return ClientMockResultHelper.createReponse(model);
+
+    }
+
+    @Override
+    public RequestResponse<ContextModel> findContextById(String id) throws InvalidParseOperationException {
+        ContextModel model = JsonHandler.getFromString(ClientMockResultHelper.CONTEXTS, ContextModel.class);
+        return ClientMockResultHelper.createReponse(model);
+
+    }
 }

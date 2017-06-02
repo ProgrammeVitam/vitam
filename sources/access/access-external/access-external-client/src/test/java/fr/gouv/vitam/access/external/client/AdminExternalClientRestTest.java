@@ -611,8 +611,8 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         when(mock.post()).thenReturn(
             Response.status(Status.CREATED).entity(new RequestResponseOK<>().addAllResults(getContracts())).build());
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        InputStream fileContracts = PropertiesUtils.getResourceAsStream("contexts_ok.json");
-        RequestResponse resp = client.importContracts(fileContracts, TENANT_ID, AdminCollections.CONTEXTS);
+        InputStream fileContexts = PropertiesUtils.getResourceAsStream("contexts_ok.json");
+        RequestResponse resp = client.importContexts(fileContexts, TENANT_ID);
         Assert.assertTrue(RequestResponseOK.class.isAssignableFrom(resp.getClass()));
         Assert.assertTrue((((RequestResponseOK) resp).isOk()));
     }

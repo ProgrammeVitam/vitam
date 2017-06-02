@@ -365,4 +365,39 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws ReferentialException
      */
     Status importContexts(List<ContextModel> ContextModelList) throws ReferentialException;
+    
+    /**
+     * Update context to mongo
+     * 
+     * @param id
+     * @param queryDsl
+     * @return
+     * @throws InvalidParseOperationException
+     * @throws AdminManagementClientServerException
+     */
+    RequestResponse<ContextModel> updateContext(String id, JsonNode queryDsl) 
+        throws InvalidParseOperationException, AdminManagementClientServerException;
+    
+    /**
+     * Find contexts
+     * 
+     * @param queryDsl
+     * @return
+     * @throws InvalidParseOperationException
+     * @throws AdminManagementClientServerException
+     */
+    RequestResponse<ContextModel> findContexts(JsonNode queryDsl) 
+        throws InvalidParseOperationException, AdminManagementClientServerException;
+    
+    /**
+     * Find context by id
+     * 
+     * @param id
+     * @return
+     * @throws InvalidParseOperationException
+     * @throws ReferentialNotFoundException
+     * @throws AdminManagementClientServerException
+     */
+    RequestResponse<ContextModel> findContextById(String id) 
+        throws InvalidParseOperationException, ReferentialNotFoundException, AdminManagementClientServerException;
 }

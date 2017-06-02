@@ -114,4 +114,10 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         return ClientMockResultHelper.createReponse(ClientMockResultHelper.getContexts(Status.CREATED.getStatusCode()).toJsonNode()).setHttpCode(Status.CREATED.getStatusCode());
     }
 
+    @Override
+    public RequestResponse updateContext(String id, JsonNode queryDsl, Integer tenantId)
+        throws AccessExternalClientException, InvalidParseOperationException {
+        return ClientMockResultHelper.createReponse(ClientMockResultHelper.getContexts(Status.CREATED.getStatusCode()).toJsonNode()).setHttpCode(Status.CREATED.getStatusCode());
+    }
+
 }

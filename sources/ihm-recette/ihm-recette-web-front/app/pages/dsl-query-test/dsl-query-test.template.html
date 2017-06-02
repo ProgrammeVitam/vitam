@@ -33,6 +33,7 @@
           <option value="CONTRACTS">Contrat d'entrée</option>
           <option value="OBJECTGROUP">Groupe d'objets</option>
           <option value="ACCESSIONREGISTER">Registre des fonds</option>
+          <option value="CONTEXTS">Contexte</option>
           <!--<option value="GOT">Groupe d'objets</option>-->
         </select>
       </div>
@@ -44,6 +45,7 @@
           <!--<option value="POST">POST</option>-->
           <!--<option value="PUT">Modifier</option>-->
           <!--<option value="DELETE">DELETE</option>-->
+          <option value="PUT" ng-if="requestedCollection === 'CONTEXTS'">Mis à jour</option>
         </select>
       </div>
 

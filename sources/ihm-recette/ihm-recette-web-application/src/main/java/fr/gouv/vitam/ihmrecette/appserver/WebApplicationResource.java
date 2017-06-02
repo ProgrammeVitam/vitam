@@ -661,6 +661,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                         tenantId);
                                 }
                                 break;
+                            case "PUT":
+                                result = adminExternalClient.updateContext(objectID, criteria, tenantId);
+                                break;
                             default:
                                 throw new InvalidParseOperationException(
                                     "Request method undefined for collection " + requestedCollection);

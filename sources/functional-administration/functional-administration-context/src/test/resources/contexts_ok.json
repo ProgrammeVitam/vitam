@@ -5,13 +5,13 @@
     "Permissions": [
       {
         "_tenant": 0,
-        "AccessContracts": ["AccessContract0", "AccessContract1"],
-        "IngestContracts": ["ArchivalAgreement0"]
+        "AccessContracts": ["AC-000001"],
+        "IngestContracts": ["IC-000001"]
       },
       {
         "_tenant": 1,
-        "AccessContracts": ["AccessContract1"],
-        "IngestContracts": ["ArchivalAgreement1"]
+        "AccessContracts": [],
+        "IngestContracts": []
       }
     ]
   },
@@ -21,13 +21,13 @@
     "Permissions": [
       {
         "_tenant": 0,
-        "AccessContracts": ["AccessContract0"],
-        "IngestContracts": ["ArchivalAgreement0"]
+        "AccessContracts": [],
+        "IngestContracts": []
       },
       {
         "_tenant": 1,
-        "AccessContracts": ["AccessContract1"],
-        "IngestContracts": ["ArchivalAgreement1"]
+        "AccessContracts": [],
+        "IngestContracts": []
       }
     ]
   }

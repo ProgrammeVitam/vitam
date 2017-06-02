@@ -93,6 +93,7 @@ public class AdminManagementExternalResourceImpl {
     private static final String CONTRACT_JSON_IS_MANDATORY_PATAMETER = "Contracts input file is mandatory";
     private static final String UPDATE_ACCESS_CONTRACT = "/accesscontract";
     private static final String UPDATE_INGEST_CONTRACT = "/contract";
+    private static final String UPDATE_CONTEXT = "/context";
 
     /**
      * Constructor
@@ -372,6 +373,10 @@ public class AdminManagementExternalResourceImpl {
                     return Response.status(Status.OK).entity(result).build();
                 }
 
+                if (AdminCollections.CONTEXTS.compareTo(collection)) {
+                    RequestResponse result = client.findContexts(select);
+                    return Response.status(Status.OK).entity(result).build();
+                }
 
                 final Status status = Status.NOT_FOUND;
                 return Response.status(status).entity(getErrorEntity(status, null, null)).build();
@@ -602,6 +607,29 @@ public class AdminManagementExternalResourceImpl {
         try {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 RequestResponse response = client.updateIngestContract(id, queryDsl);
+                if (response.isOk()) {
+                    return Response.status(Status.OK).entity(response).build();
+                } else {
+                    final VitamError error = (VitamError) response;
+                    return Response.status(error.getHttpCode()).entity(response).build();
+                }
+            }
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(e);
+            return Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
+        }
+    }
+    
+    @Path(UPDATE_CONTEXT + "/{id}")
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateContext(@PathParam("id") String id, JsonNode queryDsl) 
+        throws AdminManagementClientServerException, InvalidParseOperationException{
+        try {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                RequestResponse response = client.updateContext(id, queryDsl);
                 if (response.isOk()) {
                     return Response.status(Status.OK).entity(response).build();
                 } else {

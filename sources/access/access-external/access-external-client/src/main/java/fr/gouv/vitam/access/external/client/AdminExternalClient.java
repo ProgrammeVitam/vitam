@@ -208,4 +208,15 @@ public interface AdminExternalClient extends BasicClient {
      * @throws AccessExternalClientServerException
      */
     RequestResponse importContexts(InputStream contexts, Integer tenantId) throws InvalidParseOperationException, AccessExternalClientServerException;
+
+    /**
+     * Update the context by query dsl
+     * 
+     * @param id
+     * @param queryDsl
+     * @return
+     * @throws AccessExternalClientException
+     * @throws InvalidParseOperationException 
+     */
+    RequestResponse updateContext(String id, JsonNode queryDsl, Integer tenantId) throws AccessExternalClientException, InvalidParseOperationException;
 }

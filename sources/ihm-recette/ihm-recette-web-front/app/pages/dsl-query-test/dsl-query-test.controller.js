@@ -34,7 +34,7 @@ angular.module('dsl.query.test')
 
     $scope.displayIdInput = function() {
 //      if ($scope.requestMethod === 'GET' && $scope.requestedCollection !== 'profiles') {
-      if ($scope.requestMethod === 'GET') {
+      if ($scope.requestMethod === 'GET' || $scope.requestedCollection == 'CONTEXTS') {
              return true;
       }
       return false;

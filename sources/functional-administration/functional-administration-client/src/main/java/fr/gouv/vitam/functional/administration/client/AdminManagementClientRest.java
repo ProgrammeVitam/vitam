@@ -96,6 +96,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     private static final String UPDATE_INGEST_CONTRACT_URI = "/contract/";
     private static final String PROFILE_URI = "/profiles";
     private static final String CONTEXT_URI = "/contexts";
+    private static final String UPDATE_CONTEXT_URI = "/context/";
 
     AdminManagementClientRest(AdminManagementClientFactory factory) {
         super(factory);
@@ -869,6 +870,95 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             final Status status = Status.fromStatusCode(response.getStatus());
             
             return status;
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<ContextModel> updateContext(String id, JsonNode queryDsl) throws AdminManagementClientServerException {
+        ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.PUT, UPDATE_CONTEXT_URI + id, null, queryDsl,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            if (status == Status.OK) {
+                LOGGER.debug(Response.Status.OK.getReasonPhrase());
+                return new RequestResponseOK<ContextModel>();
+            }
+
+            return RequestResponse.parseFromResponse(response);
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<ContextModel> findContexts(JsonNode queryDsl) throws InvalidParseOperationException, AdminManagementClientServerException {
+        ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, CONTEXT_URI, null, queryDsl,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            if (status == Status.OK) {
+                LOGGER.debug(Response.Status.OK.getReasonPhrase());
+                return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                    ContextModel.class);
+            }
+
+            return RequestResponse.parseFromResponse(response);
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<ContextModel> findContextById(String id) throws InvalidParseOperationException, ReferentialNotFoundException, AdminManagementClientServerException {
+        ParametersChecker.checkParameter("The input documentId json is mandatory", id);
+        Response response = null;
+        try {
+
+            final SelectParserSingle parser = new SelectParserSingle(new VarNameAdapter());
+            Select select = new Select();
+            parser.parse(select.getFinalSelect());
+            parser.addCondition(QueryHelper.eq("#id", id));
+            JsonNode queryDsl = parser.getRequest().getFinalSelect();
+
+
+            response = performRequest(HttpMethod.GET, CONTEXT_URI, null, queryDsl,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            if (status == Status.OK) {
+                LOGGER.debug(Response.Status.OK.getReasonPhrase());
+                RequestResponseOK<ContextModel> resp =
+                    JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                        ContextModel.class);
+
+
+                if (resp.getResults() == null || resp.getResults().size() == 0)
+                    throw new ReferentialNotFoundException("Context not found with id: " + id);
+
+                return resp;
+            }
+
+            return RequestResponse.parseFromResponse(response);
+
+        } catch (InvalidCreateOperationException e) {
+            LOGGER.error("unable to create query", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
