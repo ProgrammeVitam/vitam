@@ -1,0 +1,129 @@
+---
+
+# tasks file for mongo-express & elasticsearch-head
+
+# Begin docker debian
+- block:
+
+  - name: supprimer le package docker fourni de base (obsolète et incompatible avec le package docker-ce)
+    package:
+      name: "{{item}}"
+      state: absent
+    with_items:
+    - docker
+
+  - name: add GPG docker repo key
+    apt_key:
+      url: "https://download.docker.com/linux/debian/gpg"
+      state: present
+      validate_certs: no
+    environment:
+      https_proxy: "{{ http_proxy_environnement }}"
+
+  - name: install apt-transport-https as Docker repository is https
+    package:
+      name: apt-transport-https
+      state: present
+
+  - name: check docker repo are present
+    apt_repository:
+      repo: "{{item}}"
+      state: present
+    with_items:
+      - "deb [arch=amd64] https://download.docker.com/linux/debian  {{ansible_distribution_release}} stable"
+
+  - name: run apt-update
+    apt:
+      update_cache: yes
+
+  - name: installer le package docker
+    apt:
+      name: "{{item}}"
+      state: latest
+       # TODO: check if useful
+      default_release: jessie-backports
+    with_items:
+        - docker-ce
+        - python-docker
+
+  when: (ansible_distribution == "Debian")
+  # End docker debian
+
+# Begin docker centos
+- block:
+
+  - name: installer le package docker
+    package:
+      name: "{{item}}"
+      state: latest
+    with_items:
+    - docker
+    - docker-python
+
+    # KWA : check if still useful with newer docker versions
+  - name: Make sure net.ipv4.ip_forward is enabled (allow port-forwarding into docker containers)
+    sysctl:
+      name: net.ipv4.ip_forward
+      sysctl_set: yes
+      value: 1
+
+  when: (ansible_distribution == "CentOS")
+  # End docker centos
+
+
+# OMA : add for unity
+# KWA : check if really useful (potential security problem)
+- name: create docker group
+  group:
+    name: docker
+    gid: 1005
+    state: present
+
+# Cf. https://docs.docker.com/engine/admin/systemd/
+- name: Ensure systemd docker service drop-in folder is there
+  file:
+    name: "/etc/systemd/system/docker.service.d"
+    state: "directory"
+
+# KWA : add root folders for data / conf / ... directories here ?
+# KWA : configure docker login for repo docker.programmevitam.fr ?
+
+- name: Add http proxy conf for docker
+  template:
+    src: "http_proxy.conf.j2"
+    dest: /etc/systemd/system/docker.service.d/http_proxy.conf
+  notify:
+   - restart docker
+
+# Note : we force the restart here, as mongo-express must be restarted when mongodb is restarted...
+# As this is development tools and not production assets, it's OK.
+- name: Ensure docker daemon autostart && docker is started
+  systemd:
+    name: docker
+    state: restarted
+    daemon_reload: yes
+
+- name: Deploy mongo-express container
+  docker:
+    name: "mongo-express"
+    image: "mongo-express:{{mongo_express_version}}"
+    state: started
+    restart_policy: always
+    ports:
+      - "{{mongo_express_external_port}}:{{mongo_express_port}}"
+    env:
+      ME_CONFIG_MONGODB_SERVER: "{{ groups['mongos'][0] }}"
+      ME_CONFIG_MONGODB_PORT: "{{ vitam_mongodb_port }}"
+      ME_CONFIG_SITE_BASEURL: "/mongo-express/"
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"
+      ME_CONFIG_MONGODB_ADMINUSERNAME: "{{mongoAdminUser}}"
+      ME_CONFIG_MONGODB_ADMINPASSWORD: "{{mongoAdminPassword}}"
+
+- name: Deploy elasticsearch-head container
+  docker:
+    name: "elasticsearch-head"
+    image: "mobz/elasticsearch-head:{{elasticsearch_head_version}}"
+    state: started
+    restart_policy: always
+    ports:
+      - "{{elasticsearch_head_external_port}}:{{elasticsearch_head_port}}"

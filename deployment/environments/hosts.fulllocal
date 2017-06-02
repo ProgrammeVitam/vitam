@@ -4,7 +4,7 @@
 vitam
 reverse
 library
-hosts-mongo-express
+hosts-dev-tools
 
 ########### Tests environments specifics ###########
 
@@ -15,7 +15,7 @@ localhost
 
 [library] # EXTRA : Library server
 
-[hosts-mongo-express]
+[hosts-dev-tools]
 localhost
 
 [elasticsearch:children] # EXTRA : elasticsearch

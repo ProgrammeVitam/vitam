@@ -1,7 +1,0 @@
----
-# handlers file for mongo-express
-- name: restart docker
-  service: name=docker state=restarted
-
-- name: reload systemd
-  command: systemctl daemon-reload
