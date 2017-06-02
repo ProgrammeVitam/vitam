@@ -114,11 +114,11 @@ public class AdminManagementApplication
             resourceConfig
                 .register(resource)
                 .register(new ContractResource(mongoDbAccess, vitamCounterService))
+                .register(new ContextResource(mongoDbAccess, vitamCounterService))
                 .register(profileResource);
         } catch (Exception e) {
             LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
             System.exit(1);
-
         }
     }
 

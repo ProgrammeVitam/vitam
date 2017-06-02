@@ -155,6 +155,11 @@ public final class GUIDObjectType {
      * Profile
      */
     public static final int PROFILE_TYPE = 12;
+    
+    /**
+     * Context
+     */
+    public static final int CONTEXT_TYPE = 13;
 
     private GUIDObjectType() {
         // empty

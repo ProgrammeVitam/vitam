@@ -139,6 +139,11 @@ config(['$locationProvider' ,'$routeProvider',
         title: 'Import des profils',
         permission: 'profiles:create'
     }).
+    when('/admin/importContexts', {
+        templateUrl: "views/import-contexts.html",
+        title: 'Import des contexts',
+        permission: 'contexts:create'
+    }).
     when('/admin/journalOperations', {
       template: '<all-logbook-operation></all-logbook-operation>',
       title: 'Journal des Opérations',

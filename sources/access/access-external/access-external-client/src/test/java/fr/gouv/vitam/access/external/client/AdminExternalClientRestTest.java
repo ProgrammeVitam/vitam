@@ -603,5 +603,18 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         assertThat(resp).isInstanceOf(RequestResponseOK.class);
         assertThat(((RequestResponseOK) resp).getResults()).hasSize(0);
     }
+    
+    @Test()
+    @RunWithCustomExecutor
+    public void importContextsWithCorrectJsonReturnCreated()
+        throws FileNotFoundException, InvalidParseOperationException, AccessExternalClientException {
+        when(mock.post()).thenReturn(
+            Response.status(Status.CREATED).entity(new RequestResponseOK<>().addAllResults(getContracts())).build());
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        InputStream fileContracts = PropertiesUtils.getResourceAsStream("contexts_ok.json");
+        RequestResponse resp = client.importContracts(fileContracts, TENANT_ID, AdminCollections.CONTEXTS);
+        Assert.assertTrue(RequestResponseOK.class.isAssignableFrom(resp.getClass()));
+        Assert.assertTrue((((RequestResponseOK) resp).isOk()));
+    }
 
 }

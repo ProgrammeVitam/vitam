@@ -265,7 +265,17 @@ public final class GUIDFactory {
             GUIDObjectType.getDefaultWorm(type));
     }
 
-    
+    /**
+     * Create a Context GUID
+     *
+     * @return a new GUID
+     * @throws IllegalArgumentException if any of the argument are out of range
+     */
+    public static final GUID newContextGUID() {
+        final int type = GUIDObjectType.CONTEXT_TYPE;
+        return new GUIDImplPrivate(type, 0, serverIdentity.getGlobalPlatformId(),
+            GUIDObjectType.getDefaultWorm(type));
+    }
 
     /**
      *

@@ -81,7 +81,12 @@ public enum FunctionalAdminCollections {
     /**
      * Profile collection
      */
-    PROFILE(Profile.class)
+    PROFILE(Profile.class),
+    
+    /**
+     * Context collection
+     */
+    CONTEXT(Context.class)
     ;
 
     private VitamCollection vitamCollection;

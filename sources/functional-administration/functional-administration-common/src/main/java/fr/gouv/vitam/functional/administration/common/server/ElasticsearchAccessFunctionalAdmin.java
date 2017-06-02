@@ -71,6 +71,7 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
     public static final String MAPPING_ACCESSCONTRACT_FILE = "/accesscontract-es-mapping.json";
 
     public static final String MAPPING_PROFILE_FILE = "/profile-es-mapping.json";
+    public static final String MAPPING_CONTEXT_FILE = "/context-es-mapping.json";
 
     /**
      * @param clusterName
@@ -227,6 +228,8 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
             return ElasticsearchUtil.transferJsonToMapping(FileRules.class.getResourceAsStream(MAPPING_ACCESSCONTRACT_FILE));
         } else if (collection.equals(FunctionalAdminCollections.PROFILE)) {
             return ElasticsearchUtil.transferJsonToMapping(FileRules.class.getResourceAsStream(MAPPING_PROFILE_FILE));
+        } else if (collection.equals(FunctionalAdminCollections.CONTEXT)) {
+            return ElasticsearchUtil.transferJsonToMapping(FileRules.class.getResourceAsStream(MAPPING_CONTEXT_FILE));
         }
         return "";
     }

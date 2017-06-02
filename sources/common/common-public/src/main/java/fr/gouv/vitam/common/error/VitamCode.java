@@ -111,7 +111,11 @@ public enum VitamCode {
         "Request profile file import error"),
     CONTRACT_NOT_FOUND_ERROR(ServiceName.FUNCTIONAL_ADMINISTRATION, DomainName.VALIDATION, "11",
         Status.BAD_REQUEST,
-        "Contract not found for update");
+        "Contract not found for update"),
+    
+    CONTEXT_VALIDATION_ERROR(ServiceName.FUNCTIONAL_ADMINISTRATION, DomainName.VALIDATION, "12",
+        Status.BAD_REQUEST,
+        "Request context validation error");
 
     private final ServiceName service;
     private final DomainName domain;

@@ -1966,6 +1966,36 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
+    
+    /**
+     * upload context
+     * 
+     * @param headers HTTP Headers
+     * @param input the file json
+     * @return Response
+     */
+    @POST
+    @Path("/contexts")
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("contexts:create")
+    public Response uploadContext(@Context HttpHeaders headers, InputStream input){
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+            RequestResponse response =
+                adminClient.importContexts(input, getTenantId(headers));
+            if (response != null && response instanceof RequestResponseOK) {
+                return Response.status(Status.OK).build();
+            }
+            if (response != null && response instanceof VitamError) {
+                LOGGER.error(response.toString());
+                return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
+            }
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 
     /**
      * Create profiles metadata

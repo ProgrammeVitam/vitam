@@ -108,4 +108,10 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
     }
 
+    @Override
+    public RequestResponse importContexts(InputStream contexts, Integer tenantId) 
+        throws InvalidParseOperationException {
+        return ClientMockResultHelper.createReponse(ClientMockResultHelper.getContexts(Status.CREATED.getStatusCode()).toJsonNode()).setHttpCode(Status.CREATED.getStatusCode());
+    }
+
 }

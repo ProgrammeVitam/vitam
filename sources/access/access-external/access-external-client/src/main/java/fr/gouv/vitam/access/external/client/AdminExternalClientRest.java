@@ -289,4 +289,30 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             }
         }
     }
+
+    @Override
+    public RequestResponse importContexts(InputStream contexts, Integer tenantId)
+        throws InvalidParseOperationException, AccessExternalClientServerException {
+        Response response = null;
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        try {
+            response = performRequest(HttpMethod.POST, AdminCollections.CONTEXTS.getName(), headers,
+                contexts, MediaType.APPLICATION_OCTET_STREAM_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
+
+            if (response.getStatus() == Response.Status.OK.getStatusCode() ||
+                response.getStatus() == Response.Status.CREATED.getStatusCode()) {
+                return new RequestResponseOK().setHttpCode(Status.OK.getStatusCode());
+            } else {
+                return RequestResponse.parseFromResponse(response);
+            }
+            
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
 }
