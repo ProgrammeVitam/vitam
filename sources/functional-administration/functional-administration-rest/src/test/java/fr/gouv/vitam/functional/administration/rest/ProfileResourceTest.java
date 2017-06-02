@@ -93,6 +93,7 @@ import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.prefix;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assume.assumeTrue;
 import static org.mockito.Matchers.any;
@@ -266,9 +267,8 @@ public class ProfileResourceTest {
             .when().get(ProfileResource.PROFILE_URI)
             .then().statusCode(Status.OK.getStatusCode()).extract().body().jsonPath().get("$results.Identifier");
 
-        assertThat(result).hasSize(2);
-        assertThat(result.get(0)).contains("PR-0000");
-        assertThat(result.get(1)).contains("PR-0000");
+        assertThat(result).hasSize(0);
+
     }
 
     @Test
