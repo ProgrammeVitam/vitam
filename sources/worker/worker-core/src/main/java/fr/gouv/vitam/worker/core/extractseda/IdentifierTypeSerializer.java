@@ -24,47 +24,46 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core;
+package fr.gouv.vitam.worker.core.extractseda;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+
+import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
+import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 
 /**
- * Cache the Marshaller Object as its initialization takes about 40ms
- * FIXME : Warning, marshaller are not thread safe, but jaxbContext is !!!
+ * Identifier Type Serializer
  */
-public class MarshallerObjectCache {
-    private final Map<Class<?>, Marshaller> marshallbyclass = new HashMap<>();
+public class IdentifierTypeSerializer extends StdSerializer<IdentifierType> {
 
     /**
-     * Empty constructor
+     * constructor
      */
-    public MarshallerObjectCache() {
-        // Empty constructor
+    public IdentifierTypeSerializer() {
+        this(null);
     }
 
     /**
-     * Cache of the marshaller object
-     *
-     * @param c : class whom we want the JAXB Marshaller
-     * @return The JAXB Marshaller for the class given in argument
-     * @throws JAXBException if exception when creating new instance JAXBContext 
+     * constructor
      */
-
-    public Marshaller getMarshaller(Class<?> c) throws JAXBException {
-        if (marshallbyclass.get(c) == null) {
-            final JAXBContext jc = JAXBContext.newInstance(c);
-            final Marshaller marshaller = jc.createMarshaller();
-            marshaller.setProperty(Marshaller.JAXB_FRAGMENT, true);
-            marshallbyclass.put(c, marshaller);
-        }
-        return marshallbyclass.get(c);
-
+    public IdentifierTypeSerializer(Class<IdentifierType> type) {
+        super(type);
     }
 
-
+    /**
+     * serialize IdentifierType
+     * @param identifierType
+     * @param gen
+     * @param provider
+     * @throws IOException
+     */
+    @Override
+    public void serialize(IdentifierType identifierType, JsonGenerator gen, SerializerProvider provider)
+        throws IOException {
+        gen.writeString(identifierType.getValue());
+    }
 }

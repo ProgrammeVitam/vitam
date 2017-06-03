@@ -69,6 +69,7 @@
                 <Management>
                     <StorageRule>
                         <Rule>ID017</Rule>
+                        <Rule>ID025</Rule>
                         <FinalAction>RestrictAccess</FinalAction>
                     </StorageRule>
                     <AppraisalRule>

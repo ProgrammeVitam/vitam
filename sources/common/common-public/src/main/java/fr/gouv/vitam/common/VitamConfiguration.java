@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common;
 
 import java.io.File;
+import java.util.Locale;
 
 import com.google.common.base.Strings;
 
@@ -181,6 +182,10 @@ public class VitamConfiguration {
     // 262 MB max
     // TODO make it configurable
     public static final int MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER = 200;
+
+    public static final boolean ENABLE_JAXB_PARSER = true;
+
+    public static final String DEFAULT_LANG = Locale.FRENCH.toString();
 
     static {
         getConfiguration().setDefault();

@@ -56,7 +56,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 
 public class ElasticsearchAccessMetadataTest {
 
-    private static final Integer TENANT_ID_0 = new Integer(0);
+    private static final Integer TENANT_ID_0 = 0;
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DbRequestTest.class);
 

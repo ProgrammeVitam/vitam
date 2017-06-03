@@ -24,47 +24,51 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core;
 
-import java.util.HashMap;
-import java.util.Map;
+package fr.gouv.vitam.worker.core.extractseda;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
+import java.io.IOException;
+
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import com.google.common.base.Strings;
+
+import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 
 /**
- * Cache the Marshaller Object as its initialization takes about 40ms
- * FIXME : Warning, marshaller are not thread safe, but jaxbContext is !!!
+ * textType serializer
  */
-public class MarshallerObjectCache {
-    private final Map<Class<?>, Marshaller> marshallbyclass = new HashMap<>();
+public class TextTypeSerializer extends StdSerializer<TextType> {
 
     /**
-     * Empty constructor
+     * default constructor
      */
-    public MarshallerObjectCache() {
-        // Empty constructor
+    public TextTypeSerializer() {
+        this(null);
     }
 
     /**
-     * Cache of the marshaller object
+     * constructor
      *
-     * @param c : class whom we want the JAXB Marshaller
-     * @return The JAXB Marshaller for the class given in argument
-     * @throws JAXBException if exception when creating new instance JAXBContext 
+     * @param type
      */
-
-    public Marshaller getMarshaller(Class<?> c) throws JAXBException {
-        if (marshallbyclass.get(c) == null) {
-            final JAXBContext jc = JAXBContext.newInstance(c);
-            final Marshaller marshaller = jc.createMarshaller();
-            marshaller.setProperty(Marshaller.JAXB_FRAGMENT, true);
-            marshallbyclass.put(c, marshaller);
-        }
-        return marshallbyclass.get(c);
-
+    public TextTypeSerializer(Class<TextType> type) {
+        super(type);
     }
 
-
+    /**
+     * @param textType
+     * @param jgen
+     * @param provider
+     * @throws IOException
+     */
+    @Override
+    public void serialize(TextType textType, JsonGenerator jgen, SerializerProvider provider)
+        throws IOException {
+        if (Strings.isNullOrEmpty(textType.getValue())) {
+            return;
+        }
+        jgen.writeString(textType.getValue());
+    }
 }

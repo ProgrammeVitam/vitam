@@ -68,89 +68,55 @@
                 <ArchiveUnitProfile>PresentationType</ArchiveUnitProfile>
                 <Management>
                     <StorageRule>
-                        <Rule>Rule0</Rule>
-                        <StartDate>2016-01-10</StartDate>
+                        <Rule>ID017</Rule>
+                        <Rule>ID025</Rule>
                         <FinalAction>RestrictAccess</FinalAction>
                     </StorageRule>
                     <AppraisalRule>
-                        <Rule>Rule2</Rule>
+                        <Rule>ID018</Rule>
                         <FinalAction>Keep</FinalAction>
                     </AppraisalRule>
                     <AccessRule>
-                        <Rule>Rule4</Rule>
+                        <Rule>ID019</Rule>
                     </AccessRule>
                     <DisseminationRule>
-                        <Rule>Rule6</Rule>
+                        <Rule>ID020</Rule>
                     </DisseminationRule>
                     <ReuseRule>
-                        <Rule>Rule8</Rule>
+                        <Rule>ID022</Rule>
                     </ReuseRule>
                     <ClassificationRule>
-                        <Rule>Rule10</Rule>
-                        <Rule>Rule11</Rule>
-                        <ClassificationLevel>ClassificationLevel0</ClassificationLevel>
-                        <ClassificationOwner>ClassificationOwner0</ClassificationOwner>
+                        <PreventInheritance>true</PreventInheritance>
                     </ClassificationRule>
                     <NeedAuthorization>false</NeedAuthorization>
                 </Management>
                 <Content xml:id="ID026">
                     <DescriptionLevel>Item</DescriptionLevel>
                     <Title>Sensibilisation API</Title>
+                    <FilePlanPosition>FilePlanPosition0</FilePlanPosition>
+                    <OriginatingSystemId>OriginatingSystemId0</OriginatingSystemId>
+                    <ArchivalAgencyArchiveUnitIdentifier>ArchivalAgencyArchiveUnitIdentifier0
+                    </ArchivalAgencyArchiveUnitIdentifier>
+                    <OriginatingAgencyArchiveUnitIdentifier>OriginatingAgencyArchiveUnitIdentifier0
+                    </OriginatingAgencyArchiveUnitIdentifier>
+                    <TransferringAgencyArchiveUnitIdentifier>TransferringAgencyArchiveUnitIdentifier0
+                    </TransferringAgencyArchiveUnitIdentifier>
+                    <Description>Sensibilisation au Technical Design
+                    </Description>
+                    <Language>fr-FR</Language>
+                    <OriginatingAgency>
+                        <Identifier>Identifier0</Identifier>
+                    </OriginatingAgency>
+                    <SubmissionAgency>
+                        <Identifier>Identifier1</Identifier>
+                    </SubmissionAgency>
+                    <Writer>
+                        <FirstName>FirstName0</FirstName>
+                        <BirthName>BirthName0</BirthName>
+                    </Writer>
+                    <CreatedDate>2016-05-05T20:45:20</CreatedDate>
                     <TransactedDate>2016-05-05</TransactedDate>
                 </Content>
-                <DataObjectReference>
-                    <DataObjectGroupReferenceId>ID006</DataObjectGroupReferenceId> <!-- referencement du GO -->
-                </DataObjectReference>
-            </ArchiveUnit>
-            <ArchiveUnit id="ID027">
-                <Content xml:id="ID050">
-                    <DescriptionLevel>Fonds</DescriptionLevel>
-                    <Title>Test fonds 1</Title>
-                    <TransactedDate>2015-06-15</TransactedDate>
-                </Content>
-                <Management>
-                    <StorageRule>
-                        <Rule>Rule0</Rule>
-                        <StartDate>2016-01-10</StartDate>
-                        <FinalAction>RestrictAccess</FinalAction>
-                    </StorageRule>
-                    <AppraisalRule>
-                        <Rule>Rule2</Rule>
-                        <FinalAction>Keep</FinalAction>
-                    </AppraisalRule>
-                    <AccessRule>
-                        <Rule>Rule4</Rule>
-                    </AccessRule>
-                    <DisseminationRule>
-                        <Rule>ID450</Rule>
-                        <StartDate>2016-01-10</StartDate>
-                        <RefNonRuleId>ID100</RefNonRuleId>
-                        <PreventInheritance>false</PreventInheritance>
-                    </DisseminationRule>
-                </Management>
-                <ArchiveUnit id="ID028">
-                    <Content>
-                        <DescriptionLevel>Subfonds</DescriptionLevel>
-                        <Title>Test sous fonds 1</Title>
-                        <TransactedDate>2015-06-15</TransactedDate>
-                    </Content>
-                    <ArchiveUnit id="ID124">
-                        <Content>
-                            <DescriptionLevel>Subfonds</DescriptionLevel>
-                            <Title>Test sous fonds 1</Title>
-                            <TransactedDate>2015-06-15</TransactedDate>
-                        </Content>
-                    </ArchiveUnit>
-                </ArchiveUnit>
-                <ArchiveUnit id="ID029">
-                    <Content>
-                        <DescriptionLevel>File</DescriptionLevel>
-                        <Title>Test file 1</Title>
-                    </Content>
-                    <DataObjectReference>
-                        <DataObjectGroupReferenceId>ID006</DataObjectGroupReferenceId>
-                    </DataObjectReference>
-                </ArchiveUnit>
                 <DataObjectReference>
                     <DataObjectGroupReferenceId>ID006</DataObjectGroupReferenceId> <!-- referencement du GO -->
                 </DataObjectReference>
@@ -208,6 +174,8 @@
                 <ClassificationReassessingDate>2016-01-10</ClassificationReassessingDate>
                 <NeedReassessingAuthorization>false</NeedReassessingAuthorization>
             </ClassificationRule>
+            <OriginatingAgencyIdentifier>FRAN_NP_005568</OriginatingAgencyIdentifier>
+            <SubmissionAgencyIdentifier>FRAN_NP_005061</SubmissionAgencyIdentifier>
         </ManagementMetadata>
     </DataObjectPackage>
 

@@ -24,47 +24,73 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core;
+package fr.gouv.vitam.worker.core.model;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
+public class ArchiveUnitModel {
 
-/**
- * Cache the Marshaller Object as its initialization takes about 40ms
- * FIXME : Warning, marshaller are not thread safe, but jaxbContext is !!!
- */
-public class MarshallerObjectCache {
-    private final Map<Class<?>, Marshaller> marshallbyclass = new HashMap<>();
+    @JsonProperty("_id")
+    private String id;
 
-    /**
-     * Empty constructor
-     */
-    public MarshallerObjectCache() {
-        // Empty constructor
+    @JsonProperty("_og")
+    private String og;
+
+    private String archiveUnitProfile;
+
+    private ManagementModel management;
+
+    @JsonProperty("Content")
+    private DescriptiveMetadataModel descriptiveMetadataModel;
+
+    private DataObjectReference dataObjectReference;
+
+    public ArchiveUnitModel() {
+        management = new ManagementModel();
     }
 
-    /**
-     * Cache of the marshaller object
-     *
-     * @param c : class whom we want the JAXB Marshaller
-     * @return The JAXB Marshaller for the class given in argument
-     * @throws JAXBException if exception when creating new instance JAXBContext 
-     */
-
-    public Marshaller getMarshaller(Class<?> c) throws JAXBException {
-        if (marshallbyclass.get(c) == null) {
-            final JAXBContext jc = JAXBContext.newInstance(c);
-            final Marshaller marshaller = jc.createMarshaller();
-            marshaller.setProperty(Marshaller.JAXB_FRAGMENT, true);
-            marshallbyclass.put(c, marshaller);
-        }
-        return marshallbyclass.get(c);
-
+    public String getId() {
+        return id;
     }
 
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getArchiveUnitProfile() {
+        return archiveUnitProfile;
+    }
+
+    public void setArchiveUnitProfile(String archiveUnitProfile) {
+        this.archiveUnitProfile = archiveUnitProfile;
+    }
+
+    public ManagementModel getManagement() {
+        return management;
+    }
+
+    public DescriptiveMetadataModel getDescriptiveMetadataModel() {
+        return descriptiveMetadataModel;
+    }
+
+    public void setDescriptiveMetadataModel(DescriptiveMetadataModel descriptiveMetadataModel) {
+        this.descriptiveMetadataModel = descriptiveMetadataModel;
+    }
+
+    public DataObjectReference getDataObjectReference() {
+        return dataObjectReference;
+    }
+
+    public void setDataObjectReference(DataObjectReference dataObjectReference) {
+        this.dataObjectReference = dataObjectReference;
+    }
+
+    public String getOg() {
+        return og;
+    }
+
+    public void setOg(String og) {
+        this.og = og;
+    }
 
 }

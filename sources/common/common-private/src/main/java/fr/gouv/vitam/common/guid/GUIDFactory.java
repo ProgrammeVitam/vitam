@@ -28,6 +28,7 @@ package fr.gouv.vitam.common.guid;
 
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.ServerIdentityInterface;
+import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 
 /**
  * GUID Factory <br>

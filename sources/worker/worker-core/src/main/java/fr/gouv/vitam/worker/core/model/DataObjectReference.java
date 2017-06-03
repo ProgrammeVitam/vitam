@@ -24,47 +24,17 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core;
+package fr.gouv.vitam.worker.core.model;
 
-import java.util.HashMap;
-import java.util.Map;
+public class DataObjectReference {
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
+    private String dataObjectGroupReferenceId;
 
-/**
- * Cache the Marshaller Object as its initialization takes about 40ms
- * FIXME : Warning, marshaller are not thread safe, but jaxbContext is !!!
- */
-public class MarshallerObjectCache {
-    private final Map<Class<?>, Marshaller> marshallbyclass = new HashMap<>();
-
-    /**
-     * Empty constructor
-     */
-    public MarshallerObjectCache() {
-        // Empty constructor
+    public String getDataObjectGroupReferenceId() {
+        return dataObjectGroupReferenceId;
     }
 
-    /**
-     * Cache of the marshaller object
-     *
-     * @param c : class whom we want the JAXB Marshaller
-     * @return The JAXB Marshaller for the class given in argument
-     * @throws JAXBException if exception when creating new instance JAXBContext 
-     */
-
-    public Marshaller getMarshaller(Class<?> c) throws JAXBException {
-        if (marshallbyclass.get(c) == null) {
-            final JAXBContext jc = JAXBContext.newInstance(c);
-            final Marshaller marshaller = jc.createMarshaller();
-            marshaller.setProperty(Marshaller.JAXB_FRAGMENT, true);
-            marshallbyclass.put(c, marshaller);
-        }
-        return marshallbyclass.get(c);
-
+    public void setDataObjectGroupReferenceId(String dataObjectGroupReferenceId) {
+        this.dataObjectGroupReferenceId = dataObjectGroupReferenceId;
     }
-
-
 }

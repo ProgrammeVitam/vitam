@@ -1,0 +1,141 @@
+<?xml version="1.0" ?>
+<ArchiveTransfer xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 Vitam/BA/SEDA/SEDA_2-0_fast_dl/Sch%D0%92mas/seda-2.0-main.xsd"
+ xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0" xmlns:pr="info:lc/xmlns/premis-v2"
+ xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="ID1">
+    <Comment>CCTP Vitam</Comment>
+    <Date>2016-09-19T10:40:23</Date>
+    <MessageIdentifier>xoxo1534hurtirndl88</MessageIdentifier>
+    <ArchivalAgreement>ArchivalAgreement0Test</ArchivalAgreement>
+    <CodeListVersions>
+        <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
+        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion>
+        <MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
+        <EncodingCodeListVersion>EncodingCodeListVersion0123</EncodingCodeListVersion>
+        <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
+        <CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
+        <DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
+        <StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
+        <AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
+        <AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
+        <DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
+        <ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
+        <ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
+        <AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
+        <RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
+    </CodeListVersions>
+    <DataObjectPackage xml:id="ID2">
+
+        <DescriptiveMetadata>
+            <ArchiveUnit id="ID3">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>LEVANT</Title>
+                    <Description>C:\Users\mehdi.afnai\Desktop\LEVANT</Description>
+                    <StartDate>2015-06-18T13:54:42</StartDate>
+                    <EndDate>2015-06-18T13:54:42</EndDate>
+                </Content>
+                <ArchiveUnit id="ID5">
+                    <ArchiveUnitRefId>ID4</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID16">
+                    <ArchiveUnitRefId>ID15</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID4">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>SHDGR__GR_4_H_1</Title>
+                    <Description>C:\Users\mehdi.afnai\Desktop\LEVANT\SHDGR__GR_4_H_1</Description>
+                    <StartDate>2015-06-18T13:54:42</StartDate>
+                    <EndDate>2015-06-18T13:54:42</EndDate>
+                </Content>
+                <ArchiveUnit id="ID7">
+                    <ArchiveUnitRefId>ID6</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID6">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>SHDGR__GR_4_H_1__001</Title>
+                    <Description>C:\Users\mehdi.afnai\Desktop\LEVANT\SHDGR__GR_4_H_1\SHDGR__GR_4_H_1__001</Description>
+                    <StartDate>2015-06-18T13:54:42</StartDate>
+                    <EndDate>2015-06-18T13:54:42</EndDate>
+                </Content>
+                <ArchiveUnit id="ID9">
+                    <ArchiveUnitRefId>ID8</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID8">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>SHDGR__GR_4_H_1__002_0000</Title>
+                    <Description>C:\Users\mehdi.afnai\Desktop\LEVANT\SHDGR__GR_4_H_1\SHDGR__GR_4_H_1__001\SHDGR__GR_4_H_1__002_0000</Description>
+                    <StartDate>2015-06-18T13:54:42</StartDate>
+                    <EndDate>2015-06-18T13:54:42</EndDate>
+                </Content>
+                <ArchiveUnit id="ID13">
+                    <ArchiveUnitRefId>ID12</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID12">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>0-0-0.jpg</Title>
+                    <Description>Pseudo Archive Unit du fichier :C:\Users\mehdi.afnai\Desktop\LEVANT\SHDGR__GR_4_H_1\SHDGR__GR_4_H_1__001\SHDGR__GR_4_H_1__002_0000\0-0-0.jpg</Description>
+                    <TransactedDate>2015-06-18T13:54:42</TransactedDate>
+                </Content>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID15">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>SHDGR__GR_4_H_3</Title>
+                    <Description>C:\Users\mehdi.afnai\Desktop\LEVANT\SHDGR__GR_4_H_3</Description>
+                    <StartDate>2015-06-18T13:54:42</StartDate>
+                    <EndDate>2015-06-18T13:54:42</EndDate>
+                </Content>
+                <ArchiveUnit id="ID18">
+                    <ArchiveUnitRefId>ID17</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID17">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>SHDGR__GR_4_H_3__001</Title>
+                    <Description>C:\Users\mehdi.afnai\Desktop\LEVANT\SHDGR__GR_4_H_3\SHDGR__GR_4_H_3__001</Description>
+                    <StartDate>2015-06-18T13:54:42</StartDate>
+                    <EndDate>2015-06-18T13:54:42</EndDate>
+                </Content>
+                <ArchiveUnit id="ID20">
+                    <ArchiveUnitRefId>ID19</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID19">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>SHDGR__GR_4_H_3__001_0000</Title>
+                    <Description>C:\Users\mehdi.afnai\Desktop\LEVANT\SHDGR__GR_4_H_3\SHDGR__GR_4_H_3__001\SHDGR__GR_4_H_3__001_0000</Description>
+                    <StartDate>2015-06-18T13:54:42</StartDate>
+                    <EndDate>2015-06-18T13:54:42</EndDate>
+                </Content>
+                <ArchiveUnit id="ID24">
+                    <ArchiveUnitRefId>ID23</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID23">
+                <ArchiveUnitRefId>ID12</ArchiveUnitRefId>
+            </ArchiveUnit>
+        </DescriptiveMetadata>
+        <ManagementMetadata>
+          <OriginatingAgencyIdentifier>FRAN_NP_050758</OriginatingAgencyIdentifier>
+          <SubmissionAgencyIdentifier>FRAN_NP_050758</SubmissionAgencyIdentifier>
+        </ManagementMetadata>
+    </DataObjectPackage>
+    <ArchivalAgency>
+        <Identifier>Plate-forme Vitam</Identifier>
+    </ArchivalAgency>
+    <TransferringAgency>
+        <Identifier>Ministère de l'Agriculture</Identifier>
+    </TransferringAgency>
+</ArchiveTransfer>
+

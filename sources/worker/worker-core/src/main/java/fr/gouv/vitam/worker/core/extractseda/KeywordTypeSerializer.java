@@ -24,47 +24,56 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core;
 
-import java.util.HashMap;
-import java.util.Map;
+package fr.gouv.vitam.worker.core.extractseda;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
+import static java.util.Objects.isNull;
+
+import java.io.IOException;
+import java.util.Objects;
+
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import com.google.common.base.Strings;
+
+import fr.gouv.culture.archivesdefrance.seda.v2.KeywordsType;
+import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 
 /**
- * Cache the Marshaller Object as its initialization takes about 40ms
- * FIXME : Warning, marshaller are not thread safe, but jaxbContext is !!!
+ * textType serializer
  */
-public class MarshallerObjectCache {
-    private final Map<Class<?>, Marshaller> marshallbyclass = new HashMap<>();
+public class KeywordTypeSerializer extends StdSerializer<KeywordsType.KeywordType> {
 
     /**
-     * Empty constructor
+     * default constructor
      */
-    public MarshallerObjectCache() {
-        // Empty constructor
+    public KeywordTypeSerializer() {
+        this(null);
     }
 
     /**
-     * Cache of the marshaller object
+     * constructor
      *
-     * @param c : class whom we want the JAXB Marshaller
-     * @return The JAXB Marshaller for the class given in argument
-     * @throws JAXBException if exception when creating new instance JAXBContext 
+     * @param type
      */
-
-    public Marshaller getMarshaller(Class<?> c) throws JAXBException {
-        if (marshallbyclass.get(c) == null) {
-            final JAXBContext jc = JAXBContext.newInstance(c);
-            final Marshaller marshaller = jc.createMarshaller();
-            marshaller.setProperty(Marshaller.JAXB_FRAGMENT, true);
-            marshallbyclass.put(c, marshaller);
-        }
-        return marshallbyclass.get(c);
-
+    public KeywordTypeSerializer(Class<KeywordsType.KeywordType> type) {
+        super(type);
     }
 
-
+    /**
+     * @param keywordType
+     * @param jgen
+     * @param provider
+     * @throws IOException
+     */
+    @Override
+    public void serialize(KeywordsType.KeywordType keywordType, JsonGenerator jgen, SerializerProvider provider)
+        throws IOException {
+        if (isNull(keywordType.getValue())) {
+            jgen.writeNull();
+            return;
+        }
+        jgen.writeString(keywordType.getValue().value());
+    }
 }

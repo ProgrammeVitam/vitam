@@ -95,6 +95,10 @@
 				<version>0.13.1</version>
 				<configuration>
 					<catalog>src/main/resources/seda-vitam.cat</catalog>
+								<args>
+                <arg>-Xinheritance</arg>
+            </args>
+
 					<strict>false</strict>
 					<schemaDirectory>src/main/resources</schemaDirectory>
 					<schemaExcludes>
@@ -118,6 +122,13 @@
 						</goals>
 					</execution>
 				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>org.jvnet.jaxb2_commons</groupId>
+						<artifactId>jaxb2-basics</artifactId>
+						<version>0.6.5</version>
+					</dependency>
+				</dependencies>
 			</plugin>
 		</plugins>
 	</build>

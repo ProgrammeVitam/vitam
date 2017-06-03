@@ -1,0 +1,119 @@
+<?xml version="1.0" ?>
+<ArchiveTransfer xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 file:/Z:/espacePOBA/SEDA/Version_definitive_publiee/seda-2.0-main.xsd"
+                 xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0" xmlns:xlink="http://www.w3.org/1999/xlink"
+                 xmlns:pr="info:lc/xmlns/premis-v2" xml:id="ID1">
+    <Comment>2eme SIP</Comment>
+    <Date>2016-10-18T15:23:00</Date>
+    <MessageIdentifier>SIP OK avec management métadata</MessageIdentifier>
+    <ArchivalAgreement>ArchivalAgreement0</ArchivalAgreement>
+    <CodeListVersions>
+        <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
+        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0
+        </MessageDigestAlgorithmCodeListVersion>
+        <MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
+        <EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion>
+        <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
+        <CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
+        <DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
+        <StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
+        <AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
+        <AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
+        <DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
+        <ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
+        <ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
+        <AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
+        <RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
+    </CodeListVersions>
+    <DataObjectPackage xml:id="ID2">
+        <BinaryDataObject id="ID7">
+            <DataObjectGroupId>ID6</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID7.pdf</Uri>
+            <MessageDigest algorithm="SHA-512"
+            >
+                f5d6880f323e5aa73a95cece09a66fed2ca462c60690acdbf438216981d5c7f0c6f16e879c07199bb2a45a64f73fa6466d43296e18bb3e68123a7df9a6ad97b0
+            </MessageDigest>
+            <Size>524372</Size>
+            <FormatIdentification>
+                <FormatLitteral>Acrobat PDF 1.4 - Portable Document Format</FormatLitteral>
+                <MimeType>application/pdf</MimeType>
+                <FormatId>fmt/18</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>Histoire de la station de sa cération à 1946.pdf</Filename>
+                <LastModified>2015-12-04T09:02:25.713+01:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID13">
+            <DataObjectGroupId>ID12</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID13.odp</Uri>
+            <MessageDigest algorithm="SHA-512"
+            >
+                422d96b979ebe53082b951048890cf09daebf1caf487d90a1e288978bdb57afb4c9f109159b40c8fc1319fa22bb96ded8b9e05b6529abc3a04e11f06707f0871
+            </MessageDigest>
+            <Size>2201507</Size>
+            <FormatIdentification>
+                <FormatLitteral>OpenDocument Presentation</FormatLitteral>
+                <MimeType>application/vnd.oasis.opendocument.presentation</MimeType>
+                <FormatId>fmt/293</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>Histoire de la station de sa création à 1946.odp</Filename>
+                <LastModified>2016-06-02T15:32:29.146+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <DescriptiveMetadata>
+            <ArchiveUnit id="ID8">
+                <Management>
+                    <StorageRule>
+                        <PreventInheritance>true</PreventInheritance>
+                    </StorageRule>
+                </Management>
+
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Histoire de la station de sa cération à aujourd'hui.pdf</Title>
+                    <Description>Cette ligne ferroviaire souterraine est la plus ancienne en Asie : les travaux de
+                        construction du tronçon entre Ueno et Asakusa ont commencé le 27 septembre 19251. La ligne a
+                        ouvert le 30 décembre 1927, puis elle a été prolongée à Manseibashi en 1931 et à Shinbashi en
+                        1934.
+
+                        En 1938, la Tokyo Rapid Railway, l’ancêtre de la compagnie Tōkyū, ouvre une ligne entre Shibuya
+                        et Toranomon. Cette dernière est prolongée à Shimbashi l'année suivante et les deux lignes sont
+                        interconnectées. En 1941, ces deux lignes sont regroupées en une seule qui prend le nom de ligne
+                        Ginza en 1951 (pour la différencier de la ligne Marunouchi nouvellement créée).
+                    </Description>
+                    <Keyword>
+                        <KeywordContent>blabla</KeywordContent>
+                        <KeywordType>subject</KeywordType>
+                    </Keyword>
+                    <TransactedDate>2015-12-04T09:02:25</TransactedDate>
+                    <Gps>
+                        <GpsLatitude>1235</GpsLatitude>
+                        <GpsLongitude>879878</GpsLongitude>
+                        <GpsDateStamp>2015-12-04T09:02:25</GpsDateStamp>
+                    </Gps>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID6</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+        </DescriptiveMetadata>
+        <ManagementMetadata>
+            <DisseminationRule>
+                <Rule>DIS-00002</Rule>
+                <StartDate>2016-12-04</StartDate>
+            </DisseminationRule>
+            <OriginatingAgencyIdentifier>FRAN_NP_009196</OriginatingAgencyIdentifier>
+            <SubmissionAgencyIdentifier>FRAN_NP_005761</SubmissionAgencyIdentifier>
+        </ManagementMetadata>
+    </DataObjectPackage>
+    <ArchivalAgency>
+        <Identifier>Identifier4</Identifier>
+    </ArchivalAgency>
+    <TransferringAgency>
+        <Identifier>Identifier5</Identifier>
+    </TransferringAgency>
+</ArchiveTransfer>
