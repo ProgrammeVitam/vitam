@@ -32,6 +32,14 @@ angular.module('dsl.query.test')
     $scope.requestResponse = "";
     $scope.tenantId = tenantService.getTenant();
 
+    $scope.displayIdInput = function() {
+//      if ($scope.requestMethod === 'GET' && $scope.requestedCollection !== 'profiles') {
+      if ($scope.requestMethod === 'GET') {
+             return true;
+      }
+      return false;
+    }
+
     var getContractsSuccessCallback = function (response) {
       $scope.contracts = response.data.$results;
     }
@@ -51,7 +59,7 @@ angular.module('dsl.query.test')
 
     $scope.isValidJson = function (json) {
         try {
-          JSON.parse(json);
+          $scope.jsonInput = JSON.stringify(JSON.parse(json), null, 5);
           $scope.validRequest = "valide";
           return true;
         } catch (e) {
@@ -62,7 +70,7 @@ angular.module('dsl.query.test')
     };
 
     var executeRequestSuccessCallback = function (response) {
-      $scope.requestResponse = JSON.stringify(response.data.$results, null, 5);
+      $scope.requestResponse = JSON.stringify(response.data, null, 5);
     }
     var executeRequestErrorCallback = function (error) {
 //      $scope.requestResponse = "Error " + error.status + " : " + error.statusText;
