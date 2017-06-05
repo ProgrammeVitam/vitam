@@ -1,7 +1,14 @@
 Role Name
 =========
 
-Mise en conformité des hôtes sur lesquels VITAM est déployé.
+Installation de rsyslog et paramétrage.
+
+Requirements
+------------
+
+normalize-host role
+
+
 
 License
 -------

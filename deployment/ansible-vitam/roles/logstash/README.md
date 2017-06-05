@@ -11,9 +11,9 @@ VITAM has already been deployed
 License
 -------
 
-Cecill 2.1
+BSD
 
-Auteur
-------
+Author Information
+------------------
 
 Projet VITAM

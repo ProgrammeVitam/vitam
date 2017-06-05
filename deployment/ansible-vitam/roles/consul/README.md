@@ -3,13 +3,8 @@ Consul
 
 Ce rôle a pour but le déploiement d'un agent (ou serveur) consul
 
-
-Requirements
-------------
-
-
 Variables
----------
+-----------
 
 Les variables attendues en entrée du rôle sont les suivantes :
 
@@ -24,14 +19,13 @@ Les variables possibles sont :
 Dépendances
 -----------
 
-* Le rôle "host-base" doit déjà avoir été exécuté sur l'hôte sur lequel s'exécute ce rôle.
+* Le rôle "normalize-host" doit déjà avoir été exécuté sur l'hôte sur lequel s'exécute ce rôle.
 
 
 License
 -------
 
-Cecill 2.0
-
+Cecill 2.1
 
 Auteur
 ------

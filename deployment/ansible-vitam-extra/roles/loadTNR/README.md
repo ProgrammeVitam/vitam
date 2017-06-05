@@ -1,7 +1,8 @@
 Role Name
 =========
 
-ClamAV installation.
+This role launches server-less cucumber "TNR" tests.
+
 
 License
 -------
