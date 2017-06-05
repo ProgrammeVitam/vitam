@@ -1,7 +1,8 @@
 Role Name
 =========
 
-ClamAV installation.
+This role installs vitam-ihm-recette-front package.
+
 
 License
 -------

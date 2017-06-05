@@ -1,7 +1,8 @@
 Role Name
 =========
 
-ClamAV installation.
+Installation du package vitam-ihm-demo-front
+
 
 License
 -------

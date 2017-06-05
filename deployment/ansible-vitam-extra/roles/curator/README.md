@@ -1,17 +1,16 @@
 Role Name
 =========
 
-Secure operations logbook cron entry
+This role installs Curator systemd timer.
 
 Requirements
 ------------
 
-VITAM has already been deployed
 
 License
 -------
 
-Cecill 2.1
+CeCILL 2.1
 
 Auteur
 ------

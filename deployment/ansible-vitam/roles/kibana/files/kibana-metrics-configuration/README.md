@@ -1,10 +1,10 @@
 KIBANA automatic dashboard import
-=========
+==================================
 
 This folder contains the files that will be automatically loaded into KIBANA (precisly in the .kibana index of ElasticSearch).
 
 Requirements
-------------
+---------------
 
 This folder can contains the following directories:
 
@@ -23,7 +23,7 @@ Considering a file `/search/superSearch.json`, the result in ElasticSearch would
 | .kibana | superSearch | search
 
 How to produce .json files
---------------
+----------------------------
 
 1. Open Kibana and create components
 2. Go to Kibana "**Settings**"
