@@ -46,9 +46,14 @@ zone-admin
 
 [zone-external:children]
 hosts-ihm-demo
+hosts-cerebro
 
 [hosts-ihm-demo]
 # TODO: Put here servers where this service will be deployed : ihm-demo
+
+
+[hosts-cerebro]
+# TODO: Put here servers where this service will be deployed : vitam-elasticsearch-cerebro
 
 
 ##### Zone access

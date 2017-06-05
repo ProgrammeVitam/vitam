@@ -1,8 +1,0 @@
-Package: vitam-elasticsearch-kopf
-Version: 2.0
-Section: database
-Priority: optional
-Architecture: all
-Depends: elasticsearch (<< 5), vitam-user-vitamdb
-Maintainer: French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>
-Description: Kopf is a simple web administration tool for elasticsearch written in JavaScript + AngularJS + jQuery + Twitter bootstrap.

@@ -42,8 +42,8 @@ echo "vitam-consul"
 ${WORKING_FOLDER}/build-consul.sh
 echo "vitam-elasticsearch-head"
 ${WORKING_FOLDER}/build-elasticsearch-head.sh
-echo "vitam-elasticsearch-kopf"
-${WORKING_FOLDER}/build-elasticsearch-kopf.sh
+echo "vitam-elasticsearch-cerebro"
+${WORKING_FOLDER}/build-elasticsearch-cerebro.sh
 echo "vitam-siegfried"
 ${WORKING_FOLDER}/build-siegfried.sh
 echo "vitam-mongoclient"

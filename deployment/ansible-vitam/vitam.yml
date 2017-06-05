@@ -53,6 +53,9 @@
   roles:
     - {role: elasticsearch-cluster, port_http: "{{elasticsearch_data_http_port}}", port_tcp: "{{elasticsearch_data_tcp_port}}", groupe: data }
 
+- hosts: hosts-cerebro
+  roles:
+    - role: cerebro
 ### MONGO DB INSTALLATION ###
 
 # mongodb commons (yum install, etc...)

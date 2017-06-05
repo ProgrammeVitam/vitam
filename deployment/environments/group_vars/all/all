@@ -147,3 +147,5 @@ mongoc_folder_database: "{{vitam_folder_root}}/data/mongoc/db"
 
 service_restart_timeout: 30
 clamav_port: 3310
+
+cerebro_port: 9000

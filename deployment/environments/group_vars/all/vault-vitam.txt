@@ -1,4 +1,5 @@
 plateforme_secret: vitamsecret
+cerebro_secret_key: changeme
 mongoAdminUser: vitamdb-admin
 mongoAdminPassword: azerty
 mongoMetadataUser: metadata
