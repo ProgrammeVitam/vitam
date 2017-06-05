@@ -38,9 +38,14 @@ localhost
 
 [zone-external:children]
 hosts-ihm-demo
+hosts-cerebro
 
 [hosts-ihm-demo]
 localhost
+
+[hosts-cerebro]
+localhost
+
 
 ##### Zone access
 

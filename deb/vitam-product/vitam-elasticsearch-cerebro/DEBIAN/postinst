@@ -1,0 +1,19 @@
+#!/bin/sh
+SERVICE_NAME=cerebro
+SERVICE_USER=vitam
+SERVCIE_GROUP=vitam
+for i in conf data log app
+do
+	mkdir -p /vitam/${i}/${SERVICE_NAME}
+	chown ${SERVICE_USER}:${SERVCIE_GROUP} /vitam/${i}/${SERVICE_NAME}
+	chmod 750 /vitam/${i}/${SERVICE_NAME}
+done
+#chown ${SERVICE_USER}:${SERVCIE_GROUP} /vitam/conf/${SERVICE_NAME}/sysconfig
+#chmod 750 /vitam/conf/${SERVICE_NAME}/sysconfig
+# OMA: useless now as it is included in package
+#mkdir /var/run/${SERVICE_NAME}
+#chown -R ${SERVICE_USER}:${SERVCIE_GROUP} /var/run/${SERVICE_NAME}
+
+systemctl daemon-reload
+systemctl enable vitam-elasticsearch-${SERVICE_NAME}
+# systemctl start vitam-${SERVICE_NAME}
