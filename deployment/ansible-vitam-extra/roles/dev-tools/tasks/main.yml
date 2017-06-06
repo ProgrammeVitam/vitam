@@ -94,6 +94,7 @@
     dest: /etc/systemd/system/docker.service.d/http_proxy.conf
   notify:
    - restart docker
+  when: http_proxy_environnement is defined
 
 # Note : we force the restart here, as mongo-express must be restarted when mongodb is restarted...
 # As this is development tools and not production assets, it's OK.
@@ -102,6 +103,7 @@
     name: docker
     state: restarted
     daemon_reload: yes
+    enabled: yes
 
 - name: Deploy mongo-express container
   docker:
