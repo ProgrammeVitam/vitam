@@ -31,6 +31,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
@@ -44,7 +46,6 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -57,6 +58,7 @@ import org.apache.commons.compress.archivers.ArchiveInputStream;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.AbstractMockClient;
@@ -255,7 +257,8 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
                         return FileVisitResult.CONTINUE;
                     }
                     String pathFile = file.toString().replace(folderPath.toString() + "/", "");
-                    list.add(URI.create(pathFile));
+                    list.add(URI.create(URLEncoder.encode(pathFile, CharsetUtils.UTF_8)));
+
                     return FileVisitResult.CONTINUE;
                 }
             });
