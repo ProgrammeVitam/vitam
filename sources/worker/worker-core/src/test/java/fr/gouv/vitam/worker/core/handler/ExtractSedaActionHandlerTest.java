@@ -110,6 +110,7 @@ public class ExtractSedaActionHandlerTest {
     private static final String SIP_REFNONRULEID_MULT_PREVENTINHERITENCE =
         "extractSedaActionHandler/refnonruleid_multiple_and_preventinheritence.xml";
     private static final String SIP_PHYSICAL_DATA_OBJECT = "extractSedaActionHandler/SIP_PHYSICAL_DATA_OBJECT.xml";
+    private static final String SIP_WITH_SPECIAL_CHARACTERS = "extractSedaActionHandler/SIP_WITH_SPECIAL_CHARACTERS.xml";
     private static final String SIP_ARBORESCENCE = "SIP_Arborescence.xml";
     private WorkspaceClient workspaceClient;
     private MetaDataClient metadataClient;
@@ -629,4 +630,19 @@ public class ExtractSedaActionHandlerTest {
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void givenManifestWithSpecialCharactersWhenExecuteThenReturnResponseKO() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        assertNotNull(ExtractSedaActionHandler.getId());
+        final InputStream seda_arborescence =
+            PropertiesUtils.getResourceAsStream(SIP_WITH_SPECIAL_CHARACTERS);
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(seda_arborescence).build());
+        action.addOutIOParameters(out);
+
+        final ItemStatus response = handler.execute(params, action);
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
+    }
+    
 }

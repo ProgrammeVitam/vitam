@@ -87,6 +87,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
@@ -113,6 +114,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ArchiveUnitContainDataObjectException;
+import fr.gouv.vitam.processing.common.exception.ArchiveUnitContainSpecialCharactersException;
 import fr.gouv.vitam.processing.common.exception.MissingFieldException;
 import fr.gouv.vitam.processing.common.exception.ProcessingDuplicatedVersionException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -224,7 +226,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static String prodService = null;
     private static String contractName = null;
     private static String filingParentId = null;
-    
+
     /**
      * Constructor with parameter SedaUtilsFactory
      */
@@ -289,6 +291,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
             globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final ArchiveUnitContainDataObjectException e) {
             LOGGER.debug("ProcessingException: archive unit contain an data object declared object group.", e);
+            globalCompositeItemStatus.increment(StatusCode.KO);
+        } catch (final ArchiveUnitContainSpecialCharactersException e) {
+            LOGGER.debug("ProcessingException: archive unit contains special characters.", e);
             globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final ProcessingException e) {
             LOGGER.debug("ProcessingException", e);
@@ -395,7 +400,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 if (event.isEndElement() && event.asEndElement().getName().getLocalPart().equals(DATAOBJECT_PACKAGE)) {
                     globalMetadata = true;
                 }
-                
+
                 if (event.isStartElement() && event.asStartElement().getName().getLocalPart()
                     .equals(SedaConstants.TAG_ARCHIVAL_AGREEMENT)) {
                     contractName = reader.getElementText();
@@ -614,11 +619,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         evDetData.put("ServiceLevel", serviceLevel.asText());
                     } else {
                         LOGGER.debug("Put a null ServiceLevel (No service Level)");
-                        evDetData.set("ServiceLevel", (ObjectNode)null);
+                        evDetData.set("ServiceLevel", (ObjectNode) null);
                     }
                 } else {
                     LOGGER.debug("Put a null ServiceLevel (No Data Object Package)");
-                    evDetData.set("ServiceLevel", (ObjectNode)null);
+                    evDetData.set("ServiceLevel", (ObjectNode) null);
                 }
 
             } catch (InvalidParseOperationException e) {
@@ -779,6 +784,19 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             updateManagementAndAppendGlobalMgtRule(archiveUnit, globalMgtIdExtra);
 
+            // sanityChecker
+            try {
+                SanityChecker.checkJsonAll(archiveUnit);
+            } catch (InvalidParseOperationException e) {
+                LOGGER.error("Sanity Checker failed for Archive Unit " + unitGuid);
+                // delete created temporary file
+                throw new ArchiveUnitContainSpecialCharactersException(e);
+            } finally {
+                if (!unitTmpFileForRead.delete()) {
+                    LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
+                }
+            }
+
             // Write to new File
             JsonHandler.writeAsFile(archiveUnit, unitCompleteTmpFile);
 
@@ -891,7 +909,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         // Get parents list
         ArrayNode upNode = JsonHandler.createArrayNode();
         isRootArchive = addParentsToTmpFile(upNode, unitId, archiveUnitTree);
-        if (upNode.isEmpty(null)){
+        if (upNode.isEmpty(null)) {
             linkToArchiveUnitDeclaredInTheIngestContract(upNode);
         }
         workNode.set(IngestWorkflowConstants.UP_FIELD, upNode);
@@ -2193,19 +2211,19 @@ public class ExtractSedaActionHandler extends ActionHandler {
             }
         }
     }
-    
-    private void linkToArchiveUnitDeclaredInTheIngestContract(ArrayNode upNode){
+
+    private void linkToArchiveUnitDeclaredInTheIngestContract(ArrayNode upNode) {
         findArchiveUnitDeclaredInTheIngestContract();
         if (filingParentId != null) {
             upNode.add(filingParentId);
-        }        
+        }
     }
-    
-    private void findArchiveUnitDeclaredInTheIngestContract(){
+
+    private void findArchiveUnitDeclaredInTheIngestContract() {
         try (final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
             final MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
-            
-            if (contractName != null){
+
+            if (contractName != null) {
                 Select select = new Select();
                 select.setQuery(QueryHelper.eq(CONTRACT_NAME, contractName));
                 JsonNode queryDsl = select.getFinalSelect();
@@ -2217,23 +2235,23 @@ public class ExtractSedaActionHandler extends ActionHandler {
                             filingParentId = result.getFilingParentId();
                         }
                     }
-                    
+
                     if (filingParentId != null) {
                         select = new Select();
                         select.setQuery(QueryHelper.eq(UNITTYPE.exactToken(), FILING_UNIT).setDepthLimit(0));
                         queryDsl = select.getFinalSelect();
                         JsonNode res = metaDataClient.selectUnitbyId(queryDsl, filingParentId).get("$results").get(0);
-                        
+
                         ObjectNode archiveUnit = JsonHandler.createObjectNode();
                         createArchiveUnitDeclaredInTheIngestContract(archiveUnit, res);
                         saveArchiveUnitDeclaredInTheIngestContract(archiveUnit, filingParentId);
                     }
-                    
-                }            
+
+                }
             }
 
-            
-        }  catch (AdminManagementClientServerException | InvalidParseOperationException e) {
+
+        } catch (AdminManagementClientServerException | InvalidParseOperationException e) {
             LOGGER.error("Contract found but inactive: ", e);
         } catch (InvalidCreateOperationException e) {
             LOGGER.error("Contract not found :", e);
@@ -2243,27 +2261,29 @@ public class ExtractSedaActionHandler extends ActionHandler {
             LOGGER.error("Cannot store the archive unit declared in the ingest contract :", e);
         }
     }
-    
+
     private void createArchiveUnitDeclaredInTheIngestContract(ObjectNode archiveUnit, JsonNode res) {
         archiveUnit.set(SedaConstants.TAG_ARCHIVE_UNIT, res);
-        
-        //Add _work information
+
+        // Add _work information
         ObjectNode workNode = JsonHandler.createObjectNode();
         workNode.put(IngestWorkflowConstants.EXISTING_TAG, Boolean.TRUE);
-        
+
         archiveUnit.set(SedaConstants.PREFIX_WORK, workNode);
     }
-    
-    private void saveArchiveUnitDeclaredInTheIngestContract(ObjectNode archiveUnit, 
-        String filingParentId) throws InvalidParseOperationException, ProcessingException{
-        
+
+    private void saveArchiveUnitDeclaredInTheIngestContract(ObjectNode archiveUnit,
+        String filingParentId) throws InvalidParseOperationException, ProcessingException {
+
         final File unitCompleteTmpFile = handlerIO.getNewLocalFile(filingParentId);
-        
+
         // Write to new File
         JsonHandler.writeAsFile(archiveUnit, unitCompleteTmpFile);
 
         // Write to workspace
-        handlerIO.transferFileToWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + filingParentId + JSON_EXTENSION, unitCompleteTmpFile, true);
+        handlerIO.transferFileToWorkspace(
+            IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + filingParentId + JSON_EXTENSION, unitCompleteTmpFile,
+            true);
     }
 
     @Override
