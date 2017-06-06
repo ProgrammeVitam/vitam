@@ -47,10 +47,13 @@ zone-admin
 [zone-external:children]
 hosts-ihm-demo
 hosts-cerebro
+hosts-ihm-recette
 
 [hosts-ihm-demo]
 # TODO: Put here servers where this service will be deployed : ihm-demo
 
+[hosts-ihm-recette]
+# TODO: Put here servers where this service will be deployed : ihm-recette (extra feature)
 
 [hosts-cerebro]
 # TODO: Put here servers where this service will be deployed : vitam-elasticsearch-cerebro
