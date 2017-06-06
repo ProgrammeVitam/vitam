@@ -134,7 +134,15 @@ public class ParserTokens extends BuilderToken {
         /**
          * Unit or GOT's list of participating operations
          */
-        OPERATIONS("operations");
+        OPERATIONS("operations"),
+        /**
+         * originating agency
+         */
+        SP("sp"),
+        /**
+         * originating agencies
+         */
+        SPS("sps");
 
         private static final String NOT_FOUND = "Not found";
         private final String exactToken;

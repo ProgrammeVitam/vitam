@@ -111,7 +111,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
             final AccessionRegisterDetailModel register = generateAccessionRegister(params);
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("register ID / Originating Agency: " + register.getId() + " / "
-                    + register.getOriginatingAgency());
+                        + register.getOriginatingAgency());
             }
             adminClient.createorUpdateAccessionRegister(register);
             itemStatus.increment(StatusCode.OK);
@@ -135,19 +135,19 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
     }
 
     private AccessionRegisterDetailModel generateAccessionRegister(WorkerParameters params) throws ProcessingException {
-        AccessionRegisterDetailModel register = new AccessionRegisterDetailModel() ;
+        AccessionRegisterDetailModel register = new AccessionRegisterDetailModel();
         try (final InputStream archiveUnitMapStream =
-            new FileInputStream((File) handlerIO.getInput(ARCHIVE_UNIT_MAP_RANK));
-            final InputStream objectGoupMapStream =
-                new FileInputStream((File) handlerIO.getInput(OBJECTGOUP_MAP_RANK));
-            final InputStream bdoToVersionMapTmpFile =
-                new FileInputStream((File) handlerIO.getInput(DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP_RANK))) {
+                     new FileInputStream((File) handlerIO.getInput(ARCHIVE_UNIT_MAP_RANK));
+             final InputStream objectGoupMapStream =
+                     new FileInputStream((File) handlerIO.getInput(OBJECTGOUP_MAP_RANK));
+             final InputStream bdoToVersionMapTmpFile =
+                     new FileInputStream((File) handlerIO.getInput(DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP_RANK))) {
             final Map<String, Object> bdoVersionMap = JsonHandler.getMapFromInputStream(bdoToVersionMapTmpFile);
             final Map<String, Object> archiveUnitMap = JsonHandler.getMapFromInputStream(archiveUnitMapStream);
             final Map<String, Object> objectGroupMap = JsonHandler.getMapFromInputStream(objectGoupMapStream);
             final JsonNode sedaParameters =
-                JsonHandler.getFromFile((File) handlerIO.getInput(SEDA_PARAMETERS_RANK))
-                    .get(SedaConstants.TAG_ARCHIVE_TRANSFER);
+                    JsonHandler.getFromFile((File) handlerIO.getInput(SEDA_PARAMETERS_RANK))
+                            .get(SedaConstants.TAG_ARCHIVE_TRANSFER);
             String originalAgency = "OriginatingAgencyUnknown";
             String submissionAgency = "SubmissionAgencyUnknown";
             String archivalAgreement = "ArchivalAgreementUnknow";
@@ -155,7 +155,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
             if (sedaParameters != null) {
                 final JsonNode dataObjectNode = sedaParameters.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE);
                 if (dataObjectNode != null) {
-                    if (dataObjectNode.has(SedaUtils.NB_AU_EXISTING)){
+                    if (dataObjectNode.has(SedaUtils.NB_AU_EXISTING)) {
                         nbAUExisting = dataObjectNode.get(SedaUtils.NB_AU_EXISTING).intValue();
                     }
                     final JsonNode nodeOrigin = dataObjectNode.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
@@ -176,7 +176,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
 
                 final JsonNode archivalArchivalAgreement = sedaParameters.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT);
                 if (archivalArchivalAgreement != null && !Strings.isNullOrEmpty(archivalArchivalAgreement.asText())) {
-                        archivalAgreement = archivalArchivalAgreement.asText();
+                    archivalAgreement = archivalArchivalAgreement.asText();
                 }
             } else {
                 throw new ProcessingException("No ArchiveTransfer found");
@@ -186,8 +186,8 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
             // TODO P0 extract this information from first parsing
             final SedaUtils sedaUtils = SedaUtilsFactory.create(handlerIO);
             register =
-                mapParamsToAccessionRegisterDetailModel(params, bdoVersionMap, archiveUnitMap, objectGroupMap,
-                    originalAgency, submissionAgency, archivalAgreement, sedaUtils, nbAUExisting);
+                    mapParamsToAccessionRegisterDetailModel(params, bdoVersionMap, archiveUnitMap, objectGroupMap,
+                            originalAgency, submissionAgency, archivalAgreement, sedaUtils, nbAUExisting);
         } catch (InvalidParseOperationException | IOException e) {
             LOGGER.error("Inputs/outputs are not correct", e);
             throw new ProcessingException(e);
@@ -197,40 +197,40 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
     }
 
     private AccessionRegisterDetailModel mapParamsToAccessionRegisterDetailModel(WorkerParameters params,
-        Map<String, Object> bdoVersionMap, Map<String, Object> archiveUnitMap, Map<String, Object> objectGroupMap,
-        String originalAgency, String submissionAgency, String archivalAgreement, SedaUtils sedaUtils, int nbAUExisting) throws ProcessingException {
+                                                                                 Map<String, Object> bdoVersionMap, Map<String, Object> archiveUnitMap, Map<String, Object> objectGroupMap,
+                                                                                 String originalAgency, String submissionAgency, String archivalAgreement, SedaUtils sedaUtils, int nbAUExisting) throws ProcessingException {
 
         SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
         final long objectsSizeInSip = sedaUtils.computeTotalSizeOfObjectsInManifest(params);
 
         RegisterValueDetailModel totalObjectsGroups =
-            new RegisterValueDetailModel(objectGroupMap.size(), 0, objectGroupMap.size());
+                new RegisterValueDetailModel(objectGroupMap.size(), 0, objectGroupMap.size());
 
         RegisterValueDetailModel totalUnits =
-            new RegisterValueDetailModel(archiveUnitMap.size()-nbAUExisting, 0, archiveUnitMap.size()-nbAUExisting);
+                new RegisterValueDetailModel(archiveUnitMap.size() - nbAUExisting, 0, archiveUnitMap.size() - nbAUExisting);
 
         RegisterValueDetailModel totalObjects =
-            new RegisterValueDetailModel(bdoVersionMap.size(), 0, bdoVersionMap.size());
+                new RegisterValueDetailModel(bdoVersionMap.size(), 0, bdoVersionMap.size());
 
         RegisterValueDetailModel objectSize = new RegisterValueDetailModel(objectsSizeInSip, 0, objectsSizeInSip);
 
         String updateDate = sdfDate.format(new Date());
 
         return new AccessionRegisterDetailModel()
-            .setId(params.getContainerName())
-            .setOriginatingAgency(originalAgency)
-            .setSubmissionAgency(submissionAgency)
-            .setArchivalAgreement(archivalAgreement)
-            .setEndDate(updateDate)
-            .setLastUpdate(updateDate)
-            .setStartDate(updateDate)
-            .setStatus(AccessionRegisterStatus.STORED_AND_COMPLETED)
-            .setTotalObjectsGroups(totalObjectsGroups)
-            .setTotalUnits(totalUnits)
-            .setTotalObjects(totalObjects)
-            .setObjectSize(objectSize)
-            .addOperationsId(params.getContainerName());
+                .setId(params.getContainerName())
+                .setOriginatingAgency(originalAgency)
+                .setSubmissionAgency(submissionAgency)
+                .setArchivalAgreement(archivalAgreement)
+                .setEndDate(updateDate)
+                .setLastUpdate(updateDate)
+                .setStartDate(updateDate)
+                .setStatus(AccessionRegisterStatus.STORED_AND_COMPLETED)
+                .setTotalObjectsGroups(totalObjectsGroups)
+                .setTotalUnits(totalUnits)
+                .setTotalObjects(totalObjects)
+                .setObjectSize(objectSize)
+                .addOperationsId(params.getContainerName());
     }
 
     @Override

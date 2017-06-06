@@ -114,11 +114,11 @@ public class Unit extends MetadataDocument<Unit> {
      */
     public static final String UNIT_TYPE = "_unitType";
 
-
     /**
      * ES Mapping
      */
     public static final String TYPEUNIQUE = "typeunique";
+
 
     // TODO P1 add Nested objects or Parent/child relationships
 
@@ -140,7 +140,8 @@ public class Unit extends MetadataDocument<Unit> {
     public static final BasicDBObject UNIT_VITAM_PROJECTION =
         new BasicDBObject(NBCHILD, 1).append(TYPE, 1).append(UNITUPS, 1).append(UNITDEPTHS, 1)
             .append(MINDEPTH, 1).append(MAXDEPTH, 1)
-            .append(TENANT_ID, 1).append(MetadataDocument.UP, 1).append(MetadataDocument.ID, 1);
+            .append(TENANT_ID, 1).append(MetadataDocument.UP, 1).append(MetadataDocument.ID, 1)
+                .append(ORIGINATING_AGENCIES, 1).append(MetadataDocument.OG, 1);
     /**
      * Unit Id, Vitam and Management fields Only projection (no content)
      */
@@ -180,6 +181,7 @@ public class Unit extends MetadataDocument<Unit> {
      * Rule end date (computed)
      */
     public static final String END = ".Rules._end";
+
 
     @SuppressWarnings("javadoc")
     public static final String STORAGERULES = STORAGERULE + RULE;
@@ -601,6 +603,10 @@ public class Unit extends MetadataDocument<Unit> {
             if (max > unit.getInteger(MAXDEPTH)) {
                 update = combine(update, set(MAXDEPTH, max));
             }
+
+            List<String> sps = (List<String> ) get(ORIGINATING_AGENCIES);
+            update = combine(update, addEachToSet(ORIGINATING_AGENCIES, sps));
+
             LOGGER.debug(this + "->" + unit + "\n" +
                 "\t" + MongoDbHelper.bsonToString(update, false) + "\n\t" + min + ":" + max);
             try {

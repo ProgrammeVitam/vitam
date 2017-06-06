@@ -101,6 +101,14 @@ public class IngestWorkflowConstants {
      */
     public static final String UP_FIELD = "_up";
     /**
+     * main originating agency
+     */
+    public static final String SP_FIELD = "#sp";
+    /**
+     * list of originating agency
+     */
+    public static final String SPS_FIELD = "#sps";
+    /**
      * the name of RulesToApply tag
      */
     public static final String RULES = "RulesToApply";

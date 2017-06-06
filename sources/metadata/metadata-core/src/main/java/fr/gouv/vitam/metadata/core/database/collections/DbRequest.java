@@ -37,6 +37,7 @@ import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.gte;
 import static com.mongodb.client.model.Filters.in;
 import static com.mongodb.client.model.Filters.lte;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ID;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -44,6 +45,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.mongodb.client.model.UpdateOptions;
+import com.mongodb.client.model.Updates;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -847,7 +850,7 @@ public class DbRequest {
      * @param last : contains the Result to be indexed
      *
      * @throws Exception
-     * 
+     *
      */
     private void indexFieldsOGUpdated(Result last) throws Exception {
         Integer tenantId = ParameterHelper.getTenantParameter();
@@ -879,7 +882,7 @@ public class DbRequest {
      * @param last : contains the Result to be removed
      *
      * @throws Exception
-     * 
+     *
      */
     private void removeOGIndexFields(Result last) throws Exception {
         Integer tenantId = ParameterHelper.getTenantParameter();
@@ -910,7 +913,7 @@ public class DbRequest {
      * @param last : contains the Result to be removed
      *
      * @throws Exception
-     * 
+     *
      */
     private void removeUnitIndexFields(Result last) throws Exception {
         Integer tenantId = ParameterHelper.getTenantParameter();
@@ -958,7 +961,7 @@ public class DbRequest {
                     // Should not exist
                     throw new MetaDataAlreadyExistException("Unit already exists: " + unit.getId());
                 }
-                unit.save();
+                unit.save(); // aeaqaaaaaad44i2vabq2eak4pztg5wqaaaba
                 @SuppressWarnings("unchecked")
                 final FindIterable<Unit> iterable =
                     (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.C_UNIT,
@@ -980,6 +983,20 @@ public class DbRequest {
                 last.clear();
                 last.addId(unit.getId());
                 last.setNbResult(1);
+
+
+                if (!unit.getString(MetadataDocument.OG).isEmpty()) {
+                    // find the unit that we just save, to take sps field, and save it in the object group
+                    MetadataDocument newUnit = MongoDbMetadataHelper.findOne(MetadataCollections.C_UNIT, unit.getString(MetadataDocument.ID));
+                    Object originatingAgencies = newUnit.get(MetadataDocument.ORIGINATING_AGENCIES);
+
+                    Bson update = Updates.set(MetadataDocument.ORIGINATING_AGENCIES, originatingAgencies);
+                    MetadataCollections.C_OBJECTGROUP.getCollection().updateOne(eq(ID, unit.getString(MetadataDocument.OG)),
+                            update,
+                            new UpdateOptions().upsert(false));
+                }
+
+
                 insertBulk(requestToMongodb, last);
                 // FIXME P1 should handle micro update on parents in ES
                 return last;
@@ -1029,7 +1046,7 @@ public class DbRequest {
 
     /**
      * Bulk insert in ES
-     * 
+     *
      * @param requestToMongodb
      * @param result
      * @throws MetaDataExecutionException

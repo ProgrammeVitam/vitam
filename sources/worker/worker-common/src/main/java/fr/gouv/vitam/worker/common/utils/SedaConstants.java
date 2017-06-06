@@ -297,11 +297,15 @@ public class SedaConstants {
      * tag of OriginatingAgency
      */
     public static final String TAG_ORIGINATINGAGENCY = "OriginatingAgency";
-    
+
     /**
      * tag of OriginatingAgencyIdentifier
      */
     public static final String TAG_ORIGINATINGAGENCYIDENTIFIER = "OriginatingAgencyIdentifier";
+    /**
+     * tag of OriginatingAgencyIdentifier
+     */
+    public static final String TAG_ORIGINATINGAGENCYIDENTIFIERS = "OriginatingAgencyIdentifiers";
     /**
      * tag of SubmissionAgencyIdentifier
      */

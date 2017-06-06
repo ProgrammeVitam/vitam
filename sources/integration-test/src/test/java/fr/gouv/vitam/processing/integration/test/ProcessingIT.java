@@ -158,7 +158,7 @@ public class ProcessingIT {
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @ClassRule
-    public static TemporaryFolder tempFolder = new TemporaryFolder();
+    public static TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     private final static String CLUSTER_NAME = "vitam-cluster";
     static JunitHelper junitHelper;
@@ -269,8 +269,14 @@ public class ProcessingIT {
         CONFIG_SIEGFRIED_PATH =
             PropertiesUtils.getResourcePath("integration-processing/format-identifiers.conf").toString();
 
+        File tempFolder = temporaryFolder.newFolder();
+        System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
+
+        SystemPropertyUtil.refresh();
+
+
         // ES
-        config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME, TCP_PORT, HTTP_PORT);
+        config = JunitHelper.startElasticsearchForTest(temporaryFolder, CLUSTER_NAME, TCP_PORT, HTTP_PORT);
 
         final MongodStarter starter = MongodStarter.getDefaultInstance();
 

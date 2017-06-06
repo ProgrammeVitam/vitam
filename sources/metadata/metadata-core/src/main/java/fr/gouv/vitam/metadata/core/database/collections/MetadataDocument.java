@@ -86,6 +86,16 @@ public abstract class MetadataDocument<E> extends Document {
      * Array of operations (both Unit and ObjectGroup)
      */
     public static final String OPS = "_ops";
+    /**
+     * ORIGINATING_AGENCIES : list of all originating agencies for unit
+     */
+    public static final String ORIGINATING_AGENCY = "_sp";
+
+    /**
+     * ORIGINATING_AGENCIES : list of all originating agencies for unit
+     */
+    public static final String ORIGINATING_AGENCIES = "_sps";
+
 
     /**
      * Empty constructor

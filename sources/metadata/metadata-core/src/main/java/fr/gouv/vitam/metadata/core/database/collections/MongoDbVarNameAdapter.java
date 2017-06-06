@@ -121,17 +121,24 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                         return Unit.UNITUPS;
                     case UNITTYPE:
                         // Valid for Unit
-                        return Unit.UNIT_TYPE;    
+                        return Unit.UNIT_TYPE;
                     case MANAGEMENT:
                         // Valid for Unit
                         return Unit.MANAGEMENT + extension;
                     case OPERATIONS:
                         // Valid for Unit and OG
                         return MetadataDocument.OPS;
+                    case SP:
+                        // Valid for Unit and OG
+                        return MetadataDocument.ORIGINATING_AGENCY;
+                    case SPS:
+                        // Valid for Unit and OG
+                        return MetadataDocument.ORIGINATING_AGENCIES;
                     case ALL:
                     default:
                         break;
                 }
+
             } catch (final IllegalArgumentException e) {
                 throw new InvalidParseOperationException(e);
             }
