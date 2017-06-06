@@ -30,7 +30,6 @@ import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.with;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
@@ -364,7 +363,7 @@ public class AdminManagementResourceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenFindDocumentWhenNotFoundThenThrowReferentialException()
+    public void givenFindDocumentWhenNotFoundThenReturnZeroResult()
         throws IOException, InvalidParseOperationException, InvalidCreateOperationException {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
@@ -383,7 +382,7 @@ public class AdminManagementResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(select.getFinalSelect())
             .when().post(GET_DOCUMENT_FORMAT_URI)
-            .then().statusCode(Status.NOT_FOUND.getStatusCode());
+            .then().statusCode(Status.OK.getStatusCode());
     }
 
     @Test

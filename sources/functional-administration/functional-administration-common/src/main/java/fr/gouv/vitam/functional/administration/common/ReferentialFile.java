@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
+import fr.gouv.vitam.functional.administration.common.exception.FileFormatNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
 /**
@@ -75,18 +76,20 @@ public interface ReferentialFile<E> {
      *
      * @param select filter
      * @return vitam document list
+     * @throws FileFormatNotFoundException when no results found
      * @throws ReferentialException when error occurs
      */
-    public List<E> findDocuments(JsonNode select) throws ReferentialException;
+    public List<E> findDocuments(JsonNode select) throws FileFormatNotFoundException, ReferentialException;
 
     /**
      * Checks File : checks if a stream of referential data is valid
+     * 
      * @return The JsonArray containing the referential data if they are all valid
      * @param file as InputStream
      * @throws ReferentialException when there is errors import
      * @throws IOException when there is IO Exception
      * @throws InvalidCreateOperationException
-     * @throws InvalidParseOperationException 
+     * @throws InvalidParseOperationException
      */
     ArrayNode checkFile(InputStream file)
         throws ReferentialException, IOException, InvalidCreateOperationException, InvalidParseOperationException;
