@@ -30,11 +30,17 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.when;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLStreamException;
 
 import org.junit.Before;
@@ -47,6 +53,7 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -59,14 +66,19 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
+import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({SedaUtilsFactory.class})
+@PrepareForTest({SedaUtilsFactory.class, WorkspaceClientFactory.class})
 public class CheckHeaderActionHandlerTest {
     private static final String CONTRACT_NAME = "Un contrat";
     CheckHeaderActionHandler handler = new CheckHeaderActionHandler();
@@ -74,15 +86,27 @@ public class CheckHeaderActionHandlerTest {
     private GUID guid;
     private static final Integer TENANT_ID = 0;
 
+    private static final String SIP_ADD_UNIT = "CheckHeaderActionHandler/manifest.xml";
+    private WorkspaceClient workspaceClient;
+    private WorkspaceClientFactory workspaceClientFactory;
+
+    private final HandlerIO handlerIO = mock(HandlerIO.class);
+    private final SedaUtils utils = SedaUtilsFactory.create(handlerIO);
+
     @Rule
     public RunWithCustomExecutorRule runInThread =
-    new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Before
     public void setUp() {
         PowerMockito.mockStatic(SedaUtilsFactory.class);
-        sedaUtils = mock(SedaUtils.class);
+        sedaUtils = mock(SedaUtils.class);        
         guid = GUIDFactory.newGUID();
+        PowerMockito.mockStatic(WorkspaceClientFactory.class);
+        workspaceClient = mock(WorkspaceClient.class);
+        workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
     }
 
     @Test
@@ -101,8 +125,8 @@ public class CheckHeaderActionHandlerTest {
         assertNotNull(CheckHeaderActionHandler.getId());
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-            .setUrlMetadata("http://localhost:8083")
-            .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+                .setUrlMetadata("http://localhost:8083")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         action.getInput().add("true");
         action.getInput().add("true");
         final ItemStatus response = handler.execute(params, action);
@@ -130,5 +154,39 @@ public class CheckHeaderActionHandlerTest {
         action.partialClose();
 
     }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void testHandlerWorkingWithRealManifest()
+        throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageNotFoundException,
+        ContentAddressableStorageServerException {
+
+        HandlerIOImpl action = new HandlerIOImpl(guid.getId(), "workerId");
+        PowerMockito.when(SedaUtilsFactory.create(action)).thenReturn(utils);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile(SIP_ADD_UNIT));
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
+        when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(sedaLocal);
+        
+        AdminManagementClientFactory.changeMode(null);
+        //Mockito.doCallRealMethod().when(utils).getMandatoryValues(anyObject());
+        assertNotNull(CheckHeaderActionHandler.getId());
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                .setUrlMetadata("http://localhost:8083")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+        action.getInput().add("true");
+        action.getInput().add("true");
+        final ItemStatus response = handler.execute(params, action);
+        assertEquals(response.getGlobalStatus(), StatusCode.OK);
+        assertNotNull(response.getData());
+        assertNotNull(response.getData().get(SedaConstants.TAG_MESSAGE_IDENTIFIER));
+        action.partialClose();
+
+    }
+
 
 }

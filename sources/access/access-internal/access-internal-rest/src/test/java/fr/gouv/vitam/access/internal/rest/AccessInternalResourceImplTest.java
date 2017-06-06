@@ -103,6 +103,8 @@ public class AccessInternalResourceImplTest {
 
     private static final String QUERY_SIMPLE_TEST = "{ \"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ] }";
 
+    private static final String EMPTY_QUERY = "{ \"$query\" : \"\", \"$roots\" : []  }";
+
     private static final String DATA =
         "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", " + "\"data\": \"data1\" }";
 
@@ -208,6 +210,16 @@ public class AccessInternalResourceImplTest {
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .get(ACCESS_UNITS_URI).then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    public void givenStartedServer_WhenEmptyQuery_ThenReturnError_Forbidden() throws Exception {
+        given()
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.getFromString(EMPTY_QUERY)).when()
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .get(ACCESS_UNITS_URI).then()
+            .statusCode(Status.FORBIDDEN.getStatusCode());
     }
 
     /**
@@ -411,7 +423,8 @@ public class AccessInternalResourceImplTest {
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .when().get(OBJECTS_URI +
-            OBJECT_ID).then()
+                OBJECT_ID)
+            .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
@@ -531,7 +544,8 @@ public class AccessInternalResourceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(0);
 
         reset(mock);
-        doThrow(new AccessInternalExecutionException("Wanted exception")).when(mock).getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt());
+        doThrow(new AccessInternalExecutionException("Wanted exception")).when(mock)
+            .getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
@@ -548,18 +562,20 @@ public class AccessInternalResourceImplTest {
         headers.put(GlobalDataRest.X_VERSION, 1);
         return headers;
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public void testGetObjectStream() throws Exception {
         reset(mock);
-          
+
         final Response response =
             ResponseHelper.getOutboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
                 MediaType.APPLICATION_OCTET_STREAM, null);
 
 
-        doAnswer(invocation -> {return null;}).when(mock)
+        doAnswer(invocation -> {
+            return null;
+        }).when(mock)
             .getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)

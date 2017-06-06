@@ -73,6 +73,7 @@ import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
+import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -144,10 +145,10 @@ public class AccessExternalResourceImplTest {
 
     private static final String DATA_TEST =
         "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", " + "\"title\": \"test\"," + "\"data\": \"data1\" }";
-    
+
     private static final String SELECT_RETURN =
-    "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"1\" }}, $projection: {}, $filter: {}},$result:" +
-    "[{'#id': '1', 'name': 'abcdef', 'creation_date': '2015-07-14T17:07:14Z', 'fmt': 'ftm/123', 'numerical_information': '55.3'}]}";
+        "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"1\" }}, $projection: {}, $filter: {}},$result:" +
+            "[{'#id': '1', 'name': 'abcdef', 'creation_date': '2015-07-14T17:07:14Z', 'fmt': 'ftm/123', 'numerical_information': '55.3'}]}";
 
     private static final String DATA_HTML =
         "{ \"#id\": \"<a href='www.culture.gouv.fr'>Culture</a>\"," + "\"data\": \"data2\" }";
@@ -910,7 +911,7 @@ public class AccessExternalResourceImplTest {
     @Test
     public void testErrorsSelectUnits()
         throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
-        InvalidParseOperationException, AccessUnauthorizedException {
+        InvalidParseOperationException, AccessUnauthorizedException, BadRequestException {
 
         given()
             .contentType(ContentType.JSON)
@@ -957,12 +958,24 @@ public class AccessExternalResourceImplTest {
             .then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
 
+        PowerMockito.doThrow(new BadRequestException("Bad Request, empty query is not allowed"))
+            .when(clientAccessInternal).selectUnits(anyObject());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(BODY_TEST)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .get(ACCESS_UNITS_URI)
+            .then()
+            .statusCode(Status.FORBIDDEN.getStatusCode());
+
     }
 
     @Test
     public void testhttpOverrideErrorsSelectUnits()
         throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
-        InvalidParseOperationException, AccessUnauthorizedException {
+        InvalidParseOperationException, AccessUnauthorizedException, BadRequestException {
 
         given()
             .contentType(ContentType.JSON)
@@ -1018,6 +1031,20 @@ public class AccessExternalResourceImplTest {
             .post(ACCESS_UNITS_URI)
             .then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
+
+
+        PowerMockito.doThrow(new BadRequestException("Bad Request, empty query is not allowed"))
+            .when(clientAccessInternal).selectUnits(anyObject());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(BODY_TEST)
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .post(ACCESS_UNITS_URI)
+            .then()
+            .statusCode(Status.FORBIDDEN.getStatusCode());
 
     }
 
@@ -1383,9 +1410,10 @@ public class AccessExternalResourceImplTest {
         PowerMockito.doThrow(new ReferentialNotFoundException("")).when(adminCLient).getAccessionRegister(anyObject());
         PowerMockito.doThrow(new ReferentialNotFoundException("")).when(adminCLient)
             .getAccessionRegisterDetail(anyObject());
-        AccessContractModel model = JsonHandler.getFromString(ClientMockResultHelper.ACCESS_CONTRACTS, AccessContractModel.class);
+        AccessContractModel model =
+            JsonHandler.getFromString(ClientMockResultHelper.ACCESS_CONTRACTS, AccessContractModel.class);
         PowerMockito.when(adminCLient.findAccessContracts(anyObject()))
-        .thenReturn(ClientMockResultHelper.createReponse(model));
+            .thenReturn(ClientMockResultHelper.createReponse(model));
         final Select select = new Select();
         select.setQuery(eq("Id", "APP-00001"));
 

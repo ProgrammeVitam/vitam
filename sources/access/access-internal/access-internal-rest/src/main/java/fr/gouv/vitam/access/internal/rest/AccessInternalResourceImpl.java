@@ -56,8 +56,13 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserHelper;
+import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -73,6 +78,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.UnitType;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.storage.engine.common.model.response.RequestResponseError;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
@@ -133,9 +139,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         LOGGER.debug(EXECUTION_OF_DSL_VITAM_FROM_ACCESS_ONGOING);
         Status status;
         ObjectNode result = null;
-        
+
         try {
             SanityChecker.checkJsonAll(queryDsl);
+            checkEmptyQuery(queryDsl);
             result = (ObjectNode) accessModule.selectUnit(addProdServicesToQuery(queryDsl));
             resetQuery(result, queryDsl);
         } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
@@ -147,6 +154,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             LOGGER.error(e.getMessage(), e);
             status = Status.METHOD_NOT_ALLOWED;
             return Response.status(status).entity(getErrorEntity(status)).build();
+        } catch (BadRequestException e) {
+            LOGGER.error("Empty query is impossible", e);
+            return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY);
         }
         LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
         return Response.status(Status.OK).entity(result).build();
@@ -216,7 +226,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkJsonAll(queryDsl);
             SanityChecker.checkParameter(idUnit);
             SanityChecker.checkParameter(requestId);
-            if (!VitamThreadUtils.getVitamSession().isWritingPermission()){
+            if (!VitamThreadUtils.getVitamSession().isWritingPermission()) {
                 status = Status.UNAUTHORIZED;
                 return Response.status(status).entity(getErrorEntity(status)).build();
             }
@@ -247,19 +257,20 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkJsonAll(query);
             SanityChecker.checkParameter(idObjectGroup);
             final VitamSession vitamSession = VitamThreadUtils.getVitamSession();
-            Set<String> prodServices = vitamSession.getProdServices();        
-            if (prodServices == null || prodServices.isEmpty()){
+            Set<String> prodServices = vitamSession.getProdServices();
+            if (prodServices == null || prodServices.isEmpty()) {
                 result = accessModule.selectObjectGroupById(query, idObjectGroup);
             } else {
                 final SelectParserMultiple parser = new SelectParserMultiple();
                 parser.parse(query);
                 parser.getRequest().addQueries(
                     QueryHelper.in(SedaConstants.TAG_ORIGINATINGAGENCY, prodServices.stream().toArray(String[]::new))
-                    .setDepthLimit(0));
+                        .setDepthLimit(0));
                 result = accessModule.selectObjectGroupById(parser.getRequest().getFinalSelect(), idObjectGroup);
             }
-            
-        } catch (final InvalidParseOperationException | IllegalArgumentException | InvalidCreateOperationException exc) {
+
+        } catch (final InvalidParseOperationException | IllegalArgumentException |
+            InvalidCreateOperationException exc) {
             LOGGER.error(exc);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status).entity(getErrorEntity(status)).build();
@@ -301,15 +312,15 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         }
         final String xQualifier = headers.getRequestHeader(GlobalDataRest.X_QUALIFIER).get(0);
         final String xVersion = headers.getRequestHeader(GlobalDataRest.X_VERSION).get(0);
-        
-        if (!validUsage(xQualifier.split("_")[0])){
+
+        if (!validUsage(xQualifier.split("_")[0])) {
             final Response errorResponse = Response.status(Status.UNAUTHORIZED)
                 .entity(getErrorEntity(Status.UNAUTHORIZED).toString())
                 .build();
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
             return;
         }
-        
+
         try {
             SanityChecker.checkHeaders(headers);
             HttpHeaderHelper.checkVitamHeaders(headers);
@@ -336,40 +347,50 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         }
     }
-    
-    private boolean validUsage(String s){        
+
+    private boolean validUsage(String s) {
         final VitamSession vitamSession = VitamThreadUtils.getVitamSession();
         Set<String> versions = vitamSession.getUsages();
-        
-        if (versions == null || versions.isEmpty()){
+
+        if (versions == null || versions.isEmpty()) {
             return true;
-        }            
-        for (String version : versions){
-            if (version.equals(s)){
+        }
+        for (String version : versions) {
+            if (version.equals(s)) {
                 return true;
             }
         }
         return false;
     }
 
-    private JsonNode addProdServicesToQuery(JsonNode queryDsl) throws InvalidParseOperationException, InvalidCreateOperationException {        
+    private JsonNode addProdServicesToQuery(JsonNode queryDsl)
+        throws InvalidParseOperationException, InvalidCreateOperationException {
         final VitamSession vitamSession = VitamThreadUtils.getVitamSession();
-        Set<String> prodServices = vitamSession.getProdServices();        
-        if (prodServices == null || prodServices.isEmpty()){
-            return queryDsl; 
+        Set<String> prodServices = vitamSession.getProdServices();
+        if (prodServices == null || prodServices.isEmpty()) {
+            return queryDsl;
         } else {
             final SelectParserMultiple parser = new SelectParserMultiple();
             parser.parse(queryDsl);
             parser.getRequest().addQueries(QueryHelper.or()
                 .add(QueryHelper.in(
-                    PROJECTIONARGS.MANAGEMENT.exactToken() + "." + SedaConstants.TAG_ORIGINATINGAGENCY, 
+                    PROJECTIONARGS.MANAGEMENT.exactToken() + "." + SedaConstants.TAG_ORIGINATINGAGENCY,
                     prodServices.stream().toArray(String[]::new)))
                 .add(QueryHelper.eq(PROJECTIONARGS.UNITTYPE.exactToken(), UnitType.HOLDING_UNIT.name()))
                 .setDepthLimit(0));
             return parser.getRequest().getFinalSelect();
         }
     }
-    
+
+    private void checkEmptyQuery(JsonNode queryDsl)
+        throws InvalidParseOperationException, InvalidCreateOperationException, BadRequestException {
+        final SelectParserMultiple parser = new SelectParserMultiple();
+        parser.parse(queryDsl.deepCopy());
+        if (parser.getRequest().getNbQueries() == 0 && parser.getRequest().getRoots().isEmpty()) {
+            throw new BadRequestException("Query cant be empty");
+        }
+    }
+
     @Override
     @GET
     @Path("/objects/{id_object_group}")
@@ -393,7 +414,15 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             .setHttpCode(status.getStatusCode()).setState(CODE_VITAM).setMessage(status.getReasonPhrase())
             .setDescription(status.getReasonPhrase());
     }
-    
+
+    private Response buildErrorResponse(VitamCode vitamCode) {
+        return Response.status(vitamCode.getStatus())
+            .entity(new RequestResponseError().setError(new VitamError(VitamCodeHelper.getCode(vitamCode))
+                .setContext(vitamCode.getService().getName()).setState(vitamCode.getDomain().getName())
+                .setMessage(vitamCode.getMessage()).setDescription(vitamCode.getMessage())).toString())
+            .build();
+    }
+
     private void resetQuery(ObjectNode result, JsonNode queryDsl) {
         if (result != null && result.has(RequestResponseOK.CONTEXT)) {
             result.set(RequestResponseOK.CONTEXT, queryDsl);

@@ -60,7 +60,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -69,7 +68,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -380,7 +378,7 @@ public class ExtractSedaActionHandlerTest {
             .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
         action.addOutIOParameters(out);
         final ItemStatus response = handler.execute(params, action);
-        
+
         assertEquals(StatusCode.OK, response.getGlobalStatus());
 
     }
@@ -445,18 +443,18 @@ public class ExtractSedaActionHandlerTest {
 
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
-    
+
     @Test
     @RunWithCustomExecutor
-    public void givenManifestWithIngestContractContainsAUInThePlan() throws Exception{
+    public void givenManifestWithIngestContractContainsAUInThePlan() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        
+
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile(SIP_TEST));
         AdminManagementClientFactory.changeMode(null);
         JsonNode parent = JsonHandler
             .getFromFile(PropertiesUtils.getResourceFile("extractSedaActionHandler/addLink/_Unit_PARENT.json"));
         when(metadataClient.selectUnitbyId(any(), eq("FilingParentId"))).thenReturn(parent);
-        
+
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
         action.addOutIOParameters(out);
@@ -470,7 +468,7 @@ public class ExtractSedaActionHandlerTest {
     public void givenManifestWithUpdateAddUnitExtractSedaThenCheckEvDetData()
         throws VitamException, IOException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        
+
         AdminManagementClientFactory.changeMode(null);;
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile(SIP_ADD_UNIT));
@@ -554,7 +552,7 @@ public class ExtractSedaActionHandlerTest {
     public void givenManifestInheritenceExtractSedaThenReadSuccess() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
-        
+
         AdminManagementClientFactory.changeMode(null);
         final InputStream seda_arborescence =
             PropertiesUtils.getResourceAsStream(SIP_RULES_INHERITENCE);
@@ -574,7 +572,7 @@ public class ExtractSedaActionHandlerTest {
     public void givenManifestRefIdInheritenceExtractSedaThenReadSuccess() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
-        
+
         AdminManagementClientFactory.changeMode(null);
         final InputStream seda_arborescence =
             PropertiesUtils.getResourceAsStream(SIP_REFID_RULES_INHERITENCE);
@@ -594,7 +592,7 @@ public class ExtractSedaActionHandlerTest {
     public void givenManifestRefnonruleidPreventinheritenceExtractSedaThenReadSuccess() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
-        
+
         AdminManagementClientFactory.changeMode(null);
         final InputStream seda_arborescence =
             PropertiesUtils.getResourceAsStream(SIP_REFNONRULEID_PREVENTINHERITENCE);
@@ -614,7 +612,7 @@ public class ExtractSedaActionHandlerTest {
     public void givenManifestRefnonruleidMultiplePreventinheritenceExtractSedaThenReadSuccess() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
-        
+
         AdminManagementClientFactory.changeMode(null);
         final InputStream seda_arborescence =
             PropertiesUtils.getResourceAsStream(SIP_REFNONRULEID_MULT_PREVENTINHERITENCE);

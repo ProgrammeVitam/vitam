@@ -311,7 +311,7 @@ public class VitamCodeHelperTest {
     public void getFromServiceTest() {
         final List<VitamCode> codes = VitamCodeHelper.getFromService(ServiceName.VITAM);
         assertNotNull(codes);
-        assertEquals(2, codes.size());
+        assertEquals(3, codes.size());
         assertEquals(VitamCode.TEST, codes.get(0));
     }
 
