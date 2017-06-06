@@ -27,11 +27,16 @@
 package fr.gouv.vitam.ihmdemo.appserver;
 
 
+import static fr.gouv.vitam.common.server.application.AsyncInputStreamHelper.asyncResponseResume;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,6 +44,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -71,6 +77,7 @@ import org.apache.shiro.util.ThreadContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Iterables;
+
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.api.ErrorMessage;
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
@@ -106,6 +113,7 @@ import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessExecutionStatus;
@@ -134,16 +142,18 @@ import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
-import static fr.gouv.vitam.common.server.application.AsyncInputStreamHelper.asyncResponseResume;
-
 /**
  * Web Application Resource class
  */
 @Path("/v1/api")
 public class WebApplicationResource extends ApplicationStatusResource {
+    
+    public static final String X_SIZE_TOTAL = "X-Size-Total";
+    public static final String X_CHUNK_OFFSET = "X-Chunk-Offset";
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WebApplicationResource.class);
 
     private static final String CODE_VITAM = "code_vitam";
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WebApplicationResource.class);
     private static final String BAD_REQUEST_EXCEPTION_MSG = "Bad request Exception";
     private static final String ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG = "Access client unavailable";
     private static final String ACCESS_SERVER_EXCEPTION_MSG = "Access Server exception";
@@ -158,12 +168,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final ConcurrentMap<String, List<Object>> uploadRequestsStatus = new ConcurrentHashMap<>();
     private static final int COMPLETE_RESPONSE_SIZE = 3;
     private static final int GUID_INDEX = 0;
-    private static final int RESPONSE_STATUS_INDEX = 1;
     private static final int ATR_CONTENT_INDEX = 2;
-    private static final String DEFAULT_CONTEXT = "defaultContext";
-
-    private static final String FLOW_TOTAL_CHUNKS_HEADER = "FLOW-TOTAL-CHUNKS";
-    private static final String FLOW_CHUNK_NUMBER_HEADER = "FLOW-CHUNK-NUMBER";
     private static final String STATUS_FIELD_QUERY = "Status";
     private static final String ARCHIVEPROFILES_FIELD_QUERY = "ArchiveProfiles";
     private static final String ACTIVATION_DATE_FIELD_QUERY = "ActivationDate";
@@ -172,6 +177,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String NAME_FIELD_QUERY = "Name";
 
     private final WebApplicationConfig webApplicationConfig;
+    private Map<String, AtomicLong> uploadMap = new HashMap<>();
 
     private final Set<String> permissions;
 
@@ -451,63 +457,66 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("ingest:create")
     public Response upload(@Context HttpServletRequest request, @Context HttpServletResponse response,
-        @Context HttpHeaders headers, InputStream stream) {
-        String operationGuidFirstLevel = null;
-        File temporarySipFile = null;
-        try {
-            // Received chunk index
-            final int currentChunkIndex = Integer.parseInt(headers.getHeaderString(FLOW_CHUNK_NUMBER_HEADER));
+        @Context HttpHeaders headers, byte[] stream) {
+        String operationGuid = null;
+        String chunkOffset = headers.getHeaderString(X_CHUNK_OFFSET);
+        String chunkSizeTotal = headers.getHeaderString(X_SIZE_TOTAL);
+        String contextId = headers.getHeaderString(GlobalDataRest.X_CONTEXT_ID);
+        String action = headers.getHeaderString(GlobalDataRest.X_ACTION);
 
-            // Total number of chunks
-            final int totalChunks = Integer.parseInt(headers.getHeaderString(FLOW_TOTAL_CHUNKS_HEADER));
-
-            String contextId = headers.getHeaderString(GlobalDataRest.X_CONTEXT_ID);
-            String action = headers.getHeaderString(GlobalDataRest.X_ACTION);
-            if (currentChunkIndex == 1) {
-                // GUID operation (Server Application level)
-                operationGuidFirstLevel = GUIDFactory.newGUID().getId();
-                temporarySipFile = PropertiesUtils.fileFromTmpFolder(operationGuidFirstLevel);
-
-                // Write the first chunk
-                try (FileOutputStream outputStream = new FileOutputStream(temporarySipFile)) {
-                    StreamUtils.copy(stream, outputStream);
-                }
-            } else {
-                operationGuidFirstLevel = headers.getHeaderString(GlobalDataRest.X_REQUEST_ID);
-                temporarySipFile = PropertiesUtils.fileFromTmpFolder(operationGuidFirstLevel);
-
-                // Append the received chunk to the temporary file
-                try (final FileOutputStream outputStream = new FileOutputStream(temporarySipFile, true)) {
-                    StreamUtils.copy(stream, outputStream);
-                }
-            }
-
-            // if it is the last chunk => start INGEST upload
-            if (currentChunkIndex == totalChunks) {
-                startUpload(operationGuidFirstLevel, getTenantId(headers), contextId, action);
-            }
-        } catch (final IOException e) {
-            LOGGER.error("Upload failed", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        } catch (final RuntimeException e) {
-            LOGGER.error("Upload failed", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        if (headers.getHeaderString(GlobalDataRest.X_REQUEST_ID) == null ||
+            headers.getHeaderString(GlobalDataRest.X_REQUEST_ID).isEmpty()) {
+            // GUID operation (Server Application level)
+            operationGuid = GUIDFactory.newGUID().getId();
+            AtomicLong writtenByteSize = new AtomicLong(0);
+            uploadMap.put(operationGuid, writtenByteSize);
+        } else {
+            operationGuid = headers.getHeaderString(GlobalDataRest.X_REQUEST_ID);
         }
 
+        RandomAccessFile randomAccessFile = null;
+        FileChannel fileChannel = null;
         try {
+            randomAccessFile = new RandomAccessFile(
+                PropertiesUtils.fileFromTmpFolder(operationGuid).getAbsolutePath(), "rw");
+            fileChannel = randomAccessFile.getChannel();
+            long offset = Long.parseLong(chunkOffset);
+            int writtenByte = fileChannel.write(ByteBuffer.wrap(stream), offset);
+            AtomicLong writtenByteSize = uploadMap.get(operationGuid);
+            long total = writtenByteSize.addAndGet(writtenByte);
+            long size = Long.parseLong(chunkSizeTotal) ;
+            if (total >= size) {
+                fileChannel.force(false);
+                startUpload(operationGuid, getTenantId(headers), contextId, action);
+                uploadMap.remove(operationGuid);
+            }
             return Response
                 .status(Status.OK).entity(JsonHandler.getFromString(
-                    "{\"" + GlobalDataRest.X_REQUEST_ID.toLowerCase() + "\":\"" + operationGuidFirstLevel + "\"}"))
-                .header(GlobalDataRest.X_REQUEST_ID, operationGuidFirstLevel)
+                    "{\"" + GlobalDataRest.X_REQUEST_ID.toLowerCase() + "\":\"" + operationGuid + "\"}"))
+                .header(GlobalDataRest.X_REQUEST_ID, operationGuid)
                 .build();
+        } catch (final IOException | RuntimeException e) {
+            LOGGER.error("Upload failed", e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         } catch (InvalidParseOperationException e) {
             LOGGER.error("Upload failed", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .header(GlobalDataRest.X_REQUEST_ID, operationGuidFirstLevel).build();
+                .header(GlobalDataRest.X_REQUEST_ID, operationGuid).build();
+        } finally {
+            try {
+                if (fileChannel != null) {
+                    fileChannel.close();
+                }
+            } catch (IOException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
+            try {
+                randomAccessFile.close();
+            } catch (IOException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
         }
     }
-
-
 
     private void startUpload(String operationGUID, Integer tenantId, String contextId, String action) {
         final IngestThread ingestThread = new IngestThread(operationGUID, tenantId, contextId, action);
@@ -530,7 +539,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
         @Override
         public void run() {
             // start the upload
-            File file = null;
             final File temporarSipFile = PropertiesUtils.fileFromTmpFolder(operationGuidFirstLevel);
 
 

@@ -136,8 +136,6 @@ public class WebApplicationResourceTest {
     private static JunitHelper junitHelper;
     private static int port;
     private static ServerApplication application;
-    private static final String FLOW_TOTAL_CHUNKS_HEADER = "FLOW-TOTAL-CHUNKS";
-    private static final String FLOW_CHUNK_NUMBER_HEADER = "FLOW-CHUNK-NUMBER";
     private static final List<Integer> tenants = new ArrayList<>();
 
     private static final String TRACEABILITY_CHECK_URL = "traceability/check";
@@ -548,7 +546,7 @@ public class WebApplicationResourceTest {
         IOUtils.toByteArray(stream);
 
         final ResponseBody s = given()
-            .headers(FLOW_TOTAL_CHUNKS_HEADER, "1", FLOW_CHUNK_NUMBER_HEADER, "1")
+            .headers(WebApplicationResource.X_CHUNK_OFFSET, "1", WebApplicationResource.X_SIZE_TOTAL, "1")
             .contentType(ContentType.BINARY)
             .config(RestAssured.config().encoderConfig(
                 EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
@@ -576,11 +574,13 @@ public class WebApplicationResourceTest {
         // Need for test
         byte[] content = IOUtils.toByteArray(stream);
 
-        InputStream stream1 = new ByteArrayInputStream(content, 0, 100000);
-        InputStream stream2 = new ByteArrayInputStream(content, 100000, 100000);
-        InputStream stream3 = new ByteArrayInputStream(content, 200000, 500000);
+        InputStream stream1 = new ByteArrayInputStream(content, 0, 1048576);
+        InputStream stream2 = new ByteArrayInputStream(content, 1048576, 2097152);
+        InputStream stream3 = new ByteArrayInputStream(content, 2097152, 3145728);
+        InputStream stream4 = new ByteArrayInputStream(content, 3145728, 4194304);
+        InputStream stream5 = new ByteArrayInputStream(content, 4194304, 5000000);
         final ResponseBody s1 = given()
-            .headers(FLOW_TOTAL_CHUNKS_HEADER, "3", FLOW_CHUNK_NUMBER_HEADER, "1")
+            .headers(WebApplicationResource.X_SIZE_TOTAL, "5000000", WebApplicationResource.X_CHUNK_OFFSET, "0")
             .contentType(ContentType.BINARY)
             .config(RestAssured.config().encoderConfig(
                 EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
@@ -591,22 +591,37 @@ public class WebApplicationResourceTest {
         assertTrue(firstRequestId.get(GlobalDataRest.X_REQUEST_ID.toLowerCase()).asText() != null);
         String reqId = firstRequestId.get(GlobalDataRest.X_REQUEST_ID.toLowerCase()).asText();
         File temporarySipFile = PropertiesUtils.fileFromTmpFolder(reqId);
-        assertEquals(100000, temporarySipFile.length());
-        final ResponseBody s2 = given()
-            .headers(FLOW_TOTAL_CHUNKS_HEADER, "3", FLOW_CHUNK_NUMBER_HEADER, "2", GlobalDataRest.X_REQUEST_ID, reqId)
+        given()
+            .headers(WebApplicationResource.X_SIZE_TOTAL, "5000000", WebApplicationResource.X_CHUNK_OFFSET, "1048576", GlobalDataRest.X_REQUEST_ID, reqId)
             .contentType(ContentType.BINARY)
             .config(RestAssured.config().encoderConfig(
                 EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
             .content(stream2).expect()
             .statusCode(Status.OK.getStatusCode()).when()
             .post("/ingest/upload").getBody();
-        assertEquals(200000, temporarySipFile.length());
-        final ResponseBody s3 = given()
-            .headers(FLOW_TOTAL_CHUNKS_HEADER, "3", FLOW_CHUNK_NUMBER_HEADER, "3", GlobalDataRest.X_REQUEST_ID, reqId)
+        given()
+            .headers(WebApplicationResource.X_SIZE_TOTAL, "5000000", WebApplicationResource.X_CHUNK_OFFSET, "2097152", GlobalDataRest.X_REQUEST_ID, reqId)
             .contentType(ContentType.BINARY)
             .config(RestAssured.config().encoderConfig(
                 EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
             .content(stream3).expect()
+            .statusCode(Status.OK.getStatusCode()).when()
+            .post("/ingest/upload").getBody();
+        
+        given()
+            .headers(WebApplicationResource.X_SIZE_TOTAL, "5000000", WebApplicationResource.X_CHUNK_OFFSET, "3145728", GlobalDataRest.X_REQUEST_ID, reqId)
+            .contentType(ContentType.BINARY)
+            .config(RestAssured.config().encoderConfig(
+                EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
+            .content(stream4).expect()
+            .statusCode(Status.OK.getStatusCode()).when()
+            .post("/ingest/upload").getBody();
+        given()
+            .headers(WebApplicationResource.X_SIZE_TOTAL, "5000000", WebApplicationResource.X_CHUNK_OFFSET, "4194304", GlobalDataRest.X_REQUEST_ID, reqId)
+            .contentType(ContentType.BINARY)
+            .config(RestAssured.config().encoderConfig(
+                EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
+            .content(stream5).expect()
             .statusCode(Status.OK.getStatusCode()).when()
             .post("/ingest/upload").getBody();
         // Cannot check uploaded file for certain since it might be already deleted
@@ -681,6 +696,7 @@ public class WebApplicationResourceTest {
         IOUtils.toByteArray(stream);
 
         given()
+        .headers(GlobalDataRest.X_REQUEST_ID, "no_req_id")
             .contentType(ContentType.BINARY)
             .config(RestAssured.config().encoderConfig(
                 EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
