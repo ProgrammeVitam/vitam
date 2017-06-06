@@ -144,6 +144,8 @@ public class VerifyTimeStampActionHandlerTest {
         action.addInIOParameters(in);
 
         verifyTimeStampActionHandler = new VerifyTimeStampActionHandler();
+        verifyTimeStampActionHandler.setConfPathForTest("verify-timestamp.conf");
+        
         final InputStream tokenFile =
             PropertiesUtils.getResourceAsStream(TOKEN);
 
@@ -174,6 +176,7 @@ public class VerifyTimeStampActionHandlerTest {
         action.addInIOParameters(in);
 
         verifyTimeStampActionHandler = new VerifyTimeStampActionHandler();
+        verifyTimeStampActionHandler.setConfPathForTest("verify-timestamp.conf");
 
         when(workspaceClient.getObject(anyObject(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
             "token.tsp"))).thenThrow(new ContentAddressableStorageNotFoundException("Token is not existing"));
@@ -294,6 +297,7 @@ public class VerifyTimeStampActionHandlerTest {
         action.addInIOParameters(in);
 
         verifyTimeStampActionHandler = new VerifyTimeStampActionHandler();
+        verifyTimeStampActionHandler.setConfPathForTest("verify-timestamp.conf");
         final InputStream tokenFile =
             PropertiesUtils.getResourceAsStream(TOKEN_FAKE);
 
@@ -307,30 +311,5 @@ public class VerifyTimeStampActionHandlerTest {
         assertEquals(StatusCode.KO, response.getItemsStatus().get(verifyTimeStampActionHandler.getId())
             .getItemsStatus().get(HANDLER_SUB_ACTION_COMPARE_TOKEN_TIMESTAMP).getGlobalStatus());
     }
-
-    @Test
-    @RunWithCustomExecutor
-    public void testG1() throws Exception {
-        final InputStream tokenFile =
-            PropertiesUtils.getResourceAsStream(TOKEN);
-        String encodedTimeStampToken = IOUtils.toString(tokenFile, "UTF-8");
-        System.out.println(encodedTimeStampToken);
-        byte[] decodedBytes = org.bouncycastle.util.encoders.Base64.decode(encodedTimeStampToken.getBytes());
-        ASN1InputStream bIn = new ASN1InputStream(new ByteArrayInputStream(
-            org.bouncycastle.util.encoders.Base64.decode(encodedTimeStampToken.getBytes())));
-        ASN1Primitive obj = bIn.readObject();
-        TimeStampResponse tsResp = new TimeStampResponse(obj.toASN1Primitive().getEncoded());
-        System.out.println(tsResp.getTimeStampToken().getTimeStampInfo().getGenTime());
-        SignerId signerId = tsResp.getTimeStampToken().getSID();
-        BigInteger signerCertSerialNumber = signerId.getSerialNumber();
-        X500Name signerCertIssuer = signerId.getIssuer();
-        System.out.println(signerCertSerialNumber);
-        System.out.println(signerCertIssuer.toString());
-        
-        
-        //System.out.println(tsResp.getTimeStampToken().getTimeStampInfo().);
-        
-    }
-
 
 }
