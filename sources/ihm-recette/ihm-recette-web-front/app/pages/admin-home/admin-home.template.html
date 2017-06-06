@@ -150,4 +150,38 @@
     </div>
   </div>
 
+  <div class="panel panel-default col-md-12" style="padding-bottom: 15px;">
+    <span class="panel-header no-toggle">
+      <h2>Contrats</h2>
+    </span>
+
+    <div class="panel-body">
+      <a class="panel-header" data-target="#boxAccessContracts" data-toggle="collapse">
+        <i>Purge des contrats d'accès</i>
+      </a>
+      <div class="row archive-desc panel-collapse collapse in" id="boxAccessContracts">
+        <div class="text-justify">
+          <button class="btn btn-primary" type="button" class="btn btn-success btn-s" ng-disabled="checkTenant()" ng-click="deleteConfirm(deleteAccessContracts, 'accessContracts')">
+            <i class="material-icons pull-left">delete_choix</i>
+            <span>Supprimer</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-body">
+      <a class="panel-header" data-target="#boxEntryContracts" data-toggle="collapse">
+        <i>Purge des contrats d'entrée</i>
+      </a>
+      <div class="row archive-desc panel-collapse collapse in" id="boxEntryContracts">
+        <div class="text-justify">
+          <button class="btn btn-primary" type="button" class="btn btn-success btn-s" ng-disabled="checkTenant()" ng-click="deleteConfirm(deleteEntryContracts, 'entryContracts')">
+            <i class="material-icons pull-left">delete_choix</i>
+            <span>Supprimer</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>

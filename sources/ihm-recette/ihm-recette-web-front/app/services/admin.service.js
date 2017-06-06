@@ -63,6 +63,14 @@ angular.module('core')
       adminResource.deleteObjectGroups().then(successCallback, errorCallback);
     };
 
+    AdminService.deleteAccessContracts = function(successCallback, errorCallback) {
+      adminResource.deleteAccessContracts().then(successCallback, errorCallback);
+    };
+
+    AdminService.deleteEntryContracts = function(successCallback, errorCallback) {
+      adminResource.deleteEntryContracts().then(successCallback, errorCallback);
+    };
+
     AdminService.deleteAll = function(successCallback, errorCallback) {
       adminResource.deleteAll().then(successCallback, errorCallback);
     };

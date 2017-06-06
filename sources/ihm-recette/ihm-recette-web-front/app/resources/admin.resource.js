@@ -38,6 +38,8 @@ angular.module('core')
     var UNIT_LIFE_CYCLE_ROOT = '/logbook/lifecycle/unit';
     var OBJECT_GROUP_ROOT = '/metadata/objectgroup';
     var ARCHIVE_UNIT_ROOT = '/metadata/unit';
+    var ACCESS_CONTRACTS_ROOT = '/masterdata/accessContract';
+    var ENTRY_CONTRACTS_ROOT = '/masterdata/ingestContract';
     var AdminResource = {};
 
     /** get tenant of session and set to header
@@ -110,6 +112,22 @@ angular.module('core')
      */
     AdminResource.deleteObjectGroups = function() {
       return $http.delete(IHM_URLS.IHM_BASE_URL + DELETE_ROOT + OBJECT_GROUP_ROOT, getTenantHeader());
+    };
+
+    /** Delete all the access contracts (DELETE method)
+     *
+     * @returns {HttpPromise} The promise returned by the http call
+     */
+    AdminResource.deleteAccessContracts = function() {
+      return $http.delete(IHM_URLS.IHM_BASE_URL + DELETE_ROOT + ACCESS_CONTRACTS_ROOT, getTenantHeader());
+    };
+
+    /** Delete all the entry contracts (DELETE method)
+     *
+     * @returns {HttpPromise} The promise returned by the http call
+     */
+    AdminResource.deleteEntryContracts = function() {
+      return $http.delete(IHM_URLS.IHM_BASE_URL + DELETE_ROOT + ENTRY_CONTRACTS_ROOT, getTenantHeader());
     };
 
     /** Delete all the mongo collections (DELETE method)
