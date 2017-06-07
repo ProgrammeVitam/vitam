@@ -961,7 +961,7 @@ public class DbRequest {
                     // Should not exist
                     throw new MetaDataAlreadyExistException("Unit already exists: " + unit.getId());
                 }
-                unit.save(); // aeaqaaaaaad44i2vabq2eak4pztg5wqaaaba
+                unit.save();
                 @SuppressWarnings("unchecked")
                 final FindIterable<Unit> iterable =
                     (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.C_UNIT,
@@ -985,7 +985,7 @@ public class DbRequest {
                 last.setNbResult(1);
 
 
-                if (!unit.getString(MetadataDocument.OG).isEmpty()) {
+                if (unit.getString(MetadataDocument.OG) != null && !unit.getString(MetadataDocument.OG).isEmpty()) {
                     // find the unit that we just save, to take sps field, and save it in the object group
                     MetadataDocument newUnit = MongoDbMetadataHelper.findOne(MetadataCollections.C_UNIT, unit.getString(MetadataDocument.ID));
                     Object originatingAgencies = newUnit.get(MetadataDocument.ORIGINATING_AGENCIES);
