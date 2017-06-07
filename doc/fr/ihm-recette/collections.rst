@@ -69,4 +69,17 @@ Toutes les unités archivistiques sont supprimées de la solution logicielle Vit
 
 **Purge des groupes d'objets**
 
-Toutes les objets sont supprimés de la solution logicielle Vitam. L'IHM "Détail d'une unité archivistique" ne comprend plus d'objet.
+Tous les objets sont supprimés de la solution logicielle Vitam. L'IHM "Détail d'une unité archivistique" ne comprend plus d'objet.
+
+Purge des contrats
+==================
+
+La suppression de contrats est opérée par tenant. L'utilisateur doit donc sélectionner le tenant pour lequel il souhaite supprimer les contrats afin d'accéder à cette fonctionnalité.
+
+**Contrats d'accès**
+
+Tous les contrats d'accès du tenant sélectionné sont supprimés de la solution logicielle Vitam. L'IHM "Contrats d'accès" est vide de contenu.
+
+**Contrats d'entrée**
+
+Tous les contrats d'entrée du tenant sélectionné sont supprimés de la solution logicielle Vitam. L'IHM "Contrats d'entrée" est vide de contenu.
