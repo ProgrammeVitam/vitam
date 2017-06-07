@@ -224,6 +224,8 @@ public class ParserTokens extends BuilderToken {
                         case MIN:
                         case MAX:
                         case UNITTYPE:
+                        case SP:
+                        case SPS:
                             return true;
                         default:
                     }
