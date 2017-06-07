@@ -429,7 +429,8 @@ Extrait d'un exemple avec une mise à jour de métadonnées
        }
    ],
    "_tenant": 0
-}
+  }
+
 
 Détail des champs du JSON stocké en base
 -----------------------------------------

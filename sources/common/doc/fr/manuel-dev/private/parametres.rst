@@ -51,11 +51,10 @@ getMapParameters et getMandatoriesParameters.
 
 .. code-block:: java
 
-   /**
+    /**
     * Exemple d'interface de paramètres
     **/
     public interface StorageParameters extends VitamParameter<StorageParameterName> {
-
         /**
          * Put parameterValue on mapParameters with parameterName key <br />
          * <br />
@@ -67,7 +66,6 @@ getMapParameters et getMandatoriesParameters.
          * @throws IllegalArgumentException if the parameterName is null or if parameterValue is null or empty
          **/
         StorageParameters putParameterValue(StorageParameterName parameterName, String parameterValue);
-
         /**
          * Get the parameter according to the parameterName
          *
@@ -76,7 +74,6 @@ getMapParameters et getMandatoriesParameters.
          * @throws IllegalArgumentException throws if parameterName is null
          **/
         String getParameterValue(StorageParameterName parameterName);
-
         /**
          * Set from map using String as Key
          *
@@ -85,7 +82,6 @@ getMapParameters et getMandatoriesParameters.
          * @throws IllegalArgumentException if parameter key is unknown or if the map is null
          **/
         StorageParameters setMap(Map<String, String> map);
-
         /**
         * Get the field1 value
         *
@@ -93,6 +89,7 @@ getMapParameters et getMandatoriesParameters.
         **/
         String getStorageParameterField1();
     }
+
 
 Possibilité d'avoir une classe abstraite
 ****************************************
@@ -103,35 +100,28 @@ communes aux différentes classes de paramètre (par exemple les getters / sette
 .. code-block:: java
 
     abstract class AbstractStorageParameters implements StorageParameters {
-
         @JsonIgnore
         private final Map<StorageParameterName, String> mapParameters = new TreeMap<>();
-
         @JsonIgnore
         private Set<StorageParameterName> mandatoryParameters;
-
         AbstractStorageParameters(final Set<StorageParameterName> mandatory) {
             mandatoryParameters = mandatory;
         }
-
         @JsonCreator
         protected AbstractStorageParameters(Map<String, String> map) {
             mandatoryParameters = StorageParametersFactory.getDefaultMandatory();
             setMap(map);
         }
-
         @JsonIgnore
         @Override
         public Set<StorageParameterName> getMandatoriesParameters() {
             return Collections.unmodifiableSet(new HashSet<>(mandatoryParameters));
         }
-
         @JsonIgnore
         @Override
         public Map<StorageParameterName, String> getMapParameters() {
             return Collections.unmodifiableMap(new HashMap<>(mapParameters));
         }
-
         @JsonIgnore
         @Override
         public WorkerParameters putParameterValue(StorageParameterName parameterName, String parameterValue) {
@@ -139,14 +129,12 @@ communes aux différentes classes de paramètre (par exemple les getters / sette
             mapParameters.put(parameterName, parameterValue);
             return this;
         }
-
         @JsonIgnore
         @Override
         public String getParameterValue(StorageParameterName parameterName) {
             ParametersChecker.checkParameter(String.format(ERROR_MESSAGE, "parameterName"), parameterName);
             return mapParameters.get(parameterName);
         }
-
         @JsonIgnore
         @Override
         public StorageParameters setMap(Map<String, String> map) {
@@ -156,7 +144,6 @@ communes aux différentes classes de paramètre (par exemple les getters / sette
             }
             return this;
         }
-
         @JsonIgnore
         @Override
         public String getField1() {
@@ -175,18 +162,14 @@ Voir ici s'il n'est pas possible de faire une factory commune.
 .. code-block:: java
 
     public class WorkerParametersFactory {
-
         private static final Set<StorageParameterName> genericMandatories = new HashSet<>();
-
         static {
             genericMandatories.add(StorageParameterName.field1);
             genericMandatories.add(StorageParameterName.field2);
         }
-
         private StorageParametersFactory() {
             // do nothing
         }
-
         // Méthodes de la factory
         // ...
     }
@@ -200,23 +183,17 @@ Ensuite, là où les paramètres sont nécéssaires, il suffit d'utiliser l'inte
     public void methode(StorageParameters parameters) {
         // Check des paramètres
         ParameterHelper.checkNullOrEmptyParameters(parameters);
-
         // Récupération des paramètres
         String value = parameters.getField1();
         String value 2 = parameters.get(StorageParameterName.field2);
-
         // etc...
     }
-
     // Exemple d'ajout de champs requis
     public void methode2() {
-
         Set<StorageParameterName> mandatoryToAdd = new Set<>();
         mandatoryToAdd.put(StorageParameterName.field3);
-
         // Initialisation des paramètres
         StorageParameters parameters = StorageParameterFactory.newStorageParameters(mandatoryToAdd);
-
         // etc..
     }
 

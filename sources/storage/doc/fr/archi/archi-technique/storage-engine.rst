@@ -114,8 +114,7 @@ D'un point de vue séquentiel :
     2. Instancie un thread et dans ce trhead :
        1. Récupération des paramètres de l'offre : url du service, paramètres additionels
        2. Tentative de connection à l'offre et d'upload de l'objet
-       3. Comparaison du digest hash renvoyé par l'offre avec le digest calculé à la volée lors de l'envoi du stream à
-     l'offre
+       3. Comparaison du digest hash renvoyé par l'offre avec le digest calculé à la volée lors de l'envoi du stream à l'offre
        4. Retour vers le distributeur du résultat (OK ou KO)
     3. Stockage du résultat de l'upload dans une map temporaire contenant le résultat de l'upload sur chaque offre
  6. Pour chaque offre KO, un nouvelle tentative est faite (jusqu'à trois)

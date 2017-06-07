@@ -67,24 +67,24 @@ VERIFY_TIMESTAMP (VerifyTimeStampActionHandler.java)
 * Règle : La tâche consiste à vérifier et à valider le tampon d'horodatage. 
 * Type : bloquant
 * Statuts :
-   * OK : le tampon d'horadatage est correct (VERIFY_TIMESTAMP.OK=Succès de la vérification de l''horodatage)
-   * KO : le tampon d'horadatage est incorrect (VERIFY_TIMESTAMP.KO=Échec de la vérification de l''horodatage)
-   * FATAL : erreur technique lors de la vérification du tampon d'horodatage (VERIFY_TIMESTAMP.FATAL=Erreur lors de la vérification de l''horodatage)
+  * OK : le tampon d'horadatage est correct (VERIFY_TIMESTAMP.OK=Succès de la vérification de l''horodatage)
+  * KO : le tampon d'horadatage est incorrect (VERIFY_TIMESTAMP.KO=Échec de la vérification de l''horodatage)
+  * FATAL : erreur technique lors de la vérification du tampon d'horodatage (VERIFY_TIMESTAMP.FATAL=Erreur lors de la vérification de l''horodatage)
 
 **La tâche contient les traitements suivants**
 * Comparaison du tampon dans le fichier par rapport au tampon enregistré dans le logbook (COMPARE_TOKEN_TIMESTAMP)
-   * Règle : le tampon enregistré dans le logbook doit être le même que celui dans le fichier zip généré
-   * Type : bloquant
-   * Status :
-      * OK : les tampons sont identiques (VERIFY_TIMESTAMP.COMPARE_TOKEN_TIMESTAMP.OK=Succès de la comparaison des tampons d''horodatage)
-      * KO : les tampons sont différents (VERIFY_TIMESTAMP.COMPARE_TOKEN_TIMESTAMP.KO=Échec de la comparaison des tampons d''horodatage)
+  * Règle : le tampon enregistré dans le logbook doit être le même que celui dans le fichier zip généré
+  * Type : bloquant
+  * Status :
+       * OK : les tampons sont identiques (VERIFY_TIMESTAMP.COMPARE_TOKEN_TIMESTAMP.OK=Succès de la comparaison des tampons d''horodatage)
+       * KO : les tampons sont différents (VERIFY_TIMESTAMP.COMPARE_TOKEN_TIMESTAMP.KO=Échec de la comparaison des tampons d''horodatage)
   
 * Validation du tampon d'horodatage (VALIDATE_TOKEN_TIMESTAMP)
-   * Règle : le tampon d'horodatage doit être validé par rapport à la signature
-   * Type : bloquant
-   * Status :
-      * OK : le tampons est validé (VERIFY_TIMESTAMP.VALIDATE_TOKEN_TIMESTAMP.OK=Succès de la validation du tampon d''horodatage)
-      * KO : le tampons est invalidé (VERIFY_TIMESTAMP.VALIDATE_TOKEN_TIMESTAMP.KO=Échec de la validation du tampon d''horodatage)
+  * Règle : le tampon d'horodatage doit être validé par rapport à la signature
+  * Type : bloquant
+  * Status :
+    * OK : le tampons est validé (VERIFY_TIMESTAMP.VALIDATE_TOKEN_TIMESTAMP.OK=Succès de la validation du tampon d''horodatage)
+    * KO : le tampons est invalidé (VERIFY_TIMESTAMP.VALIDATE_TOKEN_TIMESTAMP.KO=Échec de la validation du tampon d''horodatage)
 
 Structure du Workflow (implémenté en v1)
 ========================================

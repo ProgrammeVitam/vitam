@@ -82,10 +82,10 @@ Cette partie est gérée par le module angular-translate
 Pour ajouter une traduction, ajouter une clé valeur dans le fichier static/languages_<lang>.json
 L'entrée être formatée de la manière suivante "<pageGroup>.<pageDetail>.<bloc>.<key>"="<value>"
 où :
- - <pageGroup> est le groupe de page ou du module dans l'application (Exemple archiveSearch ou administration)
- - <pageDetail> est le nom de page dans le groupe (Exemple managementRules ou archiveUnitDetails)
- - <bloc> est le nom du bloc dans la page (Exemple searchForm ou technicalMetadata)
- - <key> est le nom de la clé (Exemple 'id' ou 'evDetData')
+- <pageGroup> est le groupe de page ou du module dans l'application (Exemple archiveSearch ou administration)
+- <pageDetail> est le nom de page dans le groupe (Exemple managementRules ou archiveUnitDetails)
+- <bloc> est le nom du bloc dans la page (Exemple searchForm ou technicalMetadata)
+- <key> est le nom de la clé (Exemple 'id' ou 'evDetData')
  
  Si possible essayez de regrouper les clés définies par groupe/detail/bloc/ordre alphabetique pour s'y retrouver.
  
@@ -94,13 +94,13 @@ où :
 
 .. code-block:: html
 
-	<div>{{'archiveSearch.searchForm.id' | translate}}</div>
+   <div>{{'archiveSearch.searchForm.id' | translate}}</div>
 
- Si votre key est dynamique et présente dans une variable, il est possible d'inserer du js en plus de la chaine:
+Si votre key est dynamique et présente dans une variable, il est possible d'inserer du js en plus de la chaine:
 
 .. code-block:: html
 
- 	<div>{{'archive.archiveUnitDetails.technicalMetadata.' + metadata[$index] | translate}}</div>
+   <div>{{'archive.archiveUnitDetails.technicalMetadata.' + metadata[$index] | translate}}</div>
 
 Enfin il est également possible de faire le traitement de traduction en js en appliquant le filtre:
 NB: $filter doit avoir été injecté
@@ -109,7 +109,7 @@ NB: $filter doit avoir été injecté
 	
 	var translatedLabel = $filter('translate')('archiveSearch.searchForm.id');
  
-// TODO : Rendre dynamique la langue choisi pour les traductions (actuellement static FR)
-// TODO : Utiliser la langue de fallback fr (ou autre ?)
-// TODO : Une grosse partie des constantes (js) et des String statiques (html) devraient être mises dans ces fichiers
-// TODO : Récupérer la liste des valeurs du référentiel VITAM (Build / Appel API)
+.. todo:: Rendre dynamique la langue choisi pour les traductions (actuellement static FR)
+.. todo:: Utiliser la langue de fallback fr (ou autre ?)
+.. todo:: Une grosse partie des constantes (js) et des String statiques (html) devraient être mises dans ces fichiers
+.. todo:: Récupérer la liste des valeurs du référentiel VITAM (Build / Appel API)

@@ -17,12 +17,14 @@ Le déploiement est orchestré depuis un poste ou serveur d'administration ; les
 
 * packages nécessaires :
 
-  + ansible (version 2.0.2 minimale et conseillée)
+  + ansible (version 2.2 minimale et conseillée)
   + openssh-clients (client SSH utilisé par ansible)
   + java-1.8.0-openjdk & openssl (du fait de la génération de certificats / stores, l'utilitaire ``keytool`` est nécessaire)
 
 * un accès ssh vers un utilisateur d'administration avec élévation de privilèges vers les droits root, vitam, vitamdb sur les serveurs cibles.
 * Le compte utilisé sur le serveur d'administration doit avoir confiance dans les serveurs cibles (fichier ~/.ssh/known_hosts correctement renseigné)
+
+.. caution:: dans le cadre de l'installation des packages "extra", il est nécessaire, pour les partitions hébergeant des containeurs docker (mongo-express, head), qu'elles aient un accès internet.
 
 Déploiement sur environnement CentOS
 -------------------------------------

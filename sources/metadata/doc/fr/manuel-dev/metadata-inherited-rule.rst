@@ -2,17 +2,15 @@ Métadata
 ########
 
 Utilisation
-###########
+===========
 
 Paramètres
 **********
 
 
-Calcule des règles de gestion pour une unité archivistique 
-*********
+Calcul des règles de gestion pour une unité archivistique 
+************************************************************
 
-
-.. code-block exemple :: java
 
 	1. Requête DSL 
 	
@@ -47,30 +45,31 @@ Calcule des règles de gestion pour une unité archivistique
 
 
 L'algorithme pour Calculer les règles de gestion
-*********
+*************************************************
 
-	1. Initialiser les règles de gestion pour les units racines
-        
-        Si (unit n'a pas le parent direct, s'est-à-dire, il est racine)
-        	Initialiser un objet UnitInheritedRule avec management et Id du unit
-        Autrement
-        	Créer un objet UnitInheritedRule vide
-        Fin Si
-
-	2. Ajouter les règles de gestion qui est hérité par les units parents. 
-	   Cependant, il y a deux cas particuliers -- la prévention d'héritage et l'exclusion d'héritage.
-        
-        Pour (chaque parentId dans la liste de parent direct)
-        	Créer un objet UnitRuleCompute avec UnitSimplified qui contient management et Id du unit et la liste de son parent
-        	Calculer le règle (Cette étape est récursive. Il va calculer les règles jusqu'à la racine)
-        	Créer un objet UnitInheritedRule qui contient les règles hérités
-        	Concaténer les règles par défaut et les règles hérités
-        Fin Pour
-        
-    2.1 La prévention d'héritage
-    	L’intégration d’une balise <PreventInheritance> dans le SEDA
-    	Si le champ est « true », toutes les règles héritées des parents sont ignorées sur le nœud courant    	
+1. Initialiser les règles de gestion pour les units racines
     
-    2.2 L'exclusion d'héritage
-		L’intégration d’une balise <RefNonRuleId> dans le SEDA indiquant la règle à désactiver à partir de ce niveau.
+    Si (unit n'a pas le parent direct, s'est-à-dire, il est racine)
+    	Initialiser un objet UnitInheritedRule avec management et Id du unit
+    Autrement
+    	Créer un objet UnitInheritedRule vide
+    Fin Si
+
+2. Ajouter les règles de gestion qui est hérité par les units parents. 
+   Cependant, il y a deux cas particuliers -- la prévention d'héritage et l'exclusion d'héritage.
+    
+    Pour (chaque parentId dans la liste de parent direct)
+    	Créer un objet UnitRuleCompute avec UnitSimplified qui contient management et Id du unit et la liste de son parent
+    	Calculer le règle (Cette étape est récursive. Il va calculer les règles jusqu'à la racine)
+    	Créer un objet UnitInheritedRule qui contient les règles hérités
+    	Concaténer les règles par défaut et les règles hérités
+    Fin Pour
+
+2.1 La prévention d'héritage
+	L’intégration d’une balise <PreventInheritance> dans le SEDA
+	Si le champ est « true », toutes les règles héritées des parents sont ignorées sur le nœud courant    	
+
+2.2 L'exclusion d'héritage
+	L’intégration d’une balise <RefNonRuleId> dans le SEDA indiquant la règle à désactiver à partir de ce niveau.
+
 		

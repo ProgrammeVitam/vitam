@@ -20,7 +20,8 @@ metadata
     |--- metadata-client  : client métadata qui sera utilisé par les autres modules 
     |                       pour faire des requête DSL sur le métadata
 
-2. Classes métiers 
+2. Classes métiers
+ 
 Dans cette section, nous présentons quelques classes principales dans des modules/packages 
 qu'on a abordé ci-dessus.
 

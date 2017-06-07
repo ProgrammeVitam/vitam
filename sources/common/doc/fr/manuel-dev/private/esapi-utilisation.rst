@@ -1,8 +1,11 @@
+esapi utilisation
+#################
 
 
-
-<?xml version="1.0" encoding="UTF-8"?>
-<policy>
+.. code-block:: xml
+ 
+  <?xml version="1.0" encoding="UTF-8"?>
+  <policy>
 	<settings>
 		<mode>redirect</mode>
 		<error-handling>
@@ -15,4 +18,6 @@
 			<path-exception type="regex">/marketing/.*</path-exception>
 		</add-header>
 	</outbound-rules>
-</policy>
+  </policy>
+
+

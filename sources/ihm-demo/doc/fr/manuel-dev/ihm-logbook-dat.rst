@@ -6,6 +6,7 @@ ihm-demo qui représente le story #90, qui contient :
 
 - modules & packages
 - classes métiers
+
 --------------------------
 
 
@@ -24,9 +25,10 @@ ihm-demo
 
 Depuis ces deux modules, nous proposons deux packages correspondants : 
 
- ihm-demo-core --> fr.gouv.vitam.ihmdemo.core
- ihm-demo-web-application --> fr.gouv.vitam.ihmdemo.appserver		      	
- ihm-demo-web-application --> webapp (resources) 
+ihm-demo-core --> fr.gouv.vitam.ihmdemo.core
+ihm-demo-web-application --> fr.gouv.vitam.ihmdemo.appserver		      	
+ihm-demo-web-application --> webapp (resources)
+
 2. Classes de métiers 
   
 Cette section, nous présentons les classes/fonctions principales dans chaque module/package qui 

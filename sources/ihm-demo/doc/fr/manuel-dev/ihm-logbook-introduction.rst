@@ -14,7 +14,3 @@ Le manuel se compose de deux parties
 au niveau des packages, classes
 - REST-RAML explique comment on utitlise des différents service proprosés par module
 
-
-
-
-

@@ -8,7 +8,8 @@ Présentation
 |  *Package proposition:* **fr.gouv.vitam.logbook**
 
 Itération 3 et Itération 5
------------
+---------------------------
+
 4 sous-modules pour le Logbook Engine. Dans logbook (parent).
 
 | - vitam-logbook-common :  Classes et exception communes aux différents modules
@@ -24,7 +25,7 @@ Itérations suivantes / à plus long terme
 | - vitam-logbook-administration-client : module client pour l'administration du moteur de journalisation (sera détaillé plus en détail)
 
 Modules - packages logbook
-------------------
+---------------------------
 
 |  logbook
 |     /logbook-common
@@ -57,3 +58,4 @@ Modules - packages logbook
 |     /logbook-administration-client
 
 |     /logbook-rest
+

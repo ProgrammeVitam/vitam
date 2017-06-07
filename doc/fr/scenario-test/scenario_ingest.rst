@@ -3,8 +3,8 @@ Scenario pour l'ingest
 
 Cette partie décrit les scenario de test correspondant au processus d'ingest.
 
-Liste des scenarios
-==================
+Liste des scenarii
+===================
 
 Ci-dessous est représentée la liste des différents scenarios de test exécutés dans le cadre de l'automatisation des tests.
 

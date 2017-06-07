@@ -260,7 +260,7 @@ Ci-après, la portion d'un bordereau (manifest.xml) utilisée pour contribuer le
   </BinaryDataObject>
 
 Détail des champs du JSON
-------------------------
+---------------------------
 
 "_id" (#id): identifiant du groupe d'objet. Il s'agit d'une chaîne de 36 caractères.
 Cet id est ensuite reporté dans chaque structure inculse

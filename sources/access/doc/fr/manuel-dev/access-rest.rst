@@ -8,7 +8,7 @@ API REST EXT appelées par le client access external. Il y a un controle des par
 avec ESAPI.
 
 fr.gouv.vitam.access.external.rest
-*************************
+***********************************
 
 -- AccessExternalRessourceImpl
 

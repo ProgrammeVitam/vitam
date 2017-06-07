@@ -11,355 +11,73 @@ Un Workflow est défini en JSON avec la structure suivante :
 - un identifiant (id)
 - une liste de Steps :
 
-   - un identifiant de famille de Workers (workerGroupId)
-   - un identifiant de Step (stepName)
+ - un identifiant de famille de Workers (workerGroupId)
+ - un identifiant de Step (stepName)
 
-   - un modèle d'exécution (behavior) pouvant être :
-     BLOCKING : le traitement est bloqué en cas d'erreur, il est nécessaire de recommencer le workflow
-     NOBLOCKING : le traitement peut continuer malgrée les erreurs
+ - un modèle d'exécution (behavior) pouvant être :
+   BLOCKING : le traitement est bloqué en cas d'erreur, il est nécessaire de recommencer le workflow
+   NOBLOCKING : le traitement peut continuer malgrée les erreurs
 
-   - un modèle de distribution :
+ - un modèle de distribution :
 
-      - un type (kind) pouvant être REF ou LIST
-      - l'élément de distribution (element) indiquant l'élément unique (REF) ou le chemin sur le Workspace (LIST)
+    - un type (kind) pouvant être REF ou LIST
+    - l'élément de distribution (element) indiquant l'élément unique (REF) ou le chemin sur le Workspace (LIST)
 
-   - une liste d'Actions :
-
-
-      - un nom d'action (actionKey)
-      - un modèle d'exécution (behavior) pouvant être BLOCKING ou NOBLOCKING
-      - des paramètres d'entrées (in) :
-
-         - un nom (name) utilisé pour référencer cet élément entre différents handlers d'une même étape
-         - une cible (uri) comportant un schema (WORKSPACE, MEMORY, VALUE) et un path :
+ - une liste d'Actions :
 
 
-            - WORKSPACE:path indique le chemin relatif sur le workspace
-            - MEMORY:path indique le nom de la clef de valeur
-            - VALUE:path indique la valeur statique en entrée
+    - un nom d'action (actionKey)
+    - un modèle d'exécution (behavior) pouvant être BLOCKING ou NOBLOCKING
+    - des paramètres d'entrées (in) :
 
-         - chaque handler peut accéder à ces valeurs, définies dans l'ordre stricte, via le handlerIO
-
-            - WORKSPACE : implicitement un File
-            - MEMORY : implicitement un objet mémoire déjà alloué par un Handler précédent
-            - VALUE : implicitement une valeur String
-
-      - des paramètres de sortie (out) :
-
-         - un nom (name) utilisé pour référencer cet élément entre différents handlers d'une même étape
-         - une cible (uri) comportant un schema (WORKSPACE, MEMORY) et un path :
-
-            - WORKSPACE:path indique le chemin relatif sur le workspace
-            - MEMORY:path indique le nom de la clef de valeur
-
-         - chaque handler peut stocker les valeurs finales, définies dans l'ordre stricte, via le handlerIO
+       - un nom (name) utilisé pour référencer cet élément entre différents handlers d'une même étape
+       - une cible (uri) comportant un schema (WORKSPACE, MEMORY, VALUE) et un path :
 
 
-            - WORKSPACE : implicitement un File local
-            - MEMORY : implicitement un objet mémoire
+          - WORKSPACE:path indique le chemin relatif sur le workspace
+          - MEMORY:path indique le nom de la clef de valeur
+          - VALUE:path indique la valeur statique en entrée
+
+       - chaque handler peut accéder à ces valeurs, définies dans l'ordre stricte, via le handlerIO
+
+          - WORKSPACE : implicitement un File
+          - MEMORY : implicitement un objet mémoire déjà alloué par un Handler précédent
+          - VALUE : implicitement une valeur String
+
+    - des paramètres de sortie (out) :
+
+       - un nom (name) utilisé pour référencer cet élément entre différents handlers d'une même étape
+       - une cible (uri) comportant un schema (WORKSPACE, MEMORY) et un path :
+
+          - WORKSPACE:path indique le chemin relatif sur le workspace
+          - MEMORY:path indique le nom de la clef de valeur
+
+       - chaque handler peut stocker les valeurs finales, définies dans l'ordre stricte, via le handlerIO
 
 
-.. code-block:: json
-
-   {
-     "id": "DefaultIngestWorkflow",
-     "comment": "Default Ingest Workflow V6",
-     "steps": [
-       {
-         "workerGroupId": "DefaultWorker",
-         "stepName": "STP_INGEST_CONTROL_SIP",
-         "behavior": "BLOCKING",
-         "distribution": {
-           "kind": "REF",
-           "element": "SIP/manifest.xml"
-         },
-         "actions": [
-           {
-             "action": {
-               "actionKey": "CHECK_SEDA",
-               "behavior": "BLOCKING"
-             }
-           },
-           {
-             "action": {
-               "actionKey": "CHECK_MANIFEST_DATAOBJECT_VERSION",
-               "behavior": "BLOCKING"
-             }
-           },
-           {
-             "action": {
-               "actionKey": "CHECK_MANIFEST_OBJECTNUMBER",
-               "behavior": "NOBLOCKING"
-             }
-           },
-           {
-             "action": {
-               "actionKey": "CHECK_MANIFEST",
-               "behavior": "BLOCKING",
-               "out": [
-                 {
-                   "name": "unitsLevel.file",
-                   "uri": "WORKSPACE:UnitsLevel/ingestLevelStack.json"
-                 },
-                 {
-                   "name": "mapsDOtoOG.file",
-                   "uri": "WORKSPACE:Maps/DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP.json"
-                 },
-                 {
-                   "name": "mapsDO.file",
-                   "uri": "WORKSPACE:Maps/DATA_OBJECT_ID_TO_GUID_MAP.json"
-                 },
-                 {
-                   "name": "mapsObjectGroup.file",
-                   "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
-                 },
-                 {
-                   "name": "mapsObjectGroup.file",
-                   "uri": "WORKSPACE:Maps/OG_TO_ARCHIVE_ID_MAP.json"
-                 },
-                 {
-                   "name": "mapsDOIdtoDODetail.file",
-                   "uri": "WORKSPACE:Maps/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP.json"
-                 },
-                 {
-                   "name": "mapsUnits.file",
-                   "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json"
-                 },
-                 {
-                   "name": "globalSEDAParameters.file",
-                   "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
-                 }
-               ]
-             }
-           },
-		   {
-             "action": {
-               "actionKey": "CHECK_CONTRACT_INGEST",
-               "behavior": "BLOCKING",
-               "in": [
-                 {
-                   "name": "globalSEDAParameters.file",
-                   "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
-                 }
-               ]
-             }
-           }           
-           {
-             "action": {
-               "actionKey": "CHECK_CONSISTENCY",
-               "behavior": "NOBLOCKING",
-               "in": [
-                 {
-                   "name": "mapsDOtoOG.file",
-                   "uri": "WORKSPACE:Maps/OG_TO_ARCHIVE_ID_MAP.json"
-                 },
-                 {
-                   "name": "mapsDOtoOG.file",
-                   "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
-                 }
-               ]
-             }
-           }
-         ]
-       },
-       {
-         "workerGroupId": "DefaultWorker",
-         "stepName": "STP_OG_CHECK_AND_TRANSFORME",
-         "behavior": "BLOCKING",
-         "distribution": {
-           "kind": "LIST",
-           "element": "ObjectGroup"
-         },
-         "actions": [
-            {
-             "action": {
-               "actionKey": "CHECK_DIGEST",
-               "behavior": "BLOCKING",
-               "in": [
-                 {
-                   "name": "algo",
-                   "uri": "VALUE:SHA-512"
-                 }
-               ]
-             }
-           },
-           {
-             "action": {
-               "actionKey": "OG_OBJECTS_FORMAT_CHECK",
-               "behavior": "BLOCKING"
-             }
-           }
-         ]
-       },
-       {
-         "workerGroupId": "DefaultWorker",
-         "stepName": "STP_UNIT_CHECK_AND_PROCESS",
-         "behavior": "BLOCKING",
-         "distribution": {
-           "kind": "LIST",
-           "element": "Units"
-         },
-         "actions": [
-            {
-               "action": {
-                  "actionKey": "CHECK_UNIT_SCHEMA",
-                  "behavior": "BLOCKING"
-               }
-            },
-           {
-             "action": {
-               "actionKey": "UNITS_RULES_COMPUTE",
-               "behavior": "BLOCKING"
-             }
-           }
-         ]
-       },
-       {
-         "workerGroupId": "DefaultWorker",
-         "stepName": "STP_STORAGE_AVAILABILITY_CHECK",
-         "behavior": "BLOCKING",
-         "distribution": {
-           "kind": "REF",
-           "element": "SIP/manifest.xml"
-         },
-         "actions": [
-           {
-             "action": {
-               "actionKey": "STORAGE_AVAILABILITY_CHECK",
-               "behavior": "BLOCKING"
-             }
-           }
-         ]
-       },
-       {
-         "workerGroupId": "DefaultWorker",
-         "stepName": "STP_OG_STORING",
-         "behavior": "BLOCKING",
-         "distribution": {
-           "kind": "LIST",
-           "element": "ObjectGroup"
-         },
-         "actions": [
-           {
-             "action": {
-               "actionKey": "OG_STORAGE",
-               "behavior": "BLOCKING"
-             }
-           },
-           {
-             "action": {
-               "actionKey": "OG_METADATA_INDEXATION",
-               "behavior": "BLOCKING"
-             }
-           }
-         ]
-       },
-       {
-         "workerGroupId": "DefaultWorker",
-         "stepName": "STP_UNIT_STORING",
-         "behavior": "BLOCKING",
-         "distribution": {
-           "kind": "LIST",
-           "element": "Units"
-         },
-         "actions": [
-           {
-             "action": {
-               "actionKey": "UNIT_METADATA_INDEXATION",
-               "behavior": "BLOCKING"
-             }
-           }
-         ]
-       },
-       {
-         "workerGroupId": "DefaultWorker",
-         "stepName": "STP_ACCESSION_REGISTRATION",
-         "behavior": "BLOCKING",
-         "distribution": {
-           "kind": "REF",
-           "element": "SIP/manifest.xml"
-         },
-         "actions": [
-           {
-             "action": {
-               "actionKey": "ACCESSION_REGISTRATION",
-               "behavior": "BLOCKING",
-               "in": [
-                 {
-                   "name": "mapsUnits.file",
-                   "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json"
-                 },
-                 {
-                   "name": "mapsDO.file",
-                   "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
-                 },
-                 {
-                   "name": "mapsDO.file",
-                   "uri": "WORKSPACE:Maps/BDO_TO_BDO_INFO_MAP.json"
-                 },
-                 {
-                   "name": "globalSEDAParameters.file",
-                   "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
-                 }
-               ]
-             }
-           }
-         ]
-       },
-       {
-         "workerGroupId": "DefaultWorker",
-         "stepName": "STP_INGEST_FINALISATION",
-         "behavior": "FINALLY",
-         "distribution": {
-           "kind": "REF",
-           "element": "SIP/manifest.xml"
-         },
-         "actions": [
-           {
-             "action": {
-               "actionKey": "ATR_NOTIFICATION",
-               "behavior": "BLOCKING",
-               "in": [
-                 {
-                   "name": "mapsUnits.file",
-                   "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json",
-                   "optional": "true"
-                 },
-                 {
-                   "name": "mapsDO.file",
-                   "uri": "WORKSPACE:Maps/DATA_OBJECT_ID_TO_GUID_MAP.json",
-                   "optional": "true"
-                 },
-                 {
-                   "name": "mapsDOtoOG.file",
-                   "uri": "WORKSPACE:Maps/DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP.json",
-                   "optional": "true"
-                 },
-                 {
-                   "name": "mapsDOIdtoDODetail.file",
-                   "uri": "WORKSPACE:Maps/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP.json",
-                   "optional": "true"
-                 },
-                 {
-                   "name": "globalSEDAParameters.file",
-                   "uri": "WORKSPACE:ATR/globalSEDAParameters.json",
-                   "optional": "true"
-                 }
-               ],
-               "out": [
-                 {
-                   "name": "atr.file",
-                   "uri": "WORKSPACE:ATR/responseReply.xml"
-                 }
-               ]
-             }
-           }
-         ]
-       }
-     ]
-   }
+          - WORKSPACE : implicitement un File local
+          - MEMORY : implicitement un objet mémoire
 
 
+Exemple:
+
+.. only:: html
+
+        .. literalinclude:: includes/json
+           :language: json
+           :linenos:
+
+.. only:: latex
+
+        .. literalinclude:: includes/json
+           :language: json
+           :linenos:
+           :dedent: 4
+
+.. todo:: ne semble pas marcher.
+
+Etapes
+-------
 
 - **Step 1** - STP_INGEST_CONTROL_SIP : Check SIP  / distribution sur REF GUID/SIP/manifest.xml
 

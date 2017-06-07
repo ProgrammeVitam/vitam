@@ -26,8 +26,8 @@ Utilisation de ihmDemoClient
 
 Le service ihmDemoClient permet d'instancier un client HTTP préconfiguré pour dialoguer avec le serveur d'app IHM-DEMO.
 Ce dernier contient entre autre:
- - La racine de l'url à appeler (Exemple: ihm-demo/v1/api)
- - Un intercepteur permettant d'ajouter le HEADER X-request-id à chaque requêtes.
+- La racine de l'url à appeler (Exemple: ihm-demo/v1/api)
+- Un intercepteur permettant d'ajouter le HEADER X-request-id à chaque requêtes.
 
 Requêtes http personnalisées
 ============================
@@ -37,9 +37,9 @@ Dans ce cas, il est possible de récupérrer la clé et la valeur du header via 
 
 .. code-block:: javascript
 
-   var key = loadStaticValues.loadFromFile().then(function(response) {
-     return response.data.headers;
-   });
-   var value = authVitamService.cookieValue(authVitamService.COOKIE_TENANT_ID);
+	var key = loadStaticValues.loadFromFile().then(function(response) {
+	 return response.data.headers;
+	});
+	var value = authVitamService.cookieValue(authVitamService.COOKIE_TENANT_ID);
 
-NB: Les services authVitamService et loadStaticValues doivent avoir été injectés.
+.. note:: Les services authVitamService et loadStaticValues doivent avoir été injectés.

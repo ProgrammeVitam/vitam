@@ -1,11 +1,12 @@
 DAT : module functional-administration
-#####################################
+#######################################
 
 Ce document présente l'ensemble du manuel développement concernant le développment du module
 functional-administration qui identifie par la user story #71, qui contient :
 
 - modules & packages
 - classes métiers
+
 --------------------------
 
 
@@ -34,6 +35,7 @@ functional-administration
 		|--- functional-administration-profile	: fournis les traitements de base pour les profile.
 
 2. Classes métiers
+
 Dans cette section, nous présentons quelques classes principales dans des modules/packages
 abordés ci-dessus.
 
@@ -76,15 +78,19 @@ MongoDbAccess commun pour mongodb
 	+ functional-administration-format-import
 
 2.3. functional-administration-rest
+
 - AdminManagementResource.java : définir des ressources différentes pour le serveur REST functional-administration
 - AdminManagementApplication.java : créer & lancer le serveur d'application avec une configuration
 - ContractResource.java : Définir l'endpoints de l'api rest des contrats (entrée et accès)
 - ProfileResource.java : Définir l'endpoint de l'api rest du profile
+
 2.4. functional-administration-client
+
 - AdminManagementClientRest.java : créer le client de et des fonctionnalités en se connectant au serveur REST
 - AdminManagementClientMock.java : créer le client et des fonctionnalités en se connectant au mock de serveur
 
 2.5. functional-administration-rules
+
 	+ functional-administration-rules-api
 	+ functional-administration-rules-core
 	- RulesManagerParser.java :permett de de parser le fichier de référentiel de règle de gestion d'extension .CSV
@@ -118,6 +124,7 @@ MongoDbAccess commun pour mongodb
              * "Illimitée (règle à durée illimitée)" : dans le cas où la date de fin ne peut pas être calculée car la durée de la règle est 'unlimited'
 
 2.6. functional-administration-accession-register
+
 	+ functional-administration-accession-register-api
 	+ functional-administration-accession-register-core
 	- ReferentialAccessionRegisterImpl.java :implémentation de base des opération sur la collection registre de fond .
@@ -126,22 +133,24 @@ MongoDbAccess commun pour mongodb
 
 2.7. functional-administration-contract
 
-	 fr.gouv.vitam.functional.administration.contract.api
-	 - ContractService.java :   Interface définissant les différentes opérations sur les contrats (contrat d'accès et contrat d'entrée)
-	 fr.gouv.vitam.functional.administration.contract.core
-	 - AccessContractImpl.java : Classe d'implémentation pour la gestion des contrats d'accès
-	 - ContractStatus.java : Enum pour les différents status des contrat d'accès et des contrat d'entrées
-	 - ContractValidator.java : Interface fonctionnelle de validations des contrats
-	 - GenericContractValidator.java : Interface fonctionnelle de validations des contrats
-	 - IngestContractImpl.java : Classe d'implémentation pour la gestion des contrats d'entrées
+fr.gouv.vitam.functional.administration.contract.api
+- ContractService.java :   Interface définissant les différentes opérations sur les contrats (contrat d'accès et contrat d'entrée)
+fr.gouv.vitam.functional.administration.contract.core
+- AccessContractImpl.java : Classe d'implémentation pour la gestion des contrats d'accès
+- ContractStatus.java : Enum pour les différents status des contrat d'accès et des contrat d'entrées
+- ContractValidator.java : Interface fonctionnelle de validations des contrats
+- GenericContractValidator.java : Interface fonctionnelle de validations des contrats
+- IngestContractImpl.java : Classe d'implémentation pour la gestion des contrats d'entrées
 
 
 2.8. functional-administration-profile
 
-	 fr.gouv.vitam.functional.administration.profile.api
-	 - ProfileService.java :   Interface définissant les différentes opérations sur les profiles.
-	 fr.gouv.vitam.functional.administration.profile.api.impl
-	 - ProfileServiceImpl.java :   Implémentation du service ProfileService.
-	 fr.gouv.vitam.functional.administration.profile.core
-	 - ProfileManager.java : Gère toutes les opérations du logbook et toutes les opérations de validation concernant les profiles. Lors de la validation, il vérifie (si déjà existence dans la base de données, champs obligatoires, fichiers au format xsd ou rng valides, ..).
-	 - ProfileValidator.java : Interface fonctionnelle de validations des contrats
+fr.gouv.vitam.functional.administration.profile.api
+- ProfileService.java :   Interface définissant les différentes opérations sur les profiles.
+fr.gouv.vitam.functional.administration.profile.api.impl
+- ProfileServiceImpl.java :   Implémentation du service ProfileService.
+fr.gouv.vitam.functional.administration.profile.core
+- ProfileManager.java : Gère toutes les opérations du logbook et toutes les opérations de validation concernant les profiles. Lors de la validation, il vérifie (si déjà existence dans la base de données, champs obligatoires, fichiers au format xsd ou rng valides, ..).
+- ProfileValidator.java : Interface fonctionnelle de validations des contrats
+
+

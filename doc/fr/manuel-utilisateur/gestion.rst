@@ -1,5 +1,5 @@
 Gestion des archives existantes
-#########################
+################################
 
 Cette partie décrit les fonctionnalités de gestion et modification des archives dans Vitam.
 

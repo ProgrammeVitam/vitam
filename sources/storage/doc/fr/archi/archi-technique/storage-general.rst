@@ -81,8 +81,8 @@ faire. Chacune de ces copies est envoyée à une offre au travers de threads.
 
 L'objet n'est pas tout à fait copié. Il passe au travers d'un **tee** qui crée autant de buffers que de copies. Chacun
 des buffers est rempli, puis lu en parallèle. Dès que tous les buffers sont vidés, ils sont tous réalimenté jusqu'à ce
- qu'il n'y ait plus rien à transmettre. Cela signifie que le tee est bloquant. Si un buffer n'est pas vidé les autres
- attendent potentiellement indéfinement s'il n'y a pas de timeout.
+qu'il n'y ait plus rien à transmettre. Cela signifie que le tee est bloquant. Si un buffer n'est pas vidé les autres
+attendent potentiellement indéfinement s'il n'y a pas de timeout.
 
 Il n'y a pas de vrai pool de threads dans cette version.
 
@@ -90,5 +90,6 @@ Itération 16
 ------------
 
 - Revue de l'architecture golbale du stockage. Mise en place du CAS MANAGER et du CAS CONTAINER.
-- Refactoring des éléments communs entre les offres et le workspace. Mise en place d'une implémentation workspace
-spécifique de stockage en mode filesystem
+- Refactoring des éléments communs entre les offres et le workspace. Mise en place d'une implémentation workspace spécifique de stockage en mode filesystem
+
+

@@ -15,14 +15,15 @@ Le client propose actuellement différentes méthodes : insert et selection des 
 
 Il faut ajouter la dependance au niveau de pom.xml
 
- 		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>metadata-client</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		
+.. code-block:: xml
 
-.. code-block exemple :: java
+    <dependency>
+        <groupId>fr.gouv.vitam</groupId>
+        <artifactId>metadata-client</artifactId>
+        <version>${project.version}</version>
+    </dependency>
+
+
 
 	1. Créer le client métadata
 	En deux étapes
@@ -93,72 +94,77 @@ Il faut ajouter la dependance au niveau de pom.xml
  
 	Paramètre d'entrée est une requête DSL de type JsonNode, indiquant la requête sur la collection ObjectGroup. 
 	Un exemple de la requête paramètrée est le suivant : 
-		{
-		  "$root" : [],	
-		  "$queries": [{ "$exists": "value" }],
-		  "$filter": { },
-		  "$data": { "_id": "objectgroupValue" }
-		}
+
+.. code-block:: json
+
+    {
+        "$root" : [],	
+        "$queries": [{ "$exists": "value" }],
+        "$filter": { },
+        "$data": { "_id": "objectgroupValue" }
+    }
+
 	Cette fonction retourne une réponse de type JsonNode contenant les informations : code de retour en cas d'erreur, 
 	la requête effectuée sur la collection ... 
 
 	2.3 Sélection des ArchiveUnits 
 
-        try {
-        
-        // return JsonNode
-            jsonNode = metaDataClient.selectUnits(
-                accessModuleBean != null ? accessModuleBean.getRequestDsl() : "");
+.. code-block:: java
 
+    try {
+        // return JsonNode
+        jsonNode = metaDataClient.selectUnits(
+            accessModuleBean != null ? accessModuleBean.getRequestDsl() : "");
         } catch (InvalidParseOperationException e) {
-            LOG.error("parsing error", e);
-            throw e;
+        LOG.error("parsing error", e);
+        throw e;
         } catch (MetadataInvalidSelectException e) {
-            LOG.error("invalid select", e);
-            throw e;
+        LOG.error("invalid select", e);
+        throw e;
         } catch (MetaDataDocumentSizeException e) {
-            LOG.error("document size problem", e);
-            throw e;
+        LOG.error("document size problem", e);
+        throw e;
         } catch (MetaDataExecutionException e) {
-            LOG.error("metadata execution problem", e);
-            throw e;
+        LOG.error("metadata execution problem", e);
+        throw e;
         } catch (IllegalArgumentException e) {
-            LOG.error("illegal argument", e);
-            throw new AccessExecutionException();
+        LOG.error("illegal argument", e);
+        throw new AccessExecutionException();
         } catch (Exception e) {
-            LOG.error("exeption thrown", e);
-            throw e;
-        }
+        LOG.error("exeption thrown", e);
+        throw e;
+    }
 
    2.4 Sélection d'un ObjectGroup 
 
-        try { 
-            JsonNode selectQuery;
-            String objectGroupId;
-        // return JsonNode
-            jsonNode = metaDataClient.selectObjectGrouptbyId(selectQuery, objectGroupId);
+.. code-block:: java
 
-        } catch (InvalidParseOperationException e) {
-            LOG.error("parsing error", e);
-            throw e;
-        } catch (MetadataInvalidSelectException e) {
-            LOG.error("invalid select", e);
-            throw e;
-        } catch (MetaDataDocumentSizeException e) {
-            LOG.error("document size problem", e);
-            throw e;
-        } catch (MetaDataExecutionException e) {
-            LOG.error("metadata execution problem", e);
-            throw e;
-        } catch (IllegalArgumentException e) {
-            LOG.error("illegal argument", e);
-            throw new AccessExecutionException();
-        } catch (MetadataInvalidSelectException e) {
-            LOG.error("invalid selection", e);
-            throw new AccessExecutionException();
-        } catch (Exception e) {
-            LOG.error("exeption thrown", e);
-            throw e;
-        }   
+    try { 
+    JsonNode selectQuery;
+    String objectGroupId;
+    // return JsonNode
+    jsonNode = metaDataClient.selectObjectGrouptbyId(selectQuery, objectGroupId);
 
+    } catch (InvalidParseOperationException e) {
+    LOG.error("parsing error", e);
+    throw e;
+    } catch (MetadataInvalidSelectException e) {
+    LOG.error("invalid select", e);
+    throw e;
+    } catch (MetaDataDocumentSizeException e) {
+    LOG.error("document size problem", e);
+    throw e;
+    } catch (MetaDataExecutionException e) {
+    LOG.error("metadata execution problem", e);
+    throw e;
+    } catch (IllegalArgumentException e) {
+    LOG.error("illegal argument", e);
+    throw new AccessExecutionException();
+    } catch (MetadataInvalidSelectException e) {
+    LOG.error("invalid selection", e);
+    throw new AccessExecutionException();
+    } catch (Exception e) {
+    LOG.error("exeption thrown", e);
+    throw e;
+    }   
 
