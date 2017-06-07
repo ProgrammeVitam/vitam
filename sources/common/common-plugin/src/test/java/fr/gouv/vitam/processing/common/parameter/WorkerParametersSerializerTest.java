@@ -79,7 +79,6 @@ public class WorkerParametersSerializerTest {
         assertTrue(parametersDeser.getObjectName().equals(parameters.getObjectName()));
         assertTrue(parametersDeser.getWorkerGUID().equals(parameters.getWorkerGUID()));
         assertTrue(parametersDeser.getProcessId().equals(parameters.getProcessId()));
-        assertTrue(parametersDeser.getStepUniqId().equals(parameters.getStepUniqId()));
     }
 
 

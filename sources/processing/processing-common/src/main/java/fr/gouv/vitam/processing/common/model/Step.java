@@ -44,6 +44,10 @@ import fr.gouv.vitam.common.model.ItemStatus;
 public class Step {
     @JsonIgnore
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(Step.class);
+
+
+    private String id;
+
     private String workerGroupId = "DefaultWorker";
     private String stepName;
     private ProcessBehavior behavior;
@@ -53,6 +57,14 @@ public class Step {
     @JsonIgnore
     private ItemStatus stepResponses;
 
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     /**
      * getActions

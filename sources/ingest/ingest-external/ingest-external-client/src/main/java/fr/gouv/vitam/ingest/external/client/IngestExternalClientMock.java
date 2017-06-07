@@ -30,17 +30,12 @@ import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
 
 import java.io.InputStream;
 
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.common.exception.VitamClientInternalException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -166,7 +161,7 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
     @Override
     public RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId, String actionId)
         throws InternalServerException, BadRequestException, VitamClientException {
-        return new RequestResponseOK<JsonNode>().addHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, FAKE_EXECUTION_STATUS);
+        return new RequestResponseOK<JsonNode>().addHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, FAKE_EXECUTION_STATUS);
     }
 
     @Override

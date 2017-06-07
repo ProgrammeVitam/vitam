@@ -56,7 +56,7 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ProcessExecutionStatus;
+import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
@@ -198,7 +198,8 @@ public class IngestExternalImpl implements IngestExternal {
                     // Implementation of asynchrone
                     AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.ACCEPTED)
                         .header(GlobalDataRest.X_REQUEST_ID, guid.getId())
-                        .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, ProcessExecutionStatus.PENDING)
+                        .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.PAUSE)
+                        .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.UNKNOWN)
                         .build());
 
                 }

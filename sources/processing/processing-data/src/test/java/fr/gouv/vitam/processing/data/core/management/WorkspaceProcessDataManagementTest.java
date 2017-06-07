@@ -39,9 +39,6 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.ws.rs.core.Response;
 
@@ -54,20 +51,8 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.ProcessExecutionStatus;
-import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
-import fr.gouv.vitam.processing.common.model.Action;
-import fr.gouv.vitam.processing.common.model.ActionDefinition;
-import fr.gouv.vitam.processing.common.model.Distribution;
-import fr.gouv.vitam.processing.common.model.DistributionKind;
-import fr.gouv.vitam.processing.common.model.IOParameter;
-import fr.gouv.vitam.processing.common.model.ProcessBehavior;
-import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
-import fr.gouv.vitam.processing.common.model.ProcessingUri;
-import fr.gouv.vitam.processing.common.model.UriPrefix;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;

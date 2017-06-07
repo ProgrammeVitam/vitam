@@ -27,14 +27,8 @@
 package fr.gouv.vitam.processing.engine.core.monitoring;
 
 import java.util.List;
-import java.util.Map;
 
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
-import fr.gouv.vitam.common.model.ProcessExecutionStatus;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.exception.StepsNotFoundException;
-import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 
 /**
@@ -51,47 +45,15 @@ public interface ProcessMonitoring {
      * @return ProcessWorkflow object
      * @throws WorkflowNotFoundException thrown when process workflow not found
      */
-    ProcessWorkflow getProcessWorkflow(String id, Integer tenantId) throws WorkflowNotFoundException;
-
-    /**
-     * Gets current Process Workflow execution status by operation Id
-     * 
-     * @param id :null not allowed : the operation identifier process to return
-     * @param tenantId Tenant identifier
-     * @return {@link ProcessExecutionStatus} :
-     * @throws WorkflowNotFoundException hrown when process workflow not found
-     */
-    ProcessExecutionStatus getProcessExecutionStatus(String id, Integer tenantId) throws WorkflowNotFoundException;
-
-    /**
-     * Get process steps by processId
-     * 
-     * @param processId is operation id
-     * @param tenantId Tenant identifier
-     * @return map of process step
-     * @throws StepsNotFoundException will be thrown when steps not found
-     * @throws WorkflowNotFoundException if the workflow is not found
-     */
-
-    public Map<String, ProcessStep> getProcessSteps(String processId, Integer tenantId)
-        throws StepsNotFoundException, WorkflowNotFoundException;
+    ProcessWorkflow findOneProcessWorkflow(String id, Integer tenantId) throws WorkflowNotFoundException;
 
 
-    /**
-     * Return true if at least one of the step status is KO or FATAL.
-     * @param processId The workflow identifier
-     * @param tenantId Tenant identifier
-     * @return true if at least one of the step status is KO or FATAL, else false
-     * @throws ProcessingException if the process does not exist
-     */
-    StatusCode getProcessWorkflowStatus(String processId, Integer tenantId) throws ProcessingException;
-    
     /**
      * Get all proccess
      * @param tenantId the working tenant
      * @return the list of all worflow
      */
-    public List<ProcessWorkflow> getAllProcessWorkflow(Integer tenantId);
+    public List<ProcessWorkflow> findAllProcessWorkflow(Integer tenantId);
 
 
 

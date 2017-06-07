@@ -63,9 +63,11 @@ public class ItemStatus {
     protected List<Integer> statusMeter;
     @JsonProperty("data")
     protected Map<String, Object> data;
-    @JsonProperty("globalExecutionStatus")
-    protected ProcessExecutionStatus globalExecutionStatus;
+    @JsonProperty("globalState")
+    protected ProcessState globalState;
 
+    @JsonIgnore
+    private String logbookTypeProcess;
 
     /**
      * Empty Constructor
@@ -88,14 +90,14 @@ public class ItemStatus {
      * @param data
      * @param itemsStatus
      * @param evDetailData
-     * @param globalExecutionStatus
+     * @param globalState
      */
     public ItemStatus(@JsonProperty("itemId") String itemId, @JsonProperty("message") String message,
         @JsonProperty("globalStatus") StatusCode globalStatus,
         @JsonProperty("statusMeter") List<Integer> statusMeter, @JsonProperty("data") Map<String, Object> data,
         @JsonProperty("itemsStatus") LinkedHashMap<String, ItemStatus> itemsStatus,
         @JsonProperty("evDetailData") String evDetailData,
-        @JsonProperty("globalExecutionStatus") ProcessExecutionStatus globalExecutionStatus) {
+        @JsonProperty("globalState") ProcessState globalState) {
         this.itemsStatus = itemsStatus;
         this.itemId = itemId;
         this.message = message;
@@ -103,7 +105,7 @@ public class ItemStatus {
         this.statusMeter = statusMeter;
         this.data = data;
         this.evDetailData = evDetailData;
-        this.globalExecutionStatus = globalExecutionStatus;
+        this.globalState = globalState;
     }
 
     /**
@@ -334,20 +336,21 @@ public class ItemStatus {
     }
 
     /**
-     * @return the globalExecutionStatus
+     * Get the global state
+     * @return
      */
-    public ProcessExecutionStatus getGlobalExecutionStatus() {
-        return globalExecutionStatus;
+    public ProcessState getGlobalState() {
+        return globalState;
     }
 
     /**
-     * @param cancled the globalExecutionStatus to set
+     * @param globalState the golbal state to set
      *
      * @return this
      */
-    public ItemStatus setGlobalExecutionStatus(ProcessExecutionStatus cancled) {
-        ParametersChecker.checkParameter(MANDATORY_PARAMETER, cancled);
-        this.globalExecutionStatus = cancled;
+    public ItemStatus setGlobalState(ProcessState globalState) {
+        ParametersChecker.checkParameter(MANDATORY_PARAMETER, globalState);
+        this.globalState = globalState;
         return this;
     }
 
@@ -403,4 +406,12 @@ public class ItemStatus {
         return this;
     }
 
+    public String getLogbookTypeProcess() {
+        return logbookTypeProcess;
+    }
+
+    public ItemStatus setLogbookTypeProcess(String logbookTypeProcess) {
+        this.logbookTypeProcess = logbookTypeProcess;
+        return this;
+    }
 }

@@ -43,7 +43,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ProcessExecutionStatus;
+import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
@@ -135,7 +135,7 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
     @Override
     public void persistProcessWorkflow(String folderName, String asyncId, ProcessWorkflow processWorkflow)
         throws ProcessingStorageWorkspaceException, InvalidParseOperationException {
-        LOGGER.debug("[PERSIST] workflow process with execution status : <{}>", processWorkflow.getExecutionStatus());
+        LOGGER.debug("[PERSIST] workflow process with execution status : <{}>", processWorkflow.getState());
         try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
             // XXX: ugly way to do this (bytearray) ?
             client.putObject(PROCESS_CONTAINER, getPathToObjectFromFolder(folderName, asyncId),
@@ -194,10 +194,11 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
                 try {
                     // TODO: review this ugly split
                     ProcessWorkflow processWorkflow = getProcessWorkflow(folderName, uri.getPath().split("\\.")[0]);
-                    if (!ProcessExecutionStatus.PAUSE.equals(processWorkflow.getExecutionStatus())) {
-                        processWorkflow.setExecutionStatus(ProcessExecutionStatus.CANCELLED);
-                        processWorkflow.setGlobalStatusCode(StatusCode.UNKNOWN);
+                    if (ProcessState.RUNNING.equals(processWorkflow.getState())) {
+                        processWorkflow.setState(ProcessState.COMPLETED);
+                        processWorkflow.setStatus(StatusCode.UNKNOWN);
                     }
+
                     if (tenantId == null || processWorkflow.getTenantId().equals(tenantId)) {
                         result.put(processWorkflow.getOperationId(), processWorkflow);
                     }

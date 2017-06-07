@@ -27,26 +27,8 @@
 
 package fr.gouv.vitam.processing.integration.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.io.File;
-import java.io.InputStream;
-import java.util.List;
-
-import javax.ws.rs.core.Response;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.model.RequestResponse;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.fasterxml.jackson.core.type.TypeReference;
-
+import com.fasterxml.jackson.databind.JsonNode;
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -55,7 +37,6 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.CommonMediaType;
-import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -68,7 +49,8 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessAction;
-import fr.gouv.vitam.common.model.ProcessExecutionStatus;
+import fr.gouv.vitam.common.model.ProcessState;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -91,13 +73,33 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookApplication;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.rest.MetaDataApplication;
+import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
+import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
+import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementApplication;
+import fr.gouv.vitam.worker.client.WorkerClient;
+import fr.gouv.vitam.worker.client.WorkerClientConfiguration;
+import fr.gouv.vitam.worker.client.WorkerClientFactory;
 import fr.gouv.vitam.worker.server.rest.WorkerApplication;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.InputStream;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class PausedProcessingIT {
 
@@ -106,6 +108,9 @@ public class PausedProcessingIT {
     private final static String CLUSTER_NAME = "vitam-cluster";
     private static final Integer TENANT_ID = 0;
     private static final int DATABASE_PORT = 12346;
+
+    private static final long SLEEP_TIME = 100l;
+    private static final long NB_TRY = 4800; // equivalent to 4 minute
 
     private static final String WORFKLOW_NAME = "DefaultIngestWorkflow";
 
@@ -257,7 +262,24 @@ public class PausedProcessingIT {
         }
     }
 
+    private void flush() {
+        ProcessDataAccessImpl.getInstance().clearWorkflow();
+    }
+    private void wait(String operationId) {
+        int nbTry = 0;
+        while (! processingClient.isOperationCompleted(operationId)) {
+            try {
+                Thread.sleep(SLEEP_TIME);
+            } catch (InterruptedException e) {
+                //nothing to do
+            }
+            if (nbTry == NB_TRY) break;
+            nbTry ++;
+        }
+    }
     private void tryImportFile() {
+        flush();
+
         if (!imported) {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 client
@@ -323,14 +345,21 @@ public class PausedProcessingIT {
             LogbookTypeProcess.INGEST.toString(), ProcessAction.NEXT.getValue());
         // wait a little bit
         assertNotNull(resp);
-        assertEquals(Response.Status.OK.getStatusCode(), resp.getStatus());
-        assertEquals(ProcessExecutionStatus.PAUSE.toString(), resp.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
+
+        assertEquals(Response.Status.ACCEPTED.getStatusCode(), resp.getStatus());
+
+        wait(containerName);
+        ProcessWorkflow processWorkflow =
+            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
+
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.PAUSE, processWorkflow.getState());
+        assertEquals(StatusCode.OK, processWorkflow.getStatus());
         // wait a little bit
 
         // shutdown processing
         processManagementApplication.stop();
         // wait a little bit
-        Thread.sleep(500);
         LOGGER.info("After STOP");
         // restart processing
         SystemPropertyUtil.set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT,
@@ -338,22 +367,63 @@ public class PausedProcessingIT {
         processManagementApplication = new ProcessManagementApplication(CONFIG_PROCESSING_PATH);
         processManagementApplication.start();
         // wait a little bit until jetty start
-        Thread.sleep(8000);
+
+        waitServerStart();
+
         LOGGER.info("After RE-START");
 
         // Next on the old paused ans persisted workflow
         Response ret = processingClient.updateOperationActionProcess(ProcessAction.NEXT.getValue(),
             containerName);
         assertNotNull(ret);
-        assertEquals(ProcessExecutionStatus.PAUSE.toString(), ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
-        assertEquals(Response.Status.PARTIAL_CONTENT.getStatusCode(), ret.getStatus());
-        // wait a little bit
+
+        assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+        wait(containerName);
+        processWorkflow =
+            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
+
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.PAUSE, processWorkflow.getState());
+        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+
 
         ret =  processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(),
             containerName);
         assertNotNull(ret);
-        assertEquals(ProcessExecutionStatus.COMPLETED.toString(), ret.getHeaderString(GlobalDataRest
-            .X_GLOBAL_EXECUTION_STATUS));
-        assertEquals(Response.Status.PARTIAL_CONTENT.getStatusCode(), ret.getStatus());
+
+        assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+        wait(containerName);
+        processWorkflow =
+            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
+
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+    }
+
+
+    private void waitServerStart() {
+        int nbTry = 30;
+        while (!checkStatus()) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                //Nothing to do
+            }
+            nbTry --;
+
+            if (nbTry < 0) break;
+        }
+    }
+    private boolean checkStatus() {
+        try {
+            processingClient.checkStatus();
+            return true;
+        } catch (Exception e) {
+            LOGGER.error("ProcessManagement server is not active.", e);
+            return false;
+        }
     }
 }

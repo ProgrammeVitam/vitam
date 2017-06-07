@@ -24,49 +24,36 @@
  *  The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  *  accept its terms.
  */
-package fr.gouv.vitam.processing.engine.api;
 
+package fr.gouv.vitam.processing.management.core;
 
-import fr.gouv.vitam.processing.common.automation.IEventsProcessEngine;
-import fr.gouv.vitam.processing.common.exception.ProcessingEngineException;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.ProcessStep;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-
-import java.util.Map;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.processing.common.automation.IEventsState;
+import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
+import fr.gouv.vitam.processing.engine.api.ProcessEngine;
 
 /**
- * Process Engine Interface Provides access to all the services and to manage a workflow of operations.
+ * Class StateMachineFactory Goal : create an instance of StateMachine
  */
+public class StateMachineFactory {
 
-public interface ProcessEngine {
+    private final static StateMachineFactory INSTANCE = new StateMachineFactory();
 
+    private StateMachineFactory(){}
 
-    /**
-     * Set the state machine where the ProcessEngine return response on complete or on error
-     * @param callback
-     */
-    void setCallback(IEventsProcessEngine callback);
-
-    /**
-     * Start the execution of the given step
-     *
-     * @param step
-     * @param workerParameters
-     * @throws ProcessingException
-     */
-    void start(ProcessStep step, WorkerParameters workerParameters, Map<String, String> params)
-        throws ProcessingEngineException;
+    public static StateMachineFactory get() {
+        return INSTANCE;
+    }
 
     /**
-     * Pause the execution of the current step
-     * Send message to the distributor to cancel the execution of the current step
+     * @return StateMachine object created
+     * @param processWorkflow
+     * @param processEngine
+     * @return
      */
-    void pause();
-
-    /**
-     * Cancel the execution of the current step
-     * Send message to the distributor to cancel the execution of the current step
-     */
-    void cancel();
+    public StateMachine create(ProcessWorkflow processWorkflow, ProcessEngine processEngine) {
+        ParametersChecker.checkParameter("ProcessWorkflow cannot be null", processWorkflow);
+        ParametersChecker.checkParameter("ProcessEngine cannot be null", processEngine);
+        return new StateMachine(processWorkflow, processEngine);
+    }
 }

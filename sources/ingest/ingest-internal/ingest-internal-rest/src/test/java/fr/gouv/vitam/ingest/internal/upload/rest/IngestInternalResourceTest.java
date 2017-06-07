@@ -35,11 +35,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -66,13 +63,10 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
-import fr.gouv.vitam.common.model.ProcessExecutionStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.HeaderIdContainerFilter;
 import fr.gouv.vitam.common.server.VitamServer;
@@ -81,12 +75,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 

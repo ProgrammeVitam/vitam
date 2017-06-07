@@ -46,6 +46,14 @@ import fr.gouv.vitam.processing.common.model.WorkerBean;
 public interface ProcessingManagementClient extends OperationManagementClient {
 
     /**
+     * Check if process workflow is completed of not
+     * TODO Move this method to OperationManagementClient
+     * @param operationId
+     * @return
+     */
+    boolean isOperationCompleted(String operationId);
+
+    /**
      * Register a new worker knowing its family and with a WorkerBean. If a problem is encountered, an exception is
      * thrown.
      *

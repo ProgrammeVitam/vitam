@@ -26,37 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.internal.integration.test;
 
-import static com.jayway.restassured.RestAssured.get;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import org.bson.Document;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.jayway.restassured.RestAssured;
-
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -83,6 +56,7 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.stream.SizedInputStream;
@@ -113,6 +87,11 @@ import fr.gouv.vitam.logbook.rest.LogbookApplication;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.rest.MetaDataApplication;
+import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
+import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
+import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
+import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
+import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementApplication;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
@@ -120,6 +99,30 @@ import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.worker.server.rest.WorkerApplication;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
+import org.bson.Document;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.jayway.restassured.RestAssured.get;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Ingest Internal integration test
@@ -139,6 +142,9 @@ public class IngestInternalIT {
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
+
+    private static final long SLEEP_TIME = 100l;
+    private static final long NB_TRY = 9600; // equivalent to 16 minute
 
     private static boolean imported = false;
     private final static String CLUSTER_NAME = "vitam-cluster";
@@ -335,9 +341,28 @@ public class IngestInternalIT {
         }
     }
 
+    private void flush() {
+        ProcessDataAccessImpl.getInstance().clearWorkflow();
+    }
+    private void wait(String operationId) {
+        int nbTry = 0;
+        ProcessingManagementClient processingClient =
+            ProcessingManagementClientFactory.getInstance().getClient();
+        while (! processingClient.isOperationCompleted(operationId)) {
+            try {
+                Thread.sleep(SLEEP_TIME);
+            } catch (InterruptedException e) {
+                //nothing to do
+            }
+            if (nbTry == NB_TRY) break;
+            nbTry ++;
+        }
+    }
     private void tryImportFile() {
 
         VitamThreadUtils.getVitamSession().setContractId(contractId);
+        flush();
+
         if (!imported) {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 client
@@ -445,6 +470,14 @@ public class IngestInternalIT {
 
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
+            wait(operationGuid.toString());
+
+            ProcessWorkflow processWorkflow =
+                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
+
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.OK, processWorkflow.getStatus());
 
             // Try to check AU
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
@@ -545,6 +578,15 @@ public class IngestInternalIT {
 
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
+            wait(operationGuid.toString());
+
+            ProcessWorkflow processWorkflow =
+                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
+
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+
             // Try to check AU
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
             SelectMultiQuery select = new SelectMultiQuery();
@@ -609,6 +651,16 @@ public class IngestInternalIT {
 
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
+            wait(operationGuid.toString());
+
+            ProcessWorkflow processWorkflow =
+                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
+
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.KO, processWorkflow.getStatus());
+
+
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
             JsonNode logbookOperation =
                 accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
@@ -668,6 +720,17 @@ public class IngestInternalIT {
             client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
 
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
+
+            wait(operationGuid.toString());
+
+            ProcessWorkflow processWorkflow =
+                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
+
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.KO, processWorkflow.getStatus());
+
+
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
             JsonNode logbookOperation =
                 accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
@@ -701,6 +764,7 @@ public class IngestInternalIT {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         tryImportFile();
+        // TODO: 6/6/17 why objectGuid ? The test fail on the logbook
         final GUID objectGuid = GUIDFactory.newManifestGUID(0);
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -710,7 +774,7 @@ public class IngestInternalIT {
 
         final List<LogbookOperationParameters> params = new ArrayList<>();
         final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-            operationGuid, "Process_SIP_unitary", objectGuid,
+            operationGuid, "Process_SIP_unitary", operationGuid,
             LogbookTypeProcess.INGEST, StatusCode.STARTED,
             operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
             operationGuid);
@@ -722,7 +786,20 @@ public class IngestInternalIT {
         final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
         final Response response2 = client.uploadInitialLogbook(params);
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+
+        // init workflow before execution
+        client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
+
+        wait(operationGuid.toString());
+
+        ProcessWorkflow processWorkflow =
+            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
+
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.KO, processWorkflow.getStatus());
 
     }
 
@@ -763,6 +840,15 @@ public class IngestInternalIT {
             // init workflow before execution
             client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
+
+            wait(operationGuid.toString());
+
+            ProcessWorkflow processWorkflow =
+                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
+
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
 
             // Try to check AU
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
@@ -824,6 +910,14 @@ public class IngestInternalIT {
             assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
+            wait(operationGuid.toString());
+
+            ProcessWorkflow processWorkflow =
+                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
+
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
 
             // Try to check AU
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
@@ -885,9 +979,16 @@ public class IngestInternalIT {
 
             assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
-            // TODO FIXE ME Normaly call ingest external wich set Global resquet-ID
-            // WAITING Ingest
-            Thread.sleep(10000);
+
+            wait(operationGuid.toString());
+
+            ProcessWorkflow processWorkflow =
+                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
+
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+
             // Try to check AU
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
             SelectMultiQuery select = new SelectMultiQuery();
@@ -944,6 +1045,18 @@ public class IngestInternalIT {
             // init workflow before execution
             client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
+
+            wait(operationGuid.toString());
+
+            ProcessWorkflow processWorkflow =
+                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
+
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+
+            // TODO: 6/6/17 This test status code is KO why OK needed bellow checkUnitSuccess
+            assertEquals(StatusCode.KO, processWorkflow.getStatus());
+
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
             JsonNode logbookOperation =
                 accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
@@ -1004,6 +1117,16 @@ public class IngestInternalIT {
             // init workflow before execution
             client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
+
+            wait(operationGuid.toString());
+
+            ProcessWorkflow processWorkflow =
+                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
+
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
             JsonNode logbookOperation =
                 accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
@@ -1067,6 +1190,16 @@ public class IngestInternalIT {
             // init workflow before execution
             client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
+
+            wait(operationGuid.toString());
+
+            ProcessWorkflow processWorkflow =
+                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
+
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
             JsonNode logbookOperation =
                 accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
@@ -1129,6 +1262,15 @@ public class IngestInternalIT {
             client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
+            wait(operationGuid.toString());
+
+            ProcessWorkflow processWorkflow =
+                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
+
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.OK, processWorkflow.getStatus());
+
             SelectMultiQuery select = new SelectMultiQuery();
             select.addQueries(QueryHelper.eq("Title", "Sensibilisation API"));
             // Get AU
@@ -1175,6 +1317,16 @@ public class IngestInternalIT {
             client2.upload(zipInputStreamSipObject2, CommonMediaType.ZIP_TYPE, "HOLDING_SCHEME_RESUME");
 
             VitamThreadUtils.getVitamSession().setContractId("aName4");
+
+            wait(operationGuid.toString());
+
+            processWorkflow =
+                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
+
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.OK, processWorkflow.getStatus());
+
             SelectMultiQuery selectTree = new SelectMultiQuery();
             selectTree.addQueries(QueryHelper.eq("Title", "testArbre2").setDepthLimit(5));
             // Get AU

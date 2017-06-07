@@ -171,6 +171,10 @@ public class GlobalDataRest {
     public static final int STATUS_CHECK_RETRY = 3;
 
     /**
+     * Global execution state
+     */
+    public static final String X_GLOBAL_EXECUTION_STATE = "X-Global-Execution-State";
+    /**
      * Global execution status
      */
     public static final String X_GLOBAL_EXECUTION_STATUS = "X-Global-Execution-Status";
