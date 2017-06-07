@@ -99,7 +99,7 @@ gulp.task('default', ['serve']);
 
 function serve() {
   var target = 'http://localhost:8082';
-  var port = 9000;
+  var port = 9002;
 
   try {
     var customConf = require('./local.json');
