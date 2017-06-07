@@ -37,6 +37,10 @@
               {
                 "name": "checkNoObject",
                 "uri": "VALUE:false"
+              },
+              {
+                "name": "UnitType",
+                "uri": "VALUE:INGEST"
               }
             ],
             "out": [

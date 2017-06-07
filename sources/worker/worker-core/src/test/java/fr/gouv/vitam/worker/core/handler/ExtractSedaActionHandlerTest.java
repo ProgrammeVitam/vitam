@@ -116,6 +116,7 @@ public class ExtractSedaActionHandlerTest {
     private MetaDataClientFactory metadataClientFactory;
     private HandlerIOImpl action;
     private List<IOParameter> out;
+    private List<IOParameter> in;
     private static final Integer TENANT_ID = 0;
     private final WorkerParameters params =
         WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
@@ -165,6 +166,11 @@ public class ExtractSedaActionHandlerTest {
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "ATR/globalSEDAParameters.json")));
         out.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.MEMORY, "MapsMemory/OBJECT_GROUP_ID_TO_GUID_MAP.json")));
+        in = new ArrayList<>();
+        in.add(new IOParameter()
+                .setUri(new ProcessingUri(UriPrefix.VALUE, "false")));
+        in.add(new IOParameter()
+                .setUri(new ProcessingUri(UriPrefix.VALUE, "INGEST")));
     }
 
     @After
@@ -420,6 +426,7 @@ public class ExtractSedaActionHandlerTest {
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
         action.addOutIOParameters(out);
+
         final ItemStatus response = handler.execute(params, action);
 
         assertEquals(StatusCode.OK, response.getGlobalStatus());
