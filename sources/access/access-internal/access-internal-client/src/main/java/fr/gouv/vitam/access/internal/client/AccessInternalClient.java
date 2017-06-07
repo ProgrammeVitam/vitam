@@ -197,7 +197,7 @@ public interface AccessInternalClient extends MockOrRestClient {
         throws LogbookClientServerException, InvalidParseOperationException, AccessUnauthorizedException;
 
     /**
-     * @param fileName
+     * @param operationId
      * @return a response containing the traceability file
      * @throws AccessUnauthorizedException 
      */
