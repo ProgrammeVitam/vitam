@@ -204,13 +204,16 @@ public class IngestInternalIT {
     private static String SIP_KO_WITH_EMPTY_TITLE =
         "integration-processing/SIP_FILE_1791_CA1.zip";
 
+    private static String SIP_KO_WITH_SPECIAL_CHARS =
+        "integration-processing/SIP-2182-KO.zip";
+
     private static String SIP_KO_WITH_INCORRECT_DATE =
         "integration-processing/SIP_FILE_1791_CA2.zip";
 
     private static String SIP_OK_WITH_SERVICE_LEVEL =
         "integration-processing/SIP_2467_SERVICE_LEVEL.zip";
     private static String SIP_OK_WITHOUT_SERVICE_LEVEL =
-            "integration-processing/SIP_2467_WITHOUT_SERVICE_LEVEL.zip";
+        "integration-processing/SIP_2467_WITHOUT_SERVICE_LEVEL.zip";
 
     private static String SIP_OK_PHYSICAL_ARCHIVE = "integration-ingest-internal/OK_ArchivesPhysiques.zip";
 
@@ -618,6 +621,68 @@ public class IngestInternalIT {
 
     @RunWithCustomExecutor
     @Test
+    public void testIngestInternal2182CA1() throws Exception {
+        try {
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+            tryImportFile();
+            // workspace client dezip SIP in workspace
+            RestAssured.port = PORT_SERVICE_WORKSPACE;
+            RestAssured.basePath = WORKSPACE_PATH;
+            final InputStream zipInputStreamSipObject =
+                PropertiesUtils.getResourceAsStream(SIP_KO_WITH_SPECIAL_CHARS);
+
+            // init default logbook operation
+            final List<LogbookOperationParameters> params = new ArrayList<>();
+            final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+                operationGuid, "Process_SIP_unitary", operationGuid,
+                LogbookTypeProcess.INGEST, StatusCode.STARTED,
+                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+                operationGuid);
+            params.add(initParameters);
+            LOGGER.error(initParameters.toString());
+
+            // call ingest
+            IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
+            final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
+            final Response response2 = client.uploadInitialLogbook(params);
+            assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+
+            // init workflow before execution
+            client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+
+            client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
+
+            final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
+            JsonNode logbookOperation =
+                accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
+                    .toJsonNode().get("$results").get(0);
+            boolean checkDataObject = true;
+            final JsonNode elmt = logbookOperation.get("$results").get(0);
+            final List<Document> logbookOperationEvents =
+                (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
+            for (final Document event : logbookOperationEvents) {
+                if (StatusCode.KO.toString()
+                    .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) &&
+                    event.get(LogbookMongoDbName.eventType.getDbname())
+                        .equals("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST")) {
+                    checkDataObject = false;
+                    break;
+                }
+            }
+
+            assertTrue(!checkDataObject);
+
+        } catch (final Exception e) {
+            e.printStackTrace();
+            fail("should not raized an exception");
+        }
+    }
+
+
+    @RunWithCustomExecutor
+    @Test
     public void testIngestInternal1791CA1() throws Exception {
         try {
             final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
@@ -1011,9 +1076,11 @@ public class IngestInternalIT {
         }
     }
 
+
     @RunWithCustomExecutor
     @Test
     public void testIngestWithAddresseeFieldsInManifest() throws Exception {
+        // Now that HTML patterns are refused, this test is now KO
         try {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
@@ -1066,9 +1133,10 @@ public class IngestInternalIT {
             final List<Document> logbookOperationEvents =
                 (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
             for (final Document event : logbookOperationEvents) {
-                if (StatusCode.OK.toString()
+                if (StatusCode.KO.toString()
                     .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) &&
-                    event.get(LogbookMongoDbName.eventType.getDbname()).equals("CHECK_UNIT_SCHEMA")) {
+                    event.get(LogbookMongoDbName.eventType.getDbname())
+                        .equals("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST")) {
                     checkUnitSuccess = true;
                     break;
                 }
@@ -1213,7 +1281,7 @@ public class IngestInternalIT {
                     .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) &&
                     event.get(LogbookMongoDbName.outcomeDetail.getDbname()).equals("CHECK_DATAOBJECTPACKAGE.OK")) {
                     if (JsonHandler.getFromString(event.get(LogbookMongoDbName.eventDetailData.getDbname()).toString())
-                            .get("ServiceLevel") instanceof NullNode) {
+                        .get("ServiceLevel") instanceof NullNode) {
                         checkServiceLevel = true;
                     }
                     break;
@@ -1277,7 +1345,7 @@ public class IngestInternalIT {
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
             RequestResponse<JsonNode> response = accessClient.selectUnits(select.getFinalSelect());
             assertTrue(response.isOk());
-            
+
             // Get GOT
             final JsonNode node = response.toJsonNode().get("$results").get(0);
             final JsonNode unit = node.get("$results").get(0);
@@ -1293,7 +1361,7 @@ public class IngestInternalIT {
             select.addQueries(QueryHelper.eq("evType", "Process_SIP_unitary"));
             response = accessClient.selectOperation(select3.getFinalSelect());
             assertTrue(response.isOk());
-            
+
 
             final GUID operationGuid2 = GUIDFactory.newOperationLogbookGUID(tenantId);
             final InputStream zipInputStreamSipObject2 =
@@ -1307,7 +1375,7 @@ public class IngestInternalIT {
                 operationGuid2 != null ? operationGuid2.toString() : "outcomeDetailMessage",
                 operationGuid2);
             params2.add(initParameters2);
-            
+
             final IngestInternalClient client2 = IngestInternalClientFactory.getInstance().getClient();
             final Response response3 = client2.uploadInitialLogbook(params2);
             assertEquals(response3.getStatus(), Status.CREATED.getStatusCode());
