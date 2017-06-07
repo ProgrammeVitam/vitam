@@ -26,11 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.engine.core;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
-import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -47,6 +50,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.logbook.common.MessageLogbookEngineHelper;
 import fr.gouv.vitam.processing.common.automation.IEventsProcessEngine;
 import fr.gouv.vitam.processing.common.exception.ProcessingEngineException;
 import fr.gouv.vitam.processing.common.model.Action;
@@ -57,10 +61,6 @@ import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImplFactory;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * ProcessEngineImpl class manages the context and call a process distributor
@@ -215,6 +215,7 @@ public class ProcessEngineImpl implements ProcessEngine {
         int tenantId, LogbookTypeProcess logbookTypeProcess)
         throws InvalidGuidOperationException, LogbookClientBadRequestException, LogbookClientNotFoundException,
         LogbookClientServerException {
+        MessageLogbookEngineHelper messageLogbookEngineHelper = new MessageLogbookEngineHelper(logbookTypeProcess);
         LogbookOperationParameters parameters;
         parameters = LogbookParametersFactory.newLogbookOperationParameters(
             GUIDFactory.newEventGUID(tenantId),
@@ -222,11 +223,11 @@ public class ProcessEngineImpl implements ProcessEngine {
             GUIDReader.getGUID(workParams.getContainerName()),
             logbookTypeProcess,
             StatusCode.STARTED,
-            VitamLogbookMessages.getCodeOp(step.getStepName(), StatusCode.STARTED),
+            messageLogbookEngineHelper.getLabelOp(step.getStepName(), StatusCode.STARTED, null),
             GUIDReader.getGUID(workParams.getContainerName()));
         parameters.putParameterValue(
             LogbookParameterName.outcomeDetail,
-            VitamLogbookMessages.getOutcomeDetail(step.getStepName(), StatusCode.STARTED));
+            messageLogbookEngineHelper.getOutcomeDetail(step.getStepName(), StatusCode.STARTED));
         try (final LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
             logbookClient.update(parameters);
         }
@@ -278,6 +279,7 @@ public class ProcessEngineImpl implements ProcessEngine {
         LogbookTypeProcess logbookTypeProcess, LogbookOperationParameters parameters, ItemStatus stepResponse)
         throws InvalidGuidOperationException, LogbookClientNotFoundException, LogbookClientBadRequestException,
         LogbookClientServerException {
+        MessageLogbookEngineHelper messageLogbookEngineHelper = new MessageLogbookEngineHelper(logbookTypeProcess);
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         for (final Action action : step.getActions()) {
             final String handlerId = action.getActionDefinition().getActionKey();
@@ -291,10 +293,12 @@ public class ProcessEngineImpl implements ProcessEngine {
                         GUIDReader.getGUID(workParams.getContainerName()),
                         logbookTypeProcess,
                         StatusCode.STARTED,
-                        VitamLogbookMessages.getCodeOp(handlerId, StatusCode.STARTED),
+                        messageLogbookEngineHelper.getLabelOp(handlerId, StatusCode.STARTED, null),
                         GUIDReader.getGUID(workParams.getContainerName()));
                 actionParameters.putParameterValue(
-                    LogbookParameterName.outcomeDetail, VitamLogbookMessages.getOutcomeDetail(handlerId, StatusCode.STARTED));
+                    LogbookParameterName.outcomeDetail, messageLogbookEngineHelper
+                        .getOutcomeDetail(handlerId, StatusCode
+                        .STARTED));
                 helper.updateDelegate(actionParameters);
                 if (itemStatus instanceof ItemStatus) {
                     final ItemStatus actionStatus = itemStatus;
@@ -306,11 +310,12 @@ public class ProcessEngineImpl implements ProcessEngine {
                                 GUIDReader.getGUID(workParams.getContainerName()),
                                 logbookTypeProcess,
                                 StatusCode.STARTED,
-                                VitamLogbookMessages.getCodeOp(handlerId, sub.getItemId(), StatusCode.STARTED),
+                                messageLogbookEngineHelper
+                                    .getLabelOp(handlerId, sub.getItemId(), StatusCode.STARTED, null),
                                 GUIDReader.getGUID(workParams.getContainerName()));
 
                         startParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                            VitamLogbookMessages.getOutcomeDetail(handlerId, sub.getItemId(), StatusCode.STARTED));
+                            messageLogbookEngineHelper.getOutcomeDetail(handlerId, sub.getItemId(), StatusCode.STARTED));
 
                         helper.updateDelegate(startParameters);
 
@@ -359,7 +364,7 @@ public class ProcessEngineImpl implements ProcessEngine {
                     GUIDReader.getGUID(workParams.getContainerName()),
                     logbookTypeProcess,
                     itemStatusObjectListEmpty.getGlobalStatus(),
-                    VitamLogbookMessages.getCodeOp(OBJECTS_LIST_EMPTY, itemStatusObjectListEmpty.getGlobalStatus()),
+                    messageLogbookEngineHelper.getLabelOp(OBJECTS_LIST_EMPTY, itemStatusObjectListEmpty.getGlobalStatus()),
                     GUIDReader.getGUID(workParams.getContainerName()));
             helper.updateDelegate(actionParameters);
         }
@@ -404,10 +409,10 @@ public class ProcessEngineImpl implements ProcessEngine {
             stepResponse.getGlobalStatus().name());
 
         parameters.putParameterValue(LogbookParameterName.outcomeDetail,
-            VitamLogbookMessages.getOutcomeDetail(step.getStepName(), stepResponse.getGlobalStatus()));
+            messageLogbookEngineHelper.getOutcomeDetail(step.getStepName(), stepResponse.getGlobalStatus()));
 
         parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-            VitamLogbookMessages.getCodeOp(stepResponse.getItemId(), stepResponse.getGlobalStatus()));
+            messageLogbookEngineHelper.getLabelOp(stepResponse.getItemId(), stepResponse.getGlobalStatus()));
 
         helper.updateDelegate(parameters);
         try (final LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {

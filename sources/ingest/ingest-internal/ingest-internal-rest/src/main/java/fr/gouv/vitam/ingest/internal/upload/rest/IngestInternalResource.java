@@ -80,6 +80,7 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.ingest.internal.common.exception.ContextNotFoundException;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalException;
+import fr.gouv.vitam.logbook.common.MessageLogbookEngineHelper;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -835,6 +836,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
         LogbookClientBadRequestException, LogbookClientServerException, InternalServerException, VitamClientException {
 
         ProcessingManagementClient processingClient = processingManagementClientMock;
+        MessageLogbookEngineHelper messageLogbookEngineHelper = new MessageLogbookEngineHelper(logbookTypeProcess);
         try {
             if (processingClient == null) {
                 processingClient = ProcessingManagementClientFactory.getInstance().getClient();
@@ -853,14 +855,15 @@ public class IngestInternalResource extends ApplicationStatusResource {
 
             if (isCompletedProcess(ProcessState.valueOf(globalExecutionState))) {
                 callLogbookUpdate(client, parameters, fromStatusToStatusCode(response.getStatus()),
-                    VitamLogbookMessages.getCodeOp(INGEST_WORKFLOW, fromStatusToStatusCode(response.getStatus())));
+                    messageLogbookEngineHelper.getLabelOp(logbookTypeProcess.name(), fromStatusToStatusCode(response
+                        .getStatus())));
             }
 
             return ProcessState.valueOf(globalExecutionState);
         } catch (WorkflowNotFoundException | IllegalArgumentException | BadRequestException exc) {
             LOGGER.error(exc);
             callLogbookUpdate(client, parameters, StatusCode.FATAL,
-                VitamLogbookMessages.getCodeOp(INGEST_WORKFLOW, StatusCode.FATAL));
+                messageLogbookEngineHelper.getLabelOp(logbookTypeProcess.name(), StatusCode.FATAL));
             throw new IngestInternalException(exc);
         } finally {
             if (processingManagementClientMock == null && processingClient != null) {
