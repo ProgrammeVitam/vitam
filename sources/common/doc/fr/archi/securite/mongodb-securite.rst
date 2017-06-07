@@ -1,8 +1,8 @@
 Securité de MongoDB
-***********
+####################
 
 Objectifs
-***********
+==========
 
 L'objectif est de sécuriser l'accèss à la base de donnée MongoDB.
 MongoDB exige que tous les clients de s'authentifier afin de déterminer leur accès.

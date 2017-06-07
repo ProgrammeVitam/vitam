@@ -1,6 +1,5 @@
-
 Nombre d'objets numériques conforme
-######
+######################################
 
 Ce module permet de vérifier que le nombre d’objets contenu dans un SIP correspond au nombre d’objets déclarés dans le bordereau afin de s’assurer de l’intégralité du SIP.
 
@@ -22,37 +21,38 @@ Pour l'usage interne Vitam
     
 2) Parcours du fichier manifest avec la technologie StAX pour extraire 1 par 1 des Uri dans la balise Binary Data Object.
 
-     private void getUri(ExtractUriResponse extractUriResponse, XMLEventReader evenReader) throws XMLStreamException, URISyntaxException {  
 
-        while (evenReader.hasNext()) {         
-            XMLEvent event = evenReader.nextEvent();
-            
-            if (event.isStartElement()) {
-                StartElement startElement = event.asStartElement();
-                
-                // If we have an Tag Uri element equal Uri into SEDA
-                if (startElement.getName().getLocalPart() == (SedaUtils.TAG_URI)){           
-                    event = evenReader.nextEvent();                    
-                    String uri = event.asCharacters().getData(); 
-                    // Check element is duplicate
-                    checkDuplicatedUri(extractUriResponse, uri);     
-                    extractUriResponse.getUriListManifest().add(new URI(uri));
-                 }               
-            }
-        }
-    }
-  }
+.. code-block:: java
+
+    private void getUri(ExtractUriResponse extractUriResponse, XMLEventReader evenReader) throws XMLStreamException, URISyntaxException {  
+        while (evenReader.hasNext()) {  
+            XMLEvent event = evenReader.nextEvent();
+            if (event.isStartElement()) {
+                StartElement startElement = event.asStartElement();
+                // If we have an Tag Uri element equal Uri into SEDA
+                if (startElement.getName().getLocalPart() == (SedaUtils.TAG_URI)){ 
+                    event = evenReader.nextEvent();
+                    String uri = event.asCharacters().getData(); 
+                    // Check element is duplicate
+                    checkDuplicatedUri(extractUriResponse, uri);
+                    extractUriResponse.getUriListManifest().add(new URI(uri));
+                }               
+            }
+        }
+    }
 
 
 3) Vérification des éléménts dans la liste d'Uri sans doublon.
 
 4) Ajout de l'élément de la liste d'Uri en capsulant dans l'object ExtractUriResponse.
 
-    public class ExtractUriResponse extends ProcessResponse{
-    
-    private boolean errorDuplicateUri;
-    // list contains Uri for Binary Object
-    private List<URI> uriListManifest;
+.. code-block:: java
+
+    public class ExtractUriResponse extends ProcessResponse{ 
+    private boolean errorDuplicateUri;
+    // list contains Uri for Binary Object
+    private List<URI> uriListManifest;
+    ...
 
 
 5) Récupération de la liste d'Uri des objets numériques stockés dans un conteneur du workspace (de manière récursive).
@@ -108,3 +108,4 @@ private void checkCountDigitalObjectConformity(List<URI> uriListManifest, List<U
         Response response) {
 ...
 }
+

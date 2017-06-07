@@ -38,14 +38,14 @@ Il est également possible de donner une valeur de surcharge pour la valeur du c
 Exemple:
 .. code-block:: html
 
-      <div class="col-xs-12">
-      	<div class="form-group col-md-6">
-      		<display-field field-label="'Service producteur'" field-size="'11'"
-      			intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
-      		    field-object="$ctrl.mainFields['OriginatingAgency'].content[0]" edit-mode="$ctrl.isEditMode">
-      		</display-field>
-      	</div
-      </div>
+   <div class="col-xs-12">
+      <div class="form-group col-md-6">
+      	<display-field field-label="'Service producteur'" field-size="'11'"
+      		intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
+      	    field-object="$ctrl.mainFields['OriginatingAgency'].content[0]" edit-mode="$ctrl.isEditMode">
+      	</display-field>
+      </div
+   </div>
 
 Directive display-fieldtree
 ===========================
@@ -66,13 +66,13 @@ Cette directive permet d'afficher un champ et leurs sous élément si nécessair
 Exemple:
 .. code-block:: html
 
-      <div class="row archiveDesc panel-collapse collapse in" id="{{'box' + key}}">
-      	<div ng-repeat="fieldSet in $ctrl.managmentItems">
-      	    <display-fieldtree intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
-      	    	field-object="fieldSet" edit-mode="$ctrl.isEditMode">
-      	    </display-fieldtree>
-      	</div>
-      </div>
+   <div class="row archiveDesc panel-collapse collapse in" id="{{'box' + key}}">
+   	<div ng-repeat="fieldSet in $ctrl.managmentItems">
+   	    <display-fieldtree intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
+   	    	field-object="fieldSet" edit-mode="$ctrl.isEditMode">
+   	    </display-fieldtree>
+   	</div>
+   </div>
 
 Affichage des Libéllés des champs
 =================================
@@ -90,10 +90,10 @@ La fonction self.displayLabel du controller archive-unit permet de récupérer l
 Exemple:
 .. code-block:: javascript
 
-      var key = fieldSet.fieldId;
-      var parent = fieldSet.parent;
-      var constants = ARCHIVE_UNIT_MODULE_OG_FIELD_LABEL;
-      fieldSet.fieldName = self.displayLabel(key, parent, constants);
+   var key = fieldSet.fieldId;
+   var parent = fieldSet.parent;
+   var constants = ARCHIVE_UNIT_MODULE_OG_FIELD_LABEL;
+   fieldSet.fieldName = self.displayLabel(key, parent, constants);
 
 Affichage dynamiqueTable
 ************************
@@ -117,6 +117,7 @@ Il met à disposition une fonction d'initialisation (initAndServe) du service de
 * onInputChange - Fonction qui peut être appelée par le contrôleur lors d'une modification d'un champ pour déclancher une réinitialisation de la recherche si le formulaire est revenu à son état initial.
 
 Aussi, en plus des autres paramètres (voir JS doc de la fonction initAndServe), l'initialisation prends en paramètre un objet 'searchScope' qui doit être lié au scope et doit être de la forme suivante:
+
 .. code-block:: javascript
 
    searchScope = {

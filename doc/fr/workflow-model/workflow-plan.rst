@@ -41,9 +41,9 @@ D'une façon synthétique, le workflow est décrit de cette façon :
 
 
 .. figure:: images/Workflow_FilingScheme.jpg
-:align: center
-:height: 22 cm
-:target: images/Workflow_FilingScheme.jpg
+   :align: center
+   :height: 22 cm
+   :target: images/Workflow_FilingScheme.jpg
 
 Diagramme d'activité du workflow du plan de classement
 

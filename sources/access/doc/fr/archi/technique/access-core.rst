@@ -42,6 +42,7 @@ Récupération d'un objet spécifique
 Il faut utiliser la méthode getOneObjectFromObjectGroup() pour récupérer un objet binaire.
 
 Exemple :
+
 .. code-block:: java
 
   try {

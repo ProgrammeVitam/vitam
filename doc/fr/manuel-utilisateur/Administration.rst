@@ -556,7 +556,7 @@ L'opération est journalisée et disponible depuis l'écran de consultation des 
 En cas de succès de l'import de fichier de règle, la date de mise à jour du profil est ajustée en conséquence. Si l'utilisateur importe un fichier de règle alors qu'un autre fichier de règles a déjà été importé, alors le nouveau fichier remplace l'ancien.
 
 Import d'un arbre de positionnement
-=================================
+====================================
 
 L'import d'un arbre de positionnement dans Vitam s'effectue depuis l'écran "Import de l'arbre de positionnement", accessible depuis le menu "Administration" puis en cliquant sur le sous-menu du même nom.
 
@@ -667,7 +667,7 @@ Les boutons disponibles sont :
 * Arrêt : permet d’arrêter complètement une opération d’entrée. Elle passera alors en statut “terminée” et il sera impossible de la redémarrer
 
 Recherche et vérification des opérations de sécurisation
-=======================================================
+=========================================================
 
 La sécurisation des journaux permet de garantir la valeur probante des archives prises en charge dans la solution logicielle VITAM.
 

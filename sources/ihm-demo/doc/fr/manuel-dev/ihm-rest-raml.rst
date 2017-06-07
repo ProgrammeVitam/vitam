@@ -8,8 +8,9 @@ le backend de l'application web.
 
 
 ------------
+
  package:* **fr.gouv.vitam.api**
-|  *Package proposition:* **fr.gouv.vitam.metadata.rest**
+ |  *Package proposition:* **fr.gouv.vitam.metadata.rest**
 
 Module pour le module opération : api / fr.gouv.vitam.ihmdemo.appserver
 
@@ -37,3 +38,5 @@ Rest API
 |           Cela retourne une liste d'AccessionRegisterSummary (Si recherche par Service producteur, liste de 1 élément)
 | POST   /admin/accession-register/detail -> Recherche dans AccessionRegisterDetail par un id de service producteur (critère)
 |           Cela retourne une liste d'AccessionRegisterDetail correspondant au Service producteur donné
+
+

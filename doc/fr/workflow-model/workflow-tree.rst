@@ -109,7 +109,7 @@ Traitement additionnel dans la tâche CHECK_DATAOBJECTPACKAGE
 
 
 Structure du Workflow d'un arbre (Implémenté en V1)
-========================================
+=====================================================
 
 Le workflow actuel mis en place dans la solution Vitam est défini dans le fichier "DefaultHoldingSchemeWorkflow.json".
 Il décrit le processus d'entrée pour téléchager un arbre, indexer les métadonnées et stocker les objets contenus dans l'arbre.

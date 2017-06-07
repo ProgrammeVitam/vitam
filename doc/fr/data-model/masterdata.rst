@@ -19,24 +19,24 @@ Exemple de JSON stocké en base
 
 ::
 
- {
-  "_id": "aeaaaaaaaahbl62nabduoak3jc2zqciaadiq",
-  "CreatedDate": "2016-09-27T15:37:53",
-  "VersionPronom": "88",
-  "Version": "2",
-  "HasPriorityOverFileFormatID": [
-      "fmt/714"
-  ],
-  "MIMEType": "audio/mobile-xmf",
-  "Name": "Mobile eXtensible Music Format",
-  "Group": "",
-  "Alert": false,
-  "Comment": "",
-  "Extension": [
-      "mxmf"
-  ],
-  "PUID": "fmt/961"
-}
+  {
+    "_id": "aeaaaaaaaahbl62nabduoak3jc2zqciaadiq",
+    "CreatedDate": "2016-09-27T15:37:53",
+    "VersionPronom": "88",
+    "Version": "2",
+    "HasPriorityOverFileFormatID": [
+        "fmt/714"
+    ],
+    "MIMEType": "audio/mobile-xmf",
+    "Name": "Mobile eXtensible Music Format",
+    "Group": "",
+    "Alert": false,
+    "Comment": "",
+    "Extension": [
+        "mxmf"
+    ],
+    "PUID": "fmt/961"
+  }
 
 
 Exemple de la description d'un format dans le XML d'entrée
@@ -52,7 +52,7 @@ Ci-après, la portion d'un bordereau (DROID_SignatureFile_VXX.xml) utilisée pou
    </FileFormat>
 
 Détail des champs du JSON stocké en base
----------------------------------------
+------------------------------------------
 
 "_id": Il s'agit de l'identifiant unique du format dans VITAM.
     C'est une chaine de caractères composée de 36 signes.
@@ -174,7 +174,8 @@ Exemple de JSON stocké en base
    "RuleMeasurement": "YEAR",
    "CreationDate": "2017-04-07",
    "UpdateDate": "2017-04-07"
-}
+  }
+
 
 Colonne du csv comprenant les règles de gestion
 -----------------------------------------------
@@ -256,6 +257,7 @@ Exemple de JSON stocké en base
       ],
       "FilingParentId": "aeaqaaaaaagbcaacaax56ak35rpo6zqaaaaq"
     }
+
 
 Exemple d'un fichier implémentant des contrats d'entrée envoyé au format JSON
 ------------------------------------------------------------------------------

@@ -749,7 +749,7 @@ Verser WARNING_SIP_SRC2_TITLE_DESC_UNITS_SANS_OBJ.zip contenant une unité d’a
 On souhaite changer le titre pour “Rectorat de Seine-Et-Marne” et la description pour “Dossier relatifs aux secteurs publics et privés”.
 *Requête :*
 
- {
+  {
    "$query": [],
    "$filter": {},
    "$action": [
@@ -760,7 +760,7 @@ On souhaite changer le titre pour “Rectorat de Seine-Et-Marne” et la descrip
        }
      }
    ]
- }
+  }
 
 *Critères d’acceptance :*
 
@@ -1086,7 +1086,7 @@ Headers:
 +----------------------------+---------------------------+
 | X-Http-Method-Override     | GET                       |
 +----------------------------+---------------------------+
-| X-Tenant-Id                | 0					     |
+| X-Tenant-Id                | 0                         |
 +----------------------------+---------------------------+
 
 La réponse: 200 OK et la valeur total dans la réponse soit 3

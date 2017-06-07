@@ -11,10 +11,11 @@ Afin de récupérer le client une factory a été mise en place.
 
 .. code-block:: java
 
-    // Récupération du client
-    StorageClientFactory.changeMode(ClientConfiguration configuration)    
-    StorageClient client = StorageClientFactory.getInstance().getClient();
-	
+  // Récupération du client
+  StorageClientFactory.changeMode(ClientConfiguration configuration)    
+  StorageClient client = StorageClientFactory.getInstance().getClient();
+
+
 A la demande l'instance courante du client, si un fichier de configuration storage-client.conf est présent dans le classpath le client en mode de production est envoyé, sinon il s'agit du mock.
 
 
@@ -25,10 +26,10 @@ En l'absence d'une configuration, le client est en mode Mock. Il est possible de
 
 .. code-block:: java
 
-      // Changer la configuration du Factory
-    StorageClientFactory.changeMode(null)
-      // Récupération explicite du client mock
-      StorageClient client = StorageClientFactory.getInstance().getClient();
+  // Changer la configuration du Factory
+  StorageClientFactory.changeMode(null)
+  // Récupération explicite du client mock
+  StorageClient client = StorageClientFactory.getInstance().getClient();
 
 
 Le mode de production
@@ -38,10 +39,10 @@ Pour instancier son client en mode Production :
 
 .. code-block:: java
 
-      // Changer la configuration du Factory
-      StorageClientFactory.setConfiguration(StorageConfiguration configuration);
-      // Récupération explicite du client
-      StorageClient client = StorageClientFactory.getInstance().getClient();
+  // Changer la configuration du Factory
+  StorageClientFactory.setConfiguration(StorageConfiguration configuration);
+  // Récupération explicite du client
+  StorageClient client = StorageClientFactory.getInstance().getClient();
 
 Les services
 ************
@@ -57,7 +58,7 @@ Ces fonctionnalités sont :
 
 .. code-block:: java
 
-	JsonNode result = client.getStorageInformation("0", "default");
+  JsonNode result = client.getStorageInformation("0", "default");
 
 - l'envoi d'un objet sur une offre de stockage selon une stratégie donnée :
 	- pour les objets contenus dans le workspace (objets binaires) :
@@ -66,14 +67,15 @@ Ces fonctionnalités sont :
 
 	StoredInfoResult result = storeFileFromWorkspace("0", "default", StorageCollectionType.OBJECTS, "aeaaaaaaaaaam7mxaaaamakv3x3yehaaaaaq");
 
-   - pour les metadatas Json (objectGroup, unit, logbook -- pas encore implémenté côté serveur) :
 
- - la vérification de l'existance d'un objet dans l'offre de stockage selon  une stratégie donnée :
+  - pour les metadatas Json (objectGroup, unit, logbook -- pas encore implémenté côté serveur) :
+
+- la vérification de l'existance d'un objet dans l'offre de stockage selon  une stratégie donnée :
    - pour les conteneurs (pas encore implémenté côté serveur) :
 
 .. code-block:: java
 
-		boolean exist = existsContainer("0", "default");
+	boolean exist = existsContainer("0", "default");
 
    - pour les autres objets (object, objectGroup, unit, logbook -- implémenté côté serveur uniquement pour object) :
 
@@ -81,36 +83,37 @@ Ces fonctionnalités sont :
 
 		boolean exist = exists("0", "default", StorageCollectionType.OBJECTS, "aeaaaaaaaaaam7mxaaaamakv3x3yehaaaaaq");
 
- - la suppression d'un objet dans l'offre de stockage selon  une stratégie donnée :
-   - pour les conteneurs  (pas encore implémenté côté serveur) :
+- la suppression d'un objet dans l'offre de stockage selon  une stratégie donnée :
+  - pour les conteneurs  (pas encore implémenté côté serveur) :
 
 .. code-block:: java
 
-   boolean deleted = deleteContainer("0", "default");
+  boolean deleted = deleteContainer("0", "default");
 
    - pour les autres objets (object, objectGroup, unit, logbook -- implémenté côté serveur uniquement pour object) :
 
 .. code-block:: java
 
-   boolean deleted = delete("0", "default", StorageCollectionType.OBJECTS, "aeaaaaaaaaaam7mxaaaamakv3x3yehaaaaaq");
+  boolean deleted = delete("0", "default", StorageCollectionType.OBJECTS, "aeaaaaaaaaaam7mxaaaamakv3x3yehaaaaaq");
 
 - la récupération d'un objet (InputStream) contenu dans un container :
 
 .. code-block:: java
 
-   Response response = client.getContainerAsync("0", "default", "aeaaaaaaaaaam7mxaaaamakv3x3yehaaaaaq");
+  Response response = client.getContainerAsync("0", "default", "aeaaaaaaaaaam7mxaaaamakv3x3yehaaaaaq");
 
 - La récupération de la liste d'objets d'un certain type :
 
 .. code-block:: java
 
-   // Si cursorId non connu
-   Response response = listContainerObjects("default", DataCategory.OBJECT, null)
-   // Si cursorId connu
-   Response response = listContainerObjects("default", DataCategory.OBJECT, "idcursor")
+  // Si cursorId non connu
+  Response response = listContainerObjects("default", DataCategory.OBJECT, null)
+  // Si cursorId connu
+  Response response = listContainerObjects("default", DataCategory.OBJECT, "idcursor")
 
 - La récupération du status est également disponible :
 
 .. code-block:: java
 
 	StatusMessage status = client.getStatus();
+

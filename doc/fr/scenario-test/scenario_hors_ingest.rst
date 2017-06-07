@@ -4,14 +4,14 @@ Scenario hors ingest
 Cette partie décrit les scenario de test correspondant aux processus autres que l'ingest.
 
 Liste des scenarios
-==================
+====================
 
 Règles de gestion
 -----------------
 Pour tester les différents cas pour le référentiel des règles de gestion : 
 
 Pré-requis : purge du référentiel
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
  - Se rendre sur l'IHM de recette > Administration des collections 
  - Dans la partie Référentiels, purger le référentiel des règles en cliquant sur le bouton Supprimer.
  - Une pop up apparait : "Suppression des règles de gestion ? Êtes-vous certain de vouloir vider la collection des règles de gestion ?"
@@ -67,7 +67,7 @@ Formats
 Pour tester les différents cas pour le référentiel des formats. 
 
 Pré-requis : purge du référentiel
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
  - Se rendre sur l'IHM de recette > Administration des collections 
  - Dans la partie Référentiels, purger le référentiel des formats en cliquant sur le bouton "Supprimer".
  - Une pop up apparait : "Suppression des formats ? Êtes-vous certain de vouloir vider la collection des formats ?"
@@ -117,7 +117,8 @@ Cas OK
  - Cliquer sur le détail et constater dans le nouvel onglet que cette opération a été effectuée avec succès.
  
  Contrats d'entrée
--------
+--------------------
+
 Pour tester les différents cas pour le référentiel des contrats d'entrée. 
 
 Cas KO : contrat d'entrée non reconnu
@@ -127,7 +128,7 @@ Cas KO : contrat d'entrée non reconnu
  - Une pop-up apparait avec le message : "Fichier invalide"
 
 Cas KO : référentiel des contrat d'entrée déjà présent
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
  - Se rendre sur l'IHM de démo > Administration > Import du Référentiel des contrats d'entrée
  - Ajouter un fichier au format json, correct (ex. :download:'<files/referential_contracts_ingest_ok.json>'.) et cliquer sur le bouton "Valider".
  - Une pop-up apparaît indiquant "Fichier valide" et avec deux options, "Annuler l'import" ou "Lancer l'import".
@@ -154,7 +155,8 @@ Cas OK
  - Cliquer sur le détail et constater dans le nouvel onglet que cette opération a été effectuée avec succès.
  
  Contrats d'accès
--------
+------------------
+
 Pour tester les différents cas pour le référentiel des contrats d'accès. 
 
 Cas KO : contrat d'accès non reconnu
@@ -164,7 +166,7 @@ Cas KO : contrat d'accès non reconnu
  - Une pop-up apparait avec le message : "Fichier invalide"
 
 Cas KO : référentiel des contrat d'accès déjà présent
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
  - Se rendre sur l'IHM de démo > Administration > Import du Référentiel des contrats d'accès
  - Ajouter un fichier au format json, correct (ex. :download:'<files/referential_contracts_access_ok.json>'.) et cliquer sur le bouton "Valider".
  - Une pop-up apparaît indiquant "Fichier valide" et avec deux options, "Annuler l'import" ou "Lancer l'import".
@@ -204,35 +206,36 @@ Référentiels
 ^^^^^^^^^^^^
 Trois suppressions sont exécutables : formats, règles et registre des fonds.
 La suppression des différentes collection est visible ainsi dans le journal des opérations : 
- - formats : MASTERDATA / STP_DELETE_FORMAT
- - règles : MASTERDATA / STP_DELETE_RULES
- - registres des fonds : MASTERDATA / STP_DELETE_ACCESSION_REGISTER_SUMMARY
- - registres des fonds : MASTERDATA / STP_DELETE_ACCESSION_REGISTER_DETAIL
+- formats : MASTERDATA / STP_DELETE_FORMAT
+- règles : MASTERDATA / STP_DELETE_RULES
+- registres des fonds : MASTERDATA / STP_DELETE_ACCESSION_REGISTER_SUMMARY
+- registres des fonds : MASTERDATA / STP_DELETE_ACCESSION_REGISTER_DETAIL
 
 Journaux
 ^^^^^^^^
 3 suppressions sont exécutables : journaux d'opérations, journaux des cycles de vie (unité archivistique), journaux des cycles de vie (groupe d'objets).
 La suppression des différentes collection est visible ainsi dans le journal des opérations : 
- - opérations : MASTERDATA / STP_DELETE_LOGBOOK_OPERATION
- - journaux des cycles de vie (archive unit) : MASTERDATA / STP_DELETE_LOGBOOK_LIFECYCLE_UNIT
- - journaux des cycles de vie (groupe d'objets) : MASTERDATA / STP_DELETE_LOGBOOK_LIFECYCLE_OG
+- opérations : MASTERDATA / STP_DELETE_LOGBOOK_OPERATION
+- journaux des cycles de vie (archive unit) : MASTERDATA / STP_DELETE_LOGBOOK_LIFECYCLE_UNIT
+- journaux des cycles de vie (groupe d'objets) : MASTERDATA / STP_DELETE_LOGBOOK_LIFECYCLE_OG
 
 Objets
 ^^^^^^
 Deux suppressions sont exécutables : purge des unités archivistiques, purge des groupes d'objets;
 La suppression des différentes collection est visible ainsi dans le journal des opérations : 
- - Unités archivistiques : MASTERDATA / STP_DELETE_METADATA_OG
- - Groupes d'objets : MASTERDATA / STP_DELETE_METADATA_UNIT
+- Unités archivistiques : MASTERDATA / STP_DELETE_METADATA_OG
+- Groupes d'objets : MASTERDATA / STP_DELETE_METADATA_UNIT
  
 Mise à jour d'une ArchiveUnit
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Il s'agit ici de lancer Postman et de réaliser une mise à jour (PUT / cf. postman) sur une url (d'access) de ce type : 
- - {{accessServiceUrl}}{{accessResourcePath}}{{serviceVersion}}{{unitsCollection}}/aeaaaaaaaaaam7mxabjduakysg5qp7aaaaaq
+- {{accessServiceUrl}}{{accessResourcePath}}{{serviceVersion}}{{unitsCollection}}/aeaaaaaaaaaam7mxabjduakysg5qp7aaaaaq
 
 Et avec un body de ce type :
 
 .. code-block:: json
-   {
+
+  {
      "$roots": [
        "aeaaaaaaaaaam7mxabjduakysg5qp7aaaaaq"
      ],
@@ -249,12 +252,13 @@ Et avec un body de ce type :
          }
        }
      ]
-   }
+  }
 
 Une réponse est renvoyée par le serveur : code OK, avec un body de ce type : 
 
 .. code-block:: json 
-   {
+
+  {
      "$hits": {
        "total": 1,
        "offset": 0,
@@ -281,4 +285,5 @@ Une réponse est renvoyée par le serveur : code OK, avec un body de ce type :
          }
        ]
      }
-   }
+  }
+

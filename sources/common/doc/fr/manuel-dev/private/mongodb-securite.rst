@@ -20,15 +20,13 @@ Il a besoin de mot de passe "dbPassword" pour entrer le base et CRUD.
 
 .. code-block:: java
 
-public static MongoClient createMongoClient(DbConfiguration configuration, MongoClientOptions options) {
+    public static MongoClient createMongoClient(DbConfiguration configuration, MongoClientOptions options) {
         List<MongoDbNode> nodes = configuration.getMongoDbNodes();
         List<ServerAddress> serverAddress = new ArrayList<ServerAddress>();
         for (MongoDbNode node : nodes){
             serverAddress.add(new ServerAddress(node.getDbHost(), node.getDbPort()));
         }
-        
         if (configuration.isDbAuthentication()) {
-
             // create user with username, password and specify the database name
             MongoCredential credential = MongoCredential.createCredential(
                 configuration.getDbUserName(), configuration.getDbName(), configuration.getDbPassword().toCharArray());
@@ -39,9 +37,11 @@ public static MongoClient createMongoClient(DbConfiguration configuration, Mongo
             return new MongoClient(serverAddress, options);
         }
     }  
-......................
+    ......................
+
 
  --	List<ServerAddress> serverAddress: 
  	La liste des adresses du serveur qui permet la base de données mongodb de connecter plusieurs nœuds
  --	Arrays.asList(credential): 
  	La liste des informations d'identification que ce client authentifie toutes les connexions avec
+

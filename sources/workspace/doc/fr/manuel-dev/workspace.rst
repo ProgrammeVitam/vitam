@@ -16,7 +16,6 @@ on peut consommer les services via le sous module workspaceClient notament via l
     - Paramètres :
     - containerName::String
     - Retourner : 
-
 - getUriListDigitalObjectFromFolder :
     - Paramètres :
         - containerName::String
@@ -51,44 +50,27 @@ Dans le cas echéant (uncompress KO) la methode génère une exception avec un m
 
 	D'abord il faut ajouter la dependence sur la pom.xml du projet.
 
-		
-<dependencies>	
+.. code-block:: xml
 
-<groupId>fr.gouv.vitam</groupId>
-
-<artifactId>workspace-client<artifactId>
-
-<version>x.x.x</version>
-
-</dependencies>
+    <dependencies>
+        <groupId>fr.gouv.vitam</groupId>
+        <artifactId>workspace-client<artifactId>
+        <version>x.x.x</version>
+    </dependencies>
 
 
 Supposons que nous avons besoins d'extraire un SIP de format zip dans le workspace.
 
 .. code-block:: java
     
-     InputStream inputStream=new InputStream(zippedFile);
-	
-	 WorkspaceClientFactory.changeMode(WORKSPACE_URL);
-	 WorkspaceClientFactory.changeMode(FileConfiguration);	
-	 WorkspaceClient workspaceClient = WorkspaceClientFactory().getInstance().getClient();
-
-      workspaceClient.createContainer(containerName);
-      workspaceClient.uncompressObject(containerName,"SIP","application/zip" inputStream);
+    InputStream inputStream=new InputStream(zippedFile);
+    WorkspaceClientFactory.changeMode(WORKSPACE_URL);
+    WorkspaceClientFactory.changeMode(FileConfiguration);	
+    WorkspaceClient workspaceClient = WorkspaceClientFactory().getInstance().getClient();
+    workspaceClient.createContainer(containerName);
+    workspaceClient.uncompressObject(containerName,"SIP","application/zip" inputStream);
 
 
 2- Configuration du pom
 Configuration du pom avec maven-surefire-plugin permet le build sous jenkins. Il permet de configurer le chemin des resources de esapi dans le common private.
-
-
-
-
-
-
-
-
-
-
-
-
 
