@@ -654,6 +654,15 @@ public class IngestInternalIT {
 
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
+            wait(operationGuid.toString());
+
+            ProcessWorkflow processWorkflow =
+                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
+
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.KO, processWorkflow.getStatus());
+
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
             JsonNode logbookOperation =
                 accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
