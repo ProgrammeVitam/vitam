@@ -46,6 +46,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.model.ProcessState;
+import fr.gouv.vitam.common.model.StatusCode;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -400,7 +403,12 @@ public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
 
     @Test
     public void HeadProcessingOperationStatusOk() throws Exception {
-        when(mock.head()).thenReturn(Response.status(Status.OK).build());
+        when(mock.head()).thenReturn(Response.status(Status.OK)
+            .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED)
+            .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.OK)
+            .header(GlobalDataRest.X_CONTEXT_ID, "Fake")
+            .build());
+
         client.getOperationProcessStatus(ID);
     }
 

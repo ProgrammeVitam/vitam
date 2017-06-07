@@ -288,8 +288,7 @@ public class ProcessManagementImpl implements ProcessManagement {
                         .setUrlMetadata(urlMetadata)
                         .setUrlWorkspace(urlWorkspace)
                         .setLogbookTypeProcess(processWorkflow.getLogbookTypeProcess())
-                        .setContainerName(operationId)
-                        .setCurrentStep(getNextStepId(processWorkflow.getSteps()));
+                        .setContainerName(operationId);
 
 
                 final ProcessEngine processEngine = ProcessEngineFactory.get().create(workerParameters);
@@ -299,17 +298,19 @@ public class ProcessManagementImpl implements ProcessManagement {
                 PROCESS_MONITORS.put(workerParameters.getContainerName(), stateMachine);
 
             } else {
-                processWorkflow.setStatus(StatusCode.UNKNOWN);
-                processWorkflow.setState(ProcessState.COMPLETED);
-                try {
-                    datamanage.persistProcessWorkflow(String.valueOf(ServerIdentity.getInstance()
-                        .getServerId()), operationId, processWorkflow);
-                } catch (InvalidParseOperationException e) {
-                    // TODO: just log error is the good solution (here, we set to failed and unknown status on wrong
-                    // persisted process) ?
-                    LOGGER.error("Cannot set UNKNONW status and FAILED execution status on workflow {}, check " +
-                            "processing datas",
-                        operationId, e);
+                if (StatusCode.UNKNOWN.equals(processWorkflow.getStatus())) {
+                    processWorkflow.setStatus(StatusCode.UNKNOWN);
+                    processWorkflow.setState(ProcessState.COMPLETED);
+                    try {
+                        datamanage.persistProcessWorkflow(String.valueOf(ServerIdentity.getInstance()
+                            .getServerId()), operationId, processWorkflow);
+                    } catch (InvalidParseOperationException e) {
+                        // TODO: just log error is the good solution (here, we set to failed and unknown status on wrong
+                        // persisted process) ?
+                        LOGGER.error("Cannot set UNKNONW status and FAILED execution status on workflow {}, check " +
+                                "processing datas",
+                            operationId, e);
+                    }
                 }
             }
             ProcessDataAccessImpl.getInstance().addToWorkflowList(processWorkflow);

@@ -32,14 +32,17 @@ import com.google.common.collect.Iterables;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -56,6 +59,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
@@ -95,15 +99,19 @@ public class IngestStep {
      * @throws IngestExternalException
      */
     @When("^je télécharge le SIP")
-    public void upload_this_sip() throws IOException, IngestExternalException, IOException {
+    public void upload_this_sip() throws IOException, VitamException, IOException {
         Path sip = Paths.get(world.getBaseDirectory(), fileName);
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
-            String operationId =
-                world.getIngestClient()
-                    .uploadAndWaitFinishingProcess(inputStream, world.getTenantId(), DEFAULT_WORKFLOW.name(),
-                        ProcessAction.RESUME.name());
+
+            RequestResponse<JsonNode> response = world.getIngestClient()
+                .upload(inputStream, world.getTenantId(), DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
+
+            final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 
             world.setOperationId(operationId);
+            world.getIngestClient()
+                .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1000l, TimeUnit.MILLISECONDS);
+
             assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
         }
     }
@@ -114,13 +122,19 @@ public class IngestStep {
      * @throws IngestExternalException
      */
     @When("^je télécharge le plan")
-    public void upload_this_plan() throws IOException, IngestExternalException {
+    public void upload_this_plan() throws IOException, VitamException {
         Path sip = Paths.get(world.getBaseDirectory(), fileName);
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
-            String operationId =
-                world.getIngestClient()
-                    .uploadAndWaitFinishingProcess(inputStream, world.getTenantId(), FILING_SCHEME.name(), ProcessAction.RESUME.name());
+
+            RequestResponse<JsonNode> response = world.getIngestClient()
+                .upload(inputStream, world.getTenantId(), FILING_SCHEME.name(), ProcessAction.RESUME.name());
+
+            final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+
             world.setOperationId(operationId);
+            world.getIngestClient()
+                .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1000l, TimeUnit.MILLISECONDS);
+
             assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
         }
     }
@@ -132,14 +146,19 @@ public class IngestStep {
      * @throws IngestExternalException
      */
     @When("^je télécharge l'arbre")
-    public void upload_this_tree() throws IOException, IngestExternalException {
+    public void upload_this_tree() throws IOException, VitamException {
         Path sip = Paths.get(world.getBaseDirectory(), fileName);
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
-            String operationId =
-                world.getIngestClient()
-                    .uploadAndWaitFinishingProcess(inputStream, world.getTenantId(), HOLDING_SCHEME.name(), ProcessAction.RESUME.name());
+
+            RequestResponse<JsonNode> response = world.getIngestClient()
+                .upload(inputStream, world.getTenantId(), HOLDING_SCHEME.name(), ProcessAction.RESUME.name());
+
+            final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 
             world.setOperationId(operationId);
+            world.getIngestClient()
+                .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1000l, TimeUnit.MILLISECONDS);
+
             assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
         }
     }
@@ -150,7 +169,7 @@ public class IngestStep {
      * @param status
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
-     * @throws AccessUnauthorizedException 
+     * @throws AccessUnauthorizedException
      */
     @Then("^le statut final du journal des opérations est (.*)$")
     public void the_logbook_operation_has_a_status(String status)
@@ -179,9 +198,9 @@ public class IngestStep {
      * @param eventStatus status of event
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
-     * @throws AccessUnauthorizedException 
+     * @throws AccessUnauthorizedException
      */
-    @Then("^le[s]? statut[s]? (?:de l'événement|des événements) (.*) (?:est|sont) (.*)$")    
+    @Then("^le[s]? statut[s]? (?:de l'événement|des événements) (.*) (?:est|sont) (.*)$")
     public void the_status_are(List<String> eventNames, String eventStatus)
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         RequestResponse requestResponse =

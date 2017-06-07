@@ -53,25 +53,19 @@ import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImpl;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
 import fr.gouv.vitam.processing.engine.core.ProcessEngineFactory;
 import fr.gouv.vitam.processing.engine.core.ProcessEngineImpl;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.util.concurrent.CountDownLatch;
-
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doThrow;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
@@ -92,6 +86,7 @@ public class StateMachineTest {
     private static WorkspaceProcessDataManagement processDataManagement;
 
     private static final String WORKFLOW_ID = "workflowJSONv1";
+    private static final String WORKFLOW_FINALLY_STEP_ID = "workflowJSONFinallyStep";
 
 
     @Rule
@@ -286,6 +281,13 @@ public class StateMachineTest {
     }
 
 
+    /**
+     * Test onComplete
+     * @throws ProcessingException
+     * @throws StateNotAllowedException
+     * @throws ProcessingEngineException
+     * @throws InterruptedException
+     */
     @Test
     @RunWithCustomExecutor
     public void testWhenProcessEngineOnCompleteOK()
@@ -309,14 +311,14 @@ public class StateMachineTest {
         ItemStatus itemStatus = new ItemStatus(firstStep.getStepName()).increment(StatusCode.OK);
         when(processDistributorMock.distribute(anyObject(), anyObject(), anyObject())).thenReturn(itemStatus);
         stateMachine.resume(workParams);
-        int nbtry = 20;
+        int nbtry = 50;
         while (!ProcessState.COMPLETED.equals(processWorkflow.getState())) {
-            Thread.sleep(1);
+            Thread.sleep(20);
             nbtry --;
             if (nbtry < 0) break;
         }
-        assertTrue(ProcessState.COMPLETED.equals(processWorkflow.getState()));
-        assertTrue(StatusCode.OK.equals(processWorkflow.getStatus()));
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.OK, processWorkflow.getStatus());
 
         try {
             stateMachine.next(workParams);
@@ -326,6 +328,13 @@ public class StateMachineTest {
         processDataAccess.clearWorkflow();
     }
 
+    /**
+     * Test onComplete
+     * @throws ProcessingException
+     * @throws StateNotAllowedException
+     * @throws ProcessingEngineException
+     * @throws InterruptedException
+     */
     @Test
     @RunWithCustomExecutor
     public void testWhenProcessEngineOnCompleteKO()
@@ -349,14 +358,14 @@ public class StateMachineTest {
         ItemStatus itemStatus = new ItemStatus(firstStep.getStepName()).increment(StatusCode.KO);
         when(processDistributorMock.distribute(anyObject(), anyObject(), anyObject())).thenReturn(itemStatus);
         stateMachine.resume(workParams);
-        int nbtry = 20;
+        int nbtry = 50;
         while (!ProcessState.COMPLETED.equals(processWorkflow.getState())) {
-            Thread.sleep(1);
+            Thread.sleep(20);
             nbtry --;
             if (nbtry < 0) break;
         }
-        assertTrue(ProcessState.COMPLETED.equals(processWorkflow.getState()));
-        assertTrue(StatusCode.KO.equals(processWorkflow.getStatus()));
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.KO, processWorkflow.getStatus());
 
         try {
             stateMachine.next(workParams);
@@ -366,6 +375,13 @@ public class StateMachineTest {
         processDataAccess.clearWorkflow();
     }
 
+    /**
+     * Test onError
+     * @throws ProcessingException
+     * @throws StateNotAllowedException
+     * @throws ProcessingEngineException
+     * @throws InterruptedException
+     */
     @Test
     @RunWithCustomExecutor
     public void testWhenProcessEngineOnErrorFATAL()
@@ -388,17 +404,201 @@ public class StateMachineTest {
         when(processDistributorMock.distribute(anyObject(), anyObject(), anyObject())).thenThrow(new RuntimeException("Fake Exception From Distributor"));
 
         stateMachine.resume(workParams);
-        int nbtry = 20;
+        int nbtry = 50;
         while (!ProcessState.COMPLETED.equals(processWorkflow.getState())) {
-            Thread.sleep(1);
+            Thread.sleep(20);
             nbtry --;
             if (nbtry < 0) break;
         }
-        assertTrue(ProcessState.COMPLETED.equals(processWorkflow.getState()));
-        assertTrue(StatusCode.FATAL.equals(processWorkflow.getStatus()));
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.FATAL, processWorkflow.getStatus());
 
         processDataAccess.clearWorkflow();
     }
 
-    // TODO: 6/6/17 test logbook and persistence
+    @Test
+    @RunWithCustomExecutor
+    public void testWhenExceptionOccurThenExecuteFinallyStep()
+        throws ProcessingException, StateNotAllowedException, ProcessingEngineException, InterruptedException {
+        VitamThreadUtils.getVitamSession().setTenantId(1);
+
+        final ProcessWorkflow processWorkflow =
+            processDataAccess.initProcessWorkflow(
+                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_ID),
+                workParams.getContainerName(),
+                LogbookTypeProcess.INGEST, TENANT_ID);
+
+        workParams.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
+
+        final ProcessDistributor distributorMock = mock(ProcessDistributorImpl.class);
+        final ProcessEngineImpl processEngine = ProcessEngineFactory.get().create(workParams, distributorMock);
+        StateMachine stateMachine = StateMachineFactory.get().create(processWorkflow, processEngine);
+        processEngine.setCallback(stateMachine);
+
+        final ProcessStep firstStep = processWorkflow.getSteps().get(0);
+        final ProcessStep lastStep = processWorkflow.getSteps().get(1);
+
+        // First Step FATAL call onError
+        when(distributorMock.distribute(workParams, firstStep, workParams.getContainerName()))
+            .thenThrow(new RuntimeException("Fake Exception From Distributor"));
+
+        // Finally Step OK call onComplete
+        when(distributorMock.distribute(workParams, lastStep, workParams.getContainerName()))
+            .thenReturn(new ItemStatus(lastStep.getStepName()).increment(StatusCode.OK));
+
+        stateMachine.resume(workParams);
+
+        int nbtry = 50;
+        while (!ProcessState.COMPLETED.equals(processWorkflow.getState())) {
+            Thread.sleep(20);
+            nbtry --;
+            if (nbtry < 0) break;
+        }
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.FATAL, processWorkflow.getStatus());
+
+        assertEquals(StatusCode.STARTED, firstStep.getStepStatusCode());
+        assertEquals(StatusCode.OK, lastStep.getStepStatusCode());
+
+        processDataAccess.clearWorkflow();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testWhenStepKOBlockingThenExecuteFinallyStep()
+        throws ProcessingException, StateNotAllowedException, ProcessingEngineException, InterruptedException {
+        VitamThreadUtils.getVitamSession().setTenantId(1);
+
+        final ProcessWorkflow processWorkflow =
+            processDataAccess.initProcessWorkflow(
+                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_ID),
+                workParams.getContainerName(),
+                LogbookTypeProcess.INGEST, TENANT_ID);
+
+        workParams.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
+
+        final ProcessDistributor distributorMock = mock(ProcessDistributorImpl.class);
+        final ProcessEngineImpl processEngine = ProcessEngineFactory.get().create(workParams, distributorMock);
+        StateMachine stateMachine = StateMachineFactory.get().create(processWorkflow, processEngine);
+        processEngine.setCallback(stateMachine);
+
+        final ProcessStep firstStep = processWorkflow.getSteps().get(0);
+        final ProcessStep lastStep = processWorkflow.getSteps().get(1);
+
+        // First Step KO blocking call onComplete
+        when(distributorMock.distribute(workParams, firstStep, workParams.getContainerName()))
+            .thenReturn(new ItemStatus(firstStep.getStepName()).increment(StatusCode.KO));
+
+        // Finally Step OK call onComplete
+        when(distributorMock.distribute(workParams, lastStep, workParams.getContainerName()))
+            .thenReturn(new ItemStatus(lastStep.getStepName()).increment(StatusCode.OK));
+
+        stateMachine.resume(workParams);
+        int nbtry = 50;
+        while (!ProcessState.COMPLETED.equals(processWorkflow.getState())) {
+            Thread.sleep(20);
+            nbtry --;
+            if (nbtry < 0) break;
+        }
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.KO, processWorkflow.getStatus());
+
+        assertEquals(StatusCode.KO, firstStep.getStepStatusCode());
+        assertEquals(StatusCode.OK, lastStep.getStepStatusCode());
+
+        processDataAccess.clearWorkflow();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testWhenStepFATALBlockingThenExecuteFinallyStep()
+        throws ProcessingException, StateNotAllowedException, ProcessingEngineException, InterruptedException {
+        VitamThreadUtils.getVitamSession().setTenantId(1);
+
+        final ProcessWorkflow processWorkflow =
+            processDataAccess.initProcessWorkflow(
+                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_ID),
+                workParams.getContainerName(),
+                LogbookTypeProcess.INGEST, TENANT_ID);
+
+        workParams.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
+
+        final ProcessDistributor distributorMock = mock(ProcessDistributorImpl.class);
+        final ProcessEngineImpl processEngine = ProcessEngineFactory.get().create(workParams, distributorMock);
+        StateMachine stateMachine = StateMachineFactory.get().create(processWorkflow, processEngine);
+        processEngine.setCallback(stateMachine);
+
+        final ProcessStep firstStep = processWorkflow.getSteps().get(0);
+        final ProcessStep lastStep = processWorkflow.getSteps().get(1);
+
+        // First Step FATAL blocking call onComplete
+        when(distributorMock.distribute(workParams, firstStep, workParams.getContainerName()))
+            .thenReturn(new ItemStatus(firstStep.getStepName()).increment(StatusCode.FATAL));
+
+        // Finally Step OK call onComplete
+        when(distributorMock.distribute(workParams, lastStep, workParams.getContainerName()))
+            .thenReturn(new ItemStatus(lastStep.getStepName()).increment(StatusCode.OK));
+
+        stateMachine.resume(workParams);
+        int nbtry = 50;
+        while (!ProcessState.COMPLETED.equals(processWorkflow.getState())) {
+            Thread.sleep(20);
+            nbtry --;
+            if (nbtry < 0) break;
+        }
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.FATAL, processWorkflow.getStatus());
+
+        assertEquals(StatusCode.FATAL, firstStep.getStepStatusCode());
+        assertEquals(StatusCode.OK, lastStep.getStepStatusCode());
+
+        processDataAccess.clearWorkflow();
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void testStepAndFinallyStepThenOK()
+        throws ProcessingException, StateNotAllowedException, ProcessingEngineException, InterruptedException {
+        VitamThreadUtils.getVitamSession().setTenantId(1);
+
+        final ProcessWorkflow processWorkflow =
+            processDataAccess.initProcessWorkflow(
+                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_ID),
+                workParams.getContainerName(),
+                LogbookTypeProcess.INGEST, TENANT_ID);
+
+        workParams.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
+
+        final ProcessDistributor distributorMock = mock(ProcessDistributorImpl.class);
+        final ProcessEngineImpl processEngine = ProcessEngineFactory.get().create(workParams, distributorMock);
+        StateMachine stateMachine = StateMachineFactory.get().create(processWorkflow, processEngine);
+        processEngine.setCallback(stateMachine);
+
+        final ProcessStep firstStep = processWorkflow.getSteps().get(0);
+        final ProcessStep lastStep = processWorkflow.getSteps().get(1);
+
+        // First Step FATAL blocking call onComplete
+        when(distributorMock.distribute(workParams, firstStep, workParams.getContainerName()))
+            .thenReturn(new ItemStatus(firstStep.getStepName()).increment(StatusCode.OK));
+
+        // Finally Step OK call onComplete
+        when(distributorMock.distribute(workParams, lastStep, workParams.getContainerName()))
+            .thenReturn(new ItemStatus(lastStep.getStepName()).increment(StatusCode.OK));
+
+        stateMachine.resume(workParams);
+        int nbtry = 50;
+        while (!ProcessState.COMPLETED.equals(processWorkflow.getState())) {
+            Thread.sleep(20);
+            nbtry --;
+            if (nbtry < 0) break;
+        }
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.OK, processWorkflow.getStatus());
+
+        assertEquals(StatusCode.OK, firstStep.getStepStatusCode());
+        assertEquals(StatusCode.OK, lastStep.getStepStatusCode());
+
+        processDataAccess.clearWorkflow();
+    }
 }

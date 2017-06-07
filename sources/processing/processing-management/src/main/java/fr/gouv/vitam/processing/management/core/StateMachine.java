@@ -63,6 +63,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
@@ -119,6 +120,25 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         this.processEngine = processEngine;
         this.dataManagement = WorkspaceProcessDataManagement.getInstance();
         this.stepTotal = this.steps.size();
+
+        initStepIndex();
+    }
+
+    /**
+     * This is important after a safe restart of the server
+     * In case of the process workflow is stepBystep mode we continue from the last not yet treated step
+     */
+    private void initStepIndex() {
+        final Iterator<ProcessStep> it = processWorkflow.getSteps().iterator();
+        while(it.hasNext()) {
+            final ProcessStep step = it.next();
+            if (!StatusCode.UNKNOWN.equals(step.getStepStatusCode())
+                && !ProcessBehavior.FINALLY.equals(step.getBehavior())) {
+                stepIndex ++;
+            } else {
+                break;
+            }
+        }
     }
 
     @Override synchronized public void resume(WorkerParameters workerParameters)
@@ -245,6 +265,13 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
      *@param workerParameters
      */
     protected void executeFinallyStep(WorkerParameters workerParameters) {
+        if (!this.persistProcessWorkflow()) {
+            // As the workspace throw an exception just update logbook and in memory
+            status = StatusCode.FATAL;
+            this.finalizeLogbook();
+            return;
+        }
+
         stepIndex = stepTotal - 1;
         currentStep = steps.get(stepTotal -1);
         if (null != currentStep) {

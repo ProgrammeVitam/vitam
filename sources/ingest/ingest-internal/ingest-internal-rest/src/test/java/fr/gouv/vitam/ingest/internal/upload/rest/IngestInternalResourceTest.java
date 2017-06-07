@@ -426,10 +426,9 @@ public class IngestInternalResourceTest {
         reset(processingClient);
 
         RestAssured.given()
-            .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.RESUME,
-                GlobalDataRest.X_CONTEXT_ID, DEFAULT_CONTEXT)
+            .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.RESUME, GlobalDataRest.X_CONTEXT_ID, DEFAULT_CONTEXT)
             .when().head(OPERATION_URL)
-            .then().statusCode(Status.OK.getStatusCode());
+            .then().statusCode(Status.ACCEPTED.getStatusCode());
     }
 
     @Test
