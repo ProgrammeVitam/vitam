@@ -72,8 +72,7 @@ public class AccessContratIdHeaderHelper {
      * Extracts the X_ACCESS_CONTRAT_ID from the headers to save it through the VitamSession
      *
      * @param requestHeaders Complete list of HTTP message headers ; will not be changed.
-     * @param ctx Context, or rather http message type (request or response)
-     * @throws MissingAccessContratIdException 
+     * @throws MissingAccessContratIdException
      */
     public static void manageAccessContratFromHeader(MultivaluedMap<String, String> requestHeaders) throws MissingAccessContratIdException {
         try(final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {

@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.rest;
 
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCIES;
+
 import java.util.Set;
 
 import javax.ws.rs.Consumes;
@@ -105,7 +107,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     private final AccessInternalModule accessModule;
 
     /**
-     *
      * @param configuration to associate with AccessResourceImpl
      */
     public AccessInternalResourceImpl(AccessInternalConfiguration configuration) {
@@ -265,13 +266,12 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 final SelectParserMultiple parser = new SelectParserMultiple();
                 parser.parse(query);
                 parser.getRequest().addQueries(
-                    QueryHelper.in(SedaConstants.TAG_ORIGINATINGAGENCY, prodServices.stream().toArray(String[]::new))
+                    QueryHelper.in(ORIGINATING_AGENCIES.exactToken(), prodServices.toArray(new String[0]))
                         .setDepthLimit(0));
                 result = accessModule.selectObjectGroupById(parser.getRequest().getFinalSelect(), idObjectGroup);
             }
 
-        } catch (final InvalidParseOperationException | IllegalArgumentException |
-            InvalidCreateOperationException exc) {
+        } catch (final InvalidParseOperationException | IllegalArgumentException | InvalidCreateOperationException exc) {
             LOGGER.error(exc);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status).entity(getErrorEntity(status)).build();
@@ -374,8 +374,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             parser.parse(queryDsl);
             parser.getRequest().addQueries(QueryHelper.or()
                 .add(QueryHelper.in(
-                    PROJECTIONARGS.MANAGEMENT.exactToken() + "." + SedaConstants.TAG_ORIGINATINGAGENCY,
-                    prodServices.stream().toArray(String[]::new)))
+                    ORIGINATING_AGENCIES.exactToken(), prodServices.toArray(new String[0])))
                 .add(QueryHelper.eq(PROJECTIONARGS.UNITTYPE.exactToken(), UnitType.HOLDING_UNIT.name()))
                 .setDepthLimit(0));
             return parser.getRequest().getFinalSelect();

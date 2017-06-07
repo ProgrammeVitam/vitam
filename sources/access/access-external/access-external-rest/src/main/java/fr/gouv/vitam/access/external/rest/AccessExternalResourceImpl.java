@@ -722,4 +722,5 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
                 .setMessage(vitamCode.getMessage()).setDescription(vitamCode.getMessage())).toString())
             .build();
     }
+
 }
