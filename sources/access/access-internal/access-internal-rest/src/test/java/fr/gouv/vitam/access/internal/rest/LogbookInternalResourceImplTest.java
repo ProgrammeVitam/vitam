@@ -53,6 +53,7 @@ import com.jayway.restassured.http.ContentType;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -183,6 +184,20 @@ public class LogbookInternalResourceImplTest {
 
     }
 
+    @Test
+    public void givenStartedServerWhenSearchLogbookThenOK() throws Exception {
+        reset(logbookOperationClient);
+        reset(processManagementClient);
+        reset(workspaceClient);
+        when(logbookOperationClient.selectOperation(anyObject()))
+        .thenReturn(JsonHandler.getFromString(queryDsql));
+
+        given().contentType(ContentType.JSON).body(new Select().getFinalSelect())
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get("/operations").then().statusCode(Status.OK.getStatusCode());
+
+    }
+    
     /**
      * Test the check traceability method
      *
