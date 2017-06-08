@@ -254,8 +254,8 @@ public class IndexUnitActionPlugin extends ActionHandler {
             ArrayNode originatingAgencies = JsonHandler.createArrayNode();
             originatingAgencies.add(prodService);
 
-            archiveUnitNode.set(IngestWorkflowConstants.SPS_FIELD, originatingAgencies);
-            archiveUnitNode.put(IngestWorkflowConstants.SP_FIELD, prodService);
+            archiveUnitNode.set(VitamFieldsHelper.originatingAgencies(), originatingAgencies);
+            archiveUnitNode.put(VitamFieldsHelper.originatingAgency(), prodService);
         }
         archiveUnitNode.set(SedaConstants.PREFIX_MGT, (JsonNode) managementNode);
         archiveUnitNode.remove(TAG_MANAGEMENT);

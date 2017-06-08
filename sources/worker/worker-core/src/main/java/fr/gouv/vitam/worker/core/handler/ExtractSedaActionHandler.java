@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
+import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.originatingAgencies;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.UNITTYPE;
 
 import java.io.File;
@@ -68,6 +69,7 @@ import de.odysseus.staxon.json.JsonXMLConfigBuilder;
 import de.odysseus.staxon.json.JsonXMLOutputFactory;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -2018,7 +2020,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             }
 
-            ArrayNode originatingAgencies = (ArrayNode) existingData.get("$results").get(0).get(IngestWorkflowConstants.SPS_FIELD);
+            ArrayNode originatingAgencies = (ArrayNode) existingData.get("$results").get(0).get(originatingAgencies());
             List<String> originatingAgencyList = new ArrayList<>();
             for (JsonNode agency : originatingAgencies) {
                 originatingAgencyList.add(agency.asText());
