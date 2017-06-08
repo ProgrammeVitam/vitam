@@ -1,28 +1,28 @@
-Workflow d'entrée d'un arbre de positionnement
+Workflow d'import d'un arbre de positionnement
 ##############################################
 
 Introduction
 ============
 
-Ce document décrit le processus (workflow-tree) d'entrée d'un arbre de positionement mis en place dans la solution logicielle Vitam,
-l'implémentation mise en place pour celui-ci dans la version V1 de cette solution.
+Cette section décrit le processus (workflow-tree) permettant d'importer un arbre de positionnement dans Vitam. La structure d'un arbre de positionnement diffère de celle d'un SIP en plusieurs points. Un arbre ne doit pas avoir d'objets et n'utilise ni service producteur ni contrat. Il s'agit plus simplement d'une arborescence représenté par des unités archivistiques. Ce processus partage donc certaines étapes avec celui du versement d'un SIP classique, en ignorent certaines et rajoute des tâches additionnelles.
 
-Processus d'entrée d'un arbre (vision métier)
+Le workflow mis en place dans la solution logicielle est défini dans le fichier "DefaultHoldingSchemeWorkflow.json"
+
+Processus d'import d'un arbre (vision métier)
 =============================================
 
-Le processus d'entrée d'un arbre est identique au workflow d'entrée d'un SIP:
+Le processus d'import d'un arbre est identique au workflow d'entrée d'un SIP:
 
 - Un workflow-tree est un processus composé d’étapes elles-mêmes composées d’une liste d’actions
 
-- Chaque étape, chaque action peut avoir les statuts suivants : OK, KO, Warning, FATAL
+- Chaque étape et chaque action peuvent avoir les statuts suivants : OK, KO, Warning, FATAL
 
 - Chaque action peut avoir les modèles d'éxécutions : Bloquant ou Non bloquant
 
-Ce workflow se compose des différentes étapes et actions propres à celui d'un upload de SIP.
-Les sections suivantes présentent également sa structure et des actions non encore abordées pour celui de l'entrée d'un SIP.
+Les sections suivantes présentent la structure et les actions non encore abordées pour celui de l'entrée d'un SIP.
 
-Le processus d'entrée débute lors du lancement du chargement d'un Submission Information Package dans la solution Vitam. De plus, toutes les étapes et actions sont journalisées dans le journal des opérations.
-Les étapes et actions associées ci-dessous décrivent le processus d'entrée (clé et description de la clé associée dans le journal des opérations) tel qu'implémenté dans la version bêta de la solution logicielle :
+Le processus d'import débute lors du lancement du chargement de l'arbre dans Vitam. De plus, toutes les étapes et actions sont journalisées dans le journal des opérations.
+Les étapes et actions associées ci-dessous décrivent le processus d'import (clé et description de la clé associée dans le journal des opérations)
 
 
 Traitement additionnel dans la tâche CHECK_DATAOBJECTPACKAGE
@@ -30,18 +30,16 @@ Traitement additionnel dans la tâche CHECK_DATAOBJECTPACKAGE
 
 * Vérification de la non existence d'objets (CHECK_NO_OBJECT)
 
-  + **Règle** : vérifier s'il y a d'un objet numérique dans le manifest.xml du plan
+  + **Règle** : vérifier qu'il n'y a pas d'objet numérique dans le manifest.xml du plan
 
   + **Statuts** :
-	- OK : s'il y a des objects numériques dans le manifest
-	- KO : s'il n'y a pas d'objects numérique dans le manifest
+	- OK : s'il n'y a pas d'objets numérique dans le manifeste
+	- KO : s'il y a des objets numériques dans le manifeste
 
   D'une façon synthétique, le workflow est décrit de cette façon :
 
   .. figure:: images/Workflow_HoldingScheme.jpg
     :align: center
-    :height: 22 cm
-    :target: images/Workflow_HoldingScheme.jpg
 
     Diagramme d'activité du workflow de l'arbre de positionnement
 
@@ -105,11 +103,3 @@ Traitement additionnel dans la tâche CHECK_DATAOBJECTPACKAGE
     + Génération de l'ArchiveTransferReply.xml (peu importe le statut du processus d'entrée, l'ArchiveTransferReply est obligatoirement généré),
 
     + Stockage de l'ArchiveTransferReply dans les offres de stockage.
-
-
-
-Structure du Workflow d'un arbre (Implémenté en V1)
-=====================================================
-
-Le workflow actuel mis en place dans la solution Vitam est défini dans le fichier "DefaultHoldingSchemeWorkflow.json".
-Il décrit le processus d'entrée pour téléchager un arbre, indexer les métadonnées et stocker les objets contenus dans l'arbre.
