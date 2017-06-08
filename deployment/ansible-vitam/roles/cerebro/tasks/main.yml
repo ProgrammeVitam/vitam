@@ -1,5 +1,18 @@
 ---
 # tasks file for cerebro
+- name: Install java-1.8.0 (prerequisite for cerebro) only when CentOS
+  yum:
+    name: java-1.8.0
+    state: latest
+  when: ansible_distribution == "CentOS"
+
+- name: install openjdk from jessie-backports (prerequisite for cerebro) only when Debian
+  apt:
+    name: openjdk-8-jre-headless
+    state: latest
+    default_release: jessie-backports
+  when: ansible_distribution == "Debian"
+
 - name: install vitam-elasticsearch-cerebro package
   package:
     name: vitam-elasticsearch-cerebro
