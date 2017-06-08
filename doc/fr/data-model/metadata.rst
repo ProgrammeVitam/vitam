@@ -4,7 +4,7 @@ Base MetaData
 Collections contenues dans la base
 ===================================
 
-Il s'agit des collections relatives aux métadonnées des archives et des objets numériques.
+La base contient les collections relatives aux métadonnées des unités archivistiques et des groupes d'objets.
 
 Collection Unit
 ===============
@@ -12,7 +12,7 @@ Collection Unit
 Utilisation de la collection Unit
 ---------------------------------
 
-La colection unit contient les informations relatives aux ArchiveUnit.
+La collection unit contient les informations relatives aux unités archivistiques.
 
 Exemple de JSON
 ---------------
@@ -75,59 +75,71 @@ Ci-après, la portion d'un bordereau (manifest.xml) utilisée pour contribuer le
 Détail du JSON
 --------------
 
-La structure de la collection Unit est composée de la transposition JSON de toutes les balises XML contenues dans la balise <DescriptiveMetadata> du bordereau conforme au standard SEDA v.2.0., c'est-à-dire toutes les balises se rapportant aux ArchiveUnit. Cette transposition se fait comme suit :
+La structure de la collection Unit est composée de la transposition JSON de toutes les balises XML contenues dans la balise <DescriptiveMetadata> du bordereau conforme au standard SEDA v.2.0., c'est-à-dire toutes les balises se rapportant aux unités archivistiques. Cette transposition se fait comme suit :
 
 "_id" (#id): Identifiant unique de l'unité archivistique.
-    Chaîne de 36 caractères.
+    Il s'agit d'une chaîne de 36 caractères.
 
-"DescriptionLevel": La valeur de champ est une chaine de caractères.
-    Il s'agit du niveau de description archivistique de l'ArchiveUnit.
-    Ce champ est renseigné avec les valeurs situées entre les balises <DescriptionLevel> dans le manifest.
+"DescriptionLevel": niveau de description archivistique de l'unité archivistique.
+    Il s'agit d'une chaîne de caractères. 
+    Ce champ est renseigné avec les valeurs situées entre les balises <DescriptionLevel> dans le bordereau.
 
-"Title": La valeur de ce champ est une chaine de caractères. Il s'agit du titre de l'ArchiveUnit.
-    Ce champ est renseigné avec les valeurs situées entre les balises <Title> dans le manifest.
+"Title": titre de l'unité archivistique.
+    Il s'agit d'une chaîne de caractères.
+    Ce champ est renseigné avec les valeurs situées entre les balises <Title> dans le bordereau.
 
-"Description": La valeur contenue dans ce champ est une chaîne de caractères.
-    Ce champ est renseigné avec les informations situées entre les balises <description> de l'archiveUnit concernée dans le manifest.
+"Description": description de l'unité archivistique.
+    Il s'agit d'une chaîne de caractères.
+    Ce champ est renseigné avec les informations situées entre les balises <description> de l'unité archivistique concernée dans le bordereau.
 
-"XXXXX" : Des champs facultatifs peuvent être contenus dans le JSON lorsqu'ils sont renseignés dans le boredereau SEDA au niveau du Content de chaque unité archivistique.
-    (CF SEDA 2.0 descriptive pour connaître la liste des métadonnées facultatives)
+"XXXXX" : Des champs facultatifs peuvent être contenus dans le JSON lorsqu'ils sont renseignés dans le bordereau au niveau du Content de chaque unité archivistique.
+    (Cf SEDA 2.0 descriptive pour connaître la liste des métadonnées facultatives)
 
 "_og" (#object): identifiant du groupe d'objets référencé dans cette unité archivistique
-    Chaîne de 36 caractères.
+    Il s'agit d'une chaîne de 36 caractères.
 
 "_ops" (#operations): tableau contenant les identifiants d'opérations auxquelles ce Unit a participé
+    Il s'agit d'une chaîne de 36 caractères.
 
-"_unitType": champs indiquant le type d'unité archivistique concerné. La valeur contenue doit être conforme à l'énumération UnitType. Celle-ci peut être :
-  * INGEST
-  * FILING_UNIT
-  * HOLDING_UNIT
+"_unitType": champs indiquant le type d'unité archivistique concerné.
+    
+    Il s'agit d'une chaîne de caractères.
+    La valeur contenue doit être conforme à l'énumération UnitType. Celle-ci peut être :
+      * INGEST : unité d'archivistique issue d'un SIP
+      * FILING_UNIT : unité d'archivistique issue d'un plan de classement
+      * HOLDING_UNIT : unité d'archivistique issue d'un arbre de positionnement
 
-"_tenant" (#tenant): il s'agit de l'identifiant du tenant
+"_tenant" (#tenant): identifiant du tenant
+  Il s'agit d'un entier
 
 "_max" (ne devrait pas être visible): profondeur maximale de l'unité archivistique par rapport à une racine
-    Calculé, cette profondeur est le maximum des profondeurs, quelles que soient les racines concernées et les chemins possibles
+  Calculé, cette profondeur est le maximum des profondeurs, quelles que soient les racines concernées et les chemins possibles
 
 "_min" (ne devrait pas être visible): profondeur minimum de l'unité archivistique par rapport à une racine
-    Calculé, symétriquement le minimum des profondeurs, quelles que soient les racines concernées et les chemins possibles ;
+  Calculé, symétriquement le minimum des profondeurs, quelles que soient les racines concernées et les chemins possibles ;
 
-"_up" (#unitups): est un tableau qui recense les _id des unités archivistiques parentes (parents immédiats)
+"_up" (#unitups): tableau recenssant les _id des unités archivistiques parentes (parents immédiats)
+  Il s'agit d'une chaîne de 36 caractères
 
 "_nbc" (#nbunits): nombre d'enfants immédiats de l'unité archivistique
+  Il s'agit d'une chaîne de 36 caractères
 
-"_uds" (ne devrait pas être visible): tableau contenant la parentalité, non indexé et pas dans Elasticseatch exemple { GUID1 : depth1, GUID2 : depth2, ... } ; chaque depthN indique la distance relative entre l'unité archivistique courante et l'unité archivistique parente dont le GUID est précisé.
+"_uds" (ne devrait pas être visible): tableau contenant la parentalité ainqi que le niveau de profondeur relative. Ces informations sont réunis dans le tableau sous la forme de clef/valeur. Exemple [{GUID1 : depth1}, {GUID2 : depth2}, ... }]
+  Il s'agit d'un tableau de JSON
 
 "_us" (#allunitups): tableau contenant la parentalité, indexé [ GUID1, GUID2, ... }
+  Tableau de chaînes de 36 caractères
 
 _profil (#type): Type de document utilisé lors de l'entrée, correspond au ArchiveUnitProfile, le profil d'archivage utilisé lors de l'entrée
+  Chaîne de caractères
 
 "_mgt" (#management): contient les balises reprises du bloc <Management> du bordereau pour cette unité archivistique :
-  * "OriginatingAgency": le service producteur déclaré dans le bordereau
-  * "RuleType" [] : ce tablleau est optionnel. Il contient les règles de gestions appliquées à cette unité archivistiques. Chaque tableau correspond à une catégorie de règle. Pour être valide, la catégorie de règle doit être présente dans la collection Rules. Chaque tableau contient une à n règles. Chaque règle est composée des champs suivants :
-  *  "Rule": ce champ contient le nom de la règle. Pour être valide, elle doit être contenue dans la collection Rule, et correspondre à la catégorie déclarée par le nom du tableau qui la contient
-  *  "StartDate": date de début. Cette date est déclarée dans le bordereau. Si aucune date n'est renseigne, c'est la date de l'import qui sera ajouté ici.
-  *  "FinalAction": champ décrivant le sort final. Ce champ est disponible pour les règles de type "StorageRule" et "AppraisalRule". La valeur contenu doit le champ doit être disponible soit dans l'énumération FinalActionAppraisalCodeType soit dans FinalActionStorageCodeType
-  *  "EndDate": Date de fin d'application de la règle; Cette valeur est issue d'un calcul réalisé par VITAM consistant en l'ajout du délais correspondant à la règle dans la collection Rules et le champ startDate.
+  * "OriginatingAgency": service producteur déclaré dans le bordereau (OriginatingAgencyIdentifier)
+  * "RuleType" [] : ce tableau est optionnel. Il contient les règles de gestion appliquées à cette unité archivistiques. Chaque tableau correspond à une catégorie de règle. Pour être valide, la catégorie de règle doit être présente dans la collection Rules. Chaque tableau contient une à n règles. Chaque règle est composée des champs suivants :
+  * "Rule": ce champ contient l'identifiant de la règle. Pour être valide, elle doit être contenue dans la collection Rule, et correspondre à la catégorie déclarée par le nom du tableau qui la contient
+  * "StartDate": date de début du calcul. Cette date est déclarée dans le bordereau ou ajoutée à posteriori par une modification.
+  * "FinalAction": champ décrivant le sort final. Ce champ est disponible pour les règles de catégorie "StorageRule" et "AppraisalRule". La valeur contenue dans le champ doit être disponible soit dans l'énumération FinalActionAppraisalCodeType soit dans FinalActionStorageCodeType
+  * "EndDate": Date de fin d'application de la règle; Cette valeur est issue d'un calcul réalisé par la solution logicielle Vitam consistant en l'ajout du délais correspondant à la règle dans la collection Rules et le champ startDate.
 
 Collection ObjectGroup
 ======================
@@ -262,46 +274,61 @@ Ci-après, la portion d'un bordereau (manifest.xml) utilisée pour contribuer le
 Détail des champs du JSON
 ---------------------------
 
-"_id" (#id): identifiant du groupe d'objet. Il s'agit d'une chaîne de 36 caractères.
-Cet id est ensuite reporté dans chaque structure inculse
+"_id" (#id): identifiant du groupe d'objet. 
+  Il s'agit d'une chaîne de 36 caractères.
+  Cet id est ensuite reporté dans chaque structure inculse
 
 "_tenant" (#tenant): identifiant du tenant
+  Il s'agit d'un entier
 
-"_profil" (#type): repris du nom de la balise présente dans le <Metadata> du <DataObjectPackage> du manifeste qui concerne le BinaryMaster.
-Attention, il s'agit d'une reprise de la balise et non pas des valeurs à l'intérieur.
-Les valeurs possibles pour ce champ sont : Audio, Document, Text, Image et Video. Des extensions seront possibles (Database, Plan3D, ...)
+"_profil" (#type): repris du nom de la balise présente dans le <Metadata> du <DataObjectPackage> du bordereau qui concerne le BinaryMaster.
+  Attention, il s'agit d'une reprise de la balise et non pas des valeurs à l'intérieur.
+  Les valeurs possibles pour ce champ sont : Audio, Document, Text, Image et Video. Des extensions seront possibles (Database, Plan3D, ...)
 
-"FileInfo" : reprend le bloc FileInfo du BinaryMaster ; l'objet de cette copie est de pouvoir conserver les informations initiales du premier BinaryMaster (version de création), au cas où cette version serait détruite (selon les règles de conservation), car ces informations ne sauraient être maintenues de manière garantie dans les futures versions.
+"FileInfo" : reprend le bloc FileInfo du BinaryMaster.
+ L'objet de cette copie est de pouvoir conserver les informations initiales du premier BinaryMaster (version de création), au cas où cette version serait détruite (selon les règles de conservation), car ces informations ne sauraient être maintenues de manière garantie dans les futures versions.
 
-"_qualifiers" (#qualifiers): est une structure qui va décrire les objets inclus dans ce groupe d'objet. Il est composé comme suit :
+"_qualifiers" (#qualifiers): structure décrivant les objets inclus dans ce groupe d'objet. 
+  Il est composé comme suit :
 
-- [Usage de l'objet. Ceci correspond à la valeur contenue dans le champ <DataObjectVersion> du bordereau. Par exemple pour <DataObjectVersion>BinaryMaster_1</DataObjectVersion>. C'est la valeur "BinaryMaster" qui est reportée.
-    - "nb": nombre d'objets de cet usage
-    - "versions" : tableau des objets par version (une version = une entrée dans le tableau). Ces informations sont toutes issues du bordereau
-        - "_id": identifiant de l'objet. Il s'agit d'une chaîne de 36 caractères.
-        - "DataObjectGroupId" : Référence à l'identifiant objectGroup. Chaine de 36 caractères.
-        - "DataObjectVersion" : version de l'objet par rapport à son usage.
+  - [Usage de l'objet. Ceci correspond à la valeur contenue dans le champ <DataObjectVersion> du bordereau. Par exemple pour <DataObjectVersion>BinaryMaster_1</DataObjectVersion>. C'est la valeur "BinaryMaster" qui est reportée.
+      - "nb": nombre d'objets correspondant à cet usage
+      - "versions" : tableau des objets par version (une version = une entrée dans le tableau). Ces informations sont toutes issues du bordereau
+          - "_id": identifiant de l'objet. Il s'agit d'une chaîne de 36 caractères.
+          - "DataObjectGroupId" : identifiant du groupe d'objets. Chaîne de 36 caractères.
+          - "DataObjectVersion" : version de l'objet par rapport à son usage.
 
-    Par exemple, si on a *binaryMaster* sur l'usage, on aura au moins un objet *binarymaster_1*, *binaryMaster_2*. Ces champs sont renseignés avec les valeurs situées entre les balises <DataObjectVersion>.
+      Par exemple, si on a *binaryMaster* sur l'usage, on aura au moins un objet *binarymaster_1*. Ces champs sont renseignés avec les valeurs récupérées dans les balises <DataObjectVersion> du bordereau.
 
-    - "FormatIdentification": Contient trois champs qui permettent d'identifier le format du fichier. Une vérification de la cohérence entre ce qui est déclaré dans le XML, ce qui existe dans le référentiel pronom et les valeurs que porte le document est faite.
-      - "FormatLitteral" : nom du format. C'est une reprise de la valeur située entre les balises <FormatLitteral> du XML
-      - "MimeType" : type Mime. C'est une reprise de la valeur située entre les balises <MimeType> du XML.
-      - "FormatId" : PUID du format de l'objet. Il est défini par Vitam à l'aide du référentiel PRONOM maintenu par The National Archives (UK).
-    - "FileInfo" :
-      - "Filename" : nom de l'objet
-      - "CreatingApplicationName": Chaîne de caractères. Contient le nom de l'application avec laquelle le document a été créé. Ce champ est renseigné avec la métadonnée correspondante portée par le fichier. *Ce champ est facultatif et n'est pas présent systématiquement*
-      - "CreatingApplicationVersion": Chaîne de caractères. Contient le numéro de version de l'application avec laquelle le document a été créé. Ce champ est renseigné avec la métadonnée correspondante portée par le fichier. *Ce champ est facultatif et n'est pas présent systématiquement*
-      - "CreatingOs": Chaîne de caractères. Contient le nom du système d'exploitation avec lequel le document a été créé.  Ce champ est renseigné avec la métadonnée correspondante portée par le fichier. *Ce champ est facultatif et n'est pas présent systématiquement*
-      - "CreatingOsVersion": Chaîne de caractères. Contient le numéro de version du système d'exploitation avec lequel le document a été créé.  Ce champ est renseigné avec la métadonnées correspondante portée par le fichier. *Ce champ et facultatif est n'est pas présent systématiquement*
-      - "LastModified" : date de dernière modification de l'objet au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"Ce champ est optionnel, et est renseigné avec la métadonnée correspondante portée par le fichier.
-      - "Size": Ce champ contient un nombre entier. taille de l'objet (en octets).
-    - "OtherMetadata": Contient une chaîne de caractères. Champ disponible pour ajouter d'autres métadonnées metier (Dublin Core, IPTC...). Ce champ est renseigné avec les valeurs contenues entre les balises <OtherMetadata>. Ceci correspond à une extension du SEDA.
-    - "Uri": localisation du fichier dans le SIP
-    - "MessageDigest": empreinte du fichier. La valeur est calculé par Vitam.
-    - "Algorithm": ce champ contient le nom de l'algorithme utilisé pour réaliser l'empreinte du document.
+      - "FormatIdentification": Contient trois champs qui permettent d'identifier le format du fichier. 
+          Une vérification de la cohérence entre ce qui est déclaré dans le XML, ce qui existe dans le référentiel pronom et les valeurs que porte le document est faite.
+        - "FormatLitteral" : nom du format. C'est une reprise de la valeur située entre les balises <FormatLitteral> du XML
+        - "MimeType" : type Mime. C'est une reprise de la valeur située entre les balises <MimeType> du XML.
+        - "FormatId" : PUID du format de l'objet. Il est défini par Vitam à l'aide du référentiel PRONOM maintenu par The National Archives (UK).
+        
+      - "FileInfo" : 
+          Contient les informations sur les fichiers.
+        - "Filename" : nom de l'objet
+        - "CreatingApplicationName": Nom de l'application avec laquelle l'objet a été créé. Ce champ est renseigné avec la métadonnée correspondante portée par le bordereau. *Ce champ est facultatif et n'est pas présent systématiquement*
+        - "CreatingApplicationVersion": Numéro de version de l'application avec laquelle le document a été créé. Ce champ est renseigné avec la métadonnée correspondante portée par le bordereau. *Ce champ est facultatif et n'est pas présent systématiquement*
+        - "CreatingOs": Système d'exploitation avec lequel l'objet a été créé. Ce champ est renseigné avec la métadonnée correspondante portée par le fichier. *Ce champ est facultatif et n'est pas présent systématiquement*
+        - "CreatingOsVersion": Version du système d'exploitation avec lequel l'objet a été créé. Ce champ est renseigné avec la métadonnées correspondante portée par le bordereau. *Ce champ et facultatif est n'est pas présent systématiquement*
+        - "LastModified" : date de dernière modification de l'objet au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"Ce champ est optionnel, et est renseigné avec la métadonnée correspondante portée par le fichier.
+        - "Size": Ce champ contient un nombre entier. taille de l'objet (en octets).
+      - "OtherMetadata": Ce champ est renseigné avec les valeurs contenues entre les balises <OtherMetadata>. 
+        Ceci correspond à une extension du schéma SEDA.
+      - "Uri": localisation du fichier correspondant à l'objet dans le SIP.
+        Chaîne de caractères        
+      - "MessageDigest": empreinte du fichier correspondant à l'objet. La valeur est calculé par la solution logicielle Vitam.
+        Chaîne de caractères
+      - "Algorithm": Algorithme utilisé pour réaliser l'empreinte du fichier correspondant à l'objet.
+        Chaîne de caractères
 
-- "_up" (#unitup): [] : tableau d'identifiant des unités archivistiques parentes
-- "_tenant" (#tenant): identifiant du tenant
-- "_nbc" (#nbobjects): nombre d'objets dans ce groupe d'objet
-- "_ops" (#operations): [] tableau des identifiants d'opérations pour lesquelles ce GOT a participé
+"_up" (#unitup): [] : tableau d'identifiant des unités archivistiques parentes
+  Il s'agit d'un tableau de chaînes de 36 caractères
+
+"_nbc" (#nbobjects): nombre d'objets dans le groupe d'objet
+  Il s'agit d'un entier.
+
+"_ops" (#operations): [] tableau des identifiants d'opérations auxquelles ce GOT a participé
+  Il s'agit d'un tableau de chaînes de 36 caractères
