@@ -78,15 +78,14 @@ angular.module('dsl.query.test')
     }
 
     $scope.getRequestResults = function(query) {
-      if ($scope.isValidJson(query)) {
-        tenantService.setTenant($scope.tenantId);
-        authVitamService.createCookie('tenant', $scope.tenantId);
-        authVitamService.createCookie('X-Access-Contract-Id', $scope.contractId);
+      $scope.isValidJson(query)
+      tenantService.setTenant($scope.tenantId);
+      authVitamService.createCookie('tenant', $scope.tenantId);
+      authVitamService.createCookie('X-Access-Contract-Id', $scope.contractId);
 
-        dslQueryService.executeRequest(executeRequestSuccessCallback, executeRequestErrorCallback,
+      dslQueryService.executeRequest(executeRequestSuccessCallback, executeRequestErrorCallback,
                                   $scope.tenantId, $scope.contractId, $scope.requestedCollection, $scope.requestMethod,
                                   query, $scope.objectId);
-      }
     }
 
   });

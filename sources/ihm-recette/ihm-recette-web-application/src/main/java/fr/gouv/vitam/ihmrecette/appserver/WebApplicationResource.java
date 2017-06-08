@@ -131,6 +131,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String X_REQUESTED_COLLECTION = "X-Requested-Collection";
     private static final String X_OBJECT_ID = "X-Object-Id";
 
+    private static final String UNIT_COLLECTION = "UNIT";
+    private static final String LOGBOOK_COLLECTION = "LOGBOOK";
+    private static final String OBJECT_GROUP_COLLECTION = "OBJECTGROUP";
+    private static final String ACCESSION_REGISTERS_COLLECTION = "ACCESSIONREGISTER";
+    private static final String HTTP_GET = "GET";
+
     /**
      * Constructor
      * 
@@ -573,9 +579,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 if (requestedCollection != null && requestedAdminCollection == null) {
                     try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
                         SanityChecker.checkJsonAll(JsonHandler.toJsonNode(criteria));
-                        if (requestedCollection.equalsIgnoreCase("units")) {
+                        if (requestedCollection.equalsIgnoreCase(UNIT_COLLECTION)) {
                             switch (requestMethod) {
-                                case "GET":
+                                case HTTP_GET:
                                     if (StringUtils.isBlank(objectID)) {
                                         result = client.selectUnits(criteria, tenantId,
                                             contractId);
@@ -588,9 +594,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                     throw new InvalidParseOperationException(
                                         "Request method undefined for collection" + requestedCollection);
                             }
-                        } else if (requestedCollection.equalsIgnoreCase("logbooks")) {
+                        } else if (requestedCollection.equalsIgnoreCase(LOGBOOK_COLLECTION)) {
                             switch (requestMethod) {
-                                case "GET":
+                                case HTTP_GET:
                                     if (StringUtils.isBlank(objectID)) {
                                         result = client.selectOperation(criteria, tenantId,
                                             contractId);
@@ -603,24 +609,29 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                     throw new InvalidParseOperationException(
                                         "Request method undefined for collection " + requestedCollection);
                             }
-                        } else if (requestedCollection.equalsIgnoreCase("objectgroup")) {
+                        } else if (requestedCollection.equalsIgnoreCase(OBJECT_GROUP_COLLECTION)) {
                             switch (requestMethod) {
-                                case "GET":
+                                case HTTP_GET:
                                     if (StringUtils.isBlank(objectID)) {
                                         throw new InvalidParseOperationException(
                                             "Object ID should not be empty for collection " + requestedCollection);
                                     } else {
                                         result = client.selectObjectById(criteria, objectID, tenantId,
                                             contractId);
+                                        if (result != null) {
+                                            return Response.status(Status.OK)
+                                                .entity(JsonTransformer.transformResultObjects(result.toJsonNode()))
+                                                .build();
+                                        }
                                     }
                                     break;
                                 default:
                                     throw new InvalidParseOperationException(
                                         "Request method undefined for collection " + requestedCollection);
                             }
-                        } else if (requestedCollection.equalsIgnoreCase("accessionregisters")) {
+                        } else if (requestedCollection.equalsIgnoreCase(ACCESSION_REGISTERS_COLLECTION)) {
                             switch (requestMethod) {
-                                case "GET":
+                                case HTTP_GET:
                                     if (StringUtils.isBlank(objectID)) {
                                         result = client.getAccessionRegisterSummary(criteria, tenantId,
                                             contractId);
@@ -641,7 +652,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                     requestedAdminCollection = AdminCollections.valueOf(requestedCollection);
                     try (AdminExternalClient adminExternalClient = AdminExternalClientFactory.getInstance().getClient()) {
                         switch (requestMethod) {
-                            case "GET":
+                            case HTTP_GET:
                                 if (StringUtils.isBlank(objectID)) {
                                     result = adminExternalClient.findDocuments(requestedAdminCollection, criteria,
                                         tenantId);
