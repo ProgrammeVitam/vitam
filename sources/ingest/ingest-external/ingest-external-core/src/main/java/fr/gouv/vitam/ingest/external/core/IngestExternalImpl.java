@@ -68,6 +68,7 @@ import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 import fr.gouv.vitam.ingest.external.common.util.JavaExecuteScript;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
+import fr.gouv.vitam.logbook.common.MessageLogbookEngineHelper;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -145,11 +146,12 @@ public class IngestExternalImpl implements IngestExternal {
         LogbookOperationParameters startedParameters = null;
 
         try {
+            MessageLogbookEngineHelper messageLogbookEngineHelper = new MessageLogbookEngineHelper(logbookTypeProcess);
 
             startedParameters = LogbookParametersFactory.newLogbookOperationParameters(
                 ingestGuid, ingestContext.getEventType(), containerName,
                 logbookTypeProcess, StatusCode.STARTED,
-                VitamLogbookMessages.getCodeOp(ingestContext.getEventType(), StatusCode.STARTED) + " : " + ingestGuid.toString(),
+                messageLogbookEngineHelper.getLabelOp(ingestContext.getEventType(), StatusCode.STARTED) + " : " + ingestGuid.toString(),
                 ingestGuid);
 
             // TODO P1 should be the file name from a header
@@ -161,11 +163,11 @@ public class IngestExternalImpl implements IngestExternal {
             final LogbookOperationParameters sipSanityParameters =
                 LogbookParametersFactory.newLogbookOperationParameters(
                     ingestGuid,
-                    INGEST_EXT,
+                    logbookTypeProcess.name(),
                     containerName,
                     logbookTypeProcess,
                     StatusCode.STARTED,
-                    VitamLogbookMessages.getCodeOp(INGEST_EXT, StatusCode.STARTED),
+                    messageLogbookEngineHelper.getLabelOp(INGEST_EXT, StatusCode.STARTED),
                     containerName);
             helper.updateDelegate(sipSanityParameters);
 

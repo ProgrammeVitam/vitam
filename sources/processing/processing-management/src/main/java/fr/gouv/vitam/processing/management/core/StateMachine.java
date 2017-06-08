@@ -33,12 +33,12 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDReader;
-import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.logbook.common.MessageLogbookEngineHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
@@ -66,7 +66,6 @@ import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * T
@@ -482,17 +481,18 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
     }
 
     private void logbook(LogbookOperationsClient client, GUID operationGuid, LogbookTypeProcess logbookTypeProcess, StatusCode statusCode) throws Exception {
+        MessageLogbookEngineHelper messageLogbookEngineHelper = new MessageLogbookEngineHelper(logbookTypeProcess);
         final LogbookOperationParameters parameters = LogbookParametersFactory
             .newLogbookOperationParameters(
                 operationGuid,
-                INGEST_WORKFLOW,
+                logbookTypeProcess.name(),
                 operationGuid,
                 logbookTypeProcess,
                 statusCode,
-                VitamLogbookMessages.getCodeOp(INGEST_WORKFLOW, statusCode),
+                messageLogbookEngineHelper.getLabelOp(logbookTypeProcess.name(), statusCode),
                 operationGuid);
         parameters.putParameterValue(LogbookParameterName.outcomeDetail,
-            VitamLogbookMessages.getOutcomeDetail(INGEST_WORKFLOW, statusCode));
+            messageLogbookEngineHelper.getOutcomeDetail(logbookTypeProcess.name(), statusCode));
         client.update(parameters);
     }
 }

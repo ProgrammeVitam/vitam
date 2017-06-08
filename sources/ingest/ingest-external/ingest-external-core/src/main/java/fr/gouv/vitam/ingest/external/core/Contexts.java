@@ -8,8 +8,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 public enum Contexts {
     
     BLANK_TEST(LogbookTypeProcess.INGEST_TEST),
-    HOLDING_SCHEME(LogbookTypeProcess.MASTERDATA),
-    FILING_SCHEME(LogbookTypeProcess.INGEST),
+    HOLDING_SCHEME(LogbookTypeProcess.HOLDINGSCHEME),
+    FILING_SCHEME(LogbookTypeProcess.FILINGSCHEME),
     DEFAULT_WORKFLOW(LogbookTypeProcess.INGEST);
 
     private static final String FILINGSCHEME = "FILINGSCHEME";
