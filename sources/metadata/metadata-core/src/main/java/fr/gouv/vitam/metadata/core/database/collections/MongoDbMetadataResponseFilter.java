@@ -29,7 +29,6 @@ package fr.gouv.vitam.metadata.core.database.collections;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS;
-import fr.gouv.vitam.common.error.VitamCodeHelper;
 
 /**
  * Response filter changing _varname to corresponding #varname according to ParserTokens
@@ -100,10 +99,10 @@ public class MongoDbMetadataResponseFilter {
                 case MANAGEMENT:
                     replace(document, Unit.MANAGEMENT, VitamFieldsHelper.management());
                     break;
-                case SP:
+                case ORIGINATING_AGENCY:
                     replace(document, MetadataDocument.ORIGINATING_AGENCY, VitamFieldsHelper.originatingAgency());
                     break;
-                case SPS:
+                case ORIGINATING_AGENCIES:
                     replace(document, MetadataDocument.ORIGINATING_AGENCIES, VitamFieldsHelper.originatingAgencies());
                 case SIZE:
                 case DUA:

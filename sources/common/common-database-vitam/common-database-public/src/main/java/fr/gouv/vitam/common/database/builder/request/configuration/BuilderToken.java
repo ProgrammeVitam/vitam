@@ -578,11 +578,11 @@ public abstract class BuilderToken {
         /**
          * originating agency
          */
-        ORIGINATING_AGENCY("sp"),
+        ORIGINATING_AGENCY("originating_agency"),
         /**
          * originating agencies
          */
-        ORIGINATING_AGENCIES("sps"),
+        ORIGINATING_AGENCIES("originating_agencies"),
         /**
          * unit type bloc
          */

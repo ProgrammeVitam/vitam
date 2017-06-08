@@ -16,6 +16,6 @@
 	"#unitups" : [ ],
 	"#nbunits" : 1,
 	"#allunitups" : [ ],
-	"#sps": ["OriginatingAgencyChild"]
+	"#originating_agencies": ["OriginatingAgencyChild"]
 }
 ],"$context":{"$roots":[],"$query":[],"$filter":{},"$projection":{}}}

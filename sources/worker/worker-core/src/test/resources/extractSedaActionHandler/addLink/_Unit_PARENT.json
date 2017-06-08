@@ -21,6 +21,6 @@
 	"#allunitups" : [
 		"GUID_ARCHIVE_UNIT_ANCESTOR"
 	],
-	"#sps" : ["OriginatingAgencyParent"]
+	"#originating_agencies" : ["OriginatingAgencyParent"]
 }
 ],"$context":{"$roots":[],"$query":[],"$filter":{},"$projection":{}}}

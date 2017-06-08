@@ -138,11 +138,11 @@ public class ParserTokens extends BuilderToken {
         /**
          * originating agency
          */
-        SP("sp"),
+        ORIGINATING_AGENCY("originating_agency"),
         /**
          * originating agencies
          */
-        SPS("sps");
+        ORIGINATING_AGENCIES("originating_agencies");
 
         private static final String NOT_FOUND = "Not found";
         private final String exactToken;
@@ -224,8 +224,8 @@ public class ParserTokens extends BuilderToken {
                         case MIN:
                         case MAX:
                         case UNITTYPE:
-                        case SP:
-                        case SPS:
+                        case ORIGINATING_AGENCY:
+                        case ORIGINATING_AGENCIES:
                             return true;
                         default:
                     }

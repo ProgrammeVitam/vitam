@@ -128,10 +128,10 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                     case OPERATIONS:
                         // Valid for Unit and OG
                         return MetadataDocument.OPS;
-                    case SP:
+                    case ORIGINATING_AGENCY:
                         // Valid for Unit and OG
                         return MetadataDocument.ORIGINATING_AGENCY;
-                    case SPS:
+                    case ORIGINATING_AGENCIES:
                         // Valid for Unit and OG
                         return MetadataDocument.ORIGINATING_AGENCIES;
                     case ALL:
