@@ -158,6 +158,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String LFC_INITIAL_CREATION_EVENT_TYPE = "LFC_CREATION";
     private static final String LFC_CREATION_SUB_TASK_ID = "LFC_CREATION";
     private static final String LFC_CREATION_SUB_TASK_FULL_ID = HANDLER_ID + "." + LFC_CREATION_SUB_TASK_ID;
+    private static final String ATTACHMENT_IDS = "attachmentIds";
     private HandlerIO handlerIO;
 
 
@@ -226,6 +227,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static String prodService = null;
     private static String contractName = null;
     private static String filingParentId = null;
+    private ObjectNode archiveUnitTree;
 
     /**
      * Constructor with parameter SedaUtilsFactory
@@ -365,7 +367,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         final QName unitName = new QName(SedaConstants.NAMESPACE_URI, ARCHIVE_UNIT);
 
         // Archive Unit Tree
-        final ObjectNode archiveUnitTree = JsonHandler.createObjectNode();
+        archiveUnitTree = JsonHandler.createObjectNode();
 
         try {
             try {
@@ -626,6 +628,12 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     evDetData.set("ServiceLevel", (ObjectNode) null);
                 }
 
+                if (existingUnitGuids.size() > 0) {
+                    ArrayNode attachmentNode = JsonHandler.createArrayNode();
+                    existingUnitGuids.forEach(attachmentNode::add);
+                    evDetData.set(ATTACHMENT_IDS, attachmentNode);
+                }
+
             } catch (InvalidParseOperationException e) {
                 LOGGER.error("Can't parse globalSedaPareters", e);
                 throw new ProcessingException(e);
@@ -768,7 +776,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             boolean isRootArchive = true;
 
             // 1- Update created Unit life cycles
-            addFinalStatusToUnitLifeCycle(unitGuid, containerId, logbookLifeCycleClient);
+            addFinalStatusToUnitLifeCycle(unitGuid, unitId, containerId, logbookLifeCycleClient);
 
             // 2- Update temporary files
             final File unitTmpFileForRead = handlerIO.getNewLocalFile(ARCHIVE_UNIT_TMP_FILE_PREFIX + unitGuid);
@@ -813,7 +821,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     /**
      * Merge global rules to specific archive rules and clean management node
-     * 
+     *
      * @param archiveUnit archiveUnit
      * @param globalMgtIdExtra list of global management rule ids
      * @throws InvalidParseOperationException
@@ -927,7 +935,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         archiveUnit.set(SedaConstants.PREFIX_WORK, workNode);
     }
 
-    private void addFinalStatusToUnitLifeCycle(String unitGuid, String containerId,
+    private void addFinalStatusToUnitLifeCycle(String unitGuid, String unitId, String containerId,
         LogbookLifeCyclesClient logbookLifeCycleClient)
         throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
         if (guidToLifeCycleParameters.get(unitGuid) != null) {
@@ -940,10 +948,48 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 handlerIO.getHelper().updateDelegate(llcp);
             }
             llcp.setFinalStatus(HANDLER_ID, null, StatusCode.OK, null);
+
+
+            List<String> parentAttachments = existAttachmentUnitAsParentOnTree(unitId);
+            if (parentAttachments.size() > 0) {
+                ObjectNode evDetData = JsonHandler.createObjectNode();
+                ArrayNode arrayNode = JsonHandler.createArrayNode();
+                parentAttachments.forEach(arrayNode::add);
+                evDetData.set(ATTACHMENT_IDS, arrayNode);
+                String wellFormedJson = null;
+                try {
+                    wellFormedJson = JsonHandler.writeAsString(evDetData);
+                } catch (InvalidParseOperationException e) {
+                    LOGGER.error("unable to generate evDetData, incomplete journal generation", e);
+                }
+                llcp.putParameterValue(LogbookParameterName.eventDetailData, wellFormedJson);
+            }
             handlerIO.getHelper().updateDelegate(llcp);
             logbookLifeCycleClient.bulkUpdateUnit(containerId,
                 handlerIO.getHelper().removeUpdateDelegate(unitGuid));
         }
+    }
+
+    private List<String> existAttachmentUnitAsParentOnTree(String unitId) {
+        List<String> parents = new ArrayList<>();
+        if (archiveUnitTree.has(unitId)) {
+            JsonNode archiveNode = archiveUnitTree.get(unitId);
+            if (archiveNode.has(IngestWorkflowConstants.UP_FIELD)) {
+                final JsonNode archiveUps = archiveNode.get(IngestWorkflowConstants.UP_FIELD);
+                if (archiveUps.isArray() && archiveUps.size() > 0) {
+                    ArrayNode archiveUpsArray = (ArrayNode) archiveUps;
+                    for (JsonNode jsonNode : archiveUpsArray) {
+                        String archiveUnitId = jsonNode.textValue();
+                        String guid = unitIdToGuid.get(archiveUnitId);
+
+                        if (existingUnitGuids.contains(guid)) {
+                            parents.add(guid);
+                        }
+                    }
+                }
+            }
+        }
+        return parents;
     }
 
     private boolean addParentsToTmpFile(ArrayNode upNode, String unitId, ObjectNode archiveUnitTree)
@@ -1293,7 +1339,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     /**
      * Extract all physical dimensions and manage unit attributes : replace dimensions containing a unit attribute by an
      * object with format: <myDimension> <unit>unitValue</unit> <value>dimensionValue</value> </myDimension>
-     * 
+     *
      * @param reader
      * @param writer
      * @param eventFactory
@@ -1550,7 +1596,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         if (logbookLifeCycleParameters == null) {
             logbookLifeCycleParameters = isArchive ? LogbookParametersFactory.newLogbookLifeCycleUnitParameters()
                 : isObjectGroup ? LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters()
-                    : LogbookParametersFactory.newLogbookOperationParameters();
+                : LogbookParametersFactory.newLogbookOperationParameters();
 
             logbookLifeCycleParameters.putParameterValue(LogbookParameterName.objectIdentifier, guid);
         }
@@ -1679,7 +1725,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                             ruleInProgress = true;
                             break;
                         case SedaConstants.TAG_ARCHIVE_UNIT:
-                            extractArchiveUnitTag(reader, writerJson, eventFactory, event, archiveUnitId,
+                            extractArchiveUnitTag(reader, event, archiveUnitId,
                                 archiveUnitTree, archiveUnitGuids, logbookLifeCycleClient);
                             break;
                         case SedaConstants.TAG_DATA_OBJECT_GROUP_REFERENCEID:
@@ -1800,9 +1846,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
         return archiveUnitGuids;
     }
 
-    private void extractArchiveUnitTag(XMLEventReader reader, XMLEventWriter writerJson, XMLEventFactory eventFactory,
-        XMLEvent event, String archiveUnitId, ObjectNode archiveUnitTree, List<String> archiveUnitGuids,
-        LogbookLifeCyclesClient logbookLifeCycleClient)
+    private void extractArchiveUnitTag(XMLEventReader reader, XMLEvent event, String archiveUnitId,
+        ObjectNode archiveUnitTree, List<String> archiveUnitGuids, LogbookLifeCyclesClient logbookLifeCycleClient)
         throws ProcessingException {
         // Update archiveUnitTree
         final String nestedArchiveUnitId = event.asStartElement()
@@ -1930,10 +1975,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     /**
      * Update unit file with existing archive unit. Will set the existing in the file.
-     * 
+     *
      * @param elementGuid archive unit guid
-     * @param tmpFile unit xml file
-     * @param unitName xml unit qualifier
+     * @param tmpFile     unit xml file
+     * @param unitName    xml unit qualifier
      * @return the modified unit file
      * @throws ProcessingException thrown when an exception occurred while adding the data
      */
@@ -2152,9 +2197,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     /**
      * Update data object json node with data from maps
-     * 
+     *
      * @param objectNode data object json node
-     * @param guid guid of data object
+     * @param guid       guid of data object
      */
     private void updateObjectNode(final ObjectNode objectNode, String guid) {
         objectNode.put(SedaConstants.PREFIX_ID, guid);
@@ -2177,11 +2222,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     /**
      * Load data of an existing archive unit by its vitam id.
-     * 
+     *
      * @param archiveUnitId guid of archive unit
      * @return AU response
      * @throws ProcessingUnitNotFoundException thrown if unit not found
-     * @throws ProcessingException thrown if a metadata exception occured
+     * @throws ProcessingException             thrown if a metadata exception occured
      */
     private JsonNode loadExistingArchiveUnit(String archiveUnitId) throws ProcessingException {
 
