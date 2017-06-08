@@ -278,6 +278,18 @@ public final class GUIDFactory {
     }
 
     /**
+     * Create an accession register detail GUID
+     *
+     * @return a new GUID
+     * @throws IllegalArgumentException if any of the argument are out of range
+     */
+    public static final GUID newAccessionRegisterDetailGUID( int tenantId) {
+        final int type = GUIDObjectType.ACCESSION_REGISTER_DETAIL_TYPE;
+        return new GUIDImplPrivate(type, tenantId, serverIdentity.getGlobalPlatformId(),
+            GUIDObjectType.getDefaultWorm(type));
+    }
+
+    /**
      *
      * @param uuid
      * @return True if the given GUID is using a WORM media

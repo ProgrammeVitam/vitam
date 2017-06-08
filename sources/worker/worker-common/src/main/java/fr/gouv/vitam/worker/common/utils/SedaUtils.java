@@ -210,6 +210,7 @@ public class SedaUtils {
                     }
 
                     if (element.getName().equals(commentName)) {
+                        // TODO: use equals + sting concatenation in loop is not a good idea
                         if (sedaComment != "") {
                             sedaComment = sedaComment + "_" + reader.getElementText();
                         } else {

@@ -34,16 +34,29 @@ import fr.gouv.vitam.worker.common.HandlerIO;
  */
 public class SedaUtilsFactory {
 
+    private static SedaUtilsFactory sedaUtilsFactory = new SedaUtilsFactory();
+
     private SedaUtilsFactory() {
         // Empty constructor
+    }
+
+    public static SedaUtilsFactory getInstance() {
+        return sedaUtilsFactory;
+    }
+
+    public SedaUtils createSedaUtils(HandlerIO handlerIO) {
+        ParametersChecker.checkParameter("HandlerIO must not be null", handlerIO);
+        return new SedaUtils(handlerIO);
     }
 
     /**
      * @param handlerIO the HandlerIO
      * @return SedaUtils create with handlerIO parameter
      */
+    @Deprecated
     public static SedaUtils create(HandlerIO handlerIO) {
         ParametersChecker.checkParameter("HandlerIO must not be null", handlerIO);
-        return new SedaUtils(handlerIO);
+        return sedaUtilsFactory.createSedaUtils(handlerIO);
     }
+
 }
