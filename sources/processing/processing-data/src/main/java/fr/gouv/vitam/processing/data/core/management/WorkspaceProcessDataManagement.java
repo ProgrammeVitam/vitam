@@ -29,7 +29,9 @@ package fr.gouv.vitam.processing.data.core.management;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -38,6 +40,7 @@ import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
+import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -153,7 +156,7 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
         // Not using try with resources because in this case, response.close() throw an exception :
         // MultiException stack 1 of 1
         // java.lang.IllegalStateException: ServiceLocatorImpl(__HK2_Generated_30,31,1929030508) has been shut down
-        
+
         try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
             response = client.getObject(PROCESS_CONTAINER, getPathToObjectFromFolder(folderName, asyncId));
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
@@ -188,12 +191,14 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
         Map<String, ProcessWorkflow> result = new ConcurrentHashMap<>();
         try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
             List<URI> uris =
-                JsonHandler.getFromStringAsTypeRefence(client.getListUriDigitalObjectFromFolder(PROCESS_CONTAINER, folderName)
-                    .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {});
+                JsonHandler
+                    .getFromStringAsTypeRefence(client.getListUriDigitalObjectFromFolder(PROCESS_CONTAINER, folderName)
+                        .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {});
             for (URI uri : uris) {
                 try {
-                    // TODO: review this ugly split
-                    ProcessWorkflow processWorkflow = getProcessWorkflow(folderName, uri.getPath().split("\\.")[0]);
+                    String processId = uri.getPath().substring(0,
+                        uri.getPath().lastIndexOf(URLEncoder.encode(".", CharsetUtils.UTF_8)));
+                    ProcessWorkflow processWorkflow = getProcessWorkflow(folderName, processId);
                     if (ProcessState.RUNNING.equals(processWorkflow.getState())) {
                         processWorkflow.setState(ProcessState.COMPLETED);
                         processWorkflow.setStatus(StatusCode.UNKNOWN);
@@ -202,7 +207,7 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
                     if (tenantId == null || processWorkflow.getTenantId().equals(tenantId)) {
                         result.put(processWorkflow.getOperationId(), processWorkflow);
                     }
-                } catch (InvalidParseOperationException e) {
+                } catch (InvalidParseOperationException | UnsupportedEncodingException e) {
                     // TODO: is blocking ?
                     LOGGER.error("Error on loading old workflow {} -> cannot be resume", uri.getPath(), e);
                 }

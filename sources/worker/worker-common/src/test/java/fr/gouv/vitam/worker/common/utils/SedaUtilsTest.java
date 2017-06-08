@@ -38,6 +38,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +63,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -262,8 +264,8 @@ public class SedaUtilsTest {
     @Test
     public void givenSIPWithTwoFolderThenReturnKOMultiFolderContent() throws Exception {
         List<URI> listUri = new ArrayList<URI>();
-        listUri.add(new URI("content/file.pdf"));
-        listUri.add(new URI("content2/file2.pdf"));
+        listUri.add(new URI(URLEncoder.encode("content/file.pdf", CharsetUtils.UTF_8)));
+        listUri.add(new URI(URLEncoder.encode("content2/file2.pdf", CharsetUtils.UTF_8)));
         listUri.add(new URI("manifest.xml"));
         when(handlerIO.getUriList(anyObject(), anyObject())).thenReturn(listUri);
         final CheckSedaValidationStatus status = utils.checkSedaValidation(params);

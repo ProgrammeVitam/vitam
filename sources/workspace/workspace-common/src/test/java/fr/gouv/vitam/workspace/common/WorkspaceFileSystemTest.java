@@ -210,7 +210,7 @@ public class WorkspaceFileSystemTest {
             new StringBuilder().append(contentSubFolder).append(SLASH).append("file1.pdf").toString();
         storage.putObject(SIP_CONTAINER, fileName1, getInputStream("file1.pdf"));
         final String fileName2 =
-            new StringBuilder().append(contentSubFolder).append(SLASH).append("file2.pdf").toString();
+            new StringBuilder().append(contentSubFolder).append(SLASH).append("space - file2.pdf").toString();
         storage.putObject(SIP_CONTAINER, fileName2, getInputStream("file2.pdf"));
 
         // Then check that there is 2 URIs found recursively from the content folder

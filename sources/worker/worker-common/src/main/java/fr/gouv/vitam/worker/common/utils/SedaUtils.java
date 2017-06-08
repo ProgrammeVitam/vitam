@@ -30,8 +30,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -53,6 +55,7 @@ import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.digest.DigestType;
@@ -319,14 +322,17 @@ public class SedaUtils {
 
     /**
      * check if there are many folder content in the SIP
+     * 
+     * @throws ProcessingException
+     * @throws UnsupportedEncodingException
      */
-    private boolean checkFolderContentNumber() throws ProcessingException {
+    private boolean checkFolderContentNumber() throws ProcessingException, UnsupportedEncodingException {
         List<URI> list = handlerIO.getUriList(handlerIO.getContainerName(), IngestWorkflowConstants.SEDA_FOLDER);
         String contentName = null;
         for (int i = 0; i < list.size(); i++) {
             String s = list.get(i).toString();
-            if (s.contains("/")) {
-                String directory = s.split("/")[0];
+            if (s.contains(URLEncoder.encode("/", CharsetUtils.UTF_8))) {
+                String directory = s.split(URLEncoder.encode("/", CharsetUtils.UTF_8))[0];
                 if (directory.equalsIgnoreCase("content")) {
                     if (contentName == null) {
                         contentName = directory;
@@ -347,12 +353,16 @@ public class SedaUtils {
 
     /**
      * check if there are many file manifest.xml another in the SIP root
+     * 
+     * @throws ProcessingException
+     * @throws UnsupportedEncodingException
      */
-    private boolean checkMultiManifest() throws ProcessingException {
+    private boolean checkMultiManifest() throws ProcessingException, UnsupportedEncodingException {
         List<URI> listURI = handlerIO.getUriList(handlerIO.getContainerName(), IngestWorkflowConstants.SEDA_FOLDER);
+
         int countManifest = 0;
         for (int i = 0; i < listURI.size(); i++) {
-            if (!listURI.get(i).toString().contains("/")) {
+            if (!listURI.get(i).toString().contains(URLEncoder.encode("/", CharsetUtils.UTF_8))) {
                 countManifest++;
                 if (countManifest > 1) {
                     return true;
@@ -433,7 +443,7 @@ public class SedaUtils {
             }
             LOGGER.debug("End of extracting  Uri from manifest");
 
-        } catch (XMLStreamException | URISyntaxException e) {
+        } catch (XMLStreamException | URISyntaxException | UnsupportedEncodingException e) {
             LOGGER.error(e);
             throw new ProcessingException(e);
         } finally {
@@ -451,7 +461,7 @@ public class SedaUtils {
     }
 
     private void getUri(ExtractUriResponse extractUriResponse, XMLEventReader evenReader)
-        throws XMLStreamException, URISyntaxException {
+        throws XMLStreamException, URISyntaxException, UnsupportedEncodingException {
 
         while (evenReader.hasNext()) {
             XMLEvent event = evenReader.nextEvent();
@@ -465,7 +475,7 @@ public class SedaUtils {
                     final String uri = event.asCharacters().getData();
                     // Check element is duplicate
                     checkDuplicatedUri(extractUriResponse, uri);
-                    extractUriResponse.getUriListManifest().add(new URI(uri));
+                    extractUriResponse.getUriListManifest().add(new URI(URLEncoder.encode(uri, CharsetUtils.UTF_8)));
                     break;
                 }
             }
