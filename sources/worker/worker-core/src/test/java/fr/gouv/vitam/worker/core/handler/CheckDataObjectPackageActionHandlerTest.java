@@ -143,6 +143,9 @@ public class CheckDataObjectPackageActionHandlerTest {
         in = new ArrayList<>();
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.VALUE, "true")));
+        in.add(new IOParameter()
+                .setUri(new ProcessingUri(UriPrefix.VALUE, "INGEST")));
+
         uriListWorkspaceOK.add(new URI("content/file1.pdf"));
         uriListWorkspaceOK.add(new URI("content/file2.pdf"));
         uriListWorkspaceOK.add(new URI("manifest.xml"));
@@ -177,6 +180,8 @@ public class CheckDataObjectPackageActionHandlerTest {
         in = new ArrayList<>();
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.VALUE, "false")));
+        in.add(new IOParameter()
+                .setUri(new ProcessingUri(UriPrefix.VALUE, "INGEST")));
         action.reset();        
         action.addOutIOParameters(out);
         action.addInIOParameters(in);

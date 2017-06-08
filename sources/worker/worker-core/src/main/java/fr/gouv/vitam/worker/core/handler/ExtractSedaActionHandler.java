@@ -97,14 +97,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsExceptio
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.logbook.common.parameters.LogbookEvDetDataType;
-import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.parameters.*;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
@@ -120,6 +113,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingDuplicatedVersionExce
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingManifestReferenceException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnitNotFoundException;
+import fr.gouv.vitam.processing.common.exception.*;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.DataObjectDetail;
@@ -227,6 +221,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static String contractName = null;
     private static String filingParentId = null;
 
+
+    private UnitType workflowUnitTYpe = UnitType.INGEST;
+
     /**
      * Constructor with parameter SedaUtilsFactory
      */
@@ -281,6 +278,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
             LOGGER.debug("ProcessingException: duplicated version", e);
             globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final ProcessingUnitNotFoundException e) {
+            LOGGER.debug("ProcessingException : unit not found", e);
+            globalCompositeItemStatus.increment(StatusCode.KO);
+        } catch (final ProcessingUnauthorizeException e) {
             LOGGER.debug("ProcessingException : unit not found", e);
             globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final ProcessingManifestReferenceException e) {
@@ -1949,7 +1949,14 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 LOGGER.error("Existing Unit was not found {}", elementGuid);
                 throw new ProcessingUnitNotFoundException("Existing Unit was not found");
             }
+             String type =    existingData.get("$results").get(0).get("_unitType").asText() ;
+             UnitType dataUnitTye = UnitType.valueOf(type);
 
+            if ( dataUnitTye.ordinal() < workflowUnitTYpe.ordinal() ){
+                LOGGER.error("Linking not allowed  {}", elementGuid);
+                throw new ProcessingUnitNotFoundException("Linking Unauthorized ");
+
+            }
             nbAUExisting++;
 
             JsonNode archiveUnit = JsonHandler.getFromFile(tmpFile);
@@ -2292,6 +2299,14 @@ public class ExtractSedaActionHandler extends ActionHandler {
             throw new ProcessingException(HandlerIOImpl.NOT_CONFORM_PARAM);
         }
     }
+    public UnitType getWorkflowUnitTYpe() {
+        return workflowUnitTYpe;
+    }
+
+    public void setWorkflowUnitTYpe(UnitType workflowUnitTYpe) {
+        this.workflowUnitTYpe = workflowUnitTYpe;
+    }
+
 
     /**
      * This object content the new technical object group guid and the an boolean. It is created when the BDO not

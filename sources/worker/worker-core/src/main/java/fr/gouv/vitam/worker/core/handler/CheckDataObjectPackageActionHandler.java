@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.logbook.common.parameters.UnitType;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.IOParameter;
 import fr.gouv.vitam.processing.common.model.ProcessingUri;
@@ -70,6 +71,11 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
     public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO) throws ContentAddressableStorageServerException {
         this.handlerIO = handlerIO;
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
+        UnitType unitType = null;
+        if (handlerIO.getInput() != null && !handlerIO.getInput().isEmpty() && handlerIO.getInput(1) !=null) {
+             unitType = UnitType.valueOf(UnitType.getUnitTypeString((String) handlerIO.getInput(1)));
+
+        }
         try {
             if (Boolean.valueOf((String)handlerIO.getInput(CHECK_NO_OBJECT_INPUT_RANK))) {
                 CheckNoObjectsActionHandler checkNoObjectsActionHandler = new CheckNoObjectsActionHandler();
@@ -83,6 +89,9 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
                 handlerIO.getInput().clear();
 
                 ExtractSedaActionHandler extractSedaActionHandler = new ExtractSedaActionHandler();
+                if (null != unitType) {
+                    extractSedaActionHandler.setWorkflowUnitTYpe(unitType);
+                }
                 ItemStatus extractSedaStatus = extractSedaActionHandler.execute(params, handlerIO);
                 itemStatus.setItemsStatus(ExtractSedaActionHandler.getId(), extractSedaStatus);
 
@@ -105,9 +114,9 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
                 CheckObjectsNumberActionHandler checkObjectsNumberActionHandler = new CheckObjectsNumberActionHandler();
                 ItemStatus checkObjectNumberStatus = checkObjectsNumberActionHandler.execute(params, handlerIO);
                 itemStatus.setItemsStatus(CheckObjectsNumberActionHandler.getId(), checkObjectNumberStatus);
-                
+
                 handlerIO.getInput().clear();
-                
+
                 ExtractSedaActionHandler extractSedaActionHandler = new ExtractSedaActionHandler();
                 ItemStatus extractSedaStatus = extractSedaActionHandler.execute(params, handlerIO);
                 itemStatus.setItemsStatus(ExtractSedaActionHandler.getId(), extractSedaStatus);
