@@ -1,12 +1,10 @@
-Workflow d'entrée d'un plan de classement
-#########################################
+INGEST : Workflow d'entrée d'un plan de classement
+##################################################
 
 Introduction
 ============
 
 Cette section décrit le processus (workflow-plan) d'entrée d'un plan de classement mis en place dans Vitam. La structure d'un plan de classement diffère de celle d'un SIP dans le fait qu'un plan ne doit pas avoir d'objets et n'utilise pas de profil. Il s'agit plus simplement d'une arborescence représenté par des unités archivistiques. Ce processus partage donc certaines étapes avec celui du versement d'un SIP classique, en ignorent certaines et rajoute des tâches additionnelles.
-
-Cette section décrit le processus (workflow-tree) permettant d'importer un arbre de positionnement dans Vitam. La structure d'un arbre de positionnement diffère de celle d'un SIP en plusieurs points. Un arbre ne doit pas avoir d'objets et n'utilise ni service producteur ni contrat. Il s'agit plus simplement d'une arborescence représenté par des unités archivistiques. Ce processus partage donc certaines étapes avec celui du versement d'un SIP classique, en ignorent certaines et en rajoute des spécifiques.
 
 Le workflow actuel mis en place dans la solution logicielle est défini dans le fichier "DefaultFilingSchemeWorkflow.json".
 
@@ -40,10 +38,8 @@ Traitement additionnel dans la tâche CHECK_DATAOBJECTPACKAGE
 D'une façon synthétique, le workflow est décrit de cette façon :
 
 
-.. figure:: images/Workflow_FilingScheme.jpg
-   :align: center
-   :height: 22 cm
-   :target: images/Workflow_FilingScheme.jpg
+.. figure:: images/Workflow_FilingScheme.png
+    :align: center
 
 Diagramme d'activité du workflow du plan de classement
 
