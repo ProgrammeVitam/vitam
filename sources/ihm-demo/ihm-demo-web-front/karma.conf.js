@@ -31,6 +31,8 @@ module.exports = function(config) {
       'bower_components/jquery-ui/jquery-ui.js',
       'bower_components/angular-translate/angular-translate.min.js',
       'bower_components/angular-translate-loader-static-files/angular-translate-loader-static-files.min.js',
+      'bower_components/ng-file-upload/ng-file-upload-shim.min.js',
+      'bower_components/ng-file-upload/ng-file-upload.min.js',
       'app/modules/parent/app.module.js',
       'app/modules/parent/app.config.js',
       'app/modules/core/core.module.js',
