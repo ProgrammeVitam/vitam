@@ -58,7 +58,7 @@ public class Context extends VitamDocument<Context>{
     /**
      * the Context description
      */
-    public static final String PERMISSION = "Permission";
+    public static final String PERMISSION = "Permissions";
     
     /**
      * Empty Constructor

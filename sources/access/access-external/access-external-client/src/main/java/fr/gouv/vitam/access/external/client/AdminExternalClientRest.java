@@ -38,6 +38,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     private static final String REQUEST_PRECONDITION_FAILED = "Request precondition failed";
     private static final String UPDATE_ACCESS_CONTRACT = "/accesscontract/";
     private static final String UPDATE_INGEST_CONTRACT = "/contract/";
+    private static final String UPDATE_CONTEXT = "/context/";
 
     AdminExternalClientRest(AdminExternalClientFactory factory) {
         super(factory);
@@ -311,6 +312,24 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse updateContext(String id, JsonNode queryDsl, Integer tenantId) throws AccessExternalClientException {
+        Response response = null;
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        try {
+            response = performRequest(HttpMethod.PUT, UPDATE_CONTEXT + id, headers,
+                queryDsl, MediaType.APPLICATION_JSON_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new AccessExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {
             consumeAnyEntityAndClose(response);
         }

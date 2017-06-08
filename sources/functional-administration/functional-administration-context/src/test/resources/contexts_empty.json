@@ -4,12 +4,12 @@
     "Status": true,
     "Permissions": [
       {
-        "_tenant": 0,
+        "_tenant": 1,
         "AccessContracts": [],
         "IngestContracts": []
       },
       {
-        "_tenant": 1,
+        "_tenant": 0,
         "AccessContracts": [],
         "IngestContracts": []
       }

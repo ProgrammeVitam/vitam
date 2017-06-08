@@ -26,9 +26,9 @@
  */
 package fr.gouv.vitam.functionnal.administration.context.core;
 
-import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -42,8 +42,15 @@ import org.bson.conversions.Bson;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.mongodb.client.MongoCursor;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
+import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
@@ -55,17 +62,25 @@ import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.AccessContractModel;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.model.ContextModel;
+import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
+import fr.gouv.vitam.functional.administration.client.model.PermissionModel;
 import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.context.api.ContextService;
+import fr.gouv.vitam.functional.administration.contract.api.ContractService;
+import fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl;
+import fr.gouv.vitam.functional.administration.contract.core.IngestContractImpl;
 import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
 import fr.gouv.vitam.functionnal.administration.context.core.ContextValidator.ContextRejectionCause;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -77,12 +92,21 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 
 public class ContextServiceImpl implements ContextService {
+    private static final String PERMISSIONS_TENANT = "Permissions._tenant";
+
+    private static final String EACH = "$each";
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ContextServiceImpl.class);
 
     private static final String CONTEXT_IS_MANDATORY_PATAMETER = "contexts parameter is mandatory";
-    private static final String CONTEXTS_IMPORT_EVENT_START = "STP_IMPORT_CONTEXT.START";
-    private static final String CONTEXTS_IMPORT_EVENT_OK = "STP_IMPORT_CONTEXT.OK";
-    private static final String CONTEXTS_IMPORT_EVENT_KO = "STP_IMPORT_CONTEXT.KO";
+    private static final String CONTEXTS_IMPORT_EVENT = "STP_IMPORT_CONTEXT";
+    private static final String CONTEXTS_UPDATE_EVENT = "STP_UPDATE_CONTEXT";
+    private static final String IDENTIFIER = "Identifier";
+    private static final String UPDATE_CONTEXT_MANDATORY_PATAMETER = "context is mandatory";
+    private static final String FIELD_PERMISSION = "Permissions.";
+    private static final String FIELD_INGEST = ".IngestContracts";
+    private static final String FIELD_ACCESS = ".AccessContracts";
+    
     private final MongoDbAccessAdminImpl mongoAccess;
     private LogbookOperationsClient logBookclient;
     private final VitamCounterService vitamCounterService;
@@ -107,10 +131,11 @@ public class ContextServiceImpl implements ContextService {
             return new RequestResponseOK<>();
         }
         
-        ContextServiceImpl.ContextManager manager = new ContextServiceImpl.ContextManager(logBookclient);
+        ContextServiceImpl.ContextManager manager = new ContextServiceImpl.ContextManager(logBookclient, mongoAccess, vitamCounterService);
         
         manager.logStarted();
         
+        List<ContextModel> contextsListToPersist = new ArrayList<ContextModel>();
         ArrayNode contextsToPersist = null;
         final Set<String> contextNames = new HashSet<>();
         final VitamError error = new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem()).setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
@@ -145,12 +170,14 @@ public class ContextServiceImpl implements ContextService {
                     final JsonNode contextNode = JsonHandler.toJsonNode(cm);
 
 
-                    /* profile is valid, add it to the list to persist */
+                    /* context is valid, add it to the list to persist */
                     if (contextsToPersist == null) {
                         contextsToPersist = JsonHandler.createArrayNode();
                     }
 
                     contextsToPersist.add(contextNode);
+                    ContextModel ctxt = JsonHandler.getFromJsonNode(contextNode, ContextModel.class);
+                    contextsListToPersist.add(ctxt);
                 }
             }
             
@@ -163,9 +190,112 @@ public class ContextServiceImpl implements ContextService {
         }
         
         manager.logSuccess();
-        
-        return new RequestResponseOK<ContextModel>().addAllResults(contextModelList).setHits(
-            contextModelList.size(), 0, contextModelList.size()).setHttpCode(Response.Status.CREATED.getStatusCode());
+
+        return new RequestResponseOK<ContextModel>().addAllResults(contextsListToPersist).setHits(
+            contextsListToPersist.size(), 0, contextsListToPersist.size()).setHttpCode(Response.Status.CREATED.getStatusCode());
+    }
+    
+    @Override
+    public List<ContextModel> findContexts(JsonNode queryDsl)
+        throws ReferentialException, InvalidParseOperationException {
+        SanityChecker.checkJsonAll(queryDsl); 
+        final List<ContextModel> contextModelCollection = new ArrayList<>();
+        MongoCursor<VitamDocument<?>> cursor =
+            mongoAccess.findDocuments(queryDsl, FunctionalAdminCollections.CONTEXT);
+
+        if (null == cursor)
+            return contextModelCollection;
+
+        while (cursor.hasNext()) {
+            final Context context = (Context) cursor.next();
+            contextModelCollection.add(JsonHandler.getFromString(JsonHandler.writeAsString(context),
+                ContextModel.class));
+        }
+
+        return contextModelCollection;
+    }
+    
+    @Override
+    public ContextModel findOneContextById(String id) throws ReferentialException, InvalidParseOperationException {
+
+        final SelectParserSingle parser = new SelectParserSingle(new VarNameAdapter());
+        parser.parse(new Select().getFinalSelect());
+        try {
+            parser.addCondition(QueryHelper.eq("#id", id));
+        } catch (InvalidCreateOperationException e) {
+            throw new ReferentialException(e);
+        }
+        JsonNode queryDsl = parser.getRequest().getFinalSelect();
+
+        MongoCursor<VitamDocument<?>> cursor =
+            mongoAccess.findDocuments(queryDsl, FunctionalAdminCollections.CONTEXT);
+        if (null == cursor)
+            return null;
+
+        while (cursor.hasNext()) {            
+            final Context context = (Context) cursor.next();
+            return JsonHandler.getFromString(JsonHandler.writeAsString(context),
+                ContextModel.class);
+        }
+
+        return null;
+    }
+    
+    @Override
+    public RequestResponse<ContextModel> updateContext(String id, JsonNode queryDsl)
+        throws VitamException {
+        ParametersChecker.checkParameter(UPDATE_CONTEXT_MANDATORY_PATAMETER, queryDsl);
+        SanityChecker.checkJsonAll(queryDsl);
+        final VitamError error = new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem())
+            .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
+
+        ContextModel contextModel = findOneContextById(id);
+        int permissionSize = contextModel.getPermissions().size();
+
+        ContextServiceImpl.ContextManager manager = new ContextServiceImpl.ContextManager(logBookclient, mongoAccess, vitamCounterService);
+
+        int tenantCurrent = queryDsl.findValue(PERMISSIONS_TENANT).asInt();
+        for (int i=0; i < permissionSize-1; i++){
+            JsonNode node = queryDsl.findValue(FIELD_PERMISSION + i + FIELD_ACCESS);
+            if (node != null) {
+                node = node.get(EACH);
+                if (node != null && node.isArray()) {
+                    for (final JsonNode objNode : node) {
+                        if (!ContextManager.checkIdentifierOfAccessContract(objNode.asText(), tenantCurrent)){
+                            return error.addToErrors(new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem()).setMessage(
+                                "Invalid identifier of the ingest contract:" + objNode.asText()));
+                        }
+                    }
+                }
+
+            }
+
+            node = queryDsl.findValue(FIELD_PERMISSION + i + FIELD_INGEST);
+            if (node != null) {
+                node = node.get(EACH);
+                if (node != null && node.isArray()) {
+                    for (final JsonNode objNode : node) {
+                        if (!ContextManager.checkIdentifierOfIngestContract(objNode.asText(), tenantCurrent)){
+                            return error.addToErrors(new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem()).setMessage(
+                                "Invalid identifier of the access contract:" + objNode.asText()));
+                        }
+                    } 
+                }
+            }
+        }
+
+        try {
+            mongoAccess.updateData(queryDsl, FunctionalAdminCollections.CONTEXT);
+        } catch (ReferentialException e) {
+            String err = new StringBuilder("Update context error > ").append(e.getMessage()).toString();
+            manager.logFatalError(err);
+            error.setCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem())
+                .setDescription(err)
+                .setHttpCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+
+            return error;
+        }
+        return new RequestResponseOK<ContextModel>();
     }
     
     /**
@@ -175,12 +305,16 @@ public class ContextServiceImpl implements ContextService {
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         private GUID eip = null;
         private LogbookOperationsClient logBookclient;
-        
+        private static ContractService<AccessContractModel> accessContract;
+        private static ContractService<IngestContractModel> ingestContract;
         private static List<ContextValidator> validators = Arrays.asList(
-            createMandatoryParamsValidator(), createCheckDuplicateInDatabaseValidator());
+            createMandatoryParamsValidator(), createCheckDuplicateInDatabaseValidator(), checkContract());
 
-        public ContextManager(LogbookOperationsClient logBookclient) {
+        public ContextManager(LogbookOperationsClient logBookclient, 
+            MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService) {
             this.logBookclient = logBookclient;
+            this.ingestContract = new IngestContractImpl(mongoAccess,vitamCounterService);
+            this.accessContract = new AccessContractImpl(mongoAccess,vitamCounterService);
         }
         
         public boolean validateContext(ContextModel context, VitamError error) {
@@ -206,9 +340,9 @@ public class ContextServiceImpl implements ContextService {
         private void logStarted() throws VitamException {
             eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
-                .newLogbookOperationParameters(eip, CONTEXTS_IMPORT_EVENT_START, eip, LogbookTypeProcess.MASTERDATA,
+                .newLogbookOperationParameters(eip, CONTEXTS_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.STARTED,
-                    VitamLogbookMessages.getCodeOp(CONTEXTS_IMPORT_EVENT_START, StatusCode.STARTED), eip);
+                    VitamLogbookMessages.getCodeOp(CONTEXTS_IMPORT_EVENT, StatusCode.STARTED), eip);
 
             helper.createDelegate(logbookParameters);
 
@@ -221,9 +355,64 @@ public class ContextServiceImpl implements ContextService {
          */
         private void logSuccess() throws VitamException {
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
-                .newLogbookOperationParameters(eip, CONTEXTS_IMPORT_EVENT_OK, eip, LogbookTypeProcess.MASTERDATA,
+                .newLogbookOperationParameters(eip, CONTEXTS_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.OK,
-                    VitamLogbookMessages.getCodeOp(CONTEXTS_IMPORT_EVENT_OK, StatusCode.OK), eip);
+                    VitamLogbookMessages.getCodeOp(CONTEXTS_IMPORT_EVENT, StatusCode.OK), eip);
+            helper.updateDelegate(logbookParameters);
+            logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
+        }
+        
+        /**
+         * log update start process
+         * 
+         * @throws VitamException
+         */
+        private void logUpdateStarted(String id) throws VitamException {
+            eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+            final LogbookOperationParameters logbookParameters = LogbookParametersFactory
+                .newLogbookOperationParameters(eip, CONTEXTS_UPDATE_EVENT, eip, LogbookTypeProcess.MASTERDATA,
+                    StatusCode.STARTED,
+                    VitamLogbookMessages.getCodeOp(CONTEXTS_UPDATE_EVENT, StatusCode.STARTED), eip);
+            logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, CONTEXTS_UPDATE_EVENT +
+                "." + StatusCode.STARTED);
+            if (null != id && !id.isEmpty()) {
+                logbookParameters.putParameterValue(LogbookParameterName.objectIdentifier, id);
+            }
+            helper.createDelegate(logbookParameters);
+
+        }
+
+        /**
+         * log update success process
+         * 
+         * @throws VitamException
+         */
+        private void logUpdateSuccess(String id, String updateEventDetailData, String oldValue) throws VitamException {
+            final ObjectNode evDetData = JsonHandler.createObjectNode();
+            final ObjectNode msg = JsonHandler.createObjectNode();
+            msg.put("updateField", "Status");
+            msg.put("oldValue", oldValue);
+            msg.put("newValue", updateEventDetailData);
+            evDetData.put("AccessContract", msg);
+            String wellFormedJson = SanityChecker.sanitizeJson(evDetData);
+            final LogbookOperationParameters logbookParameters =
+                LogbookParametersFactory
+                    .newLogbookOperationParameters(
+                        eip,
+                        CONTEXTS_UPDATE_EVENT,
+                        eip,
+                        LogbookTypeProcess.MASTERDATA,
+                        StatusCode.OK,
+                        VitamLogbookMessages.getCodeOp(CONTEXTS_UPDATE_EVENT, StatusCode.OK),
+                        eip);
+
+            if (null != id && !id.isEmpty()) {
+                logbookParameters.putParameterValue(LogbookParameterName.objectIdentifier, id);
+            }
+            logbookParameters.putParameterValue(LogbookParameterName.eventDetailData,
+                wellFormedJson);
+            logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, CONTEXTS_UPDATE_EVENT +
+                "." + StatusCode.OK);
             helper.updateDelegate(logbookParameters);
             logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
         }
@@ -237,12 +426,24 @@ public class ContextServiceImpl implements ContextService {
         private void logFatalError(String errorsDetails) throws VitamException {
             LOGGER.error("There validation errors on the input file {}", errorsDetails);
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
-                .newLogbookOperationParameters(eip, CONTEXTS_IMPORT_EVENT_KO, eip, LogbookTypeProcess.MASTERDATA,
+                .newLogbookOperationParameters(eip, CONTEXTS_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.FATAL,
-                    VitamLogbookMessages.getCodeOp(CONTEXTS_IMPORT_EVENT_KO, StatusCode.FATAL), eip);
+                    VitamLogbookMessages.getCodeOp(CONTEXTS_IMPORT_EVENT, StatusCode.FATAL), eip);
             logbookMessageError(errorsDetails, logbookParameters);
             helper.updateDelegate(logbookParameters);
             logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
+        }
+        
+        private void logValidationError(String errorsDetails) throws VitamException {
+            LOGGER.error("There validation errors on the input file {}", errorsDetails);
+            final LogbookOperationParameters logbookParameters = LogbookParametersFactory
+                .newLogbookOperationParameters(eip, CONTEXTS_UPDATE_EVENT, eip, LogbookTypeProcess.MASTERDATA,
+                    StatusCode.KO,
+                    VitamLogbookMessages.getCodeOp(CONTEXTS_UPDATE_EVENT, StatusCode.KO), eip);
+            logbookMessageError(errorsDetails, logbookParameters);
+            helper.updateDelegate(logbookParameters);
+            logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
+
         }
         
         private void logbookMessageError(String errorsDetails, LogbookOperationParameters logbookParameters) {
@@ -293,11 +494,80 @@ public class ContextServiceImpl implements ContextService {
                 return (rejection == null) ? Optional.empty() : Optional.of(rejection);
             };
         }
+        
+        /**
+         * Check if the ingest contract and access contract exist
+         * 
+         * @return
+         */
+        private static ContextValidator checkContract(){    
+            return (context) -> {
+                ContextValidator.ContextRejectionCause rejection = null;
+                
+                List<PermissionModel> pmList = context.getPermissions();
+                for (PermissionModel pm: pmList) {
+                    int tenant = (int) pm.getTenant();
+                    
+                    Set<String> icList = pm.getIngestContract();
+                    for (String ic: icList) {
+                        if (!checkIdentifierOfIngestContract(ic, tenant)){
+                            rejection = ContextValidator.ContextRejectionCause.rejectNoExistanceOfIngestContract(ic);
+                            return Optional.of(rejection);
+                        }
+                    }
+                    
+                    Set<String> acList = pm.getAccessContract();
+                    for (String ac: acList) {
+                        if (!checkIdentifierOfAccessContract(ac, tenant)){
+                            rejection = ContextValidator.ContextRejectionCause.rejectNoExistanceOfAccessContract(ac);
+                            return Optional.of(rejection);
+                        }
+                    }
+                }
+                
+                return Optional.empty();
+            };
+        }
+
+        
+        public static boolean checkIdentifierOfIngestContract(String ic, int tenant) {
+            Select select = new Select();
+            try {
+                VitamThreadUtils.getVitamSession().setTenantId(tenant);
+                Query query = QueryHelper.and().add(QueryHelper.eq(IDENTIFIER, ic));
+                select.setQuery(query);
+                JsonNode queryDsl = select.getFinalSelect();
+                if (ingestContract.findContracts(queryDsl).isEmpty()){            
+                    return false;
+                }
+            } catch (InvalidCreateOperationException | ReferentialException | InvalidParseOperationException e) {
+                return false;
+            }
+            
+            return true;
+        }
+        
+        public static boolean checkIdentifierOfAccessContract(String ac, int tenant) {
+            
+            Select select = new Select();
+            try {
+                VitamThreadUtils.getVitamSession().setTenantId(tenant);
+                Query query = QueryHelper.and().add(QueryHelper.eq(IDENTIFIER, ac));
+                select.setQuery(query);
+                JsonNode queryDsl = select.getFinalSelect();
+                if (accessContract.findContracts(queryDsl).isEmpty()){            
+                    return false;
+                }
+            } catch (InvalidCreateOperationException | ReferentialException | InvalidParseOperationException e) {
+                return false;
+            }
+            
+            return true;
+        }
     }
 
     @Override
     public void close() {
-        // TODO Auto-generated method stub
-        
+        this.logBookclient.close();
     }
 }

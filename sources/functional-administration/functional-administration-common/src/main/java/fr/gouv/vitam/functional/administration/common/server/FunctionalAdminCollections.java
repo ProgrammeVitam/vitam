@@ -92,7 +92,7 @@ public enum FunctionalAdminCollections {
     private VitamCollection vitamCollection;
 
     private FunctionalAdminCollections(final Class<?> clasz) {
-        if (clasz.equals(FileFormat.class)) {
+        if (clasz.equals(FileFormat.class) || clasz.equals(Context.class)) {
             vitamCollection = VitamCollectionHelper.getCollectionWithoutTenant(clasz);
         } else {
             vitamCollection = VitamCollectionHelper.getCollectionMultiTenant(clasz);

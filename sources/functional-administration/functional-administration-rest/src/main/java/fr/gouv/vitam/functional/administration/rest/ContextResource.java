@@ -30,8 +30,11 @@ import java.util.List;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -39,13 +42,18 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.functional.administration.client.model.ContextModel;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.context.api.ContextService;
 import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
@@ -59,6 +67,7 @@ import fr.gouv.vitam.functionnal.administration.context.core.ContextServiceImpl;
 public class ContextResource {
     
     static final String CONTEXTS_URI = "/contexts";
+    static final String UPDATE_CONTEXT_URI = "/context";
     
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ContextResource.class);
     private static final String CONTEXTS_JSON_IS_MANDATORY_PATAMETER =
@@ -122,6 +131,75 @@ public class ContextResource {
         return new VitamError(aCode).setHttpCode(status.getStatusCode())
             .setContext("FUNCTIONAL_ADMINISTRATION_MODULE")
             .setState("ko").setMessage(status.getReasonPhrase()).setDescription(aMessage);
+    }
+    
+    /**
+     * Find contexts by queryDsl
+     * 
+     * @param queryDsl
+     * @return
+     */
+    @GET
+    @Path(CONTEXTS_URI)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response findContexts(JsonNode queryDsl) {
+    
+        try(ContextService contextService = new ContextServiceImpl(mongoAccess,
+            vitamCounterService)){
+
+            final List<ContextModel> contextModelList = contextService.findContexts(queryDsl);
+
+            return Response
+                .status(Status.OK)
+                .entity(
+                    new RequestResponseOK().setHits(contextModelList.size(), 0, contextModelList.size())
+                        .addAllResults(contextModelList))
+                .build();
+
+        } catch (ReferentialException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST)
+                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();
+        }
+    }
+    
+    /**
+     * Update contexts
+     * 
+     * @param contextId
+     * @param queryDsl
+     * @return
+     */
+    @Path(UPDATE_CONTEXT_URI + "/{id}")
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateContexts(@PathParam("id") String contextId, JsonNode queryDsl) {
+
+        try (ContextService contextService = new ContextServiceImpl(mongoAccess,
+            vitamCounterService)) {
+            RequestResponse requestResponse = contextService.updateContext(contextId, queryDsl);
+            if (!requestResponse.isOk()) {
+                ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
+                return Response.status(Status.BAD_REQUEST).entity(requestResponse).build();
+            } else {
+
+                return Response.status(Status.OK).entity(requestResponse).build();
+            }
+        } catch (VitamException exp) {
+            LOGGER.error(exp);
+            return Response.status(Status.BAD_REQUEST)
+                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null)).build();
+        } catch (Exception exp) {
+            LOGGER.error("Unexpected server error {}", exp);
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
+        }
     }
 
 }

@@ -61,7 +61,7 @@ public class ContextModel {
      * @param status
      * @param permissions
      */
-    public ContextModel(String id, String name, boolean status, List<PermissionModel> permissions) {
+    public ContextModel(@JsonProperty("_id")String id,@JsonProperty("Name") String name,@JsonProperty("Status") boolean status,@JsonProperty("Permissions") List<PermissionModel> permissions) {
         this.id = id;
         this.name = name;
         this.status = status;
