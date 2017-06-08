@@ -46,11 +46,11 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.AccessContractModel;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterSummaryModel;
 import fr.gouv.vitam.functional.administration.client.model.ContextModel;
@@ -195,7 +195,7 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     }
 
     @Override
-    public RequestResponse getAccessionRegisterDetail(JsonNode query)
+    public RequestResponse getAccessionRegisterDetail(String id, JsonNode query)
         throws InvalidParseOperationException, ReferentialException {
         RegisterValueDetailModel totalObjectsGroups = new RegisterValueDetailModel(1, 0, 1);
         RegisterValueDetailModel totalUnits = new RegisterValueDetailModel(1, 0, 1);
@@ -205,7 +205,7 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
         LOGGER.debug("get document Accession Register request:");
 
         AccessionRegisterDetailModel detailBuider = new AccessionRegisterDetailModel();
-        detailBuider.setId("aedqaaaaacaam7mxabsakakygeje2uyaaaaq")
+        detailBuider.setId(id)
             .setTenant(0)
             .setOriginatingAgency("FRAN_NP_005568")
             .setSubmissionAgency("FRAN_NP_005061")

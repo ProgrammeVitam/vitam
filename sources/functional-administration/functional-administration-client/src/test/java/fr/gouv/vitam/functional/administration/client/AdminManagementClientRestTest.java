@@ -53,11 +53,12 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.junit.FakeInputStream;
-import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
 import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
+
 import org.assertj.core.api.Assertions;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Assert;
@@ -73,6 +74,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.AccessContractModel;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
@@ -269,7 +271,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         }
 
         @POST
-        @Path("/accession-register/detail")
+        @Path("/accession-register/detail/{id}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response getAccessionRegisterDetail() {
@@ -525,21 +527,21 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     public void getAccessionRegisterDetail()
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).entity("{}").build());
-        client.getAccessionRegisterDetail(JsonHandler.getFromString(QUERY));
+        client.getAccessionRegisterDetail("id", JsonHandler.getFromString(QUERY));
     }
 
     @Test(expected = ReferentialException.class)
     public void getAccessionRegisterDetailError()
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.getAccessionRegisterDetail(JsonHandler.getFromString(QUERY));
+        client.getAccessionRegisterDetail("id", JsonHandler.getFromString(QUERY));
     }
 
     @Test(expected = AccessionRegisterException.class)
     public void getAccessionRegisterDetailUnknownError()
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        client.getAccessionRegisterDetail(JsonHandler.getFromString(QUERY));
+        client.getAccessionRegisterDetail("id", JsonHandler.getFromString(QUERY));
     }
 
     /**

@@ -39,8 +39,8 @@ import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.model.AccessContractModel;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterSummaryModel;
 import fr.gouv.vitam.functional.administration.client.model.ContextModel;
@@ -171,7 +171,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws InvalidParseOperationException
      * @throws ReferentialException
      */
-    RequestResponse<AccessionRegisterDetailModel> getAccessionRegisterDetail(JsonNode query)
+    RequestResponse<AccessionRegisterDetailModel> getAccessionRegisterDetail(String documentId, JsonNode query)
         throws InvalidParseOperationException, ReferentialException;
 
 

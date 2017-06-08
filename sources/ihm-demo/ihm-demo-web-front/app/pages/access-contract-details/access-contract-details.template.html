@@ -40,6 +40,7 @@
                         </label>
                         <span>{{contract.Status | StrReplace}}</span>
                     </div>
+
                     <div class="clearfix"></div>
 
                     <div class="form-group col-md-6">
@@ -48,7 +49,11 @@
                     </div>
                     <div class="form-group col-md-3">
                         <label>Service Producteur</label>
-                        <span>{{contract.OriginatingAgencies}}</span>
+                        <input type="radio" ng-value="true" ng-model="contract.EveryOriginatingAgency">Tous les services producteurs</input>
+                        <br />
+                        <input type="radio" ng-value="false" ng-model="contract.EveryOriginatingAgency">Liste blanche uniquement</input>
+                        <br />
+                        <span ng-class="contract.EveryOriginatingAgency? 'grayColor': ''">Liste blanche: {{contract.OriginatingAgencies}}</span>
                     </div>
                     <div class="form-group col-md-3">
                         <label>Tenant(s)</label>

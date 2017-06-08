@@ -81,6 +81,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.AccessContractModel;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.BasicVitamServer;
 import fr.gouv.vitam.common.server.VitamServer;
@@ -91,7 +92,6 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 
 
@@ -1409,7 +1409,7 @@ public class AccessExternalResourceImplTest {
         PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
         PowerMockito.doThrow(new ReferentialNotFoundException("")).when(adminCLient).getAccessionRegister(anyObject());
         PowerMockito.doThrow(new ReferentialNotFoundException("")).when(adminCLient)
-            .getAccessionRegisterDetail(anyObject());
+            .getAccessionRegisterDetail(anyString(), anyObject());
         AccessContractModel model =
             JsonHandler.getFromString(ClientMockResultHelper.ACCESS_CONTRACTS, AccessContractModel.class);
         PowerMockito.when(adminCLient.findAccessContracts(anyObject()))
@@ -1453,7 +1453,7 @@ public class AccessExternalResourceImplTest {
         PowerMockito.doThrow(new InvalidParseOperationException("")).when(adminCLient)
             .getAccessionRegister(anyObject());
         PowerMockito.doThrow(new InvalidParseOperationException("")).when(adminCLient)
-            .getAccessionRegisterDetail(anyObject());
+            .getAccessionRegisterDetail(anyString(), anyObject());
 
         given()
             .contentType(ContentType.JSON)
@@ -1476,7 +1476,7 @@ public class AccessExternalResourceImplTest {
         PowerMockito.doThrow(new IllegalArgumentException("")).when(adminCLient)
             .getAccessionRegister(anyObject());
         PowerMockito.doThrow(new IllegalArgumentException("")).when(adminCLient)
-            .getAccessionRegisterDetail(anyObject());
+            .getAccessionRegisterDetail(anyString(), anyObject());
 
         given()
             .contentType(ContentType.JSON)

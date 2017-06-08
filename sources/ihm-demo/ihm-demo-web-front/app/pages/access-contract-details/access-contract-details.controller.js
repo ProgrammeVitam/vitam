@@ -33,7 +33,8 @@ angular.module('ihm.demo')
 
         $scope.tmpVars = {
             isActive: true,
-            oldStatus: ''
+            oldStatus: '',
+            oldEveryOrignatingAgency: ''
         };
         $scope.updateStatus = function() {
             $scope.contract.Status = $scope.tmpVars.isActive? 'ACTIVE': 'INACTIVE';
@@ -51,27 +52,36 @@ angular.module('ihm.demo')
         accessContractResource.getDetails(id, function (response) {
             if (response.data.length !== 0) {
                 $scope.contract = response.data.$results[0];
+                $scope.contract.EveryOriginatingAgency = $scope.contract.EveryOriginatingAgency === true;
                 $scope.tmpVars.oldStatus = $scope.contract.Status;
                 $scope.tmpVars.isActive = $scope.contract.Status === 'ACTIVE';
+                $scope.tmpVars.oldEveryOrignatingAgency = $scope.contract.EveryOriginatingAgency;
             }
         });
 
         $scope.saveModifs = function() {
-            if ($scope.tmpVars.oldStatus === $scope.contract.Status) {
+            if ($scope.tmpVars.oldStatus === $scope.contract.Status
+                && $scope.tmpVars.oldEveryOrignatingAgency === $scope.contract.EveryOriginatingAgency) {
                 displayMessage('Aucune modification effectuée');
                 return;
             }
 
             var updateData = {
-                'Status': $scope.contract.Status,
-                'Name': $scope.contract.Name,
-                'LastUpdate': new Date()
+                Name: $scope.contract.Name,
+                LastUpdate: new Date()
             };
 
-            if ($scope.contract.Status === 'ACTIVE') {
-                updateData.ActivationDate = updateData.LastUpdate;
-            } else {
-                updateData.DeactivationDate = updateData.LastUpdate;
+            if ($scope.tmpVars.oldStatus !== $scope.contract.Status) {
+                updateData.Status = $scope.contract.Status;
+                if ($scope.contract.Status === 'ACTIVE') {
+                    updateData.ActivationDate = updateData.LastUpdate;
+                } else {
+                    updateData.DeactivationDate = updateData.LastUpdate;
+                }
+            }
+
+            if ($scope.tmpVars.oldEveryOrignatingAgency !== $scope.contract.EveryOriginatingAgency) {
+                updateData.EveryOriginatingAgency = '' + $scope.contract.EveryOriginatingAgency;
             }
 
             accessContractResource.update(id, updateData).then(function() {
