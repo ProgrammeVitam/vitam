@@ -89,6 +89,8 @@ public class WebApplicationResourceDelete {
     private static final String STP_DELETE_METADATA_OG = "STP_DELETE_METADATA_OG";
     private static final String STP_DELETE_METADATA_UNIT = "STP_DELETE_METADATA_UNIT";
     private static final String STP_DELETE_MASTERDATA = "STP_DELETE_MASTERDATA";
+    private static final String STP_DELETE_MASTERDATA_INGEST_CONTRACT = "STP_DELETE_MASTERDATA_INGEST_CONTRACT";
+    private static final String STP_DELETE_MASTERDATA_ACCESS_CONTRACT = "STP_DELETE_MASTERDATA_ACCESS_CONTRACT";
 
     private static final String STP_DELETE_ALL = "STP_DELETE_ALL";
     private static final String CANNOT_UPDATE_DELEGATE_LOGBOOK_OPERATION = "Cannot update delegate logbook operation";
@@ -779,6 +781,42 @@ public class WebApplicationResourceDelete {
             }
             LOGGER.error(e);
             collectionKO.add(LogbookCollections.LIFECYCLE_UNIT.name());
+        }
+        parameters.putParameterValue(LogbookParameterName.eventType,
+            VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_INGEST_CONTRACT, StatusCode.STARTED))
+            .setStatus(StatusCode.OK).putParameterValue(LogbookParameterName.outcomeDetailMessage,
+            VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_INGEST_CONTRACT, StatusCode.OK));
+        try {
+            mongoDbAccessAdmin.deleteCollection(FunctionalAdminCollections.INGEST_CONTRACT);
+            helper.updateDelegate(parameters);
+        } catch (final Exception e) {
+            parameters.setStatus(StatusCode.KO).putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_INGEST_CONTRACT, StatusCode.OK));
+            try {
+                helper.updateDelegate(parameters);
+            } catch (final LogbookClientNotFoundException exc) {
+                LOGGER.error("Cannot update delegate logbook operation", exc);
+            }
+            LOGGER.error(e);
+            collectionKO.add(FunctionalAdminCollections.INGEST_CONTRACT.name());
+        }
+        parameters.putParameterValue(LogbookParameterName.eventType,
+            VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_ACCESS_CONTRACT, StatusCode.STARTED))
+            .setStatus(StatusCode.OK).putParameterValue(LogbookParameterName.outcomeDetailMessage,
+            VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_ACCESS_CONTRACT, StatusCode.OK));
+        try {
+            mongoDbAccessAdmin.deleteCollection(FunctionalAdminCollections.ACCESS_CONTRACT);
+            helper.updateDelegate(parameters);
+        } catch (final Exception e) {
+            parameters.setStatus(StatusCode.KO).putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_ACCESS_CONTRACT, StatusCode.OK));
+            try {
+                helper.updateDelegate(parameters);
+            } catch (final LogbookClientNotFoundException exc) {
+                LOGGER.error("Cannot update delegate logbook operation", exc);
+            }
+            LOGGER.error(e);
+            collectionKO.add(FunctionalAdminCollections.ACCESS_CONTRACT.name());
         }
         parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_ALL).setStatus(StatusCode.OK)
             .putParameterValue(LogbookParameterName.outcomeDetailMessage,

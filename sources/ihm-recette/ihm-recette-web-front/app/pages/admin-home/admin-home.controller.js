@@ -158,6 +158,20 @@ angular.module('admin.home')
       );
     };
 
+    $scope.deleteAccessContracts = function () {
+      adminService.deleteAccessContracts(
+        messageService.typedMessageAlert(CODE_PREFIX, 'accessContracts', true),
+        messageService.typedMessageAlert(CODE_PREFIX, 'accessContracts', false)
+      );
+    }
+
+    $scope.deleteEntryContracts = function () {
+      adminService.deleteEntryContracts(
+        messageService.typedMessageAlert(CODE_PREFIX, 'entryContracts', true),
+        messageService.typedMessageAlert(CODE_PREFIX, 'entryContracts', false)
+      );
+    }
+
     $scope.deleteAll = function() {
       adminService.deleteAll(
         messageService.typedMessageAlert(CODE_PREFIX, 'all', true),
