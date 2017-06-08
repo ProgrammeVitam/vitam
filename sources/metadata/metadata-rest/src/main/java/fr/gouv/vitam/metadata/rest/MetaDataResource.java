@@ -28,6 +28,8 @@ package fr.gouv.vitam.metadata.rest;
 
 import static fr.gouv.vitam.common.json.JsonHandler.toArrayList;
 
+import java.util.List;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -38,6 +40,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+
+import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -58,6 +62,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
+import fr.gouv.vitam.metadata.core.database.aggregate.UnitPerOriginatingAgency;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 
 /**
@@ -231,9 +236,8 @@ public class MetaDataResource extends ApplicationStatusResource {
     }
 
     /**
-     *
      * @param selectRequest the select request in JsonNode format
-     * @param unitId the unit id to get
+     * @param unitId        the unit id to get
      * @return {@link Response} will be contains an json filled by unit result
      * @see entity(java.lang.Object, java.lang.annotation.Annotation[])
      * @see #type(javax.ws.rs.core.MediaType)
@@ -250,7 +254,7 @@ public class MetaDataResource extends ApplicationStatusResource {
      * Update unit by query and path parameter unit_id
      *
      * @param updateRequest the update request
-     * @param unitId the id of unit to be update
+     * @param unitId        the id of unit to be update
      * @return {@link Response} will be contains an json filled by unit result
      * @see entity(java.lang.Object, java.lang.annotation.Annotation[])
      * @see type(javax.ws.rs.core.MediaType)
@@ -355,12 +359,12 @@ public class MetaDataResource extends ApplicationStatusResource {
 
     // OBJECT GROUP RESOURCE. TODO P1 see to externalize it (one resource for units, one resource for object group) to
     // avoid so much lines and complex maintenance
+
     /**
      * Create unit with json request
      *
      * @param insertRequest the insert query
      * @return the Response
-     *
      * @throws InvalidParseOperationException when json data exception occurred
      */
     @Path("objectgroups")
@@ -505,6 +509,24 @@ public class MetaDataResource extends ApplicationStatusResource {
             .setHits(arrayNodeResults.size(), 0, 1)
             .setQuery(selectRequest)
             .addAllResults(toArrayList(arrayNodeResults))).build();
+    }
+
+    @Path("accession-register/{operationId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @GET
+    public Response selectAccessionRegisterByOperationId(@PathParam("operationId") String operationId) {
+        List<Document> documents = metaDataImpl.selectAccessionRegisterByOperationId(operationId);
+
+        RequestResponseOK<UnitPerOriginatingAgency> responseOK = new RequestResponseOK<>();
+        responseOK.setHttpCode(200);
+        for (Document doc : documents) {
+            UnitPerOriginatingAgency unitPerOriginatingAgency = new UnitPerOriginatingAgency();
+            unitPerOriginatingAgency.setId(doc.getString("_id"));
+            unitPerOriginatingAgency.setCount(doc.getInteger("count"));
+            responseOK.addResult(unitPerOriginatingAgency);
+        }
+
+        return responseOK.toResponse();
     }
 
 }
