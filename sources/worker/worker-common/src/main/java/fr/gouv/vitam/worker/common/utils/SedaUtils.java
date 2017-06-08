@@ -59,9 +59,11 @@ import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -82,6 +84,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 // If you absolutely need to check values in handler's methods, also use the ParameterCheker.
 public class SedaUtils {
 
+    private static final String VALIDATION_ERROR = "ValidationError";
     static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SedaUtils.class);
     public static final String NAMESPACE_URI = "fr:gouv:culture:archivesdefrance:seda:v2.0";
     private static final String SEDA_VALIDATION_FILE = "seda-vitam-2.0-main.xsd";
@@ -187,6 +190,8 @@ public class SedaUtils {
             final QName originatingAgencyName = new QName(NAMESPACE_URI, SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
             final QName contractName = new QName(NAMESPACE_URI, SedaConstants.TAG_ARCHIVAL_AGREEMENT);
             final QName commentName = new QName(NAMESPACE_URI, SedaConstants.TAG_COMMENT);
+            final QName profilName = new QName(NAMESPACE_URI, SedaConstants.TAG_ARCHIVE_PROFILE);
+
             String sedaComment = "";
             reader = xmlInputFactory.createXMLEventReader(xmlFile);
             while (true) {
@@ -199,6 +204,11 @@ public class SedaUtils {
                     if (element.getName().equals(messageObjectName)) {
                         madatoryValueMap.put(SedaConstants.TAG_MESSAGE_IDENTIFIER, reader.getElementText());
                     }
+
+                    if (element.getName().equals(profilName)) {
+                        madatoryValueMap.put(SedaConstants.TAG_ARCHIVE_PROFILE, reader.getElementText());
+                    }
+
                     if (element.getName().equals(commentName)) {
                         if (sedaComment != "") {
                             sedaComment = sedaComment + "_" + reader.getElementText();
@@ -209,7 +219,6 @@ public class SedaUtils {
                     }
                     if (element.getName().equals(originatingAgencyName)) {
                         madatoryValueMap.put(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER, reader.getElementText());
-                        break;
                     }
                 }
                 if (event.isEndDocument()) {
@@ -244,7 +253,7 @@ public class SedaUtils {
      * @param params worker parameter
      * @return a status representing the validation of the file
      */
-    public CheckSedaValidationStatus checkSedaValidation(WorkerParameters params) {
+    public CheckSedaValidationStatus checkSedaValidation(WorkerParameters params, ItemStatus itemStatus) {
         ParameterHelper.checkNullOrEmptyParameters(params);
         final InputStream input;
         try {
@@ -255,7 +264,7 @@ public class SedaUtils {
             if (!checkFolderContentNumber()) {
                 return CheckSedaValidationStatus.MORE_THAN_ONE_FOLDER_CONTENT;
             }
-            new ValidationXsdUtils().checkWithXSD(input, SEDA_VALIDATION_FILE);
+            ValidationXsdUtils.checkWithXSD(input, SEDA_VALIDATION_FILE);
             return CheckSedaValidationStatus.VALID;
         } catch (ProcessingException | IOException e) {
             LOGGER.error("Manifest.xml not found", e);
@@ -267,6 +276,9 @@ public class SedaUtils {
             // if the cause is null, that means the file is an xml, but it does not validate the XSD
             if (e.getCause() == null) {
                 LOGGER.error("Manifest.xml is not valid with the XSD", e);
+                JsonNode errorNode = JsonHandler.createObjectNode().put(VALIDATION_ERROR, e.getMessage());
+                itemStatus.setEvDetailData(errorNode.toString());
+                itemStatus.setTechDetailData(errorNode);
                 return CheckSedaValidationStatus.NOT_XSD_VALID;
             }
             LOGGER.error("Manifest.xml is not a correct xml file", e);

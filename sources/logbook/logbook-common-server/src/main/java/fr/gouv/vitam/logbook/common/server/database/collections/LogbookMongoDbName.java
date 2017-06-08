@@ -51,6 +51,10 @@ public enum LogbookMongoDbName {
      */
     eventDetailData("evDetData", LogbookParameterName.eventDetailData),
     /**
+     * eventDetailTechData
+     */
+    eventDetailTechData("evDetTechData", LogbookParameterName.eventDetailTechData),
+    /**
      * eventIdentifierProcess
      */
     eventIdentifierProcess("evIdProc", LogbookParameterName.eventIdentifierProcess),
@@ -183,6 +187,8 @@ public enum LogbookMongoDbName {
                 return LogbookMongoDbName.outcomeDetailMessage;
             case "outcome":
                 return LogbookMongoDbName.outcome;
+            case "evDetTechData":
+                return LogbookMongoDbName.eventDetailTechData;
             default:
                 throw new IllegalArgumentException("Unknown name: " + name);
         }

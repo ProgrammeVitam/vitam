@@ -30,7 +30,14 @@
 			<artifactId>storage-engine-client</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-
+		<dependency>
+			<groupId>com.thaiopensource</groupId>
+			<artifactId>jing</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.thaiopensource</groupId>
+			<artifactId>trang</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-annotations</artifactId>
@@ -48,8 +55,8 @@
 			<artifactId>xml-resolver</artifactId>
 		</dependency>
 		<dependency>
-		    <groupId>com.github.fge</groupId>
-		    <artifactId>json-schema-validator</artifactId>
+			<groupId>com.github.fge</groupId>
+			<artifactId>json-schema-validator</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
@@ -95,11 +102,11 @@
 					<strict>false</strict>
 					<schemaDirectory>src/main/resources</schemaDirectory>
 					<schemaExcludes>
-				        <exclude>seda-2.0-main.xsd</exclude>
-				    </schemaExcludes>
-				    <schemaIncludes>
-				        <include>seda-vitam-2.0-main.xsd</include>
-				    </schemaIncludes>
+						<exclude>seda-2.0-main.xsd</exclude>
+					</schemaExcludes>
+					<schemaIncludes>
+						<include>seda-vitam-2.0-main.xsd</include>
+					</schemaIncludes>
 					<plugins>
 						<plugin>
 							<groupId>org.jvnet.jaxb2_commons</groupId>

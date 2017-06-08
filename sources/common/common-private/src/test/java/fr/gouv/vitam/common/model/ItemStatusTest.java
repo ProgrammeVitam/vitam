@@ -36,6 +36,8 @@ import java.util.List;
 
 import org.junit.Test;
 
+import fr.gouv.vitam.common.json.JsonHandler;
+
 public class ItemStatusTest {
 
     private final static String MESSAGE = "message";
@@ -76,7 +78,7 @@ public class ItemStatusTest {
         final List<Integer> statusMeter = Arrays.asList(0, 0, 1, 0, 0, 0);
 
         final ItemStatus itemStatus4 = new ItemStatus(ITEM_ID_1, "message", StatusCode.OK,
-            statusMeter, new HashMap<>(), null, "", ProcessState.COMPLETED);
+            statusMeter, new HashMap<>(), null, "", ProcessState.COMPLETED, JsonHandler.createObjectNode());
         assertEquals(StatusCode.OK, itemStatus4.getGlobalStatus());
     }
 

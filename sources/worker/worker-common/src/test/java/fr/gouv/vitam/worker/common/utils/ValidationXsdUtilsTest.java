@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.common.utils;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -57,80 +58,81 @@ public class ValidationXsdUtilsTest {
 
     @Test
     public void givenXmlCorrectWhenCheckXsdThenReturnTrue() throws XMLStreamException, SAXException, IOException {
-        final ValidationXsdUtils valid = new ValidationXsdUtils();
         assertTrue(
-            valid.checkWithXSD(PropertiesUtils.getResourceAsStream(SEDA_FILE), SEDA_VITAM_VALIDATION_FILE));
+            ValidationXsdUtils.checkWithXSD(PropertiesUtils.getResourceAsStream(SEDA_FILE), SEDA_VITAM_VALIDATION_FILE));
         assertTrue(
-            valid.checkWithXSD(PropertiesUtils.getResourceAsStream(SEDA_FILE2), SEDA_VITAM_VALIDATION_FILE));        
+            ValidationXsdUtils.checkWithXSD(PropertiesUtils.getResourceAsStream(SEDA_FILE2), SEDA_VITAM_VALIDATION_FILE));        
     }
 
     @Test(expected = SAXException.class)
     public void givenXmlWithInvalidContentWhenCheckXsdThenThrowSAXException()
         throws XMLStreamException, SAXException, IOException {
-        final ValidationXsdUtils valid = new ValidationXsdUtils();
-        assertFalse(valid.checkWithXSD(PropertiesUtils.getResourceAsStream(SEDA_WRONG_FILE),
+        assertFalse(ValidationXsdUtils.checkWithXSD(PropertiesUtils.getResourceAsStream(SEDA_WRONG_FILE),
             SEDA_VITAM_VALIDATION_FILE));
     }
 
     @Test(expected = SAXException.class)
     public void givenXmlWithMissingTitleWhenCheckXsdThenThrowSAXException()
         throws XMLStreamException, SAXException, IOException {
-        final ValidationXsdUtils valid = new ValidationXsdUtils();
-        assertFalse(valid.checkWithXSD(PropertiesUtils.getResourceAsStream(WRONG_SEDA_MISSING_TITLE),
+        assertFalse(ValidationXsdUtils.checkWithXSD(PropertiesUtils.getResourceAsStream(WRONG_SEDA_MISSING_TITLE),
             SEDA_VITAM_VALIDATION_FILE));
     }
 
     @Test(expected = FileNotFoundException.class)
     public void givenXmlNotFoundWhenCheckXsdThenRaiseAnException()
         throws XMLStreamException, SAXException, IOException {
-        final ValidationXsdUtils valid = new ValidationXsdUtils();
-        valid.checkWithXSD(new FileInputStream(PropertiesUtils.getResourceFile("")), SEDA_VITAM_VALIDATION_FILE);
+        ValidationXsdUtils.checkWithXSD(new FileInputStream(PropertiesUtils.getResourceFile("")), SEDA_VITAM_VALIDATION_FILE);
     }
 
     @Test
     public void givenXmlARTCorrectWhenCheckXsdThenReturnTrue() throws XMLStreamException, SAXException, IOException {
-        final ValidationXsdUtils valid = new ValidationXsdUtils();
         assertTrue(
-            valid.checkWithXSD(PropertiesUtils.getResourceAsStream(SEDA_ARCHIVE_TRANSFER_REPLY),
+            ValidationXsdUtils.checkWithXSD(PropertiesUtils.getResourceAsStream(SEDA_ARCHIVE_TRANSFER_REPLY),
                 SEDA_VALIDATION_FILE));
     }
 
     @Test(expected = SAXException.class)
     public void givenXmlARTNotValidWhenCheckXsdThenReturnFalse() throws XMLStreamException, SAXException, IOException {
-        final ValidationXsdUtils valid = new ValidationXsdUtils();
         // test an ATR xml file missing a MessageIdentifier Tag in it 
-        valid.checkWithXSD(PropertiesUtils.getResourceAsStream(SEDA_ARCHIVE_TRANSFER_REPLY_NOTVALID),
+        ValidationXsdUtils.checkWithXSD(PropertiesUtils.getResourceAsStream(SEDA_ARCHIVE_TRANSFER_REPLY_NOTVALID),
             SEDA_VALIDATION_FILE);
     }
 
     @Test
     public void givenXmlCorrectWithAddLinkWhenCheckXsdThenReturnTrue()
         throws XMLStreamException, SAXException, IOException {
-        final ValidationXsdUtils valid = new ValidationXsdUtils();
         assertTrue(
-            valid.checkWithXSD(PropertiesUtils.getResourceAsStream("SIP_Add_Link.xml"), SEDA_VITAM_VALIDATION_FILE));
+            ValidationXsdUtils.checkWithXSD(PropertiesUtils.getResourceAsStream("SIP_Add_Link.xml"), SEDA_VITAM_VALIDATION_FILE));
     }
 
     @Test
     public void givenXmlCorrectWithUpdateWhenCheckXsdThenReturnTrue()
         throws XMLStreamException, SAXException, IOException {
-        final ValidationXsdUtils valid = new ValidationXsdUtils();
         assertTrue(
-            valid.checkWithXSD(PropertiesUtils.getResourceAsStream(SEDA_UPDATE_VALID), SEDA_VITAM_VALIDATION_FILE));
+            ValidationXsdUtils.checkWithXSD(PropertiesUtils.getResourceAsStream(SEDA_UPDATE_VALID), SEDA_VITAM_VALIDATION_FILE));
     }
 
     @Test(expected = SAXException.class)
     public void givenXmlUpdateWithoutSystemIdWhenCheckXsdThenThrowException()
         throws XMLStreamException, SAXException, IOException {
-        final ValidationXsdUtils valid = new ValidationXsdUtils();
-        valid.checkWithXSD(PropertiesUtils.getResourceAsStream(SEDA_UPDATE_NOT_VALID), SEDA_VITAM_VALIDATION_FILE);
+        ValidationXsdUtils.checkWithXSD(PropertiesUtils.getResourceAsStream(SEDA_UPDATE_NOT_VALID), SEDA_VITAM_VALIDATION_FILE);
     }
     
     @Test(expected = SAXException.class)
     public void givenXmlUpdateDeleteRefUnknownArchiveUnitWhenCheckXsdThenThrowException()
         throws XMLStreamException, SAXException, IOException {
-        final ValidationXsdUtils valid = new ValidationXsdUtils();
-        valid.checkWithXSD(PropertiesUtils.getResourceAsStream(SEDA_UPDATE_NOT_VALID_2), SEDA_VITAM_VALIDATION_FILE);
+        ValidationXsdUtils.checkWithXSD(PropertiesUtils.getResourceAsStream(SEDA_UPDATE_NOT_VALID_2), SEDA_VITAM_VALIDATION_FILE);
     }
     
+    @Test
+    public void testValidRNGOK()
+        throws XMLStreamException, SAXException, IOException {
+        try {
+            ValidationXsdUtils.checkFileRNG(PropertiesUtils.getResourceAsStream("manifest_ok_profile.xml"), 
+                PropertiesUtils.getResourceFile("Profil20.rng")); 
+        } catch (SAXException e) {
+            fail("should be valid");
+        }
+
+    }
 }

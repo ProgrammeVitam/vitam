@@ -29,6 +29,10 @@
               {
                 "name": "checkOriginatingAgency",
                 "uri": "VALUE:false"
+              },
+              {
+                "name": "checkProfile",
+                "uri": "VALUE:false"
               }
             ]
           }
