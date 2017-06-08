@@ -34,7 +34,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
+import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -45,6 +47,8 @@ import org.junit.rules.TemporaryFolder;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.ServerAddress;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
@@ -56,10 +60,12 @@ import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
 
 public class MongoDbAccessMetadataImplTest {
@@ -188,4 +194,35 @@ public class MongoDbAccessMetadataImplTest {
         final Unit unit2 = new Unit(s2);
         unit1.getChildrenUnitIdsFromParent();
     }
+
+    @Test
+    public void should_aggregate_unit_per_operation_id_and_originating_agency() throws Exception {
+        // Given
+        //mongoDbAccess = new MongoDbAccessMetadataImpl(mongoClient, "vitam-test", false, esClient, tenantList);
+        //MongoDatabase mongoDatabase = mongoDbAccess.getMongoDatabase();
+        //mongoDatabase.createCollection("unit");
+        //MongoCollection<Document> unit = mongoDatabase.getCollection("unit");
+        MongoCollection unit = MetadataCollections.C_UNIT.getCollection();
+
+        MetaDataImpl metaData = new MetaDataImpl(mongoDbAccess);
+
+        String operationId = "1234";
+        unit.insertOne(
+            new Document("_id", "1").append("_ops", Arrays.asList(operationId))
+                .append("_sps", Arrays.asList("sp1", "sp2")));
+        unit.insertOne(
+            new Document("_id", "2").append("_ops", Arrays.asList(operationId))
+                .append("_sps", Arrays.asList("sp1")));
+        unit.insertOne(
+            new Document("_id", "3").append("_ops", Arrays.asList("otherOperationId"))
+                .append("_sps", Arrays.asList("sp2")));
+        // When
+        List<Document> documents = metaData.selectAccessionRegisterByOperationId(operationId);
+
+        // Then
+        assertThat(documents).containsExactlyInAnyOrder(new Document("_id", "sp1").append("count", 2),
+            new Document("_id", "sp2").append("count", 1));
+
+    }
+
 }
