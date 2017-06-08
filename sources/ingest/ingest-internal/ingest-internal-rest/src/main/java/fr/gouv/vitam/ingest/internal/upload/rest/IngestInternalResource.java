@@ -452,46 +452,37 @@ public class IngestInternalResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getWorkFlowExecutionStatus(@PathParam("id") String id) {
-        Status status;
-        ItemStatus itemStatus = null;
         try (ProcessingManagementClient processManagementClient =
             ProcessingManagementClientFactory.getInstance().getClient()) {
-            itemStatus = processManagementClient.getOperationProcessStatus(id);
-        } catch (final IllegalArgumentException e) {
-            // if the entry argument if illegal
-            LOGGER.error(e);
-            status = Status.PRECONDITION_FAILED;
-            //TODO FIXE ME HEAD METHOD no entity
-            return Response.status(status)
-                .entity(getErrorEntity(status))
-                .build();
-        } catch (VitamClientException e) {
-            LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
-            status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
-                .entity(getErrorEntity(status))
-                .build();
-        } catch (WorkflowNotFoundException e) {
-            LOGGER.error(e);
-            status = Status.NO_CONTENT;
-            return Response.status(status)
-                .entity(getErrorEntity(status))
+            final ItemStatus itemStatus = processManagementClient.getOperationProcessStatus(id);
+
+            Response.ResponseBuilder builder = Response.status(Status.ACCEPTED);
+            if (ProcessState.COMPLETED.equals(itemStatus.getGlobalState())) {
+                builder.status(Status.OK);
+
+            } else {
+                builder.status(Status.ACCEPTED);
+            }
+
+            return builder
+                .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, itemStatus.getGlobalState())
+                .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, itemStatus.getGlobalStatus())
+                .header(GlobalDataRest.X_CONTEXT_ID, itemStatus.getLogbookTypeProcess())
                 .build();
 
-        } catch (InternalServerException e) {
+        } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
-            status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
-                .entity(getErrorEntity(status))
-                .build();
+            return Response.status(Status.PRECONDITION_FAILED).build();
+        } catch (VitamClientException | InternalServerException e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (WorkflowNotFoundException e) {
+            LOGGER.error(e);
+            return Response.status(Status.NO_CONTENT).build();
         } catch (BadRequestException e) {
             LOGGER.error(e);
-            status = Status.BAD_REQUEST;
-            return Response.status(status)
-                .entity(getErrorEntity(status))
-                .build();
+            return Response.status(Status.BAD_REQUEST).build();
         }
-        return Response.status(Status.OK).entity(itemStatus).build();
     }
 
     /**
@@ -608,9 +599,9 @@ public class IngestInternalResource extends ApplicationStatusResource {
 
     /**
      * Download object stored by Ingest operation (currently ATR and manifest)
-     * 
+     *
      * Return the object as stream asynchronously
-     * 
+     *
      * @param objectId the object id
      * @param type the collection type
      * @param asyncResponse the asynchronized response 
@@ -634,7 +625,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     public Response storeATR(@PathParam("objectId") String guid, InputStream atr) {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient();
-                WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
+            WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
 
             LOGGER.error("storage atr internal");
             workspaceClient.createContainer(guid);
@@ -755,12 +746,12 @@ public class IngestInternalResource extends ApplicationStatusResource {
 
                         isCompletedProcess = isCompletedProcess(processState);
 
-                      if(!isInitMode) {
-                          //Asynchrone
+                        if(!isInitMode) {
+                            //Asynchrone
 
-                          AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                              Response.status(Status.ACCEPTED).build());
-                      }
+                            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                                Response.status(Status.ACCEPTED).build());
+                        }
                     } finally {
                         if (isCompletedProcess) {
                             cleanWorkspace(containerGUID.getId());
@@ -887,7 +878,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
 
     /**
      * Executes starting instructions on a process : Updates logbookOperation and pushes the SIP to WorkSpace
-     * 
+     *
      * @param uploadedInputStream
      * @param parameters
      * @param archiveMimeType
@@ -925,7 +916,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
 
     /**
      * Executes an action on the given process
-     * 
+     *
      * @param asyncResponse Async response
      * @param actionId the action to start
      * @param containerGUID
@@ -1000,7 +991,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
             helper.writeAsyncResponse(Response.fromResponse(response), Status.fromStatusCode(stepExecutionStatus));
 
         } catch (final
-            LogbookClientNotFoundException | LogbookClientServerException |
+        LogbookClientNotFoundException | LogbookClientServerException |
             LogbookClientBadRequestException | LogbookClientAlreadyExistsException | StorageClientException |
             StorageNotFoundException e) {
 
@@ -1033,9 +1024,9 @@ public class IngestInternalResource extends ApplicationStatusResource {
         StatusCode statusCode)
         throws LogbookClientNotFoundException, LogbookClientServerException, LogbookClientAlreadyExistsException,
         LogbookClientBadRequestException {
-            LogbookOperationParameters parameters = logbookInitialisation(containerGUID, containerGUID,
-                logbookTypeProcess);
-            parameters.putParameterValue(LogbookParameterName.eventType, INGEST_WORKFLOW);
+        LogbookOperationParameters parameters = logbookInitialisation(containerGUID, containerGUID,
+            logbookTypeProcess);
+        parameters.putParameterValue(LogbookParameterName.eventType, INGEST_WORKFLOW);
         callLogbookUpdate(null, parameters, statusCode,
             VitamLogbookMessages.getCodeOp(INGEST_WORKFLOW, statusCode));
 
@@ -1068,7 +1059,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
             if (parameters != null) {
                 parameters.setStatus(logbookOutcome);
 
-                parameters.putParameterValue(LogbookParameterName.outcomeDetail, 
+                parameters.putParameterValue(LogbookParameterName.outcomeDetail,
                     VitamLogbookMessages.getOutcomeDetail(INGEST_WORKFLOW, logbookOutcome));
                 parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, outcomeDetailMessage);
                 logbookOperationsClient.update(parameters);
@@ -1082,7 +1073,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
 
     /**
      * Pushes the inputStream to Workspace
-     * 
+     *
      * @param containerName the containerName
      * @param uploadedInputStream the inputStream to store in workspace
      * @param archiveMimeType inputStream mimeType

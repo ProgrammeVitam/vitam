@@ -53,8 +53,10 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 
 
@@ -302,7 +304,11 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
                 LOGGER.warn("SIP Warning : " + Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
                 throw new VitamClientInternalException(INTERNAL_SERVER_ERROR);
             }
-            return response.readEntity(ItemStatus.class);
+
+            return new ItemStatus()
+                .setGlobalState(ProcessState.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATE)))
+                .setLogbookTypeProcess(response.getHeaderString(GlobalDataRest.X_CONTEXT_ID))
+                .increment(StatusCode.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS)));
         } finally {
             consumeAnyEntityAndClose(response);
         }
@@ -316,7 +322,8 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
             response =
                 performRequest(HttpMethod.GET, OPERATION_URI + "/" + id,
                     null,
-                    MediaType.APPLICATION_JSON_TYPE);
+                    query,
+                    MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 LOGGER.warn("SIP Warning : " + Response.Status.NOT_FOUND.getReasonPhrase());
                 throw new VitamClientInternalException(NOT_FOUND_EXCEPTION);

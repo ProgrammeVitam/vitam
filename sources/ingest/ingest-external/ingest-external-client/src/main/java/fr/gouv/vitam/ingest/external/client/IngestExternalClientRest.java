@@ -27,7 +27,6 @@
 package fr.gouv.vitam.ingest.external.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
@@ -37,14 +36,15 @@ import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.common.client.ErrorMessage;
 
@@ -55,6 +55,7 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.InputStream;
+import java.util.concurrent.TimeUnit;
 
 import static org.apache.http.HttpHeaders.EXPECT;
 import static org.apache.http.protocol.HTTP.EXPECT_CONTINUE;
@@ -88,8 +89,8 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         ParametersChecker.checkParameter("Tenant identifier is a mandatory parameter", tenantId);
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
         headers.add(GlobalDataRest.X_ACTION, action);
         headers.add(EXPECT, EXPECT_CONTINUE);
 
@@ -126,51 +127,6 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
 
     }
 
-    @Override
-    public String uploadAndWaitFinishingProcess(InputStream stream, Integer tenantId, String contextId,
-        String action) throws IngestExternalException {
-        int nbTry = NB_TRY;
-        RequestResponse<JsonNode> response = this.upload(stream, tenantId, contextId, action);
-
-
-        int responseStatus = response.getHttpCode();
-        final String xRequestId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
-
-        if (!Status.fromStatusCode(responseStatus).equals(Status.ACCEPTED)) {
-            return xRequestId;
-        }
-        while (Status.fromStatusCode(responseStatus).equals(Status.ACCEPTED) && nbTry > 0) {
-            //SLEEP
-            nbTry--;
-            try {
-                Thread.sleep(TIME_TO_SLEEP);
-            } catch (InterruptedException ex) {
-                LOGGER.error(ex);
-                Thread.currentThread().interrupt();
-                return xRequestId;
-            }
-
-            try {
-                response = this.getOperationStatus(xRequestId, tenantId);
-                responseStatus = response.getHttpCode();
-            } catch (Exception e) {
-                LOGGER.error(e);
-                throw new IngestExternalException(e);
-            }
-        }
-        if (nbTry <= 0) {
-            throw new IngestExternalException("Timeout");
-        }
-
-        try {
-            // ProcessEngine update state and status but logbook not yet persisted
-            // Wait ~ 10 second until logbook persist
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            // do nothing
-        }
-        return xRequestId;
-    }
 
     public Response downloadObjectAsync(String objectId, IngestCollection type, Integer tenantId)
         throws IngestExternalException {
@@ -195,49 +151,16 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         return response;
     }
 
-    @Override
-    public void initWorkFlow(String contextId) throws VitamException {
-        ParametersChecker.checkParameter("Params cannot be null", contextId);
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
-        headers.add(GlobalDataRest.X_ACTION, ProcessAction.INIT);
-
-        Response response = null;
-        // add header action id default init
-        try {
-            response =
-                performRequest(HttpMethod.POST, INGEST_URL, headers, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-
-            if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                LOGGER.warn("SIP Warning : " + Response.Status.NOT_FOUND.getReasonPhrase());
-                throw new VitamClientInternalException(NOT_FOUND_EXCEPTION);
-            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                LOGGER.warn("SIP Warning : " + Response.Status.PRECONDITION_FAILED.getReasonPhrase());
-                throw new VitamClientInternalException(REQUEST_PRECONDITION_FAILED);
-
-            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                LOGGER.warn("SIP Warning : " + Response.Status.UNAUTHORIZED.getReasonPhrase());
-                throw new VitamClientInternalException(UNAUTHORIZED);
-            } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-                LOGGER.warn("SIP Warning : " + Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
-                throw new VitamClientInternalException(INTERNAL_SERVER_ERROR);
-            }
-
-        } catch (VitamClientInternalException e) {
-            LOGGER.error("VitamClientInternalException: ", e);
-            throw new VitamClientException(e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
-    }
 
     @Override
-    public RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId, String actionId)
+    public RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId,
+        String actionId, Integer tenantId)
         throws VitamClientException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, operationId);
         ParametersChecker.checkParameter(CONTEXT_ID_MUST_HAVE_A_VALID_VALUE, contextId);
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
         try {
             response =
@@ -271,12 +194,12 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
 
 
     @Override
-    public Response updateOperationActionProcess(String actionId, String operationId) throws VitamClientException {
+    public Response updateOperationActionProcess(String actionId, String operationId, Integer tenantId) throws VitamClientException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, operationId);
 
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         headers.add(GlobalDataRest.X_ACTION, actionId);
-        headers.add(GlobalDataRest.X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId());
 
         Response response = null;
         try {
@@ -313,51 +236,36 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     }
 
     @Override
-    public ItemStatus getOperationProcessStatus(String id) throws VitamClientException {
+    public ItemStatus getOperationProcessStatus(String id, Integer tenantId) throws VitamClientException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);
-        Response response = null;
-        try {
-            response =
-                performRequest(HttpMethod.HEAD, OPERATION_URI + "/" + id, null, MediaType.APPLICATION_JSON_TYPE);
-
-            if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                LOGGER.warn("SIP Warning : " + Response.Status.NOT_FOUND.getReasonPhrase());
-                throw new VitamClientInternalException(NOT_FOUND_EXCEPTION);
-            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                LOGGER.warn("SIP Warning : " + Response.Status.PRECONDITION_FAILED.getReasonPhrase());
-                throw new VitamClientInternalException(REQUEST_PRECONDITION_FAILED);
-
-            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                LOGGER.warn("SIP Warning : " + Response.Status.UNAUTHORIZED.getReasonPhrase());
-                throw new VitamClientInternalException(UNAUTHORIZED);
-            } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-                LOGGER.warn("SIP Warning : " + Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
-                throw new VitamClientInternalException(INTERNAL_SERVER_ERROR);
-            }
-            return response.readEntity(ItemStatus.class);
-        } catch (VitamClientInternalException e) {
-            LOGGER.error("VitamClientInternalException: ", e);
-            throw new VitamClientException(e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
-    }
-
-    @Override
-    public RequestResponse<JsonNode> getOperationStatus(String id, Integer tenantId) throws VitamClientException {
-        ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);
-        Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_ACTION, id);
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        ItemStatus pwok = null;
+        Response response = null;
         try {
             response =
                 performRequest(HttpMethod.HEAD, OPERATION_URI + "/" + id, headers, MediaType.APPLICATION_JSON_TYPE);
 
-            return new RequestResponseOK<JsonNode>().parseHeadersFromResponse(response);
-        } catch (VitamClientInternalException e) {
+            if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                LOGGER.warn("SIP Warning : " + Response.Status.NOT_FOUND.getReasonPhrase());
+                throw new VitamClientInternalException(NOT_FOUND_EXCEPTION);
+            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
+                LOGGER.warn("SIP Warning : " + Response.Status.PRECONDITION_FAILED.getReasonPhrase());
+                throw new VitamClientInternalException(REQUEST_PRECONDITION_FAILED);
 
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                LOGGER.warn("SIP Warning : " + Response.Status.UNAUTHORIZED.getReasonPhrase());
+                throw new VitamClientInternalException(UNAUTHORIZED);
+            } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+                LOGGER.warn("SIP Warning : " + Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
+                throw new VitamClientInternalException(INTERNAL_SERVER_ERROR);
+            }
+
+            return new ItemStatus()
+                .setGlobalState(ProcessState.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATE)))
+                .setLogbookTypeProcess(response.getHeaderString(GlobalDataRest.X_CONTEXT_ID))
+                .increment(StatusCode.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS)));
+
+        } catch (VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);
             throw new VitamClientException(e);
         } finally {
@@ -365,17 +273,61 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         }
     }
 
+    @Override public boolean wait(int tenantId, String processId, ProcessState state, int nbTry, long timeout, TimeUnit timeUnit)
+        throws VitamException {
+        for (int i = 0; i < nbTry; i++) {
+            final ItemStatus itemStatus = this.getOperationProcessStatus(processId, tenantId);
+            final ProcessState processState = itemStatus.getGlobalState();
+            final StatusCode statusCode = itemStatus.getGlobalStatus();
+
+            switch (processState) {
+                case COMPLETED:
+                    return true;
+                case PAUSE:
+                    if (StatusCode.STARTED.compareTo(statusCode) <= 0) {
+                        return true;
+                    }
+                    break;
+                case RUNNING:
+                    break;
+            }
+
+            if (null != timeUnit) {
+                timeout = timeUnit.toMillis(timeout);
+            }
+            try {
+                Thread.sleep(timeout);
+            } catch (InterruptedException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
+        }
+
+        return false;
+    }
+
+    @Override public boolean wait(int tenantId, String processId, int nbTry, long timeout, TimeUnit timeUnit) throws VitamException {
+        return wait(tenantId, processId, ProcessState.COMPLETED, nbTry, timeout, timeUnit);
+    }
+
+    @Override public boolean wait(int tenantId, String processId, ProcessState state) throws VitamException {
+        return wait(tenantId, processId, state, Integer.MAX_VALUE, 1000l, TimeUnit.MILLISECONDS);
+    }
+
+    @Override public boolean wait(int tenantId, String processId) throws VitamException {
+        return wait(tenantId, processId, ProcessState.COMPLETED);
+    }
+
     @Override
-    public ItemStatus getOperationProcessExecutionDetails(String id, JsonNode query) throws VitamClientException {
+    public ItemStatus getOperationProcessExecutionDetails(String id, JsonNode query, Integer tenantId) throws VitamClientException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         headers.add(GlobalDataRest.X_ACTION, id);
-        headers.add(GlobalDataRest.X_TENANT_ID, 0);
         try {
             response =
-                performRequest(HttpMethod.GET, OPERATION_URI + "/" + id, null,
-                    MediaType.APPLICATION_JSON_TYPE);
+                performRequest(HttpMethod.GET, OPERATION_URI + "/" + id, headers, query,
+                    MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 LOGGER.warn("SIP Warning : " + Response.Status.NOT_FOUND.getReasonPhrase());
@@ -402,12 +354,12 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     }
 
     @Override
-    public RequestResponse<JsonNode> cancelOperationProcessExecution(String id) throws VitamClientException, BadRequestException {
+    public RequestResponse<JsonNode> cancelOperationProcessExecution(String id, Integer tenantId) throws VitamClientException, BadRequestException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);
         Response response = null;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId());
+            headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
             response =
                 performRequest(HttpMethod.DELETE, OPERATION_URI + "/" + id, headers, MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
@@ -435,9 +387,12 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     }
 
     @Override
-    public ItemStatus updateVitamProcess(String contextId, String actionId, String container, String workflow)
+    public ItemStatus updateVitamProcess(String contextId, String actionId, String container, String workflow,
+        Integer tenantId)
         throws InternalServerException, BadRequestException, VitamClientException {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+
         if (actionId.equals(ProcessAction.START)) {
             ParametersChecker.checkParameter(CONTEXT_ID_MUST_HAVE_A_VALID_VALUE, contextId);
             headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
@@ -475,9 +430,10 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     }
 
     @Override
-    public void initVitamProcess(String contextId, String container, String workFlow)
+    public void initVitamProcess(String contextId, String container, String workFlow, Integer tenantId)
         throws InternalServerException, VitamClientException {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         headers.add(GlobalDataRest.X_CONTEXT_ID, ProcessAction.INIT);
 
         Response response = null;
@@ -511,11 +467,48 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     }
 
     @Override
-    public RequestResponse<JsonNode> listOperationsDetails() throws VitamClientException {
+    public void initWorkFlow(String contextId, Integer tenantId) throws VitamException {
+        ParametersChecker.checkParameter("Params cannot be null", contextId);
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
+        headers.add(GlobalDataRest.X_ACTION, ProcessAction.INIT);
+
+        Response response = null;
+        // add header action id default init
+        try {
+            response =
+                performRequest(HttpMethod.POST, INGEST_URL, headers, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+
+            if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                LOGGER.warn("SIP Warning : " + Response.Status.NOT_FOUND.getReasonPhrase());
+                throw new VitamClientInternalException(NOT_FOUND_EXCEPTION);
+            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
+                LOGGER.warn("SIP Warning : " + Response.Status.PRECONDITION_FAILED.getReasonPhrase());
+                throw new VitamClientInternalException(REQUEST_PRECONDITION_FAILED);
+
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                LOGGER.warn("SIP Warning : " + Response.Status.UNAUTHORIZED.getReasonPhrase());
+                throw new VitamClientInternalException(UNAUTHORIZED);
+            } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+                LOGGER.warn("SIP Warning : " + Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
+                throw new VitamClientInternalException(INTERNAL_SERVER_ERROR);
+            }
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("VitamClientInternalException: ", e);
+            throw new VitamClientException(e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> listOperationsDetails(Integer tenantId) throws VitamClientException {
         Response response = null;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId());
+            headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
 
             response = performRequest(HttpMethod.GET, OPERATION_URI, headers,
                 MediaType.APPLICATION_JSON_TYPE);

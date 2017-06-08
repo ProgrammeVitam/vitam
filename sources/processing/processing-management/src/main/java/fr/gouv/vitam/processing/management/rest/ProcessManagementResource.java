@@ -276,6 +276,9 @@ public class ProcessManagementResource extends ApplicationStatusResource {
         try {
             final ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(id, tenantId);
             return Response.status(Status.OK)
+                .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, processWorkflow.getState())
+                .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, processWorkflow.getStatus())
+                .header(GlobalDataRest.X_CONTEXT_ID, processWorkflow.getLogbookTypeProcess())
                 .entity(new ItemStatus(id).setGlobalState(processWorkflow.getState()).increment(processWorkflow.getStatus()))
                 .build();
 
@@ -422,26 +425,21 @@ public class ProcessManagementResource extends ApplicationStatusResource {
                 builder.status(Status.ACCEPTED);
             }
 
-            return builder.header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, processWorkflow.getState())
+            return builder
+                .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, processWorkflow.getState())
                 .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, processWorkflow.getStatus())
                 .header(GlobalDataRest.X_CONTEXT_ID, processWorkflow.getLogbookTypeProcess())
                 .build();
 
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
-            return Response.status(Status.PRECONDITION_FAILED)
-                .entity(getErrorEntity(Status.PRECONDITION_FAILED, "Error while find ProcessWorkflow", "The parameter id expected not null, id :"+id+ " >> Error : "+e.getMessage()))
-                .build();
+            return Response.status(Status.PRECONDITION_FAILED).build();
         } catch (WorkflowNotFoundException e) {
             LOGGER.error(e);
-            return Response.status(Status.NOT_FOUND)
-                .entity(getErrorEntity(Status.NOT_FOUND, "Error while find ProcessWorkflow", "ProcessWorkflow not found with tenant :"+tenantId+" and with id:"+id+ " >> Error : "+e.getMessage()))
-                .build();
+            return Response.status(Status.NOT_FOUND).build();
         } catch (Exception e) {
             LOGGER.error(e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, "Error while find ProcessWorkflow", "ProcessWorkflow with tenant :"+tenantId+" and with id:"+id+ " >> Error : "+e.getMessage()))
-                .build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 

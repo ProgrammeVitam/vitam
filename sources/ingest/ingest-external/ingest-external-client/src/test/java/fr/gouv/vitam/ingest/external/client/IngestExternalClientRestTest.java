@@ -45,6 +45,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.StatusCode;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
@@ -211,10 +212,14 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
     public void givenHeadOperationStatusThenOK()
         throws Exception {
 
-        when(mock.head()).thenReturn(Response.status(Status.OK).build());
-        RequestResponse<JsonNode> resp = client.getOperationStatus(ID, 0);
+        when(mock.head()).thenReturn(
+            Response.status(Status.OK)
+            .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED)
+            .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.OK)
+            .header(GlobalDataRest.X_CONTEXT_ID, "Fake").build());
+        ItemStatus resp = client.getOperationProcessStatus(ID, 0);
 
-        assertEquals(resp.getHttpCode(), Status.OK.getStatusCode());
+        assertEquals(resp.getGlobalStatus().getEquivalentHttpStatus(), Status.OK);
 
     }
 

@@ -44,6 +44,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -69,6 +70,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessState;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
@@ -148,7 +150,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
  */
 @Path("/v1/api")
 public class WebApplicationResource extends ApplicationStatusResource {
-    
+
     public static final String X_SIZE_TOTAL = "X-Size-Total";
     public static final String X_CHUNK_OFFSET = "X-Chunk-Offset";
 
@@ -594,33 +596,31 @@ public class WebApplicationResource extends ApplicationStatusResource {
         if (responseDetails != null) {
             try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
                 String id = responseDetails.get(GUID_INDEX).toString();
-                final RequestResponse<JsonNode> response = client.getOperationStatus(id, tenantId);
 
-                int responseStatus = response.getHttpCode();
+                if (client.wait(tenantId, id, 30, 1000l, TimeUnit.MILLISECONDS)) {
 
-                if (Status.fromStatusCode(responseStatus).equals(Status.ACCEPTED)) {
-                    return Response.status(Status.NO_CONTENT).header(GlobalDataRest.X_REQUEST_ID, operationId).build();
-                }
-                if (Status.fromStatusCode(responseStatus).equals(Status.NOT_FOUND)) {
-                    return Response.status(Status.NO_CONTENT).header(GlobalDataRest.X_REQUEST_ID, operationId).build();
-                }
-                if (Status.fromStatusCode(responseStatus).equals(Status.OK)) {
-                    File file = downloadAndSaveATR(id, tenantId);
+                    final ItemStatus itemStatus =
+                        client.getOperationProcessExecutionDetails(id, JsonHandler.createObjectNode(), tenantId);
+                    if (ProcessState.COMPLETED.equals(itemStatus.getGlobalState())) {
+                        File file = downloadAndSaveATR(id, tenantId);
 
-                    if (file != null) {
-                        JsonNode lastEvent = getlogBookOperationStatus(id, tenantId, contractName);
-                        // ingestExternalClient client
-                        int status = getStatus(lastEvent);
-                        return Response.status(status).entity(new FileInputStream(file))
-                            .type(MediaType.APPLICATION_OCTET_STREAM_TYPE)
-                            .header("Content-Disposition",
-                                "attachment; filename=ATR_" + id + ".xml")
-                            .header(GlobalDataRest.X_REQUEST_ID, operationId).build();
+                        if (file != null) {
+                            JsonNode lastEvent = getlogBookOperationStatus(id, tenantId, contractName);
+                            // ingestExternalClient client
+                            int status = getStatus(lastEvent);
+                            return Response.status(status).entity(new FileInputStream(file))
+                                .type(MediaType.APPLICATION_OCTET_STREAM_TYPE)
+                                .header("Content-Disposition",
+                                    "attachment; filename=ATR_" + id + ".xml")
+                                .header(GlobalDataRest.X_REQUEST_ID, operationId).build();
+                        }
+                    } else if (ProcessState.PAUSE.equals(itemStatus.getGlobalState())) {
+                        return Response.status(itemStatus.getGlobalStatus().getEquivalentHttpStatus()).build();
+                    } else {
+                        return Response.status(Status.NO_CONTENT).header(GlobalDataRest.X_REQUEST_ID, operationId).build();
                     }
-
                 } else {
-                    return Response.status(responseStatus).header(GlobalDataRest.X_REQUEST_ID, operationId)
-                        .build();
+                    return Response.status(Status.NO_CONTENT).header(GlobalDataRest.X_REQUEST_ID, operationId).build();
                 }
 
             } catch (Exception e) {
@@ -1537,8 +1537,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response listOperationsDetails(@Context HttpHeaders headers) {
         try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
             String tenantIdHeader = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
-            VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(tenantIdHeader));
-            RequestResponse<JsonNode> response = client.listOperationsDetails();
+            RequestResponse<JsonNode> response = client.listOperationsDetails(Integer.parseInt(tenantIdHeader));
             return Response.status(Status.OK).entity(response).build();
         } catch (VitamClientException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
@@ -1564,10 +1563,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
         final String xAction = headers.getRequestHeader(GlobalDataRest.X_ACTION).get(0);
         String tenantIdHeader = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
-        VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(tenantIdHeader));
 
         try (IngestExternalClient ingestExternalClient = IngestExternalClientFactory.getInstance().getClient()) {
-            response = ingestExternalClient.updateOperationActionProcess(xAction, id);
+            response = ingestExternalClient.updateOperationActionProcess(xAction, id, Integer.parseInt(tenantIdHeader));
             final String globalExecutionState =
                 response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATE);
             final String globalExecutionStatus =
@@ -1605,12 +1603,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
             // if there is an unauthorized action
             LOGGER.error(e);
             return Response.status(Status.UNAUTHORIZED).entity(e.getMessage()).build();
-        } catch (InternalServerException | VitamClientException e) {
+        } catch (VitamClientException e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
-        } catch (BadRequestException e) {
-            LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } finally {
             DefaultClient.staticConsumeAnyEntityAndClose(response);
         }
@@ -1622,12 +1617,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @RequiresPermissions("operations:delete")
     public Response cancelProcess(@Context HttpHeaders headers, @PathParam("id") String id) {
         String tenantIdHeader = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
-        VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(tenantIdHeader));
 
         try (IngestExternalClient ingestExternalClient = IngestExternalClientFactory.getInstance().getClient()) {
-            RequestResponse<JsonNode> resp = ingestExternalClient.cancelOperationProcessExecution(id);
+            RequestResponse<JsonNode> resp = ingestExternalClient.cancelOperationProcessExecution(id, Integer.parseInt(tenantIdHeader));
             return Response.status(Status.OK).entity(resp).build();
-        } catch (InternalServerException | VitamClientException | ProcessingException e) {
+        } catch (VitamClientException | ProcessingException e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         } catch (BadRequestException e) {
@@ -1951,7 +1945,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             boolean updateStatus = false;
             boolean updateEveryOriginatingAgency = false;
 
-            if (updateData.get(STATUS_FIELD_QUERY) != null && 
+            if (updateData.get(STATUS_FIELD_QUERY) != null &&
                 (updateData.get(ACTIVATION_DATE_FIELD_QUERY) != null || updateData.get(DEACTIVATION_DATE_FIELD_QUERY) != null)) {
 	            actions.add(UpdateActionHelper.set(STATUS_FIELD_QUERY, updateData.get(STATUS_FIELD_QUERY)));
 	            SetAction setActionDesactivationDateActive = null;
@@ -2002,10 +1996,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
-    
+
     /**
      * upload context
-     * 
+     *
      * @param headers HTTP Headers
      * @param input the file json
      * @return Response
@@ -2371,7 +2365,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     /**
      * Extract information from timestamp
-     * 
+     *
      * @param timestamp the timestamp to be transformed
      * @return Response
      */

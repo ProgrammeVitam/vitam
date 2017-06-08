@@ -418,7 +418,7 @@ public class ProcessingIT {
             try {
                 Thread.sleep(SLEEP_TIME);
             } catch (InterruptedException e) {
-                //nothing to do
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
             if (nbTry == NB_TRY) break;
             nbTry ++;

@@ -108,8 +108,8 @@ public class IngestExternalResource extends ApplicationStatusResource {
      * @param action in workflow
      * @param uploadedInputStream data input stream
      * @param asyncResponse the asynchronized response
-     * 
-     * 
+     *
+     *
      */
     @Path("ingests")
     @POST
@@ -157,7 +157,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
      * @param objectId the id of object to download
      * @param type of collection
      * @param asyncResponse the asynchronized response
-     * 
+     *
      */
     @GET
     @Path("/ingests/{objectId}/{type}")
@@ -258,7 +258,6 @@ public class IngestExternalResource extends ApplicationStatusResource {
     }
 
     /**
-     * TODO FIXE ME get the operation status
      *
      * @param id operation identifier
      * @return http response
@@ -268,54 +267,36 @@ public class IngestExternalResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getWorkFlowExecutionStatus(@PathParam("id") String id) {
-        Status status = Status.ACCEPTED;
-        ItemStatus pwork = null;
         try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
-            JsonNode body = JsonHandler.createObjectNode();
-            pwork = ingestInternalClient.getOperationProcessExecutionDetails(id, body);
-            if (pwork == null) {
-                return Response.status(Status.ACCEPTED).entity(pwork).header(GlobalDataRest.X_REQUEST_ID, id).build();
+            final ItemStatus itemStatus = ingestInternalClient.getOperationProcessStatus(id);
+
+            Response.ResponseBuilder builder = Response.status(Status.ACCEPTED);
+            if (ProcessState.COMPLETED.equals(itemStatus.getGlobalState())) {
+                builder.status(Status.OK);
+
+            } else {
+                builder.status(Status.ACCEPTED);
             }
-            if (pwork.getGlobalState().equals(ProcessState.COMPLETED)) {
-                status = Status.OK;
-            }
+
+            return builder
+                .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, itemStatus.getGlobalState())
+                .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, itemStatus.getGlobalStatus())
+                .header(GlobalDataRest.X_CONTEXT_ID, itemStatus.getLogbookTypeProcess())
+                .build();
 
         } catch (final IllegalArgumentException e) {
-            // if the entry argument if illegal
             LOGGER.error(e);
-            status = Status.PRECONDITION_FAILED;
-            return Response.status(status)
-                .entity(getErrorEntity(status))
-                .build();
-
+            return Response.status(Status.PRECONDITION_FAILED).build();
         } catch (final WorkflowNotFoundException e) {
-            // if the entry argument if illegal
             LOGGER.error(e);
-            status = Status.NO_CONTENT;
-            return Response.status(status)
-                .entity(getErrorEntity(status))
-                .build();
-
-        } catch (VitamClientException e) {
-            LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
-            status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
-                .entity(getErrorEntity(status))
-                .build();
-        } catch (InternalServerException e) {
+            return Response.status(Status.NO_CONTENT).build();
+        } catch (VitamClientException | InternalServerException e) {
             LOGGER.error(e);
-            status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
-                .entity(getErrorEntity(status))
-                .build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         } catch (BadRequestException e) {
             LOGGER.error(e);
-            status = Status.BAD_REQUEST;
-            return Response.status(status)
-                .entity(getErrorEntity(status))
-                .build();
+            return Response.status(Status.BAD_REQUEST).build();
         }
-        return Response.status(status).build();
     }
 
     /**

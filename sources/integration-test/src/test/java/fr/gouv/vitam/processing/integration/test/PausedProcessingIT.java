@@ -46,6 +46,7 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessAction;
@@ -271,7 +272,7 @@ public class PausedProcessingIT {
             try {
                 Thread.sleep(SLEEP_TIME);
             } catch (InterruptedException e) {
-                //nothing to do
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
             if (nbTry == NB_TRY) break;
             nbTry ++;
@@ -366,6 +367,8 @@ public class PausedProcessingIT {
             Integer.toString(PORT_SERVICE_PROCESSING));
         processManagementApplication = new ProcessManagementApplication(CONFIG_PROCESSING_PATH);
         processManagementApplication.start();
+        SystemPropertyUtil.clear(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT);
+
         // wait a little bit until jetty start
 
         waitServerStart();
@@ -410,7 +413,7 @@ public class PausedProcessingIT {
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
-                //Nothing to do
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
             nbTry --;
 

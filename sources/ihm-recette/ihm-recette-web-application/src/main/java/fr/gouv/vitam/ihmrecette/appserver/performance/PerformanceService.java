@@ -43,15 +43,18 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
@@ -168,11 +171,15 @@ public class PerformanceService {
         try (InputStream sipInputStream = Files.newInputStream(sipDirectory.resolve(model.getFileName()),
             StandardOpenOption.READ)) {
 
-            String requestId =
-                client.uploadAndWaitFinishingProcess(sipInputStream, tenantId, DEFAULT_WORKFLOW.name(), RESUME.name());
+            RequestResponse<JsonNode> response =
+                client.upload(sipInputStream, tenantId, DEFAULT_WORKFLOW.name(), RESUME.name());
+
+            final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+
+            client.wait(tenantId, operationId, ProcessState.COMPLETED, 100, 1000l, TimeUnit.MILLISECONDS);
 
             LOGGER.debug("finish unitary test");
-            return requestId;
+            return operationId;
         } catch (final Exception e) {
             LOGGER.error("unable to upload sip", e);
             return null;

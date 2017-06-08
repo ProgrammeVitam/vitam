@@ -117,6 +117,7 @@ public interface OperationManagementClient extends MockOrRestClient {
      * @throws VitamClientException
      */
 
+    @Deprecated // Not used
     ItemStatus updateVitamProcess(String contextId, String actionId, String container, String workflow)
         throws InternalServerException, BadRequestException, VitamClientException;
 

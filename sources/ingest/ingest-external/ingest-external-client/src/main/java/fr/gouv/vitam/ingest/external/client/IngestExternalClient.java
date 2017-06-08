@@ -26,24 +26,27 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.client;
 
-import java.io.InputStream;
-
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.client.IngestCollection;
-import fr.gouv.vitam.common.client.OperationManagementClient;
+import fr.gouv.vitam.common.client.MockOrRestClient;
+import fr.gouv.vitam.common.client.PoolingStatusClient;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
+
+import javax.ws.rs.core.Response;
+import java.io.InputStream;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Ingest external interface
  */
-public interface IngestExternalClient extends OperationManagementClient {
+public interface IngestExternalClient extends MockOrRestClient, PoolingStatusClient {
     /**
      * ingest upload file in local
      *
@@ -60,22 +63,6 @@ public interface IngestExternalClient extends OperationManagementClient {
         throws IngestExternalException;
 
     /**
-     * ingest upload file in  with waiting
-     * For Intern Usage
-     * TNR
-     *
-     * @param stream
-     * @param tenantId
-     * @param contextId
-     * @return response
-     * @throws IngestExternalException
-     */
-    // TODO P0 : add file name
-    @Deprecated
-    String uploadAndWaitFinishingProcess(InputStream stream, Integer tenantId, String contextId, String action)
-        throws IngestExternalException;
-
-    /**
      * Download object stored by ingest operation
      *
      * @param objectId
@@ -89,18 +76,46 @@ public interface IngestExternalClient extends OperationManagementClient {
     Response downloadObjectAsync(String objectId, IngestCollection type, Integer tenantId)
         throws IngestExternalException;
 
+    RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId,
+        String actionId, Integer tenantId)
+        throws VitamClientException;
+
+    Response updateOperationActionProcess(String actionId, String operationId, Integer tenantId) throws VitamClientException;
+
+    ItemStatus getOperationProcessStatus(String id, Integer tenantId) throws VitamClientException;
+
+    ItemStatus getOperationProcessExecutionDetails(String id, JsonNode query, Integer tenantId) throws VitamClientException;
+
+    RequestResponse<JsonNode> cancelOperationProcessExecution(String id, Integer tenantId) throws VitamClientException, BadRequestException;
+
     /**
-     * getOperationProcessStatus:
-     *
-     * get operation process status**
-     *
-     * @param id : operation identifier*
+     * Use updateOperationActionProcess
+     * @param contextId
+     * @param actionId
+     * @param container
+     * @param workflow
      * @param tenantId
-     * @throws VitamClientException
+     * @return
      * @throws InternalServerException
      * @throws BadRequestException
+     * @throws VitamClientException
      */
+    @Deprecated //Not used
+    ItemStatus updateVitamProcess(String contextId, String actionId, String container, String workflow,
+        Integer tenantId)
+        throws InternalServerException, BadRequestException, VitamClientException;
 
-    RequestResponse<JsonNode> getOperationStatus(String id, Integer tenantId) throws VitamClientException, InternalServerException, BadRequestException;
+    void initVitamProcess(String contextId, String container, String workFlow, Integer tenantId)
+        throws InternalServerException, VitamClientException;
 
+    /**
+     * Use initVitamProcess
+     * @param contextId
+     * @param tenantId
+     * @throws VitamException
+     */
+    @Deprecated
+    void initWorkFlow(String contextId, Integer tenantId) throws VitamException;
+
+    RequestResponse<JsonNode> listOperationsDetails(Integer tenantId) throws VitamClientException;
 }

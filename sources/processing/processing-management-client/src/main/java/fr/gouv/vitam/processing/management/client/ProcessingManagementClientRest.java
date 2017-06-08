@@ -288,9 +288,10 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
                 throw new IllegalArgumentException(Status.UNAUTHORIZED.getReasonPhrase());
             }
 
-            // XXX: theoretically OK status case
-            // Don't we thrown an exception if it is another status ?
-            return response.readEntity(ItemStatus.class);
+            return new ItemStatus()
+                .setGlobalState(ProcessState.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATE)))
+                .setLogbookTypeProcess(response.getHeaderString(GlobalDataRest.X_CONTEXT_ID))
+                .increment(StatusCode.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS)));
 
         } catch (final WorkflowNotFoundException e) {
             LOGGER.error(e);
@@ -351,8 +352,8 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         try {
             response =
                 performRequest(HttpMethod.GET, OPERATION_URI + "/" + id,
-                    null,
-                    MediaType.APPLICATION_JSON_TYPE);
+                    null,query,
+                    MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 throw new WorkflowNotFoundException(WORKFLOW_NOT_FOUND);
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
