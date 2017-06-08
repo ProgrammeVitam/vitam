@@ -76,7 +76,7 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
         status.add(0);
         status.add(0);
         return new ItemStatus("FakeId", "FakeMessage", StatusCode.OK, status, SingletonUtils.singletonMap(), null,
-            null, null);
+            null, null, null);
     }
 
 
@@ -92,7 +92,7 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
         status.add(0);
         status.add(0);
         return new ItemStatus("FakeId", "FakeMessage", StatusCode.OK, status, SingletonUtils.singletonMap(), null,
-            null, null);
+            null, null, null);
     }
 
 
@@ -108,7 +108,7 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
         status.add(0);
         status.add(0);
         final ItemStatus it = new ItemStatus("FakeId", "FakeMessage", StatusCode.OK, status, SingletonUtils.singletonMap(), null,
-            null, null);
+            null, null, null);
 
         return new RequestResponseOK().addResult(it).setHttpCode(Status.OK.getStatusCode());
     }
@@ -151,7 +151,7 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
         status.add(0);
         status.add(0);
         return new ItemStatus("FakeId", "FakeMessage", StatusCode.OK, status, SingletonUtils.singletonMap(), null,
-            null, null);
+            null, null, null);
     }
 
 

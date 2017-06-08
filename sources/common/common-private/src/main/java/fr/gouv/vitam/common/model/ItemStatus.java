@@ -36,6 +36,7 @@ import java.util.Map.Entry;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
 
 import fr.gouv.vitam.common.ParametersChecker;
@@ -57,6 +58,8 @@ public class ItemStatus {
     protected String message;
     @JsonProperty("evDetailData")
     protected String evDetailData;
+    @JsonProperty("techDetailData")
+    protected JsonNode techDetailData;
     @JsonProperty("globalStatus")
     protected StatusCode globalStatus;
     @JsonProperty("statusMeter")
@@ -97,7 +100,8 @@ public class ItemStatus {
         @JsonProperty("statusMeter") List<Integer> statusMeter, @JsonProperty("data") Map<String, Object> data,
         @JsonProperty("itemsStatus") LinkedHashMap<String, ItemStatus> itemsStatus,
         @JsonProperty("evDetailData") String evDetailData,
-        @JsonProperty("globalState") ProcessState globalState) {
+        @JsonProperty("globalState") ProcessState globalState,
+        @JsonProperty("techDetailData") JsonNode techDetailData) {
         this.itemsStatus = itemsStatus;
         this.itemId = itemId;
         this.message = message;
@@ -106,6 +110,7 @@ public class ItemStatus {
         this.data = data;
         this.evDetailData = evDetailData;
         this.globalState = globalState;
+        this.techDetailData = techDetailData;
     }
 
     /**
@@ -414,4 +419,20 @@ public class ItemStatus {
         this.logbookTypeProcess = logbookTypeProcess;
         return this;
     }
+    /**
+     * @return techDetailData
+     */
+    public JsonNode getTechDetailData() {
+        return techDetailData;
+    }
+
+    /**
+     * @param techDetailData
+     * @return this
+     */
+    public ItemStatus setTechDetailData(JsonNode techDetailData) {
+        this.techDetailData = techDetailData;
+        return this;
+    }
+
 }

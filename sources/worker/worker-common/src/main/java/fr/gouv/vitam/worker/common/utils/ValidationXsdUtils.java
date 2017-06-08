@@ -26,15 +26,19 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.common.utils;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 
+import javax.xml.XMLConstants;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.transform.stax.StAXSource;
+import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
@@ -50,6 +54,9 @@ import fr.gouv.vitam.common.stream.StreamUtils;
  */
 public class ValidationXsdUtils {
 
+    private static final String RNG_FACTORY = "com.thaiopensource.relaxng.jaxp.XMLSyntaxSchemaFactory";
+    private static final String RNG_PROPERTY_KEY = "javax.xml.validation.SchemaFactory:" + XMLConstants.RELAXNG_NS_URI;
+    private static final String RNG_SUFFIX = ".rng";
     private static final String HTTP_WWW_W3_ORG_XML_XML_SCHEMA_V1_1 = "http://www.w3.org/XML/XMLSchema/v1.1";
     /**
      * Filename of the catalog file ; should be found in the classpath.
@@ -65,7 +72,7 @@ public class ValidationXsdUtils {
      * @throws SAXException if the file is not valid with the XSD, or the file is not an xml file
      * @throws IOException if the schema file could not be found
      */
-    public boolean checkWithXSD(InputStream xmlFile, String xsdFile)
+    public static boolean checkWithXSD(InputStream xmlFile, String xsdFile)
         throws SAXException, IOException, XMLStreamException {
 
         final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
@@ -81,15 +88,75 @@ public class ValidationXsdUtils {
         }
     }
 
-    private Schema getSchema(String xsdFile) throws SAXException {
-        // Was XMLConstants.W3C_XML_SCHEMA_NS_URI
+    /**
+     * @param xmlFile
+     * @param xsdFile
+     * @return true if validated
+     * @throws SAXException
+     * @throws IOException
+     * @throws XMLStreamException
+     */
+    public boolean checkFileXSD(InputStream xmlFile, File xsdFile)
+        throws SAXException, IOException, XMLStreamException {
+
+        final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+        final XMLStreamReader xmlStreamReader = xmlInputFactory.createXMLStreamReader(xmlFile, "UTF-8");
+        try {
+            final Schema schema = getSchema(xsdFile);
+            final Validator validator = schema.newValidator();
+            validator.validate(new StAXSource(xmlStreamReader));
+            return true;
+        } finally {
+            xmlStreamReader.close();
+            StreamUtils.closeSilently(xmlFile);
+        }
+    }
+    
+    /**
+     * @param xmlFile
+     * @param xsdFile
+     * @return true if validated
+     * @throws SAXException
+     * @throws IOException
+     * @throws XMLStreamException
+     */
+    public static boolean checkFileRNG(InputStream xmlFile, File xsdFile) throws XMLStreamException, SAXException, IOException {
+        try {
+            final Schema schema = getSchema(xsdFile);
+            final Validator validator = schema.newValidator();
+            validator.validate(new StreamSource(xmlFile));
+            return true;
+        } finally {
+            StreamUtils.closeSilently(xmlFile);
+        }
+    }
+
+    private static Schema getSchema(String xsdFile) throws SAXException, FileNotFoundException, MalformedURLException {
+        // Was XMLConstants.W3C_XML_SCHEMA_NS_URI        
         final SchemaFactory factory =
             SchemaFactory.newInstance(HTTP_WWW_W3_ORG_XML_XML_SCHEMA_V1_1);
 
         // Load catalog to resolve external schemas even offline.
-        final URL catalogUrl = this.getClass().getClassLoader().getResource(CATALOG_FILENAME);
+        final URL catalogUrl = ValidationXsdUtils.class.getClassLoader().getResource(CATALOG_FILENAME);
         factory.setResourceResolver(new XMLCatalogResolver(new String[] {catalogUrl.toString()}, false));
 
-        return factory.newSchema(this.getClass().getClassLoader().getResource(xsdFile));
+        return factory.newSchema(ValidationXsdUtils.class.getClassLoader().getResource(xsdFile));
+    }
+
+    private static Schema getSchema(File file) throws SAXException, MalformedURLException, FileNotFoundException {
+        SchemaFactory factory = null;
+        if (file.getName().endsWith(RNG_SUFFIX)) {
+            System.setProperty(RNG_PROPERTY_KEY, 
+                RNG_FACTORY); 
+            factory = SchemaFactory.newInstance(XMLConstants.RELAXNG_NS_URI);
+        } else {
+            factory = SchemaFactory.newInstance(HTTP_WWW_W3_ORG_XML_XML_SCHEMA_V1_1);
+        }
+
+        // Load catalog to resolve external schemas even offline.
+        final URL catalogUrl = ValidationXsdUtils.class.getClassLoader().getResource(CATALOG_FILENAME);
+        factory.setResourceResolver(new XMLCatalogResolver(new String[] {catalogUrl.toString()}, false));
+
+        return factory.newSchema(file);
     }
 }

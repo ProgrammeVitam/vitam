@@ -76,7 +76,7 @@ public class CheckSedaActionHandler extends ActionHandler {
         final SedaUtils sedaUtils = SedaUtilsFactory.create(handlerIO);
 
         CheckSedaValidationStatus status;
-        status = sedaUtils.checkSedaValidation(params);
+        status = sedaUtils.checkSedaValidation(params, itemStatus);
 
         switch (status) {
             case VALID:

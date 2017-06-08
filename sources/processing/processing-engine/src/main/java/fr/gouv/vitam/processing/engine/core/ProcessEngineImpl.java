@@ -346,6 +346,10 @@ public class ProcessEngineImpl implements ProcessEngine {
                         itemStatus.getData().get(LogbookParameterName.eventDetailData.name()).toString();
                     sublogbook.putParameterValue(LogbookParameterName.eventDetailData, eventDetailData);
                 }
+                if (itemStatus.getTechDetailData() != null) {
+                    sublogbook.putParameterValue(LogbookParameterName.eventDetailTechData, 
+                        itemStatus.getTechDetailData().toString());
+                }
                 helper.updateDelegate(sublogbook);
             }
         }

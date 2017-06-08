@@ -74,6 +74,7 @@ import fr.gouv.vitam.processing.common.model.UriPrefix;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
+import fr.gouv.vitam.worker.common.utils.ValidationXsdUtils;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -81,7 +82,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"javax.net.ssl.*", "org.xml.sax.*", "javax.management.*"})
 @PrepareForTest({WorkspaceClientFactory.class, LogbookLifeCyclesClientFactory.class,
-    LogbookOperationsClientFactory.class})
+    LogbookOperationsClientFactory.class, ValidationXsdUtils.class})
 public class TransferNotificationActionHandlerIteratorTestSpecific {
     private static final String ARCHIVE_ID_TO_GUID_MAP =
         "transferNotificationActionHandler/ARCHIVE_ID_TO_GUID_MAP_objKO.json";
@@ -113,7 +114,7 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
     private WorkerParameters params;
 
     @Before
-    public void setUp() throws URISyntaxException, FileNotFoundException, ProcessingException {
+    public void setUp() throws Exception {
         guid = GUIDFactory.newGUID();
         params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8080")
@@ -127,6 +128,9 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
         action = new HandlerIOImpl(guid.getId(), "workerId");
 
+
+        PowerMockito.mockStatic(ValidationXsdUtils.class);
+        PowerMockito.when(ValidationXsdUtils.checkWithXSD(anyObject(), anyObject())).thenReturn(true);
         logbookOperationsClient = mock(LogbookOperationsClient.class);
         PowerMockito.mockStatic(LogbookOperationsClientFactory.class);
         logbookOperationsClientFactory = mock(LogbookOperationsClientFactory.class);

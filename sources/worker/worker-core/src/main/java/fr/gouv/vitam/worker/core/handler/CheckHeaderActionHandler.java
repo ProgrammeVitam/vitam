@@ -57,6 +57,7 @@ public class CheckHeaderActionHandler extends ActionHandler {
     private static final int CHECK_CONTRACT_RANK = 0;
     private static final int CHECK_ORIGINATING_AGENCY_RANK = 1;
     private static final String EV_DETAIL_REQ = "EvDetailReq";
+    private static final int CHECK_PROFILE_RANK = 2;
     /**
      * empty Constructor
      *
@@ -78,7 +79,12 @@ public class CheckHeaderActionHandler extends ActionHandler {
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
         final SedaUtils sedaUtils = SedaUtilsFactory.create(handlerIO);
         Map<String, Object> madatoryValueMap = new HashMap<>();
-
+        final boolean shouldCheckContract  = Boolean.valueOf((String) handlerIO.getInput(CHECK_CONTRACT_RANK));
+        final boolean shouldCheckOriginatingAgency = 
+            Boolean.valueOf((String) handlerIO.getInput(CHECK_ORIGINATING_AGENCY_RANK));
+        final boolean shouldCheckProfile = 
+            Boolean.valueOf((String) handlerIO.getInput(CHECK_PROFILE_RANK));
+        
         try {
             madatoryValueMap = sedaUtils.getMandatoryValues(params);
         } catch (final ProcessingException e) {
@@ -92,7 +98,7 @@ public class CheckHeaderActionHandler extends ActionHandler {
                 madatoryValueMap.get(SedaConstants.TAG_MESSAGE_IDENTIFIER));
         }
 
-        if (Boolean.valueOf((String) handlerIO.getInput(CHECK_ORIGINATING_AGENCY_RANK)) && 
+        if (shouldCheckOriginatingAgency && 
             Strings.isNullOrEmpty((String) madatoryValueMap.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER))) {
             itemStatus.increment(StatusCode.KO);
             return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
@@ -106,14 +112,53 @@ public class CheckHeaderActionHandler extends ActionHandler {
             itemStatus.setData(LogbookParameterName.eventDetailData.name(), evDetData.toString());
         }
 
-        if (madatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT) != null &&
-            Boolean.valueOf((String) handlerIO.getInput(CHECK_CONTRACT_RANK))) {
-            handlerIO.getInput().clear();
-            handlerIO.getInput().add(madatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT));
-            CheckIngestContractActionHandler checkIngestContractActionHandler = new CheckIngestContractActionHandler();
-            final ItemStatus checkContratItemStatus = checkIngestContractActionHandler.execute(params, handlerIO);
-            itemStatus.setItemsStatus(CheckIngestContractActionHandler.getId(), checkContratItemStatus);
-            checkIngestContractActionHandler.close();
+        if (shouldCheckContract) {
+            if (madatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT) != null) {
+                handlerIO.getInput().clear();
+                handlerIO.getInput().add(madatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT));
+                CheckIngestContractActionHandler checkIngestContractActionHandler = new CheckIngestContractActionHandler();
+                final ItemStatus checkContratItemStatus = checkIngestContractActionHandler.execute(params, handlerIO);
+                itemStatus.setItemsStatus(CheckIngestContractActionHandler.getId(), checkContratItemStatus);
+                checkIngestContractActionHandler.close();
+                if (checkContratItemStatus.shallStop(true)) {
+                    return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+                }
+            }            
+        }
+        if (shouldCheckProfile) {
+            if (madatoryValueMap.get(SedaConstants.TAG_ARCHIVE_PROFILE) != null) {
+
+                handlerIO.getInput().clear();
+                handlerIO.getInput().add(madatoryValueMap.get(SedaConstants.TAG_ARCHIVE_PROFILE));
+                CheckArchiveProfileActionHandler checkArchiveProfile = new CheckArchiveProfileActionHandler();
+                final ItemStatus checkProfilItemStatus = checkArchiveProfile.execute(params, handlerIO);
+                itemStatus.setItemsStatus(CheckArchiveProfileActionHandler.getId(), checkProfilItemStatus);
+                checkArchiveProfile.close();
+                if (checkProfilItemStatus.shallStop(true)) {
+                    return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+                }                
+
+                handlerIO.getInput().clear();
+                handlerIO.getInput().add(madatoryValueMap.get(SedaConstants.TAG_ARCHIVE_PROFILE));
+                handlerIO.getInput().add(madatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT));
+                CheckArchiveProfileRelationActionHandler checkProfileRelation = new CheckArchiveProfileRelationActionHandler();
+                final ItemStatus checkProfilRelationItemStatus = checkProfileRelation.execute(params, handlerIO);
+                itemStatus.setItemsStatus(CheckArchiveProfileRelationActionHandler.getId(), checkProfilRelationItemStatus);
+                checkProfileRelation.close();
+                if (checkProfilRelationItemStatus.shallStop(true)) {
+                    return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+                }
+
+            } else {
+                // Return ok in case of missing profile
+                
+               ItemStatus checkProfileStatus = new ItemStatus(CheckArchiveProfileActionHandler.getId());
+               checkProfileStatus.increment(StatusCode.OK);
+               ItemStatus checkProfileRelationStatus = new ItemStatus(CheckArchiveProfileRelationActionHandler.getId());
+               checkProfileRelationStatus.increment(StatusCode.OK);
+               itemStatus.setItemsStatus(CheckArchiveProfileActionHandler.getId(), checkProfileStatus);
+               itemStatus.setItemsStatus(CheckArchiveProfileRelationActionHandler.getId(), checkProfileRelationStatus);
+            }
         } else {
             itemStatus.increment(StatusCode.OK);
         }

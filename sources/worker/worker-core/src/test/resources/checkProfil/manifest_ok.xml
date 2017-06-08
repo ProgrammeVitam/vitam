@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="Profil20.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>
+<ArchiveTransfer xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0">
+    <Comment>Transfert des enregistrements des délibérations de l'assemblée départementale</Comment>
+    <Date>2017-05-17T10:07:28.8714077Z</Date>
+    <MessageIdentifier>IDMessage</MessageIdentifier>
+    <ArchivalAgreement>ACCORD_SONORE</ArchivalAgreement>
+    <CodeListVersions>
+        <ReplyCodeListVersion>https://demo.logilab.fr/seda/154188</ReplyCodeListVersion>
+        <MessageDigestAlgorithmCodeListVersion>https://demo.logilab.fr/seda/154187</MessageDigestAlgorithmCodeListVersion>
+        <EncodingCodeListVersion>https://demo.logilab.fr/seda/10338</EncodingCodeListVersion>
+        <FileFormatCodeListVersion>https://demo.logilab.fr/seda/10339</FileFormatCodeListVersion>  
+        <AppraisalRuleCodeListVersion>https://demo.logilab.fr/seda/6333</AppraisalRuleCodeListVersion>
+        <AccessRuleCodeListVersion>https://demo.logilab.fr/seda/6334</AccessRuleCodeListVersion>
+        <DisseminationRuleCodeListVersion>https://demo.logilab.fr/seda/154186</DisseminationRuleCodeListVersion>
+    </CodeListVersions>
+    <DataObjectPackage>
+        <BinaryDataObject id="Do1">
+            <Uri>content/enregistrement-audio-2016-11-15.mp3</Uri>
+            <MessageDigest algorithm="md5">61b506aeea93cad69593ed5e9d42a389</MessageDigest>
+            <Size>3494</Size>
+            <FormatIdentification>
+                <FormatLitteral>MP3</FormatLitteral>
+            </FormatIdentification>
+        </BinaryDataObject>
+        <BinaryDataObject id="Do2">
+            <Uri>content/enregistrement-audio-2016-11-16.mp3</Uri>
+            <MessageDigest algorithm="md5">61b506aeea93cad69593ed5e9d42a389</MessageDigest>
+            <Size>3494</Size>
+            <FormatIdentification>
+                <FormatLitteral>MP3</FormatLitteral>
+            </FormatIdentification>
+        </BinaryDataObject>
+        <BinaryDataObject id="Do3">
+            <Uri>content/enregistrement-video-2016-11-15.wmv</Uri>
+            <MessageDigest algorithm="md5">d8c2eafd90c266e19ab9dcacc479f8af</MessageDigest>
+            <Size>25631</Size>
+            <FormatIdentification>
+                <FormatLitteral>WMV</FormatLitteral>
+            </FormatIdentification>
+        </BinaryDataObject>
+        <BinaryDataObject id="Do4">
+            <Uri>content/enregistrement-video-2016-11-16.wmv</Uri>
+            <MessageDigest algorithm="md5">d8c2eafd90c266e19ab9dcacc479f8af</MessageDigest>
+            <Size>25631</Size>
+            <FormatIdentification>
+                <FormatLitteral>WMV</FormatLitteral>
+            </FormatIdentification>
+        </BinaryDataObject>
+        <DescriptiveMetadata>
+            <ArchiveUnit id="Au1">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Enregistrements de l'assemblee départementale, sessions du 15/09/2016 au 16/09/2016</Title>
+                    <Description>Ces enregistrements sont réalisés dans le but d'une transcription dans le procès-verbal de la session.</Description>
+                    <CustodialHistory>
+                        <CustodialHistoryItem>Ces enregistrements sont transférés à l'initiative du service de l'assemblée directement vers le SAE internalisé pour conservation patrimoniale.</CustodialHistoryItem>
+                    </CustodialHistory>
+                    <Language>fra</Language>
+                    <Keyword>
+                        <KeywordContent>Département</KeywordContent>
+                        <KeywordType>corpname</KeywordType>
+                    </Keyword>
+                    <Keyword>
+                        <KeywordContent>Organe délibérant</KeywordContent>
+                        <KeywordType>corpname</KeywordType>
+                    </Keyword>
+                    <StartDate>2016-09-15</StartDate>
+                    <EndDate>2016-09-16</EndDate>
+                </Content>
+                <ArchiveUnit id="Au1-1">
+                    <Content>
+                        <DescriptionLevel>File</DescriptionLevel>
+                        <Title>Enregistrements de l'assemblée départementale, journée du 15/09/2015</Title>
+                        <StartDate>2016-09-15</StartDate>
+                        <EndDate>2016-09-15</EndDate>
+                    </Content>
+                    <ArchiveUnit id="Au1-1-1">
+                        <Content>
+                            <DescriptionLevel>Item</DescriptionLevel>
+                            <Title>Pièce jointe enregistrement audio</Title>
+                        </Content>
+                        <DataObjectReference>
+                            <DataObjectReferenceId>Do1</DataObjectReferenceId>
+                        </DataObjectReference>
+                    </ArchiveUnit>
+                    <ArchiveUnit id="Au1-1-2">
+                        <Content>
+                            <DescriptionLevel>Item</DescriptionLevel>
+                            <Title>Pièce jointe enregistrement video</Title>
+                        </Content>
+                        <DataObjectReference>
+                            <DataObjectReferenceId>Do3</DataObjectReferenceId>
+                        </DataObjectReference>
+                    </ArchiveUnit>
+                </ArchiveUnit>
+                <ArchiveUnit id="Au1-2"> 
+                   <Content>
+                        <DescriptionLevel>File</DescriptionLevel>
+                        <Title>Enregistrement de l'assemblée départementale, journée du 16/09/2015</Title>
+                        <StartDate>2016-09-16</StartDate>
+                        <EndDate>2016-09-16</EndDate>
+                    </Content>
+                    <ArchiveUnit id="Au1-2-1">
+                        <Content>
+                            <DescriptionLevel>Item</DescriptionLevel>
+                            <Title>Pièce jointe enregistrement audio</Title>
+                        </Content>
+                        <DataObjectReference>
+                            <DataObjectReferenceId>Do2</DataObjectReferenceId>
+                        </DataObjectReference>
+                    </ArchiveUnit>
+                    <ArchiveUnit id="Au1-2-2">
+                        <Content>
+                            <DescriptionLevel>Item</DescriptionLevel>
+                            <Title>Pièce jointe enregistrement video</Title>
+                        </Content>
+                        <DataObjectReference>
+                            <DataObjectReferenceId>Do4</DataObjectReferenceId>
+                        </DataObjectReference>
+                    </ArchiveUnit>
+                </ArchiveUnit>
+            </ArchiveUnit>
+        </DescriptiveMetadata>
+        <ManagementMetadata>
+            <OriginatingAgencyIdentifier>https://demo.logilab.fr/seda/157118</OriginatingAgencyIdentifier>
+            <SubmissionAgencyIdentifier>https://demo.logilab.fr/seda/157118</SubmissionAgencyIdentifier>
+            <AppraisalRule>
+                <Rule>P02Y</Rule>
+                <StartDate>2016-11-17</StartDate>
+                <FinalAction>Keep</FinalAction>
+            </AppraisalRule>
+            <AccessRule>
+                <Rule>AR038</Rule>
+                <StartDate>2016-11-17</StartDate>
+            </AccessRule>
+        </ManagementMetadata>
+    </DataObjectPackage>
+    <ArchivalAgency>
+        <Identifier>https://demo.logilab.fr/seda/213109</Identifier>
+    </ArchivalAgency>
+    <TransferringAgency>
+        <Identifier>https://demo.logilab.fr/seda/157118</Identifier>
+    </TransferringAgency>
+</ArchiveTransfer>

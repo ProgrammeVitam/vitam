@@ -67,6 +67,7 @@ import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -121,7 +122,7 @@ public class SedaUtilsTest {
         when(workspaceClient.getObject(Matchers.anyObject(), Matchers.anyObject()))
             .thenReturn(Response.status(Status.OK).entity(seda).build());
         when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(seda);
-        assertTrue(CheckSedaValidationStatus.VALID.equals(utils.checkSedaValidation(params)));
+        assertTrue(CheckSedaValidationStatus.VALID.equals(utils.checkSedaValidation(params, new ItemStatus())));
     }
 
     // TODO P1 : WARN sometimes bug on jenkins
@@ -132,7 +133,7 @@ public class SedaUtilsTest {
         when(workspaceClient.getObject(Matchers.anyObject(), Matchers.anyString()))
             .thenReturn(Response.status(Status.OK).entity(is).build());
         when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(is);
-        final CheckSedaValidationStatus status = utils.checkSedaValidation(params);
+        final CheckSedaValidationStatus status = utils.checkSedaValidation(params, new ItemStatus());
         assertTrue(CheckSedaValidationStatus.NOT_XML_FILE.equals(status));
     }
 
@@ -144,7 +145,7 @@ public class SedaUtilsTest {
         when(workspaceClient.getObject(Matchers.anyObject(), Matchers.anyObject()))
             .thenReturn(Response.status(Status.OK).entity(is).build());
         when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(is);
-        final CheckSedaValidationStatus status = utils.checkSedaValidation(params);
+        final CheckSedaValidationStatus status = utils.checkSedaValidation(params, new ItemStatus());
         assertTrue(CheckSedaValidationStatus.NOT_XSD_VALID.equals(status));
     }
 
@@ -154,7 +155,7 @@ public class SedaUtilsTest {
             .thenThrow(new ContentAddressableStorageNotFoundException(""));
         when(handlerIO.getInputStreamFromWorkspace(anyObject()))
             .thenThrow(new ContentAddressableStorageNotFoundException(""));
-        final CheckSedaValidationStatus status = utils.checkSedaValidation(params);
+        final CheckSedaValidationStatus status = utils.checkSedaValidation(params, new ItemStatus());
         assertTrue(CheckSedaValidationStatus.NO_FILE.equals(status));
     }
 
@@ -163,7 +164,7 @@ public class SedaUtilsTest {
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(seda).build());
         when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(seda);
-        assertEquals(2, utils.getMandatoryValues(params).size());
+        assertEquals(3, utils.getMandatoryValues(params).size());
     }
 
     @Test
@@ -257,7 +258,7 @@ public class SedaUtilsTest {
         listUri.add(new URI("manifest.xml"));
         listUri.add(new URI("manifest2.xml"));
         when(handlerIO.getUriList(anyObject(), anyObject())).thenReturn(listUri);
-        final CheckSedaValidationStatus status = utils.checkSedaValidation(params);
+        final CheckSedaValidationStatus status = utils.checkSedaValidation(params, new ItemStatus());
         assertTrue(CheckSedaValidationStatus.MORE_THAN_ONE_MANIFEST.equals(status));
     }
 
@@ -268,7 +269,7 @@ public class SedaUtilsTest {
         listUri.add(new URI(URLEncoder.encode("content2/file2.pdf", CharsetUtils.UTF_8)));
         listUri.add(new URI("manifest.xml"));
         when(handlerIO.getUriList(anyObject(), anyObject())).thenReturn(listUri);
-        final CheckSedaValidationStatus status = utils.checkSedaValidation(params);
+        final CheckSedaValidationStatus status = utils.checkSedaValidation(params, new ItemStatus());
         assertTrue(CheckSedaValidationStatus.MORE_THAN_ONE_FOLDER_CONTENT.equals(status));
     }
 

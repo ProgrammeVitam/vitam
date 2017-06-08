@@ -210,6 +210,12 @@ public class SedaConstants {
      * tag of ArchivalAgreement
      */
     public static final String TAG_ARCHIVAL_AGREEMENT = "ArchivalAgreement";
+    
+    /**
+     * tag of ArchiveProfile
+     */
+    public static final String TAG_ARCHIVE_PROFILE = "ArchivalProfile";
+    
     /**
      * tag of ServiceLevel
      */

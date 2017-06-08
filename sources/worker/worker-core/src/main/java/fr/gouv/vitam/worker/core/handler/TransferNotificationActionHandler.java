@@ -196,7 +196,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
             itemStatus.getData().put(LogbookParameterName.eventDetailData.name(), eventDetailData);
             try {
                 // TODO : Works for ATR_OK but not for some ATR_KO - need to be fixed
-                new ValidationXsdUtils().checkWithXSD(new FileInputStream(atrFile), XSD_VERSION);
+                ValidationXsdUtils.checkWithXSD(new FileInputStream(atrFile), XSD_VERSION);
             } catch (SAXException e) {
                 if (e.getCause() == null) {
                     LOGGER.error("ATR File is not valid with the XSD", e);

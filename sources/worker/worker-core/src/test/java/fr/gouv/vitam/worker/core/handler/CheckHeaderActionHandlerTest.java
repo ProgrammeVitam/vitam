@@ -129,6 +129,7 @@ public class CheckHeaderActionHandlerTest {
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         action.getInput().add("true");
         action.getInput().add("true");
+        action.getInput().add("true");
         final ItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
         assertNotNull(response.getData());
@@ -139,12 +140,14 @@ public class CheckHeaderActionHandlerTest {
         action.getInput().clear();
         action.getInput().add("true");
         action.getInput().add("true");
+        action.getInput().add("true");
         sedaMap.put(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER, "");
         Mockito.doReturn(sedaMap).when(sedaUtils).getMandatoryValues(anyObject());
         assertEquals(handler.execute(params, action).getGlobalStatus(), StatusCode.KO);
 
 
         action.getInput().clear();
+        action.getInput().add("true");
         action.getInput().add("true");
         action.getInput().add("true");
         sedaMap.remove(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
@@ -178,6 +181,7 @@ public class CheckHeaderActionHandlerTest {
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                 .setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+        action.getInput().add("true");
         action.getInput().add("true");
         action.getInput().add("true");
         final ItemStatus response = handler.execute(params, action);
