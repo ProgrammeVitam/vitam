@@ -39,8 +39,9 @@ angular.module('ihm.demo')
   .constant('LIMIT_NB_PAGES', 5)
   .controller('searchPaginationController', function($scope, LIMIT_NB_PAGES, ITEM_PER_PAGE) {
 
-    if (!$scope.paginationScope.startOffset) {
+    if (!$scope.pageNumber) {
       $scope.paginationScope.startOffset = 0;
+      $scope.pageNumber = 0;
     }
 
     if (!$scope.paginationScope.limit) {
@@ -56,10 +57,11 @@ angular.module('ihm.demo')
 
       // Check limits (1 - nbPages)
       if ($scope.paginationScope.resultPages != 0 && (pageNumber < 1)) {
-        pageNumber = "";
+        pageNumber = 1;
       }
       if (pageNumber > $scope.paginationScope.resultPages) {
         pageNumber = $scope.paginationScope.resultPages;
+        $scope.pageNumber = $scope.paginationScope.resultPages;
       }
 
       // Get loaded pages (min - max)
@@ -72,8 +74,7 @@ angular.module('ihm.demo')
         $scope.searchFunction();
       }
 
-      // Update currentPage
-      $scope.paginationScope.currentPage = pageNumber;
+        $scope.paginationScope.currentPage = pageNumber;
     }
 
   })
