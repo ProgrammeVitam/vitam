@@ -135,7 +135,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
     }
 
     private AccessionRegisterDetailModel generateAccessionRegister(WorkerParameters params) throws ProcessingException {
-        AccessionRegisterDetailModel register = new AccessionRegisterDetailModel() ;
+        AccessionRegisterDetailModel register = new AccessionRegisterDetailModel();
         try (final InputStream archiveUnitMapStream =
             new FileInputStream((File) handlerIO.getInput(ARCHIVE_UNIT_MAP_RANK));
             final InputStream objectGoupMapStream =
@@ -155,7 +155,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
             if (sedaParameters != null) {
                 final JsonNode dataObjectNode = sedaParameters.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE);
                 if (dataObjectNode != null) {
-                    if (dataObjectNode.has(SedaUtils.NB_AU_EXISTING)){
+                    if (dataObjectNode.has(SedaUtils.NB_AU_EXISTING)) {
                         nbAUExisting = dataObjectNode.get(SedaUtils.NB_AU_EXISTING).intValue();
                     }
                     final JsonNode nodeOrigin = dataObjectNode.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
@@ -176,7 +176,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
 
                 final JsonNode archivalArchivalAgreement = sedaParameters.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT);
                 if (archivalArchivalAgreement != null && !Strings.isNullOrEmpty(archivalArchivalAgreement.asText())) {
-                        archivalAgreement = archivalArchivalAgreement.asText();
+                    archivalAgreement = archivalArchivalAgreement.asText();
                 }
             } else {
                 throw new ProcessingException("No ArchiveTransfer found");
@@ -198,7 +198,8 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
 
     private AccessionRegisterDetailModel mapParamsToAccessionRegisterDetailModel(WorkerParameters params,
         Map<String, Object> bdoVersionMap, Map<String, Object> archiveUnitMap, Map<String, Object> objectGroupMap,
-        String originalAgency, String submissionAgency, String archivalAgreement, SedaUtils sedaUtils, int nbAUExisting) throws ProcessingException {
+        String originalAgency, String submissionAgency, String archivalAgreement, SedaUtils sedaUtils, int nbAUExisting)
+        throws ProcessingException {
 
         SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
@@ -208,7 +209,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
             new RegisterValueDetailModel(objectGroupMap.size(), 0, objectGroupMap.size());
 
         RegisterValueDetailModel totalUnits =
-            new RegisterValueDetailModel(archiveUnitMap.size()-nbAUExisting, 0, archiveUnitMap.size()-nbAUExisting);
+            new RegisterValueDetailModel(archiveUnitMap.size() - nbAUExisting, 0, archiveUnitMap.size() - nbAUExisting);
 
         RegisterValueDetailModel totalObjects =
             new RegisterValueDetailModel(bdoVersionMap.size(), 0, bdoVersionMap.size());

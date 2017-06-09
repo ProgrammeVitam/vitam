@@ -576,6 +576,14 @@ public abstract class BuilderToken {
          */
         MANAGEMENT("management"),
         /**
+         * originating agency
+         */
+        ORIGINATING_AGENCY("originating_agency"),
+        /**
+         * originating agencies
+         */
+        ORIGINATING_AGENCIES("originating_agencies"),
+        /**
          * unit type bloc
          */
         UNITTYPE("unittype"),

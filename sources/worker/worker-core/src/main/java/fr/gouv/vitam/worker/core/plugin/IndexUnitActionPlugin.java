@@ -82,7 +82,6 @@ public class IndexUnitActionPlugin extends ActionHandler {
 
     /**
      * Constructor with parameter SedaUtilsFactory
-     *
      */
     public IndexUnitActionPlugin() {
         // Empty
@@ -117,8 +116,8 @@ public class IndexUnitActionPlugin extends ActionHandler {
 
     /**
      * Index archive unit
-     * 
-     * @param params work parameters
+     *
+     * @param params     work parameters
      * @param itemStatus item status
      * @throws ProcessingException when error in execution
      */
@@ -132,7 +131,7 @@ public class IndexUnitActionPlugin extends ActionHandler {
         Response response = null;
         try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
             response = handlerIO
-                .getInputStreamNoCachedFromWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName);
+                    .getInputStreamNoCachedFromWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName);
 
             if (response != null) {
                 input = (InputStream) response.getEntity();
@@ -158,7 +157,7 @@ public class IndexUnitActionPlugin extends ActionHandler {
                     // update case
                     computeExistingData(containerId, query);
                     metadataClient.updateUnitbyId(((UpdateMultiQuery) query).getFinalUpdate(),
-                        data.get("#id").asText());
+                            data.get("#id").asText());
                 } else {
                     // insert case
                     if (handlerIO.getInput() != null && !handlerIO.getInput().isEmpty()) {
@@ -192,31 +191,31 @@ public class IndexUnitActionPlugin extends ActionHandler {
 
     /**
      * Import existing data and add them to the data defined in sip in update query
-     * 
-     * @param data sip defined data
-     * @param query update query
+     *
+     * @param containerId sip defined data
+     * @param query       update query
      * @throws InvalidCreateOperationException exception while adding an action to the query
      */
     private void computeExistingData(final String containerId, RequestMultiple query)
-        throws InvalidCreateOperationException {
+            throws InvalidCreateOperationException {
         ((UpdateMultiQuery) query)
-            .addActions(UpdateActionHelper.add(VitamFieldsHelper.operations(), containerId));
+                .addActions(UpdateActionHelper.add(VitamFieldsHelper.operations(), containerId));
     }
 
 
     /**
      * Convert xml archive unit to json node for insert/update.
-     * 
-     * @param input xml archive unit
+     *
+     * @param input       xml archive unit
      * @param containerId container id
-     * @param objectName unit file name
+     * @param objectName  unit file name
      * @return map of data
      * @throws InvalidParseOperationException exception while reading temporary json file
-     * @throws ProcessingException exception while reading xml file
+     * @throws ProcessingException            exception while reading xml file
      */
     // FIXME do we need to create a new file or not ?
     private JsonNode prepareArchiveUnitJson(InputStream input, String containerId, String objectName)
-        throws InvalidParseOperationException, ProcessingException {
+            throws InvalidParseOperationException, ProcessingException {
         ParametersChecker.checkParameter("Input stream is a mandatory parameter", input);
         ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
         ParametersChecker.checkParameter("ObjectName id is a mandatory parameter", objectName);
@@ -247,11 +246,16 @@ public class IndexUnitActionPlugin extends ActionHandler {
         ObjectNode managementNode = (ObjectNode) archiveUnitNode.get(TAG_MANAGEMENT);
         final JsonNode sedaParameters = JsonHandler.getFromFile((File) handlerIO.getInput(SEDA_PARAMETERS_RANK));
         if (sedaParameters.get(SedaConstants.TAG_ARCHIVE_TRANSFER)
-            .get(SedaConstants.TAG_DATA_OBJECT_PACKAGE).get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER) != null) {
-            String prodService = sedaParameters.get(SedaConstants.TAG_ARCHIVE_TRANSFER)
-                .get(SedaConstants.TAG_DATA_OBJECT_PACKAGE).get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER).asText();
-            managementNode.put(SedaConstants.TAG_ORIGINATINGAGENCY, prodService);
+                .get(SedaConstants.TAG_DATA_OBJECT_PACKAGE).get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER) != null) {
 
+            String prodService = sedaParameters.get(SedaConstants.TAG_ARCHIVE_TRANSFER)
+                    .get(SedaConstants.TAG_DATA_OBJECT_PACKAGE).get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER).asText();
+
+            ArrayNode originatingAgencies = JsonHandler.createArrayNode();
+            originatingAgencies.add(prodService);
+
+            archiveUnitNode.set(VitamFieldsHelper.originatingAgencies(), originatingAgencies);
+            archiveUnitNode.put(VitamFieldsHelper.originatingAgency(), prodService);
         }
         archiveUnitNode.set(SedaConstants.PREFIX_MGT, (JsonNode) managementNode);
         archiveUnitNode.remove(TAG_MANAGEMENT);

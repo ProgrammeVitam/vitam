@@ -54,7 +54,6 @@ public class RegisterValueDetailModel {
      * @param total             number of objects
      * @param deleted           number of deleted object
      * @param remained          number of remaining object
-     * @param originatingAgency originating agency
      */
     public RegisterValueDetailModel(long total, long deleted, long remained) {
         this.total = total;

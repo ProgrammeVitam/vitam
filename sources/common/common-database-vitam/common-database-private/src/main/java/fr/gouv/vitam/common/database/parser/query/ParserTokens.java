@@ -134,7 +134,15 @@ public class ParserTokens extends BuilderToken {
         /**
          * Unit or GOT's list of participating operations
          */
-        OPERATIONS("operations");
+        OPERATIONS("operations"),
+        /**
+         * originating agency
+         */
+        ORIGINATING_AGENCY("originating_agency"),
+        /**
+         * originating agencies
+         */
+        ORIGINATING_AGENCIES("originating_agencies");
 
         private static final String NOT_FOUND = "Not found";
         private final String exactToken;
@@ -216,6 +224,8 @@ public class ParserTokens extends BuilderToken {
                         case MIN:
                         case MAX:
                         case UNITTYPE:
+                        case ORIGINATING_AGENCY:
+                        case ORIGINATING_AGENCIES:
                             return true;
                         default:
                     }

@@ -34,6 +34,7 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFou
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
+import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -58,7 +59,7 @@ public interface AccessInternalClient extends MockOrRestClient {
      */
     RequestResponse<JsonNode> selectUnits(JsonNode selectQuery)
         throws InvalidParseOperationException, AccessInternalClientServerException,
-        AccessInternalClientNotFoundException, AccessUnauthorizedException, fr.gouv.vitam.common.exception.BadRequestException;
+        AccessInternalClientNotFoundException, AccessUnauthorizedException, BadRequestException;
 
     /**
      * select Unit By Id
@@ -196,7 +197,7 @@ public interface AccessInternalClient extends MockOrRestClient {
         throws LogbookClientServerException, InvalidParseOperationException, AccessUnauthorizedException;
 
     /**
-     * @param fileName
+     * @param operationId
      * @return a response containing the traceability file
      * @throws AccessUnauthorizedException 
      */

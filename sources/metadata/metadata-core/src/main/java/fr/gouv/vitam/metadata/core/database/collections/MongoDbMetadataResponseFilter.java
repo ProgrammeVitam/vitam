@@ -99,6 +99,11 @@ public class MongoDbMetadataResponseFilter {
                 case MANAGEMENT:
                     replace(document, Unit.MANAGEMENT, VitamFieldsHelper.management());
                     break;
+                case ORIGINATING_AGENCY:
+                    replace(document, MetadataDocument.ORIGINATING_AGENCY, VitamFieldsHelper.originatingAgency());
+                    break;
+                case ORIGINATING_AGENCIES:
+                    replace(document, MetadataDocument.ORIGINATING_AGENCIES, VitamFieldsHelper.originatingAgencies());
                 case SIZE:
                 case DUA:
                 case FORMAT:

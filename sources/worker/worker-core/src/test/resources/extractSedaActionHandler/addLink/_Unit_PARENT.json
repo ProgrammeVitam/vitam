@@ -20,6 +20,7 @@
 	"#nbunits" : 0,
 	"#allunitups" : [
 		"GUID_ARCHIVE_UNIT_ANCESTOR"
-	]
+	],
+	"#originating_agencies" : ["OriginatingAgencyParent"]
 }
 ],"$context":{"$roots":[],"$query":[],"$filter":{},"$projection":{}}}

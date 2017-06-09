@@ -163,8 +163,8 @@ public class VitamSession {
     }
     
 	/**
-	 * 
-	 * 
+	 *
+	 *
 	 * @return
 	 */
 	public AccessContractModel getContract() {
