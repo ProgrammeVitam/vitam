@@ -49,15 +49,17 @@ angular.module('ihm.demo')
                 .ok(closeMessage));
         };
 
-        accessContractResource.getDetails(id, function (response) {
-            if (response.data.length !== 0) {
-                $scope.contract = response.data.$results[0];
-                $scope.contract.EveryOriginatingAgency = $scope.contract.EveryOriginatingAgency === true;
-                $scope.tmpVars.oldStatus = $scope.contract.Status;
-                $scope.tmpVars.isActive = $scope.contract.Status === 'ACTIVE';
-                $scope.tmpVars.oldEveryOrignatingAgency = $scope.contract.EveryOriginatingAgency;
-            }
-        });
+        var getDetails = function (id) {
+            accessContractResource.getDetails(id, function (response) {
+                if (response.data.length !== 0) {
+                    $scope.contract = response.data.$results[0];
+                    $scope.contract.EveryOriginatingAgency = $scope.contract.EveryOriginatingAgency === true;
+                    $scope.tmpVars.oldStatus = $scope.contract.Status;
+                    $scope.tmpVars.isActive = $scope.contract.Status === 'ACTIVE';
+                    $scope.tmpVars.oldEveryOrignatingAgency = $scope.contract.EveryOriginatingAgency;
+                }
+            });
+        };
 
         $scope.saveModifs = function() {
             if ($scope.tmpVars.oldStatus === $scope.contract.Status
@@ -87,10 +89,13 @@ angular.module('ihm.demo')
             accessContractResource.update(id, updateData).then(function() {
                 displayMessage('La modification a bien été enregistrée');
                 $scope.tmpVars.oldStatus = $scope.contract.Status;
+                getDetails(id);
             }, function() {
                 displayMessage('Aucune modification effectuée');
             });
         };
+        
+        getDetails(id);
 
 });
 

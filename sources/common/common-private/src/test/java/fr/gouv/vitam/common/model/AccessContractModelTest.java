@@ -62,7 +62,10 @@ public class AccessContractModelTest {
         final String id = GUIDFactory.newIngestContractGUID(TENANT_ID).getId();
         String name = "aName";
         String description = "aDescription of the contract";
+        String creationdate = "08/12/2016";
         String lastupdate = "10/12/2016";
+        String activationdate = "10/12/2016";
+        String deactivationdate = "09/12/2016";
         Set<String> originatingAgencies = new HashSet<>();
         originatingAgencies.add("FR_FAKE");
         contract
@@ -70,9 +73,9 @@ public class AccessContractModelTest {
             .setName(name)
             .setDescription(description).setStatus(ContractStatus.ACTIVE.name())
             .setLastupdate(lastupdate)
-            .setCreationdate(lastupdate)
-            .setActivationdate(lastupdate)
-            .setDeactivationdate(lastupdate);
+            .setCreationdate(creationdate)
+            .setActivationdate(activationdate)
+            .setDeactivationdate(deactivationdate);
         contract
             .setOriginatingAgencies(originatingAgencies)
             .setEveryOriginatingAgency(true);
@@ -80,9 +83,9 @@ public class AccessContractModelTest {
         assertEquals(id, contract.getId());
         assertEquals(name, contract.getName());
         assertEquals(description, contract.getDescription());
-        assertEquals(lastupdate, contract.getCreationdate());
-        assertEquals(lastupdate, contract.getActivationdate());
-        assertEquals(lastupdate, contract.getDeactivationdate());
+        assertEquals(creationdate, contract.getCreationdate());
+        assertEquals(activationdate, contract.getActivationdate());
+        assertEquals(deactivationdate, contract.getDeactivationdate());
         assertEquals(originatingAgencies, contract.getOriginatingAgencies());
         assertTrue(contract.getEveryOriginatingAgency());
     }

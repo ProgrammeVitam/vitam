@@ -27,9 +27,8 @@
 package fr.gouv.vitam.common.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
 
-import java.util.Set;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 
 /**
  * Data Transfer Object Model of access contract (DTO).
@@ -250,7 +249,7 @@ public class AbstractContractModel {
      * @return this
      */
     public AbstractContractModel setDeactivationdate(String deactivationdate) {
-    	this.deactivationdate = activationdate;
+    	this.deactivationdate = deactivationdate;
     	return this;
     }
 
