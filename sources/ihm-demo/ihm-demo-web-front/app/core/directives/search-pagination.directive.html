@@ -2,7 +2,7 @@
     <button class="btn btn-default btn-s" ng-disabled="paginationScope.currentPage <= 1" ng-click="getPage(+paginationScope.currentPage - 1)">
         Précédent
     </button>
-    <input ng-change="getPage(+paginationScope.currentPage)" ng-model="paginationScope.currentPage" style="max-width: 40px">/{{paginationScope.resultPages}}
+    <input ng-blur="getPage(+pageNumber)" ng-keyup="$event.keyCode == 13 && getPage(+pageNumber)" ng-model="pageNumber" style="max-width: 40px">/{{paginationScope.resultPages}}
     <button class="btn btn-default btn-s" ng-disabled="paginationScope.currentPage >= paginationScope.resultPages" ng-click="getPage(+paginationScope.currentPage + 1)">
         Suivant
     </button>
