@@ -120,7 +120,7 @@ Vérification globale du SIP (CHECK_SEDA) : Vérification de la cohérence physi
   - FATAL : le manifeste n'a pas pu être contrôlé suite à une erreur technique (CHECK_SEDA.FATAL=Erreur fatale lors de la vérification globale du SIP)
 
 Vérification de l'en-tête du bordereau (CHECK_HEADER)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 + **Règles** : les informations générales du manifest.xml (nommées "header") doivent être correctes. L'existence du service producteur (OriginatingAgencyIdentifier) est vérifiée dans cette tâche
 
@@ -476,10 +476,9 @@ Il décrit le processus d'entrée (hors Ingest externe) pour entrer un SIP, inde
 D'une façon synthétique, le workflow est décrit de cette façon :
 
 
-.. figure:: images/workflow_ingest.png
-  :align: center
-
-    Diagramme d'état / transitions du workflow d'ingest
+.. image:: images/workflow_ingest.png
+        :align: center
+        :alt: Diagramme d'état / transitions du workflow d'ingest
 
 
 
@@ -685,6 +684,8 @@ Un Workflow est défini en JSON avec la structure suivante :
           - WORKSPACE : path indique le chemin relatif sur le workspace (implicitement un File local),
           - MEMORY : path indique le nom de la clef de valeur (implicitement un objet mémoire).
 
-.. figure:: images/Workflow_file_structure.png
-  :align: center
-  Exemple partiel de workflow, avec les notions étapes et actions
+
+.. image:: images/Workflow_file_structure.png
+        :align: center
+        :alt: Exemple partiel de workflow, avec les notions étapes et actions
+

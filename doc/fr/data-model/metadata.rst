@@ -17,7 +17,7 @@ La collection unit contient les informations relatives aux unités archivistique
 Exemple de JSON
 ---------------
 
-::
+.. code-block:: json
 
   {
       "_id": "aeaqaaaaaahbjs5eabbboak4educsrqaaaaq",
@@ -52,25 +52,25 @@ Exemple de XML en entrée
 
 Ci-après, la portion d'un bordereau (manifest.xml) utilisée pour contribuer les champs du JSON. Il s'agit des informations situées entre les balises <ArchiveUnit>
 
-::
+.. code-block:: xml
 
-    <?xml version="1.0" encoding="UTF-8"?>
-    <ArchiveUnit id="AU5">
-       <Management>
-          <StorageRule>
-             <Rule>R1</Rule>
-             <StartDate>2017-05-01</StartDate>
-             <FinalAction>RestrictAccess</FinalAction>
-          </StorageRule>
-       </Management>
-       <Content>
-          <DescriptionLevel>RecordGrp</DescriptionLevel>
-          <Title>AU5</Title>
-       </Content>
-       <ArchiveUnit id="ref3">
-          <ArchiveUnitRefId>AU3</ArchiveUnitRefId>
-       </ArchiveUnit>
-    </ArchiveUnit>
+  <?xml version="1.0" encoding="UTF-8"?>
+  <ArchiveUnit id="AU5">
+     <Management>
+        <StorageRule>
+           <Rule>R1</Rule>
+           <StartDate>2017-05-01</StartDate>
+           <FinalAction>RestrictAccess</FinalAction>
+        </StorageRule>
+     </Management>
+     <Content>
+        <DescriptionLevel>RecordGrp</DescriptionLevel>
+        <Title>AU5</Title>
+     </Content>
+     <ArchiveUnit id="ref3">
+        <ArchiveUnitRefId>AU3</ArchiveUnitRefId>
+     </ArchiveUnit>
+  </ArchiveUnit>
 
 Détail du JSON
 --------------
@@ -101,13 +101,10 @@ La structure de la collection Unit est composée de la transposition JSON de tou
 "_ops" (#operations): tableau contenant les identifiants d'opérations auxquelles ce Unit a participé
     Il s'agit d'une chaîne de 36 caractères.
 
-"_unitType": champs indiquant le type d'unité archivistique concerné.
-    
-    Il s'agit d'une chaîne de caractères.
-    La valeur contenue doit être conforme à l'énumération UnitType. Celle-ci peut être :
-      * INGEST : unité d'archivistique issue d'un SIP
-      * FILING_UNIT : unité d'archivistique issue d'un plan de classement
-      * HOLDING_UNIT : unité d'archivistique issue d'un arbre de positionnement
+"_unitType": champs indiquant le type d'unité archivistique concerné. Il s'agit d'une chaîne de caractères. La valeur contenue doit être conforme à l'énumération UnitType. Celle-ci peut être :
+  * INGEST : unité d'archivistique issue d'un SIP
+  * FILING_UNIT : unité d'archivistique issue d'un plan de classement
+  * HOLDING_UNIT : unité d'archivistique issue d'un arbre de positionnement
 
 "_tenant" (#tenant): identifiant du tenant
   Il s'agit d'un entier
@@ -152,7 +149,7 @@ La collection ObjectGroup contient les informations relatives aux groupes d'obje
 Exemple de Json stocké en base
 ------------------------------
 
-::
+.. code-block:: json
 
   {
     "_id": "aebaaaaaaahbjs5eabbboak4d7shg4aaaaba",
@@ -300,21 +297,19 @@ Détail des champs du JSON
 
       Par exemple, si on a *binaryMaster* sur l'usage, on aura au moins un objet *binarymaster_1*. Ces champs sont renseignés avec les valeurs récupérées dans les balises <DataObjectVersion> du bordereau.
 
-      - "FormatIdentification": Contient trois champs qui permettent d'identifier le format du fichier. 
-          Une vérification de la cohérence entre ce qui est déclaré dans le XML, ce qui existe dans le référentiel pronom et les valeurs que porte le document est faite.
-        - "FormatLitteral" : nom du format. C'est une reprise de la valeur située entre les balises <FormatLitteral> du XML
-        - "MimeType" : type Mime. C'est une reprise de la valeur située entre les balises <MimeType> du XML.
-        - "FormatId" : PUID du format de l'objet. Il est défini par Vitam à l'aide du référentiel PRONOM maintenu par The National Archives (UK).
+      - "FormatIdentification": Contient trois champs qui permettent d'identifier le format du fichier. Une vérification de la cohérence entre ce qui est déclaré dans le XML, ce qui existe dans le référentiel pronom et les valeurs que porte le document est faite.
+          - "FormatLitteral" : nom du format. C'est une reprise de la valeur située entre les balises <FormatLitteral> du XML
+          - "MimeType" : type Mime. C'est une reprise de la valeur située entre les balises <MimeType> du XML.
+          - "FormatId" : PUID du format de l'objet. Il est défini par Vitam à l'aide du référentiel PRONOM maintenu par The National Archives (UK).
         
-      - "FileInfo" : 
-          Contient les informations sur les fichiers.
-        - "Filename" : nom de l'objet
-        - "CreatingApplicationName": Nom de l'application avec laquelle l'objet a été créé. Ce champ est renseigné avec la métadonnée correspondante portée par le bordereau. *Ce champ est facultatif et n'est pas présent systématiquement*
-        - "CreatingApplicationVersion": Numéro de version de l'application avec laquelle le document a été créé. Ce champ est renseigné avec la métadonnée correspondante portée par le bordereau. *Ce champ est facultatif et n'est pas présent systématiquement*
-        - "CreatingOs": Système d'exploitation avec lequel l'objet a été créé. Ce champ est renseigné avec la métadonnée correspondante portée par le fichier. *Ce champ est facultatif et n'est pas présent systématiquement*
-        - "CreatingOsVersion": Version du système d'exploitation avec lequel l'objet a été créé. Ce champ est renseigné avec la métadonnées correspondante portée par le bordereau. *Ce champ et facultatif est n'est pas présent systématiquement*
-        - "LastModified" : date de dernière modification de l'objet au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"Ce champ est optionnel, et est renseigné avec la métadonnée correspondante portée par le fichier.
-        - "Size": Ce champ contient un nombre entier. taille de l'objet (en octets).
+      - "FileInfo" : Contient les informations sur les fichiers.
+          - "Filename" : nom de l'objet
+          - "CreatingApplicationName": Nom de l'application avec laquelle l'objet a été créé. Ce champ est renseigné avec la métadonnée correspondante portée par le bordereau. *Ce champ est facultatif et n'est pas présent systématiquement*
+          - "CreatingApplicationVersion": Numéro de version de l'application avec laquelle le document a été créé. Ce champ est renseigné avec la métadonnée correspondante portée par le bordereau. *Ce champ est facultatif et n'est pas présent systématiquement*
+          - "CreatingOs": Système d'exploitation avec lequel l'objet a été créé. Ce champ est renseigné avec la métadonnée correspondante portée par le fichier. *Ce champ est facultatif et n'est pas présent systématiquement*
+          - "CreatingOsVersion": Version du système d'exploitation avec lequel l'objet a été créé. Ce champ est renseigné avec la métadonnées correspondante portée par le bordereau. *Ce champ et facultatif est n'est pas présent systématiquement*
+          - "LastModified" : date de dernière modification de l'objet au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"Ce champ est optionnel, et est renseigné avec la métadonnée correspondante portée par le fichier.
+          - "Size": Ce champ contient un nombre entier. taille de l'objet (en octets).
       - "OtherMetadata": Ce champ est renseigné avec les valeurs contenues entre les balises <OtherMetadata>. 
         Ceci correspond à une extension du schéma SEDA.
       - "Uri": localisation du fichier correspondant à l'objet dans le SIP.

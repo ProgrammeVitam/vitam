@@ -984,7 +984,6 @@ CheckArchiveUnitSchema permet d'exécuter un contrôle intelligent des archive u
 
 
 .. only:: latex
-
   .. literalinclude:: includes/archive-unit-schema.json
      :language: json
      :dedent: 4
