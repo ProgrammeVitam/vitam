@@ -91,7 +91,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
     /**
      * File format treatment
      */
-    private static final String FILE_FORMAT = "FILE_FORMAT";
+    public static final String FILE_FORMAT = "FILE_FORMAT";
 
     /**
      * Error list for file format treatment
@@ -202,6 +202,10 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                 } catch (final IOException e) {
                     throw new ProcessingException("Issue while reading/writing the ObjectGroup", e);
                 }
+
+                if (eventDetailData!=null){
+                    itemStatus.setEvDetailData(eventDetailData);
+                }
             }
 
         } catch (final ProcessingException e) {
@@ -216,10 +220,6 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
 
         if (itemStatus.getGlobalStatus().getStatusLevel() == StatusCode.UNKNOWN.getStatusLevel()) {
             itemStatus.increment(StatusCode.OK);
-        }
-        
-        if (eventDetailData!=null){
-            itemStatus.setEvDetailData(eventDetailData);
         }
 
         LOGGER.debug("FormatIdentificationActionHandler response: " + itemStatus.getGlobalStatus());

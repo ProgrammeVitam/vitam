@@ -28,6 +28,10 @@
 package fr.gouv.vitam.worker.core.plugin;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -233,6 +237,8 @@ public class FormatIdentificationActionPluginTest {
 
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.WARNING, response.getGlobalStatus());
+        assertFalse(response.getItemsStatus().get(FormatIdentificationActionPlugin.FILE_FORMAT)
+            .getEvDetailData().isEmpty());
     }
 
     @Test
@@ -304,6 +310,8 @@ public class FormatIdentificationActionPluginTest {
 
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
+        assertTrue(response.getItemsStatus().get(FormatIdentificationActionPlugin.FILE_FORMAT)
+            .getEvDetailData().isEmpty());
     }
 
     @Test
