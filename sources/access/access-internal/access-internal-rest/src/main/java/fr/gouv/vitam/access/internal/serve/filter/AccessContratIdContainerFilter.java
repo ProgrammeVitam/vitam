@@ -42,7 +42,8 @@ public class AccessContratIdContainerFilter implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
-        if (requestContext.getUriInfo().getPath().contains("/status")) {
+        if (requestContext.getUriInfo().getPath().contains("/status")
+            || requestContext.getUriInfo().getPath().contains("/operations")) {
             return;
         }
         try {
