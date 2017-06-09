@@ -1,5 +1,5 @@
 Schéma de certificats et d'authentification 
-***********
+############################################
 
 Présentation
 ************
@@ -12,14 +12,12 @@ Si un certificat est présenté,
 
 
 1. Configuration serveur jetty : le serveur sera lancé avec 2 magasins de clé suivants
- - keystore.jks : contient le certificat le la clé privé du serveur 
- - truststore.jks : contient la chaînes des CAs qui génère ce certificats de clients & serveurs
- 
+- keystore.jks : contient le certificat le la clé privé du serveur 
+- truststore.jks : contient la chaînes des CAs qui génère ce certificats de clients & serveurs
 2.Configuration de Shiro  
 - granted_certs.jks : list de certificats du client qui sont autorisés à faire des requêtes vers 
 le serveur
 - truststore.jks : contient la chaînes des CAs qui génère ce certificats de clients & serveurs
-
 3. Configuration client : 
 le client qui doit présenter sa clé privé & le certificat (format certificat PEM ou PKCS12 contenant 
 clé privé ou publique) pour l'authentification lors de la requête. 

@@ -9,4 +9,4 @@ architecture-fontionnelle-processing
    worker.rst
    notification-atr-ok.rst
    notification-atr-ko.rst
-   controle_cohérencee_SIP.rst
+   controle_coherencee_SIP.rst

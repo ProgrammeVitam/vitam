@@ -62,13 +62,11 @@ Un Workflow est défini en JSON avec la structure suivante :
 Exemple:
 
 .. only:: html
-
         .. literalinclude:: includes/json
            :language: json
            :linenos:
 
 .. only:: latex
-
         .. literalinclude:: includes/json
            :language: json
            :linenos:

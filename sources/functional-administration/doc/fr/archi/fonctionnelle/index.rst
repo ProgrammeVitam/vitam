@@ -6,5 +6,5 @@ Architecture Fonctionnelle
    :maxdepth: 2
 
    introduction.rst
-   admin-format.rest
+   admin-format.rst
    admin-rule.rst

@@ -1,5 +1,5 @@
 Access-core
-***********
+############
 
 Présentation
 ************
@@ -20,21 +20,19 @@ Classe qui dialogue avec le module métadata. Elle transmet au métadata client 
 .. code-block:: java
 
   public JsonNode selectUnit(String selectRequest){
-  
-  ...
-   // Récupération du client métadata
-    metaDataClientFactory = new MetaDataClientFactory();
-    metaDataClient = metaDataClientFactory.create(accessConfiguration.getUrlMetaData());
-  ...
-  
-// appel du client métadata
-  try {
-         jsonNode = metaDataClient.selectUnits(
-         accessModuleBean != null ? accessModuleBean.getRequestDsl() : "");
+    ...
+     // Récupération du client métadata
+      metaDataClientFactory = new MetaDataClientFactory();
+      metaDataClient = metaDataClientFactory.create(accessConfiguration.getUrlMetaData());
+    ...
+  // appel du client métadata
+    try {
+           jsonNode = metaDataClient.selectUnits(
+           accessModuleBean != null ? accessModuleBean.getRequestDsl() : "");
 
-       } 
-       ...
- }
+    } 
+    ...
+   }
 
 Récupération d'un objet spécifique
 ==================================

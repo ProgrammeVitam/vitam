@@ -29,6 +29,7 @@ L'important est d'utiliser la classe XMLConfiguration (package maven jetty-xml) 
 Pour la mise en oeuvre de ce composant, voici le pseudo code :
 
 .. code-block:: java
+
    URL jettyConfigFileURL = PropertiesUtils.findFile(<fichier>).toURI().toURL();
    Server jettyServer = (Server) new XmlConfiguration(jettyConfigFileURL).configure();
    <Ajout RequestHandler>
@@ -59,17 +60,3 @@ Les modules concernées sont :
 	* storage-offer-default
 	* workspace-rest
 
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
