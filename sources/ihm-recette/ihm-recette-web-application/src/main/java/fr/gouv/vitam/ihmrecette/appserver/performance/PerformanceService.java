@@ -68,6 +68,7 @@ public class PerformanceService {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PerformanceService.class);
     public static final String DEFAULT_CONTRACT_NAME = "test_perf";
+    public static final int NUMBER_OF_RETRY = 100;
     private final IngestExternalClientFactory ingestClientFactory;
 
     private AtomicBoolean performanceTestInProgress = new AtomicBoolean(false);
@@ -176,7 +177,8 @@ public class PerformanceService {
 
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 
-            client.wait(tenantId, operationId, ProcessState.COMPLETED, 100, 1000l, TimeUnit.MILLISECONDS);
+            int numberOfRetry = model.getNumberOfRetry() == null ? NUMBER_OF_RETRY : model.getNumberOfRetry();
+            client.wait(tenantId, operationId, ProcessState.COMPLETED, numberOfRetry, 1000L, TimeUnit.MILLISECONDS);
 
             LOGGER.debug("finish unitary test");
             return operationId;
