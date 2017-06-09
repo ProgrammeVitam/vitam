@@ -119,7 +119,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         this.processEngine = processEngine;
         this.dataManagement = WorkspaceProcessDataManagement.getInstance();
         this.stepTotal = this.steps.size();
-
+        operationId = processWorkflow.getOperationId();
         initStepIndex();
     }
 
@@ -188,7 +188,12 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             targetState = ProcessState.COMPLETED;
         } else if (isPause()){
             status = StatusCode.FATAL;
-            this.executeFinallyStep(null);
+            if (stepIndex == -1) {
+                state = ProcessState.COMPLETED;
+                this.persistProcessWorkflow();
+            } else {
+                this.executeFinallyStep(null);
+            }
         }
     }
 
@@ -207,7 +212,6 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             throw new ProcessingException("doRunning not allowed on already running state");
         }
 
-        operationId = workerParameters.getContainerName();
         this.state = ProcessState.RUNNING;
         this.targetState = targetState;
         stepByStep = ProcessState.PAUSE.equals(targetState);

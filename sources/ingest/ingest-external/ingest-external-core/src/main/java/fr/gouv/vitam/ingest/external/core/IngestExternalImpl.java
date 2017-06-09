@@ -446,8 +446,8 @@ public class IngestExternalImpl implements IngestExternal {
                 }
                 else {
                     cancelOperation(guid);
+                    return responseNoProcess;
                 }
-                return responseNoProcess;
             } catch (final VitamException e) {
                 throw new IngestExternalException(e);
             }
