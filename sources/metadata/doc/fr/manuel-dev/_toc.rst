@@ -10,3 +10,4 @@ Metadata
    metadata-api-rest-raml.rst
    metadata-user-client.rst
    metadata-tenant.rst
+   metadata-inherited-rule.rst

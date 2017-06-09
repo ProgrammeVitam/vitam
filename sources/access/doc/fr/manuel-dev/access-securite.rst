@@ -4,10 +4,10 @@ contrôle des flux d'accèss
 Le module access-external a besoin de disposer d'une brique frontale effectuant 
 les contrôles de sécurité pour les flux d'accès à la plateforme.
 
-	-- Fournissant la terminaison TLS
-	-- Fournissant l'authentification par certificat
-	-- Un WAF applicatif permettant le filtrage d'entrée filtrant les entrées être une menace pour le système (ESAPI)
-   -- Un filtre permettant de vérifier l'existence et la cohérence du header X-Tenant-Id
+    -- Fournissant la terminaison TLS
+    -- Fournissant l'authentification par certificat
+    -- Un WAF applicatif permettant le filtrage d'entrée filtrant les entrées être une menace pour le système (ESAPI)
+    -- Un filtre permettant de vérifier l'existence et la cohérence du header X-Tenant-Id
 	
 .. code-block:: java
 
@@ -33,7 +33,6 @@ les contrôles de sécurité pour les flux d'accès à la plateforme.
             DispatcherType.INCLUDE, DispatcherType.REQUEST,
             DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));                       
     }
-
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
         setServiceRegistry(new VitamServiceRegistry());
         serviceRegistry.register(AccessInternalClientFactory.getInstance())
@@ -45,3 +44,4 @@ les contrôles de sécurité pour les flux d'accès à la plateforme.
             .register(SanityCheckerCommonFilter.class)
             .register(SanityDynamicFeature.class);
     }
+

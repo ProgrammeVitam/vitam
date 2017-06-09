@@ -40,7 +40,11 @@ Pour construire dynamiquement une requête mono-query, on peut utiliser les buil
 .. code-block:: java
 
    Insert insertQuery = new Insert(requestInJson)
-   ou
+
+ou
+
+.. code-block:: java
+
    Insert insertQuery = new Insert().setData(data).setfilter(filter); 
    
    

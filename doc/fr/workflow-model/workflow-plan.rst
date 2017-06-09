@@ -38,7 +38,7 @@ Traitement additionnel dans la tâche CHECK_DATAOBJECTPACKAGE
 D'une façon synthétique, le workflow est décrit de cette façon :
 
 
-.. figure:: images/Workflow_FilingScheme.png
+.. image:: images/Workflow_FilingScheme.jpg
     :align: center
 
 Diagramme d'activité du workflow du plan de classement

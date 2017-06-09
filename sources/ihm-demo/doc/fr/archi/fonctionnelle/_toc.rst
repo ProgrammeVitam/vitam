@@ -6,4 +6,4 @@ Architecture fonctionnelle
    :maxdepth: 3
 
    back_application.rst
-   front-fapplication.rst
+   front-application.rst

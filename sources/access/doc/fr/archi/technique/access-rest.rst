@@ -1,5 +1,5 @@
 Access-rest
-***********
+############
 
 Présentation
 ************
@@ -15,7 +15,7 @@ fr.gouv.vitam.access.external.model : classes métiers, classes implémentant le
 fr.gouv.vitam.access.external.rest : classes de lancement du serveur d'application et du controlleur REST.
 
 fr.gouv.vitam.access.external.rest
-*************************
+***********************************
 
 Rest API
 --------
@@ -59,6 +59,7 @@ paramétrer avec le nom du fichier de configuration de jetty.
 
 -AccessResourceImpl.java
 ########################
+
 classe controlleur REST
 
 la classe contient actuellement 9 méthodes :
@@ -91,13 +92,13 @@ la classe contient actuellement 9 méthodes :
 
  .. code-block:: java
 
- 	@POST
-  @Path("/units")
-  @Consumes(MediaType.APPLICATION_JSON)
-  @Produces(MediaType.APPLICATION_JSON)
-  public Response createOrSelectUnits(JsonNode queryJson,
-      @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride)
-   ...
+   	@POST
+    @Path("/units")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response createOrSelectUnits(JsonNode queryJson,
+        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride)
+     ...
 
 3. getUnitById()
     récupère un unit avec son id

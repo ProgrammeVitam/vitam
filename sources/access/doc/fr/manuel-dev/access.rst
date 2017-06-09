@@ -1,5 +1,5 @@
-Access
-######
+Composant Access
+#################
 
 Utilisation
 ###########
@@ -9,8 +9,7 @@ Configuration
 Le module d'access est configuré par un POM qui contient les informations nécessaires (nom du projet, numéro de version, identifiant du module parent, les sous modules (common, api, core, rest, client) de sous module d'access, etc..).
 Ces informations sont contenues dans le fichier pom.xml présent dans le répertoire de base du module Access.
 
-.. code-block:xml
-
+.. code-block:: xml
 
     <parent>
         <groupId>fr.gouv.vitam</groupId>
@@ -28,7 +27,8 @@ Ces informations sont contenues dans le fichier pom.xml présent dans le répert
         <module>access-rest</module>
         <module>access-client</module>
   </modules>
-	
+
+
 La factory
 **********
 

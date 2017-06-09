@@ -6,3 +6,4 @@ Logbook
 
    introduction.rst
    logbook.rst
+   logbook-lifecycle.rst

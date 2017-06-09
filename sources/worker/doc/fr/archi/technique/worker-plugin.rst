@@ -18,7 +18,7 @@ En sortie, il retourne les status des traitements et chaque status contient un c
 
 D'une façon synthétique, le plugin worker est décrit de cette façon :
 
-.. figure:: images/plugin.jpg
+.. figure:: images/plugin.png
   :align: center
   :height: 25 cm
 

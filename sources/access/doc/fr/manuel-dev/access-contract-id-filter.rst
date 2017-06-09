@@ -1,5 +1,6 @@
 Présentation
-************
+#############
+
 Un filter passée dans les headers, a été ajouté pour pouvoir interdire toute requête n'indiquant pas de headerAccessContratId
 ou son contrat est inconnu sur ce tenant ou son contrat est invalide.
 
@@ -18,6 +19,7 @@ Le filtre sera ajouté dans registerInResourceConfig de serveur application de a
 
 .. code-block:: java
 
-resourceConfig.register(new AccessInternalResourceImpl(getConfiguration()))
-                .register(new LogbookInternalResourceImpl())
-                .register(AccessContratIdContainerFilter.class);
+	resourceConfig.register(new AccessInternalResourceImpl(getConfiguration()))
+        .register(new LogbookInternalResourceImpl())
+        .register(AccessContratIdContainerFilter.class);
+

@@ -25,7 +25,7 @@ Dans VITAM, on appelle Workflow une liste d'étapes (steps) devant être exécut
   
 D'une façon synthétique, voici la place du plugin dans l'architecture Vitam :
 
-.. figure:: /images/archi_plugin_globale.jpg
+.. image:: images/archi_plugin_globale.jpg
    :align: center  
    
 1.2 Définition du plugin VITAM
