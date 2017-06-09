@@ -106,8 +106,10 @@ public class ExtractSedaActionHandlerTest {
     private static final String SIP_REFNONRULEID_MULT_PREVENTINHERITENCE =
         "extractSedaActionHandler/refnonruleid_multiple_and_preventinheritence.xml";
     private static final String SIP_PHYSICAL_DATA_OBJECT = "extractSedaActionHandler/SIP_PHYSICAL_DATA_OBJECT.xml";
-    private static final String SIP_WITH_SPECIAL_CHARACTERS = "extractSedaActionHandler/SIP_WITH_SPECIAL_CHARACTERS.xml";
+    private static final String SIP_WITH_SPECIAL_CHARACTERS =
+        "extractSedaActionHandler/SIP_WITH_SPECIAL_CHARACTERS.xml";
     private static final String SIP_ARBORESCENCE = "SIP_Arborescence.xml";
+    private static final String OK_MULTI_COMMENT = "extractSedaActionHandler/OK_multi_comment.xml";
     private WorkspaceClient workspaceClient;
     private MetaDataClient metadataClient;
     private WorkspaceClientFactory workspaceClientFactory;
@@ -653,5 +655,25 @@ public class ExtractSedaActionHandlerTest {
         final ItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
-    
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenManifestWithMultiCommentWhenExecuteThenReturnResponseOK() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        assertNotNull(ExtractSedaActionHandler.getId());
+        final InputStream seda_arborescence =
+            PropertiesUtils.getResourceAsStream(OK_MULTI_COMMENT);
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(seda_arborescence).build());
+        action.addOutIOParameters(out);
+
+        final ItemStatus response = handler.execute(params, action);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
+
+        JsonNode evDetData = JsonHandler.getFromString((String) response.getData().get("eventDetailData"));
+        assertEquals(
+            "Ceci est le premier commentaire_Voici le deuxi\u00E8me commentaire_Exemple de 3\u00E8me commentaire",
+            evDetData.get("EvDetailReq").asText());
+    }
+
 }
