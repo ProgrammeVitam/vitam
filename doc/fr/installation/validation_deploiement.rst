@@ -10,7 +10,7 @@ La procédure de validation est commune aux différentes méthodes d'installatio
 Sécurisation du fichier ``vault_pass.txt``
 ==========================================
 
-Le fichier ``vault_pass.txt`` est très sensible ; il contient le mot de passe du fichier ``environments/group_vars/all/vault.yml`` qui contient les divers mots de passe de la plate-forme. A l'issue de l'installation, il est nécessaire de le sécuriser (suppression du fichier ou application d'un chmod 400).
+Le fichier ``vault_pass.txt`` est très sensible ; il contient le mot de passe du fichier ``environments/group_vars/all/vault.yml`` qui contient les divers mots de passe de la plate-forme. A l'issue de l'installation, il est nécessaire de le sécuriser (suppression du fichier ou application d'un ``chmod 400``).
 
 .. Validation par ansible
 .. =======================
@@ -48,12 +48,13 @@ Si une autre couleur apparaît, cliquer sur le service "KO" et vérifier le test
 
 .. warning:: les composants :term:`VITAM` "ihm" (ihm-demo, ihm-recette) n'intègrent pas /admin/v1/status" et donc sont indiqués "KO" sous Consul ; il ne faut pas en tenir compte, sachant que si l'IHM s'affiche en appel "classique", le composant fonctionne.
 
-Validation via SoapUI
-=====================
+.. deprecated
+.. Validation via SoapUI
+.. =====================
 
-Pour les environnements de recette, il est possible de lancer les tests de validation métier au sein de l'interface du composant IHM-recette (menu > tests SOAP-UI).
+.. Pour les environnements de recette, il est possible de lancer les tests de validation métier au sein de l'interface du .. composant IHM-recette (menu > tests SOAP-UI).
 
-.. note:: cette validation n'est possible que si les :term:`TNR` ont été installés (via git-lfs et connexion webdav).
+.. note Cette validation n'est possible que si les :term:`TNR` ont été installés (via git-lfs et connexion webdav).
 
 .. Validation via IHM technique
 .. ============================
