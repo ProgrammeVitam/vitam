@@ -184,7 +184,7 @@ public class AdminManagementExternalResourceImpl {
                     status = client.importAccessContracts(JsonHandler.getFromStringAsTypeRefence(json.toString(),
                         new TypeReference<List<AccessContractModel>>() {}));
                 }
-                
+
                 if (AdminCollections.CONTEXTS.compareTo(collection)) {
                     JsonNode json = JsonHandler.getFromInputStream(document);
                     SanityChecker.checkJsonAll(json);
@@ -530,6 +530,11 @@ public class AdminManagementExternalResourceImpl {
 
                 if (AdminCollections.PROFILE.compareTo(collection)) {
                     RequestResponse<ProfileModel> requestResponse = client.findProfilesByID(documentId);
+                    return Response.status(Status.OK).entity(requestResponse).build();
+                }
+
+                if (AdminCollections.CONTEXTS.compareTo(collection)) {
+                    RequestResponse<ContextModel> requestResponse = client.findContextById(documentId);
                     return Response.status(Status.OK).entity(requestResponse).build();
                 }
 
