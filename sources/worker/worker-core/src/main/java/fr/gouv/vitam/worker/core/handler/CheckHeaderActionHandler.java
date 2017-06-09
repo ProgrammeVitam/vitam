@@ -126,17 +126,7 @@ public class CheckHeaderActionHandler extends ActionHandler {
             }            
         }
         if (shouldCheckProfile) {
-            if (madatoryValueMap.get(SedaConstants.TAG_ARCHIVE_PROFILE) != null) {
-
-                handlerIO.getInput().clear();
-                handlerIO.getInput().add(madatoryValueMap.get(SedaConstants.TAG_ARCHIVE_PROFILE));
-                CheckArchiveProfileActionHandler checkArchiveProfile = new CheckArchiveProfileActionHandler();
-                final ItemStatus checkProfilItemStatus = checkArchiveProfile.execute(params, handlerIO);
-                itemStatus.setItemsStatus(CheckArchiveProfileActionHandler.getId(), checkProfilItemStatus);
-                checkArchiveProfile.close();
-                if (checkProfilItemStatus.shallStop(true)) {
-                    return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
-                }                
+            if (madatoryValueMap.get(SedaConstants.TAG_ARCHIVE_PROFILE) != null) {               
 
                 handlerIO.getInput().clear();
                 handlerIO.getInput().add(madatoryValueMap.get(SedaConstants.TAG_ARCHIVE_PROFILE));
@@ -149,6 +139,16 @@ public class CheckHeaderActionHandler extends ActionHandler {
                     return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
                 }
 
+                handlerIO.getInput().clear();
+                handlerIO.getInput().add(madatoryValueMap.get(SedaConstants.TAG_ARCHIVE_PROFILE));
+                CheckArchiveProfileActionHandler checkArchiveProfile = new CheckArchiveProfileActionHandler();
+                final ItemStatus checkProfilItemStatus = checkArchiveProfile.execute(params, handlerIO);
+                itemStatus.setItemsStatus(CheckArchiveProfileActionHandler.getId(), checkProfilItemStatus);
+                checkArchiveProfile.close();
+                if (checkProfilItemStatus.shallStop(true)) {
+                    return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+                } 
+
             } else {
                 // Return ok in case of missing profile
                 
@@ -156,8 +156,8 @@ public class CheckHeaderActionHandler extends ActionHandler {
                checkProfileStatus.increment(StatusCode.OK);
                ItemStatus checkProfileRelationStatus = new ItemStatus(CheckArchiveProfileRelationActionHandler.getId());
                checkProfileRelationStatus.increment(StatusCode.OK);
-               itemStatus.setItemsStatus(CheckArchiveProfileActionHandler.getId(), checkProfileStatus);
                itemStatus.setItemsStatus(CheckArchiveProfileRelationActionHandler.getId(), checkProfileRelationStatus);
+               itemStatus.setItemsStatus(CheckArchiveProfileActionHandler.getId(), checkProfileStatus);
             }
         } else {
             itemStatus.increment(StatusCode.OK);

@@ -72,6 +72,8 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
  */
 public class CheckArchiveProfileActionHandler extends ActionHandler {
 
+    private static final String NOT_FOUND = " not found";
+    private static final String UNKNOWN_TECHNICAL_EXCEPTION = "Unknown technical exception";
     private static final String VALIDATION_ERROR = "ValidationError";
     private static final String CAN_NOT_SEARCH_PROFILE = "Can not search profile";
     private static final String PROFILE_NOT_FOUND = "Profile not found";
@@ -109,9 +111,10 @@ public class CheckArchiveProfileActionHandler extends ActionHandler {
             select.setQuery(QueryHelper.eq(Profile.IDENTIFIER, profileIdentifier));
             RequestResponse<ProfileModel> response = adminClient.findProfiles(select.getFinalSelect());
             ProfileModel profile = null;
-            if (response.isOk()) {
+            if (response.isOk() && ((RequestResponseOK<ProfileModel>)response).getResults().size() > 0) {
                 profile = ((RequestResponseOK<ProfileModel>)response).getResults().get(0);
             }
+
             if (profile != null) {
                 Response dowloadResponse = adminClient.downloadProfileFile(profile.getId());
                 InputStream stream = dowloadResponse.readEntity(InputStream.class);
@@ -130,6 +133,8 @@ public class CheckArchiveProfileActionHandler extends ActionHandler {
                         IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE), tmpFile);
                 }
 
+            } else {
+                throw new ProfileNotFoundException(profileIdentifier + NOT_FOUND);
             }
         } catch (InvalidCreateOperationException | AdminManagementClientServerException | InvalidParseOperationException e) {
             LOGGER.error(CAN_NOT_SEARCH_PROFILE, e);
@@ -156,6 +161,10 @@ public class CheckArchiveProfileActionHandler extends ActionHandler {
             JsonNode errorNode = JsonHandler.createObjectNode().put(VALIDATION_ERROR, e.getMessage());
             itemStatus.setEvDetailData(errorNode.toString());
             itemStatus.setTechDetailData(errorNode);
+        } catch (Exception e) {
+            LOGGER.error(UNKNOWN_TECHNICAL_EXCEPTION, e);
+            itemStatus.increment(StatusCode.FATAL);
+            return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
         }
 
         if (isValid) {

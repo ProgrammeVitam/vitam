@@ -53,6 +53,7 @@ import fr.gouv.vitam.worker.common.HandlerIO;
  */
 public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
 
+    private static final String UNKNOWN_TECHNICAL_EXCEPTION = "Unknown technical exception";
     private static final String CAN_NOT_GET_THE_INGEST_CONTRACT = "Can not get the ingest contract";
     private static final String PROFIL_IS_NOT_DECLARED_IN_THE_INGEST_CONTRACT = "Profil is not declared in the ingest contract";
     private static final String PROFILE_NOT_FOUND = "Profile not found";
@@ -98,6 +99,10 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
             LOGGER.error(PROFILE_NOT_FOUND, e);
             itemStatus.increment(StatusCode.KO);
             itemStatus.setData(CAN_NOT_GET_THE_INGEST_CONTRACT, contractName);
+            return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+        } catch (Exception e) {
+            LOGGER.error(UNKNOWN_TECHNICAL_EXCEPTION, e);
+            itemStatus.increment(StatusCode.FATAL);
             return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
         }
         
