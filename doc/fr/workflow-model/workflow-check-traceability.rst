@@ -1,12 +1,12 @@
-Workflow de contrôle d'intégrité d'un journal sécurisé
-######################################################
+TRACEABILITY : Workflow de contrôle d'intégrité d'un journal sécurisé
+#####################################################################
 
 Introduction
 ============
 
-Cette section décrit le processus (workflow) de contrôle d'intégrité d'un journal sécurisé mis en place dans la V1 solution logicielle Vitam.
+Ce chapitre décrit le processus (workflow) de contrôle d'intégrité d'un journal sécurisé mis en place dans Vitam.
 
-Le workflow mis en place dans la solution logicielle Vitam est défini dans le fichier “DefaultCheckTraceability.json”. Il décrit le processus de contrôle d'intégrité d'un journal sécurisé.
+Celui ci est défini dans le fichier “DefaultCheckTraceability.json”. Il décrit le processus de contrôle d'intégrité d'un journal sécurisé.
 
 Processus de contrôle d'intégrité d'un journal sécurisé (vision métier)
 =======================================================================
@@ -87,3 +87,6 @@ VERIFY_TIMESTAMP (VerifyTimeStampActionHandler.java)
   * Status :
     * OK : le tampons est validé (VERIFY_TIMESTAMP.VALIDATE_TOKEN_TIMESTAMP.OK=Succès de la validation du tampon d''horodatage)
     * KO : le tampons est invalidé (VERIFY_TIMESTAMP.VALIDATE_TOKEN_TIMESTAMP.KO=Échec de la validation du tampon d''horodatage)
+
+.. figure:: images/workflow_traceability.png
+	:align: center

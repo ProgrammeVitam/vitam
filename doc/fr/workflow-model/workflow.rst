@@ -1,4 +1,4 @@
-Workflow d'ingest/d'entrée
+INGEST : Workflow d'entrée
 ##########################
 
 Introduction
@@ -92,7 +92,7 @@ Réception dans vitam (STP_UPLOAD_SIP) : Etape de réception du SIP dans Vitam
 
 * **Statuts** :
 
-  + OK : le SIP a été reçu dans Vitam(STP_UPLOAD_SIP.OK=Succès du processus de téléchargement du SIP)
+  + OK : le SIP a été reçu dans Vitam (STP_UPLOAD_SIP.OK=Succès du processus de téléchargement du SIP)
 
   + KO : le SIP n'a pas été reçu dans Vitam (STP_UPLOAD_SIP.KO=Échec du processus de téléchargement du SIP)
 
@@ -477,7 +477,7 @@ D'une façon synthétique, le workflow est décrit de cette façon :
 
 
 .. figure:: images/workflow_ingest.png
-    :align: center
+  :align: center
 
     Diagramme d'état / transitions du workflow d'ingest
 
@@ -493,7 +493,7 @@ D'une façon synthétique, le workflow est décrit de cette façon :
 
     + Test de l'existence d'un dossier unique à la racine, nommé "Content" (insensible à la casse)
 
-    + Validation XSD du manifeste,
+    +  Validation XSD du manifeste,
 
     + Validation de la structure du manifeste par rapport au schema par défaut fourni avec le standard SEDA v. 2.0.
 
