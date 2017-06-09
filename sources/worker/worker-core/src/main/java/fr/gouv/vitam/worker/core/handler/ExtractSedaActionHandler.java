@@ -580,6 +580,12 @@ public class ExtractSedaActionHandler extends ActionHandler {
                             evDetReq = oldComment.asText();
                         }
 
+                        JsonNode oldCommentCurrentLang =
+                            evDetData.get(EV_DETAIL_REQ + (ParametersChecker.isNotEmpty(lang) ? "_" + lang : ""));
+                        if (oldCommentCurrentLang != null) {
+                            comment = oldCommentCurrentLang.asText() + "_" + comment;
+                        }
+
                         if (evDetReq == null || "fr".equalsIgnoreCase(lang)) {
                             evDetData.put(EV_DETAIL_REQ, comment);
                         }
