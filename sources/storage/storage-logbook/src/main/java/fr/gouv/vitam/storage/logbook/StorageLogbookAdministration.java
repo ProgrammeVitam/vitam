@@ -28,6 +28,7 @@
 package fr.gouv.vitam.storage.logbook;
 
 import static fr.gouv.vitam.common.LocalDateUtil.getString;
+import static fr.gouv.vitam.common.LocalDateUtil.now;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -35,6 +36,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import org.apache.commons.compress.archivers.ArchiveException;
 
@@ -90,9 +92,10 @@ public class StorageLogbookAdministration {
 
 
     private static final String STRATEGY_ID = "default";
-    public static final String STORAGE_LOGBOOK_OPERATION_ZIP = "Storage_LogbookOperation";
+    public static final String STORAGE_LOGBOOK_OPERATION_ZIP = "StorageLogbookOperation";
     final StorageLogbookService storageLogbookService;
     private final File tmpFolder;
+    private final DateTimeFormatter formatter;
 
 
 
@@ -101,6 +104,8 @@ public class StorageLogbookAdministration {
         this.storageLogbookService = storageLogbookService;
         this.tmpFolder = new File(tmpFolder);
         this.tmpFolder.mkdir();
+        formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+
     }
 
 
@@ -130,7 +135,7 @@ public class StorageLogbookAdministration {
         try {
 
             final String fileName =
-                String.format("%d_" + STORAGE_LOGBOOK_OPERATION_ZIP + "_%s.zip", tenantId, eip.toString());
+                String.format("%d_" + STORAGE_LOGBOOK_OPERATION_ZIP + "_%s_%s.zip", tenantId,now().format(formatter), eip.toString());
             createLogbookOperationStarted(helper, eip);
 
             final File zipFile = new File(tmpFolder, fileName);
