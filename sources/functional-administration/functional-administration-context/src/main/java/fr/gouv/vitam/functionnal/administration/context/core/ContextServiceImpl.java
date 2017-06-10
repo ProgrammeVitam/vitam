@@ -251,9 +251,8 @@ public class ContextServiceImpl implements ContextService {
 
         ContextModel contextModel = findOneContextById(id);
         int permissionSize = contextModel.getPermissions().size();
-
         ContextServiceImpl.ContextManager manager = new ContextServiceImpl.ContextManager(logBookclient, mongoAccess, vitamCounterService);
-
+        manager.logUpdateStarted(contextModel.getId());
         for (int i=0; i < permissionSize-1; i++){
             if (queryDsl.findValue(PERMISSIONS_TENANT) != null) {
                 int tenantCurrent = queryDsl.findValue(PERMISSIONS_TENANT).asInt();
@@ -292,13 +291,14 @@ public class ContextServiceImpl implements ContextService {
             mongoAccess.updateData(queryDsl, FunctionalAdminCollections.CONTEXT);
         } catch (ReferentialException e) {
             String err = new StringBuilder("Update context error > ").append(e.getMessage()).toString();
-            manager.logFatalError(err);
             error.setCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem())
             .setDescription(err)
             .setHttpCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
-
+            manager.logValidationError(err);
             return error;
         }
+        
+        manager.logUpdateSuccess(id, queryDsl.toString(), JsonHandler.unprettyPrint(contextModel));
         return new RequestResponseOK<ContextModel>();
     }
 
@@ -391,13 +391,12 @@ public class ContextServiceImpl implements ContextService {
          * 
          * @throws VitamException
          */
-        private void logUpdateSuccess(String id, String updateEventDetailData, String oldValue) throws VitamException {
+        private void logUpdateSuccess(String id, String query, String oldValue) throws VitamException {
             final ObjectNode evDetData = JsonHandler.createObjectNode();
             final ObjectNode msg = JsonHandler.createObjectNode();
-            msg.put("updateField", "Status");
             msg.put("oldValue", oldValue);
-            msg.put("newValue", updateEventDetailData);
-            evDetData.put("AccessContract", msg);
+            msg.put("request", query);
+            evDetData.set("Context", msg);
             String wellFormedJson = SanityChecker.sanitizeJson(evDetData);
             final LogbookOperationParameters logbookParameters =
                 LogbookParametersFactory

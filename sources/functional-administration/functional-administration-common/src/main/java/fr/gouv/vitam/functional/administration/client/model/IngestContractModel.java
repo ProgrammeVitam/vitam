@@ -28,8 +28,10 @@ package fr.gouv.vitam.functional.administration.client.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import fr.gouv.vitam.common.SingletonUtils;
 import fr.gouv.vitam.common.model.AbstractContractModel;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -64,6 +66,9 @@ public class IngestContractModel extends AbstractContractModel {
     }
 
     public Set<String> getArchiveProfiles() {
+        if (archiveProfiles == null) {
+            return SingletonUtils.singletonSet();
+        }
         return archiveProfiles;
     }
 

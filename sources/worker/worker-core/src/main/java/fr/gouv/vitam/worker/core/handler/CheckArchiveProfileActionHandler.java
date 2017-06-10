@@ -59,6 +59,9 @@ import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.embed.ProfileFormat;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -157,9 +160,10 @@ public class CheckArchiveProfileActionHandler extends ActionHandler {
             itemStatus.setData(FILE_NOT_FOUND, profileIdentifier);
             return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
         } catch (SAXException e) {
+            LOGGER.error(VALIDATION_ERROR, e);
             isValid = false;
             JsonNode errorNode = JsonHandler.createObjectNode().put(VALIDATION_ERROR, e.getMessage());
-            itemStatus.setEvDetailData(errorNode.toString());
+            itemStatus.setData(LogbookParameterName.eventDetailData.name(), JsonHandler.unprettyPrint(errorNode));
             itemStatus.setTechDetailData(errorNode);
         } catch (Exception e) {
             LOGGER.error(UNKNOWN_TECHNICAL_EXCEPTION, e);

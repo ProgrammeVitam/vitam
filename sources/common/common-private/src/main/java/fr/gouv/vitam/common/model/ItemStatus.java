@@ -307,6 +307,10 @@ public class ItemStatus {
             data.putAll(statusDetails.getData());
         }
 
+        if (statusDetails.getTechDetailData() != null && techDetailData == null) {
+            this.techDetailData = statusDetails.getTechDetailData();
+        }
+        
         return this;
     }
 

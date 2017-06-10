@@ -52,7 +52,7 @@ import fr.gouv.vitam.worker.common.HandlerIO;
  * Verify the relation between ingest contract and profil in manifest
  */
 public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
-
+    
     private static final String UNKNOWN_TECHNICAL_EXCEPTION = "Unknown technical exception";
     private static final String CAN_NOT_GET_THE_INGEST_CONTRACT = "Can not get the ingest contract";
     private static final String PROFIL_IS_NOT_DECLARED_IN_THE_INGEST_CONTRACT = "Profil is not declared in the ingest contract";
@@ -90,9 +90,11 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
             select.setQuery(QueryHelper.eq(IngestContract.NAME, contractName));
             JsonNode queryDsl = select.getFinalSelect();
             RequestResponse<IngestContractModel> referenceContracts = adminClient.findIngestContracts(queryDsl);
-            if (referenceContracts.isOk()) {
+            if (referenceContracts.isOk() && ((RequestResponseOK<IngestContractModel> ) referenceContracts).getResults().size() > 0) {
                 IngestContractModel contract = ((RequestResponseOK<IngestContractModel> ) referenceContracts).getResults().get(0);
                 isValid = contract.getArchiveProfiles().contains(profileIdentifier);
+            } else {
+                isValid = false;
             }
         } catch (InvalidCreateOperationException | InvalidParseOperationException | 
             AdminManagementClientServerException e) {
