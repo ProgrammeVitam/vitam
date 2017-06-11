@@ -1,5 +1,7 @@
 *L'API additionnelle sur le Registre des fonds* propose les points d'entrées et les méthodes pour requêter et récupérer les informations des collections suivantes :
 
+**NOTE IMPORTANTE** : Ce service sera déplacé dans la partie administration fonctionnelle.
+
 - Registre des Fonds
   - Sommaire
   - Détails
