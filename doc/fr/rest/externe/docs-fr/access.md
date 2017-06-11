@@ -4,7 +4,7 @@ Cette API est globalement reproduite dans tous les autres points d'accès lorsqu
 
 # API Access externe
 
-les API externe dans le projet Vitam supportent le POST-X-HTTP-OVERRIDE=GET par contre au niveau des API interne ils supportent seulement le GET . 
+les API externe dans le projet Vitam supportent le POST-X-HTTP-OVERRIDE=GET par contre au niveau des API interne ils supportent seulement le GET .
 
 # Units
 
@@ -27,9 +27,9 @@ La structuration d'un Unit est la suivante :
 ```json
   {
     "#id": "UnitId",
-    "#tenantId": "tenantId",
+    "#tenant": "tenantId",
     "#type": "DocumentTypeId",
-    "#sector": "FilièreId",
+    "#unitType" : "HOLLDING_UNIT (arbre), FILING_UNIT (Plan) ou INGEST (ArchiveUnit standard)"
     //Métadonnées du content
     "DescriptionLevel": "Fonds",
     "Title": "titre",
@@ -43,13 +43,17 @@ La structuration d'un Unit est la suivante :
       "ClassificationRule": {},
       "NeedAuthorization": false // Accès nécessitant une autorisation explicite
     },
-    "#parents": [ "unitParentId", "unitParentId"],
+    "#unitups": [ "unitParentId", "unitParentId"], // liste des parents immédiats
     "#object": "objectId",
-    "#childNb": 1 // Nombre de Unit fils
+    "#nbunits": 1, // Nombre de Unit fils
+    "#operations" : [ "id", "id" ], // liste des opérations auxquelles cette AU a participées
+    "#allunitsups": [ "unitParentId", "unitParentId"] // liste de tous les parents jusqu'au sommet
   }
 ```
 
 # Objects
+
+**Cette collection est dépréciée et va disparaître car elle est contraire aux règles d'accès aux objets à partir d'une ArchiveUnit.**
 
 **Objects** est le point d'entrée pour toutes les archives binaires mais également les non binaires (comme une référence à des objet d'archives physiques ou externes au système). Elles contiennent les métadonnées techniques. Il est constitué de plusieurs usages et versions d'usages du même contenu. C'est dans ce sens qu'il est aussi appelé un **Groupe d'objets**.
 
@@ -86,7 +90,7 @@ La structuration d'un Object est la suivante :
 ```json
   {
     "#id": "ObjectId",
-    "#tenantId": "tenantId",
+    "#tenant": "tenantId",
     "#type": "ObjectTypeId", // Audio, Video, Document, Text, Image, ...
     //Métadonnées de l'Object
     "FileInfo": {
@@ -94,7 +98,7 @@ La structuration d'un Object est la suivante :
       "LastModified": "date",
       "GPS": {}
     },
-    "#qualifiers": {
+    "#qualifiers": { // ATTENTION: Changement majeur de la structure de données
       "PhysicalMaster": { // Version papier
         "PhysicalId": "abcdef",
         "PhysicalDimensions": {},
@@ -132,9 +136,10 @@ La structuration d'un Object est la suivante :
       "TextContent": {
         // idem à #master
       },
-    }
-    "#parents": [ "unitParentId", "unitParentId"],
-    "#childNb": 1 // Nombre de versions d'objets contenus pour tous les usages
+    },
+    "#unitups": [ "unitParentId", "unitParentId"],
+    "#nbobjects": 1, // Nombre de versions d'objets contenus pour tous les usages
+    "#operations" : [ "id", "id" ], // liste des opérations auxquelles cette AU a participées
   }
 ```
 **Note :** A l'avenir, à l'intérieur d'une version d'usage, et pour chaque version (pour les **BinaryMaster** notamment), un contexte sera ajouté à la structure de l'Object afin de pouvoir y introduire des données de contexte (version du référentiel Pronom par exemple...).

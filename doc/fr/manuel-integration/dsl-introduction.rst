@@ -28,8 +28,8 @@ Il existe des Helpers en Java pour construire les requêtes au bon format (hors 
 
 - **Request**
 
-  - Multiple : fr.gouv.vitam.common.database.builder.request.multiple avec Delete, Insert, Select et Update (pour Units et Objects)
-  - Single : fr.gouv.vitam.common.database.builder.request.single avec Select (pour toutes les autres collections) ; des évolutions sont prévues pour proposer aussi les autres commandes
+  - Multiple : fr.gouv.vitam.common.database.builder.request.multiple avec MultipleDelete, MultipleInsert, MultipleSelect et MultipleUpdate (pour Units et Objects)
+  - Single : fr.gouv.vitam.common.database.builder.request.single avec Select, Insert, Delete, Update (pour toutes les autres collections, en fonction des droits et des possibilités)
 
 - **Query** qui sont des arguments d'une Request
 
@@ -46,23 +46,25 @@ Collections Units et Objects uniquement
   - Autres collections: ce champ n'existe pas car il n'y a pas d'arborescence.
 
 - **$query**:
-- $query peut contenir plusieurs Query, qui seront exécutées successivement (tableau de Query).
-- Une Query correspond à la formulation "*WHERE xxx*" dans le langage SQL, c'est à dire les critères de sélection.
-- La succession est exécutée avec la signification suivante :
+  - $query peut contenir plusieurs Query, qui seront exécutées successivement (tableau de Query).
+  - Une Query correspond à la formulation "*WHERE xxx*" dans le langage SQL, c'est à dire les critères de sélection.
+  - La succession est exécutée avec la signification suivante :
 
-  - Depuis $roots, chercher les Units/Objects tel que Query[1], conduisant à obtenir une liste d'identifiants[1]
-  - Cette liste d'identifiants[1] devient le nouveau $roots, chercher les Units/Objects tel que Query[2], conduisant à obtenir une liste d'identifiants[2]
-  - Et ainsi de suite, la liste d'identifiants[n] de la dernière Query[n] est la liste de résultat définitive sur laquelle l'opération effective sera réalisée (SELECT, UPDATE, INSERT, DELETE) selon ce que l'API supporte (GET, PUT, POST, DELETE).
-  - Chaque query peut spécifier une profondeur où appliquer la recherche :
+    - Depuis $roots, chercher les Units/Objects tel que Query[1], conduisant à obtenir une liste d'identifiants[1]
+    - Cette liste d'identifiants[1] devient le nouveau $roots, chercher les Units/Objects tel que Query[2], conduisant à obtenir une liste d'identifiants[2]
+    - Et ainsi de suite, la liste d'identifiants[n] de la dernière Query[n] est la liste de résultat définitive sur laquelle l'opération effective sera réalisée (SELECT, UPDATE, INSERT, DELETE) selon ce que l'API supporte (GET, PUT, POST, DELETE).
+    - Chaque query peut spécifier une profondeur où appliquer la recherche :
 
-    - $depth = 0 : sur les items spécifiés (filtre sur les mêmes items, à savoir pour la première requête ceux de $roots, pour les suivantes, le résultat de la requête précédente, c'est à dire le nouveau $roots)
-    - $depth < 0 : sur les items parents (hors les items spécifiés dans le $roots courant)
-    - $depth > 0 : sur les items enfants (hors les items spécifiés dans le $roots courant)
-    - par défaut, $depth vaut 1 (enfants immédiats dans le $roots courant)
+      - $depth = 0 : sur les items spécifiés (filtre sur les mêmes items, à savoir pour la première requête ceux de $roots, pour les suivantes, le résultat de la requête précédente, c'est à dire le nouveau $roots)
+      - $depth < 0 : sur les items parents (hors les items spécifiés dans le $roots courant)
+      - $depth > 0 : sur les items enfants (hors les items spécifiés dans le $roots courant)
+      - par défaut, $depth vaut 1 (enfants immédiats dans le $roots courant)
 
-  - Le principe est résumé dans le graphe d'états suivant :
+    - Le principe est résumé dans le graphe d'états suivant :
 
 .. image:: images/multi-query-schema.png
+
+  - $source (**UNSUPPORTED**) permet de changer de collections entre deux query (unit ou object)
 
 - **$filter**:
 
@@ -73,7 +75,7 @@ Collections Units et Objects uniquement
       - **$limit**: le nombre maximum d'items retournés (limité à 1000 par défaut, maximum à 100000)
       - **$per_page** (**UNSUPPORTED**) : le nombre maximum des premiers items retournés (limité à 100 par défaut, maximum à 100)
       - **$offset**: la position de démarrage dans la liste retournée (positionné à 0 par défaut, maximum à 100000)
-      - **$orderby: { fieldname: 1, fieldname: -1 }** : permet de définir un tri
+      - **$orderby: { fieldname: 1, fieldname: -1 }** : permet de définir un tri ascendant ou descendant
       - **$hint: "nocache"** (**UNSUPPORTED**) permet de spécifier si l'on ne veut pas bénéficier du cache (cache actif par défaut)
 
     - Pour *POST*, *PUT* et *DELETE*
@@ -120,7 +122,7 @@ Autres collections
       - **$limit**: le nombre maximum d'items retournés (limité à 1000 par défaut, maximum à 100000)
       - **$per_page** (**UNSUPPORTED**): le nombre maximum des premiers items retournés (limité à 100 par défaut, maximum à 100)
       - **$offset**: la position de démarrage dans la liste retournée (positionné à 0 par défaut, maximum à 100000)
-      - **$orderby: { fieldname: 1, fieldname: -1 }** : permet de définir un tri
+      - **$orderby: { fieldname: 1, fieldname: -1 }** : permet de définir un tri ascendant ou descendant
       - **$hint: "nocache"** (**UNSUPPORTED**) permet de spécifier si l'on ne veut pas bénéficier du cache (cache actif par défaut)
 
     - Pour *POST*, *PUT* et *DELETE*
@@ -272,25 +274,25 @@ GET
       - **$query**
       - **$filter**
       - **$projection: { fieldname: 0, fieldname: 1 }**
-      - **facetQuery**  optionnel
+      - **facetQuery**  optionnel (**UNSUPPORTED**)
 
     - Pour les autres collections :
 
       - **$query**
       - **$filter**
       - **$projection: { fieldname: 0, fieldname: 1 }**
-      - **facetQuery**  optionnel
+      - **facetQuery**  optionnel (**UNSUPPORTED**)
 
 Exemple::
 
     {
       "$roots": [ "id0" ],
       "$query": [
-        { "$match": { "title": "titre" }, "$depth": 4 }
+        { "$match": { "Title": "titre" }, "$depth": 4 }
       ],
       "$filter": { "$limit": 100 },
-      "$projection": { "$fields": { "#id": 1, "title": 1, "#type": 1, "#sector": 1, "#parents": 1, "#object": 1 } },
-      "$facetQuery": { "$terms": "#object.#type" }
+      "$projection": { "$fields": { "#id": 1, "Title": 1, "#type": 1, "#parents": 1, "#object": 1 } },
+      "$facetQuery": { "$terms": "#object.#type" } //(**UNSUPPORTED**)
     }
 
 
@@ -318,10 +320,10 @@ POST
    {
     "$roots": [ "id0" ],
     "$query": [
-      { "$match": { "title": "titre" }, "$depth": 4 }
+      { "$match": { "Title": "titre" }, "$depth": 4 }
     ],
     "$filter": {  },
-    "$data": { "title": "mytitle", "description": "my description", "value": 1 }
+    "$data": { "Title": "mytitle", "description": "my description", "value": 1 }
    }
 
 PUT
@@ -344,7 +346,7 @@ PUT
    {
     "$roots": [ "id0" ],
     "$query": [
-      { "$eq": { "title": "mytitle" }, "$depth": 5 }
+      { "$eq": { "Title": "mytitle" }, "$depth": 5 }
     ],
     "$filter": {  },
     "$action": [{ "$inc": { "value": 10 } }]
@@ -376,14 +378,15 @@ Des champs sont protégés dans les requêtes :
 
   - **#id** est l'identifiant de l'item
   - **#all** est l'équivalent de "SELECT \*"
-  - **#sector** (UNSUPPORTED) est la filière de l'item
   - **#unitups** est la liste des Units parents
   - **#tenant** est le tenant associé
   - **#operations** est la liste des opérations qui ont opéré sur cet élément
+  - **#originating_agency** est l'OriginatingAgency su SIP d'origine
+  - **#originating_agencies** est l'ensemble des OriginatingAgencies issues du SIP et des rattachements (héritage)
 
 - Spécifiques pour les Units
 
-  - **#unittype** est la typologie du Unit (Arbre, Plan ou ArchiveUnit)
+  - **#unittype** est la typologie du Unit (Arbre HOLLDING_UNIT, Plan FILING_UNIT ou ArchiveUnit INGEST)
   - **#nbunits** est le nombre de fils immédiats à un Unit donné
   - **#object** est l'objet associé à un Unit (s'il existe)
   - **#type** est le type d'item (Document Type)
@@ -433,33 +436,33 @@ Réponse pour Units
     "$context": {
       "$roots": [ "id0" ],
       "$query": [
-        { "$match": { "title": "titre" }, "$depth": 4 }
+        { "$match": { "Title": "titre" }, "$depth": 4 }
       ],
       "$filter": { "$limit": 100 },
-      "$projection": { "$fields": { "#id": 1, "title": 1, "#type": 1, "#sector": 1, "#parents": 1, "#object": 1 } },
+      "$projection": { "$fields": { "#id": 1, "Title": 1, "#type": 1, "#unitups": 1, "#object": 1 } },
       "$facetQuery": { "$terms": "#object.#type" }
     },
     "$results": [
       {
-        "#id": "id1", "title": "titre 1", "#type": "DemandeCongés", "#sector": "RessourcesHumaines",
-        "#parents": [ { "#id": "id4", "#type": "DossierCongés", "#sector": "RessourcesHumaines" } ],
+        "#id": "id1", "Title": "titre 1", "#type": "DemandeCongés",
+        "#unitups": [ { "#id": "id4", "#type": "DossierCongés" } ],
         "#object": { "#id": "id101", "#type": "Document",
           "#qualifiers": { "BinaryMaster": 5, "Dissemination": 1, "Thumbnail": 1, "TextContent": 1 } }
       },
       {
-        "#id": "id2", "title": "titre 2", "#type": "DemandeCongés", "#sector": "RessourcesHumaines",
-        "#parents": [ { "#id": "id4", "#type": "DossierCongés", "#sector": "RessourcesHumaines" } ],
+        "#id": "id2", "Title": "titre 2", "#type": "DemandeCongés",
+        "#unitups": [ { "#id": "id4", "#type": "DossierCongés" } ],
         "#object": { "#id": "id102", "#type": "Document",
           "#qualifiers": { "BinaryMaster": 5, "Dissemination": 1, "Thumbnail": 1, "TextContent": 1 } }
       },
       {
-        "#id": "id3", "title": "titre 3", "#type": "DemandeCongés", "#sector": "RessourcesHumaines",
-        "#parents": [ { "#id": "id4", "#type": "DossierCongés", "#sector": "RessourcesHumaines" } ],
+        "#id": "id3", "Title": "titre 3", "#type": "DemandeCongés",
+        "#unitups": [ { "#id": "id4", "#type": "DossierCongés" } ],
         "#object": { "#id": "id103", "#type": "Image",
           "#qualifiers": { "BinaryMaster": 3, "Dissemination": 1, "Thumbnail": 1, "TextContent": 1 } }
       }
     ],
-    "$facet": {
+    "$facet": { // **UNSUPPORTED**
       "#object.#type": { "Document": 2, "Image": 1 }
     }
    }
@@ -481,27 +484,27 @@ Réponse pour Objects
     "$context": {
       "$roots": [ "id0" ],
       "$query": [
-        { "$match": { "title": "titre" }, "$depth": 4, "$source": "units" },
+        { "$match": { "Title": "titre" }, "$depth": 4, "$source": "units" },
         { "$eq": { "#type": "Document" }, "$source": "objects" }
       ],
       "$filter": { "$limit": 100 },
-      "$projection": { "$fields": { "#id": 1, "#qualifiers": 1, "#type": 1, "#parents": 1 } }
+      "$projection": { "$fields": { "#id": 1, "#qualifiers": 1, "#type": 1, "#unitups": 1 } }
     },
     "$results": [
       {
         "#id": "id101", "#type": "Document",
         "#qualifiers": { "BinaryMaster": 5, "Dissemination": 1, "Thumbnail": 1, "TextContent": 1 },
-        "#parents": [ { "#id": "id1", "#type": "DemandeCongés", "#sector": "RessourcesHumaines" } ]
+        "#unitups": [ { "#id": "id1", "#type": "DemandeCongés" } ]
       },
       {
         "#id": "id102", "#type": "Document",
         "#qualifiers": { "BinaryMaster": 5, "Dissemination": 1, "Thumbnail": 1, "TextContent": 1 },
-        "#parents": [ { "#id": "id2", "#type": "DemandeCongés", "#sector": "RessourcesHumaines" } ]
+        "#unitups": [ { "#id": "id2", "#type": "DemandeCongés" } ]
       },
       {
         "#id": "id103", "#type": "Document",
         "#qualifiers": { "BinaryMaster": 3, "Dissemination": 1, "Thumbnail": 1, "TextContent": 1 },
-        "#parents": [ { "#id": "id3", "#type": "DemandeCongés", "#sector": "RessourcesHumaines" } ]
+        "#unitups": [ { "#id": "id3", "#type": "DemandeCongés" } ]
       }
     ]
    }

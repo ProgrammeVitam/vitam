@@ -166,21 +166,21 @@ public class VitamFieldsHelper {
     }
 
     /**
-     * @return #og
+     * @return #object
      */
     public static final String object() {
         return OBJECT.exactToken();
     }
 
     /**
-     * @return #up
+     * @return #unitups
      */
     public static final String unitups() {
         return UNITUPS.exactToken();
     }
 
     /**
-     * @return #up
+     * @return #allunitups
      */
     public static final String allunitups() {
         return ALLUNITUPS.exactToken();
@@ -214,7 +214,7 @@ public class VitamFieldsHelper {
     public static final String operations() {
         return OPERATIONS.exactToken();
     }
-    
+
     /**
      * @return #unittype
      */
@@ -222,13 +222,13 @@ public class VitamFieldsHelper {
         return UNITTYPE.exactToken();
     }
     /**
-     * @return #unittype
+     * @return #originating_agency
      */
     public static final String originatingAgency() {
         return ORIGINATING_AGENCY.exactToken();
     }
     /**
-     * @return #unittype
+     * @return #originating_agencies
      */
     public static final String originatingAgencies() {
         return ORIGINATING_AGENCIES.exactToken();

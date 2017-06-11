@@ -17,3 +17,7 @@ Ce référentiel est basé sur PRONOM (TNA) mais il peut être étendu. Il est t
 Il est possible de mettre à jour ce référentiel via les API. Il est par tenant.
 
 Actuellement ce référentiel est utilisé lors du processus d'entrée mais il n'est pas encore utilisé par les accès.
+
+# Registre des Fonds
+
+**NOTE IMPORTANTE** : Ce service sera déplacé dans la partie administration fonctionnelle.
