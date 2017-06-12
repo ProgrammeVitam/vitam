@@ -45,11 +45,56 @@ Pour instancier son client en mode Production :
      IngestExternalClient client = IngestExternalClientFactory.getInstance().getIngestExternalClient();
      
 
-Le client propose actuellement trois méthodes : 
+Le client les méthodes suivantes:
 
 .. code-block:: java
+    // Upload un SIP
+    RequestResponse<JsonNode> upload(InputStream stream, Integer tenantId, String contextId, String action)
+        throws IngestExternalException;
 
-	  Status status();
-	  void upload(InputStream stream)
-	  // Télécharger un object du serveur sauvegardé de l'operation upload ci-dessus avec son ID et type 
-	  Response downloadObjectAsync(String objectId, IngestCollection type)
+    // Télécharger un object du serveur sauvegardé de l'operation upload ci-dessus avec son ID et type
+    Response downloadObjectAsync(String objectId, IngestCollection type, Integer tenantId)
+        throws IngestExternalException;
+
+    // Exécuter une action sur un Process Workflow
+    RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId,
+        String actionId, Integer tenantId)
+        throws VitamClientException;
+
+    // Exécuter une action sur un Process Workflow
+    Response updateOperationActionProcess(String actionId, String operationId, Integer tenantId) throws VitamClientException;
+
+    // Retourne le statut d'un process workflow et son état
+    ItemStatus getOperationProcessStatus(String id, Integer tenantId) throws VitamClientException;
+
+    // Retourne le détail d'un process workflow
+    ItemStatus getOperationProcessExecutionDetails(String id, JsonNode query, Integer tenantId) throws VitamClientException;
+
+    RequestResponse<JsonNode> cancelOperationProcessExecution(String id, Integer tenantId) throws VitamClientException, BadRequestException;
+
+    @Deprecated //Not used
+    ItemStatus updateVitamProcess(String contextId, String actionId, String container, String workflow,
+        Integer tenantId)
+        throws InternalServerException, BadRequestException, VitamClientException;
+
+    void initVitamProcess(String contextId, String container, String workFlow, Integer tenantId)
+        throws InternalServerException, VitamClientException;
+
+    @Deprecated
+    void initWorkFlow(String contextId, Integer tenantId) throws VitamException;
+
+    RequestResponse<JsonNode> listOperationsDetails(Integer tenantId) throws VitamClientException;
+
+
+Le client implémente aussi l'interface PoolingStatusClient :
+Avec cette interface, on peut utiliser les méthodes wait pour mieux gérer le pooling côté serveur et remédier à l'asynchrone des certains opérations.
+
+.. code-block:: java
+    // Possibilité de faire plusieurs (nbTry) appel espacé d'un temps (timeWait) avant de répondre au client final
+    public boolean wait(int tenantId, String processId, ProcessState state, int nbTry, long timeWait, TimeUnit timeUnit) throws VitamException;
+
+    public boolean wait(int tenantId, String processId, int nbTry, long timeWait, TimeUnit timeUnit) throws VitamException;
+
+    public boolean wait(int tenantId, String processId, ProcessState state) throws VitamException;
+
+    public boolean wait(int tenantId, String processId) throws VitamException;
