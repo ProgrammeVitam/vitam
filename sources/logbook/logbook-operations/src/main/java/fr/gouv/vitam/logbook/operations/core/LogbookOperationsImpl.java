@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.operations.core;
 
+import static fr.gouv.vitam.common.model.LogbookOperationKey.STP_STORAGE_SECURISATION;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.outcomeDetail;
 
 import java.time.LocalDateTime;
@@ -41,6 +42,7 @@ import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.model.LogbookOperationKey;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
@@ -143,7 +145,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
         final Query query = QueryHelper.gt("evDateTime", date.toString());
         final Query type = QueryHelper.eq("evTypeProc", LogbookTypeProcess.TRACEABILITY.name());
         final Query status =
-            QueryHelper.eq(LogbookDocument.EVENTS + "." + outcomeDetail.getDbname(), "STP_OP_SECURISATION.OK");
+            QueryHelper.eq(LogbookDocument.EVENTS + "." + outcomeDetail.getDbname(), STP_STORAGE_SECURISATION.ok());
         select.setQuery(QueryHelper.and().add(query, type, status));
         select.setLimitFilter(0, 1);
         return Iterators.getOnlyElement(mongoDbAccess.getLogbookOperations(select.getFinalSelect(), false), null);
@@ -156,7 +158,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
         final Select select = new Select();
         final Query type = QueryHelper.eq("evTypeProc", LogbookTypeProcess.TRACEABILITY.name());
         final Query findEvent = QueryHelper
-            .eq(String.format("%s.%s", LogbookDocument.EVENTS, outcomeDetail.getDbname()), "STP_OP_SECURISATION.OK");
+            .eq(String.format("%s.%s", LogbookDocument.EVENTS, outcomeDetail.getDbname()), STP_STORAGE_SECURISATION.ok());
 
         select.setLimitFilter(0, 1);
         select.setQuery(QueryHelper.and().add(type, findEvent));

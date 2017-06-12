@@ -27,6 +27,7 @@
 package fr.gouv.vitam.logbook.operations.core;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
+import static fr.gouv.vitam.common.model.LogbookOperationKey.STP_STORAGE_SECURISATION;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -39,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import fr.gouv.vitam.common.model.LogbookOperationKey;
 import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -205,14 +207,14 @@ public class LogbookOperationsImplWithDatabasesTest {
 
         logbookParameters4 = LogbookParametersFactory.newLogbookOperationParameters(
             eip4,
-            "STP_OP_SECURISATION", eip4, LogbookTypeProcess.TRACEABILITY,
+            STP_STORAGE_SECURISATION.name(), eip4, LogbookTypeProcess.TRACEABILITY,
             StatusCode.STARTED, null, null, eip4);
 
         logbookParameters4.putParameterValue(LogbookParameterName.eventDateTime, datestring4);
 
         logbookParameters5 = LogbookParametersFactory.newLogbookOperationParameters(
             eip6,
-            "STP_OP_SECURISATION", eip6, LogbookTypeProcess.TRACEABILITY,
+            STP_STORAGE_SECURISATION.name(), eip6, LogbookTypeProcess.TRACEABILITY,
             StatusCode.STARTED, null, null, eip6);
 
         logbookParameters5.putParameterValue(LogbookParameterName.eventDateTime, datestring6);
@@ -227,7 +229,7 @@ public class LogbookOperationsImplWithDatabasesTest {
 
 
         securityEvent = LogbookParametersFactory.newLogbookOperationParameters(
-            eip5, "STP_OP_SECURISATION", eip4, LogbookTypeProcess.TRACEABILITY,
+            eip5, STP_STORAGE_SECURISATION.name(), eip4, LogbookTypeProcess.TRACEABILITY,
             StatusCode.OK, null, null, eip4);
         securityEvent.putParameterValue(LogbookParameterName.eventDateTime, dateStringSecurity);
 
