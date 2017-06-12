@@ -126,14 +126,15 @@ Opérateur : $path
 
 On va mettre à jour un archive Unit id1 qui est enfant de l’AU id0, on ajoute une nouvelle propriété  : propriétaire est MrT
 
-{
-  "$roots": [ "id0" ],
-    "$query": [
-      { "$path": “id1” }
-    ],
-    "$filter": {  },
-    "$action": [{ "$add": { "propriétaire": “MrT” } }]
-}
+.. code-block:: json
+    {
+      "$roots": [ "id0" ],
+        "$query": [
+          { "$path": "id1" }
+        ],
+        "$filter": {  },
+        "$action": [{ "$add": { "propriétaire": "MrT" } }]
+    }
 
 Mais cette requête ne peut pas être utilisé maintenant, parce-que l'API REST ("/units" update) n'est pas encore implémenté.
 
@@ -399,33 +400,27 @@ Pour la TransactedDate, la valeur sera ajoutée dynamiquement. Pour cet exemple,
 
 
 Requête :
-{
-  "$query": {
-    "$and": [
-      {
-        "$eq": {
-          "evTypeProc": "INGEST"
-        }
+.. code-block:: json
+    {
+      "$query": {
+        "$and": [
+          {
+            "$eq": {"evTypeProc": "INGEST"}
+          },
+          {
+            "$eq": {"outcome": "WARNING"}
+          },
+          {
+            "$gte": {"TransactedDate": "2017-01-04T23:00:00.000Z"}
+          }
+        ]
       },
-      {
-        "$eq": {
-          "outcome": "WARNING"
-        }
+      "$filter": {
+        "$orderby": {"evDateTime": -1}
       },
-      {
-        "$gte": {
-          "TransactedDate": "2017-01-04T23:00:00.000Z"
-        }
-      }
-    ]
-  },
-  "$filter": {
-    "$orderby": {
-      "evDateTime": -1
+      "$projection": {}
     }
-  },
-  "$projection": {}
-}
+
 
 Critères d'acceptance:
 
@@ -449,27 +444,27 @@ Note : SIP avec producteurs ayant versé plus de 5 et moins de 5 objets
 - Verser OK_SIP_RGSTR1_PRODUCTEUR_1OBJ contenant le producteur FRAN_NP_002 versant 1 objet.zip
 
 *Requête :*
-
- {
-   "$query": {
-     "$and": [
-       {
-         "$exists": "OriginatingAgency"
+.. code-block:: json
+     {
+       "$query": {
+         "$and": [
+           {
+             "$exists": "OriginatingAgency"
+           },
+           {
+             "$gt": {
+               "TotalObjectGroups.Total": 5
+             }
+           }
+         ]
        },
-       {
-         "$gt": {
-           "TotalObjectGroups.Total": 5
+       "$filter": {
+         "$orderby": {
+           "OriginatingAgency": 1
          }
-       }
-     ]
-   },
-   "$filter": {
-     "$orderby": {
-       "OriginatingAgency": 1
+       },
+       "$projection": {}
      }
-   },
-   "$projection": {}
- }
 
 *Critères d’acceptance :*
 
@@ -505,44 +500,44 @@ Les dates extrêmes sont toujours à date du 1er janvier de l’année
 
 *Requête :*
 
+.. code-block:: json
 
-
-{
-  "$roots": [],
-  "$query": [
     {
-      "$and": [
+      "$roots": [],
+      "$query": [
         {
-          "$gte": {
-            "StartDate": "1914-01-01T23:00:00.000Z"
-          }
-        },
-        {
-          "$lte": {
-            "EndDate": "1918-12-31T22:59:59.000Z"
-          }
+          "$and": [
+            {
+              "$gte": {
+                "StartDate": "1914-01-01T23:00:00.000Z"
+              }
+            },
+            {
+              "$lte": {
+                "EndDate": "1918-12-31T22:59:59.000Z"
+              }
+            }
+          ],
+          "$depth": 20
         }
       ],
-      "$depth": 20
+      "$filter": {
+        "$orderby": {
+          "TransactedDate": 1
+        }
+      },
+      "$projection": {
+        "$fields": {
+          "TransactedDate": 1,
+          "#id": 1,
+          "Title": 1,
+          "#object": 1,
+          "DescriptionLevel" : 1,
+          "EndDate": 1,
+          "StartDate": 1
+        }
+      }
     }
-  ],
-  "$filter": {
-    "$orderby": {
-      "TransactedDate": 1
-    }
-  },
-  "$projection": {
-    "$fields": {
-      "TransactedDate": 1,
-      "#id": 1,
-      "Title": 1,
-      "#object": 1,
-      "DescriptionLevel" : 1,
-      "EndDate": 1,
-      "StartDate": 1
-    }
-  }
-}
 
 
 
@@ -581,58 +576,59 @@ Verser le sip WARNING_SIP_SRC2_TITLE_DESC_UNITS_SANS_OBJ.zip. Ce sip contient :
 
 *Requête :*
 
+.. code-block:: json
 
-{
-   "$roots": [],
-   "$query": [
-     {
-       "$or": [
+    {
+       "$roots": [],
+       "$query": [
          {
-           "$and": [
+           "$or": [
              {
-               "$match": {
-                 "Title": "Rectorat"
-               }
+               "$and": [
+                 {
+                   "$match": {
+                     "Title": "Rectorat"
+                   }
+                 },
+                 {
+                   "$match": {
+                     "Description": "public"
+                   }
+                 }
+               ]
              },
              {
-               "$match": {
-                 "Description": "public"
-               }
+               "$and": [
+                 {
+                   "$match": {
+                     "Title": "Rectorat"
+                   }
+                 },
+                 {
+                   "$match": {
+                     "Description": "privé"
+                   }
+                 }
+               ]
              }
-           ]
-         },
-         {
-           "$and": [
-             {
-               "$match": {
-                 "Title": "Rectorat"
-               }
-             },
-             {
-               "$match": {
-                 "Description": "privé"
-               }
-             }
-           ]
+           ],
+           "$depth": 20
          }
        ],
-       "$depth": 20
-     }
-   ],
-   "$filter": {
-     "$orderby": {
-       "TransactedDate": 1
-     }
-   },
-   "$projection": {
-     "$fields": {
-       "TransactedDate": 1,
-       "#id": 1,
-       "Title": 1,
-       "#object": 1
-     }
-   }
-}
+       "$filter": {
+         "$orderby": {
+           "TransactedDate": 1
+         }
+       },
+       "$projection": {
+         "$fields": {
+           "TransactedDate": 1,
+           "#id": 1,
+           "Title": 1,
+           "#object": 1
+         }
+       }
+    }
 
 
 *Critère d’acceptance :*
@@ -663,24 +659,26 @@ Importer le fichier jeu_donnees_OK_regles_CSV.csv contenant 3  règles dont les 
 
 Requête :
 
- {
-  "$query": {
-       "$and": [
-         {
-           "$eq": {
-             "RuleValue": "Dossier individuel d’agent civil"
-           }
+.. code-block:: json
+
+     {
+      "$query": {
+           "$and": [
+             {
+               "$eq": {
+                 "RuleValue": "Dossier individuel d’agent civil"
+               }
+             },
+             {
+               "$eq": {
+                 "RuleType": "AppraisalRule"
+               }
+             }
+           ]
          },
-         {
-           "$eq": {
-             "RuleType": "AppraisalRule"
-           }
-         }
-       ]
-     },
-  "$filter": {},
-  "$projection": {}
- }
+      "$filter": {},
+      "$projection": {}
+     }
 
 
 *Critères d’acceptance :*
@@ -707,19 +705,21 @@ Importer le fichier PRONOM Droid Signature Files Version 88. Ce fichier contient
 
 *Requête :*
 
- {
- "$query": {
-       "$and": [
-         {
-           "$eq": {
-             "Extension": "png"
-           }
-         }
-       ]
-     },
-  "$filter": {},
-  "$projection": {}
- }
+.. code-block:: json
+
+     {
+     "$query": {
+           "$and": [
+             {
+               "$eq": {
+                 "Extension": "png"
+               }
+             }
+           ]
+         },
+      "$filter": {},
+      "$projection": {}
+     }
 
 
 *Critères d’acceptance :*
@@ -749,18 +749,20 @@ Verser WARNING_SIP_SRC2_TITLE_DESC_UNITS_SANS_OBJ.zip contenant une unité d’a
 On souhaite changer le titre pour “Rectorat de Seine-Et-Marne” et la description pour “Dossier relatifs aux secteurs publics et privés”.
 *Requête :*
 
-  {
-   "$query": [],
-   "$filter": {},
-   "$action": [
-     {
-       "$set": {
-         "Title": "Rectorat de Seine-Et-Marne",
-         "Description": "Dossier relatifs aux secteurs publics et privés"
-       }
-     }
-   ]
-  }
+.. code-block:: json
+
+      {
+       "$query": [],
+       "$filter": {},
+       "$action": [
+         {
+           "$set": {
+             "Title": "Rectorat de Seine-Et-Marne",
+             "Description": "Dossier relatifs aux secteurs publics et privés"
+           }
+         }
+       ]
+      }
 
 *Critères d’acceptance :*
 
@@ -862,7 +864,12 @@ Requête :
 
 .. code-block:: json
 
- {"$roots":[],"$query":[],"$filter":{},"$projection":{}
+    {
+        "$roots":[],
+        "$query":[],
+        "$filter":{},
+        "$projection":{}
+    }
 
 
 On doit retrouver :
@@ -919,7 +926,12 @@ Requête :
 
 .. code-block:: json
 
- {"$roots":[],"$query":[],"$filter":{},"$projection":{}}
+ {
+     "$roots":[],
+     "$query":[],
+     "$filter":{},
+     "$projection":{}
+ }
 
 Headers:
 
@@ -929,7 +941,15 @@ La réponse: 500 INTERNAL_SERVER_ERROR
 
 .. code-block:: json
 
- { "httpCode": 500, "code": "INTERNAL_SERVER_ERROR", "context": "ADMIN_EXTERNAL", "state": "code_vitam", "message": "Internal Server Error", "description": "Internal Server Error", "errors": []}
+     {
+         "httpCode": 500,
+         "code": "INTERNAL_SERVER_ERROR",
+         "context": "ADMIN_EXTERNAL",
+         "state": "code_vitam",
+         "message": "Internal Server Error",
+         "description": "Internal Server Error",
+         "errors": []
+     }
 
 
 
@@ -975,7 +995,20 @@ Requête
 
 .. code-block:: json
 
- {"$hits": { "total": 1, "offset : 1, "limit": 1, "size": 1},"$results": [{ {"_tenant" : 0}}],"$context":{}}
+    {
+        "$hits": {
+            "total": 1,
+            "offset" : 1,
+            "limit": 1,
+            "size": 1
+        },
+        "$results": [
+            {
+                {"_tenant" : 0}
+            }
+        ],
+        "$context":{}
+    }
 
 2. Verser un autre SIP ‘sip2’ ayant une unité d’archive valide sur le *tenant 1*
 ---------------------------------------------------------------------------------
@@ -1001,7 +1034,20 @@ Requête :
 
 .. code-block:: json
 
- {"$query":{"$and":[{"$eq":{"evTypeProc":"INGEST"}}]},"$filter":{},"$projection":{}}
+    {
+        "$query":{
+            "$and":[
+                {
+                    "$eq":
+                    {
+                        "evTypeProc":"INGEST"
+                    }
+                }
+            ]
+        },
+        "$filter":{},
+        "$projection":{}
+    }
 
 
 Headers:

@@ -146,8 +146,8 @@
         <Set name="KeyStorePath">{{vitam_folder_conf}}/keystore_{{vitam_component}}.jks</Set>
         <Set name="KeyStorePassword">{{password_keystore}}</Set>
         <Set name="KeyManagerPassword">{{password_manager_keystore}}</Set>
-        <Set name="TrustStorePath">{{vitam_folder_conf}}/truststore_{{vitam_component}}.jks</Set> 
-        <Set name="TrustStorePassword">{{password_truststore}}</Set> 
+        <Set name="TrustStorePath">{{vitam_folder_conf}}/truststore_{{vitam_component}}.jks</Set>
+        <Set name="TrustStorePassword">{{password_truststore}}</Set>
         <Set name="TrustStoreType">JKS</Set>
         <Set name="NeedClientAuth">false</Set>
         <Set name="WantClientAuth">true</Set>
@@ -174,7 +174,7 @@
         </Array>
       </Set>
         <Set name="UseCipherSuitesOrder">true</Set>
-        <Set name="RenegotiationAllowed">true</Set>     
+        <Set name="RenegotiationAllowed">true</Set>
     </New>
     <New id="sslConnectionFactory" class="org.eclipse.jetty.server.SslConnectionFactory">
         <Arg name="sslContextFactory">
@@ -209,7 +209,7 @@
 {% else %}
 
     <!-- =========================================================== -->
-    <!-- Connector for API business            			     -->    
+    <!-- Connector for API business            			     -->
     <!-- Attach all ContextHanlder except Admin			     -->
     <!-- =========================================================== -->
 
@@ -234,7 +234,7 @@
 {% endif %}
 
     <!-- =========================================================== -->
-    <!-- Connector for API Admin            			     -->    
+    <!-- Connector for API Admin            			     -->
     <!-- Attach all ContextHanlder				     -->
     <!-- =========================================================== -->
 

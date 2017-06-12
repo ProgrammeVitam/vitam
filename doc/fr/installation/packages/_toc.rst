@@ -14,6 +14,5 @@ Procédures
    :maxdepth: 2
 
    securite
-   pki
    fresh_install
    update

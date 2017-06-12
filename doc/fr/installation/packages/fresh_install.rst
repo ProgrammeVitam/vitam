@@ -161,7 +161,7 @@ Ce script shell doit respecter le contrat suivant :
 Paramétrage des certificats (\*-externe)
 -----------------------------------------
 
-Se reporter à l'étape "PKI" du déploiement, décrite plus bas.
+Se reporter au chapitre dédié à la gestion des certificats: :doc:`../certificats/introduction_certificats`
 
 
 Déploiement
@@ -228,10 +228,6 @@ Pour mettre en place ces repositories sur les machines cibles, lancer la command
 
 ``ansible-playbook ansible-vitam-extra/bootstrap.yml -i environments/<fichier d'inventaire>  --ask-vault-pass``
 
-ou
-
-``ansible-playbook ansible-vitam-extra/bootstrap.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt``
-
 .. note:: En environnement CentOS, il est recommandé de créer des noms de repository commençant par  "vitam-".
 
 Déploiement
@@ -241,7 +237,7 @@ Une fois l'étape de PKI effectuée avec succès, le déploiement est à réalis
 
 .. code-block:: bash
 
-   ansible-playbook ansible-vitam/vitam.yml -i environments/<ficher d'inventaire> --vault-password-file vault_pass.txt
+   ansible-playbook ansible-vitam/vitam.yml -i environments/<ficher d'inventaire> --ask-vault-pass
 
 Extra
 ------
@@ -254,7 +250,7 @@ Ce playbook permet d'installer également le composant :term:`VITAM` ihm-recette
 
 .. code-block:: bash
 
-   ansible-playbook ansible-vitam-extra/ihm-recette.yml -i environments/<ficher d'inventaire> --vault-password-file vault_pass.txt
+   ansible-playbook ansible-vitam-extra/ihm-recette.yml -i environments/<ficher d'inventaire> --ask-vault-pass
 
 
 2. extra complet
@@ -271,7 +267,7 @@ Ce playbook permet d'installer :
 
 .. code-block:: bash
 
-   ansible-playbook ansible-vitam-extra/extra.yml -i environments/<ficher d'inventaire> --vault-password-file vault_pass.txt
+   ansible-playbook ansible-vitam-extra/extra.yml -i environments/<ficher d'inventaire> --ask-vault-pass
 
 Import automatique d'objets dans Kibana
 =========================================
