@@ -354,12 +354,6 @@ public class LogbookInternalResourceImpl {
                 processManagementClient.executeCheckTraceabilityWorkFlow(checkOperationGUID.getId(), query,
                     DEFAULT_CHECK_TRACEABILITY_WORKFLOW, LogbookTypeProcess.CHECK.toString(),
                     ProcessAction.RESUME.getValue());
-            
-            // Add final event to logbookOperation
-            createOrUpdateLogbookOperation(helper, false, checkOperationGUID,
-                StatusCode.parseFromHttpStatus(response.getStatus()));
-            logbookOperationsClient.bulkUpdate(checkOperationGUID.getId(),
-                helper.removeUpdateDelegate(checkOperationGUID.getId()));
 
             // Get the created logbookOperation and return the response
             final JsonNode result = logbookOperationsClient.selectOperationById(checkOperationGUID.getId(), null);
