@@ -9,3 +9,4 @@
    collections.rst
    securisation.rst
    fonctionnel.rst
+   dsl.rst
