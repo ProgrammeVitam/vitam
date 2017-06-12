@@ -281,6 +281,13 @@ public class ExtractSedaActionHandler extends ActionHandler {
             globalSedaParametersFile =
                 handlerIO.getNewLocalFile(handlerIO.getOutput(GLOBAL_SEDA_PARAMETERS_FILE_IO_RANK).getPath());
             ObjectNode evDetData = extractSEDA(params, globalCompositeItemStatus);
+
+            if (existingUnitGuids.size() > 0) {
+                ArrayNode attachmentNode = JsonHandler.createArrayNode();
+                existingUnitGuids.forEach(attachmentNode::add);
+                evDetData.set(ATTACHMENT_IDS, attachmentNode);
+            }
+
             globalCompositeItemStatus.getData().put(LogbookParameterName.eventDetailData.name(),
                 JsonHandler.unprettyPrint(evDetData));
             globalCompositeItemStatus.increment(StatusCode.OK);
@@ -332,15 +339,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
             LOGGER.debug("supplier service is: " + originatingAgency);
             globalCompositeItemStatus.getData().put(LogbookParameterName.agentIdentifierOriginating.name(),
                 originatingAgency);
-        }
-
-        if (existingUnitGuids.size() > 0) {
-            ArrayNode attachmentNode = JsonHandler.createArrayNode();
-            existingUnitGuids.forEach(attachmentNode::add);
-            ObjectNode eventDetailData = JsonHandler.createObjectNode();
-            eventDetailData.set(ATTACHMENT_IDS, attachmentNode);
-            globalCompositeItemStatus.getData()
-                .put(LogbookParameterName.eventDetailData.name(), JsonHandler.unprettyPrint(eventDetailData));
         }
 
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, globalCompositeItemStatus);
