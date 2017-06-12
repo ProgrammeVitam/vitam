@@ -35,7 +35,7 @@ Collection Objects
 ==================
 
 **Points particuliers sur les end points**
-**Cette collection est dépréciée et va disparaître car elle est contraire aux règles d'accès aux objets à partir d'une ArchiveUnit.**
+**Cette collection est DEPRECATED et va disparaître car elle est contraire aux règles d'accès aux objets à partir d'une ArchiveUnit (/units/id/object).**
 
 - **/objects** : il s'agit ici de requêter un ensemble d'objets sur leurs métadonnées uniquement.
 
@@ -94,10 +94,10 @@ Détails sur chaque commande de la partie $query
 
 ::
 
-  { "$path" : [ "id1", "id2" ] }
+   { "$path" : [ "id1", "id2" ] }
 
-  static include fr.gouv.vitam.common.database.builder.query.QueryHelper.*;
-  Query query = path("id1", "id2");
+   static include fr.gouv.vitam.common.database.builder.query.QueryHelper.*;
+   Query query = path("id1", "id2");
 
 
 - $and, $or, $not
@@ -128,6 +128,8 @@ pour toute StartDate plus grande que le 25 mars 2014 et inférieure ou égale au
     - $gt, $gte : le champs a une valeur supérieure ou égale avec la valeur fournie
 
 - Exemple :
+:::::::::::
+
 ::
 
    { "$gt" : { "StartDate" : "2014-03-25" } }
@@ -145,10 +147,11 @@ pour toute StartDate plus grande que le 25 mars 2014
 
 ::
 
-   { $range" : { ""StartDate" : { "$gte" : "2014-03-25", "$lte" : "2014-04-25" } } }
+   { "$range" : { "StartDate" : { "$gte" : "2014-03-25", "$lte" : "2014-04-25" } } }
 
    static include fr.gouv.vitam.common.database.builder.query.QueryHelper.*;
-   Query query = range("StartDate", dateFormat.parse("2014-03-25"), true, dateFormat.parse("2014-04-25"), true);
+   Query query = range("StartDate", dateFormat.parse("2014-03-25"), true, 
+         dateFormat.parse("2014-04-25"), true);
 
 pour toute StartDate plus grande ou égale au 25 mars 2014 mais inférieure ou égale au 25 avril 2014
 
@@ -328,7 +331,7 @@ Partie $action dans la fonction Update
 
 ::
 
-   { "$set : { "Title" : "Mon nouveau titre", "Description" : "Ma nouvelle description" }" }
+   { "$set" : { "Title" : "Mon nouveau titre", "Description" : "Ma nouvelle description" }" }
 
    static include fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.*;
    Action action = set("Title", "Mon nouveau titre").add("Description", "Ma nouvelle description");
@@ -344,7 +347,7 @@ qui change les champs Title et Description avec les valeurs indiquées
 
 ::
 
-   { "$unset : [ "StartDate", "EndDate" ]" }
+   { "$unset" : [ "StartDate", "EndDate" ]" }
 
    static include fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.*;
    Action action = unset("StartDate", "EndDate");
@@ -360,7 +363,7 @@ qui va vider les champs indiqués de toutes valeurs
 
 ::
 
-   { "$min : { "MonChamp" : 3 }" }
+   { "$min" : { "MonChamp" : 3 }" }
 
    static include fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.*;
    Action action = set("Title", "Mon nouveau titre").add("Description", "Ma nouvelle description");
@@ -375,7 +378,7 @@ Si MonCompteur contient 2, MonCompteur vaudra 3, mais si MonCompteur contient 4,
 
 ::
 
-   { "$inc : { "MonCompteur" : -2 }" }
+   { "$inc" : { "MonCompteur" : -2 }" }
 
    static include fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.*;
    Action action = inc("MonCompteur", -2);
@@ -391,7 +394,7 @@ décrémente de 2 la valeur initiale de MonCompteur
 
 ::
 
-   { "$rename : { "MonChamp" : "MonNouveauChamp" }" }
+   { "$rename" : { "MonChamp" : "MonNouveauChamp" }" }
 
    static include fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.*;
    Action action = rename("MonChamp", "MonNouveauChamp");
@@ -467,10 +470,14 @@ Exemple d'un SELECT Multi-queries
    static include fr.gouv.vitam.common.database.builder.query.QueryHelper.*;
 
    Query query1 = match("Title", "titre").setDepthLimit(4);
-   Query query2 = and(gt("StartDate", dateFormat.parse("2014-03-25")), lte("EndDate", dateFormat.parse("2014-04-25"))).setDepthLimit(0);
+   Query query2 = and(gt("StartDate", dateFormat.parse("2014-03-25")), 
+         lte("EndDate", dateFormat.parse("2014-04-25")))
+         .setDepthLimit(0);
    Query query3 = exists("FilePlanPosition");
-   SelectMultiQuery select = new SelectMultiQuery().addRoots("id0").addQueries(query1, query2, query3)
-       .setLimitFilter(0, 100).addProjection(id(), "Title", type(), parents(), object());
+   SelectMultiQuery select = new SelectMultiQuery().addRoots("id0")
+         .addQueries(query1, query2, query3)
+         .setLimitFilter(0, 100)
+         .addProjection(id(), "Title", type(), parents(), object());
    JsonNode json = select.getFinalSelect();
 
 1. Cette requête commence avec le Unit id0. A partir de ce Unit, on cherche des Units qui sont fils avec une distance d'au plus 4 du noeud id0 et où Title contient "titre", ce qui donne une nouvelle liste d'Ids.
@@ -498,10 +505,13 @@ A noter qu'il aurait été possible d'optimiser cette requête comme suit :
    static include fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.*;
    static include fr.gouv.vitam.common.database.builder.query.QueryHelper.*;
 
-   Query query2 = and(match("Title", "titre"), gt("StartDate", dateFormat.parse("2014-03-25")), lte("EndDate", dateFormat.parse("2014-04-25"))).setDepthLimit(4);
+   Query query2 = and(match("Title", "titre"), gt("StartDate", dateFormat.parse("2014-03-25")), 
+         lte("EndDate", dateFormat.parse("2014-04-25"))).setDepthLimit(4);
    Query query3 = exists("FilePlanPosition");
-   SelectMultiQuery select = new SelectMultiQuery().addRoots("id0").addQueries(query2, query3)
-       .setLimitFilter(0, 100).addProjection(id(), "Title", type(), parents(), object());
+   SelectMultiQuery select = new SelectMultiQuery().addRoots("id0")
+         .addQueries(query2, query3)
+         .setLimitFilter(0, 100)
+         .addProjection(id(), "Title", type(), parents(), object());
    JsonNode json = select.getFinalSelect();
 
 Car la requête 1 et 2 sont unifiées en une seule.

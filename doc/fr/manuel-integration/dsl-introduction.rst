@@ -34,7 +34,7 @@ Il existe des Helpers en Java pour construire les requêtes au bon format (hors 
 - **Query** qui sont des arguments d'une Request
 
   - fr.gouv.vitam.common.database.builder.query avec BooleanQuery, CompareQuery, ... et surtout le **QueryHelper** et le **VitamFieldsHelper** pour les champs protégés (commençant par un '#')
-  - dans le cas de update fr.gouv.vitam.common.database.builder.action avec AddAction, IncAction, ... et surtout le **UpdateActionHelper***
+  - dans le cas de update fr.gouv.vitam.common.database.builder.action avec AddAction, IncAction, ... et surtout le **UpdateActionHelper**
 
 Collections Units et Objects uniquement
 ---------------------------------------
@@ -159,39 +159,39 @@ Les commandes de la Query peuvent être :
 
 Une query est exprimée avec des opérateurs (inspirés de MongoDB / Elastic)
 
-+----------------------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
-| Catégorie                  | Opérateurs                               | Arguments                                  | Commentaire                                                                  |
-+============================+==========================================+============================================+==============================================================================+
-| Accès direct               | $path                                    | identifiants                               | Accès direct à un noeud                                                      |
-+----------------------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
-| Booléens                   | $and, $or, $not                          | opérateurs                                 | Combinaison logique d'opérateurs                                             |
-+----------------------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
-| Comparaison                | $eq, $ne, $lt, $lte, $gt, $gte           | Champ et valeur                            | Comparaison de la valeur d'un champ et la valeur passée en argument          |
-+----------------------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
-|                            | $range                                   | Champ, $lt, $lte, $gt, $gte et valeurs     | Comparaison de la valeur d'un champ avec l'intervalle passé en argument      |
-+----------------------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
-| Existence                  | $exists, $missing, $isNull               | Champ                                      | Existence d'un champ                                                         |
-+----------------------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
-| Tableau                    | $in, $nin                                | Champ et valeurs                           | Présence de valeurs dans un tableau                                          |
-+----------------------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
-|                            | $size                                    | Champ et taille                            | Comparaison (égale) de la taille d'un tableau                                |
-+----------------------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
-|                            | [n] **UNSUPPORTED**                      | Position (n >= 0)                          | Élément d'un tableau                                                         |
-+----------------------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
-| Textuel                    | $term, $wildcard                         | Champ, mot clef                            | Comparaison de champs mots-clefs à valeur exacte                             |
-+----------------------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
-|                            | $match, $matchPhrase, $matchPhrasePrefix | Champ, phrase, $max_expansions (optionnel) | Recherche plein texte soit sur des mots, des phrases ou un préfixe de phrase |
-+                            +------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
-|                            | $regex                                   | Champ, Expression régulière                | Recherche via une expression régulière                                       |
-+                            +------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
-|                            | $search                                  | Champ, valeur                              | Recherche du type moteur de recherche                                        |
-+                            +------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
-|                            | $flt, $mlt                               | Champ, valeur                              | Recherche « More Like This », soit par valeurs approchées                    |
-+----------------------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
-| Géomatique                 | $geometry, $box, $polygon, $center       | Positions                                  | Définition d'une position géographique                                       |
-+----------------------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
-| **UNSUPPORTED**            | $geoWithin, $geoIntersects, $near        | Une forme                                  | Recherche par rapport à une forme géométrique                                |
-+----------------------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
++-----------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
+| Catégorie       | Opérateurs                               | Arguments                                  | Commentaire                                                                  |
++=================+==========================================+============================================+==============================================================================+
+| Accès direct    | $path                                    | identifiants                               | Accès direct à un noeud                                                      |
++-----------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
+| Booléens        | $and, $or, $not                          | opérateurs                                 | Combinaison logique d'opérateurs                                             |
++-----------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
+| Comparaison     | $eq, $ne, $lt, $lte, $gt, $gte           | Champ et valeur                            | Comparaison de la valeur d'un champ et la valeur passée en argument          |
++-----------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
+|                 | $range                                   | Champ, $lt, $lte, $gt, $gte et valeurs     | Comparaison de la valeur d'un champ avec l'intervalle passé en argument      |
++-----------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
+| Existence       | $exists, $missing, $isNull               | Champ                                      | Existence d'un champ                                                         |
++-----------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
+| Tableau         | $in, $nin                                | Champ et valeurs                           | Présence de valeurs dans un tableau                                          |
++-----------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
+|                 | $size                                    | Champ et taille                            | Comparaison (égale) de la taille d'un tableau                                |
++-----------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
+|                 | [n] **UNSUPPORTED**                      | Position (n >= 0)                          | Élément d'un tableau                                                         |
++-----------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
+| Textuel         | $term, $wildcard                         | Champ, mot clef                            | Comparaison de champs mots-clefs à valeur exacte                             |
++-----------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
+|                 | $match, $matchPhrase, $matchPhrasePrefix | Champ, phrase, $max_expansions (optionnel) | Recherche plein texte soit sur des mots, des phrases ou un préfixe de phrase |
++-----------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
+|                 | $regex                                   | Champ, Expression régulière                | Recherche via une expression régulière                                       |
++-----------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
+|                 | $search                                  | Champ, valeur                              | Recherche du type moteur de recherche                                        |
++-----------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
+|                 | $flt, $mlt                               | Champ, valeur                              | Recherche « More Like This », soit par valeurs approchées                    |
++-----------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
+| Géomatique      | $geometry, $box, $polygon, $center       | Positions                                  | Définition d'une position géographique                                       |
++-----------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
+| **UNSUPPORTED** | $geoWithin, $geoIntersects, $near        | Une forme                                  | Recherche par rapport à une forme géométrique                                |
++-----------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
 
 Chaque Query dispose éventuellement d'arguments additionnels pour gérer l'arborescence :
 
@@ -386,7 +386,7 @@ Des champs sont protégés dans les requêtes :
 
 - Spécifiques pour les Units
 
-  - **#unittype** est la typologie du Unit (Arbre HOLLDING_UNIT, Plan FILING_UNIT ou ArchiveUnit INGEST)
+  - **#unittype** est la typologie du Unit (Arbre **HOLLDING_UNIT**, Plan **FILING_UNIT** ou ArchiveUnit **INGEST**)
   - **#nbunits** est le nombre de fils immédiats à un Unit donné
   - **#object** est l'objet associé à un Unit (s'il existe)
   - **#type** est le type d'item (Document Type)
@@ -395,7 +395,7 @@ Des champs sont protégés dans les requêtes :
 
 - Spécifiques pour les Objects
 
-  - **#type** est le type d'item (Type d'Objet : Document, Audio, Video, Image, Text, ...)
+  - **#type** est le type d'item (Type d'Objet : **Document**, **Audio**, **Video**, **Image**, **Text**, ...)
   - **#nbobjects** est le nombre d'objets binaires (usages/version) associé à cet objet
   - **#qualifiers** est la liste des qualifiers disponibles
 
