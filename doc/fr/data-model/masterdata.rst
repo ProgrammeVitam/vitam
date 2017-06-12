@@ -270,6 +270,7 @@ Exemple de JSON stocké en base
       "_id": "aefqaaaaaahbl62nabkzgak3k6qtf3aaaaaq",
       "_tenant": 0,
       "Name": "SIA archives nationales",
+      "Identifier": "IC-000012",
       "Description": "Contrat d'accès - SIA archives nationales",
       "Status": "ACTIVE",
       "CreationDate": "2017-04-10T11:30:33.798",
@@ -322,6 +323,9 @@ Détail des champs
 "Name" : nom du contrat d'entrée unique par tenant. 
   Il s'agit d'une chaîne de caractères.
 
+"Identifier" : Identifiant signifiant donné au contrat.
+  Il s'agit d'une chaîne de caractères.
+
 "Description": description du contrat d'entrée. 
   Il s'agit d'une chaîne de caractères.
 
@@ -363,6 +367,7 @@ Exemple de JSON stocké en base
     "_id": "aefqaaaaaahbl62nabkzgak3k6qtf3aaaaaq",
     "_tenant": 0,
     "Name": "SIA archives nationales",
+    "Identifier": "AC-000009",
     "Description": "Contrat d'accès - SIA archives nationales",
     "Status": "ACTIVE",
     "CreationDate": "2017-04-10T11:30:33.798",
@@ -415,6 +420,9 @@ Détail des champs
 "Name" : nom du contrat d'entrée unique par tenant. 
   Il s'agit d'une chaîne de caractères.
 
+"Identifier" : Identifiant signifiant donné au contrat.
+  Il s'agit d'une chaîne de caractères.
+
 "Description": description du contrat d'accès. 
   Il s'agit d'une chaîne de caractères.
 
@@ -456,7 +464,7 @@ Exemple de JSON stocké en base
   {
     "_id": "aegaaaaaaehlfs7waax4iak4f52mzriaaaaq",
     "_tenant": 1,
-    "Identifier": "ArchiveProfile0",
+    "Identifier": "PR-000003",
     "Name": "ArchiveProfile0",
     "Description": "aDescription of the Profile",
     "Status": "ACTIVE",
@@ -503,7 +511,7 @@ Détail des champs
 
 "_tenant": Identifiant du tenant.
 
-"Identifier": Chaîne de caractères. Indique l'identifiant du profil d'archivage. 
+"Identifier": Chaîne de caractères. Indique l'identifiant signifiant du profil d'archivage. 
 
 "Name": Chaîne de caractères unique par tenant. Indique le nom du profil d'archivage.
 
