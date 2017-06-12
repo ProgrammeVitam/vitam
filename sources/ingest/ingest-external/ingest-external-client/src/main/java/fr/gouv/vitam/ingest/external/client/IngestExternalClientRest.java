@@ -273,7 +273,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         }
     }
 
-    @Override public boolean wait(int tenantId, String processId, ProcessState state, int nbTry, long timeout, TimeUnit timeUnit)
+    @Override public boolean wait(int tenantId, String processId, ProcessState state, int nbTry, long timeWait, TimeUnit timeUnit)
         throws VitamException {
         for (int i = 0; i < nbTry; i++) {
             final ItemStatus itemStatus = this.getOperationProcessStatus(processId, tenantId);
@@ -293,10 +293,10 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
             }
 
             if (null != timeUnit) {
-                timeout = timeUnit.toMillis(timeout);
+                timeWait = timeUnit.toMillis(timeWait);
             }
             try {
-                Thread.sleep(timeout);
+                Thread.sleep(timeWait);
             } catch (InterruptedException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
@@ -435,6 +435,12 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         headers.add(GlobalDataRest.X_CONTEXT_ID, ProcessAction.INIT);
+        /*
+         *TODO: 6/12/17 should be
+         * headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
+         * headers.add(GlobalDataRest.X_ACTION, ProcessAction.INIT);
+         * The method should be POST
+         */
 
         Response response = null;
         try {

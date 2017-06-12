@@ -23,7 +23,7 @@ Les principaux modules sont :
 |
 |--- processing-engine-client: client de module processing-engine
 |
-|--- processing-management: gestion de workflow
+|--- processing-management: gestion de traitement des processus avec des workflows
 |
 |--- processing-management-client: client de module processing-management
 
@@ -32,17 +32,19 @@ Les principaux modules sont :
 
 Un modèle a été mis en place pour permettre la remontée et l'agrégation des status des différents item du worflow.
 
-Un état du worflow utilise l'objet **ItemStatus** qui contient :
+Un état d'un processus peut être: PAUSE, RUNNING, COMPLETED
+
+Un statut du worflow utilise l'objet **ItemStatus** qui contient :
 * itemId : l'identifiant de l'item de processus résponsable du status (identifiant de step, handler, transaction, etc)
 * statusMeter : une liste de nombre de code status (nombre de OK, KO, WARNING, etc)
 * globalStatus : un status global
 * une liste de données remontée par l'item du processus (comme messageIdentifier)
 
-Les états du processus de workflow utilisent un objet composite **CompositeItemStatus** qui est un **ItemStatus** et contient une Map d'états de workflow de ses sous-items.
+Les statuts du processus de workflow utilisent un objet composite **CompositeItemStatus** qui est un **ItemStatus** et contient une Map de statut de workflow de ses sous-items.
 
 Un workflow est défini par un fichier json contenant les steps ainsi que toutes les actions qui doivent être exécutées par les steps. Chaque Step et Action doivent être identifiés par un ID unique qui est également utilisé pour récupérer les messages.
 
-
+La combinaison d'un état du processus (PAUSE, RUNNING, COMPLETED) et de son statut qui peut être (OK, WARNING, KO, FATAL) nous donne un vue global sur le processus. Le processus peut être en état COMPLETED avec tous les statut possible. Il faut être en état RUNNING ou PAUSE avec le statut de l'exécution des dernières étapes.
 
 3. Process Distributor
 ----------------------

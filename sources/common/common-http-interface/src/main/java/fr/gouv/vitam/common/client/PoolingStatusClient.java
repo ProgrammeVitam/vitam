@@ -42,17 +42,22 @@ public interface PoolingStatusClient extends VitamAutoCloseable {
 
     /**
      * This is a helper method for checking the status of an operation
+     * Loop until :
+     * - nbTry is reached
+     * - state is completed
+     * - state is pause and status ordinal is higher than started
+     *
      * @param tenantId
      * @param processId operationId du processWorkflow
      * @param state The state wanted
      * @param nbTry Number of retry
-     * @param timeout
-     * @param timeUnit
+     * @param timeWait time to sleep
+     * @param timeUnit timeUnit to apply to timeWait
      * @return true if completed false else
      */
-    public boolean wait(int tenantId, String processId, ProcessState state, int nbTry, long timeout, TimeUnit timeUnit) throws VitamException;
+    public boolean wait(int tenantId, String processId, ProcessState state, int nbTry, long timeWait, TimeUnit timeUnit) throws VitamException;
 
-    public boolean wait(int tenantId, String processId, int nbTry, long timeout, TimeUnit timeUnit) throws VitamException;
+    public boolean wait(int tenantId, String processId, int nbTry, long timeWait, TimeUnit timeUnit) throws VitamException;
 
     public boolean wait(int tenantId, String processId, ProcessState state) throws VitamException;
 
