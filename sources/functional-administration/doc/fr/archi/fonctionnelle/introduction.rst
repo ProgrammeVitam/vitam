@@ -13,4 +13,5 @@ de la plate-forme VITAM. Pour l'instant, deux fonctionnalités de gestion prévu
 - gestion des contrats d'accès
 - gestion des contracts d'entrée
 - gestion des profiles
+- gestion des contextes
 

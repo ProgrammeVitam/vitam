@@ -55,7 +55,7 @@ Pour instancier son client en mode Production :
   AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
     
 
-Le client propose actuellement 14 méthodes : 
+Le client propose actuellement 18 méthodes : 
 
 .. code-block:: java
 
@@ -73,4 +73,10 @@ Le client propose actuellement 14 méthodes :
   createorUpdateAccessionRegister(AccessionRegisterDetail register);
   JsonNode getAccessionRegister(JsonNode query);
   JsonNode getAccessionRegisterDetail(JsonNode query);
+  
+  Status importContexts(List<ContextModel> ContextModelList)
+  RequestResponse<ContextModel> updateContext(String id, JsonNode queryDsl)
+  RequestResponse<ContextModel> findContexts(JsonNode queryDsl)
+  RequestResponse<ContextModel> findContextById(String id)
+  
 
