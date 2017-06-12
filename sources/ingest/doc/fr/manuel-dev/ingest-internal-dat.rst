@@ -22,28 +22,31 @@ ingest-internal
     |--- ingest-internal-client  : client ingest-internal qui sera utilisé par les autres modules 
     |                       interne de VITAM pour le service de dépôt des SIPs
 
-2. Classes métiers 
+2. Classes métiers
+
 Dans cette section, nous présentons quelques classes principales dans des modules/packages 
 qu'on a abordé ci-dessus.
 
-ingest-internal-model: 
--UploadResponseDTO.java : définir le modèle de réponse sur l'opération de dépôt SIP (upload). Il contient l'information
-sur le nom de fichier SIP, le code de retour VITAM, le code de retour HTTP, le message et le status.
+ingest-internal-model:
+
+-UploadResponseDTO.java : définir le modèle de réponse sur l'opération de dépôt SIP (upload). Il contient l'information sur le nom de fichier SIP, le code de retour VITAM, le code de retour HTTP, le message et le status.
 
 ingest-internal-api: 
+
 -UploadService.java : interface pour le service de dépôt interne.
 
 ingest-internal-core: 
--MetaDataImpl.java : implémenter des fonctionnalités de traitement sur le métadata, pré-défini
-dans -MetaData.java
+
+-MetaDataImpl.java : implémenter des fonctionnalités de traitement sur le métadata, pré-défini dans -MetaData.java
 
 ingest-internal-rest:
+
 - IngestInternalRessource.java : définir des ressources différentes pour le serveur REST ingest-internal
 - IngestInternalApplication.java : créer & lancer le serveur d'application avec une configuration 
 
 ingest-internal-client 
+
 - IngestInternalClient.java : interface client IngestInternal
 - IngestInternalInternalClientMock.java : mock client ingest-internal
-- IngestInternalClientRest.java : le client ingest-internal et des fonctionnalités en se connectant 
-au serveur REST
+- IngestInternalClientRest.java : le client ingest-internal et des fonctionnalités en se connectant au serveur REST
 

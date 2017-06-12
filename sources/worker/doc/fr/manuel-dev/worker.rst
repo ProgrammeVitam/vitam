@@ -26,6 +26,7 @@ Pour l'instant les uri suivantes sont déclarées :
 
 2.2 Registration
 ----------------
+
 Une partie registration permet de gérer la registration du Worker.
 
 La gestion de l'abonnement du *worker* auprès du serveur *processing* se fait à l'aide d'un ServletContextListener : *fr.gouv.vitam.worker.server.registration.WorkerRegistrationListener*.
@@ -33,6 +34,7 @@ La gestion de l'abonnement du *worker* auprès du serveur *processing* se fait �
 Le WorkerRegistrationListener va lancer l'enregistrement du *worker* au démarrage du serveur worker, dans un autre Thread utilisant l'instance *Runnable* : *fr.gouv.vitam.worker.server.registration.WorkerRegister*.
 
 L'execution du *WorkerRegister* essaie d'enregistrer le *worker* suivant un retry paramétrable dans la configuration du serveur avec :
+
 - un délai (registerDelay en secondes)
 - un nombre d'essai (registerTry)
 
@@ -80,8 +82,8 @@ Le fichier nommé "worker.db" qui sera créé dans le /vitam/data/processing
 Chaque worker est identifié par workerId et l'information générale du champs workerInfo. L'ensemble des actions suivantes sont traitées : 
   
 * Lors du redémarrage du distributor, il recharge la liste des workers enregistrés. Ensuite, il vérifie le status de chaque worker de la liste, 
-(serverPort:serverHost) en utilisant le WorkerClient. Si le worker qui n'est pas disponible, il sera supprimé de la liste des workers enregistrés 
-et la base sera mise à jour. 
+
+(serverPort:serverHost) en utilisant le WorkerClient. Si le worker qui n'est pas disponible, il sera supprimé de la liste des workers enregistrés et la base sera mise à jour. 
 
 * Lors de l'enregistrement/désenregistrement, la liste des workers enregistrés sera mis à jour (ajout/supression d'un worker).        
 
@@ -100,18 +102,18 @@ Lorsque le worker s'arrête ou se plante, ce worker doit être désenregistré.
 (implémenté de ServletContextListener) en utilisant le ProcessingManagementClient pour appeler le service de desenregistrement de distributeur.   
 
 * Si le worker se plante, il ne réponse plus aux requêtes de WorkerClient dans la "run()" WorkerThread et dans le catch() des exceptions de de traitement, 
+
 une demande de désenregistrement doit être appelé dans cette boucle.
 
- - le distributeur essaie de faire une vérification de status de workers en appelant checkStatusWorker() en plusieurs fois 
- (définit dans GlobalDataRest.STATUS_CHECK_RETRY). 
- - si après l'étape 1 le statut de worker est toujours indisponible, le distributeur va appeler la procédure de désenregistrement de ce worker de la liste 
- de worker enregistrés. 
+  - le distributeur essaie de faire une vérification de status de workers en appelant checkStatusWorker() en plusieurs fois définit dans GlobalDataRest.STATUS_CHECK_RETRY). 
+ - si après l'étape 1 le statut de worker est toujours indisponible, le distributeur va appeler la procédure de désenregistrement de ce worker de la liste de worker enregistrés. 
     
     
                 
 3. Worker-core
 **************
 Dans la partie Core, sont présents les différents Handlers nécessaires pour exécuter les différentes actions.
+
 - CheckConformityActionHandler
 - CheckObjectsNumberActionHandler
 - CheckObjectUnitConsistencyActionHandler
@@ -151,8 +153,8 @@ Chaque Handler a un constructeur sans argument et est lancé avec la commande :
 
 .. code-block:: java
 
-   CompositeItemStatus execute(WorkerParameters params, HandlerIO ioParam).
-..
+  CompositeItemStatus execute(WorkerParameters params, HandlerIO ioParam).
+  ..
 
 Le HandlerIO a pour charge d'assurer la liaison avec le Workspace et la mémoire entre tous les handlers d'un step.
 
@@ -160,10 +162,8 @@ La structuration du HandlerIO est la suivante :
 
 - des paramètres d'entrées (in) :
 
-
    - un nom (name) utilisé pour référencer cet élément entre différents handlers d'une même étape
    - une cible (uri) comportant un schema (WORKSPACE, MEMORY, VALUE) et un path :
-
 
       - WORKSPACE:path indique le chemin relatif sur le workspace
       - MEMORY:path indique le nom de la clef de valeur
@@ -323,14 +323,15 @@ Si nécessaire et si compatible, il est possible de passer par un mode MEMORY po
 3.3 Création d'un nouveau handler
 ---------------------------------
 La création d'un nouveaux handler doit être motivée par certaines conditions nécessaires :
+
 - lorsque qu'il n'y a pas de handler qui répond au besoin
 - lorsque rajouter la fonctionnalité dans un handler existant, le surcharge et le détourne de sa fonctionalité première
 - lorsque l'on veut refactorer un handler existant pour donner des fonctionalités 'un peu' plus 'élémentaires'
 
 Les handlers doivent étendrent la classe ActionHandler et implémenter la méthode execute.
-Lors de la création d'un nouveau handler, il faut ajouter une nouvelle instance, dans WorkerImpl.init pour enregistrer le
-handler dans le worker et définir le handler id.
-Celui ci sert de clé pour :
+Lors de la création d'un nouveau handler, il faut ajouter une nouvelle instance, dans WorkerImpl.init pour enregistrer le handler dans le worker et définir le handler id.
+Celui-ci sert de clé pour :
+
 - les messages dans logbook (vitam-logbook-messages_fr.properties) en fonction de la criticité
 - les fichiers json de définition des workflows json (exemple : DefaultIngestWorkflow.json)
 
@@ -353,8 +354,8 @@ Ce handler permet de contrôle de l'empreinte. Il comprend désormais 2 tâches 
 
 4.1.2 exécution
 ===============
-CheckConformityActionHandler recupère l'algorithme de Vitam (SHA-512) par l'input dans workflow
-et le fichier en InputStream par le workspace.
+
+CheckConformityActionHandler recupère l'algorithme de Vitam (SHA-512) par l'input dans workflow et le fichier en InputStream par le workspace.
 
 Si l'algorithme est différent que celui dans le manifest, il calcul l'empreinte de fichier en SHA-512
 
@@ -453,10 +454,12 @@ CA 2.2 : Vérification de la conformité de l'empreinte. (empreinte différent d
 
 4.1.5 modules utilisés
 ======================
+
 processing, worker, workspace et logbook
 
 4.1.4 cas d'erreur
 ==================
+
 XMLStreamException                          : problème de lecture SEDA
 InvalidParseOperationException              : problème de parsing du SEDA
 LogbookClientAlreadyExistsException         : un logbook client existe dans ce workflow
@@ -473,11 +476,11 @@ ContentAddressableStorageException          : erreur de stockage
 
 4.2.1 description
 =================
+
 Ce handler permet de comparer le nombre d'objet stocké sur le workspace et le nombre d'objets déclaré dans le manifest.
 
 4.3 Détail du handler : CheckObjectUnitConsistencyActionHandler
 ---------------------------------------------------------------
-
 
 Ce handler permet de contrôler la cohérence entre l'object/object group et l'ArchiveUnit.
 
@@ -547,6 +550,7 @@ TODO
 
 4.6.1 description
 =================
+
 Ce handler permet d'extraire le contenu du SEDA. Il y a :
 - extraction des BinaryDataObject et PhysicalDataObject
 - extraction des ArchiveUnit
@@ -559,7 +563,9 @@ Ce handler permet d'extraire le contenu du SEDA. Il y a :
 
 4.6.2 Détail des différentes maps utilisées :
 =============================================
+
 Map<String, String> dataObjectIdToGuid
+
     contenu         : cette map contient l'id du DO relié à son guid
     création        : elle est créé lors de la création du handler
     MAJ, put        : elle est populée lors de la lecture des BinaryDataObject et PhysicalDataObject
@@ -567,6 +573,7 @@ Map<String, String> dataObjectIdToGuid
     suppression     : c'est un clean en fin d'execution du handler
 
 Map<String, String> dataObjectIdToObjectGroupId :
+
     contenu         : cette map contient l'id du DO relié au groupe d'objet de la balise DataObjectGroupId ou DataObjectGroupReferenceId
     création        : elle est créé lors de la création du handler
     MAJ, put        : elle est populée lors de la lecture des BinaryDataObject et PhysicalDataObject
@@ -574,6 +581,7 @@ Map<String, String> dataObjectIdToObjectGroupId :
     suppression     : c'est un clean en fin d'execution du handler
 
 Map<String, GotObj> dataObjectIdWithoutObjectGroupId :
+
     contenu         : cette map contient l'id du DO relié à un groupe d'objet technique instanciés lors du parcours des objets.
     création        : elle est créé lors de la création du handler
     MAJ, put        : elle est populée lors du parcours des DO dans mapNewTechnicalDataObjectGroupToDO et extractArchiveUnitToLocalFile. Dans extractArchiveUnitToLocalFile, quand on découvre un DataObjectReferenceId et que cet Id se trouve dans dataObjectIdWithoutObjectGroupId alors on récupère l'objet et on change le statut isVisited à true.
@@ -583,6 +591,7 @@ Map<String, GotObj> dataObjectIdWithoutObjectGroupId :
 Le groupe d'objet technique GotObj contient un guid et un boolean isVisited, initialisé à false lors de la création. Le set à true est fait lors du parcours des units.
 
 Map<String, String> objectGroupIdToGuid
+
     contenu         : cette map contient l'id du groupe d'objet relié à son guid
     création        : elle est créé lors de la création du handler
     MAJ, put        : elle est populée lors du parcours des DO dans writeDataObjectInLocal et mapNewTechnicalDataObjectGroupToDO lors de la création du groupe d'objet technique
@@ -590,6 +599,7 @@ Map<String, String> objectGroupIdToGuid
     suppression     : c'est un clean en fin d'execution du handler
 
 Map<String, String> objectGroupIdToGuidTmp
+
     contenu         : c'est la même map que objectGroupIdToGuid
     création        : elle est créé lors de la création du handler
     MAJ, put        : elle est populée dans writeDataObjectInLocal
@@ -597,6 +607,7 @@ Map<String, String> objectGroupIdToGuidTmp
     suppression     : c'est un clean en fin d'execution du handler
 
 Map<String, List<String>> objectGroupIdToDataObjectId
+
     contenu         : cette map contient l'id du groupe d'objet relié à son ou ses DO
     création        : elle est créé lors de la création du handler
     MAJ, put        : elle est populée lors du parcours des DO dans writeDataObjectInLocal quand il y a une balise DataObjectGroupId ou DataObjectGroupReferenceId et qu'il n'existe pas dans objectGroupIdToDataObjectId.
@@ -604,6 +615,7 @@ Map<String, List<String>> objectGroupIdToDataObjectId
     suppression     : c'est un clean en fin d'execution du handler
 
 Map<String, List<String>> objectGroupIdToUnitId
+
     contenu         : cette map contient l'id du groupe d'objet relié à ses AU
     création        : elle est créé lors de la création du handler
     MAJ, put        : elle est populée lors du parcours des units dans extractArchiveUnitToLocalFile quand il y a une balise DataObjectGroupId ou DataObjectGroupReferenceId et qu'il nexiste pas dans objectGroupIdToUnitId sinon on ajoute dans la liste des units de la liste
@@ -611,6 +623,7 @@ Map<String, List<String>> objectGroupIdToUnitId
     suppression     : c'est un clean en fin d'execution du handler
 
 Map<String, DataObjectInfo> objectGuidToDataObject
+
     contenu         : cette map contient le guid du data object et DataObjectInfo
     création        : elle est créé lors de la création du handler
     MAJ, put        : elle est populer lors de l'extraction des infos du data object vers le workspace
@@ -618,6 +631,7 @@ Map<String, DataObjectInfo> objectGuidToDataObject
     supression      : c'est un clean en fin d'execution du handler
 
 Map<String, String> unitIdToGuid
+
     contenu         : cette map contient l'id de l'unit relié à son guid
     création        : elle est créé lors de la création du handler
     MAJ, put        : elle est populée lors du parcours des units dans extractArchiveUnitToLocalFile
@@ -625,6 +639,7 @@ Map<String, String> unitIdToGuid
     suppression     : c'est un clean en fin d'execution du handler
 
 Map<String, String> unitIdToGroupId
+
     contenu         : cette map contient l'id de l'unit relié à son group id
     création        : elle est créé lors de la création du handler
     MAJ, put        : elle est populée lors du parcours des DO dans writeDataObjectInLocal quand il y a une balise DataObjectGroupId ou DataObjectGroupReferenceId
@@ -632,6 +647,7 @@ Map<String, String> unitIdToGroupId
     suppression     : c'est un clean en fin d'execution du handler
 
 Map<String, String> objectGuidToUri
+
     contenu         : cette map contient le guid du BDO relié à son uri définis dans le manifest
     création        : elle est créé lors de la création du handler
     MAJ, put        : elle est poppulée lors du parcours des DO dans writeDataObjectInLocal quand il rencontre la balise uri
@@ -642,6 +658,7 @@ sauvegarde des maps (dataObjectIdToObjectGroupId, objectGroupIdToGuid) dans le w
 
 4.6.3 Vérifier les ArchiveUnit du SIP
 =====================================
+
 Dans les cas où le SIP contient un objet numérique référencé par un groupe d'objet et qu'une unité archiviste
 référence cet objet directement (au lieu de déclarer le GOT), le résultat attendu est un statut KO au niveau de 
 l'étape STP_INGEST_CONTROL_SIP dans l'action CHECK_MANIFEST. Ce contrôle est effectué dans la fonction 
@@ -719,20 +736,25 @@ Persistence des objets dans l'offre de stockage depuis le workspace.
 
 Ce handler permet d'identifier et contrôler automatiquement le format des objets versés.
 Il s'exécute sur les différents ObjectGroups déclarés dans le manifest. Pour chaque objectGroup, voici ce qui est effectué :
+
 - récupération du JSON de l'objectGroup présent sur le Workspace
 - transformation de ce Json en une map d'id d'objets / uri de l'objet associée
 - boucle sur les objets :
+
  - téléchargement de l'objet (File) depuis le Workspace
  - appel l'outil de vérification de format (actuellement Siegfried) en lui passant le path vers l'objet à identifier + récupération de la réponse.
  - appel de l'AdminManagement pour faire une recherche getFormats par rapport au PUID récupéré.
  - mise à jour du Json : le format récupéré par Siegfried est mis à jour dans le Json (pour indexation future).
  - construction d'une réponse.
+
 - sauvegarde du JSON de l'objectGroup dans le Workspace.
 - aggrégation des retours pour générer un message + mise à jour du logbook.
 
 4.10.2 Détail des différentes maps utilisées :
 ==============================================
+
 Map<String, String> objectIdToUri
+
     contenu         : cette map contient l'id du BDO associé à son uri.
     création        : elle est créée dans le Handler après récupération du json listant les ObjectGroups
     MAJ, put        : elle est populée lors de la lecture du json listant les ObjectGroups.
@@ -749,6 +771,7 @@ Ce Handler est exécuté dans l'étape "Contrôle et traitements des objets", ju
 
 Dans le traitement du Handler, sont mis à jour uniquement les journaux de cycle de vie des ObjectGroups.
 Les Outcome pour les journaux de cycle de vie peuvent être les suivants :
+
 - Le format PUID n'a pas été trouvé / ne correspond pas avec le référentiel des formats.
 - Le format du fichier n'a pas pu être trouvé.
 - Le format du fichier a été complété dans les métadonnées (un "diff" est généré et ajouté).
@@ -760,6 +783,7 @@ Les Outcome pour les journaux de cycle de vie peuvent être les suivants :
 =======================
 
 Le Handler utilise les modules suivants :
+
 - Workspace (récupération / copie de fichiers)
 - Logbook (mise à jour des journaux de cycle de vie des ObjectGroups)
 - Common-format-identification (appel pour analyse des objets)
@@ -769,6 +793,7 @@ Le Handler utilise les modules suivants :
 ===================
 
 Les différentes exceptions pouvant être rencontrées :
+
 - ReferentialException : si un problème est rencontré lors de l'interrogation du référentiel des formats de Vitam
 - InvalidParseOperationException/InvalidCreateOperationException : si un problème est rencontré lors de la génération de la requête d'interrogation du référentiel des formats de Vitam
 - FormatIdentifier*Exception : si un problème est rencontré avec l'outil d'analyse des formats (Siegfried)
@@ -785,7 +810,9 @@ Les différentes exceptions pouvant être rencontrées :
 ==================
 
 Ce handler permet de finaliser le processus d'entrée d'un SIP. Cet Handler est un peu spécifique car il sera lancé même si une étape précédente tombe en erreur.
+
 Il permet de générer un xml de notification qui sera :
+
 - une notification KO si une étape du workflow est tombée en erreur.
 - une notification OK si le process est OK, et que le SIP a bien été intégré sans erreur.
 
@@ -795,12 +822,15 @@ La première étape dans ce handler est de déterminer l'état du Workflow : OK 
 ==============================================
 
 Map<String, Object> archiveUnitSystemGuid
+
     contenu         : cette map contient la liste des archives units avec son identifiant tel que déclaré dans le manifest, associé à son GUID.
 
 Map<String, Object> dataObjectSystemGuid
+
     contenu         : cette map contient la liste Data Objects avec leur GUID généré associé à l'identifiant déclaré dans le manifest.
 
 Map<String, Object> bdoObjectGroupSystemGuid
+
     contenu         : cette map contient la liste groupes d'objets avec leur GUID généré associé à l'identifiant déclaré dans le manifest.
 
 4.11.3 exécution
@@ -814,11 +844,13 @@ Même si le processus est KO avant, le Handler sera exécuté.
 
 *Cas KO :*
 Pour l'opération d'ingest en cours, on va récupérer dans les logbooks plusieurs informations :
+
 - récupération des logbooks operations générés par l'opération d'ingest.
 - récupération des logbooks lifecycles pour les archive units présentes dans le SIP.
 - récupération des logbooks lifecycles pour les groupes d'objets présents dans le SIP.
 
 Le Handler s'appuie sur des fichiers qui lui sont transmis. Ces fichiers peuvent ne pas être présents si jamais le process est en erreur avec la génération de ces derniers.
+
 - un fichier globalSedaParameters.file contenant des informations sur le manifest (messageIdentifier).
 - un fichier mapsUnits.file : présentant une map d'archive unit
 - un fichier mapsDO.file : présentant la liste des data objects
@@ -828,11 +860,14 @@ A noter que ces fichiers ne sont pas obligatoires pour le bon déroulement du ha
 
 Le handler va alors procéder à la génération d'un XML à partir des informationss aggrégées.
 Voici sa structure générale :
+
 - MessageIdentifier est rempli avec le MessageIdentifier présent dans le fichier globalSedaParameters. Il est vide si le fichier n'existe pas.
 - dans la balise ReplyOutcome :
+
   - dans Operation, on aura une liste d'events remplis par les différentes opérations KO et ou FATAL. La liste sera forcément remplie avec au moins un event. Cette liste est obtenue par l'interrogation de la collection LogbookOperations.
   - dans ArchiveUnitList, on aura une liste d'events en erreur. Cette liste est obtenue par l'interrogation de la collection LogbookLifecycleUnits.
   - dans DataObjectList, on aura une liste d'events en erreur. Cette liste est obtenue par l'interrogation de la collection LogbookLifecycleObjectGroups.
+
 
 Le XML est alors enregistré sur le Workspace.
 
@@ -877,12 +912,15 @@ sous la responsabilité du service d'archives, pour chaque tenant.
 ================================
 
 Map<String, String> objectGroupIdToGuid
+
     contenu         : cette map contient l'id du groupe d'objet relié à son guid
 
 Map<String, String> archiveUnitIdToGuid
+
 	contenu         : cette map contient l'id du groupe d'objet relié à son guid
 
 Map<String, Object> dataObjectIdToDetailDataObject
+
 	contenu         : cette map contient l'id du data object relié à ses informations
 
 
@@ -894,6 +932,7 @@ L'alimentation du registre des fonds a lieu pendant la phase de finalisation de 
 une fois que les objets et les units sont rangés. ("stepName": "STP_INGEST_FINALISATION")
 
 Le Registre des Fonds est alimenté de la manière suivante:
+
 	-- un identifiant unique
 	-- des informations sur le service producteur (OriginatingAgency)
 	-- des informations sur le service versant (SubmissionAgency), si différent du service producteur
@@ -930,13 +969,16 @@ du SIP à télécharger.
 Le handler cherche d'abord dans globalSEDAParameters.json le nom du contrat déclaré dans le SIP associé au balise <ArchivalAgreement>. 
 Si il n'y as pas de déclaration de contrat d'entrée, le handler retourne le status OK. Si il y a un déclaration de contrat, une liste 
 des opérations suivantes sera effectué : 
+
 	- recherche du contrat d'entrée déclaré dans la référentiel de contrat  
 	- vérification de contrat : 
+
 			si le contrat non trouvé ou contrat trouvé mais en status INACTIVE, le handler retourne le status KO
 			si le contrat trouvé et en status ACTIVE, le handler retourne le status OK
    																 
    																 
-L'exécution de l'algorithme est présenté dans le preudo-code ci-dessous:	
+L'exécution de l'algorithme est présenté dans le preudo-code ci-dessous:
+
 	Si (il y as pas de déclaration de contrat)
 		handler retourne OK
 	Autrement

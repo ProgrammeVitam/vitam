@@ -3,7 +3,7 @@ DAT : module Graph
 
 Ce document présente l'ensemble de manuel développement concernant l'algorithme de graph qui représente le story #510, qui contient :
 
-- modules & packages
+modules & packages
 --------------------------
 
 
@@ -32,11 +32,13 @@ Après la parse de Unit recursive et la creation d'arbre orienté.Le choix de la
 ne possède pas  un up alors c'est un racine .
 
 
-    |---DirectedGraph  : Un graphe orienté (ou digraphe) est un ensemble de sommets et une collection de bords orientés qui relie chacun une paire ordonnée de sommets. 
+    |---DirectedGraph  : Un graphe orienté (ou digraphe) est un ensemble de sommets et une collection de bords orientés qui relie chacun une paire ordonnée de sommets.
+
     Un bord dirigé pointe du premier sommet de la paire et les points au deuxième sommet de la paire. 
     
     
-    |---Graph Un graphe est composé d'un ensemble de sommets et un ensemble d'arêtes . Chaque arête représente une liaison entre deux sommets. 
+    |---Graph Un graphe est composé d'un ensemble de sommets et un ensemble d'arêtes . Chaque arête représente une liaison entre deux sommets.
+
     Deux sommets sont voisins s'ils sont reliés par un bord , et le degré d'un sommet est le nombre de ses voisins.
     Graph data type. Graph-processing algorithms généralement d'abord construit une représentation interne d'un graphe en ajoutant des arêtes (edges),
     puis le traiter par itération sur les sommets et sur les sommets adjacents à un sommet donné.

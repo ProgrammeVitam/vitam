@@ -52,6 +52,7 @@ Les plugins ne sont pas pour l'instant thread safe dans Vitam, ce qui signifie q
 Après ses traitements, Plugin doit retourner au Worker un ItemStatus. Quand le Worker reçoit le résultat : 
 
 - Il doit le traduire en utilisant par défaut le fichier de properties VITAM (vitam-logbook-messages_fr.properties) 
+
 si les clés ne sont pas définies dans ce fichier alors il va chercher la valeur du label dans le fichier properties 
 du plug-in puis envoit à Engine pour écrire dans les journaux des opération. 
 

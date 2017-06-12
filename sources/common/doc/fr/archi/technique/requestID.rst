@@ -51,4 +51,7 @@ Dans le **VitamSession**, lorsque qu'on fait un **setRequestId**, cela positionn
 
 Dans la configuration de Logback, on rajoute **%X{X-REQUEST-ID}** dans le pattern de log. Par exemple :
 
+.. code-block:: xml
+
   <pattern>%d{ISO8601} [%thread] [**%X{X-REQUEST-ID}**] %-5level %logger - %replace(%caller{1..2}){'Caller\+1	 at |\n',''} : %msg %rootException{5}%n</pattern>
+

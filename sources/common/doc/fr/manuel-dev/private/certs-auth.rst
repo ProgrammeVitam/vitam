@@ -11,8 +11,7 @@ Ce document présente comment nous les crééons
 
 - keystore.jks : contient le certificat de la clé privé du serveur 
 - truststore.jks : contient la chaîne des CAs qui génère ce certificat de clients & serveurs  
-- granted_certs.jks : list de certificats du client qui sont autorisés à faire des requêtes vers 
-le serveur
+- granted_certs.jks : list de certificats du client qui sont autorisés à faire des requêtes vers le serveur
 - le client qui doit présenter sa clé privée & le certificat,lors d'une requête d'authentification. 
 
 

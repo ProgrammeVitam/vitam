@@ -3,25 +3,24 @@ Paramètres
 
 Présentation
 ------------
-Dans tout le projet Vitam sont utilisés différents paramètres transmis aux différentes classes ou au différentes
-méthodes. Afin de ne pas bloquer toute évolution, il est recommandé d'utiliser une classe de paramètres (afin d'éviter
- de modifier le nombre de paramètres en signature de méthodes) ou d'utiliser une Map.
+Dans tout le projet Vitam sont utilisés différents paramètres transmis aux différentes classes ou au différentes méthodes. Afin de ne pas bloquer toute évolution, il est recommandé d'utiliser une classe de paramètres (afin d'éviter de modifier le nombre de paramètres en signature de méthodes) ou d'utiliser une Map.
 
 Principe
 --------
+
 L'idée ici est de mettre en place une mécanique de paramètres commune à tous les modules Vitam. Pour se faire, une
 interface VitamParameter a été créée.
-Afin de créer une nouvelle classe de paramètre, il faut alors implémenter cette interface qui retourne une Map de
-paramètre et un Set de noms de paramètre obligatoires.
+Afin de créer une nouvelle classe de paramètre, il faut alors implémenter cette interface qui retourne une Map de paramètre et un Set de noms de paramètre obligatoires.
 Cette interface est générique et prend comme typage une énum qui dispose du nom des paramètres.
 
-Une classe utilitaire, ParameterHelper a été mise en place afin de vérifier les champs obligatoires. Elle s'appuie
-sur les deux méthodes définies dans l'interface VitamParameter.
+Une classe utilitaire, ParameterHelper a été mise en place afin de vérifier les champs obligatoires. Elle s'appuie sur les deux méthodes définies dans l'interface VitamParameter.
 
 Mise en place
 -------------
+
 Nom des paramètres
 ******************
+
 Nous souhaitons mettre en place une classe de paramètre pour le module storage, StorageParameter.
 Il faut dans un premier temps une énum disposant des noms de paramètre.
 
@@ -44,6 +43,7 @@ Il faut dans un premier temps une énum disposant des noms de paramètre.
 
 Interface
 *********
+
 Ensuite, une interface va définir les différentes methodes nécéssaires à la classe de paramètre ("définition du
 contrat") tout en héritant de
 l'interface VitamParameter (afin que la classe implémentant cette nouvelle interface implémente les deux méthodes
@@ -93,6 +93,7 @@ getMapParameters et getMandatoriesParameters.
 
 Possibilité d'avoir une classe abstraite
 ****************************************
+
 Le but est d'implémenter cette interface. Cependant, il est possible de vouloir plusieurs classes de paramètres en
 fonction des besoins. Il est alors possible de mettre en place une classe abstraite qui implémente les méthodes
 communes aux différentes classes de paramètre (par exemple les getters / setters).
@@ -151,12 +152,11 @@ communes aux différentes classes de paramètre (par exemple les getters / sette
         }
     }
 
+
 Possibilité d'avoir une factory
 *******************************
-On voit dans le code d'exemple l'utilisation d'une factory qui permet d'obetnir la bonne implémentation de la classe
-de paramètres. En effet, au travers de la factory il est facilement possible de mettre en place les champs requis en
-fonction des besoins. Par exemple, certains paramètres peuvent être obligatoire pour toutes les implémentations alors
- que certains sont en plus requis pour certaines implémentations.
+
+On voit dans le code d'exemple l'utilisation d'une factory qui permet d'obetnir la bonne implémentation de la classe de paramètres. En effet, au travers de la factory il est facilement possible de mettre en place les champs requis en fonction des besoins. Par exemple, certains paramètres peuvent être obligatoire pour toutes les implémentations alors que certains sont en plus requis pour certaines implémentations.
 Voir ici s'il n'est pas possible de faire une factory commune.
 
 .. code-block:: java
@@ -176,6 +176,7 @@ Voir ici s'il n'est pas possible de faire une factory commune.
 
 Code exemple
 ************
+
 Ensuite, là où les paramètres sont nécéssaires, il suffit d'utiliser l'interface afin d'être le plus générique possible.
 
 .. code-block:: java
@@ -198,7 +199,10 @@ Ensuite, là où les paramètres sont nécéssaires, il suffit d'utiliser l'inte
     }
 
 Exemple d'utilisation dans le code Vitam
-----------------------------------------
+-----------------------------------------
+
 Il est possible de retrouver l'utilisation des paramètres génériques Vitam dans les modules suivants :
+
 * Processing
 * Logbook
+
