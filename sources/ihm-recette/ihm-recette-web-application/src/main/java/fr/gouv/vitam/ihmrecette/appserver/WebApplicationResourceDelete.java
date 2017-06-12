@@ -542,7 +542,7 @@ public class WebApplicationResourceDelete {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteMasterdaAccessContract() {
-        return deleteContract(FunctionalAdminCollections.ACCESS_CONTRACT);
+        return deleteMasterDataCollection(FunctionalAdminCollections.ACCESS_CONTRACT);
 
     }
 
@@ -555,13 +555,33 @@ public class WebApplicationResourceDelete {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteMasterdaIngestContract() {
-        return deleteContract(FunctionalAdminCollections.INGEST_CONTRACT);
+        return deleteMasterDataCollection(FunctionalAdminCollections.INGEST_CONTRACT);
 
     }
 
-    private Response deleteContract(FunctionalAdminCollections collection) {
-        if (!(collection.equals(FunctionalAdminCollections.ACCESS_CONTRACT) ||
-            collection.equals(FunctionalAdminCollections.INGEST_CONTRACT))) {
+    /**
+     * Delete the masterdata for ingestContract in database
+     *
+     * @return Response
+     */
+    @Path("masterdata/profile")
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteMasterdaProfile() {
+        return deleteMasterDataCollection(FunctionalAdminCollections.PROFILE);
+
+    }
+
+
+    private Response deleteMasterDataCollection(FunctionalAdminCollections collection) {
+        if (!(
+                collection.equals(FunctionalAdminCollections.ACCESS_CONTRACT)
+                        ||
+                        collection.equals(FunctionalAdminCollections.INGEST_CONTRACT)
+                        ||
+                        collection.equals(FunctionalAdminCollections.PROFILE)
+
+        )) {
             throw new IllegalArgumentException("unsuported collection");
         }
 
@@ -604,9 +624,9 @@ public class WebApplicationResourceDelete {
     public Response purgeDataForTnr() {
         Response response = deleteLogBook();
         response.close();
-        response = deleteContract(FunctionalAdminCollections.INGEST_CONTRACT);
+        response = deleteMasterDataCollection(FunctionalAdminCollections.INGEST_CONTRACT);
         response.close();
-        response = deleteContract(FunctionalAdminCollections.ACCESS_CONTRACT);
+        response = deleteMasterDataCollection(FunctionalAdminCollections.ACCESS_CONTRACT);
         response.close();
         response = deleteLifecycleUnits();
         response.close();
@@ -622,8 +642,11 @@ public class WebApplicationResourceDelete {
         response.close();
         response = deleteFormats();
         response.close();
+        response = deleteMasterdaProfile();
+        response.close();
         return Response.status(Status.OK).build();
     }
+
 
     /**
      * Delete all collection in database

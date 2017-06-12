@@ -163,12 +163,6 @@ public class ProfileServiceImpl implements ProfileService {
                     continue;
                 }
 
-                // if a profile with the same identifier is already treated mark the current one as duplicated
-                if (profileIdentifiers.contains(pm.getIdentifier())) {
-                    error.addToErrors(getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(), RejectionCause.rejectDuplicatedEntry(pm.getIdentifier()).getReason()));
-                    continue;
-                }
-
 
                 // if a profile with the same name is already treated mark the current one as duplicated
                 if (profileNames.contains(pm.getName())) {
@@ -179,7 +173,6 @@ public class ProfileServiceImpl implements ProfileService {
 
 
                 // mark the current profile as treated
-                profileIdentifiers.add(pm.getIdentifier());
                 profileNames.add(pm.getName());
 
                 // validate profile

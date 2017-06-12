@@ -281,7 +281,7 @@ public class ProfileResourceTest {
         given().contentType(ContentType.JSON).body(json)
             .header(GlobalDataRest.X_TENANT_ID, 0)
             .when().post(ProfileResource.PROFILE_URI)
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+            .then().statusCode(Status.CREATED.getStatusCode());
     }
 
     @Test
@@ -297,18 +297,6 @@ public class ProfileResourceTest {
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
-    @Test
-    @RunWithCustomExecutor
-    public void givenProfilesWithDuplicateIdentifier() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        File fileProfiles = PropertiesUtils.getResourceFile("profile_duplicate_identifier.json");
-        JsonNode json = JsonHandler.getFromFile(fileProfiles);
-        // transform to json
-        given().contentType(ContentType.JSON).body(json)
-            .header(GlobalDataRest.X_TENANT_ID, 0)
-            .when().post(ProfileResource.PROFILE_URI)
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
-    }
 
 
 

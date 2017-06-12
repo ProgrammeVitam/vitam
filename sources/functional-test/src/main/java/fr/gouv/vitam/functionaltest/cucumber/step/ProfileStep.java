@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import javax.ws.rs.core.Response;
 
@@ -103,9 +104,13 @@ public class ProfileStep {
             world.getAdminClient()
                 .createProfiles(Files.newInputStream(profil, StandardOpenOption.READ), world.getTenantId());
         assertThat(Response.Status.OK.getStatusCode() == response.getStatus());
-        RequestResponseOK<ProfileModel> res = (RequestResponseOK) response;
-        Object o = (res.getResults().stream().findFirst()).get();
-        this.model = (JsonNode) o;
+        if (response.isOk()) {
+            RequestResponseOK<ProfileModel> res = (RequestResponseOK) response;
+            Object o = (res.getResults().stream().findFirst()).get();
+            this.model = (JsonNode) o;
+         } else {
+            fail("Fail to import profile.");
+        }
     }
 
 
@@ -121,12 +126,9 @@ public class ProfileStep {
     @When("^je cherche un profil nommé (.*)")
     public void search_contracts(String name)
         throws AccessExternalClientException, InvalidParseOperationException, InvalidCreateOperationException {
-
         final fr.gouv.vitam.common.database.builder.request.single.Select select =
             new fr.gouv.vitam.common.database.builder.request.single.Select();
-        final BooleanQuery queryA = and();
-        queryA.add(match("Name", name));
-        select.setQuery(queryA);
+        select.setQuery(match("Name", name));
         final JsonNode query = select.getFinalSelect();
         RequestResponse response =
             world.getAdminClient().findDocuments(AdminCollections.PROFILE, query, world.getTenantId());
@@ -148,7 +150,7 @@ public class ProfileStep {
         for (List<String> raw : raws) {
             String index = raw.get(0);
             String value = raw.get(1);
-            assertThat(value).contains(this.model.get(index).asText());
+            assertThat(this.model.get(index).asText()).contains(value);
         }
     }
 
