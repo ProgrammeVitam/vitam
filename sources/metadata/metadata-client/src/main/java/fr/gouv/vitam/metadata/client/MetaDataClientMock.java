@@ -1,6 +1,8 @@
 package fr.gouv.vitam.metadata.client;
 
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -17,6 +19,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
+import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 
 /**
  * Mock client implementation for metadata
@@ -76,6 +79,11 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
         MetaDataAlreadyExistException, MetaDataDocumentSizeException, MetaDataClientServerException {
         return ClientMockResultHelper.getMetaDataResult();
+    }
+
+    @Override public List<UnitPerOriginatingAgency> selectAccessionRegisterByOperationId(String operationId)
+        throws MetaDataClientServerException {
+        return new ArrayList<>();
     }
 
 }

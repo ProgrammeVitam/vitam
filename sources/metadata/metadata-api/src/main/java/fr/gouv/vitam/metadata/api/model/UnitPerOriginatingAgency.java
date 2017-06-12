@@ -24,11 +24,22 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.metadata.core.database.aggregate;
+package fr.gouv.vitam.metadata.api.model;
 
+/**
+ * contains a aggregate with number of unit per originating agency
+ */
 public class UnitPerOriginatingAgency {
     private String id;
     private int count;
+
+    public UnitPerOriginatingAgency() {
+    }
+
+    public UnitPerOriginatingAgency(String id, int count) {
+        this.id = id;
+        this.count = count;
+    }
 
     public String getId() {
         return id;

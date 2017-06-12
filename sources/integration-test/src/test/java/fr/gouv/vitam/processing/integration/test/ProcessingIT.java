@@ -1487,8 +1487,7 @@ public class ProcessingIT {
             assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
             wait(containerName);
-            ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
             assertNotNull(processWorkflow);
             assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
             assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
@@ -1499,8 +1498,7 @@ public class ProcessingIT {
             assertNotNull(modifiedParentUnit);
             assertNotNull(modifiedParentUnit.first());
             Document parentUnit = modifiedParentUnit.first();
-            ArrayList<String> parentOperations = (ArrayList) parentUnit.get("_ops");
-            assertTrue(parentOperations.contains(containerName.toString()));
+
             MongoIterable<Document> newChildUnit = db.getCollection("Unit").find(Filters.eq("_up", idUnit));
             assertNotNull(newChildUnit);
             assertNotNull(newChildUnit.first());

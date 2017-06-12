@@ -38,8 +38,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
-import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
@@ -116,8 +114,8 @@ public class IndexUnitActionPlugin extends ActionHandler {
 
     /**
      * Index archive unit
-     *
-     * @param params     work parameters
+     * 
+     * @param params work parameters
      * @param itemStatus item status
      * @throws ProcessingException when error in execution
      */
@@ -153,12 +151,7 @@ public class IndexUnitActionPlugin extends ActionHandler {
                     final ArrayNode parents = (ArrayNode) work.get("_up");
                     query.addRoots(parents);
                 }
-                if (Boolean.TRUE.equals(existing)) {
-                    // update case
-                    computeExistingData(containerId, query);
-                    metadataClient.updateUnitbyId(((UpdateMultiQuery) query).getFinalUpdate(),
-                            data.get("#id").asText());
-                } else {
+                if (!Boolean.TRUE.equals(existing)) {
                     // insert case
                     if (handlerIO.getInput() != null && !handlerIO.getInput().isEmpty()) {
                         String unitType = UnitType.getUnitTypeString((String) handlerIO.getInput(0));
@@ -175,7 +168,7 @@ public class IndexUnitActionPlugin extends ActionHandler {
         } catch (final MetaDataNotFoundException e) {
             LOGGER.error("Unit references a non existing unit " + query.toString());
             throw new IllegalArgumentException(e);
-        } catch (final MetaDataException | InvalidParseOperationException | InvalidCreateOperationException e) {
+        } catch (final MetaDataException | InvalidParseOperationException e) {
             LOGGER.error("Internal Server Error", e);
             throw new ProcessingException(e);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
@@ -184,34 +177,22 @@ public class IndexUnitActionPlugin extends ActionHandler {
         } catch (IllegalArgumentException e) {
             LOGGER.error("Illegal Argument Exception for " + (query != null ? query.toString() : ""));
             throw e;
-        } finally {
+        } /* catch (InvalidCreateOperationException e) {
+            e.printStackTrace();
+        } */finally {
             handlerIO.consumeAnyEntityAndClose(response);
         }
     }
 
     /**
-     * Import existing data and add them to the data defined in sip in update query
-     *
-     * @param containerId sip defined data
-     * @param query       update query
-     * @throws InvalidCreateOperationException exception while adding an action to the query
-     */
-    private void computeExistingData(final String containerId, RequestMultiple query)
-            throws InvalidCreateOperationException {
-        ((UpdateMultiQuery) query)
-                .addActions(UpdateActionHelper.add(VitamFieldsHelper.operations(), containerId));
-    }
-
-
-    /**
      * Convert xml archive unit to json node for insert/update.
-     *
-     * @param input       xml archive unit
+     * 
+     * @param input xml archive unit
      * @param containerId container id
-     * @param objectName  unit file name
+     * @param objectName unit file name
      * @return map of data
      * @throws InvalidParseOperationException exception while reading temporary json file
-     * @throws ProcessingException            exception while reading xml file
+     * @throws ProcessingException exception while reading xml file
      */
     // FIXME do we need to create a new file or not ?
     private JsonNode prepareArchiveUnitJson(InputStream input, String containerId, String objectName)
@@ -285,4 +266,5 @@ public class IndexUnitActionPlugin extends ActionHandler {
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         // Handler without parameters input
     }
+
 }

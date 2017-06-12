@@ -241,9 +241,11 @@ public class UserInterfaceTransactionManager {
 
             // Create path node
             final ArrayNode currentPath = JsonHandler.createArrayNode();
-            currentPath.add(currentParentDetails);
 
-            buildOnePathForOneParent(currentPath, currentParentDetails, allPaths, allParentsRef);
+            if (currentParentDetails != null) {
+                currentPath.add(currentParentDetails);
+                buildOnePathForOneParent(currentPath, currentParentDetails, allPaths, allParentsRef);
+            }
         }
 
         return allPaths;
