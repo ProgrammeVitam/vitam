@@ -26,39 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.rest;
 
-import com.codahale.metrics.Gauge;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.StateNotAllowedException;
-import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.ProcessAction;
-import fr.gouv.vitam.common.model.ProcessState;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.processing.common.ProcessingEntry;
-import fr.gouv.vitam.processing.common.config.ServerConfiguration;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
-import fr.gouv.vitam.processing.common.model.ProcessStep;
-import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
-import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoring;
-import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
-import fr.gouv.vitam.processing.management.api.ProcessManagement;
-import fr.gouv.vitam.processing.management.core.ProcessManagementImpl;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
@@ -75,9 +47,43 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
+
+import com.codahale.metrics.Gauge;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.StateNotAllowedException;
+import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.ProcessState;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.parameters.Contexts;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.processing.common.ProcessingEntry;
+import fr.gouv.vitam.processing.common.config.ServerConfiguration;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
+import fr.gouv.vitam.processing.common.model.ProcessStep;
+import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
+import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoring;
+import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
+import fr.gouv.vitam.processing.management.api.ProcessManagement;
+import fr.gouv.vitam.processing.management.core.ProcessManagementImpl;
 
 
 /**
@@ -215,7 +221,21 @@ public class ProcessManagementResource extends ApplicationStatusResource {
                     final String xContextId = headers.getRequestHeader(GlobalDataRest.X_CONTEXT_ID).get(0);
                     ParametersChecker.checkParameter("X_CONTEXT_ID is a mandatory parameter", xContextId);
 
-                    LogbookTypeProcess logbookTypeProcess = LogbookTypeProcess.valueOf(xContextId);
+                    // TODO #2774: Ugly hack, review process context and logbook type, this is so messed
+                    Map<String, String> extra = process.getExtraParams();
+                    if (extra == null) {
+                        extra = new HashMap<>();
+                    }
+                    // TODO #2774
+                    // So ugly but i cannot find where is this aberrant concatenation (xContext_xAction) from
+                    // processContext.json
+                    String hackedContext = xContextId.replace("_RESUME", "").replace("_NEXT", "");
+                    extra.put("xContextId", hackedContext);
+                    process.setExtraParams(extra);
+                    workParams.putParameterValue(WorkerParameterName.context, hackedContext);
+                    Contexts context = Contexts.valueOf(hackedContext);
+                    LogbookTypeProcess logbookTypeProcess = context.getLogbookTypeProcess();
+                    // TODO #2774: end ugly hack
 
                     ProcessWorkflow pw =
                         processManagement.init(workParams, process.getWorkflow(), logbookTypeProcess, tenantId);

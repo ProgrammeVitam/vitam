@@ -43,6 +43,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingEngineException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.common.utils.ProcessPopulator;
@@ -102,7 +103,8 @@ public class StateMachineTest {
             .setWorkerGUID(GUIDFactory.newGUID())
             .setUrlMetadata("http://localhost:8083")
             .setUrlWorkspace("http://localhost:8083")
-            .setContainerName(GUIDFactory.newGUID().getId());
+            .setContainerName(GUIDFactory.newGUID().getId())
+            .putParameterValue(WorkerParameterName.context, "DEFAULT_WORKFLOW");
 
         processDataAccess = ProcessDataAccessImpl.getInstance();
 

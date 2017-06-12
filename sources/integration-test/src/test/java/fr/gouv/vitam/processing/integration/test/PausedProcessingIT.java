@@ -27,8 +27,25 @@
 
 package fr.gouv.vitam.processing.integration.test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import java.io.File;
+import java.io.InputStream;
+import java.util.List;
+
+import javax.ws.rs.core.Response;
+
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -68,6 +85,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsExceptio
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -83,27 +101,10 @@ import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementApplication;
-import fr.gouv.vitam.worker.client.WorkerClient;
-import fr.gouv.vitam.worker.client.WorkerClientConfiguration;
-import fr.gouv.vitam.worker.client.WorkerClientFactory;
 import fr.gouv.vitam.worker.server.rest.WorkerApplication;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import javax.ws.rs.core.Response;
-import java.io.File;
-import java.io.InputStream;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 public class PausedProcessingIT {
 
@@ -349,7 +350,7 @@ public class PausedProcessingIT {
             zipInputStreamSipObject);
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-       processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName,
+       processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName,
             WORFKLOW_NAME);
         // wait a little bit
 

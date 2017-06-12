@@ -713,7 +713,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                         ProcessingManagementClientFactory.getInstance().getClient()) {
 
                         // Initialize a new process
-                        processManagementClient.initVitamProcess(logbookTypeProcess.toString(), containerGUID.getId(),
+                        processManagementClient.initVitamProcess(contextId, containerGUID.getId(),
                             process.getWorkFlowId());
 
                         // Successful initialization
@@ -743,7 +743,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                     try {
                         ProcessState processState =
                             startProcessing(parameters, logbookOperationsClient, containerGUID.getId(), actionId,
-                                process.getWorkFlowId(), logbookTypeProcess);
+                                process.getWorkFlowId(), logbookTypeProcess, contextId);
 
                         isCompletedProcess = isCompletedProcess(processState);
 
@@ -822,7 +822,8 @@ public class IngestInternalResource extends ApplicationStatusResource {
     }
 
     private ProcessState startProcessing(final LogbookOperationParameters parameters, final LogbookOperationsClient client,
-        final String containerName, final String actionId, final String workflowId, LogbookTypeProcess logbookTypeProcess)
+        final String containerName, final String actionId, final String workflowId, LogbookTypeProcess
+        logbookTypeProcess, String contextId)
         throws IngestInternalException, ProcessingException, LogbookClientNotFoundException,
         LogbookClientBadRequestException, LogbookClientServerException, InternalServerException, VitamClientException {
 
@@ -835,7 +836,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
 
 
             RequestResponse<JsonNode> response = processingClient.executeOperationProcess(containerName, workflowId,
-                logbookTypeProcess.toString(), actionId);
+                contextId, actionId);
 
             // Check global execution status
             String globalExecutionState = response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATE);

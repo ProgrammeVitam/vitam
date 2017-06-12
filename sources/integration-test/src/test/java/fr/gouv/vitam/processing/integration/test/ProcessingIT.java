@@ -26,6 +26,41 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.integration.test;
 
+import static com.jayway.restassured.RestAssured.get;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import org.bson.Document;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assume;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -35,6 +70,7 @@ import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.MongoIterable;
 import com.mongodb.client.model.Filters;
+
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -83,6 +119,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsExceptio
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -108,39 +145,6 @@ import fr.gouv.vitam.worker.server.rest.WorkerApplication;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
-import org.bson.Document;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assume;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-
-import static com.jayway.restassured.RestAssured.get;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
 
 /**
  * Processing integration test
@@ -525,7 +529,7 @@ public class ProcessingIT {
                     "aecaaaaaacb4r2p4aazb2ak4ufkfidiaaaaq",
                     GUIDReader.getGUID("aeaqaaaaaagbcaacaang6ak4ts6paliaaaaq")));
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-            processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+            processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
 
             final Response ret =
                 processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
@@ -579,11 +583,11 @@ public class ProcessingIT {
             RestAssured.basePath = PROCESSING_PATH;
 
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-            processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+            processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
 
             final RequestResponse<JsonNode> ret =
                 processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                    LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
+                    Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
 
             assertNotNull(ret);
             assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
@@ -625,7 +629,7 @@ public class ProcessingIT {
             RestAssured.basePath = PROCESSING_PATH;
 
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-            processingClient.initVitamProcess(LogbookTypeProcess.MASTERDATA.name(), containerName, INGEST_TREE_WORFKLOW);
+            processingClient.initVitamProcess(Contexts.HOLDING_SCHEME.name(), containerName, INGEST_TREE_WORFKLOW);
             final Response ret =
                 processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
             assertNotNull(ret);
@@ -670,7 +674,7 @@ public class ProcessingIT {
             RestAssured.basePath = PROCESSING_PATH;
 
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-            processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, INGEST_PLAN_WORFKLOW);
+            processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, INGEST_PLAN_WORFKLOW);
             final Response ret =
                 processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
             assertNotNull(ret);
@@ -715,10 +719,10 @@ public class ProcessingIT {
             RestAssured.basePath = PROCESSING_PATH;
 
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-            processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+            processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
             final RequestResponse<JsonNode> ret =
                 processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                    LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
+                    Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
             assertNotNull(ret);
             assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
@@ -761,10 +765,10 @@ public class ProcessingIT {
             RestAssured.basePath = PROCESSING_PATH;
 
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-            processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+            processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
             final RequestResponse<JsonNode> ret =
                 processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                    LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
+                    Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
 
             assertNotNull(ret);
             assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
@@ -808,11 +812,11 @@ public class ProcessingIT {
             RestAssured.basePath = PROCESSING_PATH;
 
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-            processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+            processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
 
             final RequestResponse<JsonNode> ret =
                 processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                    LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
+                    Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
 
             assertNotNull(ret);
             assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
@@ -857,10 +861,10 @@ public class ProcessingIT {
             workspaceClient.createContainer(containerName);
             workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
 
-            processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME_2);
+            processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME_2);
             final RequestResponse<JsonNode> ret =
                 processingClient.executeOperationProcess(containerName, WORFKLOW_NAME_2,
-                    LogbookTypeProcess.INGEST.toString(),
+                    Contexts.DEFAULT_WORKFLOW.name(),
                     ProcessAction.RESUME.getValue());
             assertNotNull(ret);
 
@@ -915,10 +919,10 @@ public class ProcessingIT {
             RestAssured.port = PORT_SERVICE_PROCESSING;
             RestAssured.basePath = PROCESSING_PATH;
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-            processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+            processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
             final RequestResponse<JsonNode> ret =
                 processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                    LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
+                    Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
             assertNotNull(ret);
             assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
@@ -973,11 +977,11 @@ public class ProcessingIT {
             RestAssured.basePath = PROCESSING_PATH;
 
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-            processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+            processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
 
             final RequestResponse<JsonNode> ret =
                 processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                    LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
+                    Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
             assertNotNull(ret);
             assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
@@ -1018,10 +1022,10 @@ public class ProcessingIT {
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
         final RequestResponse<JsonNode> ret =
             processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
+                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
@@ -1060,10 +1064,10 @@ public class ProcessingIT {
             RestAssured.basePath = PROCESSING_PATH;
 
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-            processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+            processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
             final RequestResponse<JsonNode> ret =
                 processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                    LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
+                    Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
             assertNotNull(ret);
             assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
@@ -1103,10 +1107,10 @@ public class ProcessingIT {
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
         final RequestResponse<JsonNode> ret =
             processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
+                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
@@ -1144,10 +1148,10 @@ public class ProcessingIT {
         RestAssured.basePath = PROCESSING_PATH;
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
         final RequestResponse<JsonNode> ret =
             processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
+                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
@@ -1186,11 +1190,11 @@ public class ProcessingIT {
         RestAssured.basePath = PROCESSING_PATH;
         ///////
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
 
         final RequestResponse<JsonNode> ret =
             processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
+                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
         assertNotNull(ret);
 
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
@@ -1228,11 +1232,11 @@ public class ProcessingIT {
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
 
         final RequestResponse<JsonNode> ret =
             processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
+                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
@@ -1272,11 +1276,11 @@ public class ProcessingIT {
             RestAssured.basePath = PROCESSING_PATH;
 
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-            processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+            processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
 
             final RequestResponse<JsonNode> ret =
                 processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                    LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
+                    Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
             assertNotNull(ret);
             assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
@@ -1317,10 +1321,10 @@ public class ProcessingIT {
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
 
         final RequestResponse<JsonNode> ret =
-            processingClient.executeOperationProcess(containerName, WORFKLOW_NAME, LogbookTypeProcess.INGEST.name(),
+            processingClient.executeOperationProcess(containerName, WORFKLOW_NAME, Contexts.DEFAULT_WORKFLOW.name(),
                 ProcessAction.RESUME.getValue());
         assertNotNull(ret);
 
@@ -1365,10 +1369,10 @@ public class ProcessingIT {
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
         final RequestResponse<JsonNode> ret =
             processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
+                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
         assertNotNull(ret);
 
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
@@ -1408,10 +1412,10 @@ public class ProcessingIT {
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
         final RequestResponse<JsonNode> ret =
             processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
+                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
@@ -1451,10 +1455,10 @@ public class ProcessingIT {
             RestAssured.basePath = PROCESSING_PATH;
 
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-            processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+            processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
             final RequestResponse<JsonNode> ret =
                 processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                    LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
+                    Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
 
             assertNotNull(ret);
             assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
@@ -1509,10 +1513,10 @@ public class ProcessingIT {
         RestAssured.basePath = PROCESSING_PATH;
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
         final RequestResponse<JsonNode> ret =
             processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
+                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
@@ -1581,10 +1585,10 @@ public class ProcessingIT {
         RestAssured.basePath = PROCESSING_PATH;
         ///////
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
         final RequestResponse<JsonNode> ret =
             processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
+                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
@@ -1637,11 +1641,10 @@ public class ProcessingIT {
             RestAssured.basePath = PROCESSING_PATH;
 
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-            processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+            processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
             final RequestResponse<JsonNode> ret =
                 processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                    LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
-
+                    Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
             assertNotNull(ret);
             assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
@@ -1696,10 +1699,10 @@ public class ProcessingIT {
         RestAssured.basePath = PROCESSING_PATH;
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
         final RequestResponse<JsonNode> ret =
             processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
+                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
@@ -1764,10 +1767,10 @@ public class ProcessingIT {
         RestAssured.basePath = PROCESSING_PATH;
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
         final RequestResponse<JsonNode> ret =
             processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
+                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
@@ -1864,10 +1867,10 @@ public class ProcessingIT {
             RestAssured.port = PORT_SERVICE_PROCESSING;
             RestAssured.basePath = PROCESSING_PATH;
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-            processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+            processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
 
             final RequestResponse<JsonNode> ret = processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
+                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
             assertNotNull(ret);
             assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
@@ -1915,10 +1918,10 @@ public class ProcessingIT {
         RestAssured.basePath = PROCESSING_PATH;
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
         final RequestResponse<JsonNode> ret =
             processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
+                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
@@ -1980,10 +1983,10 @@ public class ProcessingIT {
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
         final RequestResponse<JsonNode> ret =
             processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
+                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
@@ -2021,11 +2024,11 @@ public class ProcessingIT {
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
 
         final RequestResponse<JsonNode> ret =
             processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
+                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
@@ -2057,7 +2060,7 @@ public class ProcessingIT {
                 zipInputStreamSipObject);
 
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-            processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+            processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
 
             ProcessDataManagement dataManagement = WorkspaceProcessDataManagement.getInstance();
             assertNotNull(dataManagement);
@@ -2147,7 +2150,7 @@ public class ProcessingIT {
             RestAssured.basePath = PROCESSING_PATH;
 
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-            processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+            processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
 
             final Response ret =
                 processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
@@ -2194,7 +2197,7 @@ public class ProcessingIT {
             RestAssured.basePath = PROCESSING_PATH;
 
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-            processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+            processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
 
             final Response ret =
                 processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
@@ -2240,11 +2243,11 @@ public class ProcessingIT {
             RestAssured.basePath = PROCESSING_PATH;
 
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-            processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+            processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
 
             final RequestResponse<JsonNode> ret =
                 processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                    LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
+                    Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
             assertNotNull(ret);
             assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
@@ -2288,7 +2291,7 @@ public class ProcessingIT {
             RestAssured.basePath = PROCESSING_PATH;
 
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-            processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+            processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
 
             final Response ret =
                 processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
