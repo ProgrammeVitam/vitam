@@ -120,6 +120,12 @@ public class SedaConstants {
     public static final String TAG_DATA_OBJECT_GROUP_REFERENCEID = "DataObjectGroupReferenceId";
 
     /**
+     * Tag of DataObjectGroupExistingReferenceId
+     */
+    public static final String TAG_DATA_OBJECT_GROUP_EXISITING_REFERENCEID = "DataObjectGroupExistingReferenceId";
+
+
+    /**
      * Tag of DataObjectReferenceId
      */
     public static final String TAG_DATA_OBJECT_REFERENCEID = "DataObjectReferenceId";

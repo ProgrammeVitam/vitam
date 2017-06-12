@@ -26,16 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin;
 
-import java.io.File;
-import java.io.InputStream;
-import java.util.Iterator;
-
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
@@ -61,6 +54,11 @@ import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+
+import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.InputStream;
+import java.util.Iterator;
 
 /**
  * IndexUnitAction Plugin
@@ -114,7 +112,7 @@ public class IndexUnitActionPlugin extends ActionHandler {
 
     /**
      * Index archive unit
-     * 
+     *
      * @param params work parameters
      * @param itemStatus item status
      * @throws ProcessingException when error in execution
@@ -186,7 +184,7 @@ public class IndexUnitActionPlugin extends ActionHandler {
 
     /**
      * Convert xml archive unit to json node for insert/update.
-     * 
+     *
      * @param input xml archive unit
      * @param containerId container id
      * @param objectName unit file name
@@ -266,5 +264,4 @@ public class IndexUnitActionPlugin extends ActionHandler {
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         // Handler without parameters input
     }
-
 }
