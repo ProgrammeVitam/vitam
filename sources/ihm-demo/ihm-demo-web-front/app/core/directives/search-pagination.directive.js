@@ -41,7 +41,7 @@ angular.module('ihm.demo')
 
     if (!$scope.pageNumber) {
       $scope.paginationScope.startOffset = 0;
-      $scope.pageNumber = 0;
+      $scope.pageNumber = 1;
     }
 
     if (!$scope.paginationScope.limit) {
@@ -75,6 +75,7 @@ angular.module('ihm.demo')
       }
 
         $scope.paginationScope.currentPage = pageNumber;
+        $scope.pageNumber = pageNumber;
     }
 
   })
