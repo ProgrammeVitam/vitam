@@ -1051,6 +1051,51 @@ Dans le schéma Json Vitam défini, voici les spécificités qui ont été ajout
 - StartDate pour les Rules : une date contenant une année égale à ou au dessus de l'année 9000 sera refusée.
 - Content / Title : peut être de type String, Array ou number (on pourra avoir des titres traduits ainsi que des nombres si besoin) 
 
+
+4.16 Détail du handler : CheckArchiveProfileActionHandler
+----------------------------------------------------------
+
+4.16.1 Description
+==================
+
+Ce handler permet de vérifier le profil dans manifeste
+
+4.16.2 exécution
+================
+
+Le format du profil est XSD ou RNG.
+L'exécution de l'algorithme est présenté dans le preudo-code ci-dessous:
+	Si le format du profil est équal à XSD
+		retourne true si XSD valide le fichier manifest.xml
+	Fin Si
+	Si le format du profil est équal à RNG
+		retourne true si RNG valide le fichier manifest.xml
+	Fin Si
+
+4.17 Détail du handler : CheckArchiveProfileRelationActionHandler
+------------------------------------------------------------------
+
+4.16.1 Description
+==================
+
+Ce handler permet de vérifier la relation entre le contrat d'entrée et le profil dans manifeste
+
+4.16.2 exécution
+================
+
+Si le champ "ArchiveProfiles" dans le contrat d'entrée 
+contient l'identifiant du profil, retourne true
+
+.. code-block:: java
+
+	Select select = new Select();
+    select.setQuery(QueryHelper.eq(IngestContract.NAME, contractName));
+    JsonNode queryDsl = select.getFinalSelect();
+    RequestResponse<IngestContractModel> referenceContracts = adminClient.findIngestContracts(queryDsl);
+    if (referenceContracts.isOk()) {
+    	IngestContractModel contract = ((RequestResponseOK<IngestContractModel> ) referenceContracts).getResults().get(0);
+        isValid = contract.getArchiveProfiles().contains(profileIdentifier);
+    }
 	
 5. Worker-common
 ****************
