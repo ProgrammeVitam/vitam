@@ -140,11 +140,5 @@ public enum LogbookParameterName {
      * <br>
      * Can be null
      */
-    eventDetailData,
-    /**
-     * Event Detail Data on the current "process <br>
-     * <br>
-     * Can be null
-     */
-    eventDetailTechData;
+    eventDetailData;
 }

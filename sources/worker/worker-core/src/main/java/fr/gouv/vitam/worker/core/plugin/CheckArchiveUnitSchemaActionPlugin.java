@@ -91,8 +91,6 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
                     itemStatus.setItemId(NOT_AU_JSON_VALID);
                     itemStatus.increment(StatusCode.KO);
                     itemStatus.setEvDetailData(schemaValidationStatus.getValidationMessage());
-                    itemStatus.setTechDetailData(
-                        JsonHandler.createObjectNode().put("Error", schemaValidationStatus.getValidationMessage()));
                     return new ItemStatus(CHECK_UNIT_SCHEMA_TASK_ID).setItemsStatus(CHECK_UNIT_SCHEMA_TASK_ID,
                         itemStatus);
                 case NOT_JSON_FILE:

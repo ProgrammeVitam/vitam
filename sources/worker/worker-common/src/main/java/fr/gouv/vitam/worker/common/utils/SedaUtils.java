@@ -66,6 +66,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -84,7 +85,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 // If you absolutely need to check values in handler's methods, also use the ParameterCheker.
 public class SedaUtils {
 
-    private static final String VALIDATION_ERROR = "ValidationError";
+    public static final String EV_DET_TECH_DATA = "evDetTechData";
     static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SedaUtils.class);
     public static final String NAMESPACE_URI = "fr:gouv:culture:archivesdefrance:seda:v2.0";
     private static final String SEDA_VALIDATION_FILE = "seda-vitam-2.0-main.xsd";
@@ -277,9 +278,8 @@ public class SedaUtils {
             // if the cause is null, that means the file is an xml, but it does not validate the XSD
             if (e.getCause() == null) {
                 LOGGER.error("Manifest.xml is not valid with the XSD", e);
-                JsonNode errorNode = JsonHandler.createObjectNode().put(VALIDATION_ERROR, e.getMessage());
-                itemStatus.setEvDetailData(errorNode.toString());
-                itemStatus.setTechDetailData(errorNode);
+                JsonNode errorNode = JsonHandler.createObjectNode().put(EV_DET_TECH_DATA, e.getMessage());
+                itemStatus.setData(LogbookParameterName.eventDetailData.name(), errorNode.toString());
                 return CheckSedaValidationStatus.NOT_XSD_VALID;
             }
             LOGGER.error("Manifest.xml is not a correct xml file", e);

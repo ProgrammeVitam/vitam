@@ -36,10 +36,13 @@ import java.util.Map.Entry;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 
 /**
  * Composite Item Status
@@ -47,6 +50,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 @JsonIgnoreProperties(ignoreUnknown = false)
 public class ItemStatus {
 
+    private static final String EVENT_DETAIL_DATA = "eventDetailData";
     private static final String MANDATORY_PARAMETER = "Mandatory parameter";
     @JsonProperty("itemsStatus")
     private LinkedHashMap<String, ItemStatus> itemsStatus = new LinkedHashMap<>();
@@ -58,8 +62,6 @@ public class ItemStatus {
     protected String message;
     @JsonProperty("evDetailData")
     protected String evDetailData;
-    @JsonProperty("techDetailData")
-    protected JsonNode techDetailData;
     @JsonProperty("globalStatus")
     protected StatusCode globalStatus;
     @JsonProperty("statusMeter")
@@ -100,8 +102,7 @@ public class ItemStatus {
         @JsonProperty("statusMeter") List<Integer> statusMeter, @JsonProperty("data") Map<String, Object> data,
         @JsonProperty("itemsStatus") LinkedHashMap<String, ItemStatus> itemsStatus,
         @JsonProperty("evDetailData") String evDetailData,
-        @JsonProperty("globalState") ProcessState globalState,
-        @JsonProperty("techDetailData") JsonNode techDetailData) {
+        @JsonProperty("globalState") ProcessState globalState) {
         this.itemsStatus = itemsStatus;
         this.itemId = itemId;
         this.message = message;
@@ -110,7 +111,6 @@ public class ItemStatus {
         this.data = data;
         this.evDetailData = evDetailData;
         this.globalState = globalState;
-        this.techDetailData = techDetailData;
     }
 
     /**
@@ -304,11 +304,7 @@ public class ItemStatus {
         }
 
         if (statusDetails.getData() != null) {
-            data.putAll(statusDetails.getData());
-        }
-
-        if (statusDetails.getTechDetailData() != null && techDetailData == null) {
-            this.techDetailData = statusDetails.getTechDetailData();
+            computeEvDetData(statusDetails);
         }
         
         return this;
@@ -338,7 +334,7 @@ public class ItemStatus {
             }
             // update data Map
             if (compositeItemStatus.getData() != null) {
-                data.putAll(compositeItemStatus.getData());
+                computeEvDetData(compositeItemStatus);
             }
         }
         return this;
@@ -423,20 +419,25 @@ public class ItemStatus {
         this.logbookTypeProcess = logbookTypeProcess;
         return this;
     }
-    /**
-     * @return techDetailData
-     */
-    public JsonNode getTechDetailData() {
-        return techDetailData;
-    }
 
-    /**
-     * @param techDetailData
-     * @return this
-     */
-    public ItemStatus setTechDetailData(JsonNode techDetailData) {
-        this.techDetailData = techDetailData;
-        return this;
+    private void computeEvDetData(ItemStatus statusDetails) {
+        String detailDataString = "";
+        if (statusDetails.getData().containsKey(EVENT_DETAIL_DATA) && 
+            data.containsKey(EVENT_DETAIL_DATA)) {
+            try {
+                ObjectNode subDetailData = (ObjectNode) JsonHandler.getFromString(
+                    (String) statusDetails.getData().get(EVENT_DETAIL_DATA));
+                ObjectNode detailData = (ObjectNode) JsonHandler.getFromString(
+                    (String) data.get(EVENT_DETAIL_DATA));
+                subDetailData.setAll(detailData);
+                detailDataString = JsonHandler.unprettyPrint(subDetailData);
+            } catch (InvalidParseOperationException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
+        }
+        data.putAll(statusDetails.getData());
+        if (!detailDataString.isEmpty()) {
+            data.put(EVENT_DETAIL_DATA, detailDataString);
+        }
     }
-
 }
