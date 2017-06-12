@@ -676,7 +676,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 result = RequestResponseOK.getFromJsonNode(PaginationHelper.getResult(result.toJsonNode(), pagination));
 
                 return Response.status(Status.OK).entity(result).build();
-            } catch (final InvalidParseOperationException e) {
+            } catch (final InvalidParseOperationException | IllegalArgumentException e) {
                 LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
                 return Response.status(Status.BAD_REQUEST).build();
             } catch (final AccessExternalClientServerException e) {
