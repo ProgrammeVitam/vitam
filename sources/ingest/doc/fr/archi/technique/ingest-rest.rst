@@ -14,13 +14,13 @@ La logique technique actuelle est la suivante :
 	
 	2)Créer une méthode upload du fichier sip
 	
-		2.1) Appel du journal pour la création des opérations (suivi du SIP).
+		1. Appel du journal pour la création des opérations (suivi du SIP).
 		
-		2.2) Push SIP dans le workspace.
+		2. Push SIP dans le workspace.
 		
-		2.3) Appel du processing (journalisation des opération).
+		3. Appel du processing (journalisation des opération).
 		
-		2.4) Fermeture de la page des opérations.
+		4. Fermeture de la page des opérations.
 
 
 -IngestInternalApplication.java

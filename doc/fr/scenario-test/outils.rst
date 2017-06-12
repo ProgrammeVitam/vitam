@@ -23,8 +23,8 @@ Les tests manuels peuvent être effectués via :
  * IHM recette, qui permet de lancer des requêtes DSL
 
 
- Cahier de tests manuels
- ------------------------
+Cahier de tests manuels
+------------------------
 
  Le cahier de test se présente sous forme de tableur. Il répertorie méticuleusement chaque cas de test possible.
 

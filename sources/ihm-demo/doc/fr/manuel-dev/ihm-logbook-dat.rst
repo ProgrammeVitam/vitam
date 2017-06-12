@@ -17,11 +17,8 @@ et ses sous modules.
 
 ihm-demo 
     |
-    |---ihm-demo-core : le traitement essentiel pour construire des requêtes DSL depuis des 
-		        données saisies dans l'interface web
-    |---ihm-demo-web-application  : le serveur d'application web qui fournit des services au 
-				    client pour les traitements sur la recherche de logbook 
-				    des opérations
+    |---ihm-demo-core : le traitement essentiel pour construire des requêtes DSL depuis des données saisies dans l'interface web
+    |---ihm-demo-web-application  : le serveur d'application web qui fournit des services au client pour les traitements sur la recherche de logbook des opérations
 
 Depuis ces deux modules, nous proposons deux packages correspondants : 
 
@@ -44,11 +41,13 @@ un Map de type de String.
 ihm-demo-web-application
 
 - ServerApplication.java : créer & lancer le serveur d'application avec un configuration en paramètre
-- WebApplicationConfig.java :  créer la configuration pour le serveur d'application en utilisant 
-différents paramètres : host, port, context
-- WebApplicatationResource.java : définir des ressources différentes pour être utilisé par les contrôles 
-de la partie Fontend. Le détail sur la resource de l'application serveur sera présenté dans le document 
-RAML associé ihm-logbook-rest.rst.  
+- WebApplicationConfig.java : 
+
+créer la configuration pour le serveur d'application en utilisant différents paramètres : host, port, context
+
+- WebApplicatationResource.java : 
+
+définir des ressources différentes pour être utilisé par les contrôles de la partie Fontend. Le détail sur la resource de l'application serveur sera présenté dans le document RAML associé ihm-logbook-rest.rst.  
 
 2.1. Partie Frontend
 

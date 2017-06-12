@@ -61,6 +61,7 @@ Rest API
 
 
 -Accession Register
+
 | POST https://vitam/access-external/v1/accession-register
 	récupérer le registre de fond
 
@@ -77,6 +78,7 @@ Rest API
 --------
 
 -Operation
+
 | GET https://vitam/access-external/v1/operations
 	récupérer tous les journaux de l'opéraion
 
@@ -90,6 +92,7 @@ Rest API
 	récupérer le journal de l'opéraion avec la filtre (le contenu de la requête) et id
 
 -Cycle de vie
+
 | GET https://vitam/access-external/v1/unitlifecycles/{id_lc}
 	récupérer le journal sur le cycle de vie d'un unit avec la filtre (le contenu de la requête) et id
 
@@ -104,6 +107,7 @@ Rest API
 --------
 
 -Format&Rule
+
 | PUT https://vitam/admin-external/v1/collection_id
 	vérifier le format ou la règle
 
@@ -118,18 +122,21 @@ Rest API
 
 -- AdminManagementExternalResourceImpl
 
-	Rest API
+Rest API
 --------
 
 -Contrat d'accès
+
 | PUT https://vitam/admin-external/v1/accesscontract
 	Mise à jour du contrat d'accès
 
 -Contrat d'entrée
+
 |PUT https://vitam/admin-external/v1/contract
 Mise à jour du contrat d'entrès
 
 - Profiles
+
 | POST https://vitam/admin-external/v1/profiles
     Créer ou rechercher des profiles au format json (métadata). Le header X-Http-Method-Override pilote la décision entre la recherche et la création.
 

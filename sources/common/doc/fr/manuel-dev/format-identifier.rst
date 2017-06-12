@@ -10,7 +10,8 @@ Outil Format Identifier
 =======================
 
 L'interface du format identifier est *fr.gouv.vitam.common.format.identification.FormatIdentifier*.
-Elle met à disposition 2 méthodes : 
+Elle met à disposition 2 méthodes :
+
  - status() qui renvoie le statut du format identifer
  - analysePath(Path) qui renvoie une liste de formats potentiellement identifiés par l'outil.
  

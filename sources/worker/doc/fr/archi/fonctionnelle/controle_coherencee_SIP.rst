@@ -8,6 +8,7 @@ une archiveUnit. La même contrainte s'applique pour les objets sans groupe d'ob
 groupes d'objets sans archiveUnits est l'équivalent d'un vrac archivistique, ce que l'équipe souhaite éviter pour vitam.
 
 - Critères d'acceptance : des critères suivantes sont appliqués pour valider cette contrôle.
+
 CA1 : mise ne place de la nouvelle action de contrôle
 Etant donné le versement d'un SIP, lorsque le SIP passe par le contrôle d'entrée globale, alors le contrôle d'entrée 
 procède à une nouvelle tâche qui est la "vérification concernant la cohérence entre objet/groupe d'objet et archiveUnit". 

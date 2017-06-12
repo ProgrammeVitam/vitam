@@ -35,9 +35,14 @@ Utilisation
       
 Le client
 *********
-Le client propose actuellement plusieurs méthodes : selectUnits(String dslQuery);selectUnitbyId(String sqlQuery, String id);
- updateUnitbyId(String updateQuery, String unitId);selectObjectbyId(String selectObjectQuery, String objectId);
- getObjectAsInputStream(String selectObjectQuery, String objectGroupId, String usage, int version);
+Le client propose actuellement plusieurs méthodes : 
+
+  selectUnits(String dslQuery);
+  selectUnitbyId(String sqlQuery, String id);
+  updateUnitbyId(String updateQuery, String unitId);
+  selectObjectbyId(String selectObjectQuery, String objectId);
+  getObjectAsInputStream(String selectObjectQuery, String objectGroupId, String usage, int version);
+
 Paramètre de la fonction : String ds, String Identification
 //TODO (Itérations futures : ajouter méthode modification des métadonnées ?)
 

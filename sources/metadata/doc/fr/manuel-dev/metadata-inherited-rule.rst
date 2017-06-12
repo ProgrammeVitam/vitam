@@ -12,36 +12,32 @@ Calcul des règles de gestion pour une unité archivistique
 ************************************************************
 
 
-	1. Requête DSL 
-	
-	Pour calculer les règles héritées de l'archive Unit. Il faut ajouter "$rules : 1" dans le filtre de la requête 
-	DSL.
-        
-	2. Calculer des règles de gestion pour une unité archivistique
-	
-	Le serveur vérifie la requête, si son filtre contient "$rules : 1". On démarre la procédure de calcul des règles héritées
+1. Requête DSL 
 
-	2.1 Rechercher les règles de gestion des parents et lui même
+Pour calculer les règles héritées de l'archive Unit. Il faut ajouter "$rules : 1" dans le filtre de la requête 
+DSL.
+    
+2. Calculer des règles de gestion pour une unité archivistique
 
-	 	createSearchParentSelect(List<String> unitList)
+Le serveur vérifie la requête, si son filtre contient "$rules : 1". On démarre la procédure de calcul des règles héritées
 
-	2.1 Construire le graphe DAG avec tous les unité archivistique 
-	
-	ArrayNode unitParents = selectMetadataObject(newSelectQuery.getFinalSelect(), null, null);
+    2.1 Rechercher les règles de gestion des parents et lui même
 
-        Map<String, UnitSimplified> unitMap = UnitSimplified.getUnitIdMap(unitParents);
+ 	createSearchParentSelect(List<String> unitList)
 
-        UnitRuleCompute unitNode = new UnitRuleCompute(unitMap.get(unitId));
+    2.1 Construire le graphe DAG avec tous les unité archivistique 
 
-        unitNode.buildAncestors(unitMap, allUnitNode, rootList);
+    ArrayNode unitParents = selectMetadataObject(newSelectQuery.getFinalSelect(), null, null);
 
-	2.3 Calculer des règles de gestion et mettre dans le résultat final
+    Map<String, UnitSimplified> unitMap = UnitSimplified.getUnitIdMap(unitParents);
+    UnitRuleCompute unitNode = new UnitRuleCompute(unitMap.get(unitId));
+    unitNode.buildAncestors(unitMap, allUnitNode, rootList);
 
-        unitNode.computeRule();
+    2.3 Calculer des règles de gestion et mettre dans le résultat final
 
-        JsonNode rule = JsonHandler.toJsonNode(unitNode.getHeritedRules().getInheritedRule());
-
-        ((ObjectNode)arrayNodeResponse.get(0)).set(UnitInheritedRule.INHERITED_RULE, rule);
+    unitNode.computeRule();
+    JsonNode rule = JsonHandler.toJsonNode(unitNode.getHeritedRules().getInheritedRule());
+    ((ObjectNode)arrayNodeResponse.get(0)).set(UnitInheritedRule.INHERITED_RULE, rule);
 
 
 L'algorithme pour Calculer les règles de gestion
@@ -55,7 +51,8 @@ L'algorithme pour Calculer les règles de gestion
     	Créer un objet UnitInheritedRule vide
     Fin Si
 
-2. Ajouter les règles de gestion qui est hérité par les units parents. 
+2. Ajouter les règles de gestion qui est hérité par les units parents.
+
    Cependant, il y a deux cas particuliers -- la prévention d'héritage et l'exclusion d'héritage.
     
     Pour (chaque parentId dans la liste de parent direct)
@@ -66,10 +63,12 @@ L'algorithme pour Calculer les règles de gestion
     Fin Pour
 
 2.1 La prévention d'héritage
+
 	L’intégration d’une balise <PreventInheritance> dans le SEDA
 	Si le champ est « true », toutes les règles héritées des parents sont ignorées sur le nœud courant    	
 
 2.2 L'exclusion d'héritage
+
 	L’intégration d’une balise <RefNonRuleId> dans le SEDA indiquant la règle à désactiver à partir de ce niveau.
 
 		

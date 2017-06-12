@@ -13,17 +13,13 @@ metadata qui représente le story #70, qui contient :
 
 Les principaux modules sont : 
 
-|--- processing-common: contient les méthodes commons: les modèles, les exceptions, SedaUtil ...
-|
+|--- processing-common: contient les méthodes commons: les modèles, les exceptions, SedaUtil, ...
 |--- processing-distributor: appelle un worker de processus et distribue le workflow. Offre la possibilité au worker de s'enregistrer, se désabonner.
-|
 |--- processing-distributor-client: client de module processing-distributor
-|
 |--- processing-engine: appelle un distributeur de processus
-|
 |--- processing-engine-client: client de module processing-engine
 |
-|--- processing-management: gestion de traitement des processus avec des workflows
+|--- processing-management: gestion de workflow
 |
 |--- processing-management-client: client de module processing-management
 
@@ -32,9 +28,7 @@ Les principaux modules sont :
 
 Un modèle a été mis en place pour permettre la remontée et l'agrégation des status des différents item du worflow.
 
-Un état d'un processus peut être: PAUSE, RUNNING, COMPLETED
-
-Un statut du worflow utilise l'objet **ItemStatus** qui contient :
+Un état du worflow utilise l'objet **ItemStatus** qui contient :
 * itemId : l'identifiant de l'item de processus résponsable du status (identifiant de step, handler, transaction, etc)
 * statusMeter : une liste de nombre de code status (nombre de OK, KO, WARNING, etc)
 * globalStatus : un status global
@@ -56,9 +50,12 @@ Pour le moment, les workers ajoutés ne pourront être appelés, cela sera codé
 A l'heure actuelle voici les méthodes REST proposées :
 
 POST /processing/v1/worker_family/{id_family}/workers/{id_worker}
+
   -> permet d'enregistrer un nouveau worker pour la famille donnée.
   -> Une query json est passé en paramètre et correspond à la configuration du worker.
+
 DELETE /processing/v1/worker_family/{id_family}/workers/{id_worker}
+
   -> permet de désinscrire un worker pour la famille donnée, selon son id.
 
 Dans les itérations suivantes les autres méthodes suivantes seront implémentées :
@@ -73,6 +70,7 @@ Dans les itérations suivantes les autres méthodes suivantes seront implément�
 
 4. Parallélisme dans le distributeur
 ------------------------------------
+
 Les parallélismes suivants sont mis en oeuvre dans le distributeur
 
 * Parallélisme dans l'exécution des steps entre plusieurs workflows : celui-ci est géré de manière naturelle sous la forme de plusieurs requêtes (actuellement Java, demain en HTTP) entre le moteur du processing (process-engine) et le distributeur. 

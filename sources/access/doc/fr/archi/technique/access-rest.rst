@@ -61,10 +61,10 @@ paramétrer avec le nom du fichier de configuration de jetty.
 ########################
 
 classe controlleur REST
-
-la classe contient actuellement 9 méthodes :
+La classe contient actuellement 9 méthodes :
 
 1. getUnits()
+
 	 NB : the post X-Http-Method-Override header
 
 .. code-block:: java
@@ -84,11 +84,12 @@ la classe contient actuellement 9 méthodes :
   ....
 
 2. createOrSelectUnits()
-	récupère la liste des units avec la filtre
-	NB : La méthode HTTP GET n'est pas compatible,
-		 on utilisera une méthode HTTP POST dont l'entête contiendra "X-HTTP-Method-GET"
-	méthode createOrSelectUnits() va appeler méthode getUnits()
 
+	Récupère la liste des units avec la filtre
+
+	NB : La méthode HTTP GET n'est pas compatible, on utilisera une méthode HTTP POST dont l'entête contiendra "X-HTTP-Method-GET"
+
+	méthode createOrSelectUnits() va appeler méthode getUnits()
 
  .. code-block:: java
 
@@ -101,6 +102,7 @@ la classe contient actuellement 9 méthodes :
      ...
 
 3. getUnitById()
+
     récupère un unit avec son id
 	NB : the post X-Http-Method-Override header
 
@@ -116,8 +118,9 @@ la classe contient actuellement 9 méthodes :
   ...
 
 4. createOrSelectUnitById()
-	NB : La méthode HTTP GET n'est pas compatible,
-		 on utilisera une méthode HTTP POST dont l'entête contiendra "X-HTTP-Method-GET"
+
+.. note:: La méthode HTTP GET n'est pas compatible, on utilisera une méthode HTTP POST dont l'entête contiendra "X-HTTP-Method-GET"
+
 	méthode createOrSelectUnitById() va appeler méthode getUnitById()
 
 .. code-block:: java
@@ -132,7 +135,8 @@ la classe contient actuellement 9 méthodes :
    ...
 
 5. updateUnitById()
-    mise à jour d'un unit par son id avec une requête json
+
+  mise à jour d'un unit par son id avec une requête json
 
 .. code-block:: java
 
@@ -145,8 +149,10 @@ la classe contient actuellement 9 méthodes :
     ...
 
 6. getObjectGroup()
+
 	récupérer une groupe d'objet avec la filtre
-    NB : the post X-Http-Method-Override header
+
+.. note:: the post X-Http-Method-Override header
 
 .. code-block:: java
 
@@ -158,8 +164,9 @@ la classe contient actuellement 9 méthodes :
      ...
 
 7. getObjectGroupPost()
-	NB : La méthode HTTP GET n'est pas compatible,
-		 on utilisera une méthode HTTP POST dont l'entête contiendra "X-HTTP-Method-GET"
+
+.. note:: La méthode HTTP GET n'est pas compatible, on utilisera une méthode HTTP POST dont l'entête contiendra "X-HTTP-Method-GET"
+
 	méthode getObjectGroupPost() va appeler méthode getObjectGroup()
 
 .. code-block:: java
@@ -174,8 +181,10 @@ la classe contient actuellement 9 méthodes :
 
 
 8. getObject()
+
 	récupérer le group d'objet par un unit
-	NB : the post X-Http-Method-Override header
+
+.. note:: the post X-Http-Method-Override header
 
 .. code-block:: java
 
@@ -189,8 +198,9 @@ la classe contient actuellement 9 méthodes :
 
 
 9. getObjectPost()
-	NB : La méthode HTTP GET n'est pas compatible,
-		 on utilisera une méthode HTTP POST dont l'entête contiendra "X-HTTP-Method-GET"
+
+.. note:: La méthode HTTP GET n'est pas compatible, on utilisera une méthode HTTP POST dont l'entête contiendra "X-HTTP-Method-GET"
+
 	méthode getObjectPost() va appeler méthode getObject()
 
 .. code-block:: java
@@ -210,6 +220,7 @@ classe controlleur REST
 la classe contient actuellement 6 méthodes :
 
 1. getOperationById()
+
 	récupère l'opération avec son id
 	NB : the post X-Http-Method-Override header
 
@@ -223,8 +234,9 @@ la classe contient actuellement 6 méthodes :
      ...
 
 2. selectOperationByPost()
-	NB : La méthode HTTP GET n'est pas compatible,
-		 on utilisera une méthode HTTP POST dont l'entête contiendra "X-HTTP-Method-GET"
+
+.. note:: La méthode HTTP GET n'est pas compatible, on utilisera une méthode HTTP POST dont l'entête contiendra "X-HTTP-Method-GET"
+
 	méthode selectOperationByPost() va appeler méthode getOperationById()
 
 .. code-block:: java
@@ -238,6 +250,7 @@ la classe contient actuellement 6 méthodes :
      ...
 
 3. selectOperation()
+
      récupérer tous les journaux de l'opéraion
      NB : the post X-Http-Method-Override header
 
@@ -251,8 +264,9 @@ la classe contient actuellement 6 méthodes :
      ...
 
 4. selectOperationWithPostOverride()
-	NB : La méthode HTTP GET n'est pas compatible,
-		 on utilisera une méthode HTTP POST dont l'entête contiendra "X-HTTP-Method-GET"
+
+.. note:: La méthode HTTP GET n'est pas compatible, on utilisera une méthode HTTP POST dont l'entête contiendra "X-HTTP-Method-GET"
+
 	méthode selectOperationWithPostOverride() va appeler méthode selectOperation()
 
 .. code-block:: java
@@ -266,6 +280,7 @@ la classe contient actuellement 6 méthodes :
      ...
 
 5. getUnitLifeCycle()
+
 	récupère le journal sur le cycle de vie d'un unit avec son id
 
 .. code-block:: java
@@ -277,6 +292,7 @@ la classe contient actuellement 6 méthodes :
      ...
 
 6. getObjectGroupLifeCycle()
+
      récupère le journal sur le cycle de vie d'un groupe d'objet avec son id
 
 .. code-block:: java
@@ -293,7 +309,9 @@ la classe contient actuellement 6 méthodes :
 classe controlleur REST
 
 la classe contient actuellement 10 méthodes :
+
 1. checkDocument()
+
 	vérifier le format ou la règle
 
 .. code-block:: java
@@ -306,7 +324,8 @@ la classe contient actuellement 10 méthodes :
      ...
 
 2. importDocument()
-	importer le fichier du format ou de la règle
+
+	Importer le fichier du format ou de la règle
 
 .. code-block:: java
 
@@ -318,7 +337,8 @@ la classe contient actuellement 10 méthodes :
      ...
 
 3. importProfileFile()
-    Importer un fichier au format xsd ou rng et l'attacher à un profile métadata déjà existant.
+
+  Importer un fichier au format xsd ou rng et l'attacher à un profile métadata déjà existant.
 
 .. code-block:: java
 
@@ -331,7 +351,8 @@ la classe contient actuellement 10 méthodes :
      ...
 
 4. downloadProfileFile()
-    Télécharger un fichier d'un profile métadata existant au format xsd ou rng.
+
+  Télécharger un fichier d'un profile métadata existant au format xsd ou rng.
 
 .. code-block:: java
 
@@ -343,7 +364,8 @@ la classe contient actuellement 10 méthodes :
      ...
 
 5. findDocuments()
-     récupérer le format, la règle, le contrat (entrée ou accès), le profile.
+
+  Récupérer le format, la règle, le contrat (entrée ou accès), le profile.
 
 .. code-block:: java
 
@@ -355,8 +377,9 @@ la classe contient actuellement 10 méthodes :
      ...
 
 6. createOrfindDocuments()
-    Si la valeur de xhttpOverride est rensigné et égale à GET alors, c'est un find, donc redirection vers la méthode findDocuments ci-dessus.
-    Sinon, c'est créate. Cette méthode est utilisé pour créer des profiles au format json. On peut noter que dans ce cas de figure, ça ressemble à la méthode importDocument, sauf que le Consumes qui change.
+
+  Si la valeur de xhttpOverride est rensigné et égale à GET alors, c'est un find, donc redirection vers la méthode findDocuments ci-dessus.
+  Sinon, c'est créate. Cette méthode est utilisé pour créer des profiles au format json. On peut noter que dans ce cas de figure, ça ressemble à la méthode importDocument, sauf que le Consumes qui change.
 
 .. code-block:: java
 
@@ -369,7 +392,8 @@ la classe contient actuellement 10 méthodes :
 
 
 7. findDocumentByID()
-     En utilisant la méthode POST avec un paramètre xhttpOverride, ce méthode permets de récupérer avec un id en entrée, le format, la règle, les contrats (accès, entrée), les profiles.
+
+  En utilisant la méthode POST avec un paramètre xhttpOverride, ce méthode permets de récupérer avec un id en entrée, le format, la règle, les contrats (accès, entrée), les profiles.
 
 .. code-block:: java
 
@@ -381,7 +405,8 @@ la classe contient actuellement 10 méthodes :
 
 
 8. findDocumentByID()
-     En utilisant la méthode GET, ce méthode permets derécupérer avec un id en entrée, le format, la règle, les contrats (accès, entrée), les profiles.
+
+  En utilisant la méthode GET, ce méthode permets derécupérer avec un id en entrée, le format, la règle, les contrats (accès, entrée), les profiles.
 
 .. code-block:: java
 
@@ -393,7 +418,8 @@ la classe contient actuellement 10 méthodes :
      ...
 
 9. updateAccessContract()
-   Mise à jour du contrat d'accès
+
+  Mise à jour du contrat d'accès
 
 .. code-block:: java
 
@@ -405,7 +431,8 @@ la classe contient actuellement 10 méthodes :
      ...
 
 10. updateIngestContract()
-     Mise à jour du contrat d'entrée
+
+  Mise à jour du contrat d'entrée
 
 .. code-block:: java
 
@@ -415,3 +442,4 @@ la classe contient actuellement 10 méthodes :
     @Produces(MediaType.APPLICATION_JSON)
      public Response updateIngestContract(JsonNode queryDsl) {
      ...
+

@@ -21,32 +21,37 @@ ingest-external
     |                       sur dépôt de document SIP.
     |--- ingest-external-client  : client ingest-external qui sera utilisé par les autres application externe de VITAM
 
-2. Classes métiers 
-Dans cette section, nous présentons quelques classes principales dans des modules/packages 
-qu'on a abordé ci-dessus.
+2. Classes métiers
 
-2.1 ingest-external-common: 
+Dans cette section, nous présentons quelques classes principales dans des modules/packages qu'on a abordé ci-dessus.
+
+2.1 ingest-external-common:
+
 fr.gouv.vitam.ingest.external.common.util
+
 -JavaExecuteScript.java : classe java exécute l'anti-virus pour détecter des virus de fichiers. 
 
 fr.gouv.vitam.ingest.external.common.model.response
+
 - IngestExternalError.java : modèle de réponse d'erreur sur la request de dépôt ingest 
 
 ingest-external-api: 
+
 -IngestExternal.java : interface pour le service de dépôt externe.
 - IngestExternalOutcomeMessage.java : définir message de réponse du résultat de scan virus
 
-ingest-external-core: 
--IngestExternalImpl.java : implémenter des fonctionnalités de traitement sur le dépôt SIP , pré-défini
-dans -IngestExternal.java
+ingest-external-core:
+
+-IngestExternalImpl.java : implémenter des fonctionnalités de traitement sur le dépôt SIP , pré-défini dans -IngestExternal.java
 
 ingest-external-rest:
+
 - IngestExternalRessource.java : définir des ressources différentes pour le serveur REST ingest-external
 - IngesteEternalApplication.java : créer & lancer le serveur d'application avec une configuration 
 
 ingest-external-client 
+
 - IngestExternalClient.java : interface client Ingestexternal
 - IngestExternalexternalClientMock.java : mock client ingest-external
-- IngestExternalClientRest.java : le client ingest-external et des fonctionnalités en se connectant 
-au serveur REST ingest-external
+- IngestExternalClientRest.java : le client ingest-external et des fonctionnalités en se connectant au serveur REST ingest-external
 

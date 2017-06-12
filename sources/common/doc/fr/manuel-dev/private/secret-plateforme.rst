@@ -8,8 +8,10 @@ en séparant les environnements de manière logique (secret partagé par l'ensem
 
 Implémentation
 --------------
+
 * Un Header X-Request-Timestamp contenant le timestamp de la requête sous forme epoch (secondes depuis 1970)
 * Un Header X-Platform-ID qui est SHA256("<methode>;<URL>;<Valeur du header X-Request-Timestamp>;<Secret partagé de plateforme>").
+
 	Par contre, mettre le secret de plateforme à la fin permet de limite les attaques par extension.
 	
 .. code-block:: java
@@ -23,9 +25,11 @@ Implémentation
     .....................
 
 Si on veut assurer une sécurité additionnelle, il est possible de transmettre un hash des valeurs suivantes :
+
 - URI + paramètres de l'URI
 - Header Timestamp
 - Secret de plateforme en clair non transmis (connus par les participants de la plateforme)
+
 => Hash (URI + paramètres (dans l'ordre alphabétique) + Header Timestamp + secret non transmis)
 Ce Hash est transmis dans le Header : X-Platform-Id
 
@@ -42,11 +46,10 @@ Ce Hash est transmis dans le Header : X-Platform-Id
     .....................
 
 Le contrôle est alors le suivant :
+
 1) Existance de X-Platform-Id et Timestamp
-2) Vérification que Timestamp est distant de l'heure actuelle sur le serveur requêté de moins de 10 secondes 
-	( |Timestamp - temps local| < 10 s )
-3) Calcul d'un Hash2 = Hash(URI+paramètres (dans l'ordre alphabétique) + Header Timestamp + secret non transmis) 
-	et vérification avec la valeur Hash transmise
+2) Vérification que Timestamp est distant de l'heure actuelle sur le serveur requêté de moins de 10 secondes ( |Timestamp - temps local| < 10 s )
+3) Calcul d'un Hash2 = Hash(URI+paramètres (dans l'ordre alphabétique) + Header Timestamp + secret non transmis) et vérification avec la valeur Hash transmise
 	
 .. code-block:: java
 

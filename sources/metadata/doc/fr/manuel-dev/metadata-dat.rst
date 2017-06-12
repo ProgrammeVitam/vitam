@@ -22,20 +22,22 @@ metadata
 
 2. Classes métiers
  
-Dans cette section, nous présentons quelques classes principales dans des modules/packages 
-qu'on a abordé ci-dessus.
+Dans cette section, nous présentons quelques classes principales dans des modules/packages qu'on a abordé ci-dessus.
 
-metadata-api : 
+metadata-api :
+
 -MetaData.java : définir des interface métiers pour le métadata
 
 metadata-core : 
--MetaDataImpl.java : implémenter des fonctionnalités de traitement sur le métadata, pré-défini
-dans -MetaData.java
+
+-MetaDataImpl.java : implémenter des fonctionnalités de traitement sur le métadata, pré-défini dans -MetaData.java
 
 metadata-rest 
+
 - MetaDataRessource.java : définir des ressources différentes pour le serveur REST métadata
 - MetaDataApplication.java : créer & lancer le serveur d'application avec une configuration 
 
 metadata-client 
+
 - MetaDataClient.java : créer le client et des fonctionnalités en se connectant au serveur REST
 
