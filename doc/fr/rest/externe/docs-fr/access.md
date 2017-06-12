@@ -53,7 +53,7 @@ La structuration d'un Unit est la suivante :
 
 # Objects
 
-**Cette collection est dépréciée et va disparaître car elle est contraire aux règles d'accès aux objets à partir d'une ArchiveUnit.**
+**Cette collection est DEPRECATED et va disparaître car elle est contraire aux règles d'accès aux objets à partir d'une ArchiveUnit.**
 
 **Objects** est le point d'entrée pour toutes les archives binaires mais également les non binaires (comme une référence à des objet d'archives physiques ou externes au système). Elles contiennent les métadonnées techniques. Il est constitué de plusieurs usages et versions d'usages du même contenu. C'est dans ce sens qu'il est aussi appelé un **Groupe d'objets**.
 

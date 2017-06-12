@@ -24,7 +24,7 @@ Cette partie va essayer de montrer quelques exemples d'usages du DSL dans diffé
 # Collection Objects
 
 **Points particuliers sur les end points**
-**Cette collection est dépréciée et va disparaître car elle est contraire aux règles d'accès aux objets à partir d'une ArchiveUnit.**
+**Cette collection est DEPRECATED et va disparaître car elle est contraire aux règles d'accès aux objets à partir d'une ArchiveUnit (/units/id/object).**
 
 - **/objects** : il s'agit ici de requêter un ensemble d'objets sur leurs métadonnées uniquement.
 
@@ -60,6 +60,8 @@ Cette partie va essayer de montrer quelques exemples d'usages du DSL dans diffé
     - Le principe est résumé dans le graphe d'états suivant :
 
 ![Graphe d'états dans le cas Multi-queries](./multi-query-schema.png)
+![Graphe d'états dans le cas Multi-queries](multi-query-schema.png)
+![Graphe d'états dans le cas Multi-queries](docs-fr/multi-query-schema.png)
 
 - $source (**UNSUPPORTED**) permet de changer de collections entre deux query (unit ou object)
 
@@ -85,6 +87,7 @@ Query query = path("id1", "id2");
     - **$or** où chaque expression est une commande et au moins une commande doit être vérifiée
     - **$not** où chaque expression est une commande et aucune ne doit être vérifiée
     - Exemple :
+
 ```json
 { "$and" : [ { "$gt" : { "StartDate" : "2014-03-25" } }, { "$lte" : { "StartDate" : "2014-04-25" } } ] }
 ```
@@ -104,6 +107,7 @@ pour toute StartDate plus grande que le 25 mars 2014 et inférieure ou égale au
         - $lt, $lte : le champs a une valeur inférieure ou égale avec la valeur fournie
         - $gt, $gte : le champs a une valeur supérieure ou égale avec la valeur fournie
     - Exemple :
+
 ```json
 { "$gt" : { "StartDate" : "2014-03-25" } }
 ```
@@ -119,6 +123,7 @@ pour toute StartDate plus grande que le 25 mars 2014
     - Comparaison de la valeur d'un champ avec l'intervalle passé en argument
     - **$range : { name : { $gte : value, $lte : value } }** est un raccourci pour chercher sur un seul champ nommé *name* les Units dont la valeur est comprise entre la partie *$gt* ou *$gte* et la partie *$lt* ou *$lte*
     - Exemple :
+
 ```json
 { "$range" : { "StartDate" : { "$gte" : "2014-03-25", "$lte" : "2014-04-25" } } }
 ```
@@ -135,6 +140,7 @@ pour toute StartDate plus grande ou égale au 25 mars 2014 mais inférieure ou �
      - **$missing** : le champ ne doit pas exister
      - **$isNull** : le champ existe mais vide
      - Exemple :
+
 ```json
 { "$exists" : "StartDate" }
 ```
@@ -150,6 +156,7 @@ pour tout Unit contenant le champ StartDate
      - **$in : { name : [ value1, value2, ... ] }** où *name* est le nom du tableau et le tableau de valeurs ce que peut contenir le tableau. Il suffit d une seule valeur présente dans le tableau pour qu il soit sélectionné.
      - **$nin** est l opérateur inverse, le tableau ne doit contenir aucune des valeurs spécifiées
      - Exemple :
+
 ```json
 { "$in" : { "#unitups" : ["id1", "id2"] } }
 ```
@@ -165,6 +172,7 @@ pour rechercher les Units qui ont pour parents immédiats au moins l un des deux
      - Taille d un tableau
      - **$size : { name : length }** où *name* est le nom du tableau et *length* la taille attendue (égalité)
      - Exemple :
+
 ```json
 { "$size" : { "#unitups" : 2 } }
 ```
@@ -180,6 +188,7 @@ pour rechercher les Units qui ont 2 parents immédiats exactement
     - Comparaison de champs avec une valeur exacte (non analysé)#type
     - **$term : { name : term, name : term }** où l on fait une recherche exacte sur les différents champs indiqués
     - Exemple :
+
 ```json
 { "$term" : { "#id" : "guid" } }
 ```
@@ -195,6 +204,7 @@ qui cherchera le Unit ayant pour Id celui précisé (équivalent dans ce cas à 
     - Comparaison de champs mots-clefs à valeur
     - **$wildcard : { name : term }** où l on fait une recherche exacte sur le champ indiqué mais avec une possibilité d introduire un '\*' dans le contenu
     - Exemple :
+
 ```json
 { "$wildcard" : { "#type" : "FAC*01" } }
 ```
@@ -212,6 +222,7 @@ qui cherchera les Units qui contiennent dans le type (Document Type) une valeur 
     - **$matchPhrase** permet de définir une phrase (*words* constitue une phrase à trouver exactement dans cet ordre)
     - **$matchPhrasePrefix** permet de définir que le champ *name* doit commencer par cette phrase
     - Exemple 1 :
+
 ```json
 { "$match" : { "Title" : "Napoléon Waterloo" } }
 ```
@@ -222,7 +233,8 @@ Query query = match("Title", "Napoléon Waterloo");
 ```
 qui cherchera les Units qui contiennent les deux mots dans n importe quel ordre dans le titre
 
-    - Exemple 2 :
+   - Exemple 2 :
+
 ```json
 { "$matchPhrase" : { "Description" : "le petit chat est mort" }}
 ```
@@ -237,6 +249,7 @@ qui cherchera les Units qui contiennent la phrase n importe où dans la descript
     - Recherche via une expression régulière : **Attention, cette requête est lente et coûteuse**
     - **$regex : { name : regex }** où *name* est le nom du champ et *regex* l expression au format expression régulière du contenu du champ
     - Exemple :
+
 ```json
 { "$regex" : { "Title" : "Napoléon.\* [Waterloo | Leipzig]" } }
 ```
@@ -260,6 +273,7 @@ qui cherchera les Units qui contiennent exactement Napoléon suivi de n importe 
         - **~N** après un mot est proche du **\*** mais en limitant le nombre de caractères dans la complétion (fuzziness)
         - **~N** après une phrase (encadré par **"**) autorise des "trous" dans la phrase
     - Exemple :
+
 ```json
 { "$search" : { "Title" : "\"oeufs cuits\" +(tomate | patate) -frite" } }
 ```
@@ -277,6 +291,7 @@ pour rechercher les Units qui ont dans le titre la phrase "oeufs cuits" et au mo
       - $mlt : More like this, la méthode recommandée
       - $fmt : Fuzzy like this, une autre que fournie l'indexeur mais pouvant donner plus de faux positif et qui est un assemblage de $match avec une combinaison "$or"
     - Exemple :
+
 ```json
 { "$mlt" : { "$fields" : ["Title", "Description"], "$like" : "Il était une fois" } }
 ```
@@ -293,6 +308,7 @@ pour chercher les Units qui ont dans le titre ou la description un contenu qui s
     - change la valeur des champs
     - **$set : { name1 : value1, name2 : value2, ... }** où *nameX* est le nom des champs à changer avec la valeur indiquée dans *valueX*
     - Exemple :
+
 ```json
 { "$set" : { "Title" : "Mon nouveau titre", "Description" : "Ma nouvelle description" } }
 ```
@@ -311,6 +327,7 @@ qui change les champs Title et Description avec les valeurs indiquées
 
     - change la valeur du champ à la valeur minimale/maximale si elle est supérieure/inférieure à la valeur précisée
   , Exemple :
+
 ```json
 { "$unset" : [ "StartDate", "EndDate" ] }
 ```
@@ -326,6 +343,7 @@ qui va vider les champs indiqués de toutes valeurs
     - **$min : { name : value }** où *name* est le nom du champ où si sa valeur actuelle est inférieure à *value*, sa valeur sera remplacée par celle-ci
     - **$max** idem en sens inverse, la valeur sera remplacée si l'existante est supérieure à celle indiquée
     - Exemple :
+
 ```json
 { "$min" : { "MonChamp" : 3 } }
 ```
@@ -339,6 +357,7 @@ Si MonCompteur contient 2, MonCompteur vaudra 3, mais si MonCompteur contient 4,
 
 - **$inc : { name : value }** où *name* est le nom du champ à incrémenter de la valeur *value* passée en paramètre (positive ou négative)
   - Exemple :
+
 ```json
 { "$inc" : { "MonCompteur" : -2 } }
 ```
@@ -386,6 +405,7 @@ ajoute dans le champ Tag les valeurs précisées à la fin du tableau même si e
     - ajoute les éléments de la liste du champ (unicité des valeurs)
     - **$add : { name : { $each : [ value, value, ... ] } }** où *name* est le nom du champ de la forme d'une MAP ou SET (une valeur ne peut apparaître qu'une seule fois dans le tableau) et les valeurs sont ajoutées, si elles n'existent pas déjà
     - Exemple :
+
 ```json
 { "$add" : { "Tag" : { "$each" : [ "Poisson", "Oiseau" ] } } }
 ```
@@ -400,6 +420,7 @@ ajoute dans le champ Tag les valeurs préciées sauf si elles existent déjà da
   - ajoute ou retire un élément du tableau en première ou dernière position selon la valeur -1 ou 1
   - **$pop : { name : value }** où *name* est le nom du champ et si *value* vaut -1, retire le premier, si *value* vaut 1, retire le dernier
   - Exemple :
+
 ```json
 { "$pop" : { "Tag" : -1 } }
 ```

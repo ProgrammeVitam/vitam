@@ -55,7 +55,7 @@ documentation:
   /{idu}:
     displayName: FileFormat
     description: |
-     API qui définit les requêtes pour accéder à 1 format dans le référentiel des Formats.
+     API qui définit les requêtes pour accéder à un format dans le référentiel des Formats.
     get:
       description: Request that will return result composed of 1 Format
       is: [RegisterTraits.RegisterItemResponse]
@@ -95,13 +95,13 @@ documentation:
   /{idu}:
     displayName: Rule
     description: |
-     API qui définit les requêtes pour accéder à 1 Règle dans le référentiel des Règles de gestion.
+     API qui définit les requêtes pour accéder à une Règle dans le référentiel des Règles de gestion.
     get:
       description: Request that will return result composed of 1 Rule
       is: [RegisterTraits.RegisterItemResponse]
     post:
       description: |
-        Request that will return result of 1 Rule. The request is using POST with X-Http-Method-Override: GET
+        Request that will return result of une Rule. The request is using POST with X-Http-Method-Override: GET
       is: [RegisterTraits.RegisterItemResponse, StandardTraits.OverrideGet]
       headers:
         X-Http-Method-Override:
@@ -124,9 +124,27 @@ documentation:
       X-Http-Method-Override:
         required: false
 
+  {id}:
+    displayName: Access contract Modifier
+    description: |
+     API qui permet de mettre à jour un contrat d'accès via une requête de mise à jour
+    get:
+      description: |
+         API qui définit les requêtes pour accéder à un contrat d'accès
+      is: [RegisterTraits.RegisterListingResponse]
+    put:
+      description: |
+         ** Note: Sera changé en /accesscontracts/{id}, aujourd'hui accesscontract/{id}**
+         Update the given access contract
+      is: [RegisterTraits.RegisterUpload]
+      headers:
+        X-Http-Method-Override:
+          required: false
+
 /contracts:
   displayName: Ingest contracts
   description: |
+     **NOTE: sera changé en entrycontracts** 
      API qui définit les requêtes pour accéder au contracts d'entrée
      La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste de contrats d'entrée selon le DSL Vitam en cas de succès.
   get:
@@ -141,30 +159,61 @@ documentation:
       X-Http-Method-Override:
         required: false
 
+  {id}:
+    displayName: Ingest contract Modifier
+    description: |
+      API qui permet de mettre à jour un contrat d'entrées via une requête de mise à jour
+    get:
+      description: |
+         API qui définit les requêtes pour accéder à un contrat d'entrée
+      is: [RegisterTraits.RegisterListingResponse]
+    put:
+       description: |
+         ** Note: Sera changé en /entrycontracts/{id}, aujourd'hui contract/{id}**
+         Update the given ingest contract
+       is: [RegisterTraits.RegisterUpload]
+       headers:
+         X-Http-Method-Override:
+           required: false
+
+/contexts:
+  displayName: External Application contexts
+  description: |
+     API qui définit les requêtes pour accéder aux contextes d'applications externes
+     La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste de contextes selon le DSL Vitam en cas de succès.
+  get:
+    description: |
+       API qui définit les requêtes pour accéder aux contextes
+    is: [RegisterTraits.RegisterListingResponse]
+  post:
+    description: |
+      Importe un ensemble des contextes qui sont sauvegardés et indexés en cas de succès
+    is: [RegisterTraits.RegisterItemResponse]
+    headers:
+      X-Http-Method-Override:
+        required: false
+
+  {id}:
+    displayName: Context Modifier
+    description: |
+      API qui permet de mettre à jour un contexte via une requête de mise à jour
+    get:
+      description: |
+         API qui définit les requêtes pour accéder à un contrat d'entrée
+      is: [RegisterTraits.RegisterListingResponse]
+    put:
+       description: |
+         ** Note: Sera changé en /contracts/{id}, aujourd'hui contract/{id}**
+         Update the given ingest contract
+       is: [RegisterTraits.RegisterUpload]
+       headers:
+         X-Http-Method-Override:
+           required: false
+
+
 /status:
   get:
     is: [ StandardTraits.StandardHeader204,
       StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader503 ]
 
-/accesscontract/{id}:
-  displayName: Access contract
-  description: |
-   API qui permet de mettre à jour les contrats d'accès via une requête de mise à jour
-  put:
-    description: Update the given access contract
-    is: [RegisterTraits.RegisterUpload]
-    headers:
-      X-Http-Method-Override:
-        required: false
-
-/contract/{id}:
-  displayName: Ingest contract
-  description: |
-    API qui permet de mettre à jour les contrats d'entrées via une requête de mise à jour
-  put:
-     description: Update the given ingest contract
-     is: [RegisterTraits.RegisterUpload]
-     headers:
-       X-Http-Method-Override:
-         required: false
 

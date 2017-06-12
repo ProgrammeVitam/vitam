@@ -56,8 +56,8 @@ import fr.gouv.vitam.functional.administration.client.model.ContextModel;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.context.api.ContextService;
+import fr.gouv.vitam.functional.administration.context.core.ContextServiceImpl;
 import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
-import fr.gouv.vitam.functionnal.administration.context.core.ContextServiceImpl;
 
 /**
  * This resource manage contexts create, update, find, ...

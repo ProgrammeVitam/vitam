@@ -99,6 +99,7 @@ L'authentification dans Vitam authentifie l'application Front-Office qui se conn
 - Un premier composant authentifie la nouvelle connexion
 
   - La première implémentation sera basée sur une authentification du certificat client dans la connexion TLS
+  - Note : il est possible au travers d'un ReverseProxy de passer le certificat client dans le Header
 
 - Le premier composant passe au service REST la variable Header "X-Identity" contenant l'identifiant de l'application Front-Office.
 

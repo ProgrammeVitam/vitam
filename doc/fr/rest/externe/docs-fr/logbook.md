@@ -57,3 +57,13 @@ Les événements associés sont du type :
 
 **Important** : l'identifiant d'un Object lifecycle est également l'identifiant de l'Objet correspondant dans le service Access.
 Ainsi il est possible une fois une opération terminée de demander la liste des Objects qui sont concernés par cette opération en demandant la liste des ObjectLifeCycles de cette opération. Les identifiants remontés sont alors les mêmes pour accéder au journal du cycle de vie d'un Object (*/objectlifecycles/id*) ou à sa description technique (*/objects/id*).   
+
+
+
+# Sécurisation des journaux
+
+**traceability** est le point d'entrée pour la sécurisation des journaux d'opérations dans Vitam.
+
+Il est possible de gérer la sécurisation des journaux et de vérifier a posteriori leur conformité.
+
+**NOTE IMPORTANTE** : **DEPRECATED** Ce service sera déplacé dans la partie administration fonctionnelle.

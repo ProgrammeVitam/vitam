@@ -26,10 +26,11 @@ Formation générale des API externes
 RAML
 ----
 
-* http://www.programmevitam.fr/ressources/Doc0.11.1/raml/externe/introduction.html
-* http://www.programmevitam.fr/ressources/Doc0.11.1/raml/externe/ingest.html
-* http://www.programmevitam.fr/ressources/Doc0.11.1/raml/externe/access.html
-* http://www.programmevitam.fr/ressources/Doc0.11.1/raml/externe/functional-administration.html
+* http://www.programmevitam.fr/ressources/Doc0.20.1/raml/externe/introduction.html
+* http://www.programmevitam.fr/ressources/Doc0.20.1/raml/externe/ingest.html
+* http://www.programmevitam.fr/ressources/Doc0.20.1/raml/externe/access.html
+* http://www.programmevitam.fr/ressources/Doc0.20.1/raml/externe/functional-administration.html
+* http://www.programmevitam.fr/ressources/Doc0.20.1/raml/externe/logbook.html
 
 exemple d'interface du RAML
 
@@ -38,7 +39,17 @@ exemple d'interface du RAML
 Javadoc
 -------
 
-* http://www.programmevitam.fr/ressources/Doc0.11.1/javadoc
+* http://www.programmevitam.fr/ressources/Doc0.20.1/javadoc
+
+Notamment pour les packages des clients suivants :
+
+* Ingest External Client : fr.gouv.vitam.ingest.external.client;
+* Access External Client : fr.gouv.vitam.access.external.client;
+   * Plus tard ce package sera découpé en trois parties :
+      * AccessExternalClient
+      * AdminExternalClient
+      * LogbookExternalClient
+
 
 Requêtes et réponses
 --------------------
