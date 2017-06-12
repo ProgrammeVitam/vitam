@@ -327,9 +327,6 @@ public class ProfileManager {
     private static ProfileValidator createMandatoryParamsValidator() {
         return (profile) -> {
             RejectionCause rejection = null;
-            if (profile.getIdentifier() == null || profile.getIdentifier().trim().isEmpty()) {
-                rejection = RejectionCause.rejectMandatoryMissing(Profile.IDENTIFIER);
-            }
 
             if (profile.getFormat() == null || (!profile.getFormat().equals(ProfileFormat.RNG) && !profile.getFormat().equals(ProfileFormat.XSD))) {
                 rejection = RejectionCause.rejectMandatoryMissing(Profile.FORMAT);
