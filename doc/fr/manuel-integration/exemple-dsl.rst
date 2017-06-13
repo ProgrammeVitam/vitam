@@ -113,7 +113,8 @@ Détails sur chaque commande de la partie $query
    { "$and" : [ { "$gt" : { "StartDate" : "2014-03-25" } }, { "$lte" : { "StartDate" : "2014-04-25" } } ] }
 
    static include fr.gouv.vitam.common.database.builder.query.QueryHelper.*;
-   Query query = and().add(gt("StartDate", dateFormat.parse("2014-03-25")), lte("StartDate", dateFormat.parse("2014-04-25"));
+   Query query = and().add(gt("StartDate", dateFormat.parse("2014-03-25")), 
+            lte("StartDate", dateFormat.parse("2014-04-25"));
 
 pour toute StartDate plus grande que le 25 mars 2014 et inférieure ou égale au 25 avril 2014 (équivalent à un $range dans ce cas)
 
