@@ -5,9 +5,9 @@
   roles:
     - topbeat
 
-- hosts: vitam
-  roles:
-    - {role: packetbeat, when: "inventory_hostname != 'localhost'"}
+#- hosts: vitam
+#  roles:
+#    - {role: packetbeat, when: "inventory_hostname != 'localhost'"}
 
 - hosts: hosts-elasticsearch-log
   roles:
