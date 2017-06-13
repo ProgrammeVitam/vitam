@@ -45,7 +45,9 @@ Notamment pour les packages des clients suivants :
 
 * Ingest External Client : fr.gouv.vitam.ingest.external.client;
 * Access External Client : fr.gouv.vitam.access.external.client;
+
    * Plus tard ce package sera découpé en trois parties :
+
       * AccessExternalClient
       * AdminExternalClient
       * LogbookExternalClient
@@ -93,7 +95,7 @@ Access
 
 RAML
 
-http://www.programmevitam.fr/ressources/Doc0.11.1/raml/access/introduction.html
+http://www.programmevitam.fr/ressources/Doc0.20.1/raml/access/introduction.html
 
 API qui définit les requêtes pour accéder aux Unités d'archives.
  

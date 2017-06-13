@@ -1,3 +1,8 @@
+.. raw:: html
+
+    <style> .red {color:red} .blue {color:blue} .green{color:green} </style>
+
+
 DSL
 ###
 
@@ -25,15 +30,11 @@ Corps de la requête
 ===================
 Une requête DSL se décompose en 4 parties principales :
 
-.. raw:: html
-
-    <style> .red {color:red} .blue {color:blue} .green{color:green} </style>
-
-  :red.'Projections', :blue.'Collections', Requêtes (critères=query), :green.'Filtres (tri, limite)'
+:red.'Projections', :blue.'Collections', Requêtes (critères=query), :green.'Filtres (tri, limite)'
 
 Pour comparaison avec le langage SQL ::
 
-  :red.'SELECT field1, field2' :boue.'FROM table' WHERE field3 < value :green.'LIMIT n SORT field1 ASC'
+:red.'SELECT field1, field2' :blue.'FROM table' WHERE field3 < value :green.'LIMIT n SORT field1 ASC'
 
 - *SELECT field1, field2* : la Projection
 - *FROM table* : la Collection
@@ -128,6 +129,7 @@ Documentation :
 API java :
 
  * Dans common/common-database-vitam/common-database-public
+
    * fr.gouv.vitam.common.database.builder.query; notamment **VitamFieldsHelper** et **QueryHelper**
    * fr.gouv.vitam.common.database.builder.query.action; dont **UpdateActionHelper**
    * fr.gouv.vitam.common.database.builder.request.multiple; dont **DeleteMultiQuery**, **SelectMultiQuery**, **InsertMultiQuery**, **UpdateMultiQuery**

@@ -180,12 +180,14 @@ documentation:
   displayName: Operation Logbook Security
   description: |
     **DEPRECATED** : ne sera plus supporté en V1 car déplacé dans functional-administration.
+
     Lancement d'une opération de sécurisation des journaux d'opération.
 
   /check:
     displayName: Operation Logbook Security
     description: |
       **DEPRECATED** : ne sera plus supporté en V1 car déplacé dans functional-administration.
+
       Lancement d'une opération de sécurisation des journaux d'opération.
     post:
       description: |
@@ -206,10 +208,11 @@ documentation:
          description: |
            Un problème interne a empêché l'opération de se dérouler.
 
-  /{idop}:
+  /{idop}/content:
     displayName: Operation Logbook Security Conformity report
     description: |
-      **DEPRECATED** : ne sera plus supporté en V1 car déplacé dans functional-administration.
+      **DEPRECATED** : ne sera plus supporté en V1 car déplacé dans functional-administration et sous la forme /traceability/{idop}.
+
       Demande le rapport de conformité d'une opération de sécurisation
     get:
       description: |
