@@ -29,6 +29,7 @@ package fr.gouv.vitam.functionaltest.cucumber.step;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Iterables;
+import cucumber.api.java.After;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
@@ -48,6 +49,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import fr.gouv.vitam.tools.SipTool;
 import org.assertj.core.api.AutoCloseableSoftAssertions;
 import org.assertj.core.api.Fail;
 
@@ -75,6 +77,7 @@ public class IngestStep {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestStep.class);
 
     private String fileName;
+    private Path sip;
 
     private World world;
 
@@ -90,6 +93,7 @@ public class IngestStep {
     @Given("^un fichier SIP nommé (.*)$")
     public void a_sip_named(String fileName) {
         this.fileName = fileName;
+        this.sip = Paths.get(world.getBaseDirectory(), fileName);
     }
 
     /**
@@ -100,14 +104,10 @@ public class IngestStep {
      */
     @When("^je télécharge le SIP")
     public void upload_this_sip() throws IOException, VitamException, IOException {
-        Path sip = Paths.get(world.getBaseDirectory(), fileName);
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
-
             RequestResponse<JsonNode> response = world.getIngestClient()
                 .upload(inputStream, world.getTenantId(), DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
-
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
-
             world.setOperationId(operationId);
             world.getIngestClient()
                 .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1000l, TimeUnit.MILLISECONDS);
@@ -123,7 +123,6 @@ public class IngestStep {
      */
     @When("^je télécharge le plan")
     public void upload_this_plan() throws IOException, VitamException {
-        Path sip = Paths.get(world.getBaseDirectory(), fileName);
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
 
             RequestResponse<JsonNode> response = world.getIngestClient()
@@ -147,9 +146,7 @@ public class IngestStep {
      */
     @When("^je télécharge l'arbre")
     public void upload_this_tree() throws IOException, VitamException {
-        Path sip = Paths.get(world.getBaseDirectory(), fileName);
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
-
             RequestResponse<JsonNode> response = world.getIngestClient()
                 .upload(inputStream, world.getTenantId(), HOLDING_SCHEME.name(), ProcessAction.RESUME.name());
 
@@ -234,16 +231,28 @@ public class IngestStep {
         }
     }
 
+
+    @When("je construit le sip de rattachement avec le template")
+    public void build_the_attachenment() throws IOException {
+        this.sip = SipTool.copyAndModifyManifestInZip(sip, SipTool.REPLACEMENT_STRING, world.getUnitId());
+    }
+
     /**
      * check if the atr is available
      */
     @Then("je peux télécharger son ATR")
     public void download_atr() throws IngestExternalException, IOException {
         Response response = world.getIngestClient()
-            .downloadObjectAsync(world.getOperationId(), IngestCollection.REPORTS, world.getTenantId());
+                .downloadObjectAsync(world.getOperationId(), IngestCollection.REPORTS, world.getTenantId());
         InputStream inputStream = response.readEntity(InputStream.class);
         assertThat(inputStream).isNotNull();
         StreamUtils.closeSilently(inputStream);
         world.getIngestClient().consumeAnyEntityAndClose(response);
+    }
+    @After
+    public void afterScenario() throws IOException {
+        if( this.sip!=null &&  this.sip.toAbsolutePath().toString().contains("/tmp")){
+            Files.delete(this.sip);
+        }
     }
 }
