@@ -63,6 +63,8 @@ public interface MetaData {
         MetaDataAlreadyExistException, MetaDataExecutionException, MetaDataDocumentSizeException;
 
 
+    List<Document> selectAccessionRegisterOnObjectGroupByOperationId(String operationId);
+
     /**
      * Search UNITs by Select {@link Select}Query
      *

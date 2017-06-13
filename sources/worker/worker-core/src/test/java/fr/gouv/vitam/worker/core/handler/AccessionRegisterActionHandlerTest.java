@@ -102,19 +102,16 @@ public class AccessionRegisterActionHandlerTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         GUID operationId = GUIDFactory.newGUID();
         VitamThreadUtils.getVitamSession().setRequestId(operationId);
-        final SedaUtils sedaUtils = mock(SedaUtils.class);
         MetaDataClient metaDataClient = mock(MetaDataClient.class);
         MetaDataClientFactory metaDataClientFactory = mock(MetaDataClientFactory.class);
-        SedaUtilsFactory sedaUtilsFactory = mock(SedaUtilsFactory.class);
 
-        when(sedaUtilsFactory.createSedaUtils(handlerIO)).thenReturn(sedaUtils);
-        when(sedaUtils.computeTotalSizeOfObjectsInManifest(anyObject())).thenReturn(new Long(1024));
         when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
 
         List<UnitPerOriginatingAgency> originatingAgencies = new ArrayList<>();
         originatingAgencies.add(new UnitPerOriginatingAgency("sp1", 3));
 
-        when(metaDataClient.selectAccessionRegisterByOperationId(operationId.toString())).thenReturn(originatingAgencies);
+        when(metaDataClient.selectAccessionRegisterOnUnitByOperationId(operationId.toString()))
+            .thenReturn(originatingAgencies);
 
         AdminManagementClientFactory.changeMode(null);
         final List<IOParameter> in = new ArrayList<>();
@@ -129,7 +126,7 @@ public class AccessionRegisterActionHandlerTest {
         handlerIO.addOuputResult(3, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS));
         handlerIO.reset();
         handlerIO.addInIOParameters(in);
-        accessionRegisterHandler = new AccessionRegisterActionHandler(metaDataClientFactory, sedaUtilsFactory);
+        accessionRegisterHandler = new AccessionRegisterActionHandler(metaDataClientFactory);
         assertEquals(AccessionRegisterActionHandler.getId(), HANDLER_ID);
 
         // When

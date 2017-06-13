@@ -30,6 +30,7 @@ package fr.gouv.vitam.metadata.core;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Lists;
 import com.mongodb.MongoWriteException;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoCursor;
@@ -159,19 +160,30 @@ public class MetaDataImpl implements MetaData {
 
     @Override
     public List<Document> selectAccessionRegisterOnUnitByOperationId(String operationId) {
-        AggregateIterable aggregate = MetadataCollections.C_UNIT.getCollection().aggregate(Arrays.asList(
+        AggregateIterable<Document> aggregate = MetadataCollections.C_UNIT.getCollection().aggregate(Arrays.asList(
             new Document("$match", new Document("_ops", operationId)),
             new Document("$unwind", "$_sps"),
             new Document("$group", new Document("_id", "$_sps").append("count", new Document("$sum", 1)))
         ), Document.class);
-        MongoCursor iterator = aggregate.iterator();
-        ArrayList<Document> lists = new ArrayList<>();
-        while (iterator.hasNext()) {
-            Document next = (Document) iterator.next();
-            lists.add(next);
-            System.out.println(next);
-        }
-        return lists;
+        return Lists.newArrayList(aggregate.iterator());
+    }
+
+    @Override
+    public List<Document> selectAccessionRegisterOnObjectGroupByOperationId(String operationId) {
+        AggregateIterable<Document> aggregate =
+            MetadataCollections.C_OBJECTGROUP.getCollection().aggregate(Arrays.asList(
+                new Document("$match", new Document("_ops", operationId)),
+                new Document("$unwind", "$_qualifiers"),
+                new Document("$unwind", "$_qualifiers.versions"),
+                new Document("$unwind", "$_sps"),
+                new Document("$group", new Document("_id", "$_sps")
+                    .append("totalSize", new Document("$sum", "$_qualifiers.versions.Size"))
+                    .append("totalObject", new Document("$sum", 1))
+                    .append("listGOT", new Document("$addToSet", "$_id"))),
+                new Document("$project", new Document("_id", 1).append("totalSize", 1).append("totalObject", 1)
+                    .append("totalGOT", new Document("$size", "$listGOT")))
+            ), Document.class);
+        return Lists.newArrayList(aggregate.iterator());
     }
 
     @Override

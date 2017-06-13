@@ -14,6 +14,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
+import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 
 import java.io.FileNotFoundException;
@@ -80,7 +81,13 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
         return ClientMockResultHelper.getMetaDataResult();
     }
 
-    @Override public List<UnitPerOriginatingAgency> selectAccessionRegisterByOperationId(String operationId)
+    @Override public List<UnitPerOriginatingAgency> selectAccessionRegisterOnUnitByOperationId(String operationId)
+        throws MetaDataClientServerException {
+        return new ArrayList<>();
+    }
+
+    @Override
+    public List<ObjectGroupPerOriginatingAgency> selectAccessionRegisterOnObjectByOperationId(String operationId)
         throws MetaDataClientServerException {
         return new ArrayList<>();
     }

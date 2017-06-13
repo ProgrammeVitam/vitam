@@ -82,6 +82,7 @@ import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 
 public class MetaDataResourceTest {
     private static final String DATA =
@@ -420,6 +421,19 @@ public class MetaDataResourceTest {
             .body("$results.size()", equalTo(2))
             .statusCode(Status.OK.getStatusCode());
 
+    }
+
+    @Test
+    public void should_find_accession_register_on_object_group() throws Exception {
+        String operationId = "aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq";
+        MetadataCollections.C_OBJECTGROUP.getCollection().insertOne(new ObjectGroup(JsonHandler.getFromInputStream(getClass().getResourceAsStream(
+            "/object_sp1_1.json"))));
+        given()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .get("/accession-register/object/" + operationId).then()
+            .body("$results.size()", equalTo(1))
+            .statusCode(Status.OK.getStatusCode());
     }
 
 
