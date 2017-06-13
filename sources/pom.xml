@@ -391,41 +391,33 @@
 						<excludePackageNames>fr.gouv.culture.archivesdefrance.seda.v2:org.w3._1999.xlink:org.glassfish.jersey.apache.connector:org.owasp.esapi.reference.validation</excludePackageNames>
 						<overview>${basedir}/overview.html</overview>
 						<groups>
-							<group>
-								<title>Ihm Demo </title>
-								<packages>fr.gouv.vitam.ihmdemo.*</packages>
-							</group>
-							<group>
-								<title>Ihm Recette </title>
-								<packages>fr.gouv.vitam.ihmrecette.*</packages>
-							</group>
-							<group>
-								<title>Ingest External Client </title>
-								<packages>fr.gouv.vitam.ingest.external.client*</packages>
-							</group>
-							<group>
-								<title>Access External Client </title>
-								<packages>fr.gouv.vitam.access.external.client*</packages>
-							</group>
-							<group>
-								<title>Common Database</title>
-								<packages>fr.gouv.vitam.common.builder.*:fr.gouv.vitam.common.builder</packages>
-							</group>
-							<group>
-								<title>Common Public</title>
-								<packages>fr.gouv.vitam.common.client:fr.gouv.vitam.common.digest:fr.gouv.vitam.common.error:fr.gouv.vitam.common.model:fr.gouv.vitam.common.exception:fr.gouv.vitam.common.guid:fr.gouv.vitam.common.i18n:fr.gouv.vitam.common.json:fr.gouv.vitam.common.logging:fr.gouv.vitam.common</packages>
-							</group>
-							<group>
-								<title>Common Private</title>
-								<packages>fr.gouv.vitam.common.auth.*:fr.gouv.vitam.common.auth:fr.gouv.vitam.common.client.*:fr.gouv.vitam.common.collection:fr.gouv.vitam.common.graph:fr.gouv.vitam.common.lru:fr.gouv.vitam.common.metrics:fr.gouv.vitam.common.parameter:fr.gouv.vitam.common.security.*:fr.gouv.vitam.common.security:fr.gouv.vitam.common.server.*:fr.gouv.vitam.common.server:fr.gouv.vitam.common.stream:fr.gouv.vitam.common.tenant.*:fr.gouv.vitam.common.thread:fr.gouv.vitam.common.timestamp:fr.gouv.vitam.common</packages>
-							</group>
-							<group>
-								<title>Ingest </title>
-								<packages>fr.gouv.vitam.ingest.*</packages>
-							</group>
+                            <group>
+                                <title>Ihm Demo </title>
+                                <packages>fr.gouv.vitam.ihmdemo.*</packages>
+                            </group>
+                            <group>
+                                <title>Ihm Recette </title>
+                                <packages>fr.gouv.vitam.ihmrecette.*</packages>
+                            </group>
+                            <group>
+                                <title>Ingest External Client </title>
+                                <packages>fr.gouv.vitam.ingest.external.client*</packages>
+                            </group>
+                            <group>
+                                <title>Ingest </title>
+                                <packages>fr.gouv.vitam.ingest.*</packages>
+                            </group>
+                            <group>
+                                <title>Access External Client </title>
+                                <packages>fr.gouv.vitam.access.external.client*</packages>
+                            </group>
 							<group>
 								<title>Access </title>
 								<packages>fr.gouv.vitam.access.*</packages>
+							</group>
+							<group>
+								<title>Common </title>
+								<packages>fr.gouv.vitam.common.*:fr.gouv.vitam.common</packages>
 							</group>
 							<group>
 								<title>Functional administration </title>
@@ -444,24 +436,20 @@
 								<packages>fr.gouv.vitam.processing.*</packages>
 							</group>
 							<group>
-								<title>Worker </title>
-								<packages>fr.gouv.vitam.worker.*:fr.gouv.vitam.common.format.*</packages>
-							</group>
-							<group>
 								<title>Storage Driver / Offer </title>
-								<packages>fr.gouv.vitam.storage.driver.*:fr.gouv.vitam.storage.driver:fr.gouv.vitam.storage.offers.*:fr.gouv.vitam.cas.*</packages>
+								<packages>fr.gouv.vitam.storage.driver.*:fr.gouv.vitam.storage.driver:fr.gouv.vitam.storage.offers.*:fr.gouv.vitam.driver.*</packages>
 							</group>
 							<group>
 								<title>Storage Engine </title>
-								<packages>fr.gouv.vitam.storage.*:fr.gouv.vitam.storage:fr.gouv.vitam.common.storage.*:fr.gouv.vitam.common.storage</packages>
+								<packages>fr.gouv.vitam.storage.engine.*</packages>
+							</group>
+							<group>
+								<title>Worker </title>
+								<packages>fr.gouv.vitam.worker.*</packages>
 							</group>
 							<group>
 								<title> Workspace </title>
 								<packages>fr.gouv.vitam.workspace.*</packages>
-							</group>
-							<group>
-								<title>Tests </title>
-								<packages>fr.gouv.vitam.functionaltest.*:mon.module.driver:the.driver:fr.gouv.vitam.driver.*:fr.gouv.vitam.common.junit:fr.gouv.vitam.common.shiro.junit:fr.gouv.vitam.common.server.application.junit</packages>
 							</group>
 						</groups>
 					</configuration>
