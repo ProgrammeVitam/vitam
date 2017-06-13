@@ -140,7 +140,7 @@ La tâche contient les traitements suivants
 
 * Vérification de la présence et contrôle du contrat d'entrée (CHECK_CONTRACT_INGEST)
 
-    + **Règle** : vérifier le contrat d'entrée déclaré dans le SIP par rapport au référentiel des contrats d'entrée importé dans le système.
+    + **Règle** : vérification du contrat d'entrée déclaré dans le SIP par rapport au référentiel des contrats d'entrée importé dans le système.
 
     + **Statuts** :
 
@@ -149,6 +149,30 @@ La tâche contient les traitements suivants
       - KO : si le contrat déclaré est invalide (contrat non trouvé dans la référentiel de contrat OU contrat trouvé mais en statut inactif (INACTIVE)
 
       - FATAL : une erreur technique est survenue lors de la vérification de la présence et contrôle du contrat d'entrée
+
+* Vérification de la conformité du manifeste par le profil (CHECK_ARCHIVEPROFILE)
+
+  + **Règle** : le manifeste du SIP doit être conforme aux exigences du profil. Si aucun profil ne s'applique au SIP, ce traitement est ignoré.
+
+  + **Statuts** :
+
+      - OK : le manifeste est conforme aux exigences du profil (CHECK_ARCHIVEPROFILE.OK=Succès de la vérification de la conformité au profil)
+
+      - KO : le manifeste n'est pas conforme aux exigences du profil (CHECK_ARCHIVEPROFILE.KO=Echec de la vérification de la conformité au profil)
+
+      - FATAL : une erreur technique est survenue lors de la vérification du manifeste par le profil (CHECK_ARCHIVEPROFILE.FATAL=Erreur fatale lors de la vérification de la conformité au profil)
+
+* Vérification de la relation entre le contrat et le profil (CHECK_IC_AP_RELATION)
+
+  + **Règle** : le profil déclaré dans le contrat d'entrée du SIP doit être le même que celui déclaré dans son manifeste. Si aucun profil ne s'applique au SIP, ce traitement est ignoré.
+
+  + **Statuts** :
+
+      - OK : le profil déclaré dans le contrat d'entrée et celui déclaré dans le manifeste est bien le même (CHECK_HEADER.CHECK_IC_AP_RELATION.OK=Succès de la vérification de la relation entre le contrat et le profil)
+
+      - KO : le profil déclaré dans le contrat d'entrée et celui déclaré dans le manifeste n'est pas le même (CHECK_HEADER.CHECK_IC_AP_RELATION.OK=Succès de la vérification de la relation entre le contrat et le profil)
+
+      - FATAL : une erreur technique est survenue lors de la vérification du manifeste par le profil (CHECK_HEADER.CHECK_IC_AP_RELATION.FATAL=Erreur fatale lors de la vérification de la relation entre le contrat et le profil)
 
 
 Vérification du contenu du bordereau (CHECK_DATAOBJECTPACKAGE)
@@ -506,12 +530,19 @@ D'une façon synthétique, le workflow est décrit de cette façon :
 
       - Vérification de la validité de contrat par rapport la référentiel de contrats importée dans le système
 
+    + Contient CHECK_ARCHIVEPROFILE, exécuté si un profil s'applique pour le SIP (CheckArchiveProfileActionHandler.java) :
+
+      - Vérification de la validité du manifeste par rapport au profil
+
+    + Contient CHECK_IC_AP_RELATION, exécuté si un profil s'applique pour le SIP (CheckArchiveProfileRelationActionHandler.java) :
+
+      - Vérification que le profil déclaré dans le contrat d'entrée et celui déclaré dans le SIP est bien le même
+
   * CHECK_DATAOBJECTPACKAGE (CheckDataObjectPackageActionHandler.java)
 
     + Contient CHECK_MANIFEST_DATAOBJECT_VERSION (CheckVersionActionHandler.java) :
 
       - Vérification des usages des objets.
-
 
     + Contient CHECK_MANIFEST_OBJECTNUMBER (CheckObjectsNumberActionHandler.java) :
 
@@ -688,4 +719,3 @@ Un Workflow est défini en JSON avec la structure suivante :
 .. image:: images/Workflow_file_structure.png
         :align: center
         :alt: Exemple partiel de workflow, avec les notions étapes et actions
-
