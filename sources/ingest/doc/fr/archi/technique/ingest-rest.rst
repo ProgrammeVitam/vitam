@@ -15,15 +15,12 @@ La logique technique actuelle est la suivante :
 	2)Créer une méthode upload du fichier sip
 	
 		1. Appel du journal pour la création des opérations (suivi du SIP).
-		
 		2. Push SIP dans le workspace.
-		
 		3. Appel du processing (journalisation des opération).
-		
 		4. Fermeture de la page des opérations.
 
 
--IngestInternalApplication.java
+- IngestInternalApplication.java
 
 classe de démarrage du serveur d'application de l'ingest interne.
 
@@ -47,4 +44,3 @@ classe de démarrage du serveur d'application de l'ingest interne.
     Dans le fichier de configuration, le paramètre jettyConfig est à
     paramétrer avec le nom du fichier de configuration de jetty.
 
-   

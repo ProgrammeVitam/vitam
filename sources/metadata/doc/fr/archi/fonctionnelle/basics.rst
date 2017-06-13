@@ -9,7 +9,7 @@ pour faciliter la gestion des demandes d'accès à la base de données. Le méta
 Chaque informations issues de la description du méta data doit être signifier et expliciter son rôle et son impact dans la requête.
 En clair: Pour chaque champs description du méta data il faut répondre:
 
-	1. A quoi ca sert ce champ ?
-	2. Comment cette information vit dans le cycle de vie de la données du réquête ?
-	3. Quelle est sa valeur ajoutée face à la demande du client( valuer à considérer pour le client final, pour l'administrateur du système, pour le gestionnaire etc.... Comment cette information vit et et circule dans le workflow du SI).
-	
+1. A quoi ca sert ce champ ?
+2. Comment cette information vit dans le cycle de vie de la données du réquête ?
+3. Quelle est sa valeur ajoutée face à la demande du client( valuer à considérer pour le client final, pour l'administrateur du système, pour le gestionnaire etc.... Comment cette information vit et et circule dans le workflow du SI).
+

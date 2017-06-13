@@ -3,8 +3,8 @@ Généralités
 En plus de réaliser des upload de SIP, l'ingest-external expose aussi des méthodes pour gérer un process de traitement avec un workflow.
 Pour rappel, ingest-external fait appel à ingest-internal pour continuer l'exécution des méthodes demandées.
 
-Fonctionnalités concernant le workflow:
-**************************************
+Fonctionnalités concernant le workflow
+***************************************
 
 L'ingest external expose les méthodes suivantes pour gérer ces process:
 
@@ -18,6 +18,7 @@ L'ingest external expose les méthodes suivantes pour gérer ces process:
 - getOperationProcessExecutionDetails: Retourne le détail d'un process
 - listOperationsDetails: Lister tous les process qui sont en état RUNNING ou PAUSE.
 - wait(int tenantId, String processId, ProcessState state, int nbTry, long timeWait, TimeUnit timeUnit): Permet de bien gérer le pooling côté serveur. En effet, cette méthode fait appel à getOperationProcessStatus nbTry fois et esapce les appels avec un temps de timeWait. La réponse au client est retournée dans les cas suivants:
+
     > nbTry est atteint (nombre de rappel)
     > le state du process est COMPLETED
     > Le state du process est PAUSE et le statut est supérieur à STARTED

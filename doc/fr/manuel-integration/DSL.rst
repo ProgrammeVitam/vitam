@@ -10,27 +10,41 @@ Principes
 =========
 
 * Dans le body - langage de requête
+
  * DSL VITAM
+
   * SQL : pas de plein texte, parser difficile
   * NoSQL : pas de norme
   * Abstraction indispensable (masquer l'implémentation)
+
 * Typographie
+
  * Snake - « propriete_avec_multiple_noms »
+
   * Mais pas « proprieteAvecMultipleNoms »
+
  * Body au format JSON
+
   * Contient des informations spécifiques à la requête pour la collection
   * Peut contenir une « Query » (DSL)
+
 * Pagination
+
  * offset / limit dans la Query
  * Range dans le Header pour les octets d'un fichier binaire
+
 * Tri
+
  * orderby dans la Query
 
 Corps de la requête
 ===================
 Une requête DSL se décompose en 4 parties principales :
 
-:red.'Projections', :blue.'Collections', Requêtes (critères=query), :green.'Filtres (tri, limite)'
+.. raw:: html
+
+  <style> .red {color:red} .blue {color:blue} .green{color:green} </style>
+  :red.'Projections', :blue.'Collections', Requêtes (critères=query), :green.'Filtres (tri, limite)'
 
 Pour comparaison avec le langage SQL ::
 

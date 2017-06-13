@@ -48,6 +48,7 @@ Pour instancier son client en mode Production :
 Le client les méthodes suivantes:
 
 .. code-block:: java
+
     // Upload un SIP
     RequestResponse<JsonNode> upload(InputStream stream, Integer tenantId, String contextId, String action)
         throws IngestExternalException;
@@ -90,6 +91,7 @@ Le client implémente aussi l'interface PoolingStatusClient :
 Avec cette interface, on peut utiliser les méthodes wait pour mieux gérer le pooling côté serveur et remédier à l'asynchrone des certains opérations.
 
 .. code-block:: java
+
     // Possibilité de faire plusieurs (nbTry) appel espacé d'un temps (timeWait) avant de répondre au client final
     public boolean wait(int tenantId, String processId, ProcessState state, int nbTry, long timeWait, TimeUnit timeUnit) throws VitamException;
 

@@ -14,24 +14,23 @@ functional-administration qui identifie par la user story #71, qui contient :
 
 functional-administration
 
-	|--- functional-administration-common : contenant des classes pour des traitements communs concernant
-	|    								  le format référentiels, l'opération auprès de la base de données
+	|--- functional-administration-common : contenant des classes pour des traitements communs concernant le format référentiels, l'opération auprès de la base de données
 	|--- functional-administration-format : fournir des traitements de base pour les formats référentiels de VITAM
+
 				  |--- functional-administration-format-api  : définitions des APIs
 				  |--- functional-administration-format-core : implémentations des APIs
 				  |--- functional-administration-format-import
 
 	|--- functional-administration-rule : fournir des traitements de base pour la gestion de règles administratives
+
 	              |--- functional-administration-rule-api  : Définition des APIs
 	              |--- functional-administration-rule-core : Impélmentation des APIs
 
 	|--- functional-administration-accession-register : fournir des traitements de base pour la gestion des registres de fonds
 	              |--- functional-administration-accession-register-core : Impélmentation des traitements des registres de fonds
 	|
-	|--- functional-administration-rest   : le serveur REST de functional-administration qui donnes des traitement
-	|                       sur les traitements de format référentiel et gestion de règles administratives.
-	|--- functional-administration-client  : client functional-administration qui sera utilisé par les autres modules
-	|                       pour les appels de traitement sur le format référentiel & gestion de règles.
+	|--- functional-administration-rest   : le serveur REST de functional-administration qui donnes des traitement sur les traitements de format référentiel et gestion de règles administratives.
+	|--- functional-administration-client  : client functional-administration qui sera utilisé par les autres modules pour les appels de traitement sur le format référentiel & gestion de règles.
 	|--- functional-administration-contract	: fournis les traitements de base pour les contrat d'accès et les contrat d'entrées
 	|--- functional-administration-profile	: fournis les traitements de base pour les profile.
     |--- functional-administration-context  : fournis les traitements de base pour les contextes
@@ -45,27 +44,27 @@ abordés ci-dessus.
 
 fr.gouv.vitam.functional.administration.common
 
--FileFormat.java : 
+- FileFormat.java : 
 
 une extension de VitamDocument définissant le référentiel des formats.
 
--ReferentialFile.java : 
+- ReferentialFile.java : 
 
 interface définissant des opérations liées au référentiel des format : importation du fichier PRONOM, vérificaton du fichier PRONOM soumis, recherche d'un format existant et suppression du référentiel des formats.
 
--IngestContract.java : 
+- IngestContract.java : 
 
 Le modèle de données des contracts d'entrée, ce modèle étend VitamDocument.
 
--AccessContract.java : 
+- AccessContract.java : 
 
 Le modèle de données des contracts d'accès, ce modèle étend VitamDocument.
 
--Profile.java : 
+- Profile.java : 
 
 Le modèle de données des profiles, ce modèle étend VitamDocument.
 
--Context.java : 
+- Context.java : 
 
 Le modèle de données des contextes, ce modèle étend VitamDocument.
 
@@ -145,8 +144,10 @@ une implémentation de l'interface MongoDbAccessReferential en extension le trai
              L'unité de mesure (RuleMeasurement) doit être écrite en français dans l'interface, comme c'est déjà le cas actuellement : année(s), mois, jour(s), seconde(s)
 
              Dans le cas des règles unlimited
+
              - La valeur que doit renvoyer l'API lorsque la règle a une durée 'unlimited' dépend du choix de design effectué pour l'enregistrement de la valeur 'unlimited'
              - Dans l'IHM standard, la date de fin doit être au choix marquée comme :
+
              * "Illimitée (date de début inconnue)" : dans le cas où la date de fin n'est pas connue car la startDate n'est pas connue
              * "Illimitée (règle à durée illimitée)" : dans le cas où la date de fin ne peut pas être calculée car la durée de la règle est 'unlimited'
 
@@ -154,16 +155,19 @@ une implémentation de l'interface MongoDbAccessReferential en extension le trai
 
 	+ functional-administration-accession-register-api
 	+ functional-administration-accession-register-core
+
 	- ReferentialAccessionRegisterImpl.java :implémentation de base des opération sur la collection registre de fond .
-	 permet de créer une collection registre de fond et de faire la recherche par Service Producteur
-	 et l'affichage de détaile.
+	
+	permet de créer une collection registre de fond et de faire la recherche par Service Producteur et l'affichage de détaile.
 
 2.7. functional-administration-contract
 
 fr.gouv.vitam.functional.administration.contract.api
 
 - ContractService.java :   Interface définissant les différentes opérations sur les contrats (contrat d'accès et contrat d'entrée)
+
 fr.gouv.vitam.functional.administration.contract.core
+
 - AccessContractImpl.java : Classe d'implémentation pour la gestion des contrats d'accès
 - ContractStatus.java : Enum pour les différents status des contrat d'accès et des contrat d'entrées
 - ContractValidator.java : Interface fonctionnelle de validations des contrats
@@ -174,16 +178,26 @@ fr.gouv.vitam.functional.administration.contract.core
 2.8. functional-administration-profile
 
 fr.gouv.vitam.functional.administration.profile.api
+
 - ProfileService.java :   Interface définissant les différentes opérations sur les profiles.
+
 fr.gouv.vitam.functional.administration.profile.api.impl
+
 - ProfileServiceImpl.java :   Implémentation du service ProfileService.
+
 fr.gouv.vitam.functional.administration.profile.core
+
 - ProfileManager.java : Gère toutes les opérations du logbook et toutes les opérations de validation concernant les profiles. Lors de la validation, il vérifie (si déjà existence dans la base de données, champs obligatoires, fichiers au format xsd ou rng valides, ..).
 - ProfileValidator.java : Interface fonctionnelle de validations des contrats
 
 2.8. functional-administration-profile
+
 fr.gouv.vitam.functional.administration.context.api
+
 -ContextService.java : Interface définissant les différentes opérations sur les contextes
+
 fr.gouv.vitam.functional.administration.context.core
+
 -ContextServiceImpl.java : Implémentation du Service ContextService
 -ContextValidator.java : Interface fonctionnelle de validations des contextes
+

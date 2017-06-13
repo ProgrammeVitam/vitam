@@ -11,8 +11,9 @@ Module archive-unit
 Ce module ne comprends pas le module 'archive-unit-search'
 Ce module permet le processing et l'affichage des données liées à une Archive Unit.
 Les directives utilisées sont:
- - display-field qui permet d'afficher un champ en prenant en compte le mode édition
- - display-fieldtree qui permet d'afficher un ensemble de champs en utilisant le directive display-field avec des paramètres standards pour chaque champ
+
+- display-field qui permet d'afficher un champ en prenant en compte le mode édition
+- display-fieldtree qui permet d'afficher un ensemble de champs en utilisant le directive display-field avec des paramètres standards pour chaque champ
 
 Directive display-field
 =======================
@@ -22,6 +23,7 @@ Un champ 'simple' est un champ qui à simplement une valeur (Texte/nombre) et pa
 
 Usages:
 Pour utiliser cette directive il suffit d'appeler la balise '<display-field' en spécifiant les parametres suivants:
+
 - field-label: Surcharge du nom du label
 - field-object: L'ensemble des propriétés de l'objet. Doit contenir au moins:
 
@@ -36,6 +38,7 @@ Pour utiliser cette directive il suffit d'appeler la balise '<display-field' en 
 
 
 Il est également possible de donner une valeur de surcharge pour la valeur du champ grâce à ce dernier paramètre:
+
 - display-value: Affiche une valeur spécifique à la place de fieldValue (Le mode édition reprends la valeur réelle)
 
 Exemple:
@@ -88,6 +91,7 @@ Affichage des Libéllés des champs
 =================================
 
 La fonction self.displayLabel du controller archive-unit permet de récupérer la valeur française des champs à afficher.
+
 - key: nom technique du champ à afficher
 - parent: nom technique de son parent direct.
 
@@ -114,9 +118,11 @@ Affichage dynamiqueTable
 ************************
 
 Cette directive permet de dynamiser les tableaux de données pour sélectionner les colonnes à afficher.
+
 - custom-fields: Ce sont les champs dynamiques pour le tableau.
 
   Ces objets doivent au moins avoir les champs 'id' (Valeur technique et unique) et 'label' (Valeur affichable à l'utilisateur).
+
  selected-objects: Ce sont les objets sélectionnés à afficher. L'objet en etrée peut être un tableau vide et sera nourri par la directive
 
 Attention, pour des raisons d'ergonomie, il est demandé d'ajouter la classe CSS 'dynamic-table-box' au div 'panel-default' englobant.

@@ -59,43 +59,44 @@ Pour l'usage interne Vitam
 
 Chemin pour récupérer les objets numériques : «GuidContainer/sip/content».
 
+.. code-block:: java
 
-public List<URI> getListUriDigitalObjectFromFolder(String containerName, String folderName) throws ContentAddressableStorageException {
+    public List<URI> getListUriDigitalObjectFromFolder(String containerName, String folderName) throws ContentAddressableStorageException {
         ...
-
         List<URI> uriFolderListFromContainer;
         try {
             BlobStore blobStore = context.getBlobStore();
-
             // It's like a filter
             ListContainerOptions listContainerOptions = new ListContainerOptions();
             // List of all resources in a container recursively
             final PageSet<? extends StorageMetadata> blobStoreList =
                 blobStore.list(containerName, listContainerOptions.inDirectory(folderName).recursive());
-
             uriFolderListFromContainer = new ArrayList<>();
             LOGGER.info(WorkspaceMessage.BEGINNING_GET_URI_LIST_OF_DIGITAL_OBJECT.getMessage());
-
-
             for (Iterator<? extends StorageMetadata> iterator = blobStoreList.iterator(); iterator.hasNext();) {
                 StorageMetadata storageMetada = iterator.next();
-
                 // select BLOB only, not folder nor relative path
                 if ((storageMetada.getType().equals(StorageType.BLOB) && storageMetada.getName() != null &&
                     !storageMetada.getName().isEmpty())) {
                     uriFolderListFromContainer.add(new URI(UriUtils.splitUri(storageMetada.getName())));
                 }
             }
- ... 
-}
+        }
+    ... 
+    }
+
 
 6) Vérification conformité du nombre d'objets numériques.
 
 6.1) Vérification de présence de doublons dans la liste des Uri du bordereau
+
 Si présence de doublons la comparaison avec la liste des Uri provenant du SIP n'est pas déclenchée
 
-  if (extractUriResponse != null && !extractUriResponse.isErrorDuplicateUri()) {
-...}
+.. code-block:: java
+
+    if (extractUriResponse != null && !extractUriResponse.isErrorDuplicateUri()) {
+        ...
+    }
 
 6.2)Comparaison des listes
 
@@ -104,8 +105,10 @@ Si présence de doublons la comparaison avec la liste des Uri provenant du SIP n
 -Identification des Uri non référencés dans le SIP.
 -Identification des Uri non déclarés dans le bordereau.
 
-private void checkCountDigitalObjectConformity(List<URI> uriListManifest, List<URI> uriListWorkspace,
+.. code-block:: java
+
+    private void checkCountDigitalObjectConformity(List<URI> uriListManifest, List<URI> uriListWorkspace,
         Response response) {
-...
-}
+        ...
+    }
 
