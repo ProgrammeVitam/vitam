@@ -60,10 +60,10 @@ Détail des champs du JSON stocké en base
 "CreatedDate": date de création de la version du fichier de signatures PRONOM utilisé pour initialiser la collection.
     Il s'agit d'une date au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
     Il est utilisé pour alimenter l’enregistrement correspondant au format dans Vitam (balise DateCreated dans le fichier).
-    
+
 
 "VersionPronom": numéro de version du fichier de signatures PRONOM utilisé.
-    Il s'agit d'un entier. 
+    Il s'agit d'un entier.
     Le numéro de version de PRONOM est à l'origine déclaré dans le XML au niveau de la balise <FFSignatureFile> au niveau de l'attribut "version ".
 
 Dans cet exemple, le numéro de version est 88 :
@@ -314,38 +314,38 @@ Les champs à renseigner obligatoirement à la création d'un contrat sont :
 Détail des champs
 -----------------
 
-"_id": identifiant unique par tenant. 
+"_id": identifiant unique par tenant.
   Il s'agit d'une chaîne de 36 caractères.
 
 "_tenant": information sur le tenant
   Il s'agit de l'identifiant du tenant
 
-"Name" : nom du contrat d'entrée unique par tenant. 
+"Name" : nom du contrat d'entrée unique par tenant.
   Il s'agit d'une chaîne de caractères.
 
 "Identifier" : Identifiant signifiant donné au contrat.
   Il s'agit d'une chaîne de caractères.
 
-"Description": description du contrat d'entrée. 
+"Description": description du contrat d'entrée.
   Il s'agit d'une chaîne de caractères.
 
-"Status": statut du contrat. 
+"Status": statut du contrat.
   Peut être ACTIVE ou INACTIVE
 
-"CreationDate": date de création du contrat. 
+"CreationDate": date de création du contrat.
   La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
 
-"LastUpdate": date de dernière mise à jour du contrat. 
+"LastUpdate": date de dernière mise à jour du contrat.
   La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
 
-"ActivationDate": date d'activation du contrat. 
+"ActivationDate": date d'activation du contrat.
   La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
 
-"DeactivationDate": date de désactivation du contrat. 
+"DeactivationDate": date de désactivation du contrat.
   La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
 
 "ArchiveProfiles": liste des profils d'archivage pouvant être utilisés par le contrat d'entrée.
-  Tableau de chaînes de caractères. 
+  Tableau de chaînes de caractères.
 
 "FilingParentId": le point de rattachement -- id d’une unité archivistique dans le plan de classement
   Il s'agit d'une chaîne de 36 caractères
@@ -411,37 +411,37 @@ Les champs à renseigner obligatoirement à la création d'un contrat sont :
 Détail des champs
 -----------------
 
-"_id": identifiant unique par tenant. 
+"_id": identifiant unique par tenant.
   Il s'agit d'une chaîne de 36 caractères.
 
 "_tenant": information sur le tenant
   Il s'agit de l'identifiant du tenant
 
-"Name" : nom du contrat d'entrée unique par tenant. 
+"Name" : nom du contrat d'entrée unique par tenant.
   Il s'agit d'une chaîne de caractères.
 
 "Identifier" : Identifiant signifiant donné au contrat.
   Il s'agit d'une chaîne de caractères.
 
-"Description": description du contrat d'accès. 
+"Description": description du contrat d'accès.
   Il s'agit d'une chaîne de caractères.
 
-"Status": statut du contrat. 
+"Status": statut du contrat.
   Peut être ACTIVE ou INACTIVE
 
-"CreationDate": date de création du contrat. 
+"CreationDate": date de création du contrat.
   La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
 
-"LastUpdate": date de dernière mise à jour du contrat. 
+"LastUpdate": date de dernière mise à jour du contrat.
   La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
 
-"ActivationDate": date d'activation du contrat. 
+"ActivationDate": date d'activation du contrat.
   La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
 
-"DeactivationDate": date de désactivation du contrat. 
+"DeactivationDate": date de désactivation du contrat.
   La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
 
-"OriginatingAgencies": services producteurs pour lesquels le détenteur du contrat a accès peut consulter les archives. 
+"OriginatingAgencies": services producteurs pour lesquels le détenteur du contrat a accès peut consulter les archives.
   Il s'agit d'un tableau de chaînes de caractères.
 
 "DataObjectVersion": usages d'un groupe d'objet à qui l'utilisateur souhaite d'avoir d'access.
@@ -511,7 +511,7 @@ Détail des champs
 
 "_tenant": Identifiant du tenant.
 
-"Identifier": Chaîne de caractères. Indique l'identifiant signifiant du profil d'archivage. 
+"Identifier": Chaîne de caractères. Indique l'identifiant signifiant du profil d'archivage.
 
 "Name": Chaîne de caractères unique par tenant. Indique le nom du profil d'archivage.
 
@@ -530,6 +530,79 @@ Détail des champs
 "DeactivationDate": date de désactivation du profil d'archivage. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
 
 "Path": Chaîne de caractères. Indique le nom du fichier de règles associé au profil d'archivage.
+
+
+Collection Context
+=========================
+
+Utilisation de la collection
+----------------------------
+
+La collection Context permet de stocker unitairement les contextes applicatifs
+
+Exemple de JSON stocké en base
+------------------------------
+
+::
+
+  {
+      "_id": "aegqaaaaaahkwxukabjosak4rp3kqkaaaaaq",
+      "Name": "Contexte pour application 1",
+      "Status": true,
+      "Permissions": [
+          {
+              "_tenant": 1,
+              "AccessContracts": [
+                  "AC-000017",
+                  "AC-000060"
+              ],
+              "IngestContracts": [
+                  "IC-000060"
+              ]
+          },
+          {
+              "_tenant": 0,
+              "AccessContracts": [],
+              "IngestContracts": []
+          }
+      ],
+      "Identifier": "CT-000001"
+  }
+
+Il est possible de mettre plusieurs contextes dans un même fichier, sur le même modèle que les contrats d'entrées ou d'accès par exemple. On pourra noter que le contexte est multi-tenant et défini chaque tenant de manière indépendante.
+
+Les champs à renseigner obligatoirement à la création d'un contexte sont :
+* Name
+* Permissions. La valeur de permissions peut cependant être vide : "Permissions : []"
+
+Détail des champs
+-----------------
+
+"_id": identifiant unique dans l'ensemble du système.
+  Il s'agit d'une chaîne de 36 caractères, fourni par le système
+
+"Name" : nom du contexte, qui doit être unique sur la plateforme
+  Il s'agit d'une chaîne de caractères.
+
+"Identifier" : identifiant signifiant donné au contexte
+  Il s'agit d'une chaîne de caractères, fourni par le système
+
+"Status": statut du contexte. Il peut être "true" ou "false" et a la valeur par défaut : "false". Selon son statut :
+
+  * "true" : le contexte est actif
+
+  * "false" : le contexte est inactif
+
+"Permissions" : début du bloc appliquant les permissions à chaque tenant.
+  C'est un mot clé qui n'a pas de valeur associée.
+
+"_tenant": information sur le tenant
+  Il s'agit de l'identifiant du tenant dans lequel vont s'appliquer des permissions
+
+"AccessContracts": tableau d'identifiants de contrats d'accès appliqués sur le tenant
+
+"IngestContracts": tableau d'identifiants de contrats d'entrées appliqués sur le tenant
+
 
 Collection AccessionRegisterSummary
 ===================================
@@ -726,7 +799,7 @@ La valeur est une chaîne de caractère.
 
 Ce champ est facultatif dans le bordereau. Si elle est absente ou vide, alors la valeur contenue dans le champ <OriginatingAgencyIdentifier>. est reportée dans ce champ
 
-"ArchivalAgreement": Contient le contrat utilisé pour réaliser l'entrée. 
+"ArchivalAgreement": Contient le contrat utilisé pour réaliser l'entrée.
   Il est contenu entre les balises <ArchivalAgreement>
 
 Par exemple pour
