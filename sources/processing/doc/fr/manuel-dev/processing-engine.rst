@@ -23,11 +23,13 @@ Core
 Dans la partie Core, la classe ProcessEngineImpl est l'implémentation de l'interface  ProcessEngine:
 
 ProcessEngineImpl ne fait que ce qui suit:
+
 - Initialiser le logbook pour l'étape en cours.
 - Appeler le distributeur pour exécuter l'étape.
 - Au retour du distributeur finaliser le logbook pour l'étape en question.
 - Gérer les exceptions
 - Appeler la machine à état via IEventsProcessEngine avec les méthodes: onComplete, onUpdate, onError.
+
     - onComplete: quand une exécution d'une étape est fini
     - onError: Quand une exception est levée lors de l'exécution d'une étape.
     - onUpdate: Quand une mise à jour à la volé d'un processus est nécessaire.
