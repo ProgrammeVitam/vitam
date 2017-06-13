@@ -85,7 +85,6 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 // If you absolutely need to check values in handler's methods, also use the ParameterCheker.
 public class SedaUtils {
 
-    public static final String EV_DET_TECH_DATA = "evDetTechData";
     static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SedaUtils.class);
     public static final String NAMESPACE_URI = "fr:gouv:culture:archivesdefrance:seda:v2.0";
     private static final String SEDA_VALIDATION_FILE = "seda-vitam-2.0-main.xsd";
@@ -278,7 +277,7 @@ public class SedaUtils {
             // if the cause is null, that means the file is an xml, but it does not validate the XSD
             if (e.getCause() == null) {
                 LOGGER.error("Manifest.xml is not valid with the XSD", e);
-                JsonNode errorNode = JsonHandler.createObjectNode().put(EV_DET_TECH_DATA, e.getMessage());
+                JsonNode errorNode = JsonHandler.createObjectNode().put(SedaConstants.EV_DET_TECH_DATA, e.getMessage());
                 itemStatus.setData(LogbookParameterName.eventDetailData.name(), errorNode.toString());
                 return CheckSedaValidationStatus.NOT_XSD_VALID;
             }

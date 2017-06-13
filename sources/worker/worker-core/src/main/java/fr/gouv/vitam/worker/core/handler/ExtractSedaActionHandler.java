@@ -809,38 +809,40 @@ public class ExtractSedaActionHandler extends ActionHandler {
             final File unitTmpFileForRead = handlerIO.getNewLocalFile(ARCHIVE_UNIT_TMP_FILE_PREFIX + unitGuid);
             final File unitCompleteTmpFile = handlerIO.getNewLocalFile(unitGuid);
 
-            // Get the archiveUnit
-            ObjectNode archiveUnit = (ObjectNode) JsonHandler.getFromFile(unitTmpFileForRead);
+            if (unitTmpFileForRead.exists()) {
+                // Get the archiveUnit
+                ObjectNode archiveUnit = (ObjectNode) JsonHandler.getFromFile(unitTmpFileForRead);
 
-            // Management rules id to add
-            Set<String> globalMgtIdExtra = new HashSet<>();
+                // Management rules id to add
+                Set<String> globalMgtIdExtra = new HashSet<>();
 
-            addWorkInformation(archiveUnit, unitId, unitGuid, isRootArchive, archiveUnitTree, globalMgtIdExtra);
+                addWorkInformation(archiveUnit, unitId, unitGuid, isRootArchive, archiveUnitTree, globalMgtIdExtra);
 
-            updateManagementAndAppendGlobalMgtRule(archiveUnit, globalMgtIdExtra);
+                updateManagementAndAppendGlobalMgtRule(archiveUnit, globalMgtIdExtra);
 
-            // sanityChecker
-            try {
-                SanityChecker.checkJsonAll(archiveUnit);
-            } catch (InvalidParseOperationException e) {
-                LOGGER.error("Sanity Checker failed for Archive Unit " + unitGuid);
-                // delete created temporary file
-                throw new ArchiveUnitContainSpecialCharactersException(e);
-            } finally {
-                if (!unitTmpFileForRead.delete()) {
-                    LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
+                // sanityChecker
+                try {
+                    SanityChecker.checkJsonAll(archiveUnit);
+                } catch (InvalidParseOperationException e) {
+                    LOGGER.error("Sanity Checker failed for Archive Unit " + unitGuid);
+                    // delete created temporary file
+                    throw new ArchiveUnitContainSpecialCharactersException(e);
+                } finally {
+                    if (!unitTmpFileForRead.delete()) {
+                        LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
+                    }
                 }
-            }
 
-            // Write to new File
-            JsonHandler.writeAsFile(archiveUnit, unitCompleteTmpFile);
+                // Write to new File
+                JsonHandler.writeAsFile(archiveUnit, unitCompleteTmpFile);
 
-            // Write to workspace
-            try {
-                handlerIO.transferFileToWorkspace(path + "/" + unitGuid + JSON_EXTENSION, unitCompleteTmpFile, true);
-            } finally {
-                if (!unitTmpFileForRead.delete()) {
-                    LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
+                // Write to workspace
+                try {
+                    handlerIO.transferFileToWorkspace(path + "/" + unitGuid + JSON_EXTENSION, unitCompleteTmpFile, true);
+                } finally {
+                    if (!unitTmpFileForRead.delete()) {
+                        LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
+                    }
                 }
             }
         }

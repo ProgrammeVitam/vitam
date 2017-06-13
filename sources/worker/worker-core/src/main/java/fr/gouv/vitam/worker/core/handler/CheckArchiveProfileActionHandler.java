@@ -66,6 +66,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
+import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.ValidationXsdUtils;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -164,7 +165,7 @@ public class CheckArchiveProfileActionHandler extends ActionHandler {
             LOGGER.error(VALIDATION_ERROR, e);
             isValid = false;
             JsonNode errorNode = JsonHandler.createObjectNode()
-                .put(SedaUtils.EV_DET_TECH_DATA, e.getMessage());
+                .put(SedaConstants.EV_DET_TECH_DATA, e.getMessage());
             itemStatus.setData(LogbookParameterName.eventDetailData.name(), 
                 JsonHandler.unprettyPrint(errorNode));
         } catch (Exception e) {

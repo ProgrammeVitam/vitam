@@ -432,6 +432,10 @@ public class SedaConstants {
      */
     public static final String TAG_EVENT_OUTCOME_DETAIL_MESSAGE = "OutcomeDetailMessage";
     /**
+     * tag of EventDetailData
+     */
+    public static final String TAG_EVENT_DETAIL_DATA = "EventDetailData";
+    /**
      * attribute id of archive unit
      */
     public static final String ATTRIBUTE_ID = "id";
@@ -459,6 +463,11 @@ public class SedaConstants {
      * tag of DataObjectSystemId
      */
     public static final String TAG_DATA_OBJECT_SYSTEM_ID = "DataObjectSystemId";
+    
+    /**
+     * evDetTechData
+     */
+    public static final String EV_DET_TECH_DATA = "evDetTechData";
     
     /**
      * the namespace xlink 
