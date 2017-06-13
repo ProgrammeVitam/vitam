@@ -508,11 +508,11 @@ public class MetaDataResource extends ApplicationStatusResource {
             .addAllResults(toArrayList(arrayNodeResults))).build();
     }
 
-    @Path("accession-register/{operationId}")
+    @Path("accession-register/unit/{operationId}")
     @Produces(MediaType.APPLICATION_JSON)
     @GET
-    public Response selectAccessionRegisterByOperationId(@PathParam("operationId") String operationId) {
-        List<Document> documents = metaDataImpl.selectAccessionRegisterByOperationId(operationId);
+    public Response selectAccessionRegisterOnUnitByOperationId(@PathParam("operationId") String operationId) {
+        List<Document> documents = metaDataImpl.selectAccessionRegisterOnUnitByOperationId(operationId);
 
         RequestResponseOK<UnitPerOriginatingAgency> responseOK = new RequestResponseOK<>();
         responseOK.setHttpCode(200);

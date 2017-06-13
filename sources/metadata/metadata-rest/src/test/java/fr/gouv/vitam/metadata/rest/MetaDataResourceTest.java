@@ -408,7 +408,7 @@ public class MetaDataResourceTest {
     }
 
     @Test
-    public void should_compute_aggregate() throws Exception {
+    public void should_find_accession_register_on_unit() throws Exception {
         String operationId = "1234";
         MetadataCollections.C_UNIT.getCollection().insertOne(
             new Document("_id", "1").append("_ops", singletonList(operationId))
@@ -416,7 +416,7 @@ public class MetaDataResourceTest {
         given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
-            .get("/accession-register/" + operationId).then()
+            .get("/accession-register/unit/" + operationId).then()
             .body("$results.size()", equalTo(2))
             .statusCode(Status.OK.getStatusCode());
 

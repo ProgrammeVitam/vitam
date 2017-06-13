@@ -163,5 +163,5 @@ public interface MetaData {
      * find the number of archive unit per originating agency for a operationId
      * @param operationId operation id
      */
-    List<Document> selectAccessionRegisterByOperationId(String operationId);
+    List<Document> selectAccessionRegisterOnUnitByOperationId(String operationId);
 }

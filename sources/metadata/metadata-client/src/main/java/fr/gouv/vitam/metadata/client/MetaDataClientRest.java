@@ -268,7 +268,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
 
         try {
             response =
-                performRequest(HttpMethod.GET, "/accession-register/" + operationId, null, null,
+                performRequest(HttpMethod.GET, "/accession-register/unit/" + operationId, null, null,
                     MediaType.APPLICATION_JSON_TYPE,
                     MediaType.APPLICATION_JSON_TYPE);
 

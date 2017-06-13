@@ -158,7 +158,7 @@ public class MetaDataImpl implements MetaData {
     }
 
     @Override
-    public List<Document> selectAccessionRegisterByOperationId(String operationId) {
+    public List<Document> selectAccessionRegisterOnUnitByOperationId(String operationId) {
         AggregateIterable aggregate = MetadataCollections.C_UNIT.getCollection().aggregate(Arrays.asList(
             new Document("$match", new Document("_ops", operationId)),
             new Document("$unwind", "$_sps"),

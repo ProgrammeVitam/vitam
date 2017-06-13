@@ -34,7 +34,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 import org.bson.Document;
 import org.junit.After;
@@ -48,7 +47,6 @@ import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
@@ -60,7 +58,6 @@ import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
@@ -217,7 +214,7 @@ public class MongoDbAccessMetadataImplTest {
             new Document("_id", "3").append("_ops", Arrays.asList("otherOperationId"))
                 .append("_sps", Arrays.asList("sp2")));
         // When
-        List<Document> documents = metaData.selectAccessionRegisterByOperationId(operationId);
+        List<Document> documents = metaData.selectAccessionRegisterOnUnitByOperationId(operationId);
 
         // Then
         assertThat(documents).containsExactlyInAnyOrder(new Document("_id", "sp1").append("count", 2),
