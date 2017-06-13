@@ -34,6 +34,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response;
 
@@ -180,6 +181,15 @@ public class ContextServiceImpl implements ContextService {
                     contextsListToPersist.add(ctxt);
                 }
             }
+            
+            if (null != error.getErrors() && !error.getErrors().isEmpty()) {
+                // log book + application log
+                // stop
+                String errorsDetails =
+                    error.getErrors().stream().map(c -> c.getMessage()).collect(Collectors.joining(","));
+                manager.logValidationError(errorsDetails, CONTEXTS_IMPORT_EVENT);
+                return error;
+            }
 
             mongoAccess.insertDocuments(contextsToPersist, FunctionalAdminCollections.CONTEXT);
         } catch (Exception exp) {
@@ -262,7 +272,7 @@ public class ContextServiceImpl implements ContextService {
                     if (node != null && node.isArray()) {
                         for (final JsonNode objNode : node) {
                             if (!ContextManager.checkIdentifierOfAccessContract(objNode.asText(), tenantCurrent)){
-                                return error.addToErrors(
+                                error.addToErrors(
                                     new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem())
                                     .setMessage("Invalid identifier of the ingest contract:" + objNode.asText()));
                             }
@@ -277,7 +287,7 @@ public class ContextServiceImpl implements ContextService {
                     if (node != null && node.isArray()) {
                         for (final JsonNode objNode : node) {
                             if (!ContextManager.checkIdentifierOfIngestContract(objNode.asText(), tenantCurrent)){
-                                return error.addToErrors(
+                                error.addToErrors(
                                     new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem())
                                     .setMessage("Invalid identifier of the access contract:" + objNode.asText()));
                             }
@@ -285,6 +295,14 @@ public class ContextServiceImpl implements ContextService {
                     }
                 }
             }
+        }
+        
+        if (error.getErrors() != null && error.getErrors().size() > 0) {
+            String errorsDetails =
+                error.getErrors().stream().map(c -> c.getMessage()).collect(Collectors.joining(","));
+            manager.logValidationError(errorsDetails, CONTEXTS_UPDATE_EVENT);
+
+            return error;
         }
 
         try {
@@ -294,7 +312,7 @@ public class ContextServiceImpl implements ContextService {
             error.setCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem())
             .setDescription(err)
             .setHttpCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
-            manager.logValidationError(err);
+            manager.logFatalError(err);
             return error;
         }
         
@@ -437,12 +455,12 @@ public class ContextServiceImpl implements ContextService {
             logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
         }
 
-        private void logValidationError(String errorsDetails) throws VitamException {
+        private void logValidationError(String errorsDetails, String action) throws VitamException {
             LOGGER.error("There validation errors on the input file {}", errorsDetails);
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
-                .newLogbookOperationParameters(eip, CONTEXTS_UPDATE_EVENT, eip, LogbookTypeProcess.MASTERDATA,
+                .newLogbookOperationParameters(eip, action, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.KO,
-                    VitamLogbookMessages.getCodeOp(CONTEXTS_UPDATE_EVENT, StatusCode.KO), eip);
+                    VitamLogbookMessages.getCodeOp(action, StatusCode.KO), eip);
             logbookMessageError(errorsDetails, logbookParameters);
             helper.updateDelegate(logbookParameters);
             logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
