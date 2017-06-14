@@ -60,8 +60,6 @@ Cette partie va essayer de montrer quelques exemples d'usages du DSL dans diffé
     - Le principe est résumé dans le graphe d'états suivant :
 
 ![Graphe d'états dans le cas Multi-queries](./multi-query-schema.png)
-![Graphe d'états dans le cas Multi-queries](multi-query-schema.png)
-![Graphe d'états dans le cas Multi-queries](docs-fr/multi-query-schema.png)
 
 - $source (**UNSUPPORTED**) permet de changer de collections entre deux query (unit ou object)
 

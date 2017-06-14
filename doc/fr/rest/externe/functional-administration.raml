@@ -124,7 +124,7 @@ documentation:
       X-Http-Method-Override:
         required: false
 
-  {id}:
+  /{id}:
     displayName: Access contract Modifier
     description: |
      API qui permet de mettre à jour un contrat d'accès via une requête de mise à jour
@@ -135,6 +135,7 @@ documentation:
     put:
       description: |
          ** Note: Sera changé en /accesscontracts/{id}, aujourd'hui accesscontract/{id}**
+
          Update the given access contract
       is: [RegisterTraits.RegisterUpload]
       headers:
@@ -160,7 +161,7 @@ documentation:
       X-Http-Method-Override:
         required: false
 
-  {id}:
+  /{id}:
     displayName: Ingest contract Modifier
     description: |
       API qui permet de mettre à jour un contrat d'entrées via une requête de mise à jour
@@ -171,6 +172,7 @@ documentation:
     put:
        description: |
          ** Note: Sera changé en /entrycontracts/{id}, aujourd'hui contract/{id}**
+
          Update the given ingest contract
        is: [RegisterTraits.RegisterUpload]
        headers:
@@ -194,7 +196,7 @@ documentation:
       X-Http-Method-Override:
         required: false
 
-  {id}:
+  /{id}:
     displayName: Context Modifier
     description: |
       API qui permet de mettre à jour un contexte via une requête de mise à jour
@@ -205,6 +207,7 @@ documentation:
     put:
        description: |
          ** Note: Sera changé en /contracts/{id}, aujourd'hui contract/{id}**
+
          Update the given ingest contract
        is: [RegisterTraits.RegisterUpload]
        headers:
