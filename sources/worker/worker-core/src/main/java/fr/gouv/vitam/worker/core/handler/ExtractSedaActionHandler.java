@@ -69,7 +69,6 @@ import de.odysseus.staxon.json.JsonXMLConfigBuilder;
 import de.odysseus.staxon.json.JsonXMLOutputFactory;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -100,7 +99,14 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsExceptio
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.logbook.common.parameters.*;
+import fr.gouv.vitam.logbook.common.parameters.LogbookEvDetDataType;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.parameters.UnitType;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
@@ -116,8 +122,8 @@ import fr.gouv.vitam.processing.common.exception.MissingFieldException;
 import fr.gouv.vitam.processing.common.exception.ProcessingDuplicatedVersionException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingManifestReferenceException;
+import fr.gouv.vitam.processing.common.exception.ProcessingUnauthorizeException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnitNotFoundException;
-import fr.gouv.vitam.processing.common.exception.*;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.DataObjectDetail;
@@ -803,38 +809,40 @@ public class ExtractSedaActionHandler extends ActionHandler {
             final File unitTmpFileForRead = handlerIO.getNewLocalFile(ARCHIVE_UNIT_TMP_FILE_PREFIX + unitGuid);
             final File unitCompleteTmpFile = handlerIO.getNewLocalFile(unitGuid);
 
-            // Get the archiveUnit
-            ObjectNode archiveUnit = (ObjectNode) JsonHandler.getFromFile(unitTmpFileForRead);
+            if (unitTmpFileForRead.exists()) {
+                // Get the archiveUnit
+                ObjectNode archiveUnit = (ObjectNode) JsonHandler.getFromFile(unitTmpFileForRead);
 
-            // Management rules id to add
-            Set<String> globalMgtIdExtra = new HashSet<>();
+                // Management rules id to add
+                Set<String> globalMgtIdExtra = new HashSet<>();
 
-            addWorkInformation(archiveUnit, unitId, unitGuid, isRootArchive, archiveUnitTree, globalMgtIdExtra);
+                addWorkInformation(archiveUnit, unitId, unitGuid, isRootArchive, archiveUnitTree, globalMgtIdExtra);
 
-            updateManagementAndAppendGlobalMgtRule(archiveUnit, globalMgtIdExtra);
+                updateManagementAndAppendGlobalMgtRule(archiveUnit, globalMgtIdExtra);
 
-            // sanityChecker
-            try {
-                SanityChecker.checkJsonAll(archiveUnit);
-            } catch (InvalidParseOperationException e) {
-                LOGGER.error("Sanity Checker failed for Archive Unit " + unitGuid);
-                // delete created temporary file
-                throw new ArchiveUnitContainSpecialCharactersException(e);
-            } finally {
-                if (!unitTmpFileForRead.delete()) {
-                    LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
+                // sanityChecker
+                try {
+                    SanityChecker.checkJsonAll(archiveUnit);
+                } catch (InvalidParseOperationException e) {
+                    LOGGER.error("Sanity Checker failed for Archive Unit " + unitGuid);
+                    // delete created temporary file
+                    throw new ArchiveUnitContainSpecialCharactersException(e);
+                } finally {
+                    if (!unitTmpFileForRead.delete()) {
+                        LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
+                    }
                 }
-            }
 
-            // Write to new File
-            JsonHandler.writeAsFile(archiveUnit, unitCompleteTmpFile);
+                // Write to new File
+                JsonHandler.writeAsFile(archiveUnit, unitCompleteTmpFile);
 
-            // Write to workspace
-            try {
-                handlerIO.transferFileToWorkspace(path + "/" + unitGuid + JSON_EXTENSION, unitCompleteTmpFile, true);
-            } finally {
-                if (!unitTmpFileForRead.delete()) {
-                    LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
+                // Write to workspace
+                try {
+                    handlerIO.transferFileToWorkspace(path + "/" + unitGuid + JSON_EXTENSION, unitCompleteTmpFile, true);
+                } finally {
+                    if (!unitTmpFileForRead.delete()) {
+                        LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
+                    }
                 }
             }
         }

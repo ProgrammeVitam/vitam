@@ -1,0 +1,24 @@
+{
+    "_id" : "aeaqaaaaaagbcaacaang6ak4ts6paliaaaaq",
+    "_og" : "",
+    "_mgt" : {
+        "OriginatingAgency" : "FR_ORG_AGEN"
+    },
+    "DescriptionLevel" : "RecordGrp",
+    "Title" : "jeu de 4 Mo",
+    "Description" : "C:\\Users\\edouard.vasseur\\Desktop\\jeux_donnees\\jeu de 4 Mo",
+    "StartDate" : "2016-12-15T15:54:18",
+    "EndDate" : "2016-12-15T15:54:18",
+    "_ops" : [],
+    "_sps" : [ 
+        "FR_ORG_AGEN"
+    ],
+    "_sp" : "FR_ORG_AGEN",
+    "_unitType" : "INGEST",
+    "_tenant" : 0,
+    "_max" : 1,
+    "_min" : 1,
+    "_up" : [],
+    "_nbc" : 1,
+    "_us" : []
+}

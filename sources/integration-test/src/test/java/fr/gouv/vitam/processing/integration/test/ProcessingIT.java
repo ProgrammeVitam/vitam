@@ -64,6 +64,7 @@ import org.junit.rules.TemporaryFolder;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.restassured.RestAssured;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoDatabase;
@@ -87,11 +88,14 @@ import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
+import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.single.Insert;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
@@ -116,9 +120,11 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsExceptio
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -229,6 +235,7 @@ public class ProcessingIT {
     private static String SIP_NB_OBJ_INCORRECT_IN_MANIFEST = "integration-processing/SIP_Conformity_KO.zip";
     private static String SIP_ORPHELINS = "integration-processing/SIP-orphelins.zip";
     private static String SIP_OBJECT_SANS_GOT = "integration-processing/SIP-objetssansGOT.zip";
+    private static String SIP_BUG_2721 = "integration-processing/bug2721_2racines_meme_rattachement.zip";
     private static String SIP_WITHOUT_OBJ = "integration-processing/OK_SIP_sans_objet.zip";
     private static String SIP_WITHOUT_FUND_REGISTER = "integration-processing/KO_registre_des_fonds.zip";
     private static String SIP_BORD_AU_REF_PHYS_OBJECT = "integration-processing/KO_BORD_AUrefphysobject.zip";
@@ -483,7 +490,7 @@ public class ProcessingIT {
             RestAssured.port = PORT_SERVICE_WORKSPACE;
             RestAssured.basePath = WORKSPACE_PATH;
             final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
+                PropertiesUtils.getResourceAsStream(SIP_BUG_2721);
             workspaceClient = WorkspaceClientFactory.getInstance().getClient();
             workspaceClient.createContainer(containerName);
             workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
@@ -492,6 +499,21 @@ public class ProcessingIT {
             RestAssured.port = PORT_SERVICE_PROCESSING;
             RestAssured.basePath = PROCESSING_PATH;
 
+            MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
+            metaDataClient.insertUnit(
+                new InsertMultiQuery().addData((ObjectNode)
+                    JsonHandler.getFromFile(PropertiesUtils.getResourceFile("integration-processing/unit_metadata.json"))).getFinalInsert());
+            LogbookLifeCyclesClient logbookLFCClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
+            logbookLFCClient.create(
+                LogbookParametersFactory.newLogbookLifeCycleUnitParameters(
+                    GUIDFactory.newOperationLogbookGUID(tenantId), 
+                    "INGEST", 
+                    GUIDFactory.newOperationLogbookGUID(tenantId), 
+                    LogbookTypeProcess.INGEST,
+                    StatusCode.OK, 
+                    "Process_SIP_unitary.OK", 
+                    "aecaaaaaacb4r2p4aazb2ak4ufkfidiaaaaq", 
+                    GUIDReader.getGUID("aeaqaaaaaagbcaacaang6ak4ts6paliaaaaq")));
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
 
