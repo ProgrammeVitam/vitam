@@ -109,6 +109,11 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
         return this;
     }
 
+    @Override
+    public VitamDocument<AccessionRegisterDetail> newInstance(JsonNode content) {
+        return new AccessionRegisterDetail(content);
+    }
+
     /**
      * @param orgAgency to set
      * @return AccessionRegisterDetail

@@ -54,6 +54,10 @@ public abstract class VitamDocument<E> extends Document {
      */
     public static final String ID = "_id";
     /**
+     * Version of the document: Incresed for each update
+     */
+    public static final String VERSION = "_v";
+    /**
      * TenantId
      */
     public static final String TENANT_ID = "_tenant";
@@ -73,6 +77,7 @@ public abstract class VitamDocument<E> extends Document {
      */
     public VitamDocument(String content) {
         super(Document.parse(content));
+        initFields();
         checkId();
     }
 
@@ -84,6 +89,7 @@ public abstract class VitamDocument<E> extends Document {
      */
     public VitamDocument(JsonNode content) {
         super(Document.parse(JsonHandler.unprettyPrint(content)));
+        initFields();
         checkId();
     }
 
@@ -95,8 +101,17 @@ public abstract class VitamDocument<E> extends Document {
      */
     public VitamDocument(Document content) {
         super(content);
+        initFields();
         checkId();
     }
+
+    /**
+     * Make a new instance of the document with the given json
+     * 
+     * @param content document structure as json
+     * @return new document with the json as content
+     */
+    public abstract VitamDocument<E> newInstance(JsonNode content);
 
     /**
      * check if Id is valid
@@ -119,6 +134,18 @@ public abstract class VitamDocument<E> extends Document {
     }
 
     /**
+     * Init standard values for mandatory fields (as _version)
+     *
+     * @return this
+     */
+    public VitamDocument<E> initFields() {
+        if (get(VERSION) == null) {
+            append(VERSION, 0);
+        }
+        return this;
+    }
+
+    /**
      *
      * @return the ID
      */
@@ -132,6 +159,14 @@ public abstract class VitamDocument<E> extends Document {
      */
     public final int getTenantId() {
         return getInteger(TENANT_ID);
+    }
+
+    /**
+     *
+     * @return the version
+     */
+    public final int getVersion() {
+        return getInteger(VERSION);
     }
 
     /**

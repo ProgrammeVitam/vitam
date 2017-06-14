@@ -46,6 +46,7 @@ import java.util.stream.Collectors;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
+
 import org.bson.BSONObject;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -73,8 +74,9 @@ import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
  * Unit class:<br>
  *
  * @formatter:off { MD content, _id: UUID, _tenant: tenant, _profil: documentType,, _min: depthmin, _max: depthmax,
- *                _mgt. Management structure, _uds: { UUID1 : depth1, UUID2 : depth2, ... }, // not indexed and not to
- *                be in ES! _us: [ UUID1, UUID2, ... }, // indexed and equivalent to _uds _up: [ UUID1, UUID2, ... ], //
+ *                _mgt. Management structure, _uds: { UUID1 : depth1, UUID2 : depth2, ... }, // not
+ *                indexed and not to be in ES!
+ *                _us: [ UUID1, UUID2, ... }, // indexed and equivalent to _uds _up: [ UUID1, UUID2, ... ], //
  *                limited to immediate parent _og: UUID, _nbc : immediateChildNb }
  * @formatter:on
  */
@@ -110,7 +112,7 @@ public class Unit extends MetadataDocument<Unit> {
      */
     public static final String MANAGEMENT = "_mgt";
     /**
-     * UnitType : nomal or holding scheme
+     * UnitType : normal or holding scheme
      */
     public static final String UNIT_TYPE = "_unitType";
 
@@ -119,6 +121,10 @@ public class Unit extends MetadataDocument<Unit> {
      */
     public static final String TYPEUNIQUE = "typeunique";
 
+    @Override
+    public MetadataDocument<Unit> newInstance(JsonNode content) {
+        return new Unit(content);
+    }
 
     // TODO P1 add Nested objects or Parent/child relationships
 

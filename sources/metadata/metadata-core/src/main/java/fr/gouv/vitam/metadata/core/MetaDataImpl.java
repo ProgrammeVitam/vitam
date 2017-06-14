@@ -251,8 +251,9 @@ public class MetaDataImpl implements MetaData {
             }
 
 
-        } catch (final InstantiationException | IllegalAccessException | MetaDataAlreadyExistException |
-            MetaDataNotFoundException e) {
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new MetaDataExecutionException(e);
+        } catch (final MetaDataAlreadyExistException | MetaDataNotFoundException e) {
             LOGGER.error(e);
             throw new MetaDataExecutionException(e);
         }
@@ -297,8 +298,7 @@ public class MetaDataImpl implements MetaData {
         } catch (final MetaDataExecutionException | InvalidParseOperationException e) {
             LOGGER.error(e);
             throw e;
-        } catch (final InstantiationException | MetaDataAlreadyExistException | MetaDataNotFoundException |
-            IllegalAccessException e) {
+        } catch (final InstantiationException | MetaDataAlreadyExistException | MetaDataNotFoundException | IllegalAccessException e) {
             LOGGER.error(e);
             throw new MetaDataExecutionException(e);
         }

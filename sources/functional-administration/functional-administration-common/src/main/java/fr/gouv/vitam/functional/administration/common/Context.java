@@ -89,6 +89,11 @@ public class Context extends VitamDocument<Context>{
     public Context(String content) {
         super(content);
     }
+
+    @Override
+    public VitamDocument<Context> newInstance(JsonNode content) {
+    	return new Context(content);
+    }
     
     @Override
     public VitamDocument<Context> checkId() {

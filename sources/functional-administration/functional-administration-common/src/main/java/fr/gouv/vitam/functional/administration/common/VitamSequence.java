@@ -78,6 +78,11 @@ public class VitamSequence extends VitamDocument<VitamSequence> {
         append(TENANT_ID, tenant);
     }
 
+    @Override
+    public VitamDocument<VitamSequence> newInstance(JsonNode content) {
+    	return new VitamSequence(content);
+    }
+
     /**
      *
      * @param tenantId the working tenant

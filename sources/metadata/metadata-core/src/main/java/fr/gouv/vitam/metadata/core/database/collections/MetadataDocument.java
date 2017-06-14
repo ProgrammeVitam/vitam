@@ -58,6 +58,10 @@ public abstract class MetadataDocument<E> extends Document {
      */
     public static final String ID = "_id";
     /**
+     * document version, initialised to 0
+     */
+    public static final String VERSION = "_v";
+    /**
      * Object Type (text, audio, video, document, image, ...) Unit Type (facture, paye, ...)
      */
     public static final String QUALIFIERS = "_qualifiers";
@@ -109,6 +113,7 @@ public abstract class MetadataDocument<E> extends Document {
      */
     public MetadataDocument(JsonNode content) {
         super(Document.parse(JsonHandler.unprettyPrint(content)));
+        initFields();
         checkId();
     }
 
@@ -119,6 +124,7 @@ public abstract class MetadataDocument<E> extends Document {
      */
     public MetadataDocument(Document content) {
         super(content);
+        initFields();
         checkId();
     }
 
@@ -129,7 +135,28 @@ public abstract class MetadataDocument<E> extends Document {
      */
     public MetadataDocument(String content) {
         super(Document.parse(content));
+        initFields();
         checkId();
+    }
+
+    /**
+     * Make a new instance of the document with the given json
+     * 
+     * @param content document structure as json
+     * @return new document with the json as content
+     */
+    public abstract MetadataDocument<E> newInstance(JsonNode content);
+
+    /**
+     * Init standard values for mandatory fields (as _version)
+     *
+     * @return this
+     */
+    public MetadataDocument<E> initFields() {
+    	if (get(VERSION) == null) {
+    		append(VERSION, 0);
+    	}
+        return this;
     }
 
     /**
@@ -179,6 +206,14 @@ public abstract class MetadataDocument<E> extends Document {
      */
     public final int getDomainId() {
         return this.getInteger(TENANT_ID);
+    }
+
+    /**
+     *
+     * @return the version
+     */
+    public final int getVersion() {
+        return getInteger(VERSION);
     }
 
     /**

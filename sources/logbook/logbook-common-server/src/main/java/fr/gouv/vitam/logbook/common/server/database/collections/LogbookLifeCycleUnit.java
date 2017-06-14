@@ -30,6 +30,7 @@ import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 
@@ -81,6 +82,12 @@ public class LogbookLifeCycleUnit extends LogbookLifeCycle<LogbookLifeCycleUnitP
      */
     public LogbookLifeCycleUnit(JsonNode content) {
         super(content);
+    }
+
+    @Override
+    public VitamDocument<LogbookLifeCycle<LogbookLifeCycleUnitParameters>> newInstance(
+    		JsonNode content) {
+    	return new LogbookLifeCycleUnit(content);
     }
 
     @Override

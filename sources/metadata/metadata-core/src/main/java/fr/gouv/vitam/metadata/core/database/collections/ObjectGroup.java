@@ -209,6 +209,11 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
         return MetadataCollections.C_OBJECTGROUP.getCollection();
     }
 
+    @Override
+    public MetadataDocument<ObjectGroup> newInstance(JsonNode content) {
+        return new ObjectGroup(content);
+    }
+
     /**
      *
      * @return a new sub Object GUID

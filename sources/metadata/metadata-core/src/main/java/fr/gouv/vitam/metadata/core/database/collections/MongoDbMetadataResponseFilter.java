@@ -87,6 +87,9 @@ public class MongoDbMetadataResponseFilter {
                 case UNITUPS:
                     replace(document, MetadataDocument.UP, VitamFieldsHelper.unitups());
                     break;
+                case VERSION:
+                    replace(document, MetadataDocument.VERSION, VitamFieldsHelper.version());
+                    break;
                 case MIN:
                     replace(document, Unit.MINDEPTH, VitamFieldsHelper.min());
                     break;

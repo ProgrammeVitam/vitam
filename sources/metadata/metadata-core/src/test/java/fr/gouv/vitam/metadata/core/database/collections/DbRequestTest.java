@@ -58,6 +58,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -355,16 +356,16 @@ public class DbRequestTest {
             LOGGER.debug("DeleteParser: " + deleteParser.toString());
             // Now execute the request
             executeRequest(dbRequest, deleteParser);
-        } catch (MetaDataAlreadyExistException e1) {
-            e1.printStackTrace();
-            fail(e1.getMessage());
-        } catch (MetaDataNotFoundException e1) {
-            e1.printStackTrace();
-            fail(e1.getMessage());
         } catch (InstantiationException e1) {
             e1.printStackTrace();
             fail(e1.getMessage());
         } catch (IllegalAccessException e1) {
+            e1.printStackTrace();
+            fail(e1.getMessage());
+        } catch (MetaDataAlreadyExistException e1) {
+            e1.printStackTrace();
+            fail(e1.getMessage());
+        } catch (MetaDataNotFoundException e1) {
             e1.printStackTrace();
             fail(e1.getMessage());
         } catch (InvalidParseOperationException e1) {
@@ -459,16 +460,16 @@ public class DbRequestTest {
             LOGGER.debug("DeleteParser: " + requestParser.toString());
 
             executeRequest(dbRequest, requestParser);
-        } catch (MetaDataAlreadyExistException e1) {
-            e1.printStackTrace();
-            fail(e1.getMessage());
-        } catch (MetaDataNotFoundException e1) {
-            e1.printStackTrace();
-            fail(e1.getMessage());
         } catch (InstantiationException e1) {
             e1.printStackTrace();
             fail(e1.getMessage());
         } catch (IllegalAccessException e1) {
+            e1.printStackTrace();
+            fail(e1.getMessage());
+        } catch (MetaDataAlreadyExistException e1) {
+            e1.printStackTrace();
+            fail(e1.getMessage());
+        } catch (MetaDataNotFoundException e1) {
             e1.printStackTrace();
             fail(e1.getMessage());
         } catch (InvalidParseOperationException e1) {
@@ -487,8 +488,6 @@ public class DbRequestTest {
      * .
      * 
      * @throws InvalidParseOperationException
-     * @throws IllegalAccessException
-     * @throws InstantiationException
      * @throws MetaDataNotFoundException
      * @throws MetaDataAlreadyExistException
      * @throws MetaDataExecutionException
@@ -497,7 +496,7 @@ public class DbRequestTest {
     @RunWithCustomExecutor
     public void testExecRequestThroughAllCommands()
         throws MetaDataExecutionException, MetaDataAlreadyExistException, MetaDataNotFoundException,
-        InstantiationException, IllegalAccessException, InvalidParseOperationException {
+        InvalidParseOperationException, InstantiationException, IllegalAccessException {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         // input data
         final GUID uuid = GUIDFactory.newUnitGUID(tenantId);
@@ -845,10 +844,14 @@ public class DbRequestTest {
      * @throws MetaDataNotFoundException
      * @throws MetaDataAlreadyExistException
      * @throws MetaDataExecutionException
+     * @throws SecurityException 
+     * @throws NoSuchMethodException 
+     * @throws InvocationTargetException 
+     * @throws IllegalArgumentException 
      */
     private void executeRequest(DbRequest dbRequest, RequestParserMultiple requestParser)
         throws MetaDataExecutionException, MetaDataAlreadyExistException, MetaDataNotFoundException,
-        InstantiationException, IllegalAccessException, InvalidParseOperationException {
+        InvalidParseOperationException, InstantiationException, IllegalAccessException {
 
         final Result result = dbRequest.execRequest(requestParser, null);
         LOGGER.debug("XXXXXXXX " + requestParser.getClass().getSimpleName() + " Result XXXXXXXX: " + result);

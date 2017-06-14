@@ -174,6 +174,10 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
         super(content);
     }
 
+    @Override
+    public VitamDocument<LogbookOperation> newInstance(JsonNode content) {
+    	return new LogbookOperation(content);
+    }
 
     static final LogbookMongoDbName getIdName() {
         return LogbookMongoDbName.eventIdentifierProcess;

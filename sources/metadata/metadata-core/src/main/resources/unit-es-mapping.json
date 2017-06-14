@@ -295,6 +295,9 @@
     "_us": {
       "type": "string",
       "index": "not_analyzed"
+    },
+    "_v": {
+      "type": "long"
     }
   }
 }

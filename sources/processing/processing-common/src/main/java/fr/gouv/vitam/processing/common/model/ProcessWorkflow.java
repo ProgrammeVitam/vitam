@@ -46,7 +46,7 @@ public class ProcessWorkflow {
     private String operationId;
 
     private String messageIdentifier;
-    
+
     private String prodService;
 
 
