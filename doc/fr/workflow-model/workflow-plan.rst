@@ -34,9 +34,7 @@ Traitement additionnel dans la tâche CHECK_DATAOBJECTPACKAGE
 	- OK : s'il n'y a pas d'objets numérique dans le manifeste
 	- KO : s'il y a des objets numériques dans le manifeste
 
-
-D'une façon synthétique, le workflow est décrit de cette façon :
-
+* Vérification de la cohérence du bordereau (CHECK_MANIFEST)
 
 .. image:: images/Workflow_FilingScheme.jpg
     :align: center
@@ -92,7 +90,11 @@ Diagramme d'activité du workflow du plan de classement
 
       - Création de l'arbre d'ordre d'indexation,
 
-      - Extraction des métadonnées contenues dans le bloc ManagementMetadata du manifeste pour le calcul des règles de gestion.
+      - Extraction des métadonnées contenues dans le bloc ManagementMetadata du manifeste pour le calcul des règles de gestion,
+        
+      - Vérification du GUID de la structure de rattachement,
+        
+      - Vérification de la cohérence entre l'unit rattachée et l'unit de rattachement.
 
 
 - **Step 2** - STP_UNIT_CHECK_AND_PROCESS : Contrôle et traitements des units / distribution sur LIST GUID
