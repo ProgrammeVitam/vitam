@@ -176,13 +176,13 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
             return expectedResponse.get();
         }
 
-        @Path("accession-register/unit/{operationId}")
+        @Path("accession-register/units/{operationId}")
         @Produces(MediaType.APPLICATION_JSON)
         @GET
         public Response selectAccessionRegisterForArchiveUnit(@PathParam("operationId") String operationId) {
             return expectedResponse.get();
         }
-        @Path("accession-register/object/{operationId}")
+        @Path("accession-register/objects/{operationId}")
         @Produces(MediaType.APPLICATION_JSON)
         @GET
         public Response selectAccessionRegisterForObjectGroup(@PathParam("operationId") String operationId) {
@@ -438,7 +438,7 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
 
 
     @Test
-    public void should_validate_accesion_register_client_for_unit()
+    public void should_validate_accession_register_client_for_unit()
         throws MetaDataDocumentSizeException, MetaDataExecutionException, InvalidParseOperationException,
         MetaDataClientServerException {
 
@@ -461,7 +461,7 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
     }
 
     @Test
-    public void should_validate_accesion_register_client_for_object_group()
+    public void should_validate_accession_register_client_for_object_group()
         throws MetaDataDocumentSizeException, MetaDataExecutionException, InvalidParseOperationException,
         MetaDataClientServerException {
 

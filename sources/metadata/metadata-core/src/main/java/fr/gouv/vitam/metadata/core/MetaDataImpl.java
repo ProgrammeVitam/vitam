@@ -27,6 +27,22 @@
 package fr.gouv.vitam.metadata.core;
 
 
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ID;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OPS;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ORIGINATING_AGENCIES;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.QUALIFIERS;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.bson.Document;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -57,6 +73,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbVarNameAdapter;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
@@ -161,9 +178,10 @@ public class MetaDataImpl implements MetaData {
     @Override
     public List<Document> selectAccessionRegisterOnUnitByOperationId(String operationId) {
         AggregateIterable<Document> aggregate = MetadataCollections.C_UNIT.getCollection().aggregate(Arrays.asList(
-            new Document("$match", new Document("_ops", operationId)),
-            new Document("$unwind", "$_sps"),
-            new Document("$group", new Document("_id", "$_sps").append("count", new Document("$sum", 1)))
+            new Document("$match", new Document(OPS, operationId)),
+            new Document("$unwind", "$" + ORIGINATING_AGENCIES),
+            new Document("$group",
+                new Document(ID, "$" + ORIGINATING_AGENCIES).append("count", new Document("$sum", 1)))
         ), Document.class);
         return Lists.newArrayList(aggregate.iterator());
     }
@@ -172,12 +190,12 @@ public class MetaDataImpl implements MetaData {
     public List<Document> selectAccessionRegisterOnObjectGroupByOperationId(String operationId) {
         AggregateIterable<Document> aggregate =
             MetadataCollections.C_OBJECTGROUP.getCollection().aggregate(Arrays.asList(
-                new Document("$match", new Document("_ops", operationId)),
-                new Document("$unwind", "$_qualifiers"),
-                new Document("$unwind", "$_qualifiers.versions"),
-                new Document("$unwind", "$_sps"),
-                new Document("$group", new Document("_id", "$_sps")
-                    .append("totalSize", new Document("$sum", "$_qualifiers.versions.Size"))
+                new Document("$match", new Document(OPS, operationId)),
+                new Document("$unwind", "$" + QUALIFIERS),
+                new Document("$unwind", "$" + QUALIFIERS + ".versions"),
+                new Document("$unwind", "$" + ORIGINATING_AGENCIES),
+                new Document("$group", new Document(ID, "$" + ORIGINATING_AGENCIES)
+                    .append("totalSize", new Document("$sum", "$" + QUALIFIERS + ".versions.Size"))
                     .append("totalObject", new Document("$sum", 1))
                     .append("listGOT", new Document("$addToSet", "$_id"))),
                 new Document("$project", new Document("_id", 1).append("totalSize", 1).append("totalObject", 1)

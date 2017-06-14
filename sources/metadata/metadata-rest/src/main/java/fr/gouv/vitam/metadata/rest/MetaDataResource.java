@@ -81,6 +81,8 @@ public class MetaDataResource extends ApplicationStatusResource {
     private static final String CODE_VITAM = "code_vitam";
 
     private final MetaData metaDataImpl;
+    private final String ACCESSION_REGISTER_UNITS = "accession-register/units/";
+    private final String ACCESSION_REGISTER_OBJECTS = "accession-register/objects/";
 
     /**
      * MetaDataResource constructor
@@ -512,7 +514,7 @@ public class MetaDataResource extends ApplicationStatusResource {
             .addAllResults(toArrayList(arrayNodeResults))).build();
     }
 
-    @Path("accession-register/unit/{operationId}")
+    @Path("accession-register/units/{operationId}")
     @Produces(MediaType.APPLICATION_JSON)
     @GET
     public Response selectAccessionRegisterOnUnitByOperationId(@PathParam("operationId") String operationId) {
@@ -530,7 +532,7 @@ public class MetaDataResource extends ApplicationStatusResource {
         return responseOK.toResponse();
     }
 
-    @Path("accession-register/object/{operationId}")
+    @Path("accession-register/objects/{operationId}")
     @Produces(MediaType.APPLICATION_JSON)
     @GET
     public Response selectAccessionRegisterOnObjectGroupByOperationId(@PathParam("operationId") String operationId) {
