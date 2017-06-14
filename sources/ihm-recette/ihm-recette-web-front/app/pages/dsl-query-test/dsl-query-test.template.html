@@ -34,7 +34,9 @@
           <option value="OBJECTGROUP">Groupe d'objets</option>
           <option value="ACCESSIONREGISTER">Registre des fonds</option>
           <option value="CONTEXTS">Contexte</option>
-          <!--<option value="GOT">Groupe d'objets</option>-->
+          <option value="RULES">Règles de gestion</option>
+          <option value="FORMATS">Formats</option>
+          <option value="OPERATIONS">Opérations</option>
         </select>
       </div>
 
@@ -42,15 +44,12 @@
         <label>Action</label>
         <select ng-model="requestMethod" ng-change="displayIdInput()">
           <option value="GET">Rechercher</option>
-          <!--<option value="POST">POST</option>-->
-          <!--<option value="PUT">Modifier</option>-->
-          <!--<option value="DELETE">DELETE</option>-->
           <option value="PUT" ng-if="requestedCollection === 'CONTEXTS'">Mis à jour</option>
         </select>
       </div>
 
       <div class="col-md-2" ng-show="displayIdInput()">
-        <label>Identifiant</label>
+        <label>{{identifierInputLabel}}</label>
         <input type="text" size="30" ng-model="objectId" value="{{objectId}}" />
       </div>
 
