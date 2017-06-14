@@ -85,7 +85,11 @@ Traitement additionnel dans la tâche CHECK_DATAOBJECTPACKAGE
 
       - Création de l'arbre d'ordre d'indexation,
 
-      - Extraction des métadonnées contenues dans le bloc ManagementMetadata du manifeste pour le calcul des règles de gestion.
+      - Extraction des métadonnées contenues dans le bloc ManagementMetadata du manifeste pour le calcul des règles de gestion,
+
+      - Vérification du GUID de la structure de rattachement,
+        
+      - Vérification de la cohérence entre l'unit rattachée et l'unit de rattachement.
 
 
 - **Step 2** - STP_UNIT_STORING : Rangement des unités archivistique / distribution sur LIST GUID/Units

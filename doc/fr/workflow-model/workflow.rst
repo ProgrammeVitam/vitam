@@ -215,9 +215,9 @@ Cette tâche contient plusieurs traitements, chacun ayant un contrôle et des po
 
     + **Statuts** :
 
-      - OK : les journaux de cycles de vie des ArchiveUnits et des ObjectGroups ont été créés avec succès, aucune récursivité n'a été detectée dans l'arborescence des ArchiveUnits (CHECK_MANIFEST.OK=Contrôle du bordereau réalisé avec succès)
+      - OK : les journaux de cycles de vie des ArchiveUnits et des ObjectGroups ont été créés avec succès, aucune récursivité n'a été detectée dans l'arborescence des ArchiveUnits, la structure de rattachement déclarée existe, le type de structure de rattachement est autorisé (CHECK_MANIFEST.OK=Contrôle du bordereau réalisé avec succès)
 
-      - KO : Une récursivité a été détectée dans l'arborescence des ArchiveUnits (CHECK_MANIFEST.KO=Échec de contrôle du bordereau)
+      - KO : Une récursivité a été détectée dans l'arborescence des ArchiveUnits, la strucutre de rattachement déclarée est inexistante, le type de structure de rattachement est interdit (CHECK_MANIFEST.KO=Échec de contrôle du bordereau)
 
       - FATAL : la vérification de la cohérence du bordereau n'a pas pu être réalisée suite à une erreur système, e.g. les journaux de cycle de vie n'ont pas pu être créés (CHECK_MANIFEST.FATAL=Erreur fatale lors de contrôle du bordereau)
 
@@ -563,8 +563,11 @@ D'une façon synthétique, le workflow est décrit de cette façon :
 
       - Création de l'arbre d'ordre d'indexation,
 
-      - Extraction des métadonnées contenues dans le bloc ManagementMetadata du manifeste pour le calcul des règles de gestion.
-
+      - Extraction des métadonnées contenues dans le bloc ManagementMetadata du manifeste pour le calcul des règles de gestion,
+        
+      - Vérification du GUID de la structure de rattachement
+        
+      - Vérification de la cohérence entre l'unit rattachée et l'unit de rattachement.
 
     * Contient CHECK_CONSISTENCY (CheckObjectUnitConsistencyActionHandler.java) :
 
