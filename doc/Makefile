@@ -101,19 +101,14 @@ raml:
 	echo "Generation interne"; \
 	cd $(RAMLCONTENTINTERNE); \
 	cp *raml ../../../${RAMLBUILDDIR}/interne/; \
-	for item in $(LIST_RAMLINTERNE); do \
-		echo "Rendering $${item}..."; \
-		raml2html -i $${item}.raml -t template/template.nunjucks -o ../../../${RAMLBUILDDIR}/interne/$${item}.html; \
-	done; \
+	./transform.sh; \
+	cp -r target/html/* ../../../${RAMLBUILDDIR}/interne; \
 	cd ../../..; \
 	mkdir -p ${RAMLBUILDDIR}/externe; \
 	echo "Generation externe"; \
 	cd $(RAMLCONTENTEXTERNE); \
-	cp *raml ../../../${RAMLBUILDDIR}/externe/; \
-	for item in $(LIST_RAMLEXTERNE); do \
-		echo "Rendering $${item}..."; \
-		raml2html -i $${item}.raml -t template/template.nunjucks -o ../../../${RAMLBUILDDIR}/externe/$${item}.html; \
-	done; \
+	./transform.sh; \
+	cp -r target/html/* ../../../${RAMLBUILDDIR}/externe; \
 	cd ../../..; \
 	# OMA : commented as useless now ; seen with Frédéric BREGIER 19/10/2016
 	# mkdir -p ${RAMLBUILDDIR}/console; \
