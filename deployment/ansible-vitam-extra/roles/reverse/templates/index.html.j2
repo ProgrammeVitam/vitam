@@ -115,7 +115,7 @@
 {% if groups['hosts-consul-server']|length >0 %}
 					<p class="row" style="vertical-align: middle">
 						<div class="col-md-3">Consul</div>
-						<div class="col-md-2"><a href="/ui" class="btn btn-primary btn-xs" target="_blank">Portail Consul</a></div>
+						<div class="col-md-2"><a href="/ui" class="btn btn-primary btn-xs" target="_blank">Portail Consul</a>&nbsp;<a href="/v1/health/state/any?pretty" class="btn btn-primary btn-xs" target="_blank">Services health</a></div>
 					</p>
 {% endif %}
 
