@@ -10,8 +10,9 @@ Base commune
 -------------
 
 * Tous les serveurs hébergeant la solution :term:`VITAM` doivent êre synchronisés sur un serveur de temps (pas de stratum 10)
-
 * Disposer de la solution de déploiement basé sur ansible
+
+.. penser à ajouter une note sur /etc/hostname
 
 Le déploiement est orchestré depuis un poste ou serveur d'administration ; les pré-requis suivants doivent y être présents :
 

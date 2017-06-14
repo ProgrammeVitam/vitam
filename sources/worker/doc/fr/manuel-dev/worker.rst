@@ -45,14 +45,17 @@ Le lancement du serveur est indépendant de l'enregistrement du *worker* auprès
 Cela présente la configuration pour un worker quand il est déployé. Deux paramètres importants quand le worker fonctionne en mode parallèle.   
 
  * WorkerCapacity :
+
 	Cela présente la capacité d'un worker qui réponds au demande de parallélisation de la distribution de tâches du workflow.  
 	Il est précisé par le paramètre capacity dans le WorkerConfiguration.    
  
  * WorkerFamily :
+
  Chaque worker est configuré pour traiter groupe de tâches corresponsant à ses fonctions et on cela permetre de définir les familles de worker. 
  Il est précisé par workerFamily dans le WorkerConfigration.  
 
 2.4. WorkerBean
+
 présente l'information complète sur un worker pour la procédure d'enregistrement d'un worker. Il contient les information sur le nom, 
 la famille et la capacité ... d'un worker et présente en mode json. Voici un example :  
 
@@ -70,14 +73,14 @@ la famille et la capacité ... d'un worker et présente en mode json. Voici un e
 
 .. code-block:: json
 
-   [
-     {"workerId": "workerId1", "workerinfo": { "name" : "workername", "family" : "DefaultWorker", "capacity" : 10, "storage" : 100,
+  [
+    {"workerId": "workerId1", "workerinfo": { "name" : "workername", "family" : "DefaultWorker", "capacity" : 10, "storage" : 100,
     "status" : "Active", "configuration" : {"serverHost" : "localhost", "serverPort" : 12345 }}},   
     {"workerId": "workerId2", "workerinfo": { "name" : "workername2", "family" : "BigWorker", "capacity" : 10, "storage" : 100,
     "status" : "Active", "configuration" : {"serverHost" : "localhost", "serverPort" : 54321 } }} 
-   ]
+  ]
 
-Le fichier nommé "worker.db" qui sera créé dans le /vitam/data/processing   
+Le fichier nommé "worker.db" qui sera créé dans le répertoire ``/vitam/data/processing``.
  
 Chaque worker est identifié par workerId et l'information générale du champs workerInfo. L'ensemble des actions suivantes sont traitées : 
   
@@ -98,20 +101,19 @@ Chaque worker est identifié par workerId et l'information générale du champs 
 
 Lorsque le worker s'arrête ou se plante, ce worker doit être désenregistré. 
 
-* Si le worker s'arrête, la demande de désenregistrement sera lancé pour le contexte "contextDestroyed" de la WorkerRegistrationListener  
-(implémenté de ServletContextListener) en utilisant le ProcessingManagementClient pour appeler le service de desenregistrement de distributeur.   
+* Si le worker s'arrête, la demande de désenregistrement sera lancé pour le contexte "contextDestroyed" de la WorkerRegistrationListener  (implémenté de ServletContextListener) en utilisant le ProcessingManagementClient pour appeler le service de desenregistrement de distributeur.   
 
 * Si le worker se plante, il ne réponse plus aux requêtes de WorkerClient dans la "run()" WorkerThread et dans le catch() des exceptions de de traitement, 
 
 une demande de désenregistrement doit être appelé dans cette boucle.
 
-  - le distributeur essaie de faire une vérification de status de workers en appelant checkStatusWorker() en plusieurs fois définit dans GlobalDataRest.STATUS_CHECK_RETRY). 
- - si après l'étape 1 le statut de worker est toujours indisponible, le distributeur va appeler la procédure de désenregistrement de ce worker de la liste de worker enregistrés. 
-    
-    
-                
+- le distributeur essaie de faire une vérification de status de workers en appelant checkStatusWorker() en plusieurs fois définit dans GlobalDataRest.STATUS_CHECK_RETRY). 
+- si après l'étape 1 le statut de worker est toujours indisponible, le distributeur va appeler la procédure de désenregistrement de ce worker de la liste de worker enregistrés. 
+
+
 3. Worker-core
 **************
+
 Dans la partie Core, sont présents les différents Handlers nécessaires pour exécuter les différentes actions.
 
 - CheckConformityActionHandler
@@ -382,6 +384,7 @@ Si les empreintes sont différents, c'est le cas KO.
 Le message { "MessageDigest": "value", "Algorithm": "algo", "ComputedMessageDigest": "value"} va être stocké dans le journal
 Sinon le message { "MessageDigest": "value", "Algorithm": "algo", "SystemMessageDigest": "value", "SystemAlgorithm": "algo"} va être stocké dans le journal
 Mais il y a encore deux cas à ce moment:
+
 	si l'empreinte est avec l'algorithme SHA-512, c'est le cas OK.
 	sinon, c'est le cas WARNING. le nouveau empreint et son algorithme seront mis à jour dans la collection ObjectGroup.
 
@@ -393,6 +396,7 @@ Si nombre de KO est plus de 0, l'action est KO.
 
 logbook lifecycle
 =================
+
 CA 1 : Vérification de la conformité de l'empreinte. (empreinte en SHA-512 dans le manifeste)
 
 Dans le processus d'entrée, l'étape de vérification de la conformité de l'empreinte doit être appelée en position 450.
@@ -400,7 +404,9 @@ Lorsque l'étape débute, pour chaque objet du groupe d'objet technique, une vé
 Le calcul d'empreinte en SHA-512 (CA 2) ne doit pas s'effectuer si l'empreinte renseigné dans le manifeste a été calculé en SHA-512. C'est cette empreinte qui sera indexée dans les bases Vitam.
 
 CA 1.1 : Vérification de la conformité de l'empreinte. (empreinte en SHA-512 dans le manifeste) - Started
+
 - Lorsque l'action débute, elle inscrit une ligne dans les journaux du cycle de vie des GOT :
+
 * eventType EN – FR : « Digest Check», « Vérification de l'empreinte des objets»
 * outcome : "Started"
 * outcomeDetailMessage FR : « Début de la vérification de l'empreinte »
@@ -408,24 +414,29 @@ CA 1.1 : Vérification de la conformité de l'empreinte. (empreinte en SHA-512 d
 * objectIdentifierIncome : MessageIdentifier du manifest
 
 CA 1.2 : Vérification de la conformité de l'empreinte. (empreinte en SHA-512 dans le manifeste) - OK
+
 - Lorsque l'action est OK, elle inscrit une ligne dans les journaux du cycle de vie des GOT :
+
 * eventType EN – FR : « Digest Check», « Vérification de l'empreinte des objets»
 * outcome : "OK"
 * outcomeDetailMessage FR : « Succès de la vérification de l'empreinte »
 * eventDetailData FR : "Empreinte : <MessageDigest>, algorithme : <MessageDigest attribut algorithm>"
 * objectIdentifierIncome : MessageIdentifier du manifest
+
 Comportement du workflow décrit dans l'US #680
 
 - La collection ObjectGroup est aussi mis à jour, en particulier le champs : Message Digest : {  empreinte, algorithme utlisé }
 
 CA 1.3 : Vérification de la conformité de l'empreinte. (empreinte en SHA-512 dans le manifeste) - KO
+
 - Lorsque l'action est KO, elle inscrit une ligne dans les journaux du cycle de vie des GOT :
+
 * eventType EN – FR : « Digest Check», « Vérification de l'empreinte des objets»
 * outcome : "KO"
 * outcomeDetailMessage FR : « Échec de la vérification de l'empreinte »
-* eventDetailData FR : "Empreinte manifeste : <MessageDigest>, algorithme : <MessageDigest attribut algorithm>
-Empreinte calculée : <Empreinte calculée par Vitam>"
+* eventDetailData FR : "Empreinte manifeste : <MessageDigest>, algorithme : <MessageDigest attribut algorithm> Empreinte calculée : <Empreinte calculée par Vitam>"
 * objectIdentifierIncome : MessageIdentifier du manifest
+
 Comportement du workflow décrit dans l'US #680
 
 ****************************
@@ -436,7 +447,9 @@ Si l'empreinte proposé dans le manifeste SEDA n'est pas en SHA-512, alors le sy
 Lorsque l'action débute, pour chaque objet du groupe d'objet technique, un calcul d'empreinte au format SHA-512 doit être effectué. Cette action intervient juste apres le check de l'empreinte dans le manifeste (mais on est toujours dans l'étape du check conformité de l'empreinte).
 
 CA 2.1 : Vérification de la conformité de l'empreinte. (empreinte différent de SHA-512 dans le manifeste) - Started
+
 - Lorsque l'action débute, elle inscrit une ligne dans les journaux du cycle de vie des GOT :
+
 * eventType EN – FR : « Digest Check», « Vérification de l'empreinte des objets»
 * outcome : "Started"
 * outcomeDetailMessage FR : « Début de la vérification de l'empreinte »
@@ -444,12 +457,13 @@ CA 2.1 : Vérification de la conformité de l'empreinte. (empreinte différent d
 * objectIdentifierIncome : MessageIdentifier du manifest
 
 CA 2.2 : Vérification de la conformité de l'empreinte. (empreinte différent de SHA-512 dans le manifeste) - OK
+
 - Lorsque l'action est OK, elle inscrit une ligne dans les journaux du cycle de vie des GOT :
+
 * eventType EN – FR : « Digest Check», « Vérification de l'empreinte des objets»
 * outcome : "OK"
 * outcomeDetailMessage FR : « Succès de la vérification de l'empreinte »
-* eventDetailData FR : "Empreinte Manifeste : <MessageDigest>, algorithme : <MessageDigest attribut algorithm>"
-"Empreinte calculée (<algorithme utilisé "XXX">): <Empreinte calculée par Vitam>"
+* eventDetailData FR : "Empreinte Manifeste : <MessageDigest>, algorithme : <MessageDigest attribut algorithm>" "Empreinte calculée (<algorithme utilisé "XXX">): <Empreinte calculée par Vitam>"
 * objectIdentifierIncome : MessageIdentifier du manifest
 
 4.1.5 modules utilisés
@@ -552,6 +566,7 @@ TODO
 =================
 
 Ce handler permet d'extraire le contenu du SEDA. Il y a :
+
 - extraction des BinaryDataObject et PhysicalDataObject
 - extraction des ArchiveUnit
 - création des lifes cycles des units
@@ -675,20 +690,22 @@ pour l'exécution de l'étape.
 
 L'exécution de l'algorithme est présenté dans le preudo-code ci-dessous:
 
-Si (map unitIdToGroupId contient des valeurs)    
-  Pour (chaque élement ELEM du map unitIdToGroupId)
-    Si (la valeur guid de groupe d'object dans objectGroupIdToGuid associé à ELEM) // archiveUnit reference par DO
-      Prendre (la valeur groupId dans le maps dataObjectIdToObjectGroupId associé à groupId d'ELEM)
-      Si (cette groupId est NULLE) // ArchiveUnit réferencé DO mais il n'existe pas un lien DO à groupe d'objet 
-        Délencher (exception ProcessingException)
-      Autrement
-        Si (cette groupId est différente grouId associé à ELEM)
-          Délencher (exception ArchiveUnitContainDataObjectException)
+.. code-block:: text
+
+  Si (map unitIdToGroupId contient des valeurs)    
+    Pour (chaque élement ELEM du map unitIdToGroupId)
+      Si (la valeur guid de groupe d'object dans objectGroupIdToGuid associé à ELEM) // archiveUnit reference par DO
+        Prendre (la valeur groupId dans le maps dataObjectIdToObjectGroupId associé à groupId d'ELEM)
+        Si (cette groupId est NULLE) // ArchiveUnit réferencé DO mais il n'existe pas un lien DO à groupe d'objet 
+          Délencher (exception ProcessingException)
+        Autrement
+          Si (cette groupId est différente grouId associé à ELEM)
+            Délencher (exception ArchiveUnitContainDataObjectException)
+          Fin Si
         Fin Si
       Fin Si
-    Fin Si
-  Fin Pour
-Fin Si
+    Fin Pour
+  Fin Si
 
 
 4.6.4 Détails du data dans l'itemStatus retourné
@@ -936,7 +953,9 @@ Le Registre des Fonds est alimenté de la manière suivante:
 	-- un identifiant unique
 	-- des informations sur le service producteur (OriginatingAgency)
 	-- des informations sur le service versant (SubmissionAgency), si différent du service producteur
+
    -- des informations sur le contrat (ArchivalAgreement)
+
 	-- date de début de l’enregistrement (Start Date)
 	-- date de fin de l’enregistrement (End Date)
 	-- date de dernière mise à jour de l’enregistrement (Last update)
@@ -978,6 +997,8 @@ des opérations suivantes sera effectué :
    																 
    																 
 L'exécution de l'algorithme est présenté dans le preudo-code ci-dessous:
+
+.. code-block:: text
 
 	Si (il y as pas de déclaration de contrat)
 		handler retourne OK
@@ -1047,7 +1068,8 @@ Par la suite, il va vérifier la validation de ce Json par rapport au schéma js
 4.15.4 détail des vérifications
 ===============================
 
-Dans le schéma Json Vitam défini, voici les spécificités qui ont été ajoutées pour différents champs : 
+Dans le schéma Json Vitam défini, voici les spécificités qui ont été ajoutées pour différents champs :
+
 - StartDate pour les Rules : une date contenant une année égale à ou au dessus de l'année 9000 sera refusée.
 - Content / Title : peut être de type String, Array ou number (on pourra avoir des titres traduits ainsi que des nombres si besoin) 
 
@@ -1065,12 +1087,16 @@ Ce handler permet de vérifier le profil dans manifeste
 
 Le format du profil est XSD ou RNG.
 L'exécution de l'algorithme est présenté dans le preudo-code ci-dessous:
+
+.. code-block:: text
+
 	Si le format du profil est équal à XSD
 		retourne true si XSD valide le fichier manifest.xml
 	Fin Si
 	Si le format du profil est équal à RNG
 		retourne true si RNG valide le fichier manifest.xml
 	Fin Si
+
 
 4.17 Détail du handler : CheckArchiveProfileRelationActionHandler
 ------------------------------------------------------------------

@@ -6,12 +6,14 @@ ingest-external qui identifié par la user story #777 (refacto ingest), qui cont
 
 - modules & packages
 - classes métiers
+
 --------------------------
 
 
 1. Modules et packages
 
-ingest-external	
+ingest-external
+
     |--- ingest-external-common : contenant des classes pour les traitements commons de modules ingest-external :   
     |    	                      code d'erreur, configuration et le script de scan antivirus		
     |--- ingest-external-api     : définir des APIs de traitement dépôt des SIP vers le base   

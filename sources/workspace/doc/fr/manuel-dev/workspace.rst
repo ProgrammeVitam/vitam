@@ -38,8 +38,8 @@ Dans le cas echéant la method return une immuatable empty list.
 
 			- containerName::String : c'est le nom de container dans lequel on stocke les objets
 			- folderName::String : c'est le repertoire centrale (pour cette methode, cest le sip).
-            - archiveType :: String : c'est le nom ou le type de l'archive (exemple: application/zip , application/x-tar)
-			- compressedInputStream::InputStream c'est le stream des objets compressés
+            - archiveType:: String : c'est le nom ou le type de l'archive (exemple: application/zip , application/x-tar)
+			- compressedInputStream::InputStream : c'est le stream des objets compressés
 
     - retourner :    
 

@@ -11,14 +11,12 @@ metadata qui identifié par la user story #70, qui contient :
 
 1. Modules et packages
 
-metadata	
-    |--- metadata-api     : définir des APIs de traitement des requêtes un utilisant  
-    |			   la base de données choisie
-    |--- metadata-core    : implémentation des APIs
-    |--- metadata-rest    : le serveur REST de métadata qui donnes des traitement 
-    |                       sur les requêtes DSL
-    |--- metadata-client  : client métadata qui sera utilisé par les autres modules 
-    |                       pour faire des requête DSL sur le métadata
+metadata
+
+	|--- metadata-api     : définir des APIs de traitement des requêtes un utilisant  la base de données choisie
+	|--- metadata-core    : implémentation des APIs
+	|--- metadata-rest    : le serveur REST de métadata qui donnes des traitement sur les requêtes DSL
+	|--- metadata-client  : client métadata qui sera utilisé par les autres modules pour faire des requête DSL sur le métadata                     
 
 2. Classes métiers
  

@@ -19,6 +19,7 @@ Sous packages
 
 Identification :
 ================
+
 | *Package :*  **fr.gouv.vitam.common.format.identification**
 
 Ce package contient une factory, une interface de client, ainsi qu'un client mocké. 
@@ -26,9 +27,12 @@ Il contient également une enum précisant les différents clients disponibles (
 
 Exceptions :
 ============
+
 | *Package :*  **fr.gouv.vitam.common.format.identification.exception**
+
 Exceptions retournées par la vérification de formats.
-Sont au nombre de 5 : 
+Sont au nombre de 5 :
+
  - FileFormatNotFoundException : exception levée en cas de non résolution d'un format de fichier.
  - FormatIdentifierBadRequestException : exception levée si la requete soumise à l'outil n'est pas correcte.
  - FormatIdentifierFactoryException : exception levée dans le cadre de la factory.

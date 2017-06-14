@@ -103,40 +103,57 @@ Création de fonctions réutilisables dans chaque tests:
 - Création d'une fonction éxportée via module.exports
 - Import des fonctions dans le test via require('./path/to/file');
 
-
 Sélection des éléments
+
 - Sélection d'une balise a laquelle le modèle associé est variable.name (<input ng-model="variable.name" />)
+
 -- element(by.model('variable.name'))
+
 - Sélection d'une balise grâce à son identifiant (<div id="navbar"></div>)
+
 -- element(by.id('navbar'));
+
 - Sélection d'une balise contenant un attribut 'type' et une valeur 'submit' (<button type="submit" />)
+
 -- element(by.css('[type="submit"]'))
+
 - Sélection d'une balise grâce à son tag (<ul></ul>)
+
 -- element(by.css('ul'));
+
 - Sélection multiple d'éléments (<li></li><li></li>)
+
 -- element.all(by.css('li'));
+
 - Sélection d'un sous élément (<div> <p>xxx</p><p>yyy</p> <button/> </div>)
+
 -- var div = element(by.css('div'));
 -- div.element(by.css('button')); / div.all(by.css('p'));
+
 - Sélection d'une partie d'un ensemble d'éléments (<p>xxx</p> <p>yyy</p> <p>zzz</p>)
+
 -- var ps = element.all(by.css('p'));
 -- var firstP = ps.first(); // xxx
 -- var pNumber1 = ps.get(1); // yyy
 -- var lastP = ps.last(); // zzz
 
-Conclusion: 
+Conclusion:
+
 - Selection classique: element(by.xxx());
 - Sélection multiple: element.all(by.yyy());
 - Sélections Chaînées: element(by.xxx()).all(by.yyy()).get(2).element(by.zzz());
 
 Récupérations des propriétés configurés dans protractor.conf.js:
+
 - browser.baseUrl (L'url configurée)
 - browser.params.paramName (Récupère le paramètre paramName)
 
 Actions / promise et Expects:
+
 - Les actions sur un élément (item.click() / item.count() / ...) renvoient une promise qu'il faut traiter dans un then si on veut enchainer une action ou récupérer une valeur.
 - Les expects expect(item.count())toBe(2); traitent la promise de la bonne manière pour comparer la valeur.
  
 Mock HTTP:
+
 - Exemple simple dans login ou on configure le httpMocker dans beforeEach si le mode mock est activé.
 - Exemple plus complexe dans accession-register où on renvoie une réponse en fonction des paramètres.

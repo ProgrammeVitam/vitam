@@ -6,21 +6,20 @@ ingest-internal qui est identifié par le user story #84, qui contient :
 
 - modules & packages
 - classes métiers
+
 --------------------------
 
 
 1. Modules et packages
 
-ingest-internal	
-    |--- ingest-internal-common : contenant des classes pour les traitements commons de modules ingest-internal  
-    |--- ingest-internal-model  : définir les modèles de données utilisé dans le module
-    |--- ingest-internal-api     : définir des APIs de traitement dépôt des SIP vers le base   
-    |			   					MongoDb
-    |--- ingest-internal-core    : implémentation des APIs
-    |--- ingest-internal-rest    : le serveur REST de ingest-internal qui donnes des traitement  
-    |                       sur dépôt de document SIP.
-    |--- ingest-internal-client  : client ingest-internal qui sera utilisé par les autres modules 
-    |                       interne de VITAM pour le service de dépôt des SIPs
+ingest-internal
+
+	|--- ingest-internal-common : contenant des classes pour les traitements commons de modules ingest-internal  
+	|--- ingest-internal-model  : définir les modèles de données utilisé dans le module
+	|--- ingest-internal-api     : définir des APIs de traitement dépôt des SIP vers le base MongoDb	   					
+	|--- ingest-internal-core    : implémentation des APIs
+	|--- ingest-internal-rest    : le serveur REST de ingest-internal qui donnes des traitement sur dépôt de document SIP.                      
+	|--- ingest-internal-client  : client ingest-internal qui sera utilisé par les autres modules interne de VITAM pour le service de dépôt des SIPs                    
 
 2. Classes métiers
 

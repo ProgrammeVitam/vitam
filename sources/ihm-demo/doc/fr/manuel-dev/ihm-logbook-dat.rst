@@ -15,10 +15,10 @@ ihm-demo qui représente le story #90, qui contient :
 Au présent : nous proposons le schéma ci-dessous représentant le module principal
 et ses sous modules.
 
-ihm-demo 
-    |
-    |---ihm-demo-core : le traitement essentiel pour construire des requêtes DSL depuis des données saisies dans l'interface web
-    |---ihm-demo-web-application  : le serveur d'application web qui fournit des services au client pour les traitements sur la recherche de logbook des opérations
+ihm-demo
+
+	|---ihm-demo-core : le traitement essentiel pour construire des requêtes DSL depuis des données saisies dans l'interface web
+	|---ihm-demo-web-application  : le serveur d'application web qui fournit des services au client pour les traitements sur la recherche de logbook des opérations
 
 Depuis ces deux modules, nous proposons deux packages correspondants : 
 

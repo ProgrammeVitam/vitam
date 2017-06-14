@@ -3,8 +3,8 @@ Implémentation de l'authentification
 
 Implémentation de l'authentification (MongoDbAccess)
 ---------------------------------------------------------------
-L'authentification est le processus de vérification de l'identité du client, donc vous avez
-besoin d'utiliser quatre paramètres dans la fichier de configuration -- 
+L'authentification est le processus de vérification de l'identité du client, donc vous avez besoin d'utiliser quatre paramètres dans la fichier de configuration
+
 	"dbAuthentication", "dbUserName", "dbName", "dbPassword"
 
 La gestion de l'authentification doit être débrayable --
@@ -40,8 +40,10 @@ Il a besoin de mot de passe "dbPassword" pour entrer le base et CRUD.
     ......................
 
 
- --	List<ServerAddress> serverAddress: 
- 	La liste des adresses du serveur qui permet la base de données mongodb de connecter plusieurs nœuds
+ --	List<ServerAddress> serverAddress:
+
+	La liste des adresses du serveur qui permet la base de données mongodb de connecter plusieurs nœuds
  --	Arrays.asList(credential): 
- 	La liste des informations d'identification que ce client authentifie toutes les connexions avec
+
+	La liste des informations d'identification que ce client authentifie toutes les connexions avec
 

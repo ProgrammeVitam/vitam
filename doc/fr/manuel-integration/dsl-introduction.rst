@@ -46,6 +46,7 @@ Collections Units et Objects uniquement
   - Autres collections: ce champ n'existe pas car il n'y a pas d'arborescence.
 
 - **$query**:
+
   - $query peut contenir plusieurs Query, qui seront exécutées successivement (tableau de Query).
   - Une Query correspond à la formulation "*WHERE xxx*" dans le langage SQL, c'est à dire les critères de sélection.
   - La succession est exécutée avec la signification suivante :
@@ -62,7 +63,7 @@ Collections Units et Objects uniquement
 
     - Le principe est résumé dans le graphe d'états suivant :
 
-.. image:: images/multi-query-schema.png
+    .. image:: images/multi-query-schema.png
 
   - $source (**UNSUPPORTED**) permet de changer de collections entre deux query (unit ou object)
 

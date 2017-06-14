@@ -13,6 +13,7 @@ Dans le cadre de VITAM, un plugin pourra être ajouté dans un ou plusieurs Work
 ----------------------------------------
 
 Dans VITAM, on appelle Workflow une liste d'étapes (steps) devant être exécutées sur un objet particulier.
+
  - Un workflow est défini dans un fichier json. Ce fichier répertorie les différentes étapes et détaille également la liste des différentes actions à effectuer.
  - Le moteur d'exécution de Workflow (processing-engine) de VITAM va donc à partir de ce fichier json, pouvoir fournir à un Worker une étape particulière à exécuter.
  - Le Worker est responsable de l'exécution d'une étape, il devra retourner le résultat de son exécution à l'engine. Il est également responsable de lancer les différentes actions à exécuter décrites dans le fichier json. 
@@ -20,6 +21,7 @@ Dans VITAM, on appelle Workflow une liste d'étapes (steps) devant être exécut
  - La liste des plugins disponibles pour le Worker est inscrite dans un fichier de configuration json. Dans ce fichier, on pourra trouver la déclaration des différentes actions (une action = un plugin). Un plugin est identifié par un nom de classe ainsi qu'un fichier de configuration. Au démarrage de l'application, le Worker va charger cette liste de plugins, afin d'être capable par la suite d'exécuter le code adéquat.
  
  Le plugin doit respecter un contrat afin qu'il puisse :
+
   - recevoir du worker une liste de paramètre d'entrée contenant le nécessaire pour exécuter les actions que le plugin est censée prendre en charge.
   - retourner au worker un statut d'exécution complet utilisable.
   
@@ -27,7 +29,8 @@ D'une façon synthétique, voici la place du plugin dans l'architecture Vitam :
 
 .. image:: images/archi_plugin_globale.jpg
    :align: center  
-   
+
+
 1.2 Définition du plugin VITAM
 ------------------------------
 
@@ -141,16 +144,21 @@ Voici un exemple, de ce que l'on pourrait trouver au seun d'une action en terme 
   }
 
 On peut noter qu'il existe plusieurs types d'inputs qui sont identifiés par :  
+
 - un nom (name) utilisé pour référencer cet élément entre différents handlers d'une même étape
 - une cible (uri) comportant un schema (WORKSPACE, MEMORY, VALUE) et un path :
+
    - WORKSPACE:path  -> indique le chemin relatif sur le workspace
    - MEMORY:path -> indique le nom de la clef de valeur
    - VALUE:path -> indique la valeur statique en entrée
+
 On peut noter qu'il existe plusieurs types d'outputs qui sont identifiés par :      
 
 Il existe plusieurs manières de récupérer les différents objets dans les plugins, faisons un tour d'horizon.
+
 - un nom (name) utilisé pour référencer cet élément entre différents handlers d'une même étape
 - une cible (uri) comportant un schema (WORKSPACE, MEMORY) et un path :
+
     - WORKSPACE:path indique le chemin relatif sur le workspace
     - MEMORY:path indique le nom de la clef de valeur
 
