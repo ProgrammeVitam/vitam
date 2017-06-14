@@ -33,9 +33,12 @@ angular.module('dsl.query.test')
     $scope.tenantId = tenantService.getTenant();
 
     $scope.displayIdInput = function() {
-//      if ($scope.requestMethod === 'GET' && $scope.requestedCollection !== 'profiles') {
-      if ($scope.requestMethod === 'GET' || $scope.requestedCollection == 'CONTEXTS') {
-             return true;
+      if ($scope.requestMethod === 'GET' || $scope.requestedCollection === 'CONTEXTS') {
+        $scope.identifierInputLabel = "Identifiant";
+        if ($scope.requestedCollection === 'RULES') {
+          $scope.identifierInputLabel = "RuleId";
+        }
+        return true;
       }
       return false;
     }
