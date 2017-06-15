@@ -256,8 +256,8 @@
               <li><a href="#!/admin/profiles" ng-show="hasPermission('profiles:read')">Référentiel des profils</a></li>
               <li><a href="#!/admin/journalOperations" ng-show="hasPermission('logbook:operations:read')">Journal des Opérations</a></li>
               <li><a href="#!/admin/workflows" ng-show="hasPermission('operations:read')">Gestion des opérations</a></li>
-              <li><a href="#!/admin/entryContracts" ng-show="hasPermission('operations:read')">Contrats d'entrée</a></li>
-              <li><a href="#!/admin/accessContracts" ng-show="hasPermission('operations:read')">Contrats d'accès</a></li>
+              <li><a href="#!/admin/entryContracts" ng-show="hasPermission('contracts:read')">Contrats d'entrée</a></li>
+              <li><a href="#!/admin/accessContracts" ng-show="hasPermission('accesscontracts:read')">Contrats d'accès</a></li>
 
               <li><a href="#!/admin/traceabilityOperationSearch" ng-show="hasPermission('logbook:operations:read')">Opérations de sécurisation</a></li>
               <li class="divider" ng-show="hasPermission('rules:create') || hasPermission('format:create') || hasPermission('contracts:create')"></li>

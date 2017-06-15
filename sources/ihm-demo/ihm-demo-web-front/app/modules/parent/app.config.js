@@ -188,25 +188,25 @@ config(['$locationProvider' ,'$routeProvider',
        templateUrl: 'pages/entry-contract-search/entry-contract.template.html',
        controller: 'entryContractsController',
        title: 'Contrats d\'entrée',
-       permission: 'operations:read'
+       permission: 'contracts:read'
      }).
     when('/admin/entryContracts/:id', {
       templateUrl: 'pages/entry-contract-details/entry-contract-details.template.html',
       controller: 'entryContractsDetailsController',
       title: 'Détail d\'un contrat d\'entrée',
-      permission: 'operations:read'
+      permission: 'contracts:read'
     }).
     when('/admin/accessContracts', {
       templateUrl: 'pages/access-contract-search/access-contract.template.html',
       controller: 'accessContractsController',
       title: 'Contrats d\'accès',
-      permission: 'operations:read'
+      permission: 'accesscontracts:read'
     }).
     when('/admin/accessContracts/:id', {
       templateUrl: 'pages/access-contract-details/access-contract-details.template.html',
       controller: 'accessContractsDetailsController',
       title: 'Détail d\'un contrat d\'accès',
-      permission: 'operations:read'
+      permission: 'accesscontracts:read'
 
       }).
     when('/admin/traceabilityOperationSearch', {

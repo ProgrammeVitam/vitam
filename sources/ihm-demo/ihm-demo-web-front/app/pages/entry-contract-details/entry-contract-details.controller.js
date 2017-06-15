@@ -28,8 +28,9 @@
 'use strict';
 
 angular.module('entryContracts')
-.controller('entryContractsDetailsController', function ($scope, $routeParams, entryContractResource, $mdDialog) {
+.controller('entryContractsDetailsController', function ($scope, $routeParams, entryContractResource, $mdDialog, authVitamService) {
     var id = $routeParams.id;
+    var ENTRY_CONTRACTS_UPDATE_PERMISSION = 'contracts:update';
     $scope.tmpVars = {
         isActive: true,
         oldStatus: ''
@@ -84,4 +85,8 @@ angular.module('entryContracts')
     };
     
     getDetails(id);
+
+    $scope.checkPermission = function() {
+      return !authVitamService.hasPermission(ENTRY_CONTRACTS_UPDATE_PERMISSION);
+    }
 });
