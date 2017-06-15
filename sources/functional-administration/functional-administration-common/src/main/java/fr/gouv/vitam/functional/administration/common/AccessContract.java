@@ -26,16 +26,15 @@
  */
 package fr.gouv.vitam.functional.administration.common;
 
+import java.util.Set;
+
+import org.bson.Document;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.model.ContractStatus;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-
-import org.bson.Document;
-
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Defines an Access contract model for SIP transfer control. </BR>
@@ -63,11 +62,6 @@ public class AccessContract extends VitamDocument<AccessContract> {
      * the originating agencies
      */
     public static final String ORIGINATINGAGENCIES = "OriginatingAgencies";
-
-    /**
-     * Work for all originating agencies ?
-     */
-    public static final String EVERYORIGINATINGAGENCY = "EveryOriginatingAgency";
 
     /**
      * the creatation date of contract

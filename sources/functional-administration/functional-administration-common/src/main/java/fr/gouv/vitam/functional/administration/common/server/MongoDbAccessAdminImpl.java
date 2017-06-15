@@ -29,7 +29,7 @@ package fr.gouv.vitam.functional.administration.common.server;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 
-import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -154,7 +154,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
     }
 
     @Override
-    public void updateData(JsonNode update, FunctionalAdminCollections collection)
+    public Map<String, List<String>> updateData(JsonNode update, FunctionalAdminCollections collection)
         throws ReferentialException {
         try { 
             UpdateParserSingle parser = new UpdateParserSingle(new VarNameAdapter());
@@ -164,6 +164,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
             if (result.getDiffs().size() == 0 ) {
                 throw new ReferentialException("Document is not updated");
             }
+            return result.getDiffs();
         } catch (final DatabaseException | InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error("find Document Exception", e);
             throw new ReferentialException(e);

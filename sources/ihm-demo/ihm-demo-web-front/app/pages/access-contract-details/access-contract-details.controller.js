@@ -32,11 +32,7 @@ angular.module('ihm.demo')
         var id = $routeParams.id;
         var ACCESS_CONTRACTS_UPDATE_PERMISSION = 'accesscontracts:update';
 
-        $scope.tmpVars = {
-            isActive: true,
-            oldStatus: '',
-            oldEveryOrignatingAgency: ''
-        };
+        $scope.tmpVars = {};
         $scope.updateStatus = function() {
             $scope.contract.Status = $scope.tmpVars.isActive? 'ACTIVE': 'INACTIVE';
         };
@@ -54,17 +50,13 @@ angular.module('ihm.demo')
             accessContractResource.getDetails(id, function (response) {
                 if (response.data.length !== 0) {
                     $scope.contract = response.data.$results[0];
-                    $scope.contract.EveryOriginatingAgency = $scope.contract.EveryOriginatingAgency === true;
-                    $scope.tmpVars.oldStatus = $scope.contract.Status;
-                    $scope.tmpVars.isActive = $scope.contract.Status === 'ACTIVE';
-                    $scope.tmpVars.oldEveryOrignatingAgency = $scope.contract.EveryOriginatingAgency;
+                    $scope.tmpVars = angular.copy($scope.contract);
                 }
             });
         };
 
         $scope.saveModifs = function() {
-            if ($scope.tmpVars.oldStatus === $scope.contract.Status
-                && $scope.tmpVars.oldEveryOrignatingAgency === $scope.contract.EveryOriginatingAgency) {
+            if (angular.equals($scope.contract, $scope.tmpVars)) {
                 displayMessage('Aucune modification effectuée');
                 return;
             }
@@ -83,8 +75,12 @@ angular.module('ihm.demo')
                 }
             }
 
-            if ($scope.tmpVars.oldEveryOrignatingAgency !== $scope.contract.EveryOriginatingAgency) {
+            if ($scope.tmpVars.EveryOriginatingAgency !== $scope.contract.EveryOriginatingAgency) {
                 updateData.EveryOriginatingAgency = '' + $scope.contract.EveryOriginatingAgency;
+            }
+
+            if ($scope.tmpVars.EveryDataObjectVersion !== $scope.contract.EveryDataObjectVersion) {
+              updateData.EveryDataObjectVersion = '' + $scope.contract.EveryDataObjectVersion;
             }
 
             accessContractResource.update(id, updateData).then(function() {

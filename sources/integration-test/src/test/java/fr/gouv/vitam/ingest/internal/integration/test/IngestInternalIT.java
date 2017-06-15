@@ -513,7 +513,6 @@ public class IngestInternalIT {
 
             assertTrue(size > 1000);
 
-            // Now redo Object with access internal
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
             responseStorage = accessClient.getObject(new SelectMultiQuery().getFinalSelect(), og, "BinaryMaster", 1);
             inputStream = responseStorage.readEntity(InputStream.class);

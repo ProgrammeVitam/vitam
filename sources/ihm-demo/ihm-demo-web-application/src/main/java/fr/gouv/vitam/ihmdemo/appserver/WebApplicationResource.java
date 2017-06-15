@@ -71,6 +71,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.model.AccessContractModel;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessState;
 import org.apache.commons.lang3.BooleanUtils;
@@ -1940,12 +1941,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
 
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-            final UpdateParserSingle updateParserActive = new UpdateParserSingle(new VarNameAdapter());
-
             List<SetAction> actions = new ArrayList<>();
             actions.add(UpdateActionHelper.set(LAST_UPDATE_FIELD_QUERY, updateData.get(LAST_UPDATE_FIELD_QUERY)));
             boolean updateStatus = false;
             boolean updateEveryOriginatingAgency = false;
+            boolean updateEveryUsage = false;
 
             if (updateData.get(STATUS_FIELD_QUERY) != null &&
                 (updateData.get(ACTIVATION_DATE_FIELD_QUERY) != null || updateData.get(DEACTIVATION_DATE_FIELD_QUERY) != null)) {
@@ -1974,18 +1974,25 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 actions.add(UpdateActionHelper.set(EVERY_ORIG_AGENCY_FIELD_QUERY, everyOrigAgency));
                 updateEveryOriginatingAgency = true;
             }
+            
+            if (updateData.get(AccessContractModel.EVERY_DATA_OBJECT_VERSION) != null) {
+                Boolean everyVersion = BooleanUtils.toBooleanObject(updateData.get(AccessContractModel.EVERY_DATA_OBJECT_VERSION));
+                if (everyVersion == null) {
+                    return Response.status(Status.BAD_REQUEST).entity("Invalid EveryDataObjectVersion value").build();
+                }
+                actions.add(UpdateActionHelper.set(AccessContractModel.EVERY_DATA_OBJECT_VERSION, everyVersion));
+                updateEveryUsage = true;
+            }
 
-            if (!updateStatus && !updateEveryOriginatingAgency) {
+            if (!(updateStatus || updateEveryOriginatingAgency || updateEveryUsage)) {
                 return Response.status(Status.BAD_REQUEST).entity("Empty Query, Nothing to Update").build();
             }
 
             Update updateStatusActive = new Update();
             updateStatusActive.setQuery(QueryHelper.eq(NAME_FIELD_QUERY, updateData.get(NAME_FIELD_QUERY)));
             updateStatusActive.addActions(actions.toArray(new SetAction[actions.size()]));
-            updateParserActive.parse(updateStatusActive.getFinalUpdate());
-            JsonNode queryDsl = updateParserActive.getRequest().getFinalUpdate();
             final RequestResponse archiveDetails =
-                adminClient.updateAccessContract(contractId, queryDsl, getTenantId(headers));
+                adminClient.updateAccessContract(contractId, updateStatusActive.getFinalUpdate(), getTenantId(headers));
             return Response.status(Status.OK).entity(archiveDetails).build();
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
