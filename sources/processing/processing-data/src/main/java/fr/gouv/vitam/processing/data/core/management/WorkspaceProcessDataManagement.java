@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -180,6 +181,7 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
 
     }
 
+
     @Override
     public void removeProcessWorkflow(String folderName, String asyncId) throws ProcessingStorageWorkspaceException {
         try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
@@ -205,6 +207,7 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
                     ProcessWorkflow processWorkflow = getProcessWorkflow(folderName, processId);
                     if (ProcessState.RUNNING.equals(processWorkflow.getState())) {
                         processWorkflow.setState(ProcessState.COMPLETED);
+                        processWorkflow.setProcessCompletedDate(LocalDateTime.now());
                         processWorkflow.setStatus(StatusCode.UNKNOWN);
                     }
 

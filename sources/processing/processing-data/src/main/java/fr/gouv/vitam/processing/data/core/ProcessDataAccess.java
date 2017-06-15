@@ -27,6 +27,8 @@
 package fr.gouv.vitam.processing.data.core;
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -90,4 +92,11 @@ public interface ProcessDataAccess {
      * @param processWorkflow the loaded persisted process to add
      */
     void addToWorkflowList(ProcessWorkflow processWorkflow);
+
+    /**
+     *getter of WorkflowList
+     *
+     * @return
+     */
+    Map<Integer,Map<String,ProcessWorkflow>> getWorkFlowList();
 }

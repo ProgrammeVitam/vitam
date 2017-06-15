@@ -35,6 +35,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -75,6 +76,7 @@ import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.api.ProcessManagement;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
+
 /**
  * ProcessManagementImpl implementation of ProcessManagement API
  */
@@ -94,6 +96,8 @@ public class ProcessManagementImpl implements ProcessManagement {
     private static final String NEXT_STEP = "nextStep";
     private static final String STEP_EXECUTION_STATUS_FIELD = "stepStatus";
 
+
+
     private ServerConfiguration config;
     private final ProcessDataAccess processData;
     private final Map<String, WorkFlow> poolWorkflows;
@@ -111,7 +115,7 @@ public class ProcessManagementImpl implements ProcessManagement {
         this.config = config;
         processData = ProcessDataAccessImpl.getInstance();
         poolWorkflows = new ConcurrentHashMap<>();
-
+        new ProcessWorkFlowsCleaner(this, TimeUnit.HOURS);
         try {
             populateWorkflow("DefaultFilingSchemeWorkflow");
             populateWorkflow("DefaultHoldingSchemeWorkflow");
@@ -322,6 +326,13 @@ public class ProcessManagementImpl implements ProcessManagement {
         return poolWorkflows;
     }
     
+    public Map<Integer, Map<String, ProcessWorkflow>>  getWorkFlowList() {
+        return processData.getWorkFlowList();
+    }
+
+    @Override
+    public Map<String, IEventsState> getProcessMonitorList() { return PROCESS_MONITORS; }
+
     public static Map<String, IEventsState> loadProcessFromWorkSpace(String urlMetadata, String urlWorkspace) throws ProcessingStorageWorkspaceException {
         if (!PROCESS_MONITORS.isEmpty()) {
             return PROCESS_MONITORS;
@@ -357,6 +368,7 @@ public class ProcessManagementImpl implements ProcessManagement {
             } else {
                 if (StatusCode.UNKNOWN.equals(processWorkflow.getStatus())) {
                     processWorkflow.setStatus(StatusCode.UNKNOWN);
+                    processWorkflow.setProcessCompletedDate(LocalDateTime.now());
                     processWorkflow.setState(ProcessState.COMPLETED);
                     try {
                         datamanage.persistProcessWorkflow(String.valueOf(ServerIdentity.getInstance()
@@ -387,6 +399,7 @@ public class ProcessManagementImpl implements ProcessManagement {
         }
         return null;
     }
+
 
     public JsonNode getFilteredProcess(ProcessQuery query, Integer tenantId) {
         List<ProcessWorkflow> listWorkflows = processMonitoring.findAllProcessWorkflow(tenantId);
@@ -498,5 +511,10 @@ public class ProcessManagementImpl implements ProcessManagement {
             workflow.put(NEXT_STEP, nextStep);
         }
         return workflow;
+    }
+    @Override
+    public ServerConfiguration getConfiguration() {
+        return config;
+
     }
 }

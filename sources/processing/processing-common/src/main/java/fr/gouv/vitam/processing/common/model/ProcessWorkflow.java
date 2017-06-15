@@ -31,6 +31,8 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -56,6 +58,9 @@ public class ProcessWorkflow {
     private List<ProcessStep> steps = new ArrayList<>();
 
     private Date processDate = new Date();
+
+    private LocalDateTime processCompletedDate;
+
 
     private LogbookTypeProcess logbookTypeProcess;
 
@@ -243,6 +248,20 @@ public class ProcessWorkflow {
     public ProcessWorkflow setWorkflowId(String workflowId) {
         this.workflowId = workflowId;
         return this;
+    }
+
+    /*
+     * Complete date
+     * @return
+     */
+    public LocalDateTime getProcessCompletedDate() {
+        return processCompletedDate;
+    }
+
+    public ProcessWorkflow setProcessCompletedDate(LocalDateTime processCompletedDate) {
+        this.processCompletedDate = processCompletedDate;
+        return this;
+
     }
 
 }

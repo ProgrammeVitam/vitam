@@ -201,7 +201,8 @@ public class ProcessDataAccessImpl implements ProcessDataAccess {
 
         LOGGER.info("try to add workflow to list with processId: {} and tenant {}", processWorkflow.getOperationId(),
             processWorkflow.getTenantId());
-        if (ProcessState.PAUSE.equals(processWorkflow.getState())) {
+        // TODO check if it is not better to  delete completed workflows here instead of loading them in memory
+        if (ProcessState.PAUSE.equals(processWorkflow.getState()) || ProcessState.COMPLETED.equals(processWorkflow.getState())) {
 
             LOGGER.info("add workflow to list with processId: {} and tenant {}", processWorkflow.getOperationId(),
                 processWorkflow.getTenantId());
@@ -214,6 +215,11 @@ public class ProcessDataAccessImpl implements ProcessDataAccess {
                 processWorkflowMap.put(processWorkflow.getOperationId(), processWorkflow);
                 WORKFLOWS_LIST.put(processWorkflow.getTenantId(), processWorkflowMap);
             }
-        }
+       }
+    }
+
+    @Override
+    public Map<Integer, Map<String, ProcessWorkflow>> getWorkFlowList() {
+        return WORKFLOWS_LIST;
     }
 }

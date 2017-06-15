@@ -63,11 +63,8 @@ import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.util.*;
 
 /**
  * T
@@ -407,6 +404,11 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         processWorkflow.setStepByStep(stepByStep);
         processWorkflow.setStatus(status);
         processWorkflow.setState(state);
+
+        if (ProcessState.COMPLETED.equals(state)) {
+            processWorkflow.setProcessCompletedDate(LocalDateTime.now());
+        }
+
         try {
             dataManagement.persistProcessWorkflow(String.valueOf(ServerIdentity.getInstance().getServerId()),
                 operationId, processWorkflow);
@@ -463,6 +465,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             processWorkflow.setStatus(status);
             state = ProcessState.COMPLETED;
             targetState = ProcessState.COMPLETED;
+            processWorkflow.setProcessCompletedDate(LocalDateTime.now());
             processWorkflow.setState(state);
             if (null != logbookClient) {
                 logbookClient.close();
