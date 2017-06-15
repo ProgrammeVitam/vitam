@@ -42,7 +42,7 @@ Cahier de tests manuels
 Postman
 ---------
 
-Postman se présente sous la forme de plugin qui peut être intégré au navigateur Chrome. Suite à l'installation d'un certificat, propre à VITAM, des requêtes DSL peuvent être lancées en GET ou POST.
+Postman est un plugin disponible via Google Chrome et peut être utilisé pour tester les services API. Il s’agit en réalité d’un client HTTP puissant pour tester les services Web. Suite à l'installation d'un certificat, propre à VITAM, des requêtes DSL peuvent être lancées en GET ou POST.
 
 .. image:: images/POSTMAN_requete.png
 
