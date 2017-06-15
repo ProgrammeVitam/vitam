@@ -60,9 +60,9 @@ Suite à la recherche, le résultat de la recherche est affiché sous forme de t
 
 .. image:: images/op_resultat.png
 
-L'utilisateur a la possibilité d'afficher des colonnes supplémentaires afin de faire apparaître les autres informations contenues dans le journal des opérations. 
+L'utilisateur a la possibilité d'afficher des colonnes supplémentaires afin de faire apparaître les autres informations contenues dans le journal des opérations.
 
-Pour cela il clique sur le bouton "Informations complémentaires" et sélectionne les informations qu'il souhaite afficher. 
+Pour cela il clique sur le bouton "Informations complémentaires" et sélectionne les informations qu'il souhaite afficher.
 
 Celles-ci sont :
 
@@ -80,7 +80,7 @@ Celles-ci sont :
 - Identifiant externe de l'objet
 - Identifiant du tenant
 
-L'utilisateur a la possibité d'afficher toutes les colonnes supplémentaires en cliquant sur "Tout  sélectionner". 
+L'utilisateur a la possibité d'afficher toutes les colonnes supplémentaires en cliquant sur "Tout  sélectionner".
 
 .. image:: images/op_tout_selectionner.png
 
@@ -329,106 +329,33 @@ Les sous-menus permettant d'accéder aux interfaces de recherche et d’import d
 
 .. image:: images/CONTRACTS_Menu.png
 
-Contrats d'entrée
------------------
-
-**Importer un contrat d'entrée**
-
-Pour importer un contrat d'entrée, l'utilisateur clique sur le menu "Administration" puis sur le sous-menu "importer des contrats d'entrée".
-
-.. image:: images/CONTRACTS_Menu_import_ingest.png
-
-Les contrats d'entrée sont des fichiers JSON constitués des champs suivants :
-
-* Name : nom du contrat (obligatoire)
-* Description : description du contrat (obligatoire)
-* Status : statut du contrat. ACTIVE ou INACTIVE
-
-Il sélectionne ensuite le fichier à importer en cliquant sur "parcourir", puis clique sur "importer" pour lancer l'opération.
-
-.. image:: images/CONTRACTS_ingest_contract_import.png
-
-Une fenêtre modale indique alors soit :
-
-* Les contrats ont bien été importés
-* Échec de l'import du fichier. Ceci peut être causé par :
-	* le fait que les contrats mentionnés existent déjà pour le tenant
-	* le fait que le fichier JSON est invalide
-
-Cette opération est journalisée et disponible dans le Journal des Opérations.
-
-**Rechercher un contrat d'entrée**
-
-Pour accéder à la recherche de contrats d'entrée, l'utilisateur clique sur le menu "Administration", puis sur le sous-menu "Contrat d'entrée".
-
-La page affiche un formulaire de recherche composé des champs suivants :
-
-* Nom du contrat : permet d'effectuer une recherche approchante sur les noms des contrats d'entrée disponibles dans la solution logicielle Vitam.
-* Identifiant : permet d'effectuer une recherche exacte sur les identifiants des contrats.
-
-Par défaut, la solution logicielle Vitam affiche tous les contrats disponibles dans la liste de résultats et l'affine en fonction de la recherche effectuée. La liste des résultats est composée des colonnes suivantes :
-
-* Nom
-* Identifiant
-* Description
-* Statut
-* Date d'activation
-* Date de désactivation
-* Date de création
-* Date modification
-
-En cliquant sur une ligne, l'utilisateur ouvre le détail du contrat d'entrée dans un nouvel onglet.
-
-.. image:: images/CONTRACTS_ingest_contract_search.png
-
-**Détail d'un contrat d'entrée**
-
-La page "Détail d'un contrat d'entrée" contient les informations suivantes :
-
-* ID
-* Nom
-* Description
-* Date de création
-* Statut
-* Date d'activation
-* Date de mise à jour
-* Date de désactivation
-* Profils d'archivage
-
-.. image:: images/CONTRACTS_ingest_contract_detail.png
 
 Contrats d'accès
------------------
+----------------
 
 **Importer un contrat d'accès**
 
-Pour importer un contrat d'accès, l'utilisateur clique sur le menu "Administration" puis sur le sous-menu "importer des contrats d'accès".
+L'import du contrat est une fonctionnalité réservée à un utilisateur ayant des droits d'administration. La structure et les valeurs des contrats sont décrites dans la documentation du modèle de données.
+Pour importer un contrat d'accès, l'utilisateur clique sur le menu "Administration" puis sur le sous-menu "import des contrat d'accès".
 
 .. image:: images/CONTRACTS_Menu_import_acess.png
 
-Les contrats d'accès sont des fichiers JSON constitués des champs suivants :
-
-* Name : nom du contrat (obligatoire)
-* Description : description du contrat (obligatoire)
-* Status : statut du contrat. ACTIVE ou INACTIVE
-* "OriginatingAgencies": tableau contenant le(s) service(s) producteur(s) pour le(s)quel(s) le détenteur du contrat peut accéder aux unités archivistiques (obligatoire)
-
-Il sélectionne ensuite le fichier à importer en cliquant sur "parcourir", puis clique sur "importer" pour lancer l'opération.
+Il sélectionne ensuite le fichier à  importer en cliquant sur "parcourir", puis clique sur "importer" pour lancer l'opération.
 
 .. image:: images/CONTRACTS_access_contract_import.png
 
-Une fenêtre modale indique alors soit :
+Une fenêtre modale s'ouvre alors pour indiquer soit :
 
-* Les contrats ont bien été importés
-* Échec de l'import du fichier. Ceci peut être causé par :
-	* le fait que les contrats mentionnés existent déjà pour le tenant
-	* le fait que le fichier JSON est invalide
+* Que les contrats ont bien été importés
+* Un échec de l'import du fichier. Ceci peut être causé par :
+	* Le fait que les contrats mentionnés existent déjà  pour le tenant
+	* Le fait que le fichier est invalide
 
 Cette opération est journalisée et disponible dans le Journal des Opérations.
 
 **Rechercher un contrat d'accès**
 
-Pour accéder à la recherche de contrats d'accès, l'utilisateur clique sur le menu "Administration", puis sur le sous-menu "Contrat d'accès".
+Pour accéder à la recherche de contrats d'accès, l'utilisateur clique sur le menu "Administration", puis sur le sous-menu "Contrat d'accès".
 
 La page affiche un formulaire de recherche composé des champs suivants :
 
@@ -459,10 +386,121 @@ La page "Détail d'un contrat d'accès" contient les informations suivantes :
 * Statut
 * Service producteur
 * Date d'activation
-* Date de mise à jour
+* Date de mise à  jour
 * Date de désactivation
 
 .. image:: images/CONTRACTS_acces_contract_detail.png
+
+** Utilisation des contrats d'accès **
+
+Chaque profil utilisateur peut être relié à un ou plusieurs contrats, qui restreignent totalement, de manière partielle ou autorisent pleinement l'accès et/ou la modification d'une archive.
+
+*Sélection d'un contrat*
+Pour accéder à  un contrat spécifique, l'utilisateur peut choisir dans le menu déroulant en haut à  droite le contrat concerné.
+Une fois sélectionné, il peut opérer sa recherche d'archive. NB : les contrats du menu déroulants sont les contrats actifs pour l'utilisateur, les contrats inactifs ne sont pas listés.
+
+*Autorisation d'écriture au sein d'une archive*
+L'utilisateur peut écrire et modifier les metadonnées d'une unitié archivistique si le contrat activé l'autorise.
+
+*Activation / désactivation d'un contrat*
+L'administrateur a la possibilité d'activer / désactiver un contrat. Dans l'onglet recherche de contrat, choisir le contrat sélectionné. Activer / désactiver le bouton Actif / Inactif.
+
+*Restriction d'accès par usage de l'objet*
+Un contrat peut interdire l'accès à  un ou plusieurs usages d'objets spécifiques. (ex. : l'utilisateur peut accéder aux usages de diffusions mais pas à la source de l'objet)
+
+
+Contrats d'entrée
+-----------------
+
+**Importer un contrat d'entrée**
+
+L'import du contrat est une fonctionnalité réservée à un utilisateur ayant des droits d'administration. La structure et les valeurs des contrats sont décrites dans la documentation du modèle de données.
+Pour importer un contrat d'entrée, l'utilisateur clique sur le menu "Administration" puis sur le sous-menu "import des contrats d'entrée".
+
+.. image:: images/CONTRACTS_Menu_import_ingest_contract.png
+
+Il sélectionne ensuite le fichier à  importer en cliquant sur "parcourir", puis clique sur "importer" pour lancer l'opération.
+
+.. image:: images/CONTRACTS_ingest_contract_import.png
+
+Une fenêtre modale s'ouvre alors pour indiquer soit :
+
+* Que les contrats ont bien été importés
+* Un échec de l'import du fichier. Ceci peut être causé par :
+	* Le fait que les contrats mentionnés existent déjà  pour le tenant
+	* Le fait que le fichier est invalide
+
+Cette opération est journalisée et disponible dans le Journal des Opérations.
+
+**Rechercher un contrat d'entrée**
+
+Pour accéder à la recherche de contrats d'entrées, l'utilisateur clique sur le menu "Administration", puis sur le sous-menu "Contrat d'entrées".
+
+La page affiche un formulaire de recherche composé des champs suivants :
+
+* Nom du contrat : permet d'effectuer une recherche approchante sur les noms des contrats d'entrées disponibles dans la solution logicielle.
+* Identifiant : permet d'effectuer une recherche exacte sur les identifiants des contrats.
+
+Par défaut, la solution logicielle Vitam affiche tous les contrats disponibles dans la liste de résultats et l'affine en fonction de la recherche effectuée. La liste des résultats est composée des colonnes suivantes :
+
+* Nom
+* Identifiant
+* Description
+* Tenant
+* Statut
+* Date de création
+
+En cliquant sur une ligne, l'utilisateur ouvre le détail du contrat d'entrée dans un nouvel onglet.
+
+.. image:: images/CONTRACTS_ingest_contract_search.png
+
+**Détail d'un contrat d'entrée**
+
+La page "Détail d'un contrat d'accès" contient les informations suivantes :
+
+* ID
+* Nom
+* Description
+* Date de création
+* Statut
+* Date d'activation
+* Date de mise à  jour
+* Date de désactivation
+
+.. image:: images/CONTRACTS_ingest_contract_detail.png
+
+** Utilisation des contrats d'entrée **
+
+Chaque SIP peut être relié à un contrat d'entrée permettant de définir des conditions de versement entre le service versant et la solution logicielle Vitam.
+
+*Activation / désactivation d'un contrat*
+L'administrateur a la possibilité d'activer / désactiver un contrat. Dans l'onglet recherche de contrat, choisir le contrat sélectionné. Activer / désactiver le bouton Actif / Inactif.
+
+
+Contexte
+========
+
+**Importer un contexte**
+
+L'import du contexte est une fonctionnalité réservée à un utilisateur ayant des droits d'administration. La structure et les valeurs des contextes sont décrites dans la documentation du modèle de données.
+Pour importer un contexte, l'utilisateur clique sur le menu "Administration" puis sur le sous-menu "import des contextes".
+
+.. image:: images/CONTRACTS_Menu_import_context.png
+
+Il sélectionne ensuite le fichier à  importer en cliquant sur "parcourir", puis clique sur "importer" pour lancer l'opération.
+
+.. image:: images/CONTRACTS_context_import.png
+
+Une fenêtre modale s'ouvre alors pour indiquer soit :
+
+* Que les contextes ont bien été importés
+* Un échec de l'import du fichier. Ceci peut être causé par :
+	* Le fait que le contexte existe déjà dans le système
+	* Le fait que le fichier est invalide
+  * Le fait que le contexte déclare des contrats d'entrées ou des contrats d'accès qui n'existent pas dans les référentiels des contrats de leurs tenants
+
+Cette opération est journalisée et disponible dans le Journal des Opérations.
+
 
 Profils d'archivage
 ===================
@@ -538,10 +576,10 @@ La page "Détail d'un profil d'archivage" contient les informations suivantes :
 * Date de mise à jour
 * Tenant(s)
 * Date de désactivation
- 
+
 .. image:: images/profil_detail.png
 
-Assoccier un fichier de règles à un profil d'archivage
+Associer un fichier de règles à un profil d'archivage
 -------------------------------------------------------
 
 Pour importer un fichier de règles à associer à un profil d'archivage, l'utilisateur clique sur le bouton "parcourir" à coté du champ "fichier" puis clique sur "importer". Le format du fichier doit correspondre au format attendu, indiqué dans le champ format.
@@ -551,7 +589,7 @@ la fin de l'opération d'import, une fenêtre modale indique un des deux message
 * Le profil a bien été importé
 * Echec de l'import du fichier
 
-L'opération est journalisée et disponible depuis l'écran de consultation des journaux d'opérations. 
+L'opération est journalisée et disponible depuis l'écran de consultation des journaux d'opérations.
 
 En cas de succès de l'import de fichier de règle, la date de mise à jour du profil est ajustée en conséquence. Si l'utilisateur importe un fichier de règle alors qu'un autre fichier de règles a déjà été importé, alors le nouveau fichier remplace l'ancien.
 
@@ -640,7 +678,7 @@ La liste est composée des colonnes suivantes :
 * Mode d’exécution - indique le mode d’exécution choisi. Celui-ci peut-être
 	* Continu
 	* Pas à pas
-* Précédente étape du workflow / étape en cours 
+* Précédente étape du workflow / étape en cours
 * Prochaine étape du workflow
 * Statut - indique si l’opération est :
 	* En attente
@@ -741,7 +779,7 @@ Le détail est composé des élements suivants :
 	* Taille du fichier - taille du journal sécurisé
 * Hash de l'arbre de Merkle
 * Tampon d'horodatage
-  
+
 .. image:: images/securisation_detail.png
 
 Vérification d'un journal sécurisé
