@@ -58,6 +58,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
+import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
@@ -73,11 +74,6 @@ import java.util.Map;
 public class StateMachine implements IEventsState, IEventsProcessEngine {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StateMachine.class);
-
-    private static final String INGEST_WORKFLOW = "PROCESS_SIP_UNITARY";
-
-    private static final String MESSAGE_IDENTIFIER = "messageIdentifier";
-    private static final String PROD_SERVICE = "messageIdentifier";
 
 
     private ProcessEngine processEngine;
@@ -245,8 +241,8 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         }
 
         if (null != currentStep) {
-            engineParams.put(MESSAGE_IDENTIFIER, messageIdentifier);
-            engineParams.put(PROD_SERVICE, prodService);
+            engineParams.put(SedaConstants.TAG_MESSAGE_IDENTIFIER, messageIdentifier);
+            engineParams.put(SedaConstants.TAG_ORIGINATINGAGENCY, prodService);
             try {
                 this.processEngine.start(currentStep, workerParameters, engineParams);
             } catch (ProcessingEngineException e) {
@@ -278,8 +274,8 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         stepIndex = stepTotal - 1;
         currentStep = steps.get(stepTotal -1);
         if (null != currentStep) {
-            engineParams.put(MESSAGE_IDENTIFIER, messageIdentifier);
-            engineParams.put(PROD_SERVICE, prodService);
+            engineParams.put(SedaConstants.TAG_MESSAGE_IDENTIFIER, messageIdentifier);
+            engineParams.put(SedaConstants.TAG_ORIGINATINGAGENCY, prodService);
             try {
                 this.processEngine.start(currentStep, workerParameters, engineParams);
             } catch (ProcessingEngineException e) {
