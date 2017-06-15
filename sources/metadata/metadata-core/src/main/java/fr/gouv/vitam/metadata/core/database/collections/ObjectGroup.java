@@ -91,7 +91,7 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
     public static final String DATAOBJECTVERSION = VERSIONS + "." + "DataObjectVersion";
 
     /**
-     * #2604 add _storage to objectGroup
+     * storage to objectGroup
      */
     public static final String VERSIONS_STORAGE = VERSIONS + "." + "storage";
     /**
@@ -268,7 +268,7 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
                 list.clear();
             }
             return true;
-        } else {            
+        } else {
             MongoDbMetadataHelper.updateLinkset(this, null, VitamLinks.UNIT_TO_OBJECTGROUP, false);
         }
         return false;

@@ -340,11 +340,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 filename = finalversionsResponse.getFileInfoResponse().getFilename();
             }
             objectId = finalversionsResponse.getId();
-        } else {
-            // throw new AccessInternalExecutionException(String.format(
-            // "Can't find Archive unit Because qualifier or version are not the same in storage result: %s, " +
-            // "request : %s,  finalversionsResponse.getId(): %s, ",
-            // jsonResponse.get(RESULTS), request.getFinalSelect(), finalversionsResponse.getId()));
         }
 
         if (Strings.isNullOrEmpty(mimetype)) {

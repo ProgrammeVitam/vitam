@@ -1,139 +1,181 @@
 {
-  "$hint": {
-    "total": 1,
-    "size": 1,
-    "limit": 1,
-    "time_out": false
+  "httpCode" : 200,
+  "$hits" : {
+    "total" : 1,
+    "offset" : 0,
+    "limit" : 1,
+    "size" : 1
   },
-  "$context": {},
-  "$results": [
-    {
-      "#id": "aeaaaaaaaaaam7mxaaaaoakwy5h6czqaaaaq",
-      "#qualifiers": {
-        "BinaryMaster": {
-          "nb": 2,
-          "versions": [
-            {
-              "_id": "aeaaaaaaaaaam7mxaaaaoakwy5h6cxaaaaaq",
-              "DataObjectGroupId": "aeaaaaaaaaaam7mxaaaaoakwy5h6czqaaaaq",
-              "DataObjectVersion": "BinaryMaster",
-              "MessageDigest": "b726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804",
-              "Size": "100646",
-              "FormatIdentification": {
-                "FormatLitteral": "OpenDocument Presentation",
-                "MimeType": "application/vnd.oasis.opendocument.presentation",
-                "FormatId": "fmt/293"
-              },
-              "FileInfo": {
-                "Filename": "Vitam-Sensibilisation-API-V1.0.odp",
-                "CreatingApplicationName": "LibreOffice/Impress",
-                "CreatingApplicationVersion": "5.0.5.2",
-                "CreatingOs": "Windows_X86_64",
-                "CreatingOsVersion": "10",
-                "LastModified": "2016-05-05T20:45:20"
-              },
-              "Metadata": {}
-            },
-            {
-              "_id": "aeaaaaaaaaaam7mxaaaaoakwy5h6cxaaaaal",
-              "DataObjectGroupId": "aeaaaaaaaaaam7mxaaaaoakwy5h6czqaaaaq",
-              "DataObjectVersion": "BinaryMaster",
-              "MessageDigest": "b726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804",
-              "Size": "90646",
-              "FormatIdentification": {
-                "FormatLitteral": "OpenDocument Presentation2",
-                "MimeType": "application/vnd.oasis.opendocument.presentation",
-                "FormatId": "fmt/293"
-              },
-              "FileInfo": {
-                "Filename": "Vitam-Sensibilisation-API-V1.0.odp",
-                "CreatingApplicationName": "LibreOffice/Impress",
-                "CreatingApplicationVersion": "5.0.5.2",
-                "CreatingOs": "Windows_X86_64",
-                "CreatingOsVersion": "10",
-                "LastModified": "2016-04-05T20:45:20"
-              },
-              "Metadata": {}
-            }
-          ]
+  "$results" : [ {
+    "#id" : "aeaaaaaaaagbcaacab4k4ak4wdemmvaaaaaq",
+    "#qualifiers" : [ {
+      "qualifier" : "PhysicalMaster",
+      "_nbc" : 1,
+      "versions" : [ {
+        "_id" : "aeaaaaaaaagbcaacab4k4ak4wdemmuyaaaaq",
+        "DataObjectGroupId" : "aeaaaaaaaagbcaacab4k4ak4wdemmvaaaaaq",
+        "DataObjectVersion" : "PhysicalMaster_1",
+        "PhysicalId" : "1500W03",
+        "PhysicalDimensions" : {
+          "NumberOfPage" : 23
         },
-        "Dissemination": {
-          "nb": 1,
-          "versions": [
-            {
-              "_id": "aeaaaaaaaaaam7mxaaaaoakwy5h6ddyaaaaq",
-              "DataObjectGroupId": "aeaaaaaaaaaam7mxaaaaoakwy5h6czqaaaaq",
-              "DataObjectVersion": "Dissemination",
-              "MessageDigest": "abead17e841c937187270cb95b0656bf3f7a9e71c8ca95e7fc8efa38cfffcab9889f353a95136fa3073a422d825175bf1bef24dc355bfa081f7e48b106070fd5",
-              "Size": "186536",
-              "FormatIdentification": {
-                "FormatLitteral": "Acrobat PDF 1.4 - Portable Document Format",
-                "MimeType": "application/pdf",
-                "FormatId": "fmt/18"
-              },
-              "FileInfo": {
-                "Filename": "Vitam-Sensibilisation-API-V1.0.pdf",
-                "CreatingApplicationName": "LibreOffice 5.0/Impress",
-                "CreatingApplicationVersion": "5.0.5.2",
-                "CreatingOs": "Windows_X86_64",
-                "CreatingOsVersion": "10",
-                "LastModified": "2016-05-05T20:45:32"
-              },
-              "Metadata": {}
-            }
-          ]
-        },
-        "Thumbnail": {
-          "nb": 1,
-          "versions": [
-            {
-              "_id": "aeaaaaaaaaaam7mxaaaaoakwy5h6deqaaaaq",
-              "DataObjectGroupId": "aeaaaaaaaaaam7mxaaaaoakwy5h6czqaaaaq",
-              "DataObjectVersion": "Thumbnail",
-              "MessageDigest": "fe2b0664fc66afd85f839be6ee4b6433b60a06b9a4481e0743c9965394fa0b8aa51b30df11f3281fef3d7f6c86a35cd2925351076da7abc064ad89369edf44f0",
-              "Size": "40740",
-              "FormatIdentification": {
-                "FormatLitteral": "Portable Network Graphics",
-                "MimeType": "image/png",
-                "FormatId": "fmt/11"
-              },
-              "FileInfo": {
-                "Filename": "Vitam-Sensibilisation-API-V1.0.png",
-                "CreatingApplicationName": "LibreOffice/Impress",
-                "CreatingApplicationVersion": "5.0.5.2",
-                "CreatingOs": "Windows_X86_64",
-                "CreatingOsVersion": "10",
-                "LastModified": "2016-06-23T12:45:20"
-              },
-              "Metadata": {}
-            }
-          ]
-        },
-        "TextContent": {
-          "nb": 1,
-          "versions": [
-            {
-              "_id": "aeaaaaaaaaaam7mxaaaaoakwy5h6dfaaaaaq",
-              "DataObjectGroupId": "aeaaaaaaaaaam7mxaaaaoakwy5h6czqaaaaq",
-              "DataObjectVersion": "TextContent",
-              "MessageDigest": "d156f4a4cc725cc6eaaafdcb7936c9441d25bdf033e4e2f1852cf540d39713446cfcd42f2ba087eb66f3f9dbfeca338180ca64bdde645706ec14499311d557f4",
-              "Size": "17120",
-              "FormatIdentification": {
-                "FormatLitteral": "Plain Text File",
-                "MimeType": "text/plain",
-                "FormatId": "x-fmt/111",
-                "Encoding": "UTF-8"
-              },
-              "FileInfo": {
-                "Filename": "Vitam-Sensibilisation-API-V1.0.txt",
-                "LastModified": "2016-06-23T12:50:20"
-              },
-              "Metadata": {}
-            }
-          ]
+        "storage" : {
+          "_nbc" : 1,
+          "offerIds" : [ "localhost" ],
+          "strategyId" : "default"
         }
-      },
-      "#dom": 0
+      } ]
+    }, {
+      "qualifier" : "BinaryMaster",
+      "_nbc" : 1,
+      "versions" : [ {
+        "_id" : "aeaaaaaaaagbcaacab4k4ak4wdemmviaaaaq",
+        "DataObjectGroupId" : "aeaaaaaaaagbcaacab4k4ak4wdemmvaaaaaq",
+        "DataObjectVersion" : "BinaryMaster_1",
+        "FormatIdentification" : {
+          "FormatLitteral" : "OpenDocument Presentation",
+          "MimeType" : "application/vnd.oasis.opendocument.presentation",
+          "FormatId" : "fmt/293"
+        },
+        "FileInfo" : {
+          "Filename" : "Vitam-Sensibilisation-API-V1.0.odp",
+          "CreatingApplicationName" : "LibreOffice/Impress",
+          "CreatingApplicationVersion" : "5.0.5.2",
+          "CreatingOs" : "Windows_X86_64",
+          "CreatingOsVersion" : 10,
+          "LastModified" : "2016-05-05T20:45:20"
+        },
+        "Metadata" : {
+          "Document" : null
+        },
+        "OtherMetadata" : null,
+        "Size" : 100646,
+        "Uri" : "content/e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804.odp",
+        "MessageDigest" : "e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804",
+        "Algorithm" : "SHA-512",
+        "storage" : {
+          "_nbc" : 1,
+          "offerIds" : [ "localhost" ],
+          "strategyId" : "default"
+        }
+      } ]
+    }, {
+      "qualifier" : "Dissemination",
+      "_nbc" : 1,
+      "versions" : [ {
+        "_id" : "aeaaaaaaaagbcaacab4k4ak4wdemm7aaaaaq",
+        "DataObjectGroupId" : "aeaaaaaaaagbcaacab4k4ak4wdemmvaaaaaq",
+        "DataObjectVersion" : "Dissemination_1",
+        "FormatIdentification" : {
+          "FormatLitteral" : "Acrobat PDF 1.4 - Portable Document Format",
+          "MimeType" : "application/pdf",
+          "FormatId" : "fmt/18"
+        },
+        "FileInfo" : {
+          "Filename" : "Vitam-Sensibilisation-API-V1.0.pdf",
+          "CreatingApplicationName" : "LibreOffice 5.0/Impress",
+          "CreatingApplicationVersion" : "5.0.5.2",
+          "CreatingOs" : "Windows_X86_64",
+          "CreatingOsVersion" : 10,
+          "LastModified" : "2016-05-05T20:45:32"
+        },
+        "Metadata" : {
+          "Document" : null
+        },
+        "OtherMetadata" : null,
+        "Size" : 186536,
+        "Uri" : "content/f332ca3fd108067eb3500df34283485a1c35e36bdf8f4bd3db3fd9064efdb954.pdf",
+        "MessageDigest" : "abead17e841c937187270cb95b0656bf3f7a9e71c8ca95e7fc8efa38cfffcab9889f353a95136fa3073a422d825175bf1bef24dc355bfa081f7e48b106070fd5",
+        "Algorithm" : "SHA-512",
+        "storage" : {
+          "_nbc" : 1,
+          "offerIds" : [ "localhost" ],
+          "strategyId" : "default"
+        }
+      } ]
+    }, {
+      "qualifier" : "Thumbnail",
+      "_nbc" : 1,
+      "versions" : [ {
+        "_id" : "aeaaaaaaaagbcaacab4k4ak4wdemm7qaaaaq",
+        "DataObjectGroupId" : "aeaaaaaaaagbcaacab4k4ak4wdemmvaaaaaq",
+        "DataObjectVersion" : "Thumbnail_1",
+        "FormatIdentification" : {
+          "FormatLitteral" : "Portable Network Graphics",
+          "MimeType" : "image/png",
+          "FormatId" : "fmt/12"
+        },
+        "FileInfo" : {
+          "Filename" : "Vitam-Sensibilisation-API-V1.0.png",
+          "CreatingApplicationName" : "LibreOffice/Impress",
+          "CreatingApplicationVersion" : "5.0.5.2",
+          "CreatingOs" : "Windows_X86_64",
+          "CreatingOsVersion" : 10,
+          "LastModified" : "2016-06-23T12:45:20"
+        },
+        "Metadata" : {
+          "Image" : null
+        },
+        "OtherMetadata" : null,
+        "Size" : 40740,
+        "Uri" : "content/fe2b0664fc66afd85f839be6ee4b6433b60a06b9a4481e0743c9965394fa0b8aa51b30df11f3281fef3d7f6c86a35cd2925351076da7abc064ad89369edf44f0.png",
+        "MessageDigest" : "fe2b0664fc66afd85f839be6ee4b6433b60a06b9a4481e0743c9965394fa0b8aa51b30df11f3281fef3d7f6c86a35cd2925351076da7abc064ad89369edf44f0",
+        "Algorithm" : "SHA-512",
+        "storage" : {
+          "_nbc" : 1,
+          "offerIds" : [ "localhost" ],
+          "strategyId" : "default"
+        }
+      } ]
+    }, {
+      "qualifier" : "TextContent",
+      "_nbc" : 1,
+      "versions" : [ {
+        "_id" : "aeaaaaaaaagbcaacab4k4ak4wdemnaaaaaaq",
+        "DataObjectGroupId" : "aeaaaaaaaagbcaacab4k4ak4wdemmvaaaaaq",
+        "DataObjectVersion" : "TextContent_1",
+        "FormatIdentification" : {
+          "FormatLitteral" : "Plain Text File",
+          "MimeType" : "text/plain",
+          "FormatId" : "x-fmt/111",
+          "Encoding" : "UTF-8"
+        },
+        "FileInfo" : {
+          "Filename" : "Vitam-Sensibilisation-API-V1.0.txt",
+          "LastModified" : "2016-06-23T12:50:20"
+        },
+        "Metadata" : {
+          "Text" : null
+        },
+        "OtherMetadata" : null,
+        "Size" : 17120,
+        "Uri" : "content/d156f4a4cc725cc6eaaafdcb7936c9441d25bdf033e4e2f1852cf540d39713446cfcd42f2ba087eb66f3f9dbfeca338180ca64bdde645706ec14499311d557f4.txt",
+        "MessageDigest" : "d156f4a4cc725cc6eaaafdcb7936c9441d25bdf033e4e2f1852cf540d39713446cfcd42f2ba087eb66f3f9dbfeca338180ca64bdde645706ec14499311d557f4",
+        "Algorithm" : "SHA-512",
+        "storage" : {
+          "_nbc" : 1,
+          "offerIds" : [ "localhost" ],
+          "strategyId" : "default"
+        }
+      } ]
+    } ],
+    "#tenant" : 0,
+    "#version" : 0
+  } ],
+  "$context" : {
+    "$roots" : [ ],
+    "$query" : [ {
+      "$in" : {
+        "#originating_agencies" : [ "Vitam", "BBBBBB", "Service_producteur", "ABCDEFG", "FRAN_NP_009734", "FRAN_NP_050392", "FRAN_NP_009941", "FRAN_NP_050056", "ZAJFKNNDSC", "FRAN_NP_050770", "EEEEEE", "FRAN_NP_005568", "RATP", "FRAN_NP_009913", "Identifier0", "SOC_ARCHEO_TOURRAINE", "FRAN_NP_050500", "OAIAJJAZ", "FRAN_NP_051314", "ASP", "FRAN_NP_050758", "FFRAN_NP_050313" ]
+      }
+    } ],
+    "$filter" : {
+      "$limit" : 10000
+    },
+    "$projection" : {
+      "$fields" : {
+        "_qualifiers" : 1
+      }
     }
-  ]
+  }
 }
