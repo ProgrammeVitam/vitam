@@ -27,11 +27,13 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -43,9 +45,13 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookEvDetDataType;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.common.utils.SedaConstants;
 
 /**
  * Check Archive Profile Relation Handler  
@@ -112,6 +118,12 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
             itemStatus.increment(StatusCode.OK);
         } else {
             itemStatus.increment(StatusCode.KO);
+            ObjectNode errorNode = JsonHandler.createObjectNode();
+            errorNode.put(LogbookOperationsClientHelper.EV_DET_DATA_TYPE, 
+                LogbookEvDetDataType.MASTER.name());
+            errorNode.put(SedaConstants.TAG_ARCHIVE_PROFILE, profileIdentifier);
+            itemStatus.setData(LogbookParameterName.eventDetailData.name(), 
+                JsonHandler.unprettyPrint(errorNode));
             itemStatus.setData(PROFIL_IS_NOT_DECLARED_IN_THE_INGEST_CONTRACT, contractName);
         }
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);

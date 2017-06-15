@@ -39,6 +39,7 @@ import org.apache.commons.io.IOUtils;
 import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -59,7 +60,9 @@ import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.embed.ProfileFormat;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookEvDetDataType;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -76,7 +79,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
  * Check Archive Profile Handler - verify profil in manifest
  */
 public class CheckArchiveProfileActionHandler extends ActionHandler {
-
+    
     private static final String NOT_FOUND = " not found";
     private static final String UNKNOWN_TECHNICAL_EXCEPTION = "Unknown technical exception";
     private static final String VALIDATION_ERROR = "ValidationError";
@@ -164,8 +167,11 @@ public class CheckArchiveProfileActionHandler extends ActionHandler {
         } catch (SAXException e) {
             LOGGER.error(VALIDATION_ERROR, e);
             isValid = false;
-            JsonNode errorNode = JsonHandler.createObjectNode()
+            ObjectNode errorNode = JsonHandler.createObjectNode()
                 .put(SedaConstants.EV_DET_TECH_DATA, e.getMessage());
+            errorNode.put(LogbookOperationsClientHelper.EV_DET_DATA_TYPE, 
+                LogbookEvDetDataType.MASTER.name());
+            errorNode.put(SedaConstants.TAG_ARCHIVE_PROFILE, profileIdentifier);
             itemStatus.setData(LogbookParameterName.eventDetailData.name(), 
                 JsonHandler.unprettyPrint(errorNode));
         } catch (Exception e) {
