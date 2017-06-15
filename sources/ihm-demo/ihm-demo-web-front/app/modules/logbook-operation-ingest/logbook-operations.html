@@ -79,7 +79,7 @@
             </a>
           </td>
           <td >
-          	<a href="" ng-click="downloadObject(log.evIdProc, 'reports')">            
+          	<a ng-if = "log.events[1].outcome.toUpperCase() !== 'STARTED'" href="" ng-click="downloadObject(log.evIdProc, 'reports')">
               <i class="material-icons">file_download</i>
             </a>
           </td>
