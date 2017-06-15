@@ -213,7 +213,7 @@ public class VitamSession {
 
     @Override
     public String toString() {
-        return Integer.toHexString(hashCode()) + "{requestId='" + requestId + "', tenantId:'" + tenantId + "'}";
+        return Integer.toHexString(hashCode()) + "{requestId='" + requestId + "', tenantId:'" + tenantId + "', contractId:'" + contractId + "'}";
     }
 
 
