@@ -32,8 +32,6 @@
             <DataObjectGroupReferenceId>ID006</DataObjectGroupReferenceId>
             <DataObjectVersion>PhysicalMaster</DataObjectVersion>
             <PhysicalId>1500W03</PhysicalId>
-            <PhysicalDimensions>
-            </PhysicalDimensions>
         </PhysicalDataObject>
         
         <BinaryDataObject id="ID011">

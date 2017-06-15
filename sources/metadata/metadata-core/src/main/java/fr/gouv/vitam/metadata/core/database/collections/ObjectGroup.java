@@ -31,6 +31,7 @@ import java.util.List;
 
 import org.bson.BSONObject;
 import org.bson.Document;
+import org.glassfish.hk2.api.Unproxiable;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObject;
@@ -40,6 +41,7 @@ import com.mongodb.client.MongoCollection;
 import fr.gouv.vitam.common.SingletonUtils;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDObjectType;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -82,11 +84,16 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
      * Versions
      */
     // FIXME P2 WRONG
-    public static final String VERSIONS = USAGES + ".*." + "versions";    
+    public static final String VERSIONS = USAGES + ".*." + "versions";
     /**
      * DataObjectVersion
      */
     public static final String DATAOBJECTVERSION = VERSIONS + "." + "DataObjectVersion";
+
+    /**
+     * #2604 add _storage to objectGroup
+     */
+    public static final String VERSIONS_STORAGE = VERSIONS + "." + "storage";
     /**
      * Version
      */
@@ -135,7 +142,8 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
         new BasicDBObject(OBJECTFORMAT, 1),
         new BasicDBObject(OBJECTDIGEST_VALUE, 1).append(OBJECTDIGEST_TYPE, 1),
         new BasicDBObject(STORAGE, 1),
-        new BasicDBObject(DATAOBJECTVERSION, 1).append(VERSION, 1)};
+        new BasicDBObject(DATAOBJECTVERSION, 1).append(VERSION, 1),
+        new BasicDBObject(VERSIONS_STORAGE, 1)};
 
     /**
      * Total number of copies
@@ -166,7 +174,7 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
     /**
      * Constructor from Json
      *
-     * @param content the objectgroup of JsonNode format 
+     * @param content the objectgroup of JsonNode format
      */
     public ObjectGroup(JsonNode content) {
         super(content);
@@ -260,7 +268,7 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
                 list.clear();
             }
             return true;
-        } else {
+        } else {            
             MongoDbMetadataHelper.updateLinkset(this, null, VitamLinks.UNIT_TO_OBJECTGROUP, false);
         }
         return false;

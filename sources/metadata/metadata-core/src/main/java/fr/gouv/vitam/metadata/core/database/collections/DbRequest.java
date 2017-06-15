@@ -157,6 +157,7 @@ public class DbRequest {
             roots = checkUnitStartupRoots(requestParser, defaultStartSet);
         } else {
             // OBJECTGROUPS:
+            LOGGER.warn(String.format("OBJECTGROUPS DbRequest: %s", requestParser.toString()));
             roots = checkObjectGroupStartupRoots(requestParser, defaultStartSet);
         }
         Result result = roots;
@@ -1010,7 +1011,7 @@ public class DbRequest {
         throws InvalidParseOperationException, MetaDataAlreadyExistException, MetaDataExecutionException,
         MetaDataNotFoundException {
         final Document data = requestToMongodb.getFinalData();
-        LOGGER.debug("To Insert: " + data);
+        LOGGER.debug("To Insert: ", data);
         final FILTERARGS model = requestToMongodb.model();
         try {
             if (model == FILTERARGS.UNITS) {
@@ -1129,7 +1130,7 @@ public class DbRequest {
             final Bson finalQuery = in(MetadataDocument.ID, ids);
             @SuppressWarnings("unchecked")
             final FindIterable<ObjectGroup> iterable = (FindIterable<ObjectGroup>) MongoDbMetadataHelper
-                .select(MetadataCollections.C_OBJECTGROUP, finalQuery, ObjectGroup.OBJECTGROUP_VITAM_PROJECTION);
+                .select(MetadataCollections.C_OBJECTGROUP, finalQuery, null);
             // TODO maybe retry once if in error ?
             try (final MongoCursor<ObjectGroup> cursor = iterable.iterator()) {
                 MetadataCollections.C_OBJECTGROUP.getEsClient().insertBulkOGEntriesIndexes(cursor, tenantId);

@@ -841,10 +841,9 @@ angular.module('archive.unit')
           .hideDelay(3000)
       );
     };
-    $scope.download = function($event, objGId, usage, version, fileName) {
+    $scope.download = function($event, objGId, usage, fileName) {
       var options = {};
       options.usage = usage;
-      options.version = version;
       options.filename = fileName;
       window.open(ihmDemoFactory.getObjectAsInputStreamUrl(objGId, options), '_blank');
     };

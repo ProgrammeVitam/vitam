@@ -921,7 +921,7 @@ public class WebApplicationResourceTest {
             .thenThrow(new InvalidParseOperationException(""));
         given().accept(MediaType.APPLICATION_OCTET_STREAM).expect().statusCode(Status.BAD_REQUEST.getStatusCode())
             .when()
-            .get("/archiveunit/objects/download/idOG?usage=Dissemination&version=1&filename=Vitam-Sensibilisation-API" +
+            .get("/archiveunit/objects/download/idOG?usage=Dissemination_1&filename=Vitam-Sensibilisation-API" +
                 "-V1.0.odp&tenantId=0");
     }
 

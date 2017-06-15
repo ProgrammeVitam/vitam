@@ -98,7 +98,6 @@ angular.module('core')
   dataFactory.getObjectAsInputStreamUrl = function(ogId, options){
 	  return IHM_URLS.IHM_BASE_URL + IHM_URLS.ARCHIVE_OBJECT_GROUP_DOWNLOAD_URL + ogId +
       '?usage=' + encodeURIComponent(options.usage) +
-      '&version=' + encodeURIComponent(options.version) +
       '&filename=' + encodeURIComponent(options.filename) +
       '&tenantId=' + (authVitamService.cookieValue(authVitamService.COOKIE_TENANT_ID) || 0) +
       '&contractId=' + (authVitamService.cookieValue('X-Access-Contract-Id') || '');

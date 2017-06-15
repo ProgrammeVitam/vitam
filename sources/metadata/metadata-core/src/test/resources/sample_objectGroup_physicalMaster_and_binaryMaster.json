@@ -1,0 +1,109 @@
+{
+    "#id": "aebaaaaaaagbcaacabzxmak4tu7hyfiaaaaq",
+    "_tenant": 0,
+    "_profil": "",
+    "FileInfo": {
+        "Filename": "Filename0",
+        "CreatingApplicationName": "CreatingApplicationName0",
+        "CreatingApplicationVersion": "CreatingApplicationVersion0",
+        "DateCreatedByApplication": "2006-05-04T18:13:51.0",
+        "CreatingOs": "CreatingOs0",
+        "CreatingOsVersion": "CreatingOsVersion0",
+        "LastModified": "2006-05-04T18:13:51.0"
+    },
+    "_qualifiers": [
+        {
+            "qualifier": "PhysicalMaster",
+            "_nbc": 1,
+            "versions": [
+                {
+                    "_id": "aeaaaaaaaagbcaacabzxmak4tu7hyiiaaaaq",
+                    "DataObjectGroupId": "aebaaaaaaagbcaacabzxmak4tu7hyfiaaaaq",
+                    "DataObjectVersion": "PhysicalMaster_1",
+                    "PhysicalId": 123456789,
+                    "PhysicalDimensions": {
+                        "Width": {
+                            "unit": "centimetre",
+                            "value": 1.7
+                        },
+                        "Height": {
+                            "unit": "CMT",
+                            "value": 21
+                        },
+                        "Diameter": {
+                            "unit": "FOT",
+                            "value": 22
+                        },
+                        "Length": {
+                            "unit": "INH",
+                            "value": 29.7
+                        },
+                        "Thickness": {
+                            "unit": "centimetre",
+                            "value": 2.1
+                        },
+                        "Weight": {
+                            "unit": "kilogram",
+                            "value": 1
+                        },
+                        "NumberOfPage": 20
+                    },
+                    "storage": {
+                        "_nbc": 1,
+                        "offerIds": [
+                            "localhost"
+                        ],
+                        "strategyId": "default"
+                    }
+                }
+            ]
+        },
+        {
+            "qualifier": "BinaryMaster",
+            "_nbc": 1,
+            "versions": [
+                {
+                    "_id": "aeaaaaaaaagbcaacabzxmak4tu7hyfaaaaaq",
+                    "DataObjectGroupId": "aebaaaaaaagbcaacabzxmak4tu7hyfiaaaaq",
+                    "DataObjectVersion": "BinaryMaster_1",
+                    "FormatIdentification": {
+                        "FormatLitteral": "Acrobat PDF 1.4 - Portable Document Format",
+                        "MimeType": "application/pdf",
+                        "FormatId": "fmt/18"
+                    },
+                    "FileInfo": {
+                        "Filename": "Filename0",
+                        "CreatingApplicationName": "CreatingApplicationName0",
+                        "CreatingApplicationVersion": "CreatingApplicationVersion0",
+                        "DateCreatedByApplication": "2006-05-04T18:13:51.0",
+                        "CreatingOs": "CreatingOs0",
+                        "CreatingOsVersion": "CreatingOsVersion0",
+                        "LastModified": "2006-05-04T18:13:51.0"
+                    },
+                    "Size": 29403,
+                    "Uri": "Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf",
+                    "MessageDigest": "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
+                    "Algorithm": "SHA-512",
+                    "storage": {
+                        "_nbc": 1,
+                        "offerIds": [
+                            "localhost"
+                        ],
+                        "strategyId": "default"
+                    }
+                }
+            ]
+        }
+    ],
+    "_up": [
+        "aeaqaaaaaagbcaacabzxmak4tu7hyiyaaaaq"
+    ],
+    "_nbc": 0,
+    "_ops": [
+        "aedqaaaaacgbcaacab3mmak4tu7hv5yaaaaq"
+    ],
+    "OriginatingAgency": "FRAN_NP_050056",
+    "_sps": [
+        "FRAN_NP_050056"
+    ]
+}

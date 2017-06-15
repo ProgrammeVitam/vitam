@@ -276,7 +276,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
     @Test
     public void getContainerInfos() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        when(mock.head()).thenReturn(Response.status(Response.Status.OK).build());
+        when(mock.get()).thenReturn(Response.status(Response.Status.OK).build());
         client.getStorageInformation("idStrategy");
     }
 
@@ -299,7 +299,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
     @Test(expected = StorageNotFoundClientException.class)
     public void getContainerInfosNotFound() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        when(mock.head()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
         client.getStorageInformation("idStrategy");
     }
 

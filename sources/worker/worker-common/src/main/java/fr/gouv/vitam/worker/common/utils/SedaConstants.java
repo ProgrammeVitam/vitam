@@ -75,6 +75,22 @@ public class SedaConstants {
     public static final String ALGORITHM = "Algorithm";
 
     /**
+     * Tag for storage in objectGroup
+     */
+    public static final String STORAGE = "storage";
+
+    /**
+     * Tag in storage
+     */
+    public static final String OFFER_IDS = "offerIds";
+
+    /**
+     * Strategy Id
+     */
+    public static final String STRATEGY_ID = "strategyId";
+
+
+    /**
      * Tag of DataObjectVersion
      */
     public static final String TAG_DO_VERSION = "DataObjectVersion";
@@ -88,7 +104,7 @@ public class SedaConstants {
      * Tag of BinaryDataObject
      */
     public static final String TAG_BINARY_DATA_OBJECT = "BinaryDataObject";
-    
+
     /**
      * Tag of PhysicalDataObject
      */
@@ -154,6 +170,11 @@ public class SedaConstants {
     public static final String PREFIX_QUALIFIERS = "_qualifiers";
 
     /**
+     * Prefix of qualifiers element
+     */
+    public static final String PREFIX_QUALIFIER = "qualifier";
+
+    /**
      * Prefix of up element
      */
     public static final String PREFIX_UP = "_up";
@@ -210,12 +231,12 @@ public class SedaConstants {
      * tag of ArchivalAgreement
      */
     public static final String TAG_ARCHIVAL_AGREEMENT = "ArchivalAgreement";
-    
+
     /**
      * tag of ArchiveProfile
      */
     public static final String TAG_ARCHIVE_PROFILE = "ArchivalProfile";
-    
+
     /**
      * tag of ServiceLevel
      */
@@ -246,7 +267,7 @@ public class SedaConstants {
      */
     public static final String TAG_DATA_OBJECT_LIST = "DataObjectList";
     /**
-     * tag of ReplyCode 
+     * tag of ReplyCode
      */
     public static final String TAG_REPLY_CODE = "ReplyCode";
     /**
@@ -278,7 +299,7 @@ public class SedaConstants {
      */
     public static final String TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION = "MessageDigestAlgorithmCodeListVersion";
     /**
-     * tag of  FileFormatCodeListVersion
+     * tag of FileFormatCodeListVersion
      */
     public static final String TAG_FILE_FORMAT_CODE_LIST_VERSION = "FileFormatCodeListVersion";
     /**
@@ -388,7 +409,7 @@ public class SedaConstants {
     // Tag's attributes used in SEDA
     public static final String TAG_ATTRIBUTE_LANG = "lang";
     public static final String TAG_ATTRIBUTE_UNIT = "unit";
-    
+
     /**
      * Prefix of rules will be applicated to archive unit
      */
@@ -463,14 +484,14 @@ public class SedaConstants {
      * tag of DataObjectSystemId
      */
     public static final String TAG_DATA_OBJECT_SYSTEM_ID = "DataObjectSystemId";
-    
+
     /**
      * evDetTechData
      */
     public static final String EV_DET_TECH_DATA = "evDetTechData";
-    
+
     /**
-     * the namespace xlink 
+     * the namespace xlink
      */
     public static final String NAMESPACE_XLINK = "xlink";
     /**
@@ -485,7 +506,7 @@ public class SedaConstants {
      * the attribute schemaLocation
      */
     public static final String ATTRIBUTE_SCHEMA_LOCATION = "schemaLocation";
-    
+
     /**
      * reparing namespace property
      */
