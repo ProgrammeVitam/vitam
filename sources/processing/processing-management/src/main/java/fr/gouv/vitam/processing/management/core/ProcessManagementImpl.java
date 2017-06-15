@@ -26,17 +26,32 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.core;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.common.automation.IEventsState;
@@ -55,14 +70,10 @@ import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
 import fr.gouv.vitam.processing.engine.core.ProcessEngineFactory;
+import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoring;
+import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.api.ProcessManagement;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-
-import javax.ws.rs.core.Response.Status;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * ProcessManagementImpl implementation of ProcessManagement API
@@ -74,10 +85,20 @@ public class ProcessManagementImpl implements ProcessManagement {
 
     private static final String WORKFLOW_NOT_FOUND_MESSAGE = "Workflow doesn't exist";
     private static final Map<String, IEventsState> PROCESS_MONITORS = new ConcurrentHashMap<>();
+    private static final String PROCESS_ID_FIELD = "operation_id";
+    private static final String PROCESS_TYPE_FIELD = "processType";
+    private static final String STEP_BY_STEP_FIELD = "stepByStep";
+    private static final String GLOBAL_EXECUTION_STATE_FIELD = "globalState";
+    private static final String PROCESS_DATE_FIELD = "processDate";
+    private static final String PREVIOUS_STEP = "previousStep";
+    private static final String NEXT_STEP = "nextStep";
+    private static final String STEP_EXECUTION_STATUS_FIELD = "stepStatus";
 
     private ServerConfiguration config;
     private final ProcessDataAccess processData;
     private final Map<String, WorkFlow> poolWorkflows;
+
+    private ProcessMonitoring processMonitoring;
 
     /**
      * constructor of ProcessManagementImpl
@@ -102,8 +123,37 @@ public class ProcessManagementImpl implements ProcessManagement {
         }
 
         loadProcessFromWorkSpace(config.getUrlMetadata(), config.getUrlWorkspace());
+
+        processMonitoring = ProcessMonitoringImpl.getInstance();
     }
 
+    /**
+     * FOR TEST PURPOSE ONLY (mock processMonitoring)
+     * @param config
+     * @param processMonitoring
+     * @throws ProcessingStorageWorkspaceException
+     */
+    public ProcessManagementImpl(ServerConfiguration config, ProcessMonitoring processMonitoring) throws
+        ProcessingStorageWorkspaceException {
+        ParametersChecker.checkParameter("Server config cannot be null", config);
+        this.config = config;
+        processData = ProcessDataAccessImpl.getInstance();
+        poolWorkflows = new ConcurrentHashMap<>();
+
+        try {
+            populateWorkflow("DefaultFilingSchemeWorkflow");
+            populateWorkflow("DefaultHoldingSchemeWorkflow");
+            populateWorkflow("DefaultIngestBlankTestWorkflow");
+            populateWorkflow("DefaultIngestWorkflow");
+            populateWorkflow("DefaultCheckTraceability");
+        } catch (final WorkflowNotFoundException e) {
+            LOGGER.error(WORKFLOW_NOT_FOUND_MESSAGE, e);
+        }
+
+        loadProcessFromWorkSpace(config.getUrlMetadata(), config.getUrlWorkspace());
+
+        this.processMonitoring = processMonitoring;
+    }
 
     @Override
     public ProcessWorkflow init(WorkerParameters workerParameters, String workflowId,
@@ -124,6 +174,8 @@ public class ProcessManagementImpl implements ProcessManagement {
             processWorkflow = processData
                 .initProcessWorkflow(null, workerParameters.getContainerName(), LogbookTypeProcess.INGEST, tenantId);
         }
+
+        processWorkflow.setWorkflowId(workflowId);
 
         try {
             // TODO: create json workflow file, but immediately updated so keep this part ?)
@@ -265,6 +317,11 @@ public class ProcessManagementImpl implements ProcessManagement {
         return processData.findOneProcessWorkflow(operationId, tenantId);
     }
 
+    @Override
+    public Map<String, WorkFlow> getWorkflowDefinitions() {
+        return poolWorkflows;
+    }
+    
     public static Map<String, IEventsState> loadProcessFromWorkSpace(String urlMetadata, String urlWorkspace) throws ProcessingStorageWorkspaceException {
         if (!PROCESS_MONITORS.isEmpty()) {
             return PROCESS_MONITORS;
@@ -329,5 +386,117 @@ public class ProcessManagementImpl implements ProcessManagement {
             }
         }
         return null;
+    }
+
+    public JsonNode getFilteredProcess(ProcessQuery query, Integer tenantId) {
+        List<ProcessWorkflow> listWorkflows = processMonitoring.findAllProcessWorkflow(tenantId);
+        listWorkflows.sort((a, b) -> b.getProcessDate().compareTo(a.getProcessDate()));
+        ArrayNode result = JsonHandler.createArrayNode();
+        for (ProcessWorkflow processWorkflow : listWorkflows) {
+            ObjectNode workflow = JsonHandler.createObjectNode();
+            workflow = getNextAndPreviousSteps(processWorkflow, workflow);
+            if (query.getId() != null && !query.getId().equals(processWorkflow.getOperationId())) {
+                continue;
+            }
+            if (query.getStates() != null && !query.getStates().isEmpty() &&
+                !query.getStates().contains(processWorkflow.getState().name())) {
+                continue;
+            }
+            if (query.getStatuses() != null && !query.getStatuses().isEmpty() &&
+                !query.getStatuses().contains(processWorkflow.getStatus().name())) {
+                continue;
+            }
+            if (query.getWorkflows() != null && !query.getWorkflows().isEmpty() &&
+                !query.getWorkflows().contains(processWorkflow.getWorkflowId())) {
+                continue;
+            }
+            if (query.getListSteps() != null && !query.getListSteps().isEmpty()) {
+                if (!isContainsStep(query.getListSteps(), workflow)) {
+                    continue;
+                }
+            }
+            if (query.getStartDateMin() != null && query.getStartDateMax() != null) {
+                if (!isStartDateIn(query.getStartDateMin(), query.getStartDateMax(), processWorkflow)) {
+                    continue;
+                }
+            }
+            workflow.put(PROCESS_ID_FIELD, processWorkflow.getOperationId());
+            workflow.put(PROCESS_TYPE_FIELD, processWorkflow.getLogbookTypeProcess().toString());
+            workflow.put(STEP_BY_STEP_FIELD, processWorkflow.isStepByStep());
+            workflow.put(GLOBAL_EXECUTION_STATE_FIELD, processWorkflow.getState().name());
+            workflow.put(STEP_EXECUTION_STATUS_FIELD, processWorkflow.getStatus().name());
+            workflow.put(PROCESS_DATE_FIELD, LocalDateUtil.getFormattedDate(processWorkflow.getProcessDate()));
+            result.add(workflow);
+        }
+        return result;
+    }
+
+    private boolean isContainsStep(List<String> stepsName, ObjectNode workflow) {
+        JsonNode previous = workflow.get(PREVIOUS_STEP);
+        return previous != null && previous.asText() != null && stepsName.contains(previous.asText());
+    }
+
+    private boolean isStartDateIn(String startDateMin, String startDateMax, ProcessWorkflow processWorkflow) {
+        // ugly ! can we have time here (on javascript date picker) ?
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        Date date = processWorkflow.getProcessDate();
+        LocalDate ldt = LocalDateTime.ofInstant(date.toInstant(), ZoneOffset.UTC).toLocalDate();
+        LocalDate startDateTimeMin = LocalDate.parse(startDateMin, formatter);
+        LocalDate startDateTimeMax = LocalDate.parse(startDateMax, formatter);
+        return ((ldt.isBefore(startDateTimeMax) || ldt.isEqual(startDateTimeMax)) && (ldt.isAfter(startDateTimeMin)
+            || ldt.isEqual(startDateTimeMin)));
+    }
+
+    // TODO: 5/27/17 refactor the following
+    private ObjectNode getNextAndPreviousSteps(ProcessWorkflow processWorkflow, ObjectNode workflow) {
+        String previousStep = "";
+        String nextStep = "";
+        String temporaryPreviousTask = "";
+        Boolean currentStepFound = false;
+
+        Iterator<ProcessStep> pwIterator = processWorkflow.getSteps().iterator();
+        while (pwIterator.hasNext() && !currentStepFound) {
+
+            final ProcessStep processStep = pwIterator.next();
+
+            switch (processWorkflow.getState()) {
+                case PAUSE:
+                case RUNNING:
+                    if (processStep.getStepStatusCode() == StatusCode.STARTED) {
+                        previousStep = processStep.getStepName();
+                        nextStep = pwIterator.hasNext() ? pwIterator.next().getStepName() : "";
+                        workflow.put(STEP_EXECUTION_STATUS_FIELD, "STARTED");
+                        currentStepFound = true;
+                    } else {
+                        if (processStep.getStepStatusCode() == StatusCode.UNKNOWN) {
+                            previousStep = temporaryPreviousTask;
+                            nextStep = processStep.getStepName();
+                            currentStepFound = true;
+                        }
+                    }
+                    break;
+                case COMPLETED:
+                    if (processStep.getStepStatusCode() == StatusCode.KO ||
+                        processStep.getStepStatusCode() == StatusCode.STARTED) {
+                        previousStep = processStep.getStepName();
+                        workflow.put(STEP_EXECUTION_STATUS_FIELD, StatusCode.KO.toString());
+                        currentStepFound = true;
+                    } else {
+                        if (processStep.getStepStatusCode() == StatusCode.UNKNOWN) {
+                            previousStep = temporaryPreviousTask;
+                            workflow.put(STEP_EXECUTION_STATUS_FIELD, StatusCode.KO.toString());
+                            currentStepFound = true;
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
+            temporaryPreviousTask = processStep.getStepName();
+
+            workflow.put(PREVIOUS_STEP, previousStep);
+            workflow.put(NEXT_STEP, nextStep);
+        }
+        return workflow;
     }
 }

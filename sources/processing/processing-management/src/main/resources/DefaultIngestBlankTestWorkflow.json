@@ -1,6 +1,6 @@
 {
   "id": "DefaultIngestBlankTestWorkflow",
-  "comment": "Default Ingest Workflow V6",
+  "comment": "Default Ingest Blank Test Workflow V6",
   "steps": [
     {
       "workerGroupId": "DefaultWorker",

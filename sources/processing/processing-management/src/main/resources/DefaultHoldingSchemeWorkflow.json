@@ -1,6 +1,6 @@
 {
-  "id": "DefaultIngestWorkflow",
-  "comment": "Default Ingest Workflow V6",
+  "id": "DefaultHoldingSchemeWorkflow",
+  "comment": "Default Holding Scheme Workflow V6",
   "steps": [
     {
       "workerGroupId": "DefaultWorker",

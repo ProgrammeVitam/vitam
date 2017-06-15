@@ -26,14 +26,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.core;
 
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import fr.gouv.vitam.common.exception.StateNotAllowedException;
-import fr.gouv.vitam.common.model.ProcessState;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -45,10 +46,12 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+
+import fr.gouv.vitam.common.exception.StateNotAllowedException;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessQuery;
+import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -68,17 +71,18 @@ import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.common.model.ProcessingUri;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.model.UriPrefix;
+import fr.gouv.vitam.processing.common.model.WorkFlow;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
+import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoring;
+import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"javax.net.ssl.*"})
 @PrepareForTest({WorkspaceProcessDataManagement.class})
 public class ProcessManagementImplTest {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessManagementImplTest.class);
 
     private ProcessManagementImpl processManagementImpl;
-    private static final Integer TENANT_ID = 0;
     private static final String CONTAINER_NAME = "container1";
     private static final String ID = "id1";
     private static WorkspaceProcessDataManagement processDataManagement;
@@ -106,7 +110,8 @@ public class ProcessManagementImplTest {
         processManagementImpl.resume(
             WorkerParametersFactory.newWorkerParameters(ID, ID, CONTAINER_NAME, ID, ID,
                 "http://localhost:8083",
-                "http://localhost:8083"), 1);
+                "http://localhost:8083"),
+            1);
     }
 
     @RunWithCustomExecutor
@@ -129,7 +134,7 @@ public class ProcessManagementImplTest {
     public void loadPersitedPausedWorkflowTest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(3);
         PowerMockito.when(processDataManagement.getProcessWorkflowFor(Matchers.eq(3), Matchers.anyString()))
-            .thenReturn(getPausedWorkflowList());
+            .thenReturn(getPausedWorkflowMap());
 
         ServerConfiguration serverConfiguration = new ServerConfiguration();
         serverConfiguration.setUrlMetadata("fakeurl:1111");
@@ -139,9 +144,118 @@ public class ProcessManagementImplTest {
         List<ProcessWorkflow> processWorkflowList = processManagementImpl.findAllProcessWorkflow(3);
         Assert.assertNotNull(processWorkflowList);
         Assert.assertFalse(processWorkflowList.isEmpty());
+        Map<String, WorkFlow> workflowDefinitions = processManagementImpl.getWorkflowDefinitions();
+        Assert.assertNotNull(workflowDefinitions);
+        Assert.assertNotNull(workflowDefinitions.get("DefaultFilingSchemeWorkflow"));
+        Assert.assertNotNull(workflowDefinitions.get("DefaultIngestWorkflow"));
+        Assert.assertEquals("DefaultFilingSchemeWorkflow",
+            workflowDefinitions.get("DefaultFilingSchemeWorkflow").getId());
+        Assert.assertEquals(8,
+            workflowDefinitions.get("DefaultIngestWorkflow").getSteps().size());
+        Assert.assertEquals(2,
+            workflowDefinitions.get("DefaultIngestWorkflow").getSteps().get(2).getActions().size());
+        Assert.assertEquals("CHECK_UNIT_SCHEMA",
+            workflowDefinitions.get("DefaultIngestWorkflow").getSteps().get(2).getActions().get(0).getActionDefinition()
+                .getActionKey());
     }
 
-    private Map<String, ProcessWorkflow> getPausedWorkflowList() {
+    @Test
+    public void getFilteredProcessTest() throws Exception {
+        ProcessMonitoring processMonitoring = PowerMockito.mock(ProcessMonitoringImpl.class);
+        ServerConfiguration serverConfiguration = new ServerConfiguration();
+        serverConfiguration.setUrlMetadata("fakeurl:1111");
+        serverConfiguration.setUrlWorkspace("fakeurl:1112");
+        processManagementImpl = new ProcessManagementImpl(serverConfiguration, processMonitoring);
+        Assert.assertNotNull(processManagementImpl);
+
+        PowerMockito.when(processMonitoring.findAllProcessWorkflow(Matchers.eq(0))).thenReturn
+            (getPausedWorkflowList(5));
+
+        ProcessQuery pq = new ProcessQuery();
+
+        ArrayNode arrayResult = (ArrayNode) processManagementImpl.getFilteredProcess(pq, 0);
+        Assert.assertEquals(5, arrayResult.size());
+        arrayResult.removeAll();
+
+        LocalDate date = LocalDate.now(ZoneOffset.UTC);
+        LocalDate dateMax = LocalDate.now(ZoneOffset.UTC);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        pq.setStartDateMin(date.format(formatter));
+        pq.setStartDateMax(dateMax.format(formatter));
+        arrayResult = (ArrayNode) processManagementImpl.getFilteredProcess(pq, 0);
+        Assert.assertEquals(1, arrayResult.size());
+        arrayResult.removeAll();
+
+        dateMax = dateMax.plusDays(1);
+        pq.setStartDateMax(dateMax.format(formatter));
+        arrayResult = (ArrayNode) processManagementImpl.getFilteredProcess(pq, 0);
+        Assert.assertEquals(2, arrayResult.size());
+        arrayResult.removeAll();
+
+        dateMax = dateMax.plusDays(2);
+        pq.setStartDateMax(dateMax.format(formatter));
+        arrayResult = (ArrayNode) processManagementImpl.getFilteredProcess(pq, 0);
+        Assert.assertEquals(4, arrayResult.size());
+        arrayResult.removeAll();
+
+        dateMax = dateMax.plusDays(1);
+        pq.setStartDateMax(dateMax.format(formatter));
+        arrayResult = (ArrayNode) processManagementImpl.getFilteredProcess(pq, 0);
+        Assert.assertEquals(5, arrayResult.size());
+        arrayResult.removeAll();
+
+        date = date.plusDays(1);
+        pq.setStartDateMin(date.format(formatter));
+        arrayResult = (ArrayNode) processManagementImpl.getFilteredProcess(pq, 0);
+        Assert.assertEquals(4, arrayResult.size());
+        arrayResult.removeAll();
+
+        pq.setStartDateMin(null);
+        pq.setStartDateMax(null);
+        List<String> list = new ArrayList<>();
+        list.add(StatusCode.OK.name());
+        pq.setStatuses(list);
+        arrayResult = (ArrayNode) processManagementImpl.getFilteredProcess(pq, 0);
+        Assert.assertEquals(5, arrayResult.size());
+        arrayResult.removeAll();
+
+        list.clear();
+        list.add(StatusCode.KO.name());
+        pq.setStatuses(list);
+        arrayResult = (ArrayNode) processManagementImpl.getFilteredProcess(pq, 0);
+        Assert.assertEquals(0, arrayResult.size());
+        list.add(StatusCode.OK.name());
+        pq.setStatuses(list);
+        arrayResult = (ArrayNode) processManagementImpl.getFilteredProcess(pq, 0);
+        Assert.assertEquals(5, arrayResult.size());
+        arrayResult.removeAll();
+
+        pq.setStatuses(null);
+        pq.setId("operationId0");
+        arrayResult = (ArrayNode) processManagementImpl.getFilteredProcess(pq, 0);
+        Assert.assertEquals(1, arrayResult.size());
+        arrayResult.removeAll();
+
+        pq.setId(null);
+        list.clear();
+        list.add(ProcessState.PAUSE.name());
+        pq.setStates(list);
+        arrayResult = (ArrayNode) processManagementImpl.getFilteredProcess(pq, 0);
+        Assert.assertEquals(5, arrayResult.size());
+        arrayResult.removeAll();
+
+        list.clear();
+        list.add(ProcessState.RUNNING.name());
+        pq.setStates(list);
+        arrayResult = (ArrayNode) processManagementImpl.getFilteredProcess(pq, 0);
+        Assert.assertEquals(0, arrayResult.size());
+        list.add(ProcessState.PAUSE.name());
+        pq.setStates(list);
+        arrayResult = (ArrayNode) processManagementImpl.getFilteredProcess(pq, 0);
+        Assert.assertEquals(5, arrayResult.size());
+    }
+
+    private Map<String, ProcessWorkflow> getPausedWorkflowMap() {
         Map<String, ProcessWorkflow> result = new HashMap<>();
         ProcessWorkflow processWorkflow = new ProcessWorkflow();
         processWorkflow.setTenantId(3);
@@ -150,8 +264,7 @@ public class ProcessManagementImplTest {
         processWorkflow.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
         processWorkflow.setMessageIdentifier("MessageIdentifier");
         processWorkflow.setOperationId("operationId");
-        Map<String, ProcessStep> mapProcessStep = new HashMap<>();
-        for(int i = 0; i < 20; i++) {
+        for (int i = 0; i < 20; i++) {
             processWorkflow.getSteps().add(getProcessStep("key-map-" + i, "name-" + i, "element-" + i, "groupID-" + i));
         }
         processWorkflow.setProcessDate(new Date());
@@ -160,12 +273,33 @@ public class ProcessManagementImplTest {
         return result;
     }
 
+    private List<ProcessWorkflow> getPausedWorkflowList(int nbProcess) {
+        List<ProcessWorkflow> list = new ArrayList<>();
+        LocalDate date = LocalDate.now(ZoneOffset.UTC);
+        for (int j = 0; j < nbProcess; j++) {
+            ProcessWorkflow processWorkflow = new ProcessWorkflow();
+            processWorkflow.setTenantId(3);
+            processWorkflow.setState(ProcessState.PAUSE);
+            processWorkflow.setStatus(StatusCode.OK);
+            processWorkflow.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
+            processWorkflow.setMessageIdentifier("MessageIdentifier");
+            processWorkflow.setOperationId("operationId" + j);
+            for (int i = 0; i < 20; i++) {
+                processWorkflow.getSteps().add(getProcessStep("key-map-" + i, "name-" + i, "element-" + i, "groupID-" + i));
+            }
+            date = date.plusDays(j == 0 ? 0 : 1);
+            processWorkflow.setProcessDate(Date.from(date.atStartOfDay(ZoneOffset.UTC).toInstant()));
+            list.add(processWorkflow);
+        }
+        return list;
+    }
+
     private List<Action> getActions() {
         List<Action> actionsList = new ArrayList<>();
         for (int j = 0; j < 10; j++) {
             Action action = new Action();
             ActionDefinition actionDefinition = new ActionDefinition();
-            actionDefinition.setBehavior(j % 2 == 0 ? ProcessBehavior.BLOCKING: ProcessBehavior.NOBLOCKING);
+            actionDefinition.setBehavior(j % 2 == 0 ? ProcessBehavior.BLOCKING : ProcessBehavior.NOBLOCKING);
             actionDefinition.setActionKey("actionKey-" + j);
             List<IOParameter> in = new ArrayList<>();
             List<IOParameter> out = new ArrayList<>();
@@ -200,12 +334,11 @@ public class ProcessManagementImplTest {
         itemStatus.setMessage("message");
         itemStatus.setItemId("itemId");
         itemStatus.setEvDetailData("evDetailData");
-        itemStatus.setGlobalState(ProcessState.PAUSE);
+        itemStatus.setGlobalState(ProcessState.COMPLETED);
         step.setStepResponses(itemStatus);
         step.setWorkerGroupId(groupId);
         ProcessStep ps = new ProcessStep(step, 0, 0, "id");
-        ps.setStepStatusCode(StatusCode.UNKNOWN);
+        ps.setStepStatusCode(StatusCode.OK);
         return ps;
     }
-
 }

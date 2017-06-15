@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 
@@ -69,9 +70,9 @@ public interface IngestExternalClient extends MockOrRestClient, PoolingStatusCli
      * @param type
      * @param tenantId
      * @return object as stream
-     * @throws IngestExternalException 
+     * @throws IngestExternalException
      * @throws VitamClientException
-
+     * 
      */
     Response downloadObjectAsync(String objectId, IngestCollection type, Integer tenantId)
         throws IngestExternalException;
@@ -80,16 +81,20 @@ public interface IngestExternalClient extends MockOrRestClient, PoolingStatusCli
         String actionId, Integer tenantId)
         throws VitamClientException;
 
-    Response updateOperationActionProcess(String actionId, String operationId, Integer tenantId) throws VitamClientException;
+    Response updateOperationActionProcess(String actionId, String operationId, Integer tenantId)
+        throws VitamClientException;
 
     ItemStatus getOperationProcessStatus(String id, Integer tenantId) throws VitamClientException;
 
-    ItemStatus getOperationProcessExecutionDetails(String id, JsonNode query, Integer tenantId) throws VitamClientException;
+    ItemStatus getOperationProcessExecutionDetails(String id, JsonNode query, Integer tenantId)
+        throws VitamClientException;
 
-    RequestResponse<JsonNode> cancelOperationProcessExecution(String id, Integer tenantId) throws VitamClientException, BadRequestException;
+    RequestResponse<JsonNode> cancelOperationProcessExecution(String id, Integer tenantId)
+        throws VitamClientException, BadRequestException;
 
     /**
      * Use updateOperationActionProcess
+     * 
      * @param contextId
      * @param actionId
      * @param container
@@ -100,7 +105,7 @@ public interface IngestExternalClient extends MockOrRestClient, PoolingStatusCli
      * @throws BadRequestException
      * @throws VitamClientException
      */
-    @Deprecated //Not used
+    @Deprecated // Not used
     ItemStatus updateVitamProcess(String contextId, String actionId, String container, String workflow,
         Integer tenantId)
         throws InternalServerException, BadRequestException, VitamClientException;
@@ -110,6 +115,7 @@ public interface IngestExternalClient extends MockOrRestClient, PoolingStatusCli
 
     /**
      * Use initVitamProcess
+     * 
      * @param contextId
      * @param tenantId
      * @throws VitamException
@@ -117,5 +123,16 @@ public interface IngestExternalClient extends MockOrRestClient, PoolingStatusCli
     @Deprecated
     void initWorkFlow(String contextId, Integer tenantId) throws VitamException;
 
-    RequestResponse<JsonNode> listOperationsDetails(Integer tenantId) throws VitamClientException;
+    /**
+     * Get the list of operations details
+     * 
+     * @param tenantId tenant id
+     * @param query filter query
+     * @return list of operations details
+     * @throws VitamClientException
+     */
+    RequestResponse<JsonNode> listOperationsDetails(Integer tenantId, ProcessQuery query) throws VitamClientException;
+
+    // FIXME P1 : is tenant really necessary ?
+    RequestResponse<JsonNode> getWorkflowDefinitions(Integer tenantId) throws VitamClientException;
 }

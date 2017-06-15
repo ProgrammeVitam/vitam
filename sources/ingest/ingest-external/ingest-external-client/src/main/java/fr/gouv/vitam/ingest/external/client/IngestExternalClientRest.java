@@ -26,13 +26,28 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.client;
 
+import static org.apache.http.HttpHeaders.EXPECT;
+import static org.apache.http.protocol.HTTP.EXPECT_CONTINUE;
+
+import java.io.InputStream;
+import java.util.concurrent.TimeUnit;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -42,24 +57,13 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.common.client.ErrorMessage;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.InputStream;
-import java.util.concurrent.TimeUnit;
-
-import static org.apache.http.HttpHeaders.EXPECT;
-import static org.apache.http.protocol.HTTP.EXPECT_CONTINUE;
 
 /**
  * Ingest External client
@@ -72,6 +76,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     private static final String CONTEXT_ID_MUST_HAVE_A_VALID_VALUE = "Context id must have a valid value";
     private static final String BLANK_OPERATION_ID = "Operation identifier should be filled";
     private static final String OPERATION_URI = "/operations";
+    private static final String WORKFLOWS_URI = "/workflows";
     private static final String REQUEST_PRECONDITION_FAILED = "Request precondition failed";
     private static final String NOT_FOUND_EXCEPTION = "Not Found Exception";
     private static final String UNAUTHORIZED = "Unauthorized";
@@ -125,6 +130,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
             final String atr = response.readEntity(String.class);
             responseOK.addHeader("Result", atr);
             return responseOK;
+
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Ingest External Internal Server Error", e);
             throw new IngestExternalException("Ingest External Internal Server Error", e);
@@ -202,7 +208,8 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
 
 
     @Override
-    public Response updateOperationActionProcess(String actionId, String operationId, Integer tenantId) throws VitamClientException {
+    public Response updateOperationActionProcess(String actionId, String operationId, Integer tenantId)
+        throws VitamClientException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, operationId);
 
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
@@ -281,7 +288,8 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         }
     }
 
-    @Override public boolean wait(int tenantId, String processId, ProcessState state, int nbTry, long timeWait, TimeUnit timeUnit)
+    @Override
+    public boolean wait(int tenantId, String processId, ProcessState state, int nbTry, long timeWait, TimeUnit timeUnit)
         throws VitamException {
         for (int i = 0; i < nbTry; i++) {
             final ItemStatus itemStatus = this.getOperationProcessStatus(processId, tenantId);
@@ -313,20 +321,25 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         return false;
     }
 
-    @Override public boolean wait(int tenantId, String processId, int nbTry, long timeout, TimeUnit timeUnit) throws VitamException {
+    @Override
+    public boolean wait(int tenantId, String processId, int nbTry, long timeout, TimeUnit timeUnit)
+        throws VitamException {
         return wait(tenantId, processId, ProcessState.COMPLETED, nbTry, timeout, timeUnit);
     }
 
-    @Override public boolean wait(int tenantId, String processId, ProcessState state) throws VitamException {
+    @Override
+    public boolean wait(int tenantId, String processId, ProcessState state) throws VitamException {
         return wait(tenantId, processId, state, Integer.MAX_VALUE, 1000l, TimeUnit.MILLISECONDS);
     }
 
-    @Override public boolean wait(int tenantId, String processId) throws VitamException {
+    @Override
+    public boolean wait(int tenantId, String processId) throws VitamException {
         return wait(tenantId, processId, ProcessState.COMPLETED);
     }
 
     @Override
-    public ItemStatus getOperationProcessExecutionDetails(String id, JsonNode query, Integer tenantId) throws VitamClientException {
+    public ItemStatus getOperationProcessExecutionDetails(String id, JsonNode query, Integer tenantId)
+        throws VitamClientException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
@@ -362,7 +375,8 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     }
 
     @Override
-    public RequestResponse<JsonNode> cancelOperationProcessExecution(String id, Integer tenantId) throws VitamClientException, BadRequestException {
+    public RequestResponse<JsonNode> cancelOperationProcessExecution(String id, Integer tenantId)
+        throws VitamClientException, BadRequestException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);
         Response response = null;
         try {
@@ -384,7 +398,8 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
                 LOGGER.warn("SIP Warning : " + Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
                 throw new VitamClientInternalException(INTERNAL_SERVER_ERROR);
             }
-            return new RequestResponseOK().addResult(response.readEntity(JsonNode.class)).parseHeadersFromResponse(response);
+            return new RequestResponseOK().addResult(response.readEntity(JsonNode.class))
+                .parseHeadersFromResponse(response);
 
         } catch (VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);
@@ -444,10 +459,8 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         headers.add(GlobalDataRest.X_CONTEXT_ID, ProcessAction.INIT);
         /*
-         *TODO: 6/12/17 should be
-         * headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
-         * headers.add(GlobalDataRest.X_ACTION, ProcessAction.INIT);
-         * The method should be POST
+         * TODO: 6/12/17 should be headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
+         * headers.add(GlobalDataRest.X_ACTION, ProcessAction.INIT); The method should be POST
          */
 
         Response response = null;
@@ -518,16 +531,45 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     }
 
     @Override
-    public RequestResponse<JsonNode> listOperationsDetails(Integer tenantId) throws VitamClientException {
+    public RequestResponse<JsonNode> listOperationsDetails(Integer tenantId, ProcessQuery query)
+        throws VitamClientException {
         Response response = null;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
 
-            response = performRequest(HttpMethod.GET, OPERATION_URI, headers,
+            if (query == null) {
+                query = new ProcessQuery();
+            }
+
+            response = performRequest(HttpMethod.GET, OPERATION_URI, headers, JsonHandler.toJsonNode(query),
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            
+            return new RequestResponseOK().addResult(response.readEntity(JsonNode.class))
+                .parseHeadersFromResponse(response);
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("VitamClientInternalException: ", e);
+            throw new VitamClientException(e);
+        } catch (final InvalidParseOperationException e) {
+            throw new VitamClientException("VitamClientException: ", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> getWorkflowDefinitions(Integer tenantId) throws VitamClientException {
+        Response response = null;
+        try {
+            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+            headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+
+            response = performRequest(HttpMethod.GET, WORKFLOWS_URI, headers,
                 MediaType.APPLICATION_JSON_TYPE);
 
-            return new RequestResponseOK().addResult(response.readEntity(JsonNode.class)).parseHeadersFromResponse(response);
+            return new RequestResponseOK().addResult(response.readEntity(JsonNode.class))
+                .parseHeadersFromResponse(response);
 
         } catch (VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);

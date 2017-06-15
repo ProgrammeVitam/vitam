@@ -54,19 +54,22 @@ import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 import com.jayway.restassured.RestAssured;
-
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.ProcessQuery;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.HeaderIdContainerFilter;
 import fr.gouv.vitam.common.server.VitamServer;
@@ -249,16 +252,13 @@ public class IngestInternalResourceTest {
         get(STATUS_URI).then().statusCode(Status.NO_CONTENT.getStatusCode());
     }
 
-
     @Test
     public void givenNoZipWhenUploadSipAsStreamThenReturnKO()
         throws Exception {
         reset(workspaceClient);
         reset(processingClient);
 
-        RestAssured.given()
-            .body(operationList).contentType(MediaType.APPLICATION_JSON)
-            .when().post(INGEST_URL)
+        RestAssured.given().body(operationList).contentType(MediaType.APPLICATION_JSON).when().post(INGEST_URL)
             .then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
     }
 
@@ -426,7 +426,8 @@ public class IngestInternalResourceTest {
         reset(processingClient);
 
         RestAssured.given()
-            .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.RESUME, GlobalDataRest.X_CONTEXT_ID, DEFAULT_CONTEXT)
+            .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.RESUME,
+                GlobalDataRest.X_CONTEXT_ID, DEFAULT_CONTEXT)
             .when().head(OPERATION_URL)
             .then().statusCode(Status.ACCEPTED.getStatusCode());
     }
@@ -457,6 +458,50 @@ public class IngestInternalResourceTest {
             .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId())
             .when().delete(OPERATION_URL)
             .then().statusCode(Status.OK.getStatusCode());
+    }
+
+    /*@Test
+    public void givenOperationsRequestResponseThenReturnOk()
+        throws Exception {
+        reset(workspaceClient);
+        reset(processingClient);
+        ProcessQuery query = new ProcessQuery();
+        query.setId("TEST");
+
+
+        Mockito.doReturn(new RequestResponseOK().setHttpCode(Status.OK.getStatusCode()))
+            .when(processingClient)
+            .listOperationsDetails(Matchers.any());
+
+        RestAssured.given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(query)
+            .when().get("operations").then().statusCode(Status.OK.getStatusCode());
+    }*/
+
+    @Test
+    public void givenWorkflowDefinitionsInternalServerExceptionThenReturnInternalServerError()
+        throws Exception {
+        reset(workspaceClient);
+        reset(processingClient);
+        Mockito.when(processingClient.getWorkflowDefinitions()).thenThrow(new VitamClientException(""));
+
+        RestAssured.given()
+            .contentType(MediaType.APPLICATION_JSON).when()
+            .get("workflows").then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    public void givenWorkflowDefinitionsRequestResponseThenReturnOk()
+        throws Exception {
+        reset(workspaceClient);
+        reset(processingClient);
+
+        Mockito.doReturn(
+            new RequestResponseOK().addResult(JsonHandler.createObjectNode()).setHttpCode(Status.OK.getStatusCode()))
+            .when(processingClient)
+            .getWorkflowDefinitions();
+
+        RestAssured.given().contentType(MediaType.APPLICATION_JSON)
+            .when().get("workflows").then().statusCode(Status.OK.getStatusCode());
     }
 
 }

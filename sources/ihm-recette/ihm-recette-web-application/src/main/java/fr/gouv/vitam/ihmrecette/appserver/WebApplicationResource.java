@@ -57,6 +57,7 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFou
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import org.apache.commons.lang3.StringUtils;
@@ -542,7 +543,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @POST
     @Path("/dslQueryTest")
     @Produces(MediaType.APPLICATION_JSON)
-    //    @RequiresPermissions("archivesearch:units:read")
+    // @RequiresPermissions("archivesearch:units:read")
     public Response getAndExecuteTestRequest(@Context HttpHeaders headers, @CookieParam("JSESSIONID") String sessionId,
         JsonNode criteria) {
         String requestId;
@@ -657,12 +658,22 @@ public class WebApplicationResource extends ApplicationStatusResource {
                             switch (requestMethod) {
                                 case HTTP_GET:
                                     if (StringUtils.isBlank(objectID)) {
-                                        result = ingestExternalClient.listOperationsDetails(tenantId);
-                                        break;
+                                        if (criteria != null) {
+                                            LOGGER.error("criteria not null");
+                                            result = ingestExternalClient.listOperationsDetails(tenantId,
+                                                JsonHandler.getFromJsonNode(criteria, ProcessQuery.class));
+                                        } else {
+                                            LOGGER.error("criteria null");
+                                            result = ingestExternalClient.listOperationsDetails(tenantId, null);
+                                        }
+
+                                        return Response.status(Status.OK).entity(result).build();
                                     } else {
-                                        ItemStatus itemStatus = ingestExternalClient.getOperationProcessExecutionDetails(objectID, criteria,
-                                            tenantId);
-                                        return Response.status(itemStatus.getGlobalStatus().getEquivalentHttpStatus()).entity(itemStatus).build();
+                                        ItemStatus itemStatus =
+                                            ingestExternalClient.getOperationProcessExecutionDetails(objectID, criteria,
+                                                tenantId);
+                                        return Response.status(itemStatus.getGlobalStatus().getEquivalentHttpStatus())
+                                            .entity(itemStatus).build();
                                     }
                                 default:
                                     throw new InvalidParseOperationException(
@@ -672,7 +683,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
                     }
                 } else {
                     requestedAdminCollection = AdminCollections.valueOf(requestedCollection);
-                    try (AdminExternalClient adminExternalClient = AdminExternalClientFactory.getInstance().getClient()) {
+                    try (AdminExternalClient adminExternalClient =
+                        AdminExternalClientFactory.getInstance().getClient()) {
                         switch (requestMethod) {
                             case HTTP_GET:
                                 if (StringUtils.isBlank(objectID)) {
@@ -741,7 +753,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         try {
             AdminCollections requestedAdminCollection = AdminCollections.valueOf(valueToCheck);
             return requestedAdminCollection;
-        } catch (IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
             return null;
         }
     }

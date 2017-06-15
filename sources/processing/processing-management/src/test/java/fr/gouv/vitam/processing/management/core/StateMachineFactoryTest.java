@@ -27,17 +27,15 @@
 
 package fr.gouv.vitam.processing.management.core;
 
+import static org.mockito.Mockito.mock;
+
+import org.junit.Test;
+
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
-import fr.gouv.vitam.processing.engine.core.ProcessEngineFactory;
 import fr.gouv.vitam.processing.engine.core.ProcessEngineImpl;
-import org.junit.Test;
-import org.mockito.Mockito;
-
-import static org.mockito.Mockito.mock;
 
 public class StateMachineFactoryTest {
 

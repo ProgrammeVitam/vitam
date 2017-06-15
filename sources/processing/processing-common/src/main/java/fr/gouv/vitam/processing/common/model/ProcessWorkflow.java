@@ -43,6 +43,9 @@ public class ProcessWorkflow {
 
     private static final String MANDATORY_PARAMETER = "Mandatory parameter";
 
+
+    private String workflowId;
+
     private String operationId;
 
     private String messageIdentifier;
@@ -225,4 +228,21 @@ public class ProcessWorkflow {
         this.tenantId = tenantId;
         return this;
     }
+
+    /**
+     * @return the workflow ID
+     */
+    public String getWorkflowId() {
+        return workflowId;
+    }
+
+    /**
+     * @param workflowId the workflow ID
+     * @return current instance
+     */
+    public ProcessWorkflow setWorkflowId(String workflowId) {
+        this.workflowId = workflowId;
+        return this;
+    }
+
 }

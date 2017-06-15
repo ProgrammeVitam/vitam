@@ -31,6 +31,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -46,26 +49,27 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.model.ProcessState;
-import fr.gouv.vitam.common.model.StatusCode;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
+import fr.gouv.vitam.processing.common.model.WorkFlow;
 
 
 public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
@@ -133,6 +137,13 @@ public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
 
         public ProcessingResource(ExpectedResults expectedResponse) {
             this.expectedResponse = expectedResponse;
+        }
+
+        @Path("/workflows")
+        @GET
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getWorkflowDefinitions() {
+            return expectedResponse.get();
         }
 
         @Path("operations")
@@ -530,5 +541,36 @@ public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
 
     }
 
+    @Test
+    public void givenOKWhenDefinitionsWorkflowThenReturnMap() throws Exception {
+        Map<String, WorkFlow> desired = new HashMap<>();
+        desired.put("TEST", new WorkFlow().setId("TEST").setComment("TEST comment"));
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(desired).build());
+        client.getWorkflowDefinitions();
+    }
+
+    @Test(expected = VitamClientException.class)
+    public void givenNotFoundWhenDefinitionsWorkflowThenReturnInternalServerException() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        client.getWorkflowDefinitions();
+    }
+
+    @Test(expected = VitamClientException.class)
+    public void givenPreconditionFailedWhenDefinitionsWorkflowThenReturnIllegalArgumentException() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        client.getWorkflowDefinitions();
+    }
+
+    @Test(expected = VitamClientException.class)
+    public void givenUnauthaurizedWhenDefinitionsWorkflowThenReturnNotAuthorizedException() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
+        client.getWorkflowDefinitions();
+    }
+
+    @Test(expected = VitamClientException.class)
+    public void givenInternalServerErrorWhenDefinitionsWorkflowThenReturnInternalServerException() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        client.getWorkflowDefinitions();
+    }
 
 }

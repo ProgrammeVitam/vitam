@@ -27,7 +27,10 @@
 package fr.gouv.vitam.processing.management.client;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -39,15 +42,27 @@ import fr.gouv.vitam.common.SingletonUtils;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
+import fr.gouv.vitam.processing.common.model.Action;
+import fr.gouv.vitam.processing.common.model.ActionDefinition;
+import fr.gouv.vitam.processing.common.model.Distribution;
+import fr.gouv.vitam.processing.common.model.DistributionKind;
+import fr.gouv.vitam.processing.common.model.IOParameter;
+import fr.gouv.vitam.processing.common.model.ProcessBehavior;
+import fr.gouv.vitam.processing.common.model.ProcessingUri;
+import fr.gouv.vitam.processing.common.model.Step;
+import fr.gouv.vitam.processing.common.model.WorkFlow;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 
 /**
@@ -61,7 +76,8 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
         // Empty
     }
 
-    @Override public boolean isOperationCompleted(String operationId) {
+    @Override
+    public boolean isOperationCompleted(String operationId) {
         return false;
     }
 
@@ -107,8 +123,9 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
         status.add(0);
         status.add(0);
         status.add(0);
-        final ItemStatus it = new ItemStatus("FakeId", "FakeMessage", StatusCode.OK, status, SingletonUtils.singletonMap(), null,
-            null, null);
+        final ItemStatus it =
+            new ItemStatus("FakeId", "FakeMessage", StatusCode.OK, status, SingletonUtils.singletonMap(), null,
+                null, null);
 
         return new RequestResponseOK().addResult(it).setHttpCode(Status.OK.getStatusCode());
     }
@@ -123,11 +140,12 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
 
 
 
-
     @Override
-    public RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId, String actionId)
+    public RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId,
+        String actionId)
         throws InternalServerException, BadRequestException, VitamClientException {
-        return new RequestResponseOK<JsonNode>().addHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, FAKE_EXECUTION_STATUS);
+        return new RequestResponseOK<JsonNode>().addHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATE,
+            FAKE_EXECUTION_STATUS);
 
     }
 
@@ -175,15 +193,14 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
 
     @Override
     public void initVitamProcess(String contextId, String container, String workflow)
-        throws InternalServerException, VitamClientException, BadRequestException {
-    }
+        throws InternalServerException, VitamClientException, BadRequestException {}
 
 
 
     @Override
-    public RequestResponse<JsonNode> listOperationsDetails() {
+    public RequestResponse<JsonNode> listOperationsDetails(ProcessQuery query) {
         // TODO Add a list of operations to response
-        return RequestResponse.parseFromResponse(Response.status(Status.OK).build());
+        return new RequestResponseOK<>();
     }
 
     @Override
@@ -192,6 +209,58 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
         throws InternalServerException, BadRequestException, WorkflowNotFoundException {
         // TODO Add headers to response
         return Response.ok().build();
+    }
+
+    @Override
+    public RequestResponse<JsonNode> getWorkflowDefinitions() throws VitamClientException {
+        Map<String, WorkFlow> workflowDefinitions = new HashMap<>();
+        WorkFlow workflow = new WorkFlow();
+
+        List<Action> actions = new ArrayList<>();
+        actions.add(getAction("CHECK_DIGEST", ProcessBehavior.BLOCKING, new ArrayList<IOParameter>(
+            Arrays.asList(new IOParameter().setName("algo").setUri(new ProcessingUri("VALUE", "SHA-512")))),
+            null));
+        actions.add(getAction("OG_OBJECTS_FORMAT_CHECK", ProcessBehavior.BLOCKING, null, null));
+
+        List<Step> steps = new ArrayList<>();
+        steps.add(new Step()
+            .setWorkerGroupId("DefaultWorker")
+            .setStepName("STP_OG_CHECK_AND_TRANSFORME")
+            .setBehavior(ProcessBehavior.BLOCKING)
+            .setDistribution(new Distribution().setKind(DistributionKind.LIST).setElement("ObjectGroup"))
+            .setActions(actions));
+
+        workflow.setId("DefaultIngestWorkflow");
+        workflow.setComment("DefaultIngestWorkflow comment");
+        workflow.setSteps(steps);
+        workflowDefinitions.put(workflow.getId(), workflow);
+
+        try {
+            return new RequestResponseOK().addResult(JsonHandler.toJsonNode(workflowDefinitions))
+                .setHttpCode(Status.OK.getStatusCode());
+        } catch (InvalidParseOperationException e) {
+            throw new VitamClientException(e.getMessage());
+        }
+    }
+
+    /**
+     * Create a POJO action
+     * 
+     * @param actionKey action key
+     * @param actionBehavior action behavior
+     * @param in list of IO ins
+     * @param out list of IO outs
+     * @return Action object
+     */
+    private Action getAction(String actionKey, ProcessBehavior actionBehavior, List<IOParameter> in,
+        List<IOParameter> out) {
+        ActionDefinition actionDefinition = new ActionDefinition();
+        actionDefinition.setActionKey(actionKey);
+        actionDefinition.setBehavior(actionBehavior);
+        actionDefinition.setIn(in);
+        actionDefinition.setOut(out);
+        return new Action().setActionDefinition(actionDefinition);
+
     }
 
 

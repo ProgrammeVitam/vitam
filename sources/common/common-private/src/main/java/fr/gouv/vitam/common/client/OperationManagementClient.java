@@ -10,6 +10,7 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.RequestResponse;
 
 
@@ -89,7 +90,8 @@ public interface OperationManagementClient extends MockOrRestClient {
      * @throws VitamClientException
      * @throws WorkflowNotFoundException
      */
-    RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId, String actionId)
+    RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId,
+        String actionId)
         throws InternalServerException, BadRequestException, VitamClientException, WorkflowNotFoundException;
 
     /**
@@ -138,10 +140,20 @@ public interface OperationManagementClient extends MockOrRestClient {
     /**
      * Retrieve all the workflow operations
      * 
+     * @param query Query model
+     * 
      * @return All details of the operations
      * @throws VitamClientException
      */
-    RequestResponse<JsonNode> listOperationsDetails() throws VitamClientException;
+    RequestResponse<JsonNode> listOperationsDetails(ProcessQuery query) throws VitamClientException;
 
+
+    /**
+     * Retrieve all the workflow definitions.
+     * 
+     * @return map of workflow definitions by id
+     * @throws VitamClientException
+     */
+    RequestResponse<JsonNode> getWorkflowDefinitions() throws VitamClientException;
 
 }

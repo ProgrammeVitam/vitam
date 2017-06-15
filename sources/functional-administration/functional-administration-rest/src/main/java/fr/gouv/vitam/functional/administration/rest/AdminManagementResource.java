@@ -583,6 +583,10 @@ public class AdminManagementResource extends ApplicationStatusResource {
             if (!isEveryOriginatingAgency && !prodServices.contains(documentId)) {
                 return Response.status(Status.UNAUTHORIZED).entity(Status.UNAUTHORIZED).build();
             }
+            if (!isEveryOriginatingAgency) {
+                parser.addCondition(QueryHelper.in("OriginatingAgency",
+                    prodServices.stream().toArray(String[]::new)).setDepthLimit(0));
+            } 
             parser.addCondition(eq("OriginatingAgency", URLDecoder.decode(documentId, CharsetUtils.UTF_8)));
 
             accessionRegisterDetails = accessionRegisterManagement.findDetail(parser.getRequest().getFinalSelect());
