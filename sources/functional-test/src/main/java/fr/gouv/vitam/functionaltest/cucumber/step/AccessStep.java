@@ -198,9 +198,7 @@ public class AccessStep {
         return rawCopy;
     }
 
-    /**
-     * @param substring
-     */
+
     private String replaceTitleByGUID(String auTitle) throws Throwable {
         String auId = "";
         SelectMultiQuery searchQuery = new SelectMultiQuery();
@@ -257,7 +255,7 @@ public class AccessStep {
     /**
      * check if the status of the select result is unauthorized
      *
-     * @param numberOfResult number of result.
+     * @param status
      * @throws Throwable
      */
     @Then("^le statut de select résultat est (.*)$")
@@ -276,7 +274,7 @@ public class AccessStep {
     /**
      * check if the status of the update result is unauthorized
      *
-     * @param numberOfResult number of result.
+     * @param status
      * @throws Throwable
      */
     @Then("^le statut de update résultat est (.*)$")
@@ -341,7 +339,24 @@ public class AccessStep {
             Fail.fail("request selectUnit return an error: " + vitamError.getCode());
         }
     }
-
+    /**
+     * search an archive unit according to the query define before
+     *
+     * @throws Throwable
+     */
+    @When("^je recherche une unité archivistique et je recupère son id$")
+    public void search_one_archive_unit() throws Throwable {
+        JsonNode queryJSON = JsonHandler.getFromString(query);
+        RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnits(queryJSON,
+                world.getTenantId(), world.getContractId());
+        if (requestResponse.isOk()) {
+            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
+            world.setUnitId(requestResponseOK.getResults().get(0).get("#id").asText());
+        } else {
+            VitamError vitamError = (VitamError) requestResponse;
+            Fail.fail("request selectUnit return an error: " + vitamError.getCode());
+        }
+    }
     /**
      * update an archive unit according to the query define before
      *

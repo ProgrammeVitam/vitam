@@ -67,6 +67,8 @@ public class World {
 
 
     private String contractId;
+    private String unitId;
+
 
     /**
      * id of the operation
@@ -209,6 +211,21 @@ public class World {
         this.operationId = operationId;
     }
 
+    /**
+     *
+     * @return
+     */
+    public String getUnitId() {
+        return unitId;
+    }
+
+    /**
+     *
+     * @param unitId
+     */
+    public void setUnitId(String unitId) {
+        this.unitId = unitId;
+    }
     /**
      * @return
      */
