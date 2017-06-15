@@ -26,51 +26,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.integration.test;
 
-import static com.jayway.restassured.RestAssured.get;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import org.bson.Document;
-import org.junit.AfterClass;
-import org.junit.Assume;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.restassured.RestAssured;
 import com.mongodb.MongoClient;
+import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.MongoIterable;
 import com.mongodb.client.model.Filters;
-
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -90,7 +54,6 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
 import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.database.builder.request.single.Insert;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
@@ -120,7 +83,6 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsExceptio
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -146,6 +108,39 @@ import fr.gouv.vitam.worker.server.rest.WorkerApplication;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
+import org.bson.Document;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assume;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import static com.jayway.restassured.RestAssured.get;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 /**
  * Processing integration test
@@ -157,6 +152,8 @@ public class ProcessingIT {
     private static final long NB_TRY = 4800; // equivalent to 4 minutes
     private static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
+    static MongoClient mongoClient;
+
     private static final Integer tenantId = 0;
 
     @Rule
@@ -223,6 +220,9 @@ public class ProcessingIT {
     private static String SIP_FILE_AU_LINK_OK_NAME = "integration-processing/OK_SIP_AU_LINK";
     private static String SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET = "integration-processing";
     private static String SIP_FILE_ADD_AU_LINK_OK_NAME = "integration-processing/OK_SIP_ADD_AU_LINK";
+
+    private static String LINK_AU_TO_EXISTING_GOT_OK_NAME = "integration-processing/OK_LINK_AU_TO_EXISTING_GOT";
+    private static String LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET = "integration-processing";
     private static String SIP_FILE_TAR_OK_NAME = "integration-processing/SIP.tar";
     private static String SIP_INHERITED_RULE_CA1_OK = "integration-processing/1069_CA1.zip";
     private static String SIP_INHERITED_RULE_CA4_OK = "integration-processing/1069_CA4.zip";
@@ -293,6 +293,7 @@ public class ProcessingIT {
             .build());
         mongod = mongodExecutable.start();
 
+        mongoClient = new MongoClient(new ServerAddress("localhost", DATABASE_PORT));
         // launch metadata
         SystemPropertyUtil.set(MetaDataApplication.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_METADATA));
@@ -359,6 +360,7 @@ public class ProcessingIT {
 
         mongod.stop();
         mongodExecutable.stop();
+
         try {
             workspaceApplication.stop();
             adminApplication.stop();
@@ -366,11 +368,19 @@ public class ProcessingIT {
             lgbapplication.stop();
             processManagementApplication.stop();
             metadataApplication.stop();
+            mongoClient.close();
         } catch (final Exception e) {
             LOGGER.error(e);
         }
     }
 
+
+    @After
+    public void afterTest() {
+        MongoDatabase db = mongoClient.getDatabase("Vitam");
+        db.getCollection("Unit") .deleteMany(new Document());
+        db.getCollection("ObjectGroup") .deleteMany(new Document());
+    }
 
     @Test
     public void testServersStatus() throws Exception {
@@ -413,15 +423,15 @@ public class ProcessingIT {
                 // Import Rules
                 client.importRulesFile(
                     PropertiesUtils.getResourceAsStream("integration-processing/jeu_donnees_OK_regles_CSV_regles.csv"));
-                
+
                 File fileProfiles = PropertiesUtils.getResourceFile("integration-processing/OK_profil.json");
                 List<ProfileModel> profileModelList = JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>(){});
                 RequestResponse improrResponse = client.createProfiles(profileModelList);
-                
+
                 RequestResponseOK<ProfileModel> response = (RequestResponseOK<ProfileModel>) client.findProfiles(new Select().getFinalSelect());
-                client.importProfileFile(response.getResults().get(0).getId(), 
+                client.importProfileFile(response.getResults().get(0).getId(),
                     PropertiesUtils.getResourceAsStream("integration-processing/Profil20.rng"));
-                
+
                 // import contract
                 File fileContracts = PropertiesUtils.getResourceFile("integration-processing/referential_contracts_ok.json");
                 List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>(){});
@@ -506,13 +516,13 @@ public class ProcessingIT {
             LogbookLifeCyclesClient logbookLFCClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
             logbookLFCClient.create(
                 LogbookParametersFactory.newLogbookLifeCycleUnitParameters(
-                    GUIDFactory.newOperationLogbookGUID(tenantId), 
-                    "INGEST", 
-                    GUIDFactory.newOperationLogbookGUID(tenantId), 
+                    GUIDFactory.newOperationLogbookGUID(tenantId),
+                    "INGEST",
+                    GUIDFactory.newOperationLogbookGUID(tenantId),
                     LogbookTypeProcess.INGEST,
-                    StatusCode.OK, 
-                    "Process_SIP_unitary.OK", 
-                    "aecaaaaaacb4r2p4aazb2ak4ufkfidiaaaaq", 
+                    StatusCode.OK,
+                    "Process_SIP_unitary.OK",
+                    "aecaaaaaacb4r2p4aazb2ak4ufkfidiaaaaq",
                     GUIDReader.getGUID("aeaqaaaaaagbcaacaang6ak4ts6paliaaaaq")));
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
@@ -542,7 +552,7 @@ public class ProcessingIT {
             fail("should not raized an exception");
         }
     }
-    
+
     @RunWithCustomExecutor
     @Test
     public void testWorkflowProfil() throws Exception {
@@ -1460,73 +1470,72 @@ public class ProcessingIT {
             fail("should not raized an exception");
         }
 
+        String zipPath = null;
         // 2. then we link another SIP to it
-        try (final MongoClient mongo = new MongoClient("localhost", DATABASE_PORT)) {
+        String zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
 
-            String zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
-
-            // prepare zip
-            final MongoDatabase db = mongo.getDatabase("Vitam");
-            MongoIterable<Document> resultUnits = db.getCollection("Unit").find();
-            Document unit = resultUnits.first();
-            String idUnit = (String) unit.get("_id");
-            replaceStringInFile(SIP_FILE_ADD_AU_LINK_OK_NAME + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
-                idUnit);
-            zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME),
-                PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
-                    "/" + zipName);
+        // prepare zip
+        final MongoDatabase db = mongoClient.getDatabase("Vitam");
+        MongoIterable<Document> resultUnits = db.getCollection("Unit").find();
+        Document unit = resultUnits.first();
+        String idUnit = (String) unit.get("_id");
+        replaceStringInFile(SIP_FILE_ADD_AU_LINK_OK_NAME + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
+            idUnit);
+        zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() + "/" + zipName;
+        zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME), zipPath);
 
 
-            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-            final String containerName = objectGuid.getId();
-            createLogbookOperation(operationGuid, objectGuid);
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
+        final String containerName = objectGuid.getId();
+        createLogbookOperation(operationGuid, objectGuid);
 
-            // workspace client dezip SIP in workspace
-            RestAssured.port = PORT_SERVICE_WORKSPACE;
-            RestAssured.basePath = WORKSPACE_PATH;
-            // use link sip
-            final InputStream zipStream = new FileInputStream(new File(
-                PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
-                    "/" + zipName));
+        // workspace client dezip SIP in workspace
+        RestAssured.port = PORT_SERVICE_WORKSPACE;
+        RestAssured.basePath = WORKSPACE_PATH;
+        // use link sip
+        final InputStream zipStream = new FileInputStream(new File(
+            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
+                "/" + zipName));
 
-            workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-            workspaceClient.createContainer(containerName);
-            workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-                zipStream);
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        workspaceClient.createContainer(containerName);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
+            zipStream);
 
-            // call processing
-            RestAssured.port = PORT_SERVICE_PROCESSING;
-            RestAssured.basePath = PROCESSING_PATH;
+        // call processing
+        RestAssured.port = PORT_SERVICE_PROCESSING;
+        RestAssured.basePath = PROCESSING_PATH;
 
-            processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-            processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
-            final RequestResponse<JsonNode> ret =
-                processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                    LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
-            assertNotNull(ret);
-            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+        final RequestResponse<JsonNode> ret =
+            processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
+                LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
+        assertNotNull(ret);
+        assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-            wait(containerName);
-            ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
-            assertNotNull(processWorkflow);
-            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
-            assertNotNull(processWorkflow.getSteps());
+        wait(containerName);
+        ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+        assertNotNull(processWorkflow.getSteps());
 
-            // check results
-            MongoIterable<Document> modifiedParentUnit = db.getCollection("Unit").find(Filters.eq("_id", idUnit));
-            assertNotNull(modifiedParentUnit);
-            assertNotNull(modifiedParentUnit.first());
-            Document parentUnit = modifiedParentUnit.first();
+        // check results
+        MongoIterable<Document> modifiedParentUnit = db.getCollection("Unit").find(Filters.eq("_id", idUnit));
+        assertNotNull(modifiedParentUnit);
+        assertNotNull(modifiedParentUnit.first());
+        Document parentUnit = modifiedParentUnit.first();
 
-            MongoIterable<Document> newChildUnit = db.getCollection("Unit").find(Filters.eq("_up", idUnit));
-            assertNotNull(newChildUnit);
-            assertNotNull(newChildUnit.first());
-        } catch (final Exception e) {
+        MongoIterable<Document> newChildUnit = db.getCollection("Unit").find(Filters.eq("_up", idUnit));
+        assertNotNull(newChildUnit);
+        assertNotNull(newChildUnit.first());
+        try {
+            Files.delete(new File(zipPath).toPath());
+        } catch (Exception e) {
             e.printStackTrace();
-            fail("should not raized an exception");
         }
     }
 
@@ -1537,18 +1546,78 @@ public class ProcessingIT {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
         // We link to a non existing unit
-        try (final MongoClient mongo = new MongoClient("localhost", DATABASE_PORT)) {
+        String zipPath = null;
+        String zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
 
-            String zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
+        // prepare zip
+        replaceStringInFile(SIP_FILE_ADD_AU_LINK_OK_NAME + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
+            "aeaaaaaaaaaam7mxabxccakzrw47heqaaaaq");
 
-            // prepare zip
-            replaceStringInFile(SIP_FILE_ADD_AU_LINK_OK_NAME + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
-                "aeaaaaaaaaaam7mxabxccakzrw47heqaaaaq");
-            zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME),
-                PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
-                    "/" + zipName);
+        zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() + "/" + zipName;
+        zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME), zipPath);
 
 
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
+        final String containerName = objectGuid.getId();
+        createLogbookOperation(operationGuid, objectGuid);
+
+        // workspace client dezip SIP in workspace
+        RestAssured.port = PORT_SERVICE_WORKSPACE;
+        RestAssured.basePath = WORKSPACE_PATH;
+        // use link sip
+        final InputStream zipStream = new FileInputStream(new File(
+            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
+                "/" + zipName));
+
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        workspaceClient.createContainer(containerName);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
+            zipStream);
+
+        // call processing
+        RestAssured.port = PORT_SERVICE_PROCESSING;
+        RestAssured.basePath = PROCESSING_PATH;
+        ///////
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+        final RequestResponse<JsonNode> ret =
+            processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
+                LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
+        assertNotNull(ret);
+        assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+        wait(containerName);
+        ProcessWorkflow processWorkflow =
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.KO, processWorkflow.getStatus());
+        assertNotNull(processWorkflow.getSteps());
+        try {
+            Files.delete(new File(zipPath).toPath());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    /**
+     * Test attach existing ObjectGroup to unit
+     * 1. Upload SIP
+     * 2. Get created GOT
+     * 3. Update manifest and set existing GOT
+     * 4. Upload the new SIP
+     * @throws Exception
+     */
+    @RunWithCustomExecutor
+    @Test
+    public void testLinkUnitToExistingGOTOK() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        tryImportFile();
+        // 1. First we create an AU by sip
+        try {
             final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
@@ -1558,25 +1627,21 @@ public class ProcessingIT {
             // workspace client dezip SIP in workspace
             RestAssured.port = PORT_SERVICE_WORKSPACE;
             RestAssured.basePath = WORKSPACE_PATH;
-            // use link sip
-            final InputStream zipStream = new FileInputStream(new File(
-                PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
-                    "/" + zipName));
-
+            final InputStream zipInputStreamSipObject =
+                PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
             workspaceClient = WorkspaceClientFactory.getInstance().getClient();
             workspaceClient.createContainer(containerName);
-            workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-                zipStream);
-
+            workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
             // call processing
             RestAssured.port = PORT_SERVICE_PROCESSING;
             RestAssured.basePath = PROCESSING_PATH;
-            ///////
+
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
             final RequestResponse<JsonNode> ret =
                 processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
                     LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
+
             assertNotNull(ret);
             assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
@@ -1585,8 +1650,139 @@ public class ProcessingIT {
                 processMonitoring.findOneProcessWorkflow(containerName, tenantId);
             assertNotNull(processWorkflow);
             assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-            assertEquals(StatusCode.KO, processWorkflow.getStatus());
-            assertNotNull(processWorkflow.getSteps());
+            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+        } catch (final Exception e) {
+            e.printStackTrace();
+            fail("should not raized an exception");
+        }
+
+        // 2. then we link another SIP to it
+        String zipPath = null;
+        String zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
+
+        // prepare zip
+        final MongoDatabase db = mongoClient.getDatabase("Vitam");
+        MongoIterable<Document> resultUnits = db.getCollection("Unit").find();
+        Document unit = resultUnits.first();
+        String idGot = (String) unit.get("_og");
+        replaceStringInFile(LINK_AU_TO_EXISTING_GOT_OK_NAME + "/manifest.xml", "(?<=<DataObjectGroupExistingReferenceId>).*?(?=</DataObjectGroupExistingReferenceId>)",
+            idGot);
+
+        zipPath = PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET).toAbsolutePath().toString() + "/" + zipName;
+        zipFolder(PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME), zipPath);
+
+
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
+        final String containerName = objectGuid.getId();
+        createLogbookOperation(operationGuid, objectGuid);
+
+        // workspace client dezip SIP in workspace
+        RestAssured.port = PORT_SERVICE_WORKSPACE;
+        RestAssured.basePath = WORKSPACE_PATH;
+        // use link sip
+        final InputStream zipStream = new FileInputStream(new File(
+            PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET).toAbsolutePath() +
+                "/" + zipName));
+
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        workspaceClient.createContainer(containerName);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
+            zipStream);
+
+        // call processing
+        RestAssured.port = PORT_SERVICE_PROCESSING;
+        RestAssured.basePath = PROCESSING_PATH;
+
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+        final RequestResponse<JsonNode> ret =
+            processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
+                LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
+        assertNotNull(ret);
+        assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+        wait(containerName);
+        ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+        assertNotNull(processWorkflow.getSteps());
+
+        // check got have to units
+        assertEquals(db.getCollection("Unit").count(Filters.eq("_og", idGot)), 2);
+        try {
+            Files.delete(new File(zipPath).toPath());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    /**
+     * Test attach existing ObjectGroup to unit, but guid of the existing got is fake and really exists
+     * @throws Exception
+     */
+    @RunWithCustomExecutor
+    @Test
+    public void testLinkUnitToExistingGOTFakeGuidKO() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        tryImportFile();
+        String zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
+
+        // prepare zip
+        String idGot = "FakeGuid";
+        replaceStringInFile(LINK_AU_TO_EXISTING_GOT_OK_NAME + "/manifest.xml", "(?<=<DataObjectGroupExistingReferenceId>).*?(?=</DataObjectGroupExistingReferenceId>)",
+            idGot);
+        zipFolder(PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME),
+            PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET).toAbsolutePath().toString() +
+                "/" + zipName);
+
+
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
+        final String containerName = objectGuid.getId();
+        createLogbookOperation(operationGuid, objectGuid);
+
+        // workspace client dezip SIP in workspace
+        RestAssured.port = PORT_SERVICE_WORKSPACE;
+        RestAssured.basePath = WORKSPACE_PATH;
+        // use link sip
+        final InputStream zipStream = new FileInputStream(new File(
+            PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET).toAbsolutePath() +
+                "/" + zipName));
+
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        workspaceClient.createContainer(containerName);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
+            zipStream);
+
+        // call processing
+        RestAssured.port = PORT_SERVICE_PROCESSING;
+        RestAssured.basePath = PROCESSING_PATH;
+
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+        final RequestResponse<JsonNode> ret =
+            processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
+                LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
+        assertNotNull(ret);
+        assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+        wait(containerName);
+        ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.KO, processWorkflow.getStatus());
+        assertNotNull(processWorkflow.getSteps());
+        try {
+            Files.delete(new File(
+                PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET).toAbsolutePath().toString() +
+                    "/" + zipName).toPath());
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

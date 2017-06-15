@@ -26,44 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
-import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.originatingAgencies;
-import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.UNITTYPE;
-
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import javax.xml.namespace.QName;
-import javax.xml.stream.FactoryConfigurationError;
-import javax.xml.stream.XMLEventFactory;
-import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLEventWriter;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.events.Attribute;
-import javax.xml.stream.events.EndElement;
-import javax.xml.stream.events.StartElement;
-import javax.xml.stream.events.XMLEvent;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.BooleanNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.base.Strings;
-
 import de.odysseus.staxon.json.JsonXMLConfig;
 import de.odysseus.staxon.json.JsonXMLConfigBuilder;
 import de.odysseus.staxon.json.JsonXMLOutputFactory;
@@ -123,6 +91,7 @@ import fr.gouv.vitam.processing.common.exception.MissingFieldException;
 import fr.gouv.vitam.processing.common.exception.ProcessingDuplicatedVersionException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingManifestReferenceException;
+import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnauthorizeException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnitNotFoundException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -139,6 +108,36 @@ import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+
+import javax.xml.namespace.QName;
+import javax.xml.stream.FactoryConfigurationError;
+import javax.xml.stream.XMLEventFactory;
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLEventWriter;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.Attribute;
+import javax.xml.stream.events.EndElement;
+import javax.xml.stream.events.StartElement;
+import javax.xml.stream.events.XMLEvent;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.originatingAgencies;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.UNITTYPE;
 
 /**
  * Handler class used to extract metaData. </br> Create and put a new file (metadata extracted) json.json into container
@@ -306,6 +305,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
         } catch (final ProcessingUnitNotFoundException e) {
             LOGGER.debug("ProcessingException : unit not found", e);
             globalCompositeItemStatus.increment(StatusCode.KO);
+        } catch (final ProcessingObjectGroupNotFoundException e) {
+            LOGGER.debug("ProcessingException : ObjectGroup not found", e);
+            globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final ProcessingUnauthorizeException e) {
             LOGGER.debug("ProcessingException : unit not found", e);
             globalCompositeItemStatus.increment(StatusCode.KO);
@@ -416,143 +418,143 @@ public class ExtractSedaActionHandler extends ActionHandler {
             ObjectNode evDetData = JsonHandler.createObjectNode();
             evDetData.put("evDetDataType", LogbookEvDetDataType.MASTER.name());
 
-            while (true) {
-                final XMLEvent event = reader.nextEvent();
+                while (true) {
+                    final XMLEvent event = reader.nextEvent();
 
-                // extract info for ATR
-                // The DataObjectPackage EndElement is tested before the add condition as we need to add a empty
-                // DataObjectPackage endElement event
-                if (event.isEndElement() && event.asEndElement().getName().getLocalPart().equals(DATAOBJECT_PACKAGE)) {
-                    globalMetadata = true;
-                }
-
-                if (event.isStartElement() && event.asStartElement().getName().getLocalPart()
-                    .equals(SedaConstants.TAG_ARCHIVAL_AGREEMENT)) {
-                    contractName = reader.getElementText();
-                    writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
-                        SedaConstants.TAG_ARCHIVAL_AGREEMENT));
-                    writer.add(eventFactory.createCharacters(contractName));
-                    writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI,
-                        SedaConstants.TAG_ARCHIVAL_AGREEMENT));
-                    continue;
-                }
-
-                if (event.isStartElement() && event.asStartElement().getName().getLocalPart()
-                    .equals(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER)) {
-
-                    originatingAgency = reader.getElementText();
-                    originatingAgencies.add(originatingAgency);
-
-                    // Check if the OriginatingAgency was really set
-                    if (originatingAgency != null && !originatingAgency.isEmpty()) {
-                        globalRequiredInfosFound.add(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
+                    // extract info for ATR
+                    // The DataObjectPackage EndElement is tested before the add condition as we need to add a empty
+                    // DataObjectPackage endElement event
+                    if (event.isEndElement() && event.asEndElement().getName().getLocalPart().equals(DATAOBJECT_PACKAGE)) {
+                        globalMetadata = true;
                     }
 
-                    writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
-                        SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER));
-                    writer.add(eventFactory.createCharacters(originatingAgency));
-                    writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI,
-                        SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER));
-                    for (String currentAgency : originatingAgencies) {
+                    if (event.isStartElement() && event.asStartElement().getName().getLocalPart()
+                        .equals(SedaConstants.TAG_ARCHIVAL_AGREEMENT)) {
+                        contractName = reader.getElementText();
                         writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
-                            SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIERS));
-                        writer.add(eventFactory.createCharacters(currentAgency));
+                            SedaConstants.TAG_ARCHIVAL_AGREEMENT));
+                        writer.add(eventFactory.createCharacters(contractName));
                         writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI,
-                            SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIERS));
+                            SedaConstants.TAG_ARCHIVAL_AGREEMENT));
+                        continue;
                     }
 
-                    writer.add(
-                        eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI, SedaUtils.NB_AU_EXISTING));
-                    writer.add(eventFactory.createCharacters(String.valueOf(nbAUExisting)));
-                    writer
-                        .add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI, SedaUtils.NB_AU_EXISTING));
+                    if (event.isStartElement() && event.asStartElement().getName().getLocalPart()
+                        .equals(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER)) {
 
-                    globalMetadata = false;
-                }
+                        originatingAgency = reader.getElementText();
+                        originatingAgencies.add(originatingAgency);
 
-                // Bug #2324 - lets check the serviceLevel value
-                if (event.isStartElement() && event.asStartElement().getName().getLocalPart()
-                    .equals(SedaConstants.TAG_SERVICE_LEVEL)) {
-                    final String serviceLevel = reader.getElementText();
-                    writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
-                        SedaConstants.TAG_SERVICE_LEVEL));
-                    writer.add(eventFactory.createCharacters(serviceLevel));
-                    writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI,
-                        SedaConstants.TAG_SERVICE_LEVEL));
-                    globalMetadata = false;
-                }
+                        // Check if the OriginatingAgency was really set
+                        if (originatingAgency != null && !originatingAgency.isEmpty()) {
+                            globalRequiredInfosFound.add(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
+                        }
 
-                if (event.isStartElement() && event.asStartElement().getName().getLocalPart()
-                    .equals(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER)) {
-                    final String orgAgId = reader.getElementText();
-                    writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
-                        SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER));
-                    writer.add(eventFactory.createCharacters(orgAgId));
-                    writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI,
-                        SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER));
-                    globalMetadata = false;
-                }
-                // Process rules : build mgtRulesMap
-                if (event.isStartElement() &&
-                    SedaConstants.getSupportedRules().contains(event.asStartElement().getName().getLocalPart())) {
-                    final StartElement element = event.asStartElement();
-                    parseMetadataManagementRules(reader, element, event.asStartElement().getName().getLocalPart());
-                }
+                        writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
+                            SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER));
+                        writer.add(eventFactory.createCharacters(originatingAgency));
+                        writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI,
+                            SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER));
+                        for (String currentAgency : originatingAgencies) {
+                            writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
+                                SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIERS));
+                            writer.add(eventFactory.createCharacters(currentAgency));
+                            writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI,
+                                SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIERS));
+                        }
 
-                // We add all the end but the start and end document and the event in the DataObjectPackage structure
-                if (globalMetadata && event.getEventType() != XMLStreamConstants.START_DOCUMENT &&
-                    event.getEventType() != XMLStreamConstants.END_DOCUMENT) {
-                    writer.add(event);
-                }
-                // The DataObjectPackage StartElement is tested after the add event condition as we need to add an empty
-                // DataObjectPackage startElement event
-                if (event.isStartElement() &&
-                    event.asStartElement().getName().getLocalPart().equals(DATAOBJECT_PACKAGE)) {
-                    globalMetadata = false;
-                }
+                        writer.add(
+                            eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI, SedaUtils.NB_AU_EXISTING));
+                        writer.add(eventFactory.createCharacters(String.valueOf(nbAUExisting)));
+                        writer
+                            .add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI, SedaUtils.NB_AU_EXISTING));
 
-                if (event.isStartElement()) {
-                    final StartElement element = event.asStartElement();
-                    if (element.getName().equals(unitName)) {
-                        writeArchiveUnitToTmpDir(containerId, reader, element, archiveUnitTree,
-                            logbookLifeCycleClient, typeProcess);
-                    } else if (element.getName().equals(dataObjectName) ||
-                        element.getName().equals(physicalDataObjectName)) {
-                        final String objectGroupGuid =
-                            writeDataObjectInLocal(reader, element, containerId, logbookLifeCycleClient,
-                                typeProcess);
+                        globalMetadata = false;
+                    }
 
-                        if (guidToLifeCycleParameters.get(objectGroupGuid) != null) {
-                            handlerIO.getHelper()
-                                .updateDelegate((LogbookLifeCycleObjectGroupParameters) guidToLifeCycleParameters
-                                    .get(objectGroupGuid).setBeginningLog(HANDLER_ID, null, null));
+                    // Bug #2324 - lets check the serviceLevel value
+                    if (event.isStartElement() && event.asStartElement().getName().getLocalPart()
+                        .equals(SedaConstants.TAG_SERVICE_LEVEL)) {
+                        final String serviceLevel = reader.getElementText();
+                        writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
+                            SedaConstants.TAG_SERVICE_LEVEL));
+                        writer.add(eventFactory.createCharacters(serviceLevel));
+                        writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI,
+                            SedaConstants.TAG_SERVICE_LEVEL));
+                        globalMetadata = false;
+                    }
 
-                            // Add creation sub task event
-                            handlerIO.getHelper()
-                                .updateDelegate((LogbookLifeCycleObjectGroupParameters) guidToLifeCycleParameters
-                                    .get(objectGroupGuid).setFinalStatus(LFC_CREATION_SUB_TASK_FULL_ID,
-                                        null,
-                                        StatusCode.OK,
-                                        null));
+                    if (event.isStartElement() && event.asStartElement().getName().getLocalPart()
+                        .equals(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER)) {
+                        final String orgAgId = reader.getElementText();
+                        writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
+                            SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER));
+                        writer.add(eventFactory.createCharacters(orgAgId));
+                        writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI,
+                            SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER));
+                        globalMetadata = false;
+                    }
+                    // Process rules : build mgtRulesMap
+                    if (event.isStartElement() &&
+                        SedaConstants.getSupportedRules().contains(event.asStartElement().getName().getLocalPart())) {
+                        final StartElement element = event.asStartElement();
+                        parseMetadataManagementRules(reader, element, event.asStartElement().getName().getLocalPart());
+                    }
 
-                            handlerIO.getHelper()
-                                .updateDelegate((LogbookLifeCycleObjectGroupParameters) guidToLifeCycleParameters
-                                    .get(objectGroupGuid).setFinalStatus(HANDLER_ID, null,
-                                        StatusCode.OK,
-                                        null));
-                            logbookLifeCycleClient.bulkCreateObjectGroup(containerId,
-                                handlerIO.getHelper().removeCreateDelegate(objectGroupGuid));
+                    // We add all the end but the start and end document and the event in the DataObjectPackage structure
+                    if (globalMetadata && event.getEventType() != XMLStreamConstants.START_DOCUMENT &&
+                        event.getEventType() != XMLStreamConstants.END_DOCUMENT) {
+                        writer.add(event);
+                    }
+                    // The DataObjectPackage StartElement is tested after the add event condition as we need to add an empty
+                    // DataObjectPackage startElement event
+                    if (event.isStartElement() &&
+                        event.asStartElement().getName().getLocalPart().equals(DATAOBJECT_PACKAGE)) {
+                        globalMetadata = false;
+                    }
+
+                    if (event.isStartElement()) {
+                        final StartElement element = event.asStartElement();
+                        if (element.getName().equals(unitName)) {
+                            writeArchiveUnitToTmpDir(containerId, reader, element, archiveUnitTree,
+                                logbookLifeCycleClient, typeProcess);
+                        } else if (element.getName().equals(dataObjectName) ||
+                            element.getName().equals(physicalDataObjectName)) {
+                            final String objectGroupGuid =
+                                writeDataObjectInLocal(reader, element, containerId, logbookLifeCycleClient,
+                                    typeProcess);
+
+                            if (guidToLifeCycleParameters.get(objectGroupGuid) != null) {
+                                handlerIO.getHelper()
+                                    .updateDelegate((LogbookLifeCycleObjectGroupParameters) guidToLifeCycleParameters
+                                        .get(objectGroupGuid).setBeginningLog(HANDLER_ID, null, null));
+
+                                // Add creation sub task event
+                                handlerIO.getHelper()
+                                    .updateDelegate((LogbookLifeCycleObjectGroupParameters) guidToLifeCycleParameters
+                                        .get(objectGroupGuid).setFinalStatus(LFC_CREATION_SUB_TASK_FULL_ID,
+                                            null,
+                                            StatusCode.OK,
+                                            null));
+
+                                handlerIO.getHelper()
+                                    .updateDelegate((LogbookLifeCycleObjectGroupParameters) guidToLifeCycleParameters
+                                        .get(objectGroupGuid).setFinalStatus(HANDLER_ID, null,
+                                            StatusCode.OK,
+                                            null));
+                                logbookLifeCycleClient.bulkCreateObjectGroup(containerId,
+                                    handlerIO.getHelper().removeCreateDelegate(objectGroupGuid));
+                            }
                         }
                     }
+
+                    if (event.isEndDocument()) {
+                        break;
+                    }
                 }
 
-                if (event.isEndDocument()) {
-                    break;
-                }
-            }
-
-            writer.add(eventFactory.createEndDocument());
-            writer.close();
+                writer.add(eventFactory.createEndDocument());
+                writer.close();
 
             // 2-detect cycle : if graph has a cycle throw CycleFoundException
             // Define Treatment DirectedCycle detection
@@ -1671,7 +1673,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess, containerId);
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newEventGUID(0).toString());
+            GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()).toString());
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
             logbookTypeProcess.name());
 
@@ -1767,6 +1769,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         case SedaConstants.TAG_DATA_OBJECT_GROUP_REFERENCEID:
                             extractDataObjectGroupReferenceIdTag(reader, writerJson, eventFactory, elementID);
                             break;
+                        case SedaConstants.TAG_DATA_OBJECT_GROUP_EXISITING_REFERENCEID:
+                            extractDataObjectGroupExistingReferenceIdTag(reader, writerJson, eventFactory, elementID);
+                            break;
                         case SedaConstants.TAG_DATA_OBJECT_REFERENCEID:
                             extractDataObjectReferenceIdTag(reader, writerJson, eventFactory, elementID);
                             break;
@@ -1848,6 +1853,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
             throw new ProcessingException(e);
         } catch (final ProcessingManifestReferenceException e) {
             LOGGER.error("Can not extract Object from SEDA IOException " + elementGuid);
+            // delete created temporary file
+            tmpFile.delete();
+            throw e;
+        } catch (final ProcessingObjectGroupNotFoundException e) {
             // delete created temporary file
             tmpFile.delete();
             throw e;
@@ -1977,6 +1986,54 @@ public class ExtractSedaActionHandler extends ActionHandler {
         writerJson.add(eventFactory.createStartElement("", "", SedaConstants.TAG_DATA_OBJECT_GROUP_REFERENCEID));
         writerJson.add(eventFactory.createCharacters(newGroupId));
         writerJson.add(eventFactory.createEndElement("", "", SedaConstants.TAG_DATA_OBJECT_GROUP_REFERENCEID));
+    }
+
+
+    /**
+     * Check that object group already exists in database.
+     * Then map corresponding unit  to the group id and objectGroup to th unit
+     * Also map objectGroupId to guid with key and value equals to group id
+     * @param reader
+     * @param writerJson
+     * @param eventFactory
+     * @param elementID
+     * @throws XMLStreamException
+     * @throws ProcessingException
+     */
+    private void extractDataObjectGroupExistingReferenceIdTag(XMLEventReader reader, XMLEventWriter writerJson,
+        XMLEventFactory eventFactory,
+        String elementID) throws XMLStreamException, ProcessingException {
+        if (!UnitType.INGEST.equals(workflowUnitTYpe)) {
+        LOGGER.error("Linking not allowed for FILING and HOLDING UNIT  {}", workflowUnitTYpe);
+        throw new ProcessingObjectGroupNotFoundException("Linking not allowed for FILING and HOLDING UNIT");
+    }
+
+
+
+        final String groupId = reader.getElementText();
+
+        // Check that the object group exists
+        JsonNode existingObjectGroup = loadExistingObjectGroup(groupId);
+
+        if (existingObjectGroup == null || existingObjectGroup.get("$results") == null ||
+            existingObjectGroup.get("$results").size() == 0) {
+            LOGGER.error("Existing ObjectGroup "+groupId+" was not found {}", existingObjectGroup);
+            throw new ProcessingObjectGroupNotFoundException("Existing ObjectGroup "+groupId+" was not found");
+        }
+
+        unitIdToGroupId.put(elementID, groupId);
+        objectGroupIdToGuid.put(groupId, groupId);
+        if (objectGroupIdToUnitId.get(groupId) == null) {
+            final List<String> archiveUnitList = new ArrayList<>();
+            archiveUnitList.add(elementID);
+            if (!dataObjectIdWithoutObjectGroupId.containsKey(groupId)) {
+                objectGroupIdToUnitId.put(groupId, archiveUnitList);
+            }
+        } else {
+            final List<String> archiveUnitList = objectGroupIdToUnitId.get(groupId);
+            archiveUnitList.add(elementID);
+            objectGroupIdToUnitId.put(groupId, archiveUnitList);
+        }
     }
 
     private void extractRuleTag(XMLEventReader reader, XMLEventWriter writerJson, XMLEventFactory eventFactory,
@@ -2332,6 +2389,31 @@ public class ExtractSedaActionHandler extends ActionHandler {
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("Existing Unit was not found", e);
             throw new ProcessingUnitNotFoundException("Existing Unit was not found");
+        }
+    }
+
+    /**
+     * Load data of an existing object group by its vitam id.
+     *
+     * @param objectGroupId guid of archive unit
+     * @return AU response
+     * @throws ProcessingUnitNotFoundException thrown if unit not found
+     * @throws ProcessingException thrown if a metadata exception occured
+     */
+    private JsonNode loadExistingObjectGroup(String objectGroupId) throws ProcessingException {
+
+        try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
+            final SelectParserMultiple selectRequest = new SelectParserMultiple();
+            final SelectMultiQuery request = selectRequest.getRequest().reset();
+            return metadataClient.selectObjectGrouptbyId(request.getFinalSelect(), objectGroupId);
+
+        } catch (final MetaDataException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new ProcessingException(e);
+
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error("Existing ObjectGroup "+objectGroupId+" was not found", e);
+            throw new ProcessingException("Existing ObjectGroup "+objectGroupId+" was not found");
         }
     }
 

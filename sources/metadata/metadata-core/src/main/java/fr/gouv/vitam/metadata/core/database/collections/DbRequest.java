@@ -37,6 +37,7 @@ import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.gte;
 import static com.mongodb.client.model.Filters.in;
 import static com.mongodb.client.model.Filters.lte;
+import static com.mongodb.client.model.Updates.combine;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ID;
 
 import java.io.FileNotFoundException;
@@ -52,6 +53,7 @@ import java.util.Set;
 
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.Updates;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -1047,10 +1049,16 @@ public class DbRequest {
                 if (unit.getString(MetadataDocument.OG) != null && !unit.getString(MetadataDocument.OG).isEmpty()) {
                     // find the unit that we just save, to take sps field, and save it in the object group
                     MetadataDocument newUnit = MongoDbMetadataHelper.findOne(MetadataCollections.C_UNIT, unit.getString(MetadataDocument.ID));
-                    Object originatingAgencies = newUnit.get(MetadataDocument.ORIGINATING_AGENCIES);
+                    List originatingAgencies = newUnit.get(MetadataDocument.ORIGINATING_AGENCIES, List.class);
 
-                    Bson update = Updates.set(MetadataDocument.ORIGINATING_AGENCIES, originatingAgencies);
-                    MetadataCollections.C_OBJECTGROUP.getCollection().updateOne(eq(ID, unit.getString(MetadataDocument.OG)),
+                    Bson updateSps = Updates.addEachToSet(MetadataDocument.ORIGINATING_AGENCIES, originatingAgencies);
+                    Bson updateUp = Updates.addToSet(MetadataDocument.UP, unit.getString(MetadataDocument.ID));
+                    Bson updateOps = Updates.addToSet(MetadataDocument.OPS, VitamThreadUtils.getVitamSession().getRequestId());
+
+
+                    Bson update = combine(updateSps, updateUp, updateOps);
+                    MetadataCollections.C_OBJECTGROUP.getCollection()
+                        .updateOne(eq(ID, unit.getString(MetadataDocument.OG)),
                             update,
                             new UpdateOptions().upsert(false));
                 }

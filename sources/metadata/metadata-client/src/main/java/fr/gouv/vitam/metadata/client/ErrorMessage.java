@@ -46,6 +46,11 @@ public enum ErrorMessage {
      */
     UPDATE_UNITS_QUERY_NULL("Update units query is null"),
     /**
+     * message when update object group query is null
+     */
+    UPDATE_OBJECT_GROUP_QUERY_NULL("Update object group query is null"),
+
+    /**
      * message when insert units query is null
      */
     INSERT_UNITS_QUERY_NULL("Insert units query is null"),
