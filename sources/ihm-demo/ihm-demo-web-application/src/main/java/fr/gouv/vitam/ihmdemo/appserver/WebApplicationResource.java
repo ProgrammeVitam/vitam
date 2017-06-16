@@ -490,7 +490,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             int writtenByte = fileChannel.write(ByteBuffer.wrap(stream), offset);
             AtomicLong writtenByteSize = uploadMap.get(operationGuid);
             long total = writtenByteSize.addAndGet(writtenByte);
-            long size = Long.parseLong(chunkSizeTotal) ;
+            long size = Long.parseLong(chunkSizeTotal);
             if (total >= size) {
                 fileChannel.force(false);
                 startUpload(operationGuid, getTenantId(headers), contextId, action);
@@ -619,7 +619,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
                     } else if (ProcessState.PAUSE.equals(itemStatus.getGlobalState())) {
                         return Response.status(itemStatus.getGlobalStatus().getEquivalentHttpStatus()).build();
                     } else {
-                        return Response.status(Status.NO_CONTENT).header(GlobalDataRest.X_REQUEST_ID, operationId).build();
+                        return Response.status(Status.NO_CONTENT).header(GlobalDataRest.X_REQUEST_ID, operationId)
+                            .build();
                     }
                 } else {
                     return Response.status(Status.NO_CONTENT).header(GlobalDataRest.X_REQUEST_ID, operationId).build();
@@ -1006,9 +1007,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
      *
      * @param headers HTTP Headers
      * @param objectGroupId the object group Id
-     * @param version additional mandatory parameters version
+     * @param usage additional mandatory parameters usage
      * @param filename additional mandatory parameters filename
      * @param tenantId the tenant id
+     * @param contractId the contract id
      * @param asyncResponse will return the inputstream
      */
     @GET
@@ -1622,7 +1624,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
         String tenantIdHeader = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
 
         try (IngestExternalClient ingestExternalClient = IngestExternalClientFactory.getInstance().getClient()) {
-            RequestResponse<JsonNode> resp = ingestExternalClient.cancelOperationProcessExecution(id, Integer.parseInt(tenantIdHeader));
+            RequestResponse<JsonNode> resp =
+                ingestExternalClient.cancelOperationProcessExecution(id, Integer.parseInt(tenantIdHeader));
             return Response.status(Status.OK).entity(resp).build();
         } catch (VitamClientException | ProcessingException e) {
             LOGGER.error(e);
@@ -1948,18 +1951,20 @@ public class WebApplicationResource extends ApplicationStatusResource {
             boolean updateEveryUsage = false;
 
             if (updateData.get(STATUS_FIELD_QUERY) != null &&
-                (updateData.get(ACTIVATION_DATE_FIELD_QUERY) != null || updateData.get(DEACTIVATION_DATE_FIELD_QUERY) != null)) {
-	            actions.add(UpdateActionHelper.set(STATUS_FIELD_QUERY, updateData.get(STATUS_FIELD_QUERY)));
-	            SetAction setActionDesactivationDateActive = null;
-	            if (updateData.get(ACTIVATION_DATE_FIELD_QUERY) != null) {
-	                setActionDesactivationDateActive =
-	                    UpdateActionHelper.set(ACTIVATION_DATE_FIELD_QUERY, updateData.get(ACTIVATION_DATE_FIELD_QUERY));
-	            } else if (updateData.get(DEACTIVATION_DATE_FIELD_QUERY) != null) {
-	                setActionDesactivationDateActive = UpdateActionHelper.set(DEACTIVATION_DATE_FIELD_QUERY,
-	                    updateData.get(DEACTIVATION_DATE_FIELD_QUERY));
-	            }
-	            actions.add(setActionDesactivationDateActive);
-	            updateStatus = true;
+                (updateData.get(ACTIVATION_DATE_FIELD_QUERY) != null ||
+                    updateData.get(DEACTIVATION_DATE_FIELD_QUERY) != null)) {
+                actions.add(UpdateActionHelper.set(STATUS_FIELD_QUERY, updateData.get(STATUS_FIELD_QUERY)));
+                SetAction setActionDesactivationDateActive = null;
+                if (updateData.get(ACTIVATION_DATE_FIELD_QUERY) != null) {
+                    setActionDesactivationDateActive =
+                        UpdateActionHelper.set(ACTIVATION_DATE_FIELD_QUERY,
+                            updateData.get(ACTIVATION_DATE_FIELD_QUERY));
+                } else if (updateData.get(DEACTIVATION_DATE_FIELD_QUERY) != null) {
+                    setActionDesactivationDateActive = UpdateActionHelper.set(DEACTIVATION_DATE_FIELD_QUERY,
+                        updateData.get(DEACTIVATION_DATE_FIELD_QUERY));
+                }
+                actions.add(setActionDesactivationDateActive);
+                updateStatus = true;
             } else if (updateData.get(STATUS_FIELD_QUERY) != null ||
                 updateData.get(ACTIVATION_DATE_FIELD_QUERY) != null ||
                 updateData.get(DEACTIVATION_DATE_FIELD_QUERY) != null) {
@@ -2018,7 +2023,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("contexts:create")
-    public Response uploadContext(@Context HttpHeaders headers, InputStream input){
+    public Response uploadContext(@Context HttpHeaders headers, InputStream input) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             RequestResponse response =
                 adminClient.importContexts(input, getTenantId(headers));
