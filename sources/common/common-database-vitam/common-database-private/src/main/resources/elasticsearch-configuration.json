@@ -5,32 +5,36 @@
         "type": "custom",
         "tokenizer": "icu_tokenizer",
         "filter": [
-          "stopwords",
+          "_stopwords",
           "asciifolding",
           "lowercase",
-          "snowball",
-          "elision",
-          "worddelimiter"
+          "_snowball",
+          "_elision",
+          "_word_delimiter",
+          "_stemmer"
         ],
         "char_filter": [
           "dotreplace",
-          "html_strip"
+          "html_strip",
+          "underscoreReplace"
         ]
       },
       "default_search": {
         "type": "custom",
         "tokenizer": "icu_tokenizer",
         "filter": [
-          "stopwords",
+          "_stopwords",
           "asciifolding",
           "lowercase",
-          "snowball",
-          "elision",
-          "worddelimiter"
+          "_snowball",
+          "_elision",
+          "_word_delimiter",
+          "_stemmer"
         ],
         "char_filter": [
           "dotreplace",
-          "html_strip"
+          "html_strip",
+          "underscoreReplace"
         ]
       }
     },
@@ -38,6 +42,11 @@
       "dotreplace": {
         "type": "pattern_replace",
         "pattern": "\\.",
+        "replacement": " "
+      },
+      "underscoreReplace": {
+        "type": "pattern_replace",
+        "pattern": "_",
         "replacement": " "
       }
     },
@@ -47,11 +56,11 @@
       }
     },
     "filter": {
-      "snowball": {
+      "_snowball": {
         "type": "snowball",
         "language": "French"
       },
-      "elision": {
+      "_elision": {
         "type": "elision",
         "articles": [
           "l",
@@ -68,13 +77,17 @@
           "puisqu"
         ]
       },
-      "stopwords": {
+      "_stopwords": {
         "type": "stop",
         "stopwords": "_french_",
         "ignore_case": true
       },
-      "worddelimiter": {
+      "_word_delimiter": {
         "type": "word_delimiter"
+      },
+      "_stemmer": {
+        "type" : "stemmer",
+        "name" : "french"
       }
     }
   }
