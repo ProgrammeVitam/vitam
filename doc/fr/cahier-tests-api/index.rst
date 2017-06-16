@@ -19,9 +19,7 @@ Sommaire
 .. toctree::
    :maxdepth: 2
 
-   introduction.rst
-   outils.rst
-   include/_toc.rst
+   cahier_de_test.rst
 
 
 ##############

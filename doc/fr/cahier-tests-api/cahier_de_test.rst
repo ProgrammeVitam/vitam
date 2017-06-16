@@ -775,25 +775,9 @@ En recherchant cette unité d’archive par son identifiant, on doit retrouver c
 
 
 
-LES OUTILS POUR AUTOMATISER LES TESTS DANS VITAM :
-##########################################################
+POSTMAN :
+############
 
-**SOAP UI**
-
-SOAP UI est un outil de test fonctionnel multi plate-forme, libre et open source qui permet de faire des tests automatisés fonctionnels, de conformité, de régression et de charge.
-De telles fonctionnalités font de SOAPUI l'un des meilleurs outil de test API.
-
-Les fonctionnaliltés qui font de SOAP UI un outil de test à retenir sont nombreuses. Les plus pertinentes sont les suivantes :
-
-- Création des cas de test directement à partir de la demande de méthode Web
-- Organisation des cas de test dans des suites de tests
-- Création des scripts de validation complexes avec l'aide de Groovy
-- Création des résultats de la méthode Web par des assertions. Les assertions peuvent être créées dans XPath ou XQuery
-- Modification de la configuration des tests en fonction de l'environnement cible
-
-A noter que SOAP UI est compatible avec la couverture des tests et la gestion des exigences.
-
-**POSTMAN**
 
 Postman est un plugin disponible via Google Chrome, qui peut être utilisé pour tester les services API.
 Il s'agit en réalité d'un client HTTP puissant pour tester les services Web.
@@ -809,27 +793,6 @@ Contrairement à CURL, Postman n'est pas un outil en ligne de commande, ce qui r
 Pour lancer les collections de postman en ligne de commande, on peut installer https://www.npmjs.com/package/newman
 
 Pour transmettre et recevoir des informations REST, Postman est plus fiable.
-
-Ci-dessous la comparaison des fonctionnalités principales entre Postman et SoapUI
-
-
-+--------------------------------+---------------------------+---------------------------+
-|         Execution              |       SoapUI              |        Postman            |
-+================================+===========================+===========================+
-| Lancé par ligne de commande    |Oui                        |Oui                        |
-+--------------------------------+---------------------------+---------------------------+
-| Langage script valid résultats |Java + Groovy              |Javascript                 |
-+--------------------------------+---------------------------+---------------------------+
-| Cas de test suites de test     |Oui                        |Oui                        |
-+--------------------------------+---------------------------+---------------------------+
-| Format de configuration        |XML                        |JSON                       |
-+--------------------------------+---------------------------+---------------------------+
-| Multi-environnements           |Oui                        |Oui                        |
-+--------------------------------+---------------------------+---------------------------+
-| Paramétrer les données         | Dans le code              | Par un fichier data       |
-+--------------------------------+---------------------------+---------------------------+
-
-Le choix de l’outil dépend le langage qu’on utilise pour écrire le script de validation des résultats.
 
 
 3. Cahier des API externes par tenant

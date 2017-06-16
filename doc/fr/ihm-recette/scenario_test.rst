@@ -1,7 +1,7 @@
-Scenario hors ingest
+Scenario IHM recette
 ####################
 
-Cette partie décrit les scenario de test correspondant aux processus autres que l'ingest.
+Cette partie décrit les scenario de test correspondant à ce qu'il est possible de réaliser via l'IHM de ercette.
 
 Liste des scenarii
 =====================
@@ -234,65 +234,3 @@ Deux suppressions sont exécutables : purge des unités archivistiques, purge de
 La suppression des différentes collection est visible ainsi dans le journal des opérations :
  - Unités archivistiques : MASTERDATA / STP_DELETE_METADATA_OG
  - Groupes d'objets : MASTERDATA / STP_DELETE_METADATA_UNIT
-
-Mise à jour d'une ArchiveUnit
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Il s'agit ici de lancer Postman et de réaliser une mise à jour (PUT / cf. postman) sur une url (d'access) de ce type :
- - {{accessServiceUrl}}{{accessResourcePath}}{{serviceVersion}}{{unitsCollection}}/aeaaaaaaaaaam7mxabjduakysg5qp7aaaaaq
-
-Et avec un body de ce type :
-
-.. code-block:: json
-
-  {
-   "$roots": [
-     "aeaaaaaaaaaam7mxabjduakysg5qp7aaaaaq"
-   ],
-   "$query": [],
-   "$filter": {
-     "$orderby": {
-       "TransactedDate": 1
-     }
-   },
-   "$action": [
-     {
-       "$set": {
-         "Title": "A new Title for my Unit"
-       }
-     }
-   ]
-  }
-
-Une réponse est renvoyée par le serveur : code OK, avec un body de ce type :
-
-.. code-block:: json
-
-  {
-   "$hits": {
-     "total": 1,
-     "offset": 0,
-     "limit": 1,
-     "size": 1
-   },
-   "$results": [
-     {
-       "#id": "aeaaaaaaaaaam7mxabjduakysg5qp7aaaaaq",
-       "#diff": "-  Title : Title Before\n+  Title : A new Title for my Unit"
-     }
-   ],
-   "$context": {
-     "$roots": [
-       "#id"
-     ],
-     "$query": [],
-     "$filter": {},
-     "$action": [
-       {
-         "$set": {
-           "Title": "A new Title for my Unit"
-         }
-       }
-     ]
-   }
-  }
-
