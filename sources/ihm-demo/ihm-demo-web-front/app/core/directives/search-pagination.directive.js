@@ -44,6 +44,10 @@ angular.module('ihm.demo')
       $scope.pageNumber = 0;
     }
 
+    if (!$scope.paginationScope.currentPage || $scope.paginationScope.resultPages == 0) {
+      $scope.paginationScope.currentPage = 0;
+    }
+
     if (!$scope.paginationScope.limit) {
       $scope.paginationScope.limit = LIMIT_NB_PAGES * ITEM_PER_PAGE;
     }

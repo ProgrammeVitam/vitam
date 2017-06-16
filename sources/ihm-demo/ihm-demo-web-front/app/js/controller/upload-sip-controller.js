@@ -205,6 +205,15 @@ angular.module('ihm.demo')
     $scope.resetUpload = function() {
       $scope.fileItem = {};
       $scope.uploadedSize = 0;
+      if ($scope.file) {
+        if($scope.file.name.indexOf('.zip') < 0 && $scope.file.name.indexOf('.tar') < 0) {
+          $scope.showAlert(this,
+          'Erreur:' + $scope.file.name,
+          'Format du SIP incorrect. Sélectionner un fichier au format .zip, .tar, .tar.gz ou .tar.bz2'
+          );
+          $scope.file = {};
+        }
+      }
     };
 
     //************************************************************************************************ //
@@ -262,7 +271,7 @@ angular.module('ihm.demo')
       }
     };
     $scope.submit = function() {
-      $scope.uploadedSize = 0;
+      $scope.fileItem.isProcessing = true;
       var blob = $scope.file;
       const SIZE = blob.size;
 
@@ -271,6 +280,7 @@ angular.module('ihm.demo')
 
       var xhr = new XMLHttpRequest();
       var requestId = '';
+      $scope.uploadedSize = end;
       xhr.open('POST', '/ihm-demo/v1/api/ingest/upload', true);
       xhr.setRequestHeader('Content-Type', 'application/octet-stream');
       xhr.setRequestHeader('X-Chunk-Offset', start);
