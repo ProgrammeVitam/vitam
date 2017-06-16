@@ -106,7 +106,7 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
 
     // It must be synchronized to prevent simultaneous put on the HashMap
     private static synchronized void unmarshall(HashFileSystemHelper fsHelper) {
-        if (containerMetadata.size() == 0) { // Prevent to redo the serializartion more than once
+        if (containerMetadata.size() == 0) { // Prevent to redo the serialization more than once
             for (String containerName : fsHelper.getListContainers()) {
                 containerMetadata.put(containerName, new HashContainerMetadata(containerName, fsHelper, true));
             }
