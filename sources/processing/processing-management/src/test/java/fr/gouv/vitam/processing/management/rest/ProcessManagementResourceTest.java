@@ -82,7 +82,7 @@ public class ProcessManagementResourceTest {
     private static ProcessManagementApplication application = null;
     private static final Integer TENANT_ID = 0;
 
-    private static final String CONTEXT_ID = "INGEST";
+    private static final String CONTEXT_ID = "DEFAULT_WORKFLOW";
     private static WorkspaceClient workspaceClient;
 
     @BeforeClass

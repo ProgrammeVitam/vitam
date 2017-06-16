@@ -27,7 +27,7 @@
 package fr.gouv.vitam.ihmrecette.appserver.performance;
 
 import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
-import static fr.gouv.vitam.ingest.external.core.Contexts.DEFAULT_WORKFLOW;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
 
 import java.io.IOException;
 import java.io.InputStream;

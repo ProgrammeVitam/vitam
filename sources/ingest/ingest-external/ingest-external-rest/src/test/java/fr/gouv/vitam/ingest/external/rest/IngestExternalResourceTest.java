@@ -53,7 +53,6 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierFactoryException;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierNotFoundException;
@@ -63,9 +62,8 @@ import fr.gouv.vitam.common.format.identification.siegfried.FormatIdentifierSieg
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.ingest.external.core.Contexts;
-import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
+import fr.gouv.vitam.logbook.common.parameters.Contexts;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")

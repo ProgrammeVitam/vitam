@@ -100,5 +100,9 @@ public enum WorkerParameterName {
     /**
      * hash of root
      */
-    hashRoot;
+    hashRoot,
+    /**
+     * process logbook context
+     */
+    context;
 }

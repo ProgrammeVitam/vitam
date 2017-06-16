@@ -54,6 +54,7 @@ import fr.gouv.vitam.processing.common.exception.StepsNotFoundException;
 import fr.gouv.vitam.processing.common.model.ProcessBehavior;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
@@ -236,7 +237,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         if (!this.persistProcessWorkflow()) {
             // As the workspace throw an exception just update logbook and in memory
             status = StatusCode.FATAL;
-            this.finalizeLogbook();
+            this.finalizeLogbook(workerParameters);
             throw new ProcessingException("StateMachine can't persist ProcessWorkflow > see log of the persistProcessWorkflow method");
         }
 
@@ -249,7 +250,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
                 LOGGER.error("ProcessEngine error ", e);
                 status = StatusCode.FATAL;
                 try {
-                    this.finalizeLogbook();
+                    this.finalizeLogbook(workerParameters);
                 } finally {
                     this.persistProcessWorkflow();
                 }
@@ -267,7 +268,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         if (!this.persistProcessWorkflow()) {
             // As the workspace throw an exception just update logbook and in memory
             status = StatusCode.FATAL;
-            this.finalizeLogbook();
+            this.finalizeLogbook(workerParameters);
             return;
         }
 
@@ -282,7 +283,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
                 LOGGER.error("ProcessEngine error", e);
                 status = StatusCode.FATAL;
                 try {
-                    this.finalizeLogbook();
+                    this.finalizeLogbook(workerParameters);
                 } finally {
                     this.persistProcessWorkflow();
                 }
@@ -313,7 +314,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             this.executeFinallyStep(workerParameters);
         } else {
             try {
-                this.finalizeLogbook();
+                this.finalizeLogbook(workerParameters);
             } finally {
                 this.persistProcessWorkflow();
             }
@@ -354,7 +355,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             }
         } else {
             try {
-                this.finalizeLogbook();
+                this.finalizeLogbook(workerParameters);
             } finally {
                 this.persistProcessWorkflow();
             }
@@ -431,12 +432,13 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
      * Create the final logbook entry for the corresponding process workflow
      * This entry was created in ingest internal and as the process is full async we moved it to here
      */
-    protected void finalizeLogbook() {
+    protected void finalizeLogbook(WorkerParameters workParams) {
 
         final LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
         try {
             final GUID operationGuid = GUIDReader.getGUID(operationId);
-            logbook(logbookClient, operationGuid, processWorkflow.getLogbookTypeProcess(), status);
+            logbook(logbookClient, operationGuid, processWorkflow.getLogbookTypeProcess(), status, workParams
+                .getParameterValue(WorkerParameterName.context));
 
         } catch (Exception e) {
             LOGGER.error("Error while finalize logbook of the process workflow, do retry ...", e);
@@ -448,7 +450,8 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
 
             try {
                 final GUID operationGuid = GUIDReader.getGUID(operationId);
-                logbook(logbookClient, operationGuid, processWorkflow.getLogbookTypeProcess(), status);
+                logbook(logbookClient, operationGuid, processWorkflow.getLogbookTypeProcess(), status, workParams
+                    .getParameterValue(WorkerParameterName.context));
 
             } catch (Exception ex) {
                 LOGGER.error("Retry > error while finalize logbook of the process workflow", e);
@@ -480,12 +483,13 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         }
     }
 
-    private void logbook(LogbookOperationsClient client, GUID operationGuid, LogbookTypeProcess logbookTypeProcess, StatusCode statusCode) throws Exception {
+    private void logbook(LogbookOperationsClient client, GUID operationGuid, LogbookTypeProcess logbookTypeProcess,
+        StatusCode statusCode, String eventType) throws Exception {
         MessageLogbookEngineHelper messageLogbookEngineHelper = new MessageLogbookEngineHelper(logbookTypeProcess);
         final LogbookOperationParameters parameters = LogbookParametersFactory
             .newLogbookOperationParameters(
                 operationGuid,
-                logbookTypeProcess.name(),
+                eventType,
                 operationGuid,
                 logbookTypeProcess,
                 statusCode,

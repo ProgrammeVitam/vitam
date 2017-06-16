@@ -26,9 +26,33 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
+import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.FILING_SCHEME;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.HOLDING_SCHEME;
+import static java.lang.String.format;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import javax.ws.rs.core.Response;
+
+import org.assertj.core.api.AutoCloseableSoftAssertions;
+import org.assertj.core.api.Fail;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Iterables;
+
 import cucumber.api.java.After;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
@@ -50,27 +74,6 @@ import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.tools.SipTool;
-import org.assertj.core.api.AutoCloseableSoftAssertions;
-import org.assertj.core.api.Fail;
-
-import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
-import static fr.gouv.vitam.ingest.external.core.Contexts.DEFAULT_WORKFLOW;
-import static fr.gouv.vitam.ingest.external.core.Contexts.FILING_SCHEME;
-import static fr.gouv.vitam.ingest.external.core.Contexts.HOLDING_SCHEME;
-import static java.lang.String.format;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 
 public class IngestStep {
 

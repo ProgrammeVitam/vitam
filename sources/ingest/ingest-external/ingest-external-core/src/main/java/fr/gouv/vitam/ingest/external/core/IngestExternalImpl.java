@@ -71,6 +71,7 @@ import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.logbook.common.MessageLogbookEngineHelper;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
+import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -163,7 +164,7 @@ public class IngestExternalImpl implements IngestExternal {
             final LogbookOperationParameters sipSanityParameters =
                 LogbookParametersFactory.newLogbookOperationParameters(
                     ingestGuid,
-                    logbookTypeProcess.name(),
+                    ingestContext.getEventType(),
                     containerName,
                     logbookTypeProcess,
                     StatusCode.STARTED,

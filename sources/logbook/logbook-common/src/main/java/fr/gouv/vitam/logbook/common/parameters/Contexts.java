@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -14,7 +14,7 @@
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
  *
- * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
@@ -23,60 +23,44 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 
 package fr.gouv.vitam.logbook.common.parameters;
 
 /**
- * Logbook Process Type
+ * TODO: to review, hack for release 4 and demo
+ * Note US #2774: Moving Contexts enum from ingestExternal and little refactoring
  */
-public enum LogbookTypeProcess {
+public enum Contexts {
+
+    BLANK_TEST(LogbookTypeProcess.INGEST_TEST, "PROCESS_SIP_UNITARY"),
+    HOLDING_SCHEME(LogbookTypeProcess.MASTERDATA, "HOLDINGSCHEME"),
+    FILING_SCHEME(LogbookTypeProcess.INGEST, "FILINGSCHEME"),
+    DEFAULT_WORKFLOW(LogbookTypeProcess.INGEST, "PROCESS_SIP_UNITARY");
+
+    private LogbookTypeProcess logbookTypeProcess;
+    private String eventType;
+
+    Contexts(LogbookTypeProcess logbookTypeProcess, String eventType) {
+        this.logbookTypeProcess = logbookTypeProcess;
+        this.eventType = eventType;
+    }
+
     /**
-     * Ingest type process
+     * Get logbook type process (evTypeProc)
+     *
+     * @return the logbook type process
      */
-    INGEST,
+    public LogbookTypeProcess getLogbookTypeProcess() {
+        return logbookTypeProcess;
+    }
+
     /**
-     * Audit type process
+     * Get eventType value
+     *
+     * @return the event type
      */
-    AUDIT,
-    /**
-     * Destruction type process
-     */
-    DESTRUCTION,
-    /**
-     * Preservation type process
-     */
-    PRESERVATION,
-    /**
-     * Check type process
-     */
-    CHECK,
-    /**
-     * Update process
-     */
-    UPDATE,
-    /**
-     * Rules Manager process
-     */
-    MASTERDATA,
-    /**
-     * traceabiliy type process
-     */
-    TRACEABILITY,
-    /**
-     * INGEST (Blank test)
-     */
-    INGEST_TEST,
-    /**
-     * Storage logbook type process
-     */
-    STORAGE_LOGBOOK,
-    /**
-     * Holding scheme type process (tree)
-     */
-    HOLDINGSCHEME,
-    /**
-     * Filing scheme type process (classification plan)
-     */
-    FILINGSCHEME;
+    public String getEventType() {
+        return eventType;
+    }
 }
