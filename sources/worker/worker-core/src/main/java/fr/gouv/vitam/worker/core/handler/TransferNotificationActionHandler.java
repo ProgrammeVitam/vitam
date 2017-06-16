@@ -51,7 +51,6 @@ import org.bson.Document;
 import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectType;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -63,7 +62,6 @@ import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -94,7 +92,6 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.DataObjectDetail;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
-import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.ValidationXsdUtils;
 import fr.gouv.vitam.worker.core.MarshallerObjectCache;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
