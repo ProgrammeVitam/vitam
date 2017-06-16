@@ -21,7 +21,8 @@
         				<tr>
           					<h3>Fichier</h3>
           					<td height="150" width="50%" >
-                                <button ng-disabled="fileItem.isProcessing == true" ngf-select ng-model="file" name="file" min-height="25">Choisissez un fichier</button>
+                                <button ng-disabled="fileItem.isProcessing == true" ngf-select ng-model="file" name="file" min-height="25"
+                                        ng-click="resetUpload()">Choisissez un fichier</button>
                                 <span>{{file.name || 'Aucun fichier choisi'}}</span>
           		            </td>
                     <td>
