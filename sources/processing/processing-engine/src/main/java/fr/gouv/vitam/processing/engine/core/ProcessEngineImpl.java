@@ -77,8 +77,6 @@ public class ProcessEngineImpl implements ProcessEngine {
     private static final String START_MESSAGE = "start ProcessEngine ...";
 
     private static final String OBJECTS_LIST_EMPTY = "OBJECTS_LIST_EMPTY";
-    private static final String MESSAGE_IDENTIFIER = "messageIdentifier";
-    private static final String PROD_SERVICE = "messageIdentifier";
 
     private final ProcessDistributor processDistributorMock;
     private final Map<String, String> messageIdentifierMap = new HashMap<>();
@@ -391,7 +389,7 @@ public class ProcessEngineImpl implements ProcessEngine {
             parameters.putParameterValue(LogbookParameterName.objectIdentifierIncome, messageIdentifier);
         } else {
             parameters.putParameterValue(LogbookParameterName.objectIdentifierIncome,
-                engineParams.get(MESSAGE_IDENTIFIER));
+                engineParams.get(SedaConstants.TAG_MESSAGE_IDENTIFIER));
         }
 
         if (prodService != null && !prodService.isEmpty()) {
@@ -399,7 +397,7 @@ public class ProcessEngineImpl implements ProcessEngine {
             parameters.putParameterValue(LogbookParameterName.agentIdentifierOriginating, prodService);
         } else {
             parameters.putParameterValue(LogbookParameterName.agentIdentifierOriginating,
-                engineParams.get(PROD_SERVICE));
+                engineParams.get(SedaConstants.TAG_ORIGINATINGAGENCY));
         }
 
         parameters.putParameterValue(LogbookParameterName.eventIdentifier,
