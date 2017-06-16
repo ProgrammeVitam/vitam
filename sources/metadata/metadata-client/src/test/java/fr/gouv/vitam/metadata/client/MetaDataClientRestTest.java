@@ -176,13 +176,13 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
             return expectedResponse.get();
         }
 
-        @Path("accession-register/units/{operationId}")
+        @Path("accession-registers/units/{operationId}")
         @Produces(MediaType.APPLICATION_JSON)
         @GET
         public Response selectAccessionRegisterForArchiveUnit(@PathParam("operationId") String operationId) {
             return expectedResponse.get();
         }
-        @Path("accession-register/objects/{operationId}")
+        @Path("accession-registers/objects/{operationId}")
         @Produces(MediaType.APPLICATION_JSON)
         @GET
         public Response selectAccessionRegisterForObjectGroup(@PathParam("operationId") String operationId) {

@@ -417,7 +417,7 @@ public class MetaDataResourceTest {
         given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
-            .get("/accession-register/units/" + operationId).then()
+            .get("/accession-registers/units/" + operationId).then()
             .body("$results.size()", equalTo(2))
             .statusCode(Status.OK.getStatusCode());
 
@@ -431,7 +431,7 @@ public class MetaDataResourceTest {
         given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
-            .get("/accession-register/objects/" + operationId).then()
+            .get("/accession-registers/objects/" + operationId).then()
             .body("$results.size()", equalTo(1))
             .statusCode(Status.OK.getStatusCode());
     }
