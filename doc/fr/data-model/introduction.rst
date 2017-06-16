@@ -4,7 +4,7 @@ Introduction
 Avertissement
 =============
 
-Cette documentation est un travail en cours ; elle est susceptible de changer de manière conséquente.
+Cette documentation est un travail en cours. Elle est susceptible de changer de manière conséquente.
    
 Objectif du document
 ====================
@@ -12,7 +12,7 @@ Objectif du document
 Ce document a pour objectif de présenter la structure générale des collections utilisées dans la solution logicielle Vitam.
 Il est destiné principalement aux développeurs, afin de leur présenter l'organisation des données dans la solution logicielle Vitam, ainsi qu'à tous les autres acteurs du programme pour leur permettre de connaître ce qui existe en l'état actuel.
 
-Il explicite chaque champ, précise la relation avec les sources (manifeste conforme au standard SEDA v.2.0, référentiels Pronom et règles de gestions) et la structuration JSON stockée dans MongoDB.
+Il explicite chaque champ, précise la relation avec les sources (manifeste conforme au standard SEDA v.2.0, référentiels Pronom, etc...) et la structuration JSON stockée dans MongoDB.
 
 Pour chacun des champs, cette documentation apporte :
 
