@@ -689,7 +689,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 action, eventIdentifierProcess, LogbookTypeProcess.UPDATE, logbookOutcome,
                 outcomeDetailMessage,
                 eventIdentifierRequest);
-        parameters.putParameterValue(LogbookParameterName.objectIdentifier, eventIdentifierRequest.getId());
         return parameters;
     }
 
