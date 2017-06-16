@@ -83,7 +83,6 @@ import org.apache.shiro.util.ThreadContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Iterables;
-
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.api.ErrorMessage;
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
@@ -111,7 +110,6 @@ import fr.gouv.vitam.common.error.ServiceName;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
-import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.exception.VitamClientException;
@@ -122,12 +120,13 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
-import fr.gouv.vitam.common.server.application.VitamStreamingOutput;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server.application.resources.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -146,6 +145,54 @@ import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.shiro.authc.UsernamePasswordToken;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.util.ThreadContext;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.CookieParam;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.security.InvalidParameterException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
+import static fr.gouv.vitam.common.server.application.AsyncInputStreamHelper.asyncResponseResume;
 
 /**
  * Web Application Resource class
@@ -1562,57 +1609,66 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @RequiresPermissions("operations:update")
     public Response updateWorkFlowStatus(@Context HttpHeaders headers, @PathParam("id") String id) {
-        Response response = null;
         ParametersChecker.checkParameter("ACTION Request must not be null",
             headers.getRequestHeader(GlobalDataRest.X_ACTION));
 
         final String xAction = headers.getRequestHeader(GlobalDataRest.X_ACTION).get(0);
         String tenantIdHeader = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
+        String contractName = headers.getHeaderString(GlobalDataRest.X_ACCESS_CONTRAT_ID);
+        final int tenantId = Integer.parseInt(tenantIdHeader);
+        try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
+            Response response = client.updateOperationActionProcess(xAction, id, tenantId);
 
-        try (IngestExternalClient ingestExternalClient = IngestExternalClientFactory.getInstance().getClient()) {
-            response = ingestExternalClient.updateOperationActionProcess(xAction, id, Integer.parseInt(tenantIdHeader));
             final String globalExecutionState =
                 response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATE);
             final String globalExecutionStatus =
                 response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS);
 
-            final boolean isCompletedProcess =
-                globalExecutionState != null && ProcessState.COMPLETED
-                    .equals(ProcessState.valueOf(globalExecutionState));
+            DefaultClient.staticConsumeAnyEntityAndClose(response);
 
-            if (isCompletedProcess) {
-                final InputStream inputStream = (InputStream) response.getEntity();
-                if (inputStream != null) {
-                    File file = PropertiesUtils.fileFromTmpFolder("ATR_" + id + ".xml");
-                    try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
-                        StreamUtils.copy(inputStream, fileOutputStream);
-                    } catch (IOException e) {
-                        throw new VitamClientException("Error during ATR generation");
+            if (client.wait(tenantId, id, 2000, 3000l, TimeUnit.MILLISECONDS)) {
+
+                final ItemStatus itemStatus =
+                    client.getOperationProcessExecutionDetails(id, JsonHandler.createObjectNode(), tenantId);
+                if (ProcessState.COMPLETED.equals(itemStatus.getGlobalState())) {
+                    File file = downloadAndSaveATR(id, tenantId);
+                    if (file != null) {
+                        JsonNode lastEvent = getlogBookOperationStatus(id, tenantId, contractName);
+                        // ingestExternalClient client
+                        int status = getStatus(lastEvent);
+                        return Response.status(status).entity(new FileInputStream(file))
+                            .type(MediaType.APPLICATION_OCTET_STREAM_TYPE)
+                            .header("Content-Disposition",
+                                "attachment; filename=ATR_" + id + ".xml")
+                            .header(GlobalDataRest.X_REQUEST_ID, id)
+                            .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, itemStatus.getGlobalState())
+                            .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, itemStatus.getGlobalStatus())
+                            .build();
+                    } else {
+                        return Response.status(Status.NO_CONTENT).build();
                     }
-                    LOGGER.debug("DEBUG: " + file + ":" + file.length());
-                    return Response.status((int) response.getStatus())
-                        .entity(new VitamStreamingOutput(file, false))
-                        .type(MediaType.APPLICATION_OCTET_STREAM_TYPE)
-                        .header("Content-Disposition",
-                            "attachment; filename=ATR_" + id + ".xml")
-                        .header(GlobalDataRest.X_REQUEST_ID, id)
-                        .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, globalExecutionState)
-                        .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, globalExecutionStatus)
-                        .build();
                 } else {
-                    throw new VitamClientException("No ArchiveTransferReply found in response from Server");
+                    return Response.status(itemStatus.getGlobalStatus().getEquivalentHttpStatus())
+                        .header(GlobalDataRest.X_REQUEST_ID, id)
+                        .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, itemStatus.getGlobalState())
+                        .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, itemStatus.getGlobalStatus())
+                        .build();
                 }
+            } else {
+                return Response.status(Status.NO_CONTENT)
+                    .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, globalExecutionState)
+                    .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, globalExecutionStatus)
+                    .header(GlobalDataRest.X_REQUEST_ID, id)
+                    .build();
             }
-            return Response.fromResponse(response).build();
+
         } catch (final ProcessingException e) {
             // if there is an unauthorized action
             LOGGER.error(e);
             return Response.status(Status.UNAUTHORIZED).entity(e.getMessage()).build();
-        } catch (VitamClientException e) {
+        } catch (Exception e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
-        } finally {
-            DefaultClient.staticConsumeAnyEntityAndClose(response);
         }
     }
 
@@ -1979,7 +2035,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 actions.add(UpdateActionHelper.set(EVERY_ORIG_AGENCY_FIELD_QUERY, everyOrigAgency));
                 updateEveryOriginatingAgency = true;
             }
-            
+
             if (updateData.get(AccessContractModel.EVERY_DATA_OBJECT_VERSION) != null) {
                 Boolean everyVersion = BooleanUtils.toBooleanObject(updateData.get(AccessContractModel.EVERY_DATA_OBJECT_VERSION));
                 if (everyVersion == null) {
