@@ -202,6 +202,10 @@ angular.module('ihm.demo')
      $scope.stopCheck();
     });
 
+    $scope.resetUpload = function() {
+      $scope.fileItem = {};
+      $scope.uploadedSize = 0;
+    };
 
     //************************************************************************************************ //
     $scope.fileItem = {};
