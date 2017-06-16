@@ -41,7 +41,7 @@ angular.module('ihm.demo')
 
     if (!$scope.pageNumber) {
       $scope.paginationScope.startOffset = 0;
-      $scope.pageNumber = 1;
+      $scope.pageNumber = 0;
     }
 
     if (!$scope.paginationScope.limit) {
@@ -61,7 +61,6 @@ angular.module('ihm.demo')
       }
       if (pageNumber > $scope.paginationScope.resultPages) {
         pageNumber = $scope.paginationScope.resultPages;
-        $scope.pageNumber = $scope.paginationScope.resultPages;
       }
 
       // Get loaded pages (min - max)
@@ -75,7 +74,6 @@ angular.module('ihm.demo')
       }
 
         $scope.paginationScope.currentPage = pageNumber;
-        $scope.pageNumber = pageNumber;
     }
 
   })
