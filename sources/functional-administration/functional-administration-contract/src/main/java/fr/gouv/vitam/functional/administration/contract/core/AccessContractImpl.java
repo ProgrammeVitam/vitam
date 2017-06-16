@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import fr.gouv.vitam.common.security.SanityChecker;
@@ -254,6 +255,10 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
      */
     protected final static class AccessContractManager {
 
+        private static final String UPDATED_DIFFS = "updatedDiffs";
+
+        private static final String ACCESS_CONTRACT = "AccessContract";
+
         private static List<GenericContractValidator<AccessContractModel>> validators = Arrays.asList(
             createMandatoryParamsValidator(), createWrongFieldFormatValidator(),
             createCheckDuplicateInDatabaseValidator());
@@ -373,27 +378,16 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
 
         }
 
-        private void logUpdateSuccess(String id, String updateEventDetailData, String oldValue, Boolean newEveryOriginatingAgency, Boolean oldEveryOriginatingAgency) throws VitamException {
+        private void logUpdateSuccess(String id, List<String> listDiffs) throws VitamException {
             final ObjectNode evDetData = JsonHandler.createObjectNode();
-            final ObjectNode evDetDataContract = JsonHandler.createObjectNode();
+            final ObjectNode evDetDataContract = JsonHandler.createObjectNode();            
+            String diffs = listDiffs.stream().reduce("", String::concat);
+            
+            final ObjectNode msg = JsonHandler.createObjectNode();
+            msg.put(UPDATED_DIFFS, diffs);
+            evDetDataContract.set(id, msg);
 
-            if (updateEventDetailData != null) {
-                final ObjectNode msg = JsonHandler.createObjectNode();
-	            msg.put("updateField", AccessContract.STATUS);
-	            msg.put("oldValue", oldValue);
-	            msg.put("newValue", updateEventDetailData);
-	            evDetDataContract.set(AccessContract.STATUS, msg);
-            }
-
-            if (newEveryOriginatingAgency != null) {
-	            final ObjectNode msg2 = JsonHandler.createObjectNode();
-	            msg2.put("updateField", AccessContract.EVERYORIGINATINGAGENCY);
-	            msg2.put("oldValue", oldEveryOriginatingAgency);
-	            msg2.put("newValue", newEveryOriginatingAgency);
-	            evDetDataContract.set(AccessContract.EVERYORIGINATINGAGENCY, msg2);
-            }
-
-            evDetData.set("AccessContract", evDetDataContract);
+            evDetData.set(ACCESS_CONTRACT, msg);
             String wellFormedJson = SanityChecker.sanitizeJson(evDetData);
             final LogbookOperationParameters logbookParameters =
                 LogbookParametersFactory
@@ -560,6 +554,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
 
         AccessContractModel accContractModel = findOne(id);
+        Map<String, List<String>> updateDiffs = new HashMap<>();
         if (accContractModel == null) {
             return error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
                 "Access contract not find" + id));
@@ -572,8 +567,6 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
 
         JsonNode actionNode = queryDsl.get(GLOBAL.ACTION.exactToken());
 
-        String updateStatus = null;
-        Boolean updateEveryOriginatingAgency = null;
         for (JsonNode fieldToSet : actionNode) {
             JsonNode fieldName = fieldToSet.get(UPDATEACTION.SET.exactToken());
             if (fieldName != null) {
@@ -587,13 +580,16 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                             error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
                                 "The Access contract status must be ACTIVE or INACTIVE but not " + value.asText()));
                         }
-                        updateStatus = value.asText();
-                    } else if (AccessContract.EVERYORIGINATINGAGENCY.equals(field)) {
+                    } else if (AccessContractModel.EVERY_ORIGINATINGAGENCY.equals(field)) {
                         if (!(value instanceof BooleanNode)) {
                             error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
                                 "The Access contract EveryOriginatingAgency must be true or false but not " + value.asText()));
                         }
-                        updateEveryOriginatingAgency = value.asBoolean();
+                    } else if (AccessContractModel.EVERY_DATA_OBJECT_VERSION.equals(field)) {
+                        if (!(value instanceof BooleanNode)) {
+                            error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
+                                "The Access contract EveryDataObjectVersion must be true or false but not " + value.asText()));
+                        }
                     }
                 }
             }
@@ -608,7 +604,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
         }
 
         try {
-            mongoAccess.updateData(queryDsl, FunctionalAdminCollections.ACCESS_CONTRACT);
+            updateDiffs = mongoAccess.updateData(queryDsl, FunctionalAdminCollections.ACCESS_CONTRACT);
         } catch (ReferentialException e) {
             String err = new StringBuilder("Update access contracts error > ").append(e.getMessage()).toString();
             manager.logFatalError(err);
@@ -618,7 +614,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
 
             return error;
         }
-        manager.logUpdateSuccess(id, updateStatus, accContractModel.getStatus(), updateEveryOriginatingAgency, accContractModel.getEveryOriginatingAgency());
+        manager.logUpdateSuccess(id, updateDiffs.get(id));
         return new RequestResponseOK<AccessContractModel>();
     }
 

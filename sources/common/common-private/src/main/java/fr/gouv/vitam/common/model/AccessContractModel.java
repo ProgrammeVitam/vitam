@@ -36,6 +36,16 @@ import java.util.Set;
 
 public class AccessContractModel extends AbstractContractModel {
 
+    /**
+     * Work for all data object version
+     */
+    public static final String EVERY_DATA_OBJECT_VERSION = "EveryDataObjectVersion";
+
+    /**
+     * Work for all originating agencies 
+     */
+    public static final String EVERY_ORIGINATINGAGENCY = "EveryOriginatingAgency";
+
     @JsonProperty("DataObjectVersion")
     private Set<String> dataObjectVersion;
 
@@ -45,8 +55,11 @@ public class AccessContractModel extends AbstractContractModel {
     @JsonProperty("WritingPermission")
     private boolean writingPermission;
 
-    @JsonProperty("EveryOriginatingAgency")
+    @JsonProperty(EVERY_ORIGINATINGAGENCY)
     private boolean everyOriginatingAgency;
+    
+    @JsonProperty(EVERY_DATA_OBJECT_VERSION)
+    private boolean everyDataObjectVersion;
 
     /**
      * Constructor without fields
@@ -126,5 +139,25 @@ public class AccessContractModel extends AbstractContractModel {
 		this.everyOriginatingAgency = everyOriginatingAgency;
 		return this;
 	}
+
+
+    /**
+     * @return true if all data object version are enabled for this contract
+     */
+    public boolean isEveryDataObjectVersion() {
+        return everyDataObjectVersion;
+    }
+
+
+    /**
+     * Set the 'everyDataObjectVersion' flag on the contract.
+     * 
+     * @param everyDataObjectVersion if true, all data object version are enabled for this contract
+     * @return
+     */
+    public AccessContractModel setEveryDataObjectVersion(boolean everyDataObjectVersion) {
+        this.everyDataObjectVersion = everyDataObjectVersion;
+        return this;
+    }
 
 }

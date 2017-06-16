@@ -32,7 +32,7 @@
                         <label>Nom</label>
                         <span>{{contract.Name}}</span>
                     </div>
-                    <div class="form-group col-md-6">
+                    <div class="form-group col-md-3">
                         <label>Statut</label>
                         <label class="switch">
                             <input type="checkbox" ng-model="tmpVars.isActive" ng-change="updateStatus()" ng-disabled="checkPermission()">
@@ -40,7 +40,10 @@
                         </label>
                         <span>{{contract.Status | StrReplace}}</span>
                     </div>
-
+                    <div class="form-group col-md-3">
+                        <label>Tenant(s)</label>
+                        <span>{{contract._tenant}}</span>
+                    </div>
                     <div class="clearfix"></div>
 
                     <div class="form-group col-md-6">
@@ -56,14 +59,18 @@
                         <span ng-class="contract.EveryOriginatingAgency? 'grayColor': ''">Liste blanche: {{contract.OriginatingAgencies}}</span>
                     </div>
                     <div class="form-group col-md-3">
-                        <label>Tenant(s)</label>
-                        <span>{{contract._tenant}}</span>
+                        <label>Usage</label>
+                        <input type="radio" ng-value="true" ng-model="contract.EveryDataObjectVersion">Tous les usages</input>
+                        <br />
+                        <input type="radio" ng-value="false" ng-model="contract.EveryDataObjectVersion">Liste blanche uniquement</input>
+                        <br />
+                        <span ng-class="contract.EveryDataObjectVersion ? 'grayColor': ''">Liste blanche: {{contract.DataObjectVersion}}</span>
                     </div>
                     <div class="clearfix"></div>
 
                     <div class="form-group col-md-6">
-                        <label>Droits</label>
-                        <span></span>
+                        <label>Droit d'écriture</label>
+                        <span>{{contract.WritingPermission}}</span>
                     </div>
                     <div class="form-group col-md-3">
                         <label>Date d'activation</label>

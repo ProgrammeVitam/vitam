@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common.server;
 
+import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -94,9 +95,10 @@ public interface MongoDbAccessReferential {
      * 
      * @param update JsonNode to update
      * @param collection collection of Mongo Type for update
+     * @return map of modified data
      * @throws ReferentialException when error occurs;
      */
-    void updateData(JsonNode update, FunctionalAdminCollections collection)
+    Map<String, List<String>> updateData(JsonNode update, FunctionalAdminCollections collection)
         throws ReferentialException;;
 
     /**

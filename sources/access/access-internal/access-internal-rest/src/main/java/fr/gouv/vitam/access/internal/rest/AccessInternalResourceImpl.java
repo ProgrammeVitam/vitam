@@ -314,7 +314,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         final String xQualifier = headers.getRequestHeader(GlobalDataRest.X_QUALIFIER).get(0);
         final String xVersion = headers.getRequestHeader(GlobalDataRest.X_VERSION).get(0);
 
-        if (!validUsage(xQualifier.split("_")[0])) {
+        if (!VitamThreadUtils.getVitamSession().getContract().isEveryDataObjectVersion() &&
+            !validUsage(xQualifier.split("_")[0])) {
             final Response errorResponse = Response.status(Status.UNAUTHORIZED)
                 .entity(getErrorEntity(Status.UNAUTHORIZED).toString())
                 .build();
