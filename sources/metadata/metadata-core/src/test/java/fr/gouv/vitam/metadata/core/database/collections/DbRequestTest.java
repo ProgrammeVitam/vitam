@@ -215,7 +215,7 @@ public class DbRequestTest {
     private static final String REQUEST_INSERT_TEST_ES_3 =
         "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaat\", \"#tenant\": 0, \"Title\": \"title vitam\", \"Description\": \"description est OK\" }";
     private static final String REQUEST_INSERT_TEST_ES_4 =
-        "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaas\", \"#tenant\": 0, \"Title\": \"title sociales test_underscore othervalue france.pdf\", \"Description\": \"description est OK\" }";
+        "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaas\", \"#tenant\": 0, \"Title\": \"title sociales test_abcd_underscore othervalue france.pdf\", \"Description\": \"description est OK\" }";
     private static final String REQUEST_UPDATE_INDEX_TEST_ELASTIC =
         "{$query: { $eq : [ { $term : { 'Title' : 'vitam' , '$max_expansions' : 1  } }] } }";
     private static final String REQUEST_UPDATE_INDEX_TEST =
@@ -1581,8 +1581,8 @@ public class DbRequestTest {
 
         // Check for "name_with_underscore"
         select = new SelectMultiQuery();
-        select.addRoots("aebaaaaaaaaaaaabaahbcakzu2stfryaaaaq")
-            .addQueries(match("Title", "underscore").setDepthLimit(1));
+        select
+            .addQueries(match("Title", "abcd").setDepthLimit(1));
         selectParser1.parse(select.getFinalSelect());
         LOGGER.debug("SelectParser: {}", selectParser1.getRequest());
         final Result resultSelectRel8 = dbRequest.execRequest(selectParser1, null);

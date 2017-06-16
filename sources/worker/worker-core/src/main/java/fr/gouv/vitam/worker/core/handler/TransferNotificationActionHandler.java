@@ -409,6 +409,11 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
             writeAttributeValue(xmlsw, SedaConstants.TAG_MESSAGE_REQUEST_IDENTIFIER, messageIdentifier);
 
+            if (infoATR.get(SedaConstants.TAG_ARCHIVE_PROFILE) != null) {
+                final String profilId = infoATR.get(SedaConstants.TAG_MESSAGE_IDENTIFIER).asText();
+                writeAttributeValue(xmlsw, SedaConstants.TAG_MESSAGE_REQUEST_IDENTIFIER, profilId);
+            }
+
             if (!isBlankTestWorkflow) {
                 writeAttributeValue(xmlsw, SedaConstants.TAG_GRANT_DATE, sdfDate.format(new Date()));
             }

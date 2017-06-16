@@ -72,6 +72,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookEvDetDataType;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
@@ -416,7 +417,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
             List<String> globalRequiredInfosFound = new ArrayList<>();
 
             ObjectNode evDetData = JsonHandler.createObjectNode();
-            evDetData.put("evDetDataType", LogbookEvDetDataType.MASTER.name());
+            evDetData.put(LogbookOperationsClientHelper.EV_DET_DATA_TYPE, 
+                LogbookEvDetDataType.MASTER.name());
 
                 while (true) {
                     final XMLEvent event = reader.nextEvent();
@@ -436,6 +438,16 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         writer.add(eventFactory.createCharacters(contractName));
                         writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI,
                             SedaConstants.TAG_ARCHIVAL_AGREEMENT));
+                        continue;
+                    }
+                    
+                    if (event.isStartElement() && event.asStartElement().getName().getLocalPart()
+                        .equals(SedaConstants.TAG_ARCHIVE_PROFILE)) {
+                        writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
+                            SedaConstants.TAG_ARCHIVE_PROFILE));
+                        writer.add(eventFactory.createCharacters(reader.getElementText()));
+                        writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI,
+                            SedaConstants.TAG_ARCHIVE_PROFILE));
                         continue;
                     }
 
@@ -640,6 +652,12 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 if (archAgreement != null) {
                     LOGGER.debug("Find an archival agreement: " + archAgreement);
                     evDetData.put("ArchivalAgreement", archAgreement.asText());
+                }
+
+                JsonNode archivalProfile= metadataAsJson.get(SedaConstants.TAG_ARCHIVE_PROFILE);
+                if (archivalProfile != null) {
+                    LOGGER.debug("Find an archival profile: " + archivalProfile.asText());
+                    evDetData.put(SedaConstants.TAG_ARCHIVE_PROFILE, archivalProfile.asText());
                 }
 
                 JsonNode transfAgency = metadataAsJson.get(SedaConstants.TAG_TRANSFERRING_AGENCY);
