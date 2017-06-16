@@ -45,66 +45,70 @@
 
     # External API for status (must be the first proxypass as ihms or API proxypass can use the same context and this one is more specific)
     {% for host in groups['hosts-access-internal'] %}
-    ProxyPass {{vitam_accessinternal_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_accessinternal_port}}/admin/v1 acquire=5000 connectiontimeout=3500 timeout=600 retry=5
+    ProxyPass {{vitam_accessinternal_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_accessinternal_port}}/admin/v1 {{reverse_connection_params}}
     ProxyPassReverse  {{vitam_accessinternal_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_accessinternal_port}}/admin/v1
     {% endfor %}
     {% for host in groups['hosts-access-external'] %}
-    ProxyPass {{vitam_accessexternal_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_accessexternal_port}}/admin/v1 acquire=5000 connectiontimeout=3500 timeout=600 retry=5
+    ProxyPass {{vitam_accessexternal_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_accessexternal_port}}/admin/v1 {{reverse_connection_params}}
     ProxyPassReverse  {{vitam_accessexternal_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_accessexternal_port}}/admin/v1
     {% endfor %}
     {% for host in groups['hosts-ingest-internal'] %}
-    ProxyPass {{vitam_ingestinternal_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_ingestinternal_port}}/admin/v1 acquire=5000 connectiontimeout=3500 timeout=600 retry=5
+    ProxyPass {{vitam_ingestinternal_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_ingestinternal_port}}/admin/v1 {{reverse_connection_params}}
     ProxyPassReverse  {{vitam_ingestinternal_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_ingestinternal_port}}/admin/v1
     {% endfor %}
     {% for host in groups['hosts-ingest-external'] %}
-    ProxyPass {{vitam_ingestexternal_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_ingestexternal_port}}/admin/v1 acquire=5000 connectiontimeout=3500 timeout=600 retry=5
+    ProxyPass {{vitam_ingestexternal_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_ingestexternal_port}}/admin/v1 {{reverse_connection_params}}
     ProxyPassReverse  {{vitam_ingestexternal_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_ingestexternal_port}}/admin/v1
     {% endfor %}
+    {% for host in groups['hosts-metadata'] %}
+    ProxyPass {{vitam_metadata_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{host}}:{{vitam_metadata_port}}/admin/v1 {{reverse_connection_params}}
+    ProxyPassReverse  {{vitam_metadata_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{host}}:{{vitam_metadata_port}}/admin/v1
+    {% endfor %}
     {% for host in groups['hosts-ihm-demo'] %}
-    ProxyPass {{vitam_ihm_demo_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_ihm_demo_port}}/admin/v1 acquire=5000 connectiontimeout=3500 timeout=600 retry=5
+    ProxyPass {{vitam_ihm_demo_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_ihm_demo_port}}/admin/v1 {{reverse_connection_params}}
     ProxyPassReverse  {{vitam_ihm_demo_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_ihm_demo_port}}/admin/v1
     {% endfor %}
     {% for host in groups['hosts-ihm-recette'] %}
-    ProxyPass {{vitam_ihm_recette_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_ihm_recette_port}}/admin/v1 acquire=5000 connectiontimeout=3500 timeout=600 retry=5
+    ProxyPass {{vitam_ihm_recette_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_ihm_recette_port}}/admin/v1 {{reverse_connection_params}}
     ProxyPassReverse  {{vitam_ihm_recette_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_ihm_recette_port}}/admin/v1
     {% endfor %}
     {% for host in groups['hosts-logbook'] %}
-    ProxyPass {{vitam_logbook_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_logbook_port}}/admin/v1 acquire=5000 connectiontimeout=3500 timeout=600 retry=5
+    ProxyPass {{vitam_logbook_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_logbook_port}}/admin/v1 {{reverse_connection_params}}
     ProxyPassReverse  {{vitam_logbook_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_logbook_port}}/admin/v1
     {% endfor %}
     {% for host in groups['hosts-workspace'] %}
-    ProxyPass {{vitam_workspace_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_workspace_port}}/admin/v1 acquire=5000 connectiontimeout=3500 timeout=600 retry=5
+    ProxyPass {{vitam_workspace_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_workspace_port}}/admin/v1 {{reverse_connection_params}}
     ProxyPassReverse  {{vitam_workspace_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_workspace_port}}/admin/v1
     {% endfor %}
     {% for host in groups['hosts-processing'] %}
-    ProxyPass {{vitam_processing_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_processing_port}}/admin/v1 acquire=5000 connectiontimeout=3500 timeout=600 retry=5
+    ProxyPass {{vitam_processing_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_processing_port}}/admin/v1 {{reverse_connection_params}}
     ProxyPassReverse  {{vitam_processing_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_processing_port}}/admin/v1
     {% endfor %}
     {% for host in groups['hosts-worker'] %}
-    ProxyPass {{vitam_worker_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_worker_port}}/admin/v1 acquire=5000 connectiontimeout=3500 timeout=600 retry=5
+    ProxyPass {{vitam_worker_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_worker_port}}/admin/v1 {{reverse_connection_params}}
     ProxyPassReverse  {{vitam_worker_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_worker_port}}/admin/v1
     {% endfor %}
     {% for host in groups['hosts-storage-engine'] %}
-    ProxyPass {{vitam_storageengine_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_storageengine_port}}/admin/v1 acquire=5000 connectiontimeout=3500 timeout=600 retry=5
+    ProxyPass {{vitam_storageengine_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_storageengine_port}}/admin/v1 {{reverse_connection_params}}
     ProxyPassReverse  {{vitam_storageengine_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_storageengine_port}}/admin/v1
     {% endfor %}
     {% for host in groups['hosts-storage-offer-default'] %}
-    ProxyPass {{vitam_storageofferdefault_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_storageofferdefault_port}}/admin/v1 acquire=5000 connectiontimeout=3500 timeout=600 retry=5
+    ProxyPass {{vitam_storageofferdefault_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_storageofferdefault_port}}/admin/v1 {{reverse_connection_params}}
     ProxyPassReverse  {{vitam_storageofferdefault_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_storageofferdefault_port}}/admin/v1
     {% endfor %}
     {% for host in groups['hosts-functional-administration'] %}
-    ProxyPass {{vitam_functional_administration_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_functional_administration_port}}/admin/v1 acquire=5000 connectiontimeout=3500 timeout=600 retry=5
+    ProxyPass {{vitam_functional_administration_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_functional_administration_port}}/admin/v1 {{reverse_connection_params}}
     ProxyPassReverse  {{vitam_functional_administration_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_functional_administration_port}}/admin/v1
     {% endfor %}
 
     # IHM Demo
     {% for host in groups['hosts-ihm-demo'] %}
-    ProxyPass {{ vitam_ihm_demo_baseurl }} http://{{hostvars[host]['ip_service']}}:{{vitam_ihm_demo_port}}{{ vitam_ihm_demo_baseurl }} acquire=5000 connectiontimeout=3500 timeout=600 retry=5
+    ProxyPass {{ vitam_ihm_demo_baseurl }} http://{{hostvars[host]['ip_service']}}:{{vitam_ihm_demo_port}}{{ vitam_ihm_demo_baseurl }} {{reverse_connection_params}}
     ProxyPassReverse  {{ vitam_ihm_demo_baseurl }} http://{{hostvars[host]['ip_service']}}:{{vitam_ihm_demo_port}}{{ vitam_ihm_demo_baseurl }}
     {% endfor %}
     # IHM Recette
     {% for host in groups['hosts-ihm-recette'] %}
-    ProxyPass {{ vitam_ihm_recette_baseurl }}  http://{{hostvars[host]['ip_service']}}:{{vitam_ihm_recette_port}}{{ vitam_ihm_recette_baseurl }} acquire=5000 connectiontimeout=3500 timeout=600 retry=5
+    ProxyPass {{ vitam_ihm_recette_baseurl }}  http://{{hostvars[host]['ip_service']}}:{{vitam_ihm_recette_port}}{{ vitam_ihm_recette_baseurl }} {{reverse_connection_params}}
     ProxyPassReverse  {{ vitam_ihm_recette_baseurl }}  http://{{hostvars[host]['ip_service']}}:{{vitam_ihm_recette_port}}{{ vitam_ihm_recette_baseurl }}
     {% endfor %}
 
@@ -116,66 +120,68 @@
 
     # External API for ingest-external
     {% for host in groups['hosts-ingest-external'] %}
-     ProxyPass /ingest-external https://{{ hostvars[host]['ip_service'] }}:{{vitam_ingestexternal_port_https}}/ingest-external acquire=5000 connectiontimeout=3500 timeout=600 retry=5
+     ProxyPass /ingest-external https://{{ hostvars[host]['ip_service'] }}:{{vitam_ingestexternal_port_https}}/ingest-external {{reverse_connection_params}}
      ProxyPassReverse  /ingest-external https://{{ hostvars[host]['ip_service'] }}:{{vitam_ingestexternal_port_https}}/ingest-external
     {% endfor %}
 
     # External API for access-external
     {% for host in groups['hosts-access-external'] %}
-     ProxyPass /access-external https://{{ hostvars[host]['ip_service'] }}:{{vitam_accessexternal_port_https}}/access-external acquire=5000 connectiontimeout=3500 timeout=600 retry=5
+     ProxyPass /access-external https://{{ hostvars[host]['ip_service'] }}:{{vitam_accessexternal_port_https}}/access-external {{reverse_connection_params}}
      ProxyPassReverse  /access-external https://{{ hostvars[host]['ip_service'] }}:{{vitam_accessexternal_port_https}}/access-external
+     ProxyPass /admin-external  https://{{ hostvars[host]['ip_service'] }}:{{vitam_accessexternal_port_https}}/admin-external {{reverse_connection_params}}
+     ProxyPassReverse  /admin-external  https://{{ hostvars[host]['ip_service'] }}:{{vitam_accessexternal_port_https}}/admin-external
     {% endfor %}
 
     # @Deprecated, TODO: check if this proxypass is still needed.
     {% for host in groups['hosts-logbook'] %}
-     ProxyPass /logbook http://{{ hostvars[host]['ip_service'] }}:{{vitam_logbook_port}}/logbook acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+     ProxyPass /logbook http://{{ hostvars[host]['ip_service'] }}:{{vitam_logbook_port}}/logbook {{reverse_connection_short_params}}
      ProxyPassReverse  /logbook http://{{ hostvars[host]['ip_service'] }}:{{vitam_logbook_port}}/logbook
     {% endfor %}
 
     # /vitam subdir browser
     {% for host in groups['vitam'] %}
-    ProxyPass /nodes/{{host}}/browse http://{{ hostvars[host]['ip_admin'] }}/browse  acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+    ProxyPass /nodes/{{host}}/browse http://{{ hostvars[host]['ip_admin'] }}/browse  {{reverse_connection_short_params}}
     ProxyPassReverse  /nodes/{{host}}/browse http://{{ hostvars[host]['ip_admin'] }}/browse
     {% endfor %}
 
     # Mongoclient
     {% if groups['hosts-mongoclient'] | length > 0 %}
-    ProxyPass /mongoclient http://{{ hostvars[ groups['hosts-mongoclient'][0] ]['ip_service'] }}:{{mongoclientPort}}/mongoclient acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+    ProxyPass /mongoclient http://{{ hostvars[ groups['hosts-mongoclient'][0] ]['ip_service'] }}:{{mongoclientPort}}/mongoclient {{reverse_connection_short_params}}
     ProxyPassReverse  /mongoclient http://{{ hostvars[ groups['hosts-mongoclient'][0] ]['ip_service'] }}:{{mongoclientPort}}/mongoclient
     {% endif %}
 
     {% if groups['hosts-dev-tools']|length > 0 %}
     # Mongo express
-    ProxyPass /mongo-express http://{{ hostvars[groups['hosts-dev-tools'][0]]['ip_service'] }}:8081/mongo-express acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+    ProxyPass /mongo-express http://{{ hostvars[groups['hosts-dev-tools'][0]]['ip_service'] }}:8081/mongo-express {{reverse_connection_short_params}}
     ProxyPassReverse  /mongo-express http://{{hostvars[groups['hosts-dev-tools'][0]]['ip_service'] }}:8081/mongo-express
     # Elasticsearch-head
-    ProxyPass /head http://{{hostvars[groups['hosts-dev-tools'][0]]['ip_service'] }}:9100/ acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+    ProxyPass /head http://{{hostvars[groups['hosts-dev-tools'][0]]['ip_service'] }}:9100/ {{reverse_connection_short_params}}
     ProxyPassReverse  /head http://{{ hostvars[groups['hosts-dev-tools'][0]]['ip_service'] }}:9100/
-    ProxyPass /base http://{{ hostvars[groups['hosts-dev-tools'][0]]['ip_service'] }}:9100/base acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+    ProxyPass /base http://{{ hostvars[groups['hosts-dev-tools'][0]]['ip_service'] }}:9100/base {{reverse_connection_short_params}}
     ProxyPassReverse  /base http://{{ hostvars[groups['hosts-dev-tools'][0]]['ip_service'] }}:9100/base
-    ProxyPass /app.css http://{{ hostvars[groups['hosts-dev-tools'][0]]['ip_service'] }}:9100/app.css acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+    ProxyPass /app.css http://{{ hostvars[groups['hosts-dev-tools'][0]]['ip_service'] }}:9100/app.css {{reverse_connection_short_params}}
     ProxyPassReverse  /app.css http://{{ hostvars[groups['hosts-dev-tools'][0]]['ip_service'] }}:9100/app.css
-    ProxyPass /vendor.css http://{{ hostvars[groups['hosts-dev-tools'][0]]['ip_service'] }}:9100/vendor.css acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+    ProxyPass /vendor.css http://{{ hostvars[groups['hosts-dev-tools'][0]]['ip_service'] }}:9100/vendor.css {{reverse_connection_short_params}}
     ProxyPassReverse  /vendor.css http://{{ hostvars[groups['hosts-dev-tools'][0]]['ip_service'] }}:9100/vendor.css
-    ProxyPass /i18n.js http://{{ hostvars[groups['hosts-dev-tools'][0]]['ip_service'] }}:9100/i18n.js acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+    ProxyPass /i18n.js http://{{ hostvars[groups['hosts-dev-tools'][0]]['ip_service'] }}:9100/i18n.js {{reverse_connection_short_params}}
     ProxyPassReverse  /i18n.js http://{{ hostvars[groups['hosts-dev-tools'][0]]['ip_service'] }}:9100/i18n.js
-    ProxyPass /vendor.js http://{{ hostvars[groups['hosts-dev-tools'][0]]['ip_service'] }}:9100/vendor.js acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+    ProxyPass /vendor.js http://{{ hostvars[groups['hosts-dev-tools'][0]]['ip_service'] }}:9100/vendor.js {{reverse_connection_short_params}}
     ProxyPassReverse  /vendor.js http://{{ hostvars[groups['hosts-dev-tools'][0]]['ip_service'] }}:9100/vendor.js
-    ProxyPass /app.js http://{{ hostvars[groups['hosts-dev-tools'][0]]['ip_service'] }}:9100/app.js acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+    ProxyPass /app.js http://{{ hostvars[groups['hosts-dev-tools'][0]]['ip_service'] }}:9100/app.js {{reverse_connection_short_params}}
     ProxyPassReverse  /app.js http://{{ hostvars[groups['hosts-dev-tools'][0]]['ip_service'] }}:9100/app.js
-    ProxyPass /fonts http://{{ hostvars[groups['hosts-dev-tools'][0]]['ip_service'] }}:9100/fonts acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+    ProxyPass /fonts http://{{ hostvars[groups['hosts-dev-tools'][0]]['ip_service'] }}:9100/fonts {{reverse_connection_short_params}}
     ProxyPassReverse  /fonts http://{{ hostvars[groups['hosts-dev-tools'][0]]['ip_service'] }}:9100/fonts
-    ProxyPass /lang http://{{ hostvars[groups['hosts-dev-tools'][0]]['ip_service'] }}:9100/lang acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+    ProxyPass /lang http://{{ hostvars[groups['hosts-dev-tools'][0]]['ip_service'] }}:9100/lang {{reverse_connection_short_params}}
     ProxyPassReverse  /lang http://{{ hostvars[groups['hosts-dev-tools'][0]]['ip_service'] }}:9100/lang
     {% endif %}
 
     {% if groups['hosts-kibana']|length >0 %}
     # Kibana
-    ProxyPass /app/kibana http://{{ hostvars[groups['hosts-kibana'][0]]['ip_service']}}:{{vitam_kibana_port}}/app/kibana acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+    ProxyPass /app/kibana http://{{ hostvars[groups['hosts-kibana'][0]]['ip_service']}}:{{vitam_kibana_port}}/app/kibana {{reverse_connection_short_params}}
     ProxyPassReverse /app/kibana http://{{ hostvars[groups['hosts-kibana'][0]]['ip_service']}}:{{vitam_kibana_port}}/app/kibana
-    ProxyPass /api/status http://{{ hostvars[groups['hosts-kibana'][0]]['ip_service']}}:{{vitam_kibana_port}}/api/status acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+    ProxyPass /api/status http://{{ hostvars[groups['hosts-kibana'][0]]['ip_service']}}:{{vitam_kibana_port}}/api/status {{reverse_connection_short_params}}
     ProxyPassReverse /api/status http://{{ hostvars[groups['hosts-kibana'][0]]['ip_service']}}:{{vitam_kibana_port}}/api/status
-    ProxyPass /bundles http://{{hostvars[groups['hosts-kibana'][0]]['ip_service']}}:{{vitam_kibana_port}}/bundles acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+    ProxyPass /bundles http://{{hostvars[groups['hosts-kibana'][0]]['ip_service']}}:{{vitam_kibana_port}}/bundles {{reverse_connection_short_params}}
     ProxyPassReverse /bundles http://{{hostvars[groups['hosts-kibana'][0]]['ip_service']}}:{{vitam_kibana_port}}/bundles
     # Needed as it conflicts with Elasticsearch reverse proxy
     ProxyPass /elasticsearch http://{{ hostvars[groups['hosts-kibana'][0]]['ip_service']}}:{{vitam_kibana_port}}/elasticsearch
