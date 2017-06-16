@@ -46,6 +46,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
+import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 
 import javax.ws.rs.HttpMethod;
@@ -262,13 +263,13 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     }
 
     @Override
-    public List<UnitPerOriginatingAgency> selectAccessionRegisterByOperationId(String operationId)
+    public List<UnitPerOriginatingAgency> selectAccessionRegisterOnUnitByOperationId(String operationId)
         throws MetaDataClientServerException {
         Response response = null;
 
         try {
             response =
-                performRequest(HttpMethod.GET, "/accession-register/" + operationId, null, null,
+                performRequest(HttpMethod.GET, "/accession-registers/units/" + operationId, null, null,
                     MediaType.APPLICATION_JSON_TYPE,
                     MediaType.APPLICATION_JSON_TYPE);
 
@@ -287,6 +288,44 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
                 VitamError vitamError = (VitamError) requestResponse;
                 LOGGER
                     .error("find accession register for unit failed, http code is {}, error is {}", vitamError.getCode(),
+                        vitamError.getErrors());
+                throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR);
+            }
+
+        } catch (VitamClientInternalException | InvalidParseOperationException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR, e);
+            throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public List<ObjectGroupPerOriginatingAgency> selectAccessionRegisterOnObjectByOperationId(String operationId)
+        throws MetaDataClientServerException {
+        Response response = null;
+
+        try {
+            response =
+                performRequest(HttpMethod.GET, "/accession-registers/objects/" + operationId, null, null,
+                    MediaType.APPLICATION_JSON_TYPE,
+                    MediaType.APPLICATION_JSON_TYPE);
+
+            RequestResponse<JsonNode> requestResponse = RequestResponse.parseFromResponse(response);
+            if (requestResponse.isOk()) {
+                RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
+
+                List<ObjectGroupPerOriginatingAgency> objectGroupPerOriginatingAgencies = new ArrayList<>();
+                for (JsonNode jsonNode : requestResponseOK.getResults()) {
+                    objectGroupPerOriginatingAgencies
+                        .add(JsonHandler.getFromJsonNode(jsonNode, ObjectGroupPerOriginatingAgency.class));
+                }
+
+                return objectGroupPerOriginatingAgencies;
+            } else {
+                VitamError vitamError = (VitamError) requestResponse;
+                LOGGER
+                    .error("find accession register for object group failed, http code is {}, error is {}", vitamError.getCode(),
                         vitamError.getErrors());
                 throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR);
             }

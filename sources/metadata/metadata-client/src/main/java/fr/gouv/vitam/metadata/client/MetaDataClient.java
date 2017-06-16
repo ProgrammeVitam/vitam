@@ -40,6 +40,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
+import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 
 /**
@@ -144,6 +145,9 @@ public interface MetaDataClient extends BasicClient {
         MetaDataNotFoundException, MetaDataAlreadyExistException, MetaDataDocumentSizeException,
         MetaDataClientServerException;
 
-    List<UnitPerOriginatingAgency> selectAccessionRegisterByOperationId(String operationId)
+    List<UnitPerOriginatingAgency> selectAccessionRegisterOnUnitByOperationId(String operationId)
+        throws MetaDataClientServerException;
+
+    List<ObjectGroupPerOriginatingAgency> selectAccessionRegisterOnObjectByOperationId(String operationId)
         throws MetaDataClientServerException;
 }

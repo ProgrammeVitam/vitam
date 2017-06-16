@@ -1,0 +1,70 @@
+{
+  "_id": "aebaaaaaaagbcaacaajo4ak4tr2o7laaaaaq",
+  "_tenant": 0,
+  "_profil": "",
+  "_qualifiers": [
+    {
+      "qualifier": "PhysicalMaster",
+      "_nbc": 1,
+      "versions": [
+        {
+          "_id": "aeaaaaaaaagbcaacaajo4ak4tr2o7qyaaaaq",
+          "DataObjectGroupId": "aebaaaaaaagbcaacaajo4ak4tr2o7laaaaaq",
+          "DataObjectVersion": "PhysicalMaster_1",
+          "PhysicalId": 123456789,
+          "storage": {
+            "_nbc": 1,
+            "offerIds": [
+              "localhost"
+            ],
+            "strategyId": "default"
+          }
+        }
+      ]
+    },
+    {
+      "qualifier": "BinaryMaster",
+      "_nbc": 1,
+      "versions": [
+        {
+          "_id": "aeaaaaaaaagbcaacaajo4ak4tr2o7kyaaaaq",
+          "DataObjectGroupId": "aebaaaaaaagbcaacaajo4ak4tr2o7laaaaaq",
+          "DataObjectVersion": "BinaryMaster_1",
+          "Size": 100,
+          "Uri": "Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf",
+          "storage": {
+            "_nbc": 1,
+            "offerIds": [
+              "localhost"
+            ],
+            "strategyId": "default"
+          }
+        }, {
+          "_id": "aeaaaaaaaagbcaacaajo4ak4tr2o7kyaaaaq",
+          "DataObjectGroupId": "aebaaaaaaagbcaacaajo4ak4tr2o7laaaaaq",
+          "DataObjectVersion": "BinaryMaster_1",
+          "Size": 100,
+          "Uri": "Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf",
+          "storage": {
+            "_nbc": 1,
+            "offerIds": [
+              "localhost"
+            ],
+            "strategyId": "default"
+          }
+        }
+      ]
+    }
+  ],
+  "_up": [
+    "aeaqaaaaaagbcaacaajo4ak4tr2o7rqaaaaq"
+  ],
+  "_nbc": 0,
+  "_ops": [
+    "aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq"
+  ],
+  "OriginatingAgency": "sp1",
+  "_sps": [
+    "sp1"
+  ]
+}

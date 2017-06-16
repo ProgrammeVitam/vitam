@@ -63,6 +63,8 @@ public interface MetaData {
         MetaDataAlreadyExistException, MetaDataExecutionException, MetaDataDocumentSizeException;
 
 
+    List<Document> selectAccessionRegisterOnObjectGroupByOperationId(String operationId);
+
     /**
      * Search UNITs by Select {@link Select}Query
      *
@@ -163,5 +165,5 @@ public interface MetaData {
      * find the number of archive unit per originating agency for a operationId
      * @param operationId operation id
      */
-    List<Document> selectAccessionRegisterByOperationId(String operationId);
+    List<Document> selectAccessionRegisterOnUnitByOperationId(String operationId);
 }

@@ -26,6 +26,23 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
+import static fr.gouv.vitam.common.json.JsonHandler.toArrayList;
+
+import java.util.List;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import org.bson.Document;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Lists;
@@ -42,25 +59,12 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
+import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
-import org.bson.Document;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.util.List;
-
-import static fr.gouv.vitam.common.json.JsonHandler.toArrayList;
 
 /**
  * Units resource REST API
@@ -508,11 +512,11 @@ public class MetaDataResource extends ApplicationStatusResource {
             .addAllResults(toArrayList(arrayNodeResults))).build();
     }
 
-    @Path("accession-register/{operationId}")
+    @Path("accession-registers/units/{operationId}")
     @Produces(MediaType.APPLICATION_JSON)
     @GET
-    public Response selectAccessionRegisterByOperationId(@PathParam("operationId") String operationId) {
-        List<Document> documents = metaDataImpl.selectAccessionRegisterByOperationId(operationId);
+    public Response selectAccessionRegisterOnUnitByOperationId(@PathParam("operationId") String operationId) {
+        List<Document> documents = metaDataImpl.selectAccessionRegisterOnUnitByOperationId(operationId);
 
         RequestResponseOK<UnitPerOriginatingAgency> responseOK = new RequestResponseOK<>();
         responseOK.setHttpCode(200);
@@ -521,6 +525,26 @@ public class MetaDataResource extends ApplicationStatusResource {
             unitPerOriginatingAgency.setId(doc.getString("_id"));
             unitPerOriginatingAgency.setCount(doc.getInteger("count"));
             responseOK.addResult(unitPerOriginatingAgency);
+        }
+
+        return responseOK.toResponse();
+    }
+
+    @Path("accession-registers/objects/{operationId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @GET
+    public Response selectAccessionRegisterOnObjectGroupByOperationId(@PathParam("operationId") String operationId) {
+        List<Document> documents = metaDataImpl.selectAccessionRegisterOnObjectGroupByOperationId(operationId);
+
+        RequestResponseOK<ObjectGroupPerOriginatingAgency> responseOK = new RequestResponseOK<>();
+        responseOK.setHttpCode(200);
+        for (Document doc : documents) {
+            ObjectGroupPerOriginatingAgency objectGroupPerOriginatingAgency = new ObjectGroupPerOriginatingAgency();
+            objectGroupPerOriginatingAgency.setOriginatingAgency(doc.getString("_id"));
+            objectGroupPerOriginatingAgency.setNumberOfGOT(doc.getInteger("totalObject"));
+            objectGroupPerOriginatingAgency.setNumberOfObject(doc.getInteger("totalGOT"));
+            objectGroupPerOriginatingAgency.setSize(doc.getInteger("totalSize"));
+            responseOK.addResult(objectGroupPerOriginatingAgency);
         }
 
         return responseOK.toResponse();

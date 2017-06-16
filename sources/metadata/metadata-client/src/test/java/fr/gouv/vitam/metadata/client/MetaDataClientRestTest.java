@@ -62,6 +62,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
+import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 
 public class MetaDataClientRestTest extends VitamJerseyTest {
@@ -175,10 +176,16 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
             return expectedResponse.get();
         }
 
-        @Path("accession-register/{operationId}")
+        @Path("accession-registers/units/{operationId}")
         @Produces(MediaType.APPLICATION_JSON)
         @GET
         public Response selectAccessionRegisterForArchiveUnit(@PathParam("operationId") String operationId) {
+            return expectedResponse.get();
+        }
+        @Path("accession-registers/objects/{operationId}")
+        @Produces(MediaType.APPLICATION_JSON)
+        @GET
+        public Response selectAccessionRegisterForObjectGroup(@PathParam("operationId") String operationId) {
             return expectedResponse.get();
         }
     }
@@ -431,7 +438,7 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
 
 
     @Test
-    public void should_validate_accesion_register_client()
+    public void should_validate_accession_register_client_for_unit()
         throws MetaDataDocumentSizeException, MetaDataExecutionException, InvalidParseOperationException,
         MetaDataClientServerException {
 
@@ -446,11 +453,33 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
 
         // When
         List<UnitPerOriginatingAgency> unitPerOriginatingAgencies =
-            client.selectAccessionRegisterByOperationId("122345");
+            client.selectAccessionRegisterOnUnitByOperationId("122345");
 
         // Then
         assertThat(unitPerOriginatingAgencies).hasSize(2).extracting("id", "count")
             .contains(tuple("sp1", 3), tuple("sp2", 4));
+    }
+
+    @Test
+    public void should_validate_accession_register_client_for_object_group()
+        throws MetaDataDocumentSizeException, MetaDataExecutionException, InvalidParseOperationException,
+        MetaDataClientServerException {
+
+        // Given
+        RequestResponseOK<ObjectGroupPerOriginatingAgency> requestResponseOK =
+            new RequestResponseOK<>();
+        requestResponseOK.addResult(new ObjectGroupPerOriginatingAgency("sp1", 3, 2, 2000));
+        requestResponseOK.addResult(new ObjectGroupPerOriginatingAgency("sp2", 4, 1, 3400));
+
+        when(mock.get())
+            .thenReturn(Response.status(Status.OK).entity(JsonHandler.writeAsString(requestResponseOK)).build());
+
+        // When
+        List<ObjectGroupPerOriginatingAgency> unitPerOriginatingAgencies =  client.selectAccessionRegisterOnObjectByOperationId("122345");
+
+        // Then
+        assertThat(unitPerOriginatingAgencies).hasSize(2).extracting("originatingAgency", "numberOfObject", "numberOfGOT", "size")
+            .contains(tuple("sp1", 3, 2, 2000), tuple("sp2", 4, 1, 3400));
     }
 
 }
