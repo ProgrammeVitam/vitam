@@ -46,6 +46,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Iterables;
 
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -90,6 +91,9 @@ import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccess
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.contract.api.ContractService;
+import fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl;
+import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFileImpl;
 import fr.gouv.vitam.functional.administration.rules.core.RulesManagerFileImpl;
 
@@ -106,6 +110,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
     private final MongoDbAccessAdminImpl mongoAccess;
     private final ElasticsearchAccessFunctionalAdmin elasticsearchAccess;
+    private VitamCounterService vitamCounterService;
 
     /**
      * Constructor
@@ -210,7 +215,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
      * @param formatId path param as String
      * @return Response jersey response
      * @throws InvalidParseOperationException when transform result to json exception occurred
-     * @throws IOException when error json occurs
+     * @throws IOException                    when error json occurs
      */
     @POST
     @Path("format/{id_format}")
@@ -245,7 +250,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
      *
      * @param select as String the query to get format
      * @return Response jersey Response
-     * @throws IOException when error json occurs
+     * @throws IOException                    when error json occurs
      * @throws InvalidParseOperationException when error json occurs
      */
     @Path("format/document")
@@ -288,10 +293,10 @@ public class AdminManagementResource extends ApplicationStatusResource {
      *
      * @param rulesStream as InputStream
      * @return Response response jersey
-     * @throws IOException convert inputstream rule to File exception occurred
+     * @throws IOException                     convert inputstream rule to File exception occurred
      * @throws InvalidCreateOperationException if exception occurred when create query
-     * @throws InvalidParseOperationException if parsing json data exception occurred
-     * @throws ReferentialException if exception occurred when create rule file manager
+     * @throws InvalidParseOperationException  if parsing json data exception occurred
+     * @throws ReferentialException            if exception occurred when create rule file manager
      */
     @Path("rules/check")
     @POST
@@ -323,9 +328,9 @@ public class AdminManagementResource extends ApplicationStatusResource {
      *
      * @param rulesStream as InputStream
      * @return Response jersey response
-     * @throws IOException when error json occurs
+     * @throws IOException                    when error json occurs
      * @throws InvalidParseOperationException when error json occurs
-     * @throws ReferentialException when the mongo insert throw error
+     * @throws ReferentialException           when the mongo insert throw error
      */
     @Path("rules/import")
     @POST
@@ -356,9 +361,9 @@ public class AdminManagementResource extends ApplicationStatusResource {
      *
      * @param ruleId path param as String
      * @return Response jersey response
-     * @throws InvalidParseOperationException if exception occurred when transform json rule id
-     * @throws IOException when error json occurs
-     * @throws ReferentialException when the mongo search throw error or search result is null
+     * @throws InvalidParseOperationException  if exception occurred when transform json rule id
+     * @throws IOException                     when error json occurs
+     * @throws ReferentialException            when the mongo search throw error or search result is null
      * @throws InvalidCreateOperationException if exception occurred when create query
      */
     @POST
@@ -418,7 +423,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
      *
      * @param select as String
      * @return Response jersey Response
-     * @throws IOException when error json occurs
+     * @throws IOException                    when error json occurs
      * @throws InvalidParseOperationException when error json occurs
      */
     @Path("rules/document")
@@ -491,9 +496,9 @@ public class AdminManagementResource extends ApplicationStatusResource {
      *
      * @param select as String the query to find accession register
      * @return Response jersey Response
-     * @throws IOException when error json occurs
+     * @throws IOException                    when error json occurs
      * @throws InvalidParseOperationException when error json occurs
-     * @throws ReferentialException when the mongo search throw error or search result is null
+     * @throws ReferentialException           when the mongo search throw error or search result is null
      */
     @Path("accession-register/document")
     @POST
@@ -516,12 +521,13 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
             SelectParserSingle parser = new SelectParserSingle();
             parser.parse(select);
+
             if (!isEveryOriginatingAgency) {
                 parser.addCondition(QueryHelper.in("OriginatingAgency",
-                    prodServices.stream().toArray(String[]::new)).setDepthLimit(0));
+                    prodServices.toArray(new String[0])));
             }
 
-            fileFundRegisters = accessionRegisterManagement.findDocuments(select);
+            fileFundRegisters = accessionRegisterManagement.findDocuments(parser.getRequest().getFinalSelect());
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
@@ -548,9 +554,9 @@ public class AdminManagementResource extends ApplicationStatusResource {
      *
      * @param select as String the query to find the accession register
      * @return Response jersey Response
-     * @throws IOException when error json occurs
+     * @throws IOException                    when error json occurs
      * @throws InvalidParseOperationException when error json occurs
-     * @throws ReferentialException when the mongo search throw error or search result is null
+     * @throws ReferentialException           when the mongo search throw error or search result is null
      */
     @Path("accession-register/detail/{id}")
     @POST
@@ -559,7 +565,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     public Response findDetailAccessionRegister(@PathParam("id") String documentId, JsonNode select)
         throws InvalidParseOperationException, IOException, ReferentialException {
         ParametersChecker.checkParameter(SELECT_IS_A_MANDATORY_PARAMETER, select);
-        List<AccessionRegisterDetail> fileAccessionRegistersDetail = new ArrayList<>();
+        List<AccessionRegisterDetail> accessionRegisterDetails = new ArrayList<>();
         try (ReferentialAccessionRegisterImpl accessionRegisterManagement =
             new ReferentialAccessionRegisterImpl(mongoAccess)) {
             SanityChecker.checkJsonAll(select);
@@ -573,12 +579,13 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
             SelectParserSingle parser = new SelectParserSingle();
             parser.parse(select);
-            if (!isEveryOriginatingAgency) {
-                parser.addCondition(QueryHelper.in("OriginatingAgency",
-                    prodServices.stream().toArray(String[]::new)).setDepthLimit(0));
+
+            if (!isEveryOriginatingAgency && !prodServices.contains(documentId)) {
+                return Response.status(Status.UNAUTHORIZED).entity(Status.UNAUTHORIZED).build();
             }
             parser.addCondition(eq("OriginatingAgency", URLDecoder.decode(documentId, CharsetUtils.UTF_8)));
-            fileAccessionRegistersDetail = accessionRegisterManagement.findDetail(parser.getRequest().getFinalSelect());
+
+            accessionRegisterDetails = accessionRegisterManagement.findDetail(parser.getRequest().getFinalSelect());
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
@@ -594,55 +601,40 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
         return Response.status(Status.OK)
             .entity(new RequestResponseOK()
-                .setHits(fileAccessionRegistersDetail.size(), 0, fileAccessionRegistersDetail.size())
+                .setHits(accessionRegisterDetails.size(), 0, accessionRegisterDetails.size())
                 .setQuery(select)
-                .addAllResults(fileAccessionRegistersDetail))
+                .addAllResults(accessionRegisterDetails))
             .build();
     }
 
+    private AccessContractModel getContractDetails(String contratId) throws InvalidParseOperationException,
+        InvalidCreateOperationException, AdminManagementClientServerException {
 
-    /**
-     * Construct the error following input
-     *
-     * @param status Http error status
-     * @param message The functional error message, if absent the http reason phrase will be used instead
-     * @param code The functional error code, if absent the http code will be used instead
-     * @return
-     */
-    private VitamError getErrorEntity(Status status, String message, String code) {
-        String aMessage =
-            (message != null && !message.trim().isEmpty()) ? message
-                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
-        String aCode = (code != null) ? code : String.valueOf(status.getStatusCode());
-        return new VitamError(aCode).setHttpCode(status.getStatusCode()).setContext("ADMIN_MODULE")
-            .setState("code_vitam").setMessage(status.getReasonPhrase()).setDescription(aMessage);
-    }
+        try (ContractService<AccessContractModel> accessContract = new AccessContractImpl(mongoAccess,
+            vitamCounterService)) {
 
-    private static AccessContractModel getContractDetails(String contratId) throws InvalidParseOperationException,
-    InvalidCreateOperationException, AdminManagementClientServerException {
-        AccessContractModel contract = null;
-        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            JsonNode queryDsl = getQueryDsl(contratId);
-            RequestResponse<AccessContractModel> response = client.findAccessContracts(queryDsl);
-            if (!response.isOk() || ((RequestResponseOK<AccessContractModel>)response).getResults().size() == 0){
-                return null;
-            }
-            List<AccessContractModel> list = ((RequestResponseOK<AccessContractModel>)response).getResults();
-            contract = list.get(0);
+            final List<AccessContractModel> accessContractModelList =
+                accessContract.findContracts(getQueryDsl(contratId));
+            return Iterables.getOnlyElement(accessContractModelList, null);
+
+        } catch (ReferentialException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return null;
         }
-        return contract;
     }
 
     private static JsonNode getQueryDsl(String headerAccessContratId)
-         throws InvalidParseOperationException, InvalidCreateOperationException{
+        throws InvalidParseOperationException, InvalidCreateOperationException {
 
         Select select = new Select();
         Query query = QueryHelper.and().add(QueryHelper.eq(AccessContract.NAME, headerAccessContratId),
             QueryHelper.eq(AccessContract.STATUS, ContractStatus.ACTIVE.name()));
         select.setQuery(query);
-        JsonNode queryDsl = select.getFinalSelect();
 
-        return queryDsl;
+        return select.getFinalSelect();
     }
 
+    public void setVitamCounterService(VitamCounterService vitamCounterService) {
+        this.vitamCounterService = vitamCounterService;
+    }
 }

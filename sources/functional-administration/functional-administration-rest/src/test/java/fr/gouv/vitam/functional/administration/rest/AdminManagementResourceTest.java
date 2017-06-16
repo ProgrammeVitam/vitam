@@ -30,6 +30,7 @@ import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.with;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
@@ -51,6 +52,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Sets;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
@@ -63,8 +65,10 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -73,6 +77,8 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.AccessContractModel;
+import fr.gouv.vitam.common.model.ContractStatus;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -135,10 +141,11 @@ public class AdminManagementResourceTest {
     private static ElasticsearchTestConfiguration configEs = null;
 
     @ClassRule
-    public static TemporaryFolder tempFolder = new TemporaryFolder();
+    public static TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     private final static String CLUSTER_NAME = "vitam-cluster";
     private static ElasticsearchAccessFunctionalAdmin esClient;
+    private final static String originatingAgency = "OriginatingAgency";
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -149,10 +156,15 @@ public class AdminManagementResourceTest {
 
         // ES
         try {
-            configEs = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
+            configEs = JunitHelper.startElasticsearchForTest(temporaryFolder, CLUSTER_NAME);
         } catch (final VitamApplicationServerException e1) {
             assumeTrue(false);
         }
+
+        File tempFolder = temporaryFolder.newFolder();
+        System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
+
+        SystemPropertyUtil.refresh();
 
         final List<ElasticsearchNode> nodesEs = new ArrayList<>();
         nodesEs.add(new ElasticsearchNode("localhost", configEs.getTcpPort()));
@@ -176,8 +188,7 @@ public class AdminManagementResourceTest {
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, databasePort));
-        mongoDbAccess =
-            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, "vitam-test"));
+        mongoDbAccess = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, "vitam-test"));
 
         serverPort = junitHelper.findAvailablePort();
 
@@ -275,6 +286,39 @@ public class AdminManagementResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(CREATE_FUND_REGISTER_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void findAccessionRegisterDetail() throws Exception {
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        String contractId = "contractId";
+
+        AccessContractModel contractModel = new AccessContractModel();
+        contractModel.setOriginatingAgencies(Sets.newHashSet(originatingAgency));
+        contractModel.setName(contractId);
+        contractModel.setStatus(ContractStatus.ACTIVE.name());
+
+        mongoDbAccess.insertDocument(JsonHandler.toJsonNode(contractModel), FunctionalAdminCollections.ACCESS_CONTRACT);
+
+        stream = PropertiesUtils.getResourceAsStream("accession-register.json");
+        final AccessionRegisterDetail register = JsonHandler.getFromInputStream(stream, AccessionRegisterDetail.class);
+        given().contentType(ContentType.JSON).body(register)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(CREATE_FUND_REGISTER_URI)
+            .then().statusCode(Status.CREATED.getStatusCode());
+        register.setTotalObjects(null);
+
+        Select select = new Select();
+
+        given().contentType(ContentType.JSON).body(select.getFinalSelect())
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractId)
+            .when().post("accession-register/detail/" + originatingAgency)
+            .then()
+            .body("$results.size()", equalTo(1))
+            .statusCode(Status.OK.getStatusCode());
     }
 
     @Test

@@ -89,7 +89,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
     private static final String ACCESSION_REGISTER_CREATE_URI = "/accession-register";
     private static final String ACCESSION_REGISTER_GET_DOCUMENT_URL = "/accession-register/document";
-    private static final String ACCESSION_REGISTER_GET_DETAIL_URL = "accession-register/detail";
+    private static final String ACCESSION_REGISTER_GET_DETAIL_URL = "/accession-register/detail";
     private static final String INGEST_CONTRACTS_URI = "/contracts";
     private static final String ACCESS_CONTRACTS_URI = "/accesscontracts";
     private static final String UPDATE_ACCESS_CONTRACT_URI = "/accesscontract/";
@@ -416,7 +416,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         ParametersChecker.checkParameter("documentId is a mandatory parameter", documentId);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, ACCESSION_REGISTER_GET_DETAIL_URL + "/" + documentId + "/",
+            response = performRequest(HttpMethod.POST, ACCESSION_REGISTER_GET_DETAIL_URL + "/" + documentId,
                 null, query, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {

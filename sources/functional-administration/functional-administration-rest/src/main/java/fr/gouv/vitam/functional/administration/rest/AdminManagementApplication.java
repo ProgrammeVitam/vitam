@@ -99,16 +99,21 @@ public class AdminManagementApplication
 
             AdminManagementConfiguration configuration = getConfiguration();
             setServiceRegistry(new VitamServiceRegistry());
+
             final AdminManagementResource resource = new AdminManagementResource(configuration);
+
+            final MongoDbAccessAdminImpl mongoDbAccess = resource.getLogbookDbAccess();
+
+            final VitamCounterService vitamCounterService =
+                new VitamCounterService(mongoDbAccess, configuration.getTenants());
+
+            resource.setVitamCounterService(vitamCounterService);
 
             serviceRegistry
                 .register(LogbookOperationsClientFactory.getInstance())
                 .register(resource.getLogbookDbAccess());
             // TODO: 5/12/17 dependency to workspace, metadata, storage
 
-            final MongoDbAccessAdminImpl mongoDbAccess = resource.getLogbookDbAccess();
-            final VitamCounterService vitamCounterService =
-                new VitamCounterService(mongoDbAccess, configuration.getTenants());
 
             final ProfileResource profileResource = new ProfileResource(getConfiguration(), mongoDbAccess,vitamCounterService);
             resourceConfig
