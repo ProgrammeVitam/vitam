@@ -80,7 +80,7 @@ public class WorkerClientFactory extends VitamClientFactory<WorkerClient> {
      * @param  configuration the worker client configuration
      */
     private WorkerClientFactory(WorkerClientConfiguration configuration) {
-        super(configuration, RESOURCE_PATH,true,false,false);
+        super(configuration, RESOURCE_PATH, false);
     }
     /**
      * get Specifique workerfactory instance

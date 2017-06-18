@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.common.server.benchmark;
 
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import fr.gouv.vitam.common.ServerIdentity;
@@ -41,7 +40,6 @@ public final class BenchmarkApplication extends AbstractVitamApplication<Benchma
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BenchmarkApplication.class);
 
     private static String MODULE_NAME = ServerIdentity.getInstance().getRole();
-    private static boolean allowMultipart = false;
 
     /**
      * Benchmark constructor
@@ -73,23 +71,9 @@ public final class BenchmarkApplication extends AbstractVitamApplication<Benchma
         }
     }
 
-    /**
-     * To test Multipart wo Chunked / Chunked wo Multipart
-     *
-     * @param allow
-     */
-    public static final void setAllowMultipart(boolean allow) {
-        allowMultipart = allow;
-    }
-
     @Override
     protected void registerInResourceConfig(final ResourceConfig resourceConfig) {
-        if (allowMultipart) {
-            resourceConfig.register(MultiPartFeature.class)
-                .register(new BenchmarkMultipartResource(getConfiguration()));
-        } else {
-            resourceConfig.register(new BenchmarkResource(getConfiguration()));
-        }
+        resourceConfig.register(new BenchmarkResource(getConfiguration()));
     }
 
     @Override

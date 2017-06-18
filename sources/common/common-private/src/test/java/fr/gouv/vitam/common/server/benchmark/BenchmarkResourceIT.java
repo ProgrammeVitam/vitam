@@ -65,7 +65,6 @@ public class BenchmarkResourceIT {
                 @Override
                 public StartApplicationResponse<BenchmarkApplication> startVitamApplication(int reservedPort)
                     throws IllegalStateException {
-                    BenchmarkApplication.setAllowMultipart(false);
                     final BenchmarkApplication application = new BenchmarkApplication(BENCHMARK_CONF);
                     return startAndReturn(application);
                 }
@@ -112,54 +111,6 @@ public class BenchmarkResourceIT {
             builder.append("\n");
         }
         LOGGER.warn(builder.toString());
-    }
-
-    // @Test
-    public final void testMultipartStillFailing() {
-        final List<List<String>> globalTests = new ArrayList<>();
-        List<String> testList = new ArrayList<>();
-        testList.add("CONNECTOR");
-        testList.add("StatusGET");
-        testList.add("MultipartPOST" + MAX_SIZE_CHECKED);
-        testList.add("MEMORY_USED");
-        globalTests.add(testList);
-        for (final BenchmarkConnectorProvider mode : BenchmarkConnectorProvider.values()) {
-            if (mode == BenchmarkConnectorProvider.APACHE_NOCHECK) {
-                continue;
-            }
-            testList = new ArrayList<>();
-            JunitHelper.awaitFullGc();
-            final long available = Runtime.getRuntime().freeMemory();
-            BenchmarkClientFactory.getInstance().mode(mode);
-            LOGGER.warn("START " + mode.name());
-
-            try (final BenchmarkClientRest client =
-                BenchmarkClientFactory.getInstance().getClient()) {
-                long start = System.nanoTime();
-                client.checkStatus();
-                long stop = System.nanoTime();
-                testList.add("" + (stop - start));
-                start = System.nanoTime();
-                final long size = MAX_SIZE_CHECKED;
-                final long receivedSize = client.multipart("fake-name.txt", size);
-                if (receivedSize != size) {
-                    LOGGER.error(HttpMethod.POST + ":" + size + " = " + receivedSize);
-                }
-                // Must failed
-                assertEquals(-1, receivedSize);
-                stop = System.nanoTime();
-                testList.add("" + (stop - start));
-            } catch (final Exception e1) {
-                LOGGER.error(e1);
-                testList.add("" + -2L);
-            }
-
-            final long availableEnd = Runtime.getRuntime().freeMemory();
-            final long used = available - availableEnd;
-            testList.add("" + used);
-            globalTests.add(testList);
-        }
-        printFinalResul(globalTests);
     }
 
     @Test

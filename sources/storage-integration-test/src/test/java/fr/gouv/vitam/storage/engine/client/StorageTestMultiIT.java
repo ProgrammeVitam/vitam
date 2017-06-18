@@ -50,6 +50,7 @@ import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -241,6 +242,61 @@ public class StorageTestMultiIT {
     }
 
     @RunWithCustomExecutor
+    //@Test
+    @Ignore // To be executed only when trying to see memory footprint
+    public void testBigFile() throws InterruptedException {
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0));
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        // 1 GB
+        size = 1024000000;
+        OBJECT_ID = GUIDFactory.newObjectGroupGUID(0).getId();
+        final ObjectDescription description = new ObjectDescription();
+        description.setWorkspaceContainerGUID(CONTAINER);
+        description.setWorkspaceObjectURI(OBJECT_ID);
+        Thread.sleep(50);
+        try {
+            populateWorkspace();
+        } catch (Exception e1) {
+            LOGGER.error("During populate size: " + size, e1);
+            assert (false);
+        }
+        try {
+            storageClient.storeFileFromWorkspace("default", StorageCollectionType.OBJECTS,
+                GUIDFactory.newObjectGroupGUID(0).getId(), description);
+        } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
+            StorageServerClientException e) {
+            LOGGER.error("Size: " + size, e);
+            assert (false);
+        }
+
+        // see other test for full listing, here, we only have one object !
+        try {
+            VitamRequestIterator<JsonNode> result = storageClient.listContainer("default", DataCategory.OBJECT);
+            TestCase.assertNotNull(result);
+            Assert.assertTrue(result.hasNext());
+            JsonNode node = result.next();
+            TestCase.assertNotNull(node);
+            Assert.assertFalse(result.hasNext());
+        } catch (StorageServerClientException exc) {
+            Assert.fail("Should not raize an exception");
+        }
+        Thread.sleep(10);
+
+        try {
+            afterTest();
+        } catch (Exception e) {
+            // ignore
+        }
+        LOGGER.warn("Test Passed with size: " + size);
+        try {
+            Thread.sleep(10);
+        } catch (InterruptedException e) {
+            LOGGER.warn("Interruption with size: " + size);
+            assert (false);
+        }
+    }
+    
+    @RunWithCustomExecutor
     @Test
     public void test() {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0));
@@ -318,7 +374,7 @@ public class StorageTestMultiIT {
             GUID objectId = GUIDFactory.newObjectGUID(0);
             workspaceGUIDs.add(objectId);
             try {
-                try (FakeInputStream fis = new FakeInputStream(size, true, true)) {
+                try (FakeInputStream fis = new FakeInputStream(size)) {
                     workspaceClient.putObject(CONTAINER, objectId.getId(), fis);
                 }
             } catch (Exception e1) {

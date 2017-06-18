@@ -32,28 +32,12 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.StringWriter;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.security.KeyStore;
-import java.security.Principal;
-import java.security.cert.CertificateEncodingException;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.EnumSet;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Objects;
 
 import javax.servlet.DispatcherType;
 import javax.ws.rs.Path;
-import javax.ws.rs.core.MultivaluedHashMap;
 
-import com.google.common.io.CharStreams;
-import fr.gouv.vitam.common.auth.web.filter.X509AuthenticationFilter;
 import org.apache.shiro.web.env.EnvironmentLoaderListener;
 import org.apache.shiro.web.servlet.ShiroFilter;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -78,8 +62,6 @@ import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplicationFactory;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server.benchmark.BenchmarkConfiguration;
-import sun.misc.BASE64Encoder;
-import sun.security.provider.X509Factory;
 
 public class DefaultSslClientTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultSslClientTest.class);

@@ -148,7 +148,7 @@ public class HeaderIdHelper {
         } catch (final VitamThreadAccessException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             LOGGER.warn(
-                "Got an exception while trying to set the headers in the current session ; exception was : {}",
+                "Got an exception while trying to set the headers in the current session {}; exception was : {}",
                 requestHeaders, e.getMessage());
             // the processing should not be interrupted by this exception
         }
@@ -168,7 +168,7 @@ public class HeaderIdHelper {
             
             if (requestId != null) {
                 if (headers.containsKey(GlobalDataRest.X_REQUEST_ID)) {
-                    LOGGER.warn("{} header was already present in the headers of the {} ; this header will be kept.",
+                    LOGGER.info("{} header was already present in the headers of the {} ; this header will be kept.",
                         GlobalDataRest.X_REQUEST_ID, ctx);
                     // TODO: is it really the best way to react to this situation ?
                 } else {
@@ -191,7 +191,7 @@ public class HeaderIdHelper {
             
             if (tenantId != null) {
                 if (headers.containsKey(GlobalDataRest.X_TENANT_ID)) {
-                    LOGGER.warn("{} header was already present in the headers of the {} ; this header will be kept.",
+                    LOGGER.info("{} header was already present in the headers of the {} ; this header will be kept.",
                         GlobalDataRest.X_TENANT_ID, ctx);
                     // TODO: is it really the best way to react to this situation ?
                 } else {
@@ -207,7 +207,7 @@ public class HeaderIdHelper {
             
             if (contractId != null) {
                 if (headers.containsKey(GlobalDataRest.X_ACCESS_CONTRAT_ID)) {
-                    LOGGER.warn("{} header was already present in the headers of the {} ; this header will be kept.",
+                    LOGGER.info("{} header was already present in the headers of the {} ; this header will be kept.",
                         GlobalDataRest.X_ACCESS_CONTRAT_ID, ctx);
                     // TODO: is it really the best way to react to this situation ?
                 } else {

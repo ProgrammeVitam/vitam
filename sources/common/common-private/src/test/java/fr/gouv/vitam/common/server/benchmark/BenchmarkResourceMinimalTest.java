@@ -68,7 +68,6 @@ public class BenchmarkResourceMinimalTest {
                 @Override
                 public StartApplicationResponse<BenchmarkApplication> startVitamApplication(int reservedPort)
                     throws IllegalStateException {
-                    BenchmarkApplication.setAllowMultipart(false);
                     final BenchmarkApplication application = new BenchmarkApplication(BENCHMARK_CONF);
                     return startAndReturn(application);
                 }

@@ -50,7 +50,7 @@ public class MetaDataClientFactory extends VitamClientFactory<MetaDataClient> {
     private MetaDataClientFactory() {
         // All requests from client are SMALL, but responses from server could be Huge
         // So Chunked mode inactive on client side
-        super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH, true, false, false);
+        super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH, false);
     }
 
     /**

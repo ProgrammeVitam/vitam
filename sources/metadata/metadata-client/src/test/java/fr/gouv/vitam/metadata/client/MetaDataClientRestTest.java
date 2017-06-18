@@ -182,6 +182,7 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
         public Response selectAccessionRegisterForArchiveUnit(@PathParam("operationId") String operationId) {
             return expectedResponse.get();
         }
+
         @Path("accession-registers/objects/{operationId}")
         @Produces(MediaType.APPLICATION_JSON)
         @GET
@@ -376,7 +377,8 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
 
     @Test
     public void given_ValidRequest_When_SelectObjectGroupById_ThenReturn_OK() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.OK).build());
+        when(mock.get())
+            .thenReturn(Response.status(Status.OK).entity(JsonHandler.createObjectNode().put("test", true)).build());
         client.selectObjectGrouptbyId(JsonHandler.getFromString(VALID_QUERY), "ogId");
     }
 
@@ -475,10 +477,12 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
             .thenReturn(Response.status(Status.OK).entity(JsonHandler.writeAsString(requestResponseOK)).build());
 
         // When
-        List<ObjectGroupPerOriginatingAgency> unitPerOriginatingAgencies =  client.selectAccessionRegisterOnObjectByOperationId("122345");
+        List<ObjectGroupPerOriginatingAgency> unitPerOriginatingAgencies =
+            client.selectAccessionRegisterOnObjectByOperationId("122345");
 
         // Then
-        assertThat(unitPerOriginatingAgencies).hasSize(2).extracting("originatingAgency", "numberOfObject", "numberOfGOT", "size")
+        assertThat(unitPerOriginatingAgencies).hasSize(2)
+            .extracting("originatingAgency", "numberOfObject", "numberOfGOT", "size")
             .contains(tuple("sp1", 3, 2, 2000), tuple("sp2", 4, 1, 3400));
     }
 

@@ -1,6 +1,7 @@
 package fr.gouv.vitam.common.junit;
 
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Random;
 
 import com.google.common.util.concurrent.FakeTimeLimiter;
@@ -51,7 +52,7 @@ public class FakeInputStream extends InputStream {
         this.useRandom = useRandom;
     }
 
-    private byte getValue() {
+    private final byte getValue() {
         if (useRandom) {
             return (byte) random.nextInt(BYTE_VALUE_LIMIT);
         }
@@ -102,8 +103,12 @@ public class FakeInputStream extends InputStream {
         final int max = Math.min(available(), len);
         limit -= max;
         read += max;
-        for (int i = 0; i < max; i++) {
-            b[off + i] = getValue();
+        if (! useRandom) {
+            Arrays.fill(b, off, off + max, getValue());
+        } else {
+            for (int i = 0; i < max; i++) {
+                b[off + i] = getValue();
+            }
         }
         return max;
     }

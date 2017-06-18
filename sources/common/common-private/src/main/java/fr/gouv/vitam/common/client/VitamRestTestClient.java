@@ -37,9 +37,6 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.glassfish.jersey.media.multipart.FormDataMultiPart;
-import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
-
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 
 /**
@@ -94,7 +91,6 @@ public class VitamRestTestClient extends DefaultClient {
      */
     public static class VitamRestTest {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        FormDataMultiPart multiPart;
         Object body;
         MediaType contentType;
         List<String> pathParameters = new ArrayList<>();
@@ -111,7 +107,6 @@ public class VitamRestTestClient extends DefaultClient {
         public String toString() {
             return new StringBuilder("VitamRestTest: { ")
                 .append("Headers: { ").append(headers).append(" } ")
-                .append(", Multipart: ").append(multiPart != null)
                 .append(", Body: { value: ").append(body != null).append(", type: ").append(contentType).append(" } ")
                 .append(", pathParameters: \"").append(pathParameters).append("\"")
                 .append(", expectedStatus: ").append(expectedStatus)
@@ -121,7 +116,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         private void reset() {
-            multiPart = null;
             body = null;
             contentType = null;
             headers.clear();
@@ -177,40 +171,6 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         * Note: if multipart is called, body is ignored
-         *
-         * @param controlName
-         * @param object
-         * @param mediaType
-         * @return this
-         */
-        public VitamRestTest multiPart(String controlName, Object object, MediaType mediaType) {
-            if (multiPart == null) {
-                multiPart = new FormDataMultiPart();
-            }
-            multiPart.field(controlName, object, mediaType);
-            return this;
-        }
-
-        /**
-         * Note: if multipart is called, body is ignored
-         *
-         * @param controlName
-         * @param fileName
-         * @param stream
-         * @return this
-         */
-        public VitamRestTest multiPart(String controlName, String fileName, InputStream stream) {
-            if (multiPart == null) {
-                multiPart = new FormDataMultiPart();
-            }
-            multiPart.bodyPart(
-                new StreamDataBodyPart(controlName, stream, fileName, MediaType.APPLICATION_OCTET_STREAM_TYPE));
-            return this;
-        }
-
-        /**
-         * Note: if multipart is called, body is ignored
          *
          * @param body
          * @param mediaType
@@ -273,10 +233,6 @@ public class VitamRestTestClient extends DefaultClient {
         public int execute(String httpMethod, String path) throws VitamClientInternalException {
             Response response = null;
             try {
-                if (multiPart != null) {
-                    body = multiPart;
-                    contentType = MediaType.MULTIPART_FORM_DATA_TYPE;
-                }
                 final String finalPath = getFinalPath(path);
                 response = client.performRequest(httpMethod, finalPath, headers, body, contentType, acceptMediaType);
                 final int status = response.getStatus();
@@ -365,10 +321,6 @@ public class VitamRestTestClient extends DefaultClient {
             throws VitamClientInternalException {
             Response response = null;
             try {
-                if (multiPart != null) {
-                    body = multiPart;
-                    contentType = MediaType.MULTIPART_FORM_DATA_TYPE;
-                }
                 final String finalPath = getFinalPath(path);
                 response = client.performRequest(httpMethod, finalPath, headers, body, contentType, acceptMediaType);
                 final int status = response.getStatus();

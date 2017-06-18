@@ -64,7 +64,7 @@ public class DriverImpl extends AbstractDriver {
         final Properties parameters;
 
         protected DriverClientFactory(ClientConfiguration configuration, String resourcePath, Properties parameters) {
-            super(configuration, resourcePath, true, false, true, true);
+            super(configuration, resourcePath);
             enableUseAuthorizationFilter();
             this.parameters = parameters;
         }
