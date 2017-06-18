@@ -111,7 +111,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
- * IngestInternalResource implements UploadService
+ * IngestInternalResource
  *
  */
 @Path("/ingest/v1")

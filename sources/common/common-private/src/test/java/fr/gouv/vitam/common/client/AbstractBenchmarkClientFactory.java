@@ -59,20 +59,6 @@ public abstract class AbstractBenchmarkClientFactory<T extends BasicClient> exte
     }
 
     /**
-     * Constructor to allow to enable Multipart support (until all are removed)
-     *
-     * @param serverPort
-     * @param resourcePath the resource path of the server for the client calls
-     * @param suppressHttpCompliance define if client (Jetty Client feature) check if request id HTTP compliant
-     * @param multipart allow multipart and disabling chunked mode
-     * @throws UnsupportedOperationException HTTPS not implemented yet
-     */
-    protected AbstractBenchmarkClientFactory(int serverPort, String resourcePath,
-        boolean allowMultipart) {
-        super(serverPort, resourcePath, allowMultipart);
-    }
-
-    /**
      * ONLY use this constructor in unit test Remove this when JerseyTest will be fully compatible with Jetty
      *
      * @param serverPort

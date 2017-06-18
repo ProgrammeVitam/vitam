@@ -45,7 +45,9 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.apache.http.NoHttpResponseException;
 import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.conn.HttpHostConnectException;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -202,7 +204,7 @@ abstract class AbstractCommonClient implements BasicClient {
         throws ProcessingException {
         Throwable source = e.getCause();
         if (source instanceof ConnectTimeoutException || source instanceof UnknownHostException ||
-            source instanceof org.apache.http.conn.HttpHostConnectException ||
+            source instanceof HttpHostConnectException || source instanceof NoHttpResponseException ||
             source.getMessage().startsWith(UNABLE_TO_ESTABLISH_ROUTE)) {
             LOGGER.warn(TIMEOUT_OCCURS_OR_DNS_PROBE_ERROR_RETRY + retry, source);
             try {

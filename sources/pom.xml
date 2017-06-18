@@ -104,7 +104,7 @@
 		<elasticsearch.icu.plugin.version>2.4.5</elasticsearch.icu.plugin.version>
 		<mongo.version>3.4.2</mongo.version>
 		<apache-shiro.version>1.3.2</apache-shiro.version>
-		<jetty.version>9.4.5.v20170502</jetty.version>
+		<jetty.version>9.4.6.v20170531</jetty.version>
 		<assertj.version>3.6.2</assertj.version>
 		<rest-assured.version>2.9.0</rest-assured.version>
 		<junit.version>4.12</junit.version>

@@ -50,10 +50,6 @@
 			<artifactId>jackson-dataformat-yaml</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.glassfish.jersey.media</groupId>
-			<artifactId>jersey-media-multipart</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>ru.yandex.qatools.embed</groupId>
 			<artifactId>embedded-services</artifactId>
 			<scope>test</scope>

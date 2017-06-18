@@ -40,7 +40,7 @@ public final class SiegfriedClientFactory extends VitamClientFactory<SiegfriedCl
     private static final String RESOURCE_PATH = "/identify";
 
     private SiegfriedClientFactory() {
-        super(null, RESOURCE_PATH, true, false, false);
+        super(null, RESOURCE_PATH, false);
         disableUseAuthorizationFilter();
     }
 

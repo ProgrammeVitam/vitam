@@ -196,8 +196,9 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
 
             final Handler adminHandler = buildAdminHandler();
 
-            if (null != adminHandler)
+            if (null != adminHandler) {
                 applicationHandlers.addHandler(adminHandler);
+            }
 
             final String jettyConfig = getConfiguration().getJettyConfig();
 
@@ -343,7 +344,9 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
         final ResourceConfig resourceConfig = new ResourceConfig();
 
         // Not supported MultiPartFeature.class
-        if (!registerInAdminConfig(resourceConfig)) return null;
+        if (!registerInAdminConfig(resourceConfig)) {
+            return null;
+        }
 
         resourceConfig.register(JacksonJsonProvider.class)
                 .register(JacksonFeature.class)

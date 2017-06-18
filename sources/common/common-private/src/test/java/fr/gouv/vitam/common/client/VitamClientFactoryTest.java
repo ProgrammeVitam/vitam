@@ -48,11 +48,6 @@ public class VitamClientFactoryTest {
 
     private static class ClientFactoryTest extends VitamClientFactory<BasicClient> {
 
-        public ClientFactoryTest(ClientConfiguration configuration, String resourcePath, boolean suppressHttpCompliance,
-            boolean allowMultipart) {
-            super(configuration, resourcePath, suppressHttpCompliance, allowMultipart);
-        }
-
         public ClientFactoryTest(ClientConfiguration configuration, String resourcePath, Client client) {
             super(configuration, resourcePath, client);
         }

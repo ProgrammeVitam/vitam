@@ -53,15 +53,6 @@ public class TestVitamClientFactory<T extends BasicClient> extends VitamClientFa
     /**
      * @param serverPort
      * @param resourcePath
-     * @param allowMultipart
-     */
-    public TestVitamClientFactory(int serverPort, String resourcePath, boolean allowMultipart) {
-        super(new ClientConfigurationImpl(LOCALHOST, serverPort), resourcePath, true, allowMultipart);
-    }
-
-    /**
-     * @param serverPort
-     * @param resourcePath
      * @param client
      */
     public TestVitamClientFactory(int serverPort, String resourcePath, Client client) {
