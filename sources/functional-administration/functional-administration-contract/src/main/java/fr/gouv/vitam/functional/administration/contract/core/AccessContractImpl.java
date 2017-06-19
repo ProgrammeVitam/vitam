@@ -440,10 +440,6 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                     rejection = GenericRejectionCause.rejectMandatoryMissing(AccessContract.NAME);
                 }
 
-                if (contract.getOriginatingAgencies() == null || contract.getOriginatingAgencies().isEmpty()) {
-                    rejection = GenericRejectionCause.rejectMandatoryMissing(AccessContract.ORIGINATINGAGENCIES);
-                }
-
                 return (rejection == null) ? Optional.empty() : Optional.of(rejection);
             };
         }
