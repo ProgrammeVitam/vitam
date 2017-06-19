@@ -43,6 +43,7 @@ import java.util.Map;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.model.RequestResponse;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -241,10 +242,9 @@ public class PrepareTraceabilityCheckProcessActionHandlerTest {
     }
 
     private JsonNode getTraceabilityDetails(String filename) throws Exception {
-        RequestResponseOK responseOK = new RequestResponseOK()
+        RequestResponse responseOK = new RequestResponseOK()
+            .addResult(JsonHandler.getFromFile(PropertiesUtils.findFile(filename)))
             .setHits(1, 0, 1)
-            .setQuery(null);
-        responseOK.addResult(JsonHandler.getFromFile(PropertiesUtils.findFile(filename)))
             .setHttpCode(Status.OK.getStatusCode());
         return responseOK.toJsonNode();
     }

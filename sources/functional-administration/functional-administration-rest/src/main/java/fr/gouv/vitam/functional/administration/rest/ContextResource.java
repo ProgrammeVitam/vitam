@@ -65,14 +65,14 @@ import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
 public class ContextResource {
-    
+
     static final String CONTEXTS_URI = "/contexts";
     static final String UPDATE_CONTEXT_URI = "/context";
-    
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ContextResource.class);
     private static final String CONTEXTS_JSON_IS_MANDATORY_PATAMETER =
         "The json input of contexts is mandatory";
-    
+
     private final MongoDbAccessAdminImpl mongoAccess;
     private final VitamCounterService vitamCounterService;
 
@@ -85,7 +85,7 @@ public class ContextResource {
         this.vitamCounterService = vitamCounterService;
         LOGGER.debug("init Admin Management Resource server");
     }
-    
+
     @Path(CONTEXTS_URI)
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -112,9 +112,9 @@ public class ContextResource {
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
         }
-        
+
     }
-    
+
     /**
      * Construct the error following input
      *
@@ -132,10 +132,10 @@ public class ContextResource {
             .setContext("FUNCTIONAL_ADMINISTRATION_MODULE")
             .setState("ko").setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
-    
+
     /**
      * Find contexts by queryDsl
-     * 
+     *
      * @param queryDsl
      * @return
      */
@@ -144,7 +144,7 @@ public class ContextResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response findContexts(JsonNode queryDsl) {
-    
+
         try(ContextService contextService = new ContextServiceImpl(mongoAccess,
             vitamCounterService)){
 
@@ -153,8 +153,7 @@ public class ContextResource {
             return Response
                 .status(Status.OK)
                 .entity(
-                    new RequestResponseOK().setHits(contextModelList.size(), 0, contextModelList.size())
-                        .addAllResults(contextModelList))
+                    new RequestResponseOK(queryDsl).addAllResults(contextModelList))
                 .build();
 
         } catch (ReferentialException e) {
@@ -167,10 +166,10 @@ public class ContextResource {
                 .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();
         }
     }
-    
+
     /**
      * Update contexts
-     * 
+     *
      * @param contextId
      * @param queryDsl
      * @return

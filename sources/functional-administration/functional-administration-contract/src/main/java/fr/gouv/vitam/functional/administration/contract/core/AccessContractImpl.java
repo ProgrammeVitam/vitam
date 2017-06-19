@@ -202,8 +202,8 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
         manager.logSuccess();
 
 
-        return new RequestResponseOK<AccessContractModel>().addAllResults(contractModelList).setHits(
-            contractModelList.size(), 0, contractModelList.size()).setHttpCode(Response.Status.CREATED.getStatusCode());
+        return new RequestResponseOK<AccessContractModel>().addAllResults(contractModelList)
+            .setHttpCode(Response.Status.CREATED.getStatusCode());
     }
 
     @Override

@@ -201,8 +201,8 @@ public class ContextServiceImpl implements ContextService {
 
         manager.logSuccess();
 
-        return new RequestResponseOK<ContextModel>().addAllResults(contextsListToPersist).setHits(
-            contextsListToPersist.size(), 0, contextsListToPersist.size()).setHttpCode(Response.Status.CREATED.getStatusCode());
+        return new RequestResponseOK<ContextModel>().addAllResults(contextsListToPersist)
+            .setHttpCode(Response.Status.CREATED.getStatusCode());
     }
 
     @Override

@@ -140,7 +140,7 @@ public class ContractResource {
 
     /**
      * Find ingest contracts by queryDsl
-     * 
+     *
      * @param queryDsl
      * @return
      */
@@ -156,7 +156,7 @@ public class ContractResource {
 
             return Response.status(Status.OK)
                 .entity(
-                    new RequestResponseOK().addAllResults(ingestContractModelList))
+                    new RequestResponseOK(queryDsl).addAllResults(ingestContractModelList))
                 .build();
 
         } catch (ReferentialException e) {
@@ -271,7 +271,7 @@ public class ContractResource {
 
     /**
      * find access contracts by queryDsl
-     * 
+     *
      * @return
      */
     @Path(ACCESS_CONTRACTS_URI)
@@ -287,8 +287,7 @@ public class ContractResource {
             return Response
                 .status(Status.OK)
                 .entity(
-                    new RequestResponseOK().setHits(accessContractModelList.size(), 0, accessContractModelList.size())
-                        .addAllResults(accessContractModelList))
+                    new RequestResponseOK<AccessContractModel>(queryDsl).addAllResults(accessContractModelList))
                 .build();
 
         } catch (ReferentialException e) {

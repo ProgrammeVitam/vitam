@@ -519,9 +519,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 RequestResponse response =
                     adminClient.findDocuments(AdminCollections.ACCESS_CONTRACTS, query, getTenantId(headers));
                 if (response != null && response instanceof RequestResponseOK) {
-                    // Récupération des hits?
-                    ((RequestResponseOK) response).setHits(((RequestResponseOK) response).getResults().size(), 0, 1000);
-                    return Response.status(Status.OK).entity(response).build();
+                   return Response.status(Status.OK).entity(response).build();
                 }
                 if (response != null && response instanceof VitamError) {
                     LOGGER.error(response.toString());

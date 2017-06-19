@@ -287,7 +287,7 @@ public class FakeDriverImpl extends AbstractDriver {
             try (VitamRequestIterator<ObjectNode> iterator =
                 new VitamRequestIterator<>(this, HttpMethod.GET, "/iterator",
                     ObjectNode.class, null, null)) {
-                final RequestResponseOK response = new RequestResponseOK();
+                final RequestResponseOK response = new RequestResponseOK(JsonHandler.createObjectNode());
                 final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
                 final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
                 final ObjectNode node3 = JsonHandler.createObjectNode().put("val", 3);
@@ -296,8 +296,6 @@ public class FakeDriverImpl extends AbstractDriver {
                 list.add(node2);
                 list.add(node3);
                 response.addAllResults(list);
-                response.setQuery(JsonHandler.createObjectNode());
-                response.setHits(response.getResults().size(), 0, response.getResults().size());
                 response.setHttpCode(Status.OK.getStatusCode());
 
                 response.addHeader(GlobalDataRest.X_CURSOR, String.valueOf(false));

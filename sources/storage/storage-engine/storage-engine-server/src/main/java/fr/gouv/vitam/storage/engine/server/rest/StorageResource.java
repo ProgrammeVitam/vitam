@@ -1088,7 +1088,6 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             resultAsJson.add(guid.toString());
             return Response.status(Status.OK)
                 .entity(new RequestResponseOK<String>()
-                    .setHits(1, 0, 1)
                     .addAllResults(resultAsJson))
                 .build();
 

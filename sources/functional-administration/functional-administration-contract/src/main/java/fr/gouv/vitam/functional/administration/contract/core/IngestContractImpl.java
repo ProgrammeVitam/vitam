@@ -232,8 +232,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         manager.logSuccess();
 
 
-        return new RequestResponseOK<IngestContractModel>().addAllResults(contractModelList).setHits(
-            contractModelList.size(), 0, contractModelList.size()).setHttpCode(Response.Status.CREATED.getStatusCode());
+        return new RequestResponseOK<IngestContractModel>().addAllResults(contractModelList)
+            .setHttpCode(Response.Status.CREATED.getStatusCode());
     }
 
     @Override

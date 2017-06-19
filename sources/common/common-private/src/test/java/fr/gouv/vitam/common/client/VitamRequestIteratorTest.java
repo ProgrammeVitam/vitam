@@ -179,7 +179,7 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
         startup = true;
         try (VitamRequestIterator<ObjectNode> iterator =
             new VitamRequestIterator<>(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
-            final RequestResponseOK response = new RequestResponseOK();
+            final RequestResponseOK response = new RequestResponseOK(JsonHandler.createObjectNode());
             final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
             final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
             final ObjectNode node3 = JsonHandler.createObjectNode().put("val", 3);
@@ -188,8 +188,6 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
             list.add(node2);
             list.add(node3);
             response.addAllResults(list);
-            response.setQuery(JsonHandler.createObjectNode());
-            response.setHits(response.getResults().size(), 0, response.getResults().size());
             ResponseBuilder builder = Response.status(Status.PARTIAL_CONTENT);
             when(mock.get())
                 .thenReturn(VitamRequestIterator.setHeaders(builder, true, "newcursor").entity(response).build());
@@ -250,7 +248,7 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
         startup = true;
         try (VitamRequestIterator<ObjectNode> iterator =
             new VitamRequestIterator<>(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
-            final RequestResponseOK response = new RequestResponseOK();
+            final RequestResponseOK response = new RequestResponseOK(JsonHandler.createObjectNode());
             final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
             final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
             final ObjectNode node3 = JsonHandler.createObjectNode().put("val", 3);
@@ -259,8 +257,6 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
             list.add(node2);
             list.add(node3);
             response.addAllResults(list);
-            response.setQuery(JsonHandler.createObjectNode());
-            response.setHits(response.getResults().size(), 0, response.getResults().size());
             final ResponseBuilder builder = Response.status(Status.OK);
             when(mock.get())
                 .thenReturn(VitamRequestIterator.setHeaders(builder, true, null).entity(response).build());
@@ -279,7 +275,7 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
         startup = true;
         try (VitamRequestIterator<ObjectNode> iterator =
             new VitamRequestIterator<>(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
-            final RequestResponseOK response = new RequestResponseOK();
+            final RequestResponseOK response = new RequestResponseOK(JsonHandler.createObjectNode());
             final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
             final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
             final ObjectNode node3 = JsonHandler.createObjectNode().put("val", 3);
@@ -288,8 +284,6 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
             list.add(node2);
             list.add(node3);
             response.addAllResults(list);
-            response.setQuery(JsonHandler.createObjectNode());
-            response.setHits(response.getResults().size(), 0, response.getResults().size());
             ResponseBuilder builder = Response.status(Status.PARTIAL_CONTENT);
             when(mock.get())
                 .thenReturn(VitamRequestIterator.setHeaders(builder, true, "newcursor").entity(response).build());
@@ -319,7 +313,7 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
         startup = true;
         try (VitamRequestIterator iterator =
             new VitamRequestIterator(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
-            final RequestResponseOK response = new RequestResponseOK();
+            final RequestResponseOK response = new RequestResponseOK(JsonHandler.createObjectNode());
             final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
             final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
             final ObjectNode node3 = JsonHandler.createObjectNode().put("val", 3);
@@ -328,8 +322,6 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
             list.add(node2);
             list.add(node3);
             response.addAllResults(list);
-            response.setQuery(JsonHandler.createObjectNode());
-            response.setHits(response.getResults().size(), 0, response.getResults().size());
             final ResponseBuilder builder = Response.status(Status.PARTIAL_CONTENT);
             when(mock.get())
                 .thenReturn(VitamRequestIterator.setHeaders(builder, true, "newcursor").entity(response).build());
@@ -339,7 +331,7 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
         startup = true;
         try (VitamRequestIterator<ObjectNode> iterator =
             new VitamRequestIterator<>(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
-            final RequestResponseOK response = new RequestResponseOK();
+            final RequestResponseOK response = new RequestResponseOK(JsonHandler.createObjectNode());
             final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
             final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
             final ObjectNode node3 = JsonHandler.createObjectNode().put("val", 3);
@@ -348,8 +340,6 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
             list.add(node2);
             list.add(node3);
             response.addAllResults(list);
-            response.setQuery(JsonHandler.createObjectNode());
-            response.setHits(response.getResults().size(), 0, response.getResults().size());
             final ResponseBuilder builder = Response.status(Status.PARTIAL_CONTENT);
             when(mock.get())
                 .thenReturn(VitamRequestIterator.setHeaders(builder, true, "newcursor").entity(response).build());
