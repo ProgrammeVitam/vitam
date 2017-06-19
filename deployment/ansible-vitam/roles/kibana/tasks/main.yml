@@ -52,7 +52,7 @@
   when: "{{ (groups['hosts-kibana'] | length) > 0}}"
   run_once: true
   uri:
-    url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/.kibana/{{ item.split(".")[0] }}'
+    url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/.kibana/{{ item.split(".")[0] }}*'
     method: PUT
     body: "{{ lookup('file', '{{role_path}}/files/kibana-metrics-configuration/{{item}}') }}"
     body_format: json
