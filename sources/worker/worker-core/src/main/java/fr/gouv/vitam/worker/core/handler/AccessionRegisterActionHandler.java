@@ -30,12 +30,14 @@ import static fr.gouv.vitam.worker.common.utils.SedaConstants.DATE_TIME_FORMAT_P
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
@@ -50,6 +52,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
@@ -114,13 +117,14 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters params, HandlerIO handler) {
+    public ItemStatus execute(WorkerParameters params, HandlerIO handler) throws ProcessingException{
         checkMandatoryParameters(params);
         LOGGER.debug("TransferNotificationActionHandler running ...");
 
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
         handlerIO = handler;
+
         int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
             checkMandatoryIOParameter(handler);
@@ -135,6 +139,11 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
 
             List<UnitPerOriginatingAgency> agencies =
                 metaDataClient.selectAccessionRegisterOnUnitByOperationId(operationId);
+
+            if (null == agencies || agencies.isEmpty()) {
+                return itemStatus.increment(StatusCode.OK);
+            }
+
             List<ObjectGroupPerOriginatingAgency> objectGroupPerOriginatingAgencies =
                 metaDataClient.selectAccessionRegisterOnObjectByOperationId(operationId);
 

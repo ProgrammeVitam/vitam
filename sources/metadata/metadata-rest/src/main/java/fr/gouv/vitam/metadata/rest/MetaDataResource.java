@@ -521,10 +521,10 @@ public class MetaDataResource extends ApplicationStatusResource {
         RequestResponseOK<UnitPerOriginatingAgency> responseOK = new RequestResponseOK<>();
         responseOK.setHttpCode(200);
         for (Document doc : documents) {
-            UnitPerOriginatingAgency unitPerOriginatingAgency = new UnitPerOriginatingAgency();
-            unitPerOriginatingAgency.setId(doc.getString("_id"));
-            unitPerOriginatingAgency.setCount(doc.getInteger("count"));
-            responseOK.addResult(unitPerOriginatingAgency);
+            UnitPerOriginatingAgency upoa = new UnitPerOriginatingAgency();
+            upoa.setId(doc.getString("_id"));
+            upoa.setCount(doc.getInteger("count"));
+            responseOK.addResult(upoa);
         }
 
         return responseOK.toResponse();
@@ -539,12 +539,12 @@ public class MetaDataResource extends ApplicationStatusResource {
         RequestResponseOK<ObjectGroupPerOriginatingAgency> responseOK = new RequestResponseOK<>();
         responseOK.setHttpCode(200);
         for (Document doc : documents) {
-            ObjectGroupPerOriginatingAgency objectGroupPerOriginatingAgency = new ObjectGroupPerOriginatingAgency();
-            objectGroupPerOriginatingAgency.setOriginatingAgency(doc.getString("_id"));
-            objectGroupPerOriginatingAgency.setNumberOfGOT(doc.getInteger("totalObject"));
-            objectGroupPerOriginatingAgency.setNumberOfObject(doc.getInteger("totalGOT"));
-            objectGroupPerOriginatingAgency.setSize(doc.getInteger("totalSize"));
-            responseOK.addResult(objectGroupPerOriginatingAgency);
+            ObjectGroupPerOriginatingAgency ogpoa = new ObjectGroupPerOriginatingAgency();
+            ogpoa.setOriginatingAgency(doc.getString("_id"));
+            ogpoa.setNumberOfGOT(doc.getInteger("totalGOT"));
+            ogpoa.setNumberOfObject(doc.getInteger("totalObject"));
+            ogpoa.setSize(doc.getInteger("totalSize"));
+            responseOK.addResult(ogpoa);
         }
 
         return responseOK.toResponse();

@@ -91,7 +91,7 @@ public abstract class MetadataDocument<E> extends Document {
      */
     public static final String OPS = "_ops";
     /**
-     * ORIGINATING_AGENCIES : list of all originating agencies for unit
+     * ORIGINATING_AGENCy : Principal originating agency for unit
      */
     public static final String ORIGINATING_AGENCY = "_sp";
 
