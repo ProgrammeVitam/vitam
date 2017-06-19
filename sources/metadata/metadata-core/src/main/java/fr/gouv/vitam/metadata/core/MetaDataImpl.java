@@ -27,6 +27,9 @@
 package fr.gouv.vitam.metadata.core;
 
 
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.ne;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ID;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OPS;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ORIGINATING_AGENCIES;
@@ -41,6 +44,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import fr.gouv.vitam.common.model.UnitType;
+import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -178,7 +183,7 @@ public class MetaDataImpl implements MetaData {
     @Override
     public List<Document> selectAccessionRegisterOnUnitByOperationId(String operationId) {
         AggregateIterable<Document> aggregate = MetadataCollections.C_UNIT.getCollection().aggregate(Arrays.asList(
-            new Document("$match", new Document(OPS, operationId)),
+            new Document("$match", new Document("$and", Arrays.asList(new Document(OPS, operationId), new Document(Unit.UNIT_TYPE, new Document("$ne", UnitType.HOLDING_UNIT.name()))))),
             new Document("$unwind", "$" + ORIGINATING_AGENCIES),
             new Document("$group",
                 new Document(ID, "$" + ORIGINATING_AGENCIES).append("count", new Document("$sum", 1)))

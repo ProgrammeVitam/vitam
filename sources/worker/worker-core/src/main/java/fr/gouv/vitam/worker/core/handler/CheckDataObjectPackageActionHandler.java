@@ -29,15 +29,14 @@ package fr.gouv.vitam.worker.core.handler;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.logbook.common.parameters.UnitType;
+import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.IOParameter;
-import fr.gouv.vitam.processing.common.model.ProcessingUri;
-import fr.gouv.vitam.processing.common.model.UriPrefix;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -73,8 +72,11 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
         UnitType unitType = null;
         if (handlerIO.getInput() != null && !handlerIO.getInput().isEmpty() && handlerIO.getInput(1) !=null) {
-             unitType = UnitType.valueOf(UnitType.getUnitTypeString((String) handlerIO.getInput(1)));
-
+            unitType = UnitType.valueOf(UnitType.getUnitTypeString((String) handlerIO.getInput(1)));
+            if (null == unitType) {
+                // TODO: 6/19/17 should throw exception ?!
+                unitType = UnitType.INGEST;
+            }
         }
         try {
             if (Boolean.valueOf((String)handlerIO.getInput(CHECK_NO_OBJECT_INPUT_RANK))) {
@@ -89,9 +91,7 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
                 handlerIO.getInput().clear();
 
                 ExtractSedaActionHandler extractSedaActionHandler = new ExtractSedaActionHandler();
-                if (null != unitType) {
-                    extractSedaActionHandler.setWorkflowUnitTYpe(unitType);
-                }
+                extractSedaActionHandler.setWorkflowUnitTYpe(unitType);
                 ItemStatus extractSedaStatus = extractSedaActionHandler.execute(params, handlerIO);
                 itemStatus.setItemsStatus(ExtractSedaActionHandler.getId(), extractSedaStatus);
 
@@ -118,6 +118,7 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
                 handlerIO.getInput().clear();
 
                 ExtractSedaActionHandler extractSedaActionHandler = new ExtractSedaActionHandler();
+                extractSedaActionHandler.setWorkflowUnitTYpe(unitType);
                 ItemStatus extractSedaStatus = extractSedaActionHandler.execute(params, handlerIO);
                 itemStatus.setItemsStatus(ExtractSedaActionHandler.getId(), extractSedaStatus);
 
