@@ -57,7 +57,7 @@ network.host: 0.0.0.0
 http.cors.enabled: true
 http.cors.allow-origin: "*"
 {% else %}
-network.host: {{ansible_hostname}}
+network.host: {{inventory_hostname}}
 {% endif %}
 #
 # Set a custom port for HTTP:
