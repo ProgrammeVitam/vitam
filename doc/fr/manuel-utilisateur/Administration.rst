@@ -15,7 +15,7 @@ Le journal des opérations permet à l'utilisateur d'accéder à toutes les opé
 Ces opérations sont :
 
 - Entrée
-- Mise à jour  des métadonnées de description
+- Mise à jour des métadonnées de description
 - Données de base
 - Sécurisation
 - Audit (non encore développée)
@@ -80,7 +80,7 @@ Celles-ci sont :
 - Identifiant externe de l'objet
 - Identifiant du tenant
 
-L'utilisateur a la possibité d'afficher toutes les colonnes supplémentaires en cliquant sur "Tout  sélectionner".
+L'utilisateur a la possibité d'afficher toutes les colonnes supplémentaires en cliquant sur "Tout sélectionner".
 
 .. image:: images/op_tout_selectionner.png
 
@@ -134,7 +134,7 @@ Le processus d'import du référentiel se décrit comme ceci :
 
 A l'issue du contrôle de cohérence et d'intégrité du fichier, plusieurs cas sont possibles :
 
-- En cas d'erreur de fichier : La solution logicielle Vitam détecte des erreurs contenues dans le fichier, l'import de ce dernier n'est pas possible, un message d'erreur s'affiche. L'utilisateur doit corriger ces erreurs et soumettre à nouveau le fichier s'il souhaite toujours effectuer son import.
+- En cas d'erreur de fichier : la solution logicielle Vitam détecte des erreurs contenues dans le fichier, l'import de ce dernier n'est pas possible, un message d'erreur s'affiche. L'utilisateur doit corriger ces erreurs et soumettre à nouveau le fichier s'il souhaite toujours effectuer son import.
 
 .. image:: images/import_rf_format_KO.png
 
@@ -340,7 +340,7 @@ Pour importer un contrat d'accès, l'utilisateur clique sur le menu "Administrat
 
 .. image:: images/CONTRACTS_Menu_import_acess.png
 
-Il sélectionne ensuite le fichier à  importer en cliquant sur "parcourir", puis clique sur "importer" pour lancer l'opération.
+Il sélectionne ensuite le fichier à importer en cliquant sur "parcourir", puis clique sur "importer" pour lancer l'opération.
 
 .. image:: images/CONTRACTS_access_contract_import.png
 
@@ -348,14 +348,14 @@ Une fenêtre modale s'ouvre alors pour indiquer soit :
 
 * Que les contrats ont bien été importés
 * Un échec de l'import du fichier. Ceci peut être causé par :
-	* Le fait que les contrats mentionnés existent déjà  pour le tenant
+	* Le fait que les contrats mentionnés existent déjà pour le tenant
 	* Le fait que le fichier est invalide
 
 Cette opération est journalisée et disponible dans le Journal des Opérations.
 
 **Rechercher un contrat d'accès**
 
-Pour accéder à la recherche de contrats d'accès, l'utilisateur clique sur le menu "Administration", puis sur le sous-menu "Contrat d'accès".
+Pour accéder à la recherche de contrats d'accès, l'utilisateur clique sur le menu "Administration", puis sur le sous-menu "Contrat d'accès".
 
 La page affiche un formulaire de recherche composé des champs suivants :
 
@@ -386,7 +386,7 @@ La page "Détail d'un contrat d'accès" contient les informations suivantes :
 * Statut
 * Service producteur
 * Date d'activation
-* Date de mise à  jour
+* Date de mise à jour
 * Date de désactivation
 
 .. image:: images/CONTRACTS_acces_contract_detail.png
@@ -396,8 +396,8 @@ La page "Détail d'un contrat d'accès" contient les informations suivantes :
 Chaque profil utilisateur peut être relié à un ou plusieurs contrats, qui restreignent totalement, de manière partielle ou autorisent pleinement l'accès et/ou la modification d'une archive.
 
 *Sélection d'un contrat*
-Pour accéder à  un contrat spécifique, l'utilisateur peut choisir dans le menu déroulant en haut à  droite le contrat concerné.
-Une fois sélectionné, il peut opérer sa recherche d'archive. NB : les contrats du menu déroulants sont les contrats actifs pour l'utilisateur, les contrats inactifs ne sont pas listés.
+Pour accéder à un contrat spécifique, l'utilisateur peut choisir dans le menu déroulant en haut à droite le contrat concerné.
+Une fois sélectionné, il peut opérer sa recherche d'archive. NB : les contrats du menu déroulant sont les contrats actifs pour l'utilisateur, les contrats inactifs ne sont pas listés.
 
 *Autorisation d'écriture au sein d'une archive*
 L'utilisateur peut écrire et modifier les metadonnées d'une unitié archivistique si le contrat activé l'autorise.
@@ -406,7 +406,7 @@ L'utilisateur peut écrire et modifier les metadonnées d'une unitié archivisti
 L'administrateur a la possibilité d'activer / désactiver un contrat. Dans l'onglet recherche de contrat, choisir le contrat sélectionné. Activer / désactiver le bouton Actif / Inactif.
 
 *Restriction d'accès par usage de l'objet*
-Un contrat peut interdire l'accès à  un ou plusieurs usages d'objets spécifiques. (ex. : l'utilisateur peut accéder aux usages de diffusions mais pas à la source de l'objet)
+Un contrat peut interdire l'accès à un ou plusieurs usages d'objets spécifiques. (ex. : l'utilisateur peut accéder aux usages de diffusion mais pas à la source de l'objet)
 
 
 Contrats d'entrée
@@ -419,7 +419,7 @@ Pour importer un contrat d'entrée, l'utilisateur clique sur le menu "Administra
 
 .. image:: images/CONTRACTS_Menu_import_ingest_contract.png
 
-Il sélectionne ensuite le fichier à  importer en cliquant sur "parcourir", puis clique sur "importer" pour lancer l'opération.
+Il sélectionne ensuite le fichier à importer en cliquant sur "parcourir", puis clique sur "importer" pour lancer l'opération.
 
 .. image:: images/CONTRACTS_ingest_contract_import.png
 
@@ -427,14 +427,14 @@ Une fenêtre modale s'ouvre alors pour indiquer soit :
 
 * Que les contrats ont bien été importés
 * Un échec de l'import du fichier. Ceci peut être causé par :
-	* Le fait que les contrats mentionnés existent déjà  pour le tenant
+	* Le fait que les contrats mentionnés existent déjà pour le tenant
 	* Le fait que le fichier est invalide
 
 Cette opération est journalisée et disponible dans le Journal des Opérations.
 
 **Rechercher un contrat d'entrée**
 
-Pour accéder à la recherche de contrats d'entrées, l'utilisateur clique sur le menu "Administration", puis sur le sous-menu "Contrat d'entrées".
+Pour accéder à la recherche de contrats d'entrées, l'utilisateur clique sur le menu "Administration", puis sur le sous-menu "Contrat d'entrées".
 
 La page affiche un formulaire de recherche composé des champs suivants :
 
@@ -464,7 +464,7 @@ La page "Détail d'un contrat d'accès" contient les informations suivantes :
 * Date de création
 * Statut
 * Date d'activation
-* Date de mise à  jour
+* Date de mise à jour
 * Date de désactivation
 
 .. image:: images/CONTRACTS_ingest_contract_detail.png
@@ -487,7 +487,7 @@ Pour importer un contexte, l'utilisateur clique sur le menu "Administration" pui
 
 .. image:: images/CONTRACTS_Menu_import_context.png
 
-Il sélectionne ensuite le fichier à  importer en cliquant sur "parcourir", puis clique sur "importer" pour lancer l'opération.
+Il sélectionne ensuite le fichier à importer en cliquant sur "parcourir", puis clique sur "importer" pour lancer l'opération.
 
 .. image:: images/CONTRACTS_context_import.png
 
@@ -495,7 +495,7 @@ Une fenêtre modale s'ouvre alors pour indiquer soit :
 
 * Que les contextes ont bien été importés
 * Un échec de l'import du fichier. Ceci peut être causé par :
-	* Le fait que le contexte existe déjà dans le système
+	* Le fait que le contexte existe déjà dans le système
 	* Le fait que le fichier est invalide
   * Le fait que le contexte déclare des contrats d'entrées ou des contrats d'accès qui n'existent pas dans les référentiels des contrats de leurs tenants
 
@@ -557,7 +557,7 @@ Par défaut, la solution logicielle Vitam affiche tous les profils d'archivage d
 
 En cliquant sur une ligne, l’utilisateur ouvre le détail du profil d'archivage dans un nouvel onglet.
 
-Lorsqu'un fichier de règle a été associé au profil, une flèche indiquant la possibilité de le télecharger apparaît. L'utilisateur peut lancer le télechargement en cliquant dessus.
+Lorsqu'un fichier de règle a été associé au profil, une flèche indiquant la possibilité de le télecharger apparaît. L'utilisateur peut lancer le téléchargement en cliquant dessus.
 
 .. image:: images/profil_search.png
 
@@ -684,7 +684,7 @@ La liste est composée des colonnes suivantes :
 	* En attente
 	* En cours
 	* Terminée
-* Actions : Contient des boutons d’action permettant d’interagir avec l'entrée réalisée en mode d’exécution pas à pas
+* Actions : Contient des boutons d’action permettant d’interagir avec l'entrée réalisée en mode d’exécution pas à pas.
 
 Les opérations d’entrée sont classées par ordre antéchronologique selon leur date d'entrée.
 
@@ -695,7 +695,7 @@ Seules les opérations en cours de traitement sont affichées sur cet écran.
 Utilisation du mode pas à pas
 -----------------------------
 
-Lorsque l’entrée est ralisée en mode d’éxécution pas à pas, l’utilisateur doit alors utiliser les boutons d’actions dispo-
+Lorsque l’entrée est réalisée en mode d’éxécution pas à pas, l’utilisateur doit alors utiliser les boutons d’actions dispo-
 nibles afin de faire avancer son traitement.
 Les boutons disponibles sont :
 
@@ -791,4 +791,4 @@ Une fois l'opération terminée, son détail est affiché. Il est également dis
 
 .. image:: images/securisation_verification_detail.png
 
-Le bouton télecharger permet d'obtenir le journal sécurisé.
+Le bouton télécharger permet d'obtenir le journal sécurisé.
