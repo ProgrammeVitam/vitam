@@ -864,6 +864,9 @@ angular.module('archive.unit')
         return version.metadatas.PhysicalId != undefined;
     }
     $scope.getClassVersion = function(version) {
+      if ($scope.userContract.EveryDataObjectVersion == true) {
+        return '';
+      }
       if ($scope.userContract.DataObjectVersion.indexOf(version.split('_')[0]) < 0) {
         return 'grayColor';
       }
