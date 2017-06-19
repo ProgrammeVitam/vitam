@@ -27,7 +27,7 @@
       <button ng-if="search.error.displayMessage" class="btn btn-danger center-block" type="button" style="margin-top: 20px">
         {{search.error.message}}
       </button>
-    </div>     
+    </div>
   </div>
 </div>
 
@@ -74,12 +74,12 @@
           <td ng-click="goToDetails(log.evIdProc)" >{{log.evDateTime | vitamFormatDate}}</td>
           <td ng-click="goToDetails(log.evIdProc)" >{{log.events[1].evDateTime | vitamFormatDate}}</td>
           <td>
-          	<a ng-if="log.events[1].outcome.toUpperCase() == 'OK' || log.events[1].outcome.toUpperCase() == 'WARNING'"  href="" ng-click="downloadObject(log.evIdProc, 'manifests')">            
-              <i class="material-icons">file_download</i>              
+          	<a ng-if="log.events[1].outcome.toUpperCase() == 'OK' || log.events[1].outcome.toUpperCase() == 'WARNING'"  href="" ng-click="downloadObject(log.evIdProc, 'manifests')">
+              <i class="material-icons">file_download</i>
             </a>
           </td>
           <td >
-          	<a ng-if = "log.events[1].outcome.toUpperCase() !== 'STARTED'" href="" ng-click="downloadObject(log.evIdProc, 'reports')">
+          	<a ng-if = "log.events[1].outcome.toUpperCase() !== 'STARTED' && log.events[0].outDetail == 'STP_INGEST_FINALISATION.OK'" href="" ng-click="downloadObject(log.evIdProc, 'reports')">
               <i class="material-icons">file_download</i>
             </a>
           </td>
