@@ -32,7 +32,7 @@
     {
         "id": "check-DNS",
         "name": "Check Consul DNS resolution for node",
-        "script": "/usr/bin/getent hosts {{ansible_hostname}}.node.{{consul_domain}}",
+        "script": "/usr/bin/getent ahostsv4 {{ansible_hostname}}.node.{{consul_domain}}",
         "interval": "10s",
         "timeout": "1s"
       }

@@ -171,7 +171,7 @@ days_to_delete=3
 days_to_close=2
 days_to_delete_topbeat=3
 days_to_delete_local=2
-dns_servers=["10.100.211.222","8.8.8.8"]
+dns_servers=["10.100.211.222", "8.8.8.8"]
 
 memory_opts="-Xms32m -Xmx256m"
 
