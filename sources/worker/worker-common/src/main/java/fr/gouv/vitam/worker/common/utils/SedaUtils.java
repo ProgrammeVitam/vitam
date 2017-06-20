@@ -188,6 +188,7 @@ public class SedaUtils {
             final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
             final QName messageObjectName = new QName(NAMESPACE_URI, SedaConstants.TAG_MESSAGE_IDENTIFIER);
             final QName originatingAgencyName = new QName(NAMESPACE_URI, SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
+            final QName submissionAgencyName = new QName(NAMESPACE_URI, SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER);
             final QName contractName = new QName(NAMESPACE_URI, SedaConstants.TAG_ARCHIVAL_AGREEMENT);
             final QName commentName = new QName(NAMESPACE_URI, SedaConstants.TAG_COMMENT);
             final QName profilName = new QName(NAMESPACE_URI, SedaConstants.TAG_ARCHIVE_PROFILE);
@@ -207,6 +208,10 @@ public class SedaUtils {
 
                     if (element.getName().equals(profilName)) {
                         madatoryValueMap.put(SedaConstants.TAG_ARCHIVE_PROFILE, reader.getElementText());
+                    }
+                    
+                    if (element.getName().equals(submissionAgencyName)) {
+                        madatoryValueMap.put(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER, reader.getElementText());
                     }
 
                     if (element.getName().equals(commentName)) {

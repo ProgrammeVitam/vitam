@@ -30,10 +30,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -272,11 +278,13 @@ public class ProcessEngineImpl implements ProcessEngine {
      * @throws LogbookClientNotFoundException
      * @throws LogbookClientBadRequestException
      * @throws LogbookClientServerException
+     * @throws JsonProcessingException 
+     * @throws InvalidParseOperationException 
      */
     private void logbookAfterDistributorCall(ProcessStep step, WorkerParameters workParams, int tenantId,
         LogbookTypeProcess logbookTypeProcess, LogbookOperationParameters parameters, ItemStatus stepResponse)
         throws InvalidGuidOperationException, LogbookClientNotFoundException, LogbookClientBadRequestException,
-        LogbookClientServerException {
+        LogbookClientServerException, JsonProcessingException, InvalidParseOperationException {
         MessageLogbookEngineHelper messageLogbookEngineHelper = new MessageLogbookEngineHelper(logbookTypeProcess);
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         for (final Action action : step.getActions()) {
@@ -343,6 +351,10 @@ public class ProcessEngineImpl implements ProcessEngine {
                         itemStatus.getGlobalStatus(),
                         itemId, " Detail= " + itemStatus.computeStatusMeterMessage(),
                         GUIDReader.getGUID(workParams.getContainerName()));
+                if (itemStatus.getMasterData() != null) {
+                    JsonNode value = JsonHandler.toJsonNode(itemStatus.getMasterData());
+                    sublogbook.putParameterValue(LogbookParameterName.masterData, JsonHandler.writeAsString(value));                    
+                }               
                 if (itemStatus.getData().get(LogbookParameterName.eventDetailData.name()) != null) {
                     final String eventDetailData =
                         itemStatus.getData().get(LogbookParameterName.eventDetailData.name()).toString();
