@@ -75,7 +75,7 @@ Ci-après, la portion d'un bordereau (manifest.xml) utilisée pour contribuer le
 Détail du JSON
 --------------
 
-La structure de la collection Unit est composée de la transposition JSON de toutes les balises XML contenues dans la balise <DescriptiveMetadata> du bordereau conforme au standard SEDA v.2.0., c'est-à-dire toutes les balises se rapportant aux unités archivistiques. 
+La structure de la collection Unit est composée de la transposition JSON de toutes les balises XML contenues dans la balise <DescriptiveMetadata> du bordereau conforme au standard SEDA v.2.0., c'est-à-dire toutes les balises se rapportant aux unités archivistiques.
 
 Cette transposition se fait comme suit :
 
@@ -83,7 +83,7 @@ Cette transposition se fait comme suit :
     Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
 
 "DescriptionLevel": niveau de description archivistique de l'unité archivistique.
-    Il s'agit d'une chaîne de caractères. 
+    Il s'agit d'une chaîne de caractères.
     Ce champ est renseigné avec les valeurs situées entre les balises <DescriptionLevel> dans le bordereau.
 
 "Title": titre de l'unité archivistique.
@@ -126,7 +126,7 @@ Cette transposition se fait comme suit :
 "_us" : tableau contenant la parentalité, indexé [ GUID1, GUID2, ... }
   Tableau de chaînes de 36 caractères
 
-"_uds" : tableau contenant la parentalité ainqi que le niveau de profondeur relative. 
+"_uds" : tableau contenant la parentalité ainqi que le niveau de profondeur relative.
   Ces informations sont réunis dans le tableau sous la forme de clef/valeur. Exemple [{GUID1 : depth1}, {GUID2 : depth2}, ... }]
   Il s'agit d'un tableau de JSON
 
@@ -167,8 +167,8 @@ Exemple de Json stocké en base
         "CreatingOsVersion": "CreatingOsVersion0",
         "LastModified": "2006-05-04T18:13:51.0"
     },
-    "_qualifiers": {
-        "PhysicalMaster": {
+    "_qualifiers": [{
+        "qualifier": "PhysicalMaster",
             "_nbc": 1,
             "versions": [
                 {
@@ -206,7 +206,8 @@ Exemple de Json stocké en base
                 }
             ]
         },
-        "BinaryMaster": {
+        {
+            "qualifier": "BinaryMaster",
             "_nbc": 1,
             "versions": [
                 {
@@ -235,7 +236,7 @@ Exemple de Json stocké en base
                 }
             ]
         }
-    },
+    ],
     "_up": [
         "aeaqaaaaaahbjs5eabbboak4d7shg7qaaaaq"
     ],
@@ -274,14 +275,14 @@ Ci-après, la portion d'un bordereau (manifest.xml) utilisée pour contribuer le
 Détail des champs du JSON
 ---------------------------
 
-"_id": identifiant du groupe d'objet. 
+"_id": identifiant du groupe d'objet.
   Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
   Cet id est ensuite reporté dans chaque structure inculse
 
 "_tenant": identifiant du tenant
   Il s'agit d'un entier
 
-"_profil": typologie de document. 
+"_profil": typologie de document.
   Repris du nom de la balise présente dans le <Metadata> du <DataObjectPackage> du bordereau qui concerne le BinaryMaster.
   Attention, il s'agit d'une reprise de la balise et non pas des valeurs à l'intérieur.
   Les valeurs possibles pour ce champ sont : Audio, Document, Text, Image et Video. Des extensions seront possibles (Database, Plan3D, ...)
@@ -289,10 +290,10 @@ Détail des champs du JSON
 "FileInfo": reprend le bloc FileInfo du BinaryMaster.
  L'objet de cette copie est de pouvoir conserver les informations initiales du premier BinaryMaster (version de création), au cas où cette version serait détruite (selon les règles de conservation), car ces informations ne sauraient être maintenues de manière garantie dans les futures versions.
 
-"_qualifiers": structure décrivant les objets inclus dans ce groupe d'objet. 
+"_qualifiers": tableau de structures décrivant les objets inclus dans ce groupe d'objets.
   Il est composé comme suit :
 
-  - Usage de l'objet. 
+  - "qualifier": Usage de l'objet.
     Ceci correspond à la valeur contenue dans le champ <DataObjectVersion> du bordereau. Par exemple pour <DataObjectVersion>BinaryMaster_1</DataObjectVersion>. C'est la valeur "BinaryMaster" qui est reportée.
       - "nb": nombre d'objets correspondant à cet usage
       - "versions": tableau des objets par version (une version = une entrée dans le tableau). Ces informations sont toutes issues du bordereau
@@ -306,7 +307,7 @@ Détail des champs du JSON
           - "FormatLitteral" : nom du format. C'est une reprise de la valeur située entre les balises <FormatLitteral> du message ArchiveTransfer.
           - "MimeType" : type Mime. C'est une reprise de la valeur située entre les balises <MimeType> du message ArchiveTransfer ou des valeurs correspondant au format tel qu'identifié par la solution logicielle Vitam.
           - "FormatId" : PUID du format de l'objet. Il est défini par la solution logicielle Vitam à l'aide du référentiel PRONOM maintenu par The National Archives (UK) et correspondant à la valeur du champ PUID de la collection FileFormat.
-        
+
       - "FileInfo" : Contient les informations sur les fichiers.
           - "Filename": nom de l'objet
           - "CreatingApplicationName": Nom de l'application avec laquelle l'objet a été créé. Ce champ est renseigné avec la métadonnée correspondante portée par le message ArchiveTransfer. *Ce champ est facultatif et n'est pas présent systématiquement*
@@ -315,14 +316,18 @@ Détail des champs du JSON
           - "CreatingOsVersion": Version du système d'exploitation avec lequel l'objet a été créé. Ce champ est renseigné avec la métadonnées correspondante portée par le message ArchiveTransfer. *Ce champ et facultatif est n'est pas présent systématiquement*
           - "LastModified" : date de dernière modification de l'objet au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"Ce champ est optionnel, et est renseigné avec la métadonnée correspondante portée par le fichier.
           - "Size": taille de l'objet (en octets). Ce champ contient un nombre entier.
-      - "OtherMetadata": Ce champ est renseigné avec les valeurs contenues entre les balises <OtherMetadata>. 
+      - "OtherMetadata": Ce champ est renseigné avec les valeurs contenues entre les balises <OtherMetadata>.
         Ceci correspond à une extension du schéma SEDA du message  ArchiveTransfert.
       - "Uri": localisation du fichier correspondant à l'objet dans le SIP.
-        Chaîne de caractères        
+        Chaîne de caractères
       - "MessageDigest": empreinte du fichier correspondant à l'objet. La valeur est calculé par la solution logicielle Vitam.
         Chaîne de caractères
       - "Algorithm": Algorithme utilisé pour réaliser l'empreinte du fichier correspondant à l'objet.
         Chaîne de caractères
+      - "_storage": Contient trois champs qui permettent d'identifier les offres  de stockage.
+          - "strategyId": Identifiant de la stratégie de stockage.
+          - "offerIds": Liste des offres de stockage pour une stratégie donnée
+          - "_nbc": Nombre d'offres
 
 "_up" (#unitup): tableau identifiant les unités archivistiques parentes
   Il s'agit d'un tableau de chaînes de 36 caractères correspondant à un GUID contenu à la valeur contenue dans le champ _id de la collection Unit.
