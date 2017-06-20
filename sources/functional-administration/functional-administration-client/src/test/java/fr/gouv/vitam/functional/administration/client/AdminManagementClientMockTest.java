@@ -40,6 +40,7 @@ import java.util.List;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.functional.administration.common.exception.*;
 import org.assertj.core.api.Assertions;
@@ -163,7 +164,7 @@ public class AdminManagementClientMockTest {
     @Test
     public void getFundRegisterTest()
         throws InvalidParseOperationException, ReferentialException, JsonGenerationException, JsonMappingException,
-        IOException {
+        AccessUnauthorizedException, IOException {
         AdminManagementClientFactory.changeMode(null);
         final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
         final Select select = new Select();

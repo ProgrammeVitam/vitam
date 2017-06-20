@@ -651,6 +651,10 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             LOGGER.error(e);
             final Status status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status)).build();
+        } catch (final AccessUnauthorizedException e) {
+            LOGGER.error("Access contract does not allow ", e);
+            final Status status = Status.UNAUTHORIZED;
+            return Response.status(status).entity(getErrorEntity(status)).build();
         } catch (final Exception e) {
             LOGGER.error(e);
             final Status status = Status.INTERNAL_SERVER_ERROR;
