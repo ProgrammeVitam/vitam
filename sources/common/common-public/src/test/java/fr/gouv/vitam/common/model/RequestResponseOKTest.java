@@ -114,15 +114,14 @@ public class RequestResponseOKTest {
         }
         requestResponseOK.addResult(objectTest);
         requestResponseOK.addResult(objectTest);
-        requestResponseOK.getHits().setTotal(2).setLimit(2);
         assertEquals(
-            "{\"httpCode\":200,\"$hits\":{\"total\":2,\"offset\":0,\"limit\":2,\"size\":0}," +
+            "{\"httpCode\":200,\"$hits\":{\"total\":2,\"offset\":0,\"limit\":2,\"size\":2}," +
                 "\"$results\":[{\"Objects\":[\"One\",\"Two\",\"Three\"]},{\"Objects\":[\"One\",\"Two\",\"Three\"]}]," +
                 "\"$context\":{\"Objects\":[\"One\",\"Two\",\"Three\"]}}",
             JsonHandler.unprettyPrint(requestResponseOK));
-        requestResponseOK.setHits(2, 0, 2, 0);
+        requestResponseOK.setHits(2, 0, 4, 2);
         assertEquals(
-            "{\"httpCode\":200,\"$hits\":{\"total\":2,\"offset\":0,\"limit\":2,\"size\":0}," +
+            "{\"httpCode\":200,\"$hits\":{\"total\":2,\"offset\":0,\"limit\":4,\"size\":2}," +
                 "\"$results\":[{\"Objects\":[\"One\",\"Two\",\"Three\"]},{\"Objects\":[\"One\",\"Two\",\"Three\"]}]," +
                 "\"$context\":{\"Objects\":[\"One\",\"Two\",\"Three\"]}}",
             JsonHandler.unprettyPrint(requestResponseOK));

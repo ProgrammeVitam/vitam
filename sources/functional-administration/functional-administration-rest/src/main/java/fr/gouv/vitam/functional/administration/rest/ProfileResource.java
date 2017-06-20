@@ -256,7 +256,7 @@ public class ProfileResource {
 
             return Response.status(Status.OK)
                 .entity(
-                    new RequestResponseOK().addAllResults(profileModelList))
+                    new RequestResponseOK<ProfileModel>(queryDsl).addAllResults(profileModelList))
                 .build();
 
         } catch (ReferentialException e) {

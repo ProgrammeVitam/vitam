@@ -41,6 +41,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.json.JsonHandler;
 import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -163,9 +164,8 @@ public class MetaDataResource extends ApplicationStatusResource {
                 .build();
         }
         return Response.status(Status.CREATED)
-            .entity(new RequestResponseOK()
-                .setHits(1, 0, 1)
-                .setQuery(insertRequest))
+            .entity(new RequestResponseOK(insertRequest)
+                .setHits(1, 0, 1))
             .build();
     }
 
@@ -230,10 +230,8 @@ public class MetaDataResource extends ApplicationStatusResource {
                 .build();
         }
 
-        return Response.status(Status.FOUND).entity(new RequestResponseOK()
-            .setHits(arrayNodeResults.size(), 0, 1)
-            .setQuery(selectRequest)
-            .addAllResults(Lists.newArrayList(arrayNodeResults.iterator()))).build();
+        return Response.status(Status.FOUND).entity(new RequestResponseOK(selectRequest)
+            .addAllResults(JsonHandler.toArrayList(arrayNodeResults))).build();
     }
 
     /**
@@ -292,10 +290,8 @@ public class MetaDataResource extends ApplicationStatusResource {
                     .setDescription(status.getReasonPhrase()))
                 .build();
         }
-        return Response.status(Status.FOUND).entity(new RequestResponseOK()
-            .setHits(arrayNodeResults.size(), 0, 1)
-            .setQuery(updateRequest)
-            .addAllResults(Lists.newArrayList(arrayNodeResults.iterator()))).build();
+        return Response.status(Status.FOUND).entity(new RequestResponseOK(updateRequest)
+            .addAllResults(JsonHandler.toArrayList(arrayNodeResults))).build();
     }
 
     /**
@@ -339,10 +335,8 @@ public class MetaDataResource extends ApplicationStatusResource {
                     .setDescription(status.getReasonPhrase()))
                 .build();
         }
-        return Response.status(Status.FOUND).entity(new RequestResponseOK()
-            .setHits(arrayNodeResults.size(), 0, 1)
-            .setQuery(selectRequest)
-            .addAllResults(Lists.newArrayList(arrayNodeResults.iterator()))).build();
+        return Response.status(Status.FOUND).entity(new RequestResponseOK(selectRequest)
+            .addAllResults(JsonHandler.toArrayList(arrayNodeResults))).build();
     }
 
     private Response metadataExecutionExceptionTrace(final MetaDataExecutionException e) {
@@ -429,9 +423,8 @@ public class MetaDataResource extends ApplicationStatusResource {
         }
 
         return Response.status(Status.CREATED)
-            .entity(new RequestResponseOK()
-                .setHits(1, 0, 1)
-                .setQuery(insertRequest))
+            .entity(new RequestResponseOK(insertRequest)
+                .setHits(1, 0, 1))
             .build();
     }
 
@@ -506,9 +499,7 @@ public class MetaDataResource extends ApplicationStatusResource {
                 .build();
         }
 
-        return Response.status(Status.OK).entity(new RequestResponseOK()
-            .setHits(arrayNodeResults.size(), 0, 1)
-            .setQuery(selectRequest)
+        return Response.status(Status.OK).entity(new RequestResponseOK(selectRequest)
             .addAllResults(toArrayList(arrayNodeResults))).build();
     }
 

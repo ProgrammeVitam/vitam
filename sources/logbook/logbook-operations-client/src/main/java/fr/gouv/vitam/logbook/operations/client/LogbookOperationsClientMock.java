@@ -106,7 +106,7 @@ class LogbookOperationsClientMock extends AbstractMockClient implements LogbookO
 
         resultAsJson.add(GUID_EXAMPLE);
 
-        return new RequestResponseOK().setHits(1, 0, 1).addAllResults(resultAsJson);
+        return new RequestResponseOK().addAllResults(resultAsJson);
     }
 
     @Override

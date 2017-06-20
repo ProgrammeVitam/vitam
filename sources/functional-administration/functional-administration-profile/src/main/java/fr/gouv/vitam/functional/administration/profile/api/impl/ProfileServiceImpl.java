@@ -217,8 +217,8 @@ public class ProfileServiceImpl implements ProfileService {
         manager.logSuccess(PROFILES_IMPORT_EVENT, null,  null);
 
 
-        return new RequestResponseOK<ProfileModel>().addAllResults(profileModelList).setHits(
-            profileModelList.size(), 0, profileModelList.size()).setHttpCode(Response.Status.CREATED.getStatusCode());
+        return new RequestResponseOK<ProfileModel>().addAllResults(profileModelList)
+            .setHttpCode(Response.Status.CREATED.getStatusCode());
     }
 
 

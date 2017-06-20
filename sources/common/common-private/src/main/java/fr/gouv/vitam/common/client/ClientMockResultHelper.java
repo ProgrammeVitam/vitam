@@ -314,8 +314,7 @@ public class ClientMockResultHelper {
     
     public static JsonNode getMetaDataResult(){
         return new RequestResponseOK()
-        .setHits(1, 0, 1)
-        .setQuery(null).toJsonNode();        
+        .setHits(1, 0, 1).toJsonNode();
     }
 
     /**
@@ -334,8 +333,6 @@ public class ClientMockResultHelper {
      */
     public static RequestResponse createReponse(Object s) throws InvalidParseOperationException {
         return new RequestResponseOK()
-                .setHits(1, 0, 1)
-                .setQuery(null)
                 .addResult(s);
     }
 
@@ -345,9 +342,7 @@ public class ClientMockResultHelper {
      * @throws InvalidParseOperationException
      */
     public static RequestResponse createReponse(String s) throws InvalidParseOperationException {
-        RequestResponseOK responseOK =  new RequestResponseOK()
-                .setHits(1, 0, 1)
-                .setQuery(null);
+        RequestResponseOK responseOK =  new RequestResponseOK();
         if (null != s)
             responseOK.addResult(JsonHandler.getFromString(s));
         return responseOK.setHttpCode(Status.OK.getStatusCode());
@@ -360,9 +355,7 @@ public class ClientMockResultHelper {
      * @throws InvalidParseOperationException
      */
     public static RequestResponse createReponse(String s, int statuscode) throws InvalidParseOperationException {
-        RequestResponseOK responseOK =  new RequestResponseOK()
-            .setHits(1, 0, 1)
-            .setQuery(null);
+        RequestResponseOK responseOK =  new RequestResponseOK();
         if (null != s)
             responseOK.addResult(JsonHandler.getFromString(s));
         return responseOK.setHttpCode(statuscode);

@@ -346,7 +346,7 @@ public class MetaDataResourceTest {
             .body(buildDSLWithOptions("", DATA)).when()
             .post("/units").then()
             .body(equalTo(
-                new RequestResponseOK().setHits(1, 0, 1).setQuery(buildDSLWithOptions("", DATA)).toString()))
+                new RequestResponseOK(buildDSLWithOptions("", DATA)).setHits(1, 0, 1).toString()))
             .statusCode(Status.CREATED.getStatusCode());
     }
 

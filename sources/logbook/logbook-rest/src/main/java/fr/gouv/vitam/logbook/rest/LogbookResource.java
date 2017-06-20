@@ -186,7 +186,7 @@ public class LogbookResource extends ApplicationStatusResource {
                 final LogbookOperation result = logbookOperation.getById(id);
                 return Response.status(Status.OK)
                     .entity(
-                        new RequestResponseOK().setHits(1, 0, 1).addResult(JsonHandler.getFromString(result.toJson())))
+                        new RequestResponseOK(queryDsl).addResult(JsonHandler.getFromString(result.toJson())))
                     .build();
 
             } else {
@@ -195,8 +195,7 @@ public class LogbookResource extends ApplicationStatusResource {
                     throw new LogbookDatabaseException("Result size different than 1.");
                 }
                 return Response.status(Status.OK)
-                    .entity(new RequestResponseOK()
-                        .setHits(1, 0, 1)
+                    .entity(new RequestResponseOK(queryDsl)
                         .addResult(JsonHandler.getFromString(result.get(0).toJson())))
                     .build();
             }
@@ -331,8 +330,8 @@ public class LogbookResource extends ApplicationStatusResource {
             resultAsJson.add(guid.toString());
             return Response.status(Status.OK)
                 .entity(new RequestResponseOK<String>()
-                    .setHits(1, 0, 1)
-                    .addAllResults(resultAsJson))
+                    .addAllResults(resultAsJson)
+                    .setHits(1, 0, 1))
                 .build();
 
         } catch (TraceabilityException | LogbookNotFoundException | LogbookDatabaseException |
@@ -404,9 +403,7 @@ public class LogbookResource extends ApplicationStatusResource {
             final List<LogbookOperation> result = logbookOperation.select(query);
 
             return Response.status(Status.OK)
-                .entity(new RequestResponseOK<LogbookOperation>()
-                    .setHits(result.size(), 0, 1)
-                    .setQuery(query)
+                .entity(new RequestResponseOK<LogbookOperation>(query)
                     .addAllResults(result))
                 .build();
         } catch (final LogbookNotFoundException exc) {
@@ -500,8 +497,7 @@ public class LogbookResource extends ApplicationStatusResource {
                 cursorId = logbookLifeCycle.createCursorUnit(operationId, query,
                     fromLifeCycleStatusToUnitCollection(lifeCycleStatus));
             }
-            final RequestResponseOK responseOK =
-                new RequestResponseOK().setQuery(nodeQuery);
+            final RequestResponseOK responseOK = new RequestResponseOK(nodeQuery);
             int nb = 0;
             try {
                 for (; nb < MAX_NB_PART_ITERATOR; nb++) {
@@ -514,8 +510,7 @@ public class LogbookResource extends ApplicationStatusResource {
             }
             final ResponseBuilder builder =
                 Response.status(nb < MAX_NB_PART_ITERATOR ? Status.OK : Status.PARTIAL_CONTENT)
-                    .entity(responseOK
-                        .setHits(nb, 0, nb).setQuery(nodeQuery));
+                    .entity(responseOK);
             return VitamRequestIterator.setHeaders(builder, xcursor, cursorId).build();
         } catch (final LogbookDatabaseException exc) {
             LOGGER.error(exc);
@@ -850,16 +845,15 @@ public class LogbookResource extends ApplicationStatusResource {
                 logbookLifeCycle.getUnitById(queryDsl, fromLifeCycleStatusToUnitCollection(lifeCycleStatusCode));
 
             return Response.status(Status.OK)
-                .entity(new RequestResponseOK()
-                    .setHits(1, 0, 1)
+                .entity(new RequestResponseOK(queryDsl)
                     .addResult(JsonHandler.getFromString(result.toJson())))
                 .build();
         } catch (final LogbookNotFoundException exc) {
             LOGGER.debug(exc);
             return Response.status(Status.NOT_FOUND)
                 .entity(new RequestResponseOK()
-                    .setHits(0, 0, 1)
-                    .addResult(JsonHandler.createArrayNode()))
+                    .addResult(JsonHandler.createArrayNode())
+                    .setHits(0, 0, 1))
                 .build();
         } catch (final LogbookException | InvalidParseOperationException exc) {
             LOGGER.error(exc);
@@ -911,8 +905,8 @@ public class LogbookResource extends ApplicationStatusResource {
             LOGGER.error(exc);
             return Response.status(Status.NOT_FOUND)
                 .entity(new RequestResponseOK()
-                    .setHits(0, 0, 1)
-                    .addResult(JsonHandler.createArrayNode()))
+                    .addResult(JsonHandler.createArrayNode())
+                    .setHits(0, 0, 1))
                 .build();
         } catch (final LogbookDatabaseException exc) {
             LOGGER.error(exc);
@@ -946,9 +940,7 @@ public class LogbookResource extends ApplicationStatusResource {
                 logbookLifeCycle.selectUnit(queryDsl, fromLifeCycleStatusToUnitCollection(lifeCycleStatusCode));
 
             return Response.status(Status.OK)
-                .entity(new RequestResponseOK<LogbookOperation>()
-                    .setHits(result.size(), 0, 1)
-                    .setQuery(queryDsl)
+                .entity(new RequestResponseOK<LogbookLifeCycle>(queryDsl)
                     .addAllResults(result))
                 .build();
 
@@ -956,8 +948,8 @@ public class LogbookResource extends ApplicationStatusResource {
             LOGGER.debug(exc);
             return Response.status(Status.NOT_FOUND)
                 .entity(new RequestResponseOK()
-                    .setHits(0, 0, 1)
-                    .addResult(JsonHandler.createArrayNode()))
+                    .addResult(JsonHandler.createArrayNode())
+                    .setHits(0, 0, 1))
                 .build();
         } catch (final LogbookException | InvalidParseOperationException exc) {
             LOGGER.error(exc);
@@ -1025,7 +1017,7 @@ public class LogbookResource extends ApplicationStatusResource {
                 cursorId = logbookLifeCycle.createCursorObjectGroup(operationId, query,
                     fromLifeCycleStatusToObjectGroupCollection(lifeCycleStatus));
             }
-            final RequestResponseOK responseOK = new RequestResponseOK().setQuery(nodeQuery);
+            final RequestResponseOK responseOK = new RequestResponseOK(nodeQuery);
             int nb = 0;
             try {
                 for (; nb < MAX_NB_PART_ITERATOR; nb++) {
@@ -1038,8 +1030,7 @@ public class LogbookResource extends ApplicationStatusResource {
             }
             final ResponseBuilder builder =
                 Response.status(nb < MAX_NB_PART_ITERATOR ? Status.OK : Status.PARTIAL_CONTENT)
-                    .entity(responseOK
-                        .setHits(nb, 0, nb).setQuery(nodeQuery));
+                    .entity(responseOK);
             return VitamRequestIterator.setHeaders(builder, xcursor, cursorId).build();
         } catch (final LogbookDatabaseException exc) {
             LOGGER.error(exc);
@@ -1379,16 +1370,13 @@ public class LogbookResource extends ApplicationStatusResource {
                 throw new LogbookDatabaseException("Result size different than 1.");
             }
             return Response.status(Status.OK)
-                .entity(new RequestResponseOK()
-                    .setHits(1, 0, 1)
+                .entity(new RequestResponseOK(queryDsl)
                     .addResult(JsonHandler.getFromString(result.get(0).toJson())))
                 .build();
         } catch (final LogbookNotFoundException exc) {
             LOGGER.debug(exc);
             return Response.status(Status.NOT_FOUND)
-                .entity(new RequestResponseOK()
-                    .setHits(0, 0, 1)
-                    .addResult(JsonHandler.createArrayNode()))
+                .entity(new RequestResponseOK(queryDsl))
                 .build();
         } catch (final LogbookException | InvalidParseOperationException exc) {
             LOGGER.error(exc);
@@ -1439,8 +1427,8 @@ public class LogbookResource extends ApplicationStatusResource {
             LOGGER.error(exc);
             return Response.status(Status.NOT_FOUND)
                 .entity(new RequestResponseOK()
-                    .setHits(0, 0, 1)
-                    .addResult(JsonHandler.createArrayNode()))
+                    .addResult(JsonHandler.createArrayNode())
+                    .setHits(0, 0, 1))
                 .build();
         } catch (final LogbookDatabaseException exc) {
             LOGGER.error(exc);

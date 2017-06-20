@@ -233,7 +233,6 @@ public class AdminManagementResource extends ApplicationStatusResource {
             }
 
             return Response.status(Status.OK).entity(new RequestResponseOK()
-                .setHits(1, 0, 1)
                 .addResult(JsonHandler.toJsonNode(fileFormat))).build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
@@ -265,9 +264,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(mongoAccess)) {
             SanityChecker.checkJsonAll(select);
             fileFormatList = formatManagement.findDocuments(select);
-            final RequestResponseOK responseEntity = new RequestResponseOK()
-                .setHits(fileFormatList.size(), 0, fileFormatList.size())
-                .setQuery(select);
+            final RequestResponseOK responseEntity = new RequestResponseOK(select);
             for (final FileFormat format : fileFormatList) {
                 responseEntity.addResult(JsonHandler.toJsonNode(format));
             }
@@ -277,7 +274,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (FileFormatNotFoundException e) {
-            return Response.status(Status.OK).entity(new RequestResponseOK().setHits(0, 0, 0).setQuery(select)).build();
+            return Response.status(Status.OK).entity(new RequestResponseOK(select)).build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
             final Status status = Status.NOT_FOUND;
@@ -384,7 +381,6 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 throw new FileRulesException("NO DATA for the specified rule Value or More than one records exists");
             }
             return Response.status(Status.OK).entity(new RequestResponseOK()
-                .setHits(1, 0, 1)
                 .addResult(JsonHandler.toJsonNode(fileRules.get(0)))).build();
 
         } catch (final FileRulesException e) {
@@ -438,9 +434,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         try (RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess)) {
             SanityChecker.checkJsonAll(select);
             filerulesList = rulesFileManagement.findDocuments(select);
-            final RequestResponseOK responseEntity = new RequestResponseOK()
-                .setHits(filerulesList.size(), 0, filerulesList.size())
-                .setQuery(select);
+            final RequestResponseOK responseEntity = new RequestResponseOK(select);
             for (final FileRules rule : filerulesList) {
                 responseEntity.addResult(JsonHandler.toJsonNode(rule));
             }
@@ -550,9 +544,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         }
 
         return Response.status(Status.OK)
-            .entity(new RequestResponseOK()
-                .setHits(fileFundRegisters.size(), 0, fileFundRegisters.size())
-                .setQuery(select)
+            .entity(new RequestResponseOK(select)
                 .addAllResults(fileFundRegisters))
             .build();
     }
@@ -608,9 +600,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         }
 
         return Response.status(Status.OK)
-            .entity(new RequestResponseOK()
-                .setHits(accessionRegisterDetails.size(), 0, accessionRegisterDetails.size())
-                .setQuery(select)
+            .entity(new RequestResponseOK(select)
                 .addAllResults(accessionRegisterDetails))
             .build();
     }
