@@ -24,24 +24,50 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.storage.filesystem.v2;
+package fr.gouv.vitam.common.storage.filesystem.v2.metadata.container;
 
-import fr.gouv.vitam.common.storage.StorageConfiguration;
-import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageTestAbstract;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import org.junit.Before;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.io.File;
+
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
-import java.io.IOException;
+import fr.gouv.vitam.common.storage.filesystem.v2.HashFileSystemHelper;
 
-public class HashFileSystemTest extends ContentAddressableStorageTestAbstract {
+public class HashContainerMetadataTest {
 
-    @Before
-    public void setup() throws IOException {
-        final StorageConfiguration configuration = new StorageConfiguration();
-        tempDir = tempFolder.newFolder();
-        configuration.setStoragePath(tempDir.getCanonicalPath());
-        storage = new HashFileSystem(configuration);
+    public static final String CONTAINER = "container";
+    public static final String FILE = "test1";
+
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
+    /**
+     * THis test work only if your temporary folder support linux extended attribute
+     * @throws Exception
+     */
+    @Test
+    public void should_write_and_read_extended_attribute() throws Exception {
+
+        File tmp = temporaryFolder.newFolder();
+
+        File file = new File(tmp, CONTAINER);
+        file.mkdir();
+
+        HashFileSystemHelper hashFileSystemHelper = new HashFileSystemHelper(file.getAbsolutePath());
+        File container = new File(file, CONTAINER);
+        container.mkdir();
+
+        File test1 = new File(container, FILE);
+        test1.createNewFile();
+
+        HashContainerMetadata containerName = new HashContainerMetadata(FILE, hashFileSystemHelper);
+        containerName.updateAndMarshall(100L, 200L);
+
+        containerName = new HashContainerMetadata(FILE, hashFileSystemHelper, true);
+        assertThat(containerName.getNbObjects()).isEqualTo(100L);
+        assertThat(containerName.getUsedBytes()).isEqualTo(200L);
     }
-
 }
