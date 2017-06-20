@@ -209,6 +209,16 @@ public class SedaConstants {
     public static final String PREFIX_MGT = "_mgt";
 
     /**
+     * Prefix of OriginatingAgency
+     */
+    public static final String PREFIX_ORIGINATING_AGENCY = "_sp";
+
+    /**
+     * Prefix of OriginatingAgency
+     */
+    public static final String PREFIX_ORIGINATING_AGENCIES = "_sps";
+
+    /**
      * Date format patern
      */
     public static final String DATE_FORMAT_PATERN = "yyyy-MM-dd";

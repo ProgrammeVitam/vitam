@@ -549,6 +549,9 @@ public abstract class AbstractRequest {
             if (node.has(all) && node.get(all).asInt() > 0) {
                 return true;
             }
+            if (!node.fieldNames().hasNext()) {
+                return true;
+            }
             return false;
         }
         return true;

@@ -58,7 +58,7 @@ public class ExistsQuery extends Query {
                     "Query " + existsQuery + " is not an Exists/Missing/IsNull Query");
         }
         createQueryVariable(existsQuery, variableName);
-        currentQUERY = existsQuery;
+        currentTokenQUERY = existsQuery;
         setReady(true);
     }
 }

@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
  * Configuration for Parser
@@ -141,6 +142,37 @@ public class GlobalDatasParser extends GlobalDatas {
             return list;
         } else {
             return value.asText();
+        }
+    }
+    
+    /**
+     * 
+     * @param value
+     * @return the ArrayNode for value
+     * @throws InvalidParseOperationException if value could not parse to JSON
+     */
+    public static final ArrayNode getArray(final JsonNode value) throws InvalidParseOperationException {
+        if (value == null) {
+            throw new InvalidParseOperationException("Not correctly parsed");
+        }
+        if (value instanceof ArrayNode) {
+            return (ArrayNode) value;
+        }
+        ArrayNode node = JsonHandler.createArrayNode();
+        if (value.isBoolean()) {
+            return node.add(value.asBoolean());
+        } else if (value.isFloat()) {
+            return node.add(value.floatValue());
+        } else if (value.isInt()) {
+            return node.add(value.asInt());
+        } else if (value.isDouble()) {
+            return node.add(value.asDouble());
+        } else if (value.canConvertToLong()) {
+            return node.add(value.asLong());
+        } else if (value.has(Query.DATE)) {
+            return node.add(LocalDateUtil.getFormattedDate(LocalDateUtil.getDate(value.get(Query.DATE).asText())));
+        } else {
+            return node.add(value.asText());
         }
     }
 }

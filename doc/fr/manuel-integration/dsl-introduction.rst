@@ -384,6 +384,8 @@ Des champs sont protégés dans les requêtes :
    - **#operations** est la liste des opérations qui ont opéré sur cet élément
    - **#originating_agency** est l'OriginatingAgency su SIP d'origine
    - **#originating_agencies** est l'ensemble des OriginatingAgencies issues du SIP et des rattachements (héritage)
+   - **#storage** est l'état de stockage
+   - **#score** (**UNSUPORTED**) contiendra en cas de requête avec plein texte le score de pertinence
 
 - Spécifiques pour les Units
 
@@ -407,6 +409,11 @@ Des champs sont protégés dans les requêtes :
          - **Dissemination** pour la version de diffusion compatible avec un accès rapide et via navigateur
          - **Thumbnail** pour les vignettes pour les affichages en qualité très réduite et très rapide en "prévue"
          - **TextContent** pour la partie native texte (ASCII UTF8)
+
+    - Un raccourci exite : **#usage**
+    
+      - **#size** est la taille d'un objet
+      - **#format** est le format (PUID) d'un objet
 
 La réponse dispose également de champs dans le *Header* :
 

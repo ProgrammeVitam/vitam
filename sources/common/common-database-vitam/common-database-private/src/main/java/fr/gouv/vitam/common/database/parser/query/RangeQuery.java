@@ -49,7 +49,7 @@ public class RangeQuery extends fr.gouv.vitam.common.database.builder.query.Rang
     public RangeQuery(final QUERY req, final JsonNode request, final VarNameAdapter adapter)
         throws InvalidParseOperationException {
         super();
-        currentQUERY = req;
+        currentTokenQUERY = req;
         final ObjectNode sub = ((ObjectNode) currentObject).putObject(req.exactToken());
         adapter.setVarsValue(sub, request);
         setReady(true);

@@ -34,96 +34,33 @@
  */
 package fr.gouv.vitam.common.database.server;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import com.mongodb.client.MongoCursor;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 
 /**
- * This class is the result of DbRequestSingle's execution
+ * FakeVitamDocument
  */
-public class DbRequestResult {
-
-    private boolean wasAcknowledged;
-    private long count;
-    private Map<String, List<String>> diffs;
-    private MongoCursor<VitamDocument<?>> cursor;
-    
-    /**
-     * empty constructor
-     */
-    public DbRequestResult() {
-        wasAcknowledged = false;
-        count = 0;
-        diffs = new HashMap<>();
-    }
-    
-    /**
-     * @return the wasAcknowledged
-     */
-    public boolean isWasAcknowledged() {
-        return wasAcknowledged;
-    }
-    /**
-     * @param wasAcknowledged the wasAcknowledged to set
-     *
-     * @return this
-     */
-    public DbRequestResult setWasAcknowledged(boolean wasAcknowledged) {
-        this.wasAcknowledged = wasAcknowledged;
-        return this;
-    }
-    /**
-     * @return the count
-     */
-    public long getCount() {
-        return count;
-    }
-    /**
-     * @param count the count to set
-     *
-     * @return this
-     */
-    public DbRequestResult setCount(long count) {
-        this.count = count;
-        return this;
-    }
+class FakeVitamDocument extends VitamDocument<Object> {
+    private static final long serialVersionUID = 3625295152272714919L;
 
     /**
-     * @return the diffs
+     * Empty constructor
      */
-    public Map<String, List<String>> getDiffs() {
-        return diffs;
-    }
-    /**
-     * @param diffs the diffs to set
-     *
-     * @return this
-     */
-    public DbRequestResult setDiffs(Map<String, List<String>> diffs) {
-        this.diffs.putAll(diffs); 
-        return this;
+    public FakeVitamDocument() {
+        // Empty
     }
 
-    /**
-     * @return the cursor
-     */
-    public MongoCursor<VitamDocument<?>> getCursor() {
-        return cursor;
+    @Override
+    public void putAll(Map<? extends String, ? extends Object> arg0) {
+        // Empty
     }
 
-    /**
-     * @param cursor the cursor to set
-     *
-     * @return this
-     */
-    public DbRequestResult setCursor(MongoCursor<VitamDocument<?>> cursor) {
-        this.cursor = cursor;
-        return this;
+    @Override
+    public VitamDocument<Object> newInstance(JsonNode content) {
+        return null;
     }
-    
+
 }

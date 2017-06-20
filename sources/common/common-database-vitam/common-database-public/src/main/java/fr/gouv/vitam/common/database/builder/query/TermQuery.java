@@ -63,7 +63,7 @@ public class TermQuery extends Query {
         throws InvalidCreateOperationException {
         super();
         createQueryVariableValue(QUERY.TERM, variableName, value);
-        currentQUERY = QUERY.TERM;
+        currentTokenQUERY = QUERY.TERM;
         setReady(true);
     }
 
@@ -78,7 +78,7 @@ public class TermQuery extends Query {
         throws InvalidCreateOperationException {
         super();
         createQueryVariableValue(QUERY.TERM, variableName, value);
-        currentQUERY = QUERY.TERM;
+        currentTokenQUERY = QUERY.TERM;
         setReady(true);
     }
 
@@ -93,7 +93,7 @@ public class TermQuery extends Query {
         throws InvalidCreateOperationException {
         super();
         createQueryVariableValue(QUERY.TERM, variableName, value);
-        currentQUERY = QUERY.TERM;
+        currentTokenQUERY = QUERY.TERM;
         setReady(true);
     }
 
@@ -108,7 +108,7 @@ public class TermQuery extends Query {
         throws InvalidCreateOperationException {
         super();
         createQueryVariableValue(QUERY.TERM, variableName, value);
-        currentQUERY = QUERY.TERM;
+        currentTokenQUERY = QUERY.TERM;
         setReady(true);
     }
 
@@ -123,7 +123,7 @@ public class TermQuery extends Query {
         throws InvalidCreateOperationException {
         super();
         createQueryVariableValue(QUERY.TERM, variableName, value);
-        currentQUERY = QUERY.TERM;
+        currentTokenQUERY = QUERY.TERM;
         setReady(true);
     }
 
@@ -151,7 +151,7 @@ public class TermQuery extends Query {
             final Object val = entry.getValue();
             node.set(name.trim(), GlobalDatas.getValueJsonNode(val));
         }
-        currentQUERY = QUERY.TERM;
+        currentTokenQUERY = QUERY.TERM;
         setReady(true);
     }
 
@@ -165,13 +165,13 @@ public class TermQuery extends Query {
      */
     public final TermQuery add(final String variableName, final String value)
         throws InvalidCreateOperationException {
-        if (currentQUERY != QUERY.TERM) {
+        if (currentTokenQUERY != QUERY.TERM) {
             throw new InvalidCreateOperationException(
-                CANNOT_ADD_A_TERM_ELEMENT_SINCE_THIS_IS_NOT_A_TERM_QUERY + currentQUERY);
+                CANNOT_ADD_A_TERM_ELEMENT_SINCE_THIS_IS_NOT_A_TERM_QUERY + currentTokenQUERY);
         }
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                QUERY2 + currentQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
+                QUERY2 + currentTokenQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -193,13 +193,13 @@ public class TermQuery extends Query {
      */
     public final TermQuery add(final String variableName, final long value)
         throws InvalidCreateOperationException {
-        if (currentQUERY != QUERY.TERM) {
+        if (currentTokenQUERY != QUERY.TERM) {
             throw new InvalidCreateOperationException(
-                CANNOT_ADD_A_TERM_ELEMENT_SINCE_THIS_IS_NOT_A_TERM_QUERY + currentQUERY);
+                CANNOT_ADD_A_TERM_ELEMENT_SINCE_THIS_IS_NOT_A_TERM_QUERY + currentTokenQUERY);
         }
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                QUERY2 + currentQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
+                QUERY2 + currentTokenQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -220,13 +220,13 @@ public class TermQuery extends Query {
      */
     public final TermQuery add(final String variableName, final double value)
         throws InvalidCreateOperationException {
-        if (currentQUERY != QUERY.TERM) {
+        if (currentTokenQUERY != QUERY.TERM) {
             throw new InvalidCreateOperationException(
-                CANNOT_ADD_A_TERM_ELEMENT_SINCE_THIS_IS_NOT_A_TERM_QUERY + currentQUERY);
+                CANNOT_ADD_A_TERM_ELEMENT_SINCE_THIS_IS_NOT_A_TERM_QUERY + currentTokenQUERY);
         }
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                QUERY2 + currentQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
+                QUERY2 + currentTokenQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -247,13 +247,13 @@ public class TermQuery extends Query {
      */
     public final TermQuery add(final String variableName, final boolean value)
         throws InvalidCreateOperationException {
-        if (currentQUERY != QUERY.TERM) {
+        if (currentTokenQUERY != QUERY.TERM) {
             throw new InvalidCreateOperationException(
-                CANNOT_ADD_A_TERM_ELEMENT_SINCE_THIS_IS_NOT_A_TERM_QUERY + currentQUERY);
+                CANNOT_ADD_A_TERM_ELEMENT_SINCE_THIS_IS_NOT_A_TERM_QUERY + currentTokenQUERY);
         }
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                QUERY2 + currentQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
+                QUERY2 + currentTokenQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -274,13 +274,13 @@ public class TermQuery extends Query {
      */
     public final TermQuery add(final String variableName, final Date value)
         throws InvalidCreateOperationException {
-        if (currentQUERY != QUERY.TERM) {
+        if (currentTokenQUERY != QUERY.TERM) {
             throw new InvalidCreateOperationException(
-                CANNOT_ADD_A_TERM_ELEMENT_SINCE_THIS_IS_NOT_A_TERM_QUERY + currentQUERY);
+                CANNOT_ADD_A_TERM_ELEMENT_SINCE_THIS_IS_NOT_A_TERM_QUERY + currentTokenQUERY);
         }
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                QUERY2 + currentQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
+                QUERY2 + currentTokenQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);

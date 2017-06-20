@@ -174,9 +174,7 @@ public class IndexUnitActionPlugin extends ActionHandler {
         } catch (IllegalArgumentException e) {
             LOGGER.error("Illegal Argument Exception for " + (query != null ? query.toString() : ""));
             throw e;
-        } /* catch (InvalidCreateOperationException e) {
-            e.printStackTrace();
-        } */finally {
+        } finally {
             handlerIO.consumeAnyEntityAndClose(response);
         }
     }

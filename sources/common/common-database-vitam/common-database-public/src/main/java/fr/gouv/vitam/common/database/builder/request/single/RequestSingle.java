@@ -86,7 +86,6 @@ public abstract class RequestSingle extends AbstractRequest {
             throw new InvalidCreateOperationException(
                 "Query is not ready to be set: " + query.getCurrentQuery());
         }
-        resetQuery();
         this.query = query;
         return this;
     }

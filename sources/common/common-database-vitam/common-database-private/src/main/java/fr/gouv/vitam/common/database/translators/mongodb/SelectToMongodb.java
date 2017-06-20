@@ -45,6 +45,7 @@ import com.mongodb.client.model.Sorts;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
 import fr.gouv.vitam.common.database.parser.request.AbstractParser;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
@@ -72,37 +73,20 @@ public class SelectToMongodb extends RequestToMongodb {
     public Bson getFinalOrderBy() {
         final JsonNode orderby = requestParser.getRequest().getFilter()
             .get(SELECTFILTER.ORDERBY.exactToken());
-        if (orderby == null) {
+        if (orderby == null || orderby.size() == 0 || orderby.fields().hasNext() == false) {
             return null;
         }
-        final List<String> asc = new ArrayList<>();
-        final List<String> desc = new ArrayList<>();
+        final List<Bson> sorts = new ArrayList<>(orderby.size());
         final Iterator<Entry<String, JsonNode>> iterator = orderby.fields();
         while (iterator.hasNext()) {
             final Entry<String, JsonNode> entry = iterator.next();
             if (entry.getValue().asInt() > 0) {
-                asc.add(entry.getKey());
+                sorts.add(Sorts.ascending(entry.getKey()));
             } else {
-                desc.add(entry.getKey());
+                sorts.add(Sorts.descending(entry.getKey()));
             }
         }
-        if (asc.isEmpty()) {
-            if (desc.isEmpty()) {
-                return null;
-            }
-            final Bson sort = Sorts.descending(desc);
-            desc.clear();
-            return sort;
-        } else if (desc.isEmpty()) {
-            final Bson sort = Sorts.ascending(asc);
-            asc.clear();
-            return sort;
-        } else {
-            final Bson sort = Sorts.orderBy(Sorts.ascending(asc), Sorts.descending(desc));
-            desc.clear();
-            asc.clear();
-            return sort;
-        }
+        return Sorts.orderBy(sorts);
     }
 
     /**
@@ -141,7 +125,6 @@ public class SelectToMongodb extends RequestToMongodb {
         if (incl.isEmpty() && excl.isEmpty() && sliceProjections.isEmpty()) {
             return null;
         }
-
         return computeBsonProjection(incl, excl, sliceProjections);
     }
 

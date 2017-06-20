@@ -41,6 +41,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.database.builder.query.action.Action;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.parser.request.AbstractParser;
+import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameUpdateAdapter;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
@@ -75,16 +76,17 @@ public class MongoDbInMemory {
      * 
      * @param request The given update request
      * @param isMultiple true if the UpdateParserMultiple must be used (Unit/ObjectGroup)
+     * @param varNameAdapter VarNameAdapter to use
      * @return the updated document
      * @throws InvalidParseOperationException
      */
-    public JsonNode getUpdateJson(JsonNode request, boolean isMultiple) throws InvalidParseOperationException {
+    public JsonNode getUpdateJson(JsonNode request, boolean isMultiple, VarNameAdapter varNameAdapter) throws InvalidParseOperationException {
         final AbstractParser<?> parser;
 
         if (isMultiple) {
-            parser = new UpdateParserMultiple(new VarNameUpdateAdapter(new VarNameAdapter()));
+            parser = new UpdateParserMultiple(varNameAdapter);
         } else {
-            parser = new UpdateParserSingle(new VarNameAdapter());
+            parser = new UpdateParserSingle(varNameAdapter);
         }
 
         parser.parse(request);

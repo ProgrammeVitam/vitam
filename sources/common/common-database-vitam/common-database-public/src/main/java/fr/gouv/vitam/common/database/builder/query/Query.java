@@ -52,7 +52,7 @@ public class Query {
     public static final String DATE = "$date";
     protected ObjectNode currentQuery;
     protected JsonNode currentObject;
-    protected QUERY currentQUERY;
+    protected QUERY currentTokenQUERY;
     protected boolean isFullText = false;
     protected boolean ready;
     // default is immediate next level
@@ -68,7 +68,7 @@ public class Query {
     protected Query() {
         currentQuery = JsonHandler.createObjectNode();
         currentObject = currentQuery;
-        currentQUERY = null;
+        currentTokenQUERY = null;
         ready = false;
     }
 
@@ -177,7 +177,7 @@ public class Query {
     public void clean() {
         currentQuery.removeAll();
         currentObject = currentQuery;
-        currentQUERY = null;
+        currentTokenQUERY = null;
         ready = false;
     }
 
@@ -254,7 +254,7 @@ public class Query {
      * @return the current QUERY
      */
     public QUERY getQUERY() {
-        return currentQUERY;
+        return currentTokenQUERY;
     }
 
     /**

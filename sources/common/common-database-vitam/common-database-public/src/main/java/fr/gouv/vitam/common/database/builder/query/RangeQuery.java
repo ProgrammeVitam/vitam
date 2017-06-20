@@ -66,7 +66,7 @@ public class RangeQuery extends Query {
         super();
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                QUERY2 + currentQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
+                QUERY2 + currentTokenQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -93,7 +93,7 @@ public class RangeQuery extends Query {
             .putObject(QUERY.RANGE.exactToken()).putObject(variableName.trim());
         sub.put(from.exactToken(), valueFrom);
         sub.put(to.exactToken(), valueTo);
-        currentQUERY = QUERY.RANGE;
+        currentTokenQUERY = QUERY.RANGE;
         setReady(true);
     }
 
@@ -113,7 +113,7 @@ public class RangeQuery extends Query {
         super();
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                QUERY2 + currentQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
+                QUERY2 + currentTokenQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -140,7 +140,7 @@ public class RangeQuery extends Query {
             .putObject(QUERY.RANGE.exactToken()).putObject(variableName.trim());
         sub.put(from.exactToken(), valueFrom);
         sub.put(to.exactToken(), valueTo);
-        currentQUERY = QUERY.RANGE;
+        currentTokenQUERY = QUERY.RANGE;
         setReady(true);
     }
 
@@ -160,7 +160,7 @@ public class RangeQuery extends Query {
         super();
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                QUERY2 + currentQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
+                QUERY2 + currentTokenQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -189,7 +189,7 @@ public class RangeQuery extends Query {
             .putObject(QUERY.RANGE.exactToken()).putObject(variableName.trim());
         sub.put(from.exactToken(), valueFrom);
         sub.put(to.exactToken(), valueTo);
-        currentQUERY = QUERY.RANGE;
+        currentTokenQUERY = QUERY.RANGE;
         setReady(true);
     }
 
@@ -209,7 +209,7 @@ public class RangeQuery extends Query {
         super();
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                QUERY2 + currentQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
+                QUERY2 + currentTokenQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -236,7 +236,7 @@ public class RangeQuery extends Query {
             .putObject(QUERY.RANGE.exactToken()).putObject(variableName.trim());
         sub.set(from.exactToken(), GlobalDatas.getDate(valueFrom));
         sub.set(to.exactToken(), GlobalDatas.getDate(valueTo));
-        currentQUERY = QUERY.RANGE;
+        currentTokenQUERY = QUERY.RANGE;
         setReady(true);
     }
 }

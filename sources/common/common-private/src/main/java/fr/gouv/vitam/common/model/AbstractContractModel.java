@@ -46,7 +46,7 @@ public class AbstractContractModel {
      * tenant id
      */
     @JsonProperty("_tenant")
-    private long tenant;
+    private int tenant;
 
     @JsonProperty("Name")
     private String name;
@@ -101,7 +101,7 @@ public class AbstractContractModel {
     /**
      * @return tenant
      */
-    public long getTenant() {
+    public int getTenant() {
         return tenant;
     }
 
@@ -109,7 +109,7 @@ public class AbstractContractModel {
      * @param tenant value to set working tenant
      * @return this
      */
-    public AbstractContractModel setTenant(long tenant) {
+    public AbstractContractModel setTenant(int tenant) {
         this.tenant = tenant;
         return this;
     }

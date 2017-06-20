@@ -150,7 +150,7 @@ public final class GUIDObjectType {
     public static final int ACCESSION_REGISTER_SUMMARY_TYPE = 10;
 
     /**
-     * contract
+     * Entry contract
      */
     public static final int INGEST_CONTRACT_TYPE = 11;
 

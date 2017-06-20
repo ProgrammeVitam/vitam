@@ -145,7 +145,7 @@ documentation:
     description: |
       Request that will return results composed of EntryContracts if the request is using POST with X-Http-Method-Override: GET.
       Importe un ensemble des contrats d'entrée qui sont sauvegardés et indexés en cas de succès
-    is: [RegisterTraits.RegisterItemResponse, StandardTraits.OverrideGet, RegisterTraits.RegisterUpload]
+    is: [RegisterTraits.RegisterListingResponse, StandardTraits.OverrideGet, RegisterTraits.RegisterUpload]
     headers:
       X-Http-Method-Override:
         required: false
@@ -176,7 +176,7 @@ documentation:
     description: |
       Request that will return results composed of Contexts if the request is using POST with X-Http-Method-Override: GET.
       Importe un ensemble des contextes qui sont sauvegardés et indexés en cas de succès
-    is: [RegisterTraits.RegisterItemResponse, StandardTraits.OverrideGet, RegisterTraits.RegisterUpload]
+    is: [RegisterTraits.RegisterListingResponse, StandardTraits.OverrideGet, RegisterTraits.RegisterUpload]
     headers:
       X-Http-Method-Override:
         required: false

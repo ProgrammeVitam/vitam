@@ -29,15 +29,16 @@ package fr.gouv.vitam.worker.core.handler;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.logbook.common.parameters.LogbookEvDetDataType;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -103,8 +104,9 @@ public class CheckHeaderActionHandler extends ActionHandler {
         }
 
         updateSedaInfo(madatoryValueMap, infoNode);
-        itemStatus.setData(LogbookParameterName.eventDetailData.name(), 
-            JsonHandler.unprettyPrint(infoNode));
+        String evDevDetailData = JsonHandler.unprettyPrint(infoNode);
+        itemStatus.setData(LogbookParameterName.eventDetailData.name(), evDevDetailData);
+        itemStatus.setMasterData(LogbookParameterName.eventDetailData.name(), evDevDetailData);
         
         if (shouldCheckOriginatingAgency && 
             Strings.isNullOrEmpty((String) madatoryValueMap.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER))) {
@@ -182,8 +184,6 @@ public class CheckHeaderActionHandler extends ActionHandler {
     }
 
     private void updateSedaInfo(Map<String, Object> madatoryValueMap, ObjectNode infoNode) {
-        infoNode.put(LogbookOperationsClientHelper.EV_DET_DATA_TYPE, 
-            LogbookEvDetDataType.MASTER.name());
 
         if (madatoryValueMap.get(SedaConstants.TAG_COMMENT) != null) {
             infoNode.put(EV_DETAIL_REQ, (String) madatoryValueMap.get(SedaConstants.TAG_COMMENT));

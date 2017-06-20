@@ -100,7 +100,7 @@ public class QueryToElasticsearch {
     public static QueryBuilder getFullCommand(final QueryBuilder command, final QueryBuilder roots) {
         return QueryBuilders.boolQuery()
             .must(command)
-            .filter(roots);
+            .must(roots);
 
         // TODO P1 add TenantId filter
     }
@@ -207,19 +207,35 @@ public class QueryToElasticsearch {
                 return isNullCommand(req, content);
             case SIZE:
                 return sizeCommand(req, content);
+            case NOP:
+                return QueryBuilders.matchAllQuery();
+            case PATH:
+                return pathCommand(content);
             case GEOMETRY:
             case BOX:
             case POLYGON:
             case CENTER:
             case GEOINTERSECTS:
             case GEOWITHIN:
-            case PATH:
-            case NOP:
             default:
         }
         throw new InvalidParseOperationException("Invalid command: " + req.exactToken());
     }
 
+    /**
+     * @param content JsonNode
+     * @return the Path Command
+     */
+    private static QueryBuilder pathCommand(final JsonNode content) {
+        final ArrayNode array = (ArrayNode) content;
+        final String[] values = new String[array.size()];
+        int i = 0;
+        for (final JsonNode node : array) {
+            values[i++] = node.asText();
+        }
+        return QueryBuilders.termsQuery("_id", values);
+    }
+    
     /**
      * $size : { name : length }
      *

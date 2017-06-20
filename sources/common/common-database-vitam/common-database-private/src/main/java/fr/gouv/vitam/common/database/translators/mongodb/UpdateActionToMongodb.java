@@ -50,6 +50,7 @@ import com.mongodb.BasicDBObject;
 import fr.gouv.vitam.common.database.builder.query.action.Action;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTIONARGS;
+import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -127,8 +128,13 @@ public class UpdateActionToMongodb {
         final BasicDBObject doc = new BasicDBObject();
         while (iterator.hasNext()) {
             final Entry<String, JsonNode> element = iterator.next();
-            doc.append(element.getKey(),
-                GlobalDatasParser.getValue(element.getValue()));
+            if (ParserTokens.PROJECTIONARGS.isAnArray(element.getKey())) {
+                ArrayNode arrayNode = GlobalDatasParser.getArray(element.getValue());
+                doc.append(element.getKey(), arrayNode);
+            } else {
+                doc.append(element.getKey(),
+                    GlobalDatasParser.getValue(element.getValue()));
+            }
         }
         return new BasicDBObject(req.exactToken(), doc);
     }

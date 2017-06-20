@@ -75,6 +75,7 @@ import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -457,6 +458,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
     public Response getWorkFlowExecutionStatus(@PathParam("id") String id) {
         try (ProcessingManagementClient processManagementClient =
             ProcessingManagementClientFactory.getInstance().getClient()) {
+            SanityChecker.checkParameter(id);
             final ItemStatus itemStatus = processManagementClient.getOperationProcessStatus(id);
 
             Response.ResponseBuilder builder = Response.status(Status.ACCEPTED);
@@ -473,7 +475,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 .header(GlobalDataRest.X_CONTEXT_ID, itemStatus.getLogbookTypeProcess())
                 .build();
 
-        } catch (final IllegalArgumentException e) {
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.PRECONDITION_FAILED).build();
         } catch (VitamClientException | InternalServerException e) {
@@ -562,11 +564,12 @@ public class IngestInternalResource extends ApplicationStatusResource {
         Status status;
         try (ProcessingManagementClient processManagementClient =
             ProcessingManagementClientFactory.getInstance().getClient()) {
+            SanityChecker.checkParameter(id);
             ItemStatus itemStatus = processManagementClient.cancelOperationProcessExecution(id);
             return Response.status(Status.OK)
                 .entity(itemStatus)
                 .build();
-        } catch (final IllegalArgumentException e) {
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             // if the entry argument if illegal
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
@@ -631,7 +634,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
     public Response storeATR(@PathParam("objectId") String guid, InputStream atr) {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient();
             WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
-
+            SanityChecker.checkParameter(guid);
             LOGGER.error("storage atr internal");
             try {
                 workspaceClient.createContainer(guid);
@@ -648,7 +651,8 @@ public class IngestInternalResource extends ApplicationStatusResource {
             workspaceClient.deleteContainer(guid, true);
             return Response.status(Status.OK).build();
 
-        } catch (StorageClientException | ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException e) {
+        } catch (StorageClientException | ContentAddressableStorageServerException |
+            ContentAddressableStorageNotFoundException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
@@ -761,7 +765,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                             // Asynchrone
 
                             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                                Response.status(Status.ACCEPTED).build());
+                                Response.status(Status.ACCEPTED).build(), uploadedInputStream);
                         }
                     } finally {
                         if (isCompletedProcess) {
@@ -780,7 +784,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 }
                 LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
                 AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                    Response.status(Status.SERVICE_UNAVAILABLE).build());
+                    Response.status(Status.SERVICE_UNAVAILABLE).build(), uploadedInputStream);
                 // FIXME P1 in particular Processing Exception could it be a "normal error" ?
                 // Have to determine here if it is an internal error and FATAL result or processing error, so business
                 // error and KO result
@@ -799,19 +803,18 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 }
                 LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
                 AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                    Response.status(Status.INTERNAL_SERVER_ERROR).build());
+                    Response.status(Status.INTERNAL_SERVER_ERROR).build(), uploadedInputStream);
             } catch (final IngestInternalException | IllegalArgumentException | VitamClientException |
                 BadRequestException | InternalServerException e) {
                 // if an IngestInternalException is thrown, that means logbook has already been updated (with a fatal
                 // State)
                 LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
                 AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                    Response.status(Status.INTERNAL_SERVER_ERROR).build());
+                    Response.status(Status.INTERNAL_SERVER_ERROR).build(), uploadedInputStream);
             } finally {
                 if (logbookOperationsClient != null) {
                     logbookOperationsClient.close();
                 }
-                StreamUtils.closeSilently(uploadedInputStream);
             }
         }
     }

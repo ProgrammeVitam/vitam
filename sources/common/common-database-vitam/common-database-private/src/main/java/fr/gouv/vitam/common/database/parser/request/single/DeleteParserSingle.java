@@ -24,45 +24,58 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.database.parser.query;
-
-import java.util.HashSet;
+package fr.gouv.vitam.common.database.parser.request.single;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERYARGS;
+import fr.gouv.vitam.common.database.builder.request.single.Delete;
+import fr.gouv.vitam.common.database.builder.request.single.RequestSingle;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
- * the multiple query
+ * Delete Parser: { $query : query, $filter : multi } or [ query, multi ]
  *
  */
-public class MltQuery extends fr.gouv.vitam.common.database.builder.query.MltQuery {
+public class DeleteParserSingle extends RequestParserSingle {
+
     /**
-     * For Parsing
      *
-     * @param req QUERY
-     * @param request JsonNode
-     * @param adapter VarNameAdapter
-     * @throws InvalidParseOperationException if could not parse to JSON
      */
-    public MltQuery(final QUERY req, final JsonNode request, final VarNameAdapter adapter)
-        throws InvalidParseOperationException {
+    public DeleteParserSingle() {
         super();
-        currentTokenQUERY = req;
-        final ObjectNode sub = ((ObjectNode) currentObject).putObject(req.exactToken());
-        sub.setAll((ObjectNode) request);
-        final ArrayNode array = (ArrayNode) sub.get(QUERYARGS.FIELDS.exactToken());
-        adapter.setVarArray(array);
-        stringVals = new HashSet<>();
-        for (final JsonNode value : array) {
-            stringVals.add(value.asText());
-        }
-        currentObject = array;
-        setReady(true);
+    }
+
+    /**
+     * @param adapter VarNameAdapter
+     *
+     */
+    public DeleteParserSingle(VarNameAdapter adapter) {
+        super(adapter);
+    }
+
+    @Override
+    protected RequestSingle getNewRequest() {
+        return new Delete();
+    }
+
+    /**
+     *
+     * @param request containing a parsed JSON as { $query : query, $filter : multi } or [ query, multi ]
+     * @throws InvalidParseOperationException if request could not parse to JSON
+     */
+    @Override
+    public void parse(final JsonNode request) throws InvalidParseOperationException {
+        parseJson(request);
+    }
+
+    @Override
+    public String toString() {
+        return new StringBuilder().append(request.toString()).toString();
+    }
+
+    @Override
+    public Delete getRequest() {
+        return (Delete) request;
     }
 }

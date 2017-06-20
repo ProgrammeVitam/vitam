@@ -1,32 +1,24 @@
 /*
- *  Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- *  <p>
- *  contact.vitam@culture.gouv.fr
- *  <p>
- *  This software is a computer program whose purpose is to implement a digital archiving back-office system managing
- *  high volumetry securely and efficiently.
- *  <p>
- *  This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
- *  software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- *  circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- *  <p>
- *  As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
- *  users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
- *  successive licensors have only limited liability.
- *  <p>
- *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
- *  developing or reproducing the software by the user in light of its specific status of free software, that may mean
- *  that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
- *  experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
- *  software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
- *  to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- *  <p>
- *  The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
- *  accept its terms.
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019) <p> contact.vitam@culture.gouv.fr <p>
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently. <p> This software is governed by the CeCILL 2.1 license under French law and
+ * abiding by the rules of distribution of free software. You can use, modify and/ or redistribute the software under
+ * the terms of the CeCILL 2.1 license as circulated by CEA, CNRS and INRIA at the following URL
+ * "http://www.cecill.info". <p> As a counterpart to the access to the source code and rights to copy, modify and
+ * redistribute granted by the license, users are provided only with a limited warranty and the software's author, the
+ * holder of the economic rights, and the successive licensors have only limited liability. <p> In this respect, the
+ * user's attention is drawn to the risks associated with loading, using, modifying and/or developing or reproducing the
+ * software by the user in light of its specific status of free software, that may mean that it is complicated to
+ * manipulate, and that also therefore means that it is reserved for developers and experienced professionals having
+ * in-depth computer knowledge. Users are therefore encouraged to load and test the software's suitability as regards
+ * their requirements in conditions enabling the security of their systems and/or data to be ensured and, more
+ * generally, to use and operate it in the same conditions as regards security. <p> The fact that you are presently
+ * reading this means that you have had knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
 package fr.gouv.vitam.functional.administration.client.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.functional.administration.common.embed.ProfileFormat;
 import fr.gouv.vitam.functional.administration.common.embed.ProfileStatus;
@@ -47,7 +39,7 @@ public class ProfileModel {
      * tenant id
      */
     @JsonProperty("_tenant")
-    private long tenant;
+    private int tenant;
 
     @JsonProperty("Identifier")
     private String identifier;
@@ -84,8 +76,7 @@ public class ProfileModel {
 
 
     /**
-     * Constructor without fields
-     * use for jackson
+     * Constructor without fields use for jackson
      */
     public ProfileModel() {
         setTenant(ParameterHelper.getTenantParameter());
@@ -110,7 +101,7 @@ public class ProfileModel {
     /**
      * @return tenant
      */
-    public long getTenant() {
+    public int getTenant() {
         return tenant;
     }
 
@@ -118,7 +109,7 @@ public class ProfileModel {
      * @param tenant value to set working tenant
      * @return this
      */
-    public ProfileModel setTenant(long tenant) {
+    public ProfileModel setTenant(int tenant) {
         this.tenant = tenant;
         return this;
     }
@@ -133,8 +124,8 @@ public class ProfileModel {
     }
 
     /**
-     * Set the identifier of the profile
-     * This value must be unique by tenant
+     * Set the identifier of the profile This value must be unique by tenant
+     * 
      * @param identifier as String
      * @return this
      */
@@ -145,14 +136,16 @@ public class ProfileModel {
 
     /**
      * Get name of the profile
+     * 
      * @return name as String
      */
     public String getName() {
-        return this.name;
+        return name;
     }
 
     /**
      * Set or change the profile name
+     * 
      * @param name as String to set
      * @return this
      */
@@ -163,14 +156,16 @@ public class ProfileModel {
 
     /**
      * Get the profile description
+     * 
      * @return description of profile
      */
     public String getDescription() {
-        return this.description;
+        return description;
     }
 
     /**
      * Set or change the profile description
+     * 
      * @param description to set
      * @return this
      */
@@ -182,15 +177,17 @@ public class ProfileModel {
 
     /**
      * Get the profile status
+     * 
      * @return status of profile
      */
     public ProfileStatus getStatus() {
-        return this.status;
+        return status;
     }
 
 
     /**
      * Set or change the profile status
+     * 
      * @param status toi set
      * @return this
      */
@@ -201,6 +198,7 @@ public class ProfileModel {
 
     /**
      * Get the format of the profile file (xsd, rng, ...)
+     * 
      * @return the file format as string
      */
     public ProfileFormat getFormat() {
@@ -210,6 +208,7 @@ public class ProfileModel {
 
     /**
      * Set the profile file format (xsd, rng, ...)
+     * 
      * @param format
      * @return this
      */
@@ -228,6 +227,7 @@ public class ProfileModel {
 
     /**
      * Profile path in storage
+     * 
      * @param path
      * @return this
      */
@@ -240,7 +240,7 @@ public class ProfileModel {
      * @return the creation date of profile
      */
     public String getCreationdate() {
-        return this.creationdate;
+        return creationdate;
     }
 
     /**
@@ -256,7 +256,7 @@ public class ProfileModel {
      * @return last update of profile
      */
     public String getLastupdate() {
-        return this.lastupdate;
+        return lastupdate;
     }
 
     /**
@@ -272,7 +272,7 @@ public class ProfileModel {
      * @return the activation date of profile
      */
     public String getActivationdate() {
-        return this.activationdate;
+        return activationdate;
     }
 
     /**
@@ -288,7 +288,7 @@ public class ProfileModel {
      * @return the desactivation date of profile
      */
     public String getDeactivationdate() {
-        return this.deactivationdate;
+        return deactivationdate;
     }
 
     /**

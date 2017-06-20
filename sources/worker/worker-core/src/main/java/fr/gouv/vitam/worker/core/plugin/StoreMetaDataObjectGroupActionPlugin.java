@@ -96,7 +96,7 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreObjectActionHandl
                 try {
                     UpdateMultiQuery query = storeStorageInfo((ObjectNode) og, result, true);
                     query.addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
-                    LOGGER.info("Final OG: {}", og);
+                    LOGGER.debug("Final OG: {}", og);
                     metaDataClient.updateObjectGroupById(query.getFinalUpdate(), objectNameFinal);
                     try {
                         handlerIO.transferJsonToWorkspace(StorageCollectionType.OBJECTGROUPS.getCollectionName(), objectName,

@@ -106,7 +106,6 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsExceptio
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.logbook.common.parameters.LogbookEvDetDataType;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
@@ -337,6 +336,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
             }
             globalCompositeItemStatus.getData().put(LogbookParameterName.eventDetailData.name(),
                 JsonHandler.unprettyPrint(evDetData));
+            globalCompositeItemStatus.getMasterData().put(LogbookParameterName.eventDetailData.name(),
+                JsonHandler.unprettyPrint(evDetData));
             globalCompositeItemStatus.increment(StatusCode.OK);
         } catch (final ProcessingDuplicatedVersionException e) {
             LOGGER.debug("ProcessingException: duplicated version", e);
@@ -450,8 +451,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
             boolean globalMetadata = true;
 
             ObjectNode evDetData = JsonHandler.createObjectNode();
-            evDetData.put(LogbookOperationsClientHelper.EV_DET_DATA_TYPE,
-                LogbookEvDetDataType.MASTER.name());
 
             while (true) {
                 final XMLEvent event = reader.peek();
@@ -2286,7 +2285,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 objectGroup.put(SedaConstants.PREFIX_NB, entry.getValue().size());
                 // Add operation to OPS
                 objectGroup.putArray(SedaConstants.PREFIX_OPS).add(containerId);
-                objectGroup.put(SedaConstants.TAG_ORIGINATINGAGENCY, originatingAgency);
+                objectGroup.put(SedaConstants.PREFIX_ORIGINATING_AGENCY, originatingAgency);
+                objectGroup.put(SedaConstants.PREFIX_ORIGINATING_AGENCIES, JsonHandler.createArrayNode().add(originatingAgency));
 
                 JsonHandler.writeAsFile(objectGroup, tmpFile);
 
