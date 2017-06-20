@@ -650,12 +650,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     evDetData.put("ArchivalAgreement", archAgreement.asText());
                 }
 
-                JsonNode archivalProfile= metadataAsJson.get(SedaConstants.TAG_ARCHIVE_PROFILE);
-                if (archivalProfile != null) {
-                    LOGGER.debug("Find an archival profile: " + archivalProfile.asText());
-                    evDetData.put(SedaConstants.TAG_ARCHIVE_PROFILE, archivalProfile.asText());
-                }
-
                 JsonNode transfAgency = metadataAsJson.get(SedaConstants.TAG_TRANSFERRING_AGENCY);
                 if (transfAgency != null) {
                     JsonNode identifier = transfAgency.get(SedaConstants.TAG_IDENTIFIER);
@@ -668,6 +662,12 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 JsonNode dataObjPack = metadataAsJson.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE);
                 if (dataObjPack != null) {
                     JsonNode serviceLevel = dataObjPack.get(SedaConstants.TAG_SERVICE_LEVEL);
+
+                    JsonNode archivalProfile= dataObjPack.get(SedaConstants.TAG_ARCHIVE_PROFILE);
+                    if (archivalProfile != null) {
+                        LOGGER.debug("Find an archival profile: " + archivalProfile.asText());
+                        evDetData.put(SedaConstants.TAG_ARCHIVE_PROFILE, archivalProfile.asText());
+                    }
                     if (serviceLevel != null) {
                         LOGGER.debug("Find a service Level: " + serviceLevel);
                         evDetData.put("ServiceLevel", serviceLevel.asText());

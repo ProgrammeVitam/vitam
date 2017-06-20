@@ -118,14 +118,13 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
             itemStatus.increment(StatusCode.OK);
         } else {
             itemStatus.increment(StatusCode.KO);
-            ObjectNode errorNode = JsonHandler.createObjectNode();
-            errorNode.put(LogbookOperationsClientHelper.EV_DET_DATA_TYPE, 
-                LogbookEvDetDataType.MASTER.name());
-            errorNode.put(SedaConstants.TAG_ARCHIVE_PROFILE, profileIdentifier);
-            itemStatus.setData(LogbookParameterName.eventDetailData.name(), 
-                JsonHandler.unprettyPrint(errorNode));
-            itemStatus.setData(PROFIL_IS_NOT_DECLARED_IN_THE_INGEST_CONTRACT, contractName);
         }
+        ObjectNode infoNode = JsonHandler.createObjectNode();
+        infoNode.put(LogbookOperationsClientHelper.EV_DET_DATA_TYPE, 
+            LogbookEvDetDataType.MASTER.name());
+        infoNode.put(SedaConstants.TAG_ARCHIVE_PROFILE, profileIdentifier);
+        itemStatus.setData(LogbookParameterName.eventDetailData.name(), 
+            JsonHandler.unprettyPrint(infoNode));
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
 
     }

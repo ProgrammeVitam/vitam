@@ -113,6 +113,8 @@ public class CheckArchiveProfileActionHandler extends ActionHandler {
         checkMandatoryParameters(params);
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
         final String profileIdentifier = (String) handlerIO.getInput(PROFILE_IDENTIFIER_RANK); 
+        ObjectNode infoNode = JsonHandler.createObjectNode();
+        
         Boolean isValid = true;
         try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
             Select select = new Select();
@@ -166,14 +168,8 @@ public class CheckArchiveProfileActionHandler extends ActionHandler {
             return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
         } catch (SAXException e) {
             LOGGER.error(VALIDATION_ERROR, e);
+            infoNode.put(SedaConstants.EV_DET_TECH_DATA, e.getMessage());
             isValid = false;
-            ObjectNode errorNode = JsonHandler.createObjectNode()
-                .put(SedaConstants.EV_DET_TECH_DATA, e.getMessage());
-            errorNode.put(LogbookOperationsClientHelper.EV_DET_DATA_TYPE, 
-                LogbookEvDetDataType.MASTER.name());
-            errorNode.put(SedaConstants.TAG_ARCHIVE_PROFILE, profileIdentifier);
-            itemStatus.setData(LogbookParameterName.eventDetailData.name(), 
-                JsonHandler.unprettyPrint(errorNode));
         } catch (Exception e) {
             LOGGER.error(UNKNOWN_TECHNICAL_EXCEPTION, e);
             itemStatus.increment(StatusCode.FATAL);
@@ -185,6 +181,12 @@ public class CheckArchiveProfileActionHandler extends ActionHandler {
         } else {
             itemStatus.increment(StatusCode.KO);
         }
+        
+        infoNode.put(LogbookOperationsClientHelper.EV_DET_DATA_TYPE, 
+            LogbookEvDetDataType.MASTER.name());
+        infoNode.put(SedaConstants.TAG_ARCHIVE_PROFILE, profileIdentifier);
+        itemStatus.setData(LogbookParameterName.eventDetailData.name(), 
+            JsonHandler.unprettyPrint(infoNode));
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
