@@ -27,6 +27,8 @@ Le déploiement est orchestré depuis un poste ou serveur d'administration ; les
 
 .. caution:: dans le cadre de l'installation des packages "extra", il est nécessaire, pour les partitions hébergeant des containeurs docker (mongo-express, head), qu'elles aient un accès internet.
 
+.. warning:: dans le cas d'une installation du composant **vitam-offer** en *filesystem-hash*, il est fortement recommandé d'employer un système de fichiers **xfs** pour le stockage des données. Se référer au :term:`DAT` pour connaître la structuration des filesystems dans :term:`VITAM`. En cas d'utilisation d'un autre type, s'assurer que le filesystem possède/gère bien l'option **user_xattr**.
+
 Déploiement sur environnement CentOS
 -------------------------------------
 
