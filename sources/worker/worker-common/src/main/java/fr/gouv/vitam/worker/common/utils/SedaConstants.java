@@ -77,7 +77,7 @@ public class SedaConstants {
     /**
      * Tag for storage in objectGroup
      */
-    public static final String STORAGE = "storage";
+    public static final String STORAGE = "_storage";
 
     /**
      * Tag in storage

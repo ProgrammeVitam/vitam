@@ -144,9 +144,15 @@ public class ParserTokens extends BuilderToken {
          */
         ORIGINATING_AGENCIES("originating_agencies"),
         /**
+         * Storage in OG
+         */
+        STORAGE("storage"),
+        /**
          * Document's version (number of update on document)
          */
         VERSION("version");
+
+
 
         private static final String NOT_FOUND = "Not found";
         private final String exactToken;
@@ -231,6 +237,7 @@ public class ParserTokens extends BuilderToken {
                         case ORIGINATING_AGENCY:
                         case ORIGINATING_AGENCIES:
                         case VERSION:
+                        case STORAGE:    
                             return true;
                         default:
                     }

@@ -1,9 +1,6 @@
 {
 	"typeunique": {
 		"properties": {
-			"#id": {
-				"type": "string"
-			},
 			"FileInfo": {
 				"properties": {
 					"CreatingApplicationName": {
@@ -31,8 +28,9 @@
 					}
 				}
 			},
-			"OriginatingAgency": {
-				"type": "string"
+			"_sp": {
+				"type": "string",
+				"index": "not_analyzed"
 			},
 			"_v": {
 				"type": "long"
@@ -41,10 +39,12 @@
 				"type": "long"
 			},
 			"_ops": {
-				"type": "string"
+				"type": "string",
+				"index": "not_analyzed"
 			},
 			"_profil": {
-				"type": "string"
+				"type": "string",
+				"index": "not_analyzed"
 			},
 			"_qualifiers": {
 				"properties": {
@@ -52,18 +52,22 @@
 						"type": "long"
 					},
 					"qualifier": {
-						"type": "string"
+						"type": "string",
+						"index": "not_analyzed"
 					},
 					"versions": {
 						"properties": {
 							"Algorithm": {
-								"type": "string"
+								"type": "string",
+								"index": "not_analyzed"
 							},
 							"DataObjectGroupId": {
-								"type": "string"
+								"type": "string",
+								"index": "not_analyzed"
 							},
 							"DataObjectVersion": {
-								"type": "string"
+								"type": "string",
+								"index": "not_analyzed"
 							},
 							"FileInfo": {
 								"properties": {
@@ -95,7 +99,8 @@
 							"FormatIdentification": {
 								"properties": {
 									"FormatId": {
-										"type": "string"
+										"type": "string",
+										"index": "not_analyzed"
 									},
 									"FormatLitteral": {
 										"type": "string"
@@ -106,7 +111,8 @@
 								}
 							},
 							"MessageDigest": {
-								"type": "string"
+								"type": "string",
+								"index": "not_analyzed"
 							},
 							"PhysicalDimensions": {
 								"properties": {
@@ -189,27 +195,31 @@
 								}
 							},
 							"PhysicalId": {
-								"type": "string"
+								"type": "string",
+								"index": "not_analyzed"
 							},
 							"Size": {
 								"type": "long"
 							},
 							"Uri": {
-								"type": "string"
+								"type": "string",
+								"index": "not_analyzed"
 							},
 							"_id": {
 								"type": "string"
 							},
-							"storage": {
+							"_storage": {
 								"properties": {
 									"_nbc": {
 										"type": "long"
 									},
 									"offerIds": {
-										"type": "string"
+										"type": "string",
+										"index": "not_analyzed"
 									},
 									"strategyId": {
-										"type": "string"
+										"type": "string",
+										"index": "not_analyzed"
 									}
 								}
 							}

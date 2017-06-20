@@ -856,7 +856,7 @@ public class DbRequestTest {
         final GUID uuid2 = GUIDFactory.newUnitGUID(tenantId);
         VitamThreadUtils.getVitamSession().setTenantId(0);
         final DbRequest dbRequest = new DbRequest();
-        
+
         RequestParserMultiple requestParser = null;
         requestParser = RequestParserHelper.getParser(createInsertRequestWithUUID(uuid), mongoDbVarNameAdapter);
         executeRequest(dbRequest, requestParser);
@@ -890,10 +890,10 @@ public class DbRequestTest {
      * @throws MetaDataNotFoundException
      * @throws MetaDataAlreadyExistException
      * @throws MetaDataExecutionException
-     * @throws SecurityException 
-     * @throws NoSuchMethodException 
-     * @throws InvocationTargetException 
-     * @throws IllegalArgumentException 
+     * @throws SecurityException
+     * @throws NoSuchMethodException
+     * @throws InvocationTargetException
+     * @throws IllegalArgumentException
      */
     private void executeRequest(DbRequest dbRequest, RequestParserMultiple requestParser)
         throws MetaDataExecutionException, MetaDataAlreadyExistException, MetaDataNotFoundException,
@@ -1228,8 +1228,6 @@ public class DbRequestTest {
         assertTrue(response != null);
         checkElasticResponseField(response, uuid.getId());
         JsonNode jsonNode = JsonHandler.getFromString(response.toString());
-        System.out.println(JsonHandler.prettyPrint(jsonNode));
-        System.out.println(JsonHandler.unprettyPrint(jsonNode));
         SearchHits hits = response.getHits();
         assertEquals(1, hits.getTotalHits());
 
@@ -1239,10 +1237,8 @@ public class DbRequestTest {
     /**
      * Check elastic Search Response field
      * 
-     * @param response
-     *          ElasticSearch response
-     * @param parentUuid
-     *          the parentUuid
+     * @param response ElasticSearch response
+     * @param parentUuid the parentUuid
      */
     private void checkElasticResponseField(SearchResponse response, String parentUuid) {
         Iterator<SearchHit> iterator = response.getHits().iterator();

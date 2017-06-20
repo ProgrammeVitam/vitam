@@ -1,7 +1,7 @@
 {
     "#id": "aebaaaaaaagbcaacabzxmak4tu7hyfiaaaaq",
-    "_tenant": 0,
-    "_profil": "",
+    "#tenant": 0,
+    "#profil": "",
     "FileInfo": {
         "Filename": "Filename0",
         "CreatingApplicationName": "CreatingApplicationName0",
@@ -11,7 +11,7 @@
         "CreatingOsVersion": "CreatingOsVersion0",
         "LastModified": "2006-05-04T18:13:51.0"
     },
-    "_qualifiers": [
+    "#qualifiers": [
         {
             "qualifier": "PhysicalMaster",
             "_nbc": 1,
@@ -95,15 +95,15 @@
             ]
         }
     ],
-    "_up": [
+    "#unitups": [
         "aeaqaaaaaagbcaacabzxmak4tu7hyiyaaaaq"
     ],
-    "_nbc": 0,
-    "_ops": [
+    "#nbobjects": 0,
+    "#operations": [
         "aedqaaaaacgbcaacab3mmak4tu7hv5yaaaaq"
     ],
     "OriginatingAgency": "FRAN_NP_050056",
-    "_sps": [
+    "#originating_agencies": [
         "FRAN_NP_050056"
     ]
 }

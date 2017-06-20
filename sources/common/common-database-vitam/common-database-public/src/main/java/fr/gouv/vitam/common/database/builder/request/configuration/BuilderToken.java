@@ -584,6 +584,10 @@ public abstract class BuilderToken {
          */
         ORIGINATING_AGENCIES("originating_agencies"),
         /**
+         * Storage field in OG
+         */
+        STORAGE("storage"),
+        /**
          * unit type bloc
          */
         UNITTYPE("unittype"),
@@ -668,7 +672,7 @@ public abstract class BuilderToken {
      *
      * <pre>
      * {\@code
-     *
+     * 
      * Pour mettre à jour (update) :
      * multiple update : { $multi : true/false } pour autoriser une mise à jour de plusieurs noeuds ou pas (si la requête présente plusieurs résultats mais $multi = false is erreur )
      * action :
@@ -685,7 +689,7 @@ public abstract class BuilderToken {
      *   { $sort : { clef : 1 ou -1 } } pour trier une liste selon un ordre ascendant (1) ou descendant (-1)
      * 3 parties : critères de sélection (expression depuis root) + filtres (multi) + action
      * retourne : la requête + des info générales (nb de résultats) + les n premiers résultats (noeuds mis à jour) selon le format souhaité
-     *
+     * 
      * }
      * </pre>
      */

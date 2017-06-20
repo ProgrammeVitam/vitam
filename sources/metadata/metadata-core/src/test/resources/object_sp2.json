@@ -12,7 +12,7 @@
           "DataObjectGroupId": "aebaaaaaaagbcaacaajo4ak4tr2o7laaaaaq",
           "DataObjectVersion": "PhysicalMaster_1",
           "PhysicalId": 123456789,
-          "storage": {
+          "_storage": {
             "_nbc": 1,
             "offerIds": [
               "localhost"
@@ -32,7 +32,7 @@
           "DataObjectVersion": "BinaryMaster_1",
           "Size": 110,
           "Uri": "Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf",
-          "storage": {
+          "_storage": {
             "_nbc": 1,
             "offerIds": [
               "localhost"

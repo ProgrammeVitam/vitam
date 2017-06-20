@@ -73,6 +73,11 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
      */
     public static final String USAGES = "_qualifiers";
     /**
+     * Storage Id
+     */
+    public static final String STORAGE = "_storage";
+    
+    /**
      * Unit Id, Vitam fields Only projection (no usage)
      */
     public static final BasicDBObject OBJECTGROUP_VITAM_PROJECTION =
@@ -124,10 +129,7 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
      * Copies
      */
     public static final String COPIES = VERSIONS + "." + "_copies";
-    /**
-     * Storage Id
-     */
-    public static final String STORAGE = COPIES + "." + "sid";
+   
 
     private static final BasicDBObject[] indexes = {
         new BasicDBObject(VitamLinks.UNIT_TO_OBJECTGROUP.field2to1, 1),
