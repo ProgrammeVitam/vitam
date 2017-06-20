@@ -161,7 +161,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws ReferentialException
      */
     RequestResponse<AccessionRegisterSummaryModel> getAccessionRegister(JsonNode query)
-        throws InvalidParseOperationException, ReferentialException;
+        throws InvalidParseOperationException, ReferentialException, AccessUnauthorizedException;
 
     /**
      * Get the accession register details matching the given query

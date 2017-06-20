@@ -1376,6 +1376,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
             } catch (final AccessExternalClientNotFoundException e) {
                 LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
                 return Response.status(Status.NOT_FOUND).build();
+            } catch (final AccessUnauthorizedException e) {
+                LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
+                return Response.status(Status.UNAUTHORIZED).build();
             } catch (final Exception e) {
                 LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
                 return Response.status(Status.INTERNAL_SERVER_ERROR).build();

@@ -381,7 +381,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
     @Override
     public RequestResponse<AccessionRegisterSummaryModel> getAccessionRegister(JsonNode query)
-        throws InvalidParseOperationException, ReferentialException {
+        throws InvalidParseOperationException, ReferentialException, AccessUnauthorizedException {
         ParametersChecker.checkParameter("query is a mandatory parameter", query);
         Response response = null;
         try {
@@ -395,6 +395,9 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 case NOT_FOUND:
                     LOGGER.error(Response.Status.NOT_FOUND.getReasonPhrase());
                     throw new ReferentialNotFoundException("AccessionRegister Not found ");
+                case UNAUTHORIZED:
+                    LOGGER.error(Status.UNAUTHORIZED.getReasonPhrase());
+                    throw new AccessUnauthorizedException("Contract not found ");
                 default:
                     break;
             }

@@ -96,6 +96,7 @@ import fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl;
 import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFileImpl;
 import fr.gouv.vitam.functional.administration.rules.core.RulesManagerFileImpl;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * FormatManagementResourceImpl implements AccessResource
@@ -512,6 +513,9 @@ public class AdminManagementResource extends ApplicationStatusResource {
             new ReferentialAccessionRegisterImpl(mongoAccess)) {
             SanityChecker.checkJsonAll(select);
 
+            if (StringUtils.isBlank(VitamThreadUtils.getVitamSession().getContractId())) {
+                throw new AccessUnauthorizedException("No contract chosen");
+            }
             AccessContractModel contract = getContractDetails(VitamThreadUtils.getVitamSession().getContractId());
             if (contract == null) {
                 throw new AccessUnauthorizedException("Contract Not Found");
@@ -534,6 +538,10 @@ public class AdminManagementResource extends ApplicationStatusResource {
         } catch (final ReferentialNotFoundException e) {
             LOGGER.error(e);
             final Status status = Status.NOT_FOUND;
+            return Response.status(status).entity(status).build();
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error("Access contract does not allow ", e);
+            final Status status = Status.UNAUTHORIZED;
             return Response.status(status).entity(status).build();
         } catch (final Exception e) {
             LOGGER.error(e);
