@@ -22,6 +22,10 @@ Exemple de JSON
   {
       "_id": "aeaqaaaaaahbjs5eabbboak4educsrqaaaaq",
       "_og": "",
+      "_sps": [
+        "FRAN_NP_009913"
+    ],
+    "_sp": "FRAN_NP_009913",
       "_mgt": {
           "StorageRule": [
               {
@@ -81,6 +85,14 @@ Cette transposition se fait comme suit :
 
 "_id": identifiant unique de l'unité archivistique.
     Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
+
+"_sps": services producteurs liées à l'unité archivistique.
+  Il s'agit d'un tableau contenant tous les services producteurs référençant l'unité archivistique.
+  Il s'agit d'un tableau de chaînes de caractère.
+
+"_sp": service producteur d'Origine.
+  Il s'agit du service producteur inscrit dans le bordereau lié au transfert d' l'unité archivistique.
+  Il s'agit d'une chaîne de caractère.
 
 "DescriptionLevel": niveau de description archivistique de l'unité archivistique.
     Il s'agit d'une chaîne de caractères.
@@ -337,3 +349,10 @@ Détail des champs du JSON
 
 "_ops" (#operations): tableau des identifiants d'opérations auxquelles ce GOT a participé
   Il s'agit d'un tableau de chaînes de 36 caractères correspondant à un GUID contenu à la valeur contenue dans le champ _id de la collection LogBookOperation.
+
+"OriginatingAgency": service producteur déclaré dans le message ArchiveTransfer (OriginatingAgencyIdentifier)
+  Il s'agit d'une chaîne de caractères.
+
+"_sps": services producteurs liées au groupe d'objet.
+  Il s'agit d'un tableau contenant tous les services producteurs référençant le groupe d'objet.
+  Il s'agit d'un tableau de chaînes de caractère.
