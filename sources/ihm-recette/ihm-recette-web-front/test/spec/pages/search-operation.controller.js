@@ -53,13 +53,13 @@ describe('searchOperationController', function() {
     "obIdIn": null,
     "events": [{
         "evId": "aedqaaaaacaam7mxaah6gak2e6o2k4qaaaaq",
-        "evType": "STP_OP_SECURISATION",
+        "evType": "STP_STORAGE_SECURISATION",
         "evDateTime": "2017-02-10T10:42:07.346",
         "evDetData": "{\"StartDate\":\"-999999999-01-01T00:00:00\",\"EndDate\":\"2017-02-10T10:41:58.173\",\"Hash\":\"hash\",\"TimeStampToken\":\"token\",\"NumberOfElement\":1828,\"FileName\":\"0_LogbookOperation_20170210_104158.zip\"}",
         "evIdProc": "aecaaaaaacaam7mxaah6gak2e6oycvyaaaaq",
         "evTypeProc": "TRACEABILITY",
         "outcome": "OK",
-        "outDetail": "STP_OP_SECURISATION.OK",
+        "outDetail": "STP_STORAGE_SECURISATION.OK",
         "outMessg": "Succès du processus de sécurisation des journaux",
         "agId": {
           "Name": "vitam-iaas-app-01",

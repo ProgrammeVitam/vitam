@@ -126,17 +126,14 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
             final String currentRootHash = currentRootHash(merkleTreeAlgo);
 
             // compare to secured and indexed hashs
-            final ItemStatus subSecuredItem = compareToSecuredHash(params, handler, currentRootHash);
+            final ItemStatus subSecuredItem = compareToSecuredHash(handler, currentRootHash);
             itemStatus.setItemsStatus(HANDLER_SUB_ACTION_COMPARE_WITH_SAVED_HASH, subSecuredItem);
             final ItemStatus subLoggedItemStatus = compareToLoggedHash(params, currentRootHash);
             itemStatus.setItemsStatus(HANDLER_SUB_ACTION_COMPARE_WITH_INDEXED_HASH, subLoggedItemStatus);
 
-        } catch (ContentAddressableStorageNotFoundException | IOException e) {
+        } catch (ContentAddressableStorageNotFoundException | IOException | InvalidParseOperationException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
-        } catch (InvalidParseOperationException e) {
-            LOGGER.error(e);
-            itemStatus.increment(StatusCode.FATAL);            
         }
 
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
@@ -156,13 +153,12 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
     }
 
     /**
-     * @param params
      * @param handler
      * @param currentRootHash
      * @return
      * @throws ProcessingException
      */
-    ItemStatus compareToSecuredHash(WorkerParameters params, HandlerIO handler, final String currentRootHash)
+    ItemStatus compareToSecuredHash(HandlerIO handler, final String currentRootHash)
         throws ProcessingException {
 
         final ItemStatus subItemStatus = new ItemStatus(HANDLER_SUB_ACTION_COMPARE_WITH_SAVED_HASH);
@@ -187,9 +183,7 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
     String currentRootHash(final MerkleTreeAlgo merkleTreeAlgo) {
         // check ok then compare diff root hash
         final MerkleTree currentMerkleTree = merkleTreeAlgo.generateMerkle();
-
-        final String currentRootHash = BaseXx.getBase64(currentMerkleTree.getRoot());
-        return currentRootHash;
+        return BaseXx.getBase64(currentMerkleTree.getRoot());
     }
 
     /**
