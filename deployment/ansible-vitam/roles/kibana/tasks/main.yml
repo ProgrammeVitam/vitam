@@ -48,8 +48,9 @@
 
 #### Kibana dashboards configuration ####
 
-- name: load dashboards into Elasticsearch log .kibana index
-  when: "{{ (groups['hosts-kibana'] | length) > 0}}"
+# We have a specific task for index pattern to add the "*" at the end of the url
+- name: load index patterns into Elasticsearch log .kibana index
+  when: "{{ (groups['hosts-kibana'] | length) > 0 }}"
   run_once: true
   uri:
     url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/.kibana/{{ item.split(".")[0] }}*'
@@ -57,11 +58,23 @@
     body: "{{ lookup('file', '{{role_path}}/files/kibana-metrics-configuration/{{item}}') }}"
     body_format: json
     status_code: 200, 201
-  with_lines: find {{ search_dir }} {{ dashboard_dir }} {{ index_pattern_dir }} {{ visualization_dir }} -name '*.json' -type f | awk -F '/' '{print $(NF-1)"/"$NF}'
+  with_lines: find {{ index_pattern_dir }} -name '*.json' -type f | awk -F '/' '{print $(NF-1)"/"$NF}'
+  vars:
+    index_pattern_dir: "{{role_path}}/files/kibana-metrics-configuration/index-pattern"
+
+- name: load dasboards into Elasticsearch log .kibana index
+  when: "{{ (groups['hosts-kibana'] | length) > 0 }}"
+  run_once: true
+  uri:
+    url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/.kibana/{{ item.split(".")[0] }}'
+    method: PUT
+    body: "{{ lookup('file', '{{role_path}}/files/kibana-metrics-configuration/{{item}}') }}"
+    body_format: json
+    status_code: 200, 201
+  with_lines: find {{ search_dir }} {{ dashboard_dir }} {{ visualization_dir }} -name '*.json' -type f | awk -F '/' '{print $(NF-1)"/"$NF}'
   vars:
     search_dir: "{{role_path}}/files/kibana-metrics-configuration/search"
     dashboard_dir: "{{role_path}}/files/kibana-metrics-configuration/dashboard"
-    index_pattern_dir: "{{role_path}}/files/kibana-metrics-configuration/index-pattern"
     visualization_dir: "{{role_path}}/files/kibana-metrics-configuration/visualization"
 
 ### elasticsearch log configuration and kibana configuration ###
@@ -75,30 +88,14 @@
     body_format: json
     status_code: 200,201
 
-- name: load dashboards into Elasticsearch log .kibana index
-  when: "{{ (groups['hosts-kibana'] | length) > 0}}"
-  run_once: true
-  uri:
-    url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/.kibana/{{ item.split(".")[0] }}'
-    method: PUT
-    body: "{{ lookup('file', '{{role_path}}/files/kibana-metrics-configuration/{{item}}') }}"
-    body_format: json
-    status_code: 200, 201
-  with_lines: find {{ search_dir }} {{ dashboard_dir }} {{ index_pattern_dir }} {{ visualization_dir }} -name '*.json' -type f | awk -F '/' '{print $(NF-1)"/"$NF}'
-  vars:
-    search_dir: "{{role_path}}/files/kibana-metrics-configuration/search"
-    dashboard_dir: "{{role_path}}/files/kibana-metrics-configuration/dashboard"
-    index_pattern_dir: "{{role_path}}/files/kibana-metrics-configuration/index-pattern"
-    visualization_dir: "{{role_path}}/files/kibana-metrics-configuration/visualization"
-
 # TODO Get Kibana version dynamically and put it in the URL
-- name: set jersey-metrics-vitam-* as kibana default index pattern
+- name: set logstash-vitam* as kibana default index pattern
   when: "{{ (groups['hosts-kibana'] | length) > 0}}"
   run_once: true
   uri:
-    url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/.kibana/config/4.6.1'
+    url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/.kibana/config/4.6.4'
     method: PUT
-    body: '{"defaultIndex": "metrics-vitam-jersey-*"}'
+    body: '{"defaultIndex": "logstash-vitam*", "buildNum": 10229}'
     body_format: json
     status_code: 200, 201
 
