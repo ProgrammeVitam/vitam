@@ -200,6 +200,7 @@
                 </Item>
             </Array>
         </Arg>
+        <Set name="host">{{ip_service}}</Set>
         <Set name="port">
             <SystemProperty name="jetty.port" default="{{ port_https }}"/>
         </Set>
@@ -224,6 +225,7 @@
                 </Item>
             </Array>
         </Arg>
+        <Set name="host">{{ip_service}}</Set>
         <Set name="port">{{port_http}}</Set>
 	<Set name="name">business</Set>
         <Set name="idleTimeout">
@@ -249,6 +251,7 @@
                 </Item>
             </Array>
         </Arg>
+        <Set name="host">{{ip_admin}}</Set>
         <Set name="port">{{port_http_admin}}</Set>
 	<Set name="name">admin</Set>
         <Set name="idleTimeout">

@@ -9,6 +9,11 @@ java_args: ""
 package_name: "vitam-{{ vitam_component }}"
 port_http: 8082
 port_http_admin: 28082
+# Configuration par défaut du connecteur de service
+port_http: 8082 # KWA: is it really OK to set a default here ?
+tls_active: false
+# Configuration par défaut du connecteur admin
+port_http_admin: 28082 # KWA: is it really OK to set a default here ?
 tls_active: false
 days_to_delete_local: 30
 days_to_delete_access_local: 7

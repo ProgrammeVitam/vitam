@@ -1,8 +1,8 @@
 
 # Configuration MongoDB
 mongoDbNodes:
-{% for server in groups['mongos'] %}
-- dbHost: {{server}}
+{% for host in groups['mongos'] %}
+- dbHost: {{hostvars[host]['ip_service']}}
   dbPort: {{vitam_mongodb_port}}
 {% endfor %}
 dbName: masterdata
@@ -17,8 +17,7 @@ workspaceUrl: {{vitam_workspace_baseurl}}
 # ElasticSearch
 clusterName: {{cluster_name}}
 elasticsearchNodes:
-{% for server in groups['hosts-elasticsearch-data'] %}
-- hostName: {{server}}
+{% for host in groups['hosts-elasticsearch-data'] %}
+- hostName: {{hostvars[host]['ip_service']}}
   tcpPort: {{elasticsearch_data_tcp_port}}
 {% endfor %}
-

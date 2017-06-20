@@ -57,7 +57,8 @@ network.host: 0.0.0.0
 http.cors.enabled: true
 http.cors.allow-origin: "*"
 {% else %}
-network.host: {{inventory_hostname}}
+# KWA TODO: Check it again (ansible_hostname VS inventory_hostname VS ip_service) VS 0.0.0.0
+network.host: 0.0.0.0
 {% endif %}
 #
 # Set a custom port for HTTP:
@@ -74,7 +75,7 @@ transport.tcp.port: {{port_tcp}}
 # Pass an initial list of hosts to perform discovery when new node is started:
 # The default list of hosts is ["127.0.0.1", "[::1]"]
 #
-discovery.zen.ping.unicast.hosts: [ "{{ groups['hosts-elasticsearch-data']|join('", "') }}" ]
+discovery.zen.ping.unicast.hosts: [ {% for host in groups['hosts-elasticsearch-data'] %}"{{ hostvars[host]['ip_admin'] }}"{% if not loop.last %},{% endif %}{% endfor %} ]
 #
 # Prevent the "split brain" by configuring the majority of nodes (total number of nodes / 2 + 1):
 #

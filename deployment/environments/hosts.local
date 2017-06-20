@@ -197,3 +197,4 @@ vitam_tests_branch=master
 
 # Trust X-SSL-CLIENT-CERT header for external api auth ? (true | false)
 vitam_ssl_user_header=true
+

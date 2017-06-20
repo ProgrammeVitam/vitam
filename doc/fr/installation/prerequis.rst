@@ -25,6 +25,8 @@ Le déploiement est orchestré depuis un poste ou serveur d'administration ; les
 * un accès ssh vers un utilisateur d'administration avec élévation de privilèges vers les droits root, vitam, vitamdb sur les serveurs cibles.
 * Le compte utilisé sur le serveur d'administration doit avoir confiance dans les serveurs cibles (fichier ~/.ssh/known_hosts correctement renseigné)
 
+.. caution:: Les IP des machines sur lesquelles la solution Vitam sera installée ne doivent pas changer d'IP au cours du temps, en cas de changement d'IP, la plateforme ne pourra plus fonctionner.
+
 .. caution:: dans le cadre de l'installation des packages "extra", il est nécessaire, pour les partitions hébergeant des containeurs docker (mongo-express, head), qu'elles aient un accès internet.
 
 .. warning:: dans le cas d'une installation du composant **vitam-offer** en *filesystem-hash*, il est fortement recommandé d'employer un système de fichiers **xfs** pour le stockage des données. Se référer au :term:`DAT` pour connaître la structuration des filesystems dans :term:`VITAM`. En cas d'utilisation d'un autre type, s'assurer que le filesystem possède/gère bien l'option **user_xattr**.
@@ -69,5 +71,3 @@ Concernant l'espace disque, à l'heure actuelle, aucun pré-requis n'a été dé
 * elasticsearch des données Vitam
 
 L'arborescence associée sur les partitions associées est : ``/vitam/data/<composant>``
-
-

@@ -57,14 +57,15 @@ network.host: 0.0.0.0
 http.cors.enabled: true
 http.cors.allow-origin: "*"
 {% else %}
-network.host: {{inventory_hostname}}
-{% endif %}#
+# KWA TODO: Check it again (ansible_hostname VS inventory_hostname VS ip_service)
+network.host: {{ip_admin}}
+{% endif %}
 # Set a custom port for HTTP:
 #
 http.port: {{port_http}}
 network.port: {{port_tcp}}
 transport.tcp.port: {{port_tcp}}
-#
+
 # For more information, see the documentation at:
 # <http://www.elastic.co/guide/en/elasticsearch/reference/current/modules-network.html>
 #
@@ -73,7 +74,7 @@ transport.tcp.port: {{port_tcp}}
 # Pass an initial list of hosts to perform discovery when new node is started:
 # The default list of hosts is ["127.0.0.1", "[::1]"]
 #
-discovery.zen.ping.unicast.hosts: [ "{{ groups['hosts-elasticsearch-log']|join('", "') }}" ]
+discovery.zen.ping.unicast.hosts: [ {% for host in groups['hosts-elasticsearch-log'] %}"{{ hostvars[host]['ip_admin'] }}"{% if not loop.last %},{% endif %}{% endfor %} ]
 #
 # Prevent the "split brain" by configuring the majority of nodes (total number of nodes / 2 + 1):
 #

@@ -14,6 +14,8 @@
     name: apache2
   when: ( ansible_distribution == "Debian")
 
+# TODO : idéalement, Apache ne devrait écouter que sur l'IP d'admin
+
 - name: Ensure  Apache autostart && Apache is started on Centos
   service: 
     name: httpd
@@ -27,7 +29,6 @@
     enabled: yes
     state: started
   when: (ansible_distribution == "Debian" )
-
 
 - name: add vitam group to apache user on Centos
   user:
