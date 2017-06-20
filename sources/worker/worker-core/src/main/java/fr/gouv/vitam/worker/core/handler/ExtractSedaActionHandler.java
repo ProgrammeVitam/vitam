@@ -966,8 +966,20 @@ public class ExtractSedaActionHandler extends ActionHandler {
         // Get parents list
         ArrayNode upNode = JsonHandler.createArrayNode();
         isRootArchive = addParentsToTmpFile(upNode, unitId, archiveUnitTree);
+        
         if (upNode.isEmpty(null)) {
             linkToArchiveUnitDeclaredInTheIngestContract(upNode);
+        } else {
+            isRootArchive = true;
+            for (JsonNode parent : upNode) {
+                if (!existingUnitGuids.contains(parent.asText())) {
+                    isRootArchive = false;
+                }
+            }
+
+            if (isRootArchive) {
+                linkToArchiveUnitDeclaredInTheIngestContract(upNode); 
+            }
         }
         workNode.set(IngestWorkflowConstants.UP_FIELD, upNode);
 
@@ -1052,7 +1064,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 final JsonNode archiveUps = archiveNode.get(IngestWorkflowConstants.UP_FIELD);
                 if (archiveUps.isArray() && archiveUps.size() > 0) {
                     ArrayNode ups = (ArrayNode) archiveUps;
-                    upNode.add(getUnitParents(ups));
+                    upNode.addAll(getUnitParents(ups));
                     isRootArchive = false;
                 }
             }
@@ -1115,19 +1127,15 @@ public class ExtractSedaActionHandler extends ActionHandler {
         return sbRules.toString();
     }
 
-    private String getUnitParents(ArrayNode parents) {
-        final StringBuilder parentsList = new StringBuilder();
+    private ArrayNode getUnitParents(ArrayNode parents) {
+        final ArrayNode parentsList = JsonHandler.createArrayNode();
         for (final JsonNode currentParentNode : parents) {
             final String currentParentId = currentParentNode.asText();
             if (unitIdToGuid.containsKey(currentParentId)) {
-                parentsList.append(unitIdToGuid.get(currentParentId));
-                parentsList.append(IngestWorkflowConstants.UPS_SEPARATOR);
+                parentsList.add(unitIdToGuid.get(currentParentId));
             }
         }
-
-        // Remove last separator
-        parentsList.replace(parentsList.length() - 1, parentsList.length(), "");
-        return parentsList.toString();
+        return parentsList;
     }
 
     private void writeArchiveUnitToTmpDir(String containerId, XMLEventReader reader,
@@ -2446,8 +2454,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
     }
 
     private void linkToArchiveUnitDeclaredInTheIngestContract(ArrayNode upNode) {
-        findArchiveUnitDeclaredInTheIngestContract();
-        if (filingParentId != null) {
+        if (filingParentId == null) {
+            findArchiveUnitDeclaredInTheIngestContract();
+        } else {
             upNode.add(filingParentId);
         }
     }

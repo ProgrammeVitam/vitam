@@ -150,6 +150,8 @@ import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
  * Processing integration test
  */
 public class ProcessingIT {
+    private static final String UNIT_ATTACHEMENT_ID = "aeaqaaaaaagbcaacaang6ak4ts6paliaaaaq";
+    private static final String UNIT_PLAN_ATTACHEMENT_ID = "aeaqaaaaaagbcaacabht2ak4x66x2baaaaaq";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessingIT.class);
     private static final int DATABASE_PORT = 12346;
     private static final long SLEEP_TIME = 100l;
@@ -436,6 +438,22 @@ public class ProcessingIT {
                 client.importProfileFile(response.getResults().get(0).getId(),
                     PropertiesUtils.getResourceAsStream("integration-processing/Profil20.rng"));
 
+                MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
+                LogbookLifeCyclesClient logbookLFCClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
+                metaDataClient.insertUnit(
+                    new InsertMultiQuery().addData((ObjectNode)
+                        JsonHandler.getFromFile(PropertiesUtils.getResourceFile("integration-processing/unit_plan_metadata.json"))).getFinalInsert());
+                logbookLFCClient.create(
+                    LogbookParametersFactory.newLogbookLifeCycleUnitParameters(
+                        GUIDFactory.newOperationLogbookGUID(tenantId),
+                        "INGEST",
+                        GUIDFactory.newOperationLogbookGUID(tenantId),
+                        LogbookTypeProcess.INGEST,
+                        StatusCode.OK,
+                        "Process_SIP_unitary.OK",
+                        UNIT_PLAN_ATTACHEMENT_ID,
+                        GUIDReader.getGUID(UNIT_PLAN_ATTACHEMENT_ID)));
+                
                 // import contract
                 File fileContracts = PropertiesUtils.getResourceFile("integration-processing/referential_contracts_ok.json");
                 List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>(){});
@@ -526,8 +544,9 @@ public class ProcessingIT {
                     LogbookTypeProcess.INGEST,
                     StatusCode.OK,
                     "Process_SIP_unitary.OK",
-                    "aecaaaaaacb4r2p4aazb2ak4ufkfidiaaaaq",
-                    GUIDReader.getGUID("aeaqaaaaaagbcaacaang6ak4ts6paliaaaaq")));
+                    UNIT_ATTACHEMENT_ID,
+                    GUIDReader.getGUID(UNIT_ATTACHEMENT_ID)));
+
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
 
