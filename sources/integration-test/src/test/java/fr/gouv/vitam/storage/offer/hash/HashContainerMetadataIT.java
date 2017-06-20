@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.storage.filesystem.v2.metadata.container;
+package fr.gouv.vitam.storage.offer.hash;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -35,9 +35,9 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import fr.gouv.vitam.common.storage.filesystem.v2.HashFileSystemHelper;
+import fr.gouv.vitam.common.storage.filesystem.v2.metadata.container.HashContainerMetadata;
 
-public class HashContainerMetadataTest {
-
+public class HashContainerMetadataIT {
     public static final String CONTAINER = "container";
     public static final String FILE = "test1";
 
@@ -46,6 +46,7 @@ public class HashContainerMetadataTest {
 
     /**
      * THis test work only if your temporary folder support linux extended attribute
+     *
      * @throws Exception
      */
     @Test
@@ -70,4 +71,5 @@ public class HashContainerMetadataTest {
         assertThat(containerName.getNbObjects()).isEqualTo(100L);
         assertThat(containerName.getUsedBytes()).isEqualTo(200L);
     }
+
 }
