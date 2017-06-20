@@ -109,6 +109,8 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  */
 public class LogbookAdministration {
 
+    private static final String LOGBOOK = "logbook";
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookAdministration.class);
 
     private static final String TIMESTAMP = "OP_SECURISATION_TIMESTAMP";
@@ -191,7 +193,7 @@ public class LogbookAdministration {
         createLogbookOperationStructure(eip, tenantId);
 
         final File zipFile = new File(tmpFolder, fileName);
-        final String uri = String.format("%s/%s", "logbook", fileName);
+        final String uri = String.format("%s/%s", LOGBOOK, fileName);
         TraceabilityEvent traceabilityEvent;
 
         try (TraceabilityFile traceabilityFile = new TraceabilityFile(zipFile)) {
@@ -311,7 +313,7 @@ public class LogbookAdministration {
 
                 storageClient.storeFileFromWorkspace(
                     STRATEGY_ID, StorageCollectionType.LOGBOOKS, fileName, description);
-                workspaceClient.deleteObject(fileName, uri);
+                workspaceClient.deleteContainer(fileName, true);
 
                 createLogbookOperationEvent(eip, tenantId, OP_SECURISATION_STORAGE, OK, null);
 

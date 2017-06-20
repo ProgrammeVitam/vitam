@@ -468,6 +468,7 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
             client.createContainer(container);
             client.uncompressObject(container, folderName, archiveMimeType, uploadedInputStream);
         } else {
+            LOGGER.error(container + "already exist");
             throw new ContentAddressableStorageAlreadyExistException(container + "already exist");
         }
 

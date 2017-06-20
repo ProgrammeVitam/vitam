@@ -88,6 +88,8 @@ public class StorageLogbookAdministration {
 
     //TODO : could be usefull to create a Junit for this
     
+    private static final String STORAGE_LOGBOOK = "storage_logbook";
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageLogbookAdministration.class);
 
     private static final String STRATEGY_ID = "default";
@@ -138,7 +140,7 @@ public class StorageLogbookAdministration {
             createLogbookOperationStarted(helper, eip);
 
             final File zipFile = new File(tmpFolder, fileName);
-            final String uri = String.format("%s/%s", "storage_logbook", fileName);
+            final String uri = String.format("%s/%s", STORAGE_LOGBOOK, fileName);
             LogInformation info = storageLogbookService.generateSecureStorage(tenantId);
             try (LogZipFile logZipFile = new LogZipFile(zipFile)) {
                 logZipFile.initStoreLog();
@@ -180,8 +182,7 @@ public class StorageLogbookAdministration {
                 try (final StorageClient storageClient = storageClientFactory.getClient()) {
                     storageClient.storeFileFromWorkspace(
                         STRATEGY_ID, StorageCollectionType.STORAGELOG, fileName, description);
-                    workspaceClient.deleteObject(fileName, uri);
-
+                    workspaceClient.deleteContainer(fileName, true);
                 } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
                     StorageServerClientException | ContentAddressableStorageNotFoundException e) {
                     createLogbookOperationEvent(helper, eip, STP_STORAGE_SECURISATION.name(),

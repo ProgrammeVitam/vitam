@@ -215,7 +215,8 @@ public class HeaderIdHelper {
                     LOGGER.debug("contractId {} found in session and set in the {} header.", contractId, ctx);
                 }
             } else {
-                LOGGER.warn(
+                // Not everywhere useful
+                LOGGER.debug(
                     "No contract id found in session (somebody should have set it) ! " +
                         "{} header will not be set in the http {}.",
                     GlobalDataRest.X_ACCESS_CONTRAT_ID, ctx);

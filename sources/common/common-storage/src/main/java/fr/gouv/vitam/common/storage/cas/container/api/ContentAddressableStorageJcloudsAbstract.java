@@ -121,7 +121,7 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
         // TODO: is it thread safe ?
         try {
             if (!context.getBlobStore().createContainerInLocation(null, containerName)) {
-                LOGGER.error(ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage() + containerName);
+                LOGGER.info(ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage() + containerName);
                 throw new ContentAddressableStorageAlreadyExistException(
                     ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage() + containerName);
             }

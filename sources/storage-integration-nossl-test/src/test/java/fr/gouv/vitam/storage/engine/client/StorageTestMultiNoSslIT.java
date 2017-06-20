@@ -87,13 +87,13 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
 import junit.framework.TestCase;
 
-public class StorageTestMultiIT {
+public class StorageTestMultiNoSslIT {
     private static final int NB_MULTIPLE_THREADS = 100;
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageTestMultiIT.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageTestMultiNoSslIT.class);
 
     private static DefaultOfferApplication defaultOfferApplication;
-    private static final String DEFAULT_OFFER_CONF = "storage-test/storage-default-offer-ssl.conf";
+    private static final String DEFAULT_OFFER_CONF = "storage-test/storage-default-offer-nossl.conf";
     private static final String OFFER_FOLDER = "offer";
 
     private static StorageApplication storageApplication;
