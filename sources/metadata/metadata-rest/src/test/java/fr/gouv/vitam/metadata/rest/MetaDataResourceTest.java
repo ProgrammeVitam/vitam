@@ -389,6 +389,7 @@ public class MetaDataResourceTest {
     public void givenInsertObjectGroupWithNoParentThenReturnErrorNotFound() throws Exception {
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions("", DATA3)).when()
             .post("/objectgroups").then()
             .body(equalTo(generateResponseErrorFromStatus(Status.NOT_FOUND)))

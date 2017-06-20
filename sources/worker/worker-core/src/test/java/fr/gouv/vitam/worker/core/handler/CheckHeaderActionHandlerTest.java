@@ -191,7 +191,9 @@ public class CheckHeaderActionHandlerTest {
         assertNotNull(response.getData());
         assertNotNull(response.getData().get(SedaConstants.TAG_MESSAGE_IDENTIFIER));
         String evDetData = (String) response.getData().get(LogbookParameterName.eventDetailData.name());
+        assertTrue(evDetData.contains("ArchivalAgreement0"));
         assertTrue(evDetData.contains("English Comment"));
+        assertTrue(evDetData.contains("ArchivalProfile0"));
         action.partialClose();
 
     }

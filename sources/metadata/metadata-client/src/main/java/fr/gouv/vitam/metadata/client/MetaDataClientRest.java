@@ -127,6 +127,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
                 throw new MetaDataDocumentSizeException(ErrorMessage.SIZE_TOO_LARGE.getMessage());
             } else if (response.getStatus() == Response.Status.BAD_REQUEST.getStatusCode()) {
                 throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
+            } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
+                throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
             }
             return response.readEntity(JsonNode.class);
         } catch (final VitamClientInternalException e) {
@@ -157,6 +159,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             } else if (response.getStatus() == Response.Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
                 throw new MetaDataDocumentSizeException(ErrorMessage.SIZE_TOO_LARGE.getMessage());
             } else if (response.getStatus() == Response.Status.BAD_REQUEST.getStatusCode()) {
+                throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
+            } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
                 throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
             }
             return response.readEntity(JsonNode.class);
@@ -192,7 +196,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             } else if (response.getStatus() == Response.Status.BAD_REQUEST.getStatusCode()) {
                 throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
             } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
-                throw new MetadataInvalidSelectException(ErrorMessage.MISSING_SELECT_QUERY.getMessage());
+                throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
             }
             return response.readEntity(JsonNode.class);
         } catch (final VitamClientInternalException e) {
@@ -224,6 +228,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
                 throw new MetaDataDocumentSizeException(ErrorMessage.SIZE_TOO_LARGE.getMessage());
             } else if (response.getStatus() == Response.Status.BAD_REQUEST.getStatusCode()) {
                 throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
+            } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
+                throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
             }
             return response.readEntity(JsonNode.class);
         } catch (final VitamClientInternalException e) {
@@ -253,6 +259,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             } else if (response.getStatus() == Response.Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
                 throw new MetaDataDocumentSizeException(ErrorMessage.SIZE_TOO_LARGE.getMessage());
             } else if (response.getStatus() == Response.Status.BAD_REQUEST.getStatusCode()) {
+                throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
+            } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
                 throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
             }
             return JsonHandler.getFromString(response.readEntity(String.class));
@@ -287,6 +295,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             } else if (response.getStatus() == Response.Status.BAD_REQUEST.getStatusCode()) {
                 throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
             } else if (response.getStatus() != Status.CREATED.getStatusCode()) {
+                throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
+            } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
                 throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
             }
         } catch (final VitamClientInternalException e) {
@@ -325,7 +335,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
                 LOGGER
                     .error("find accession register for unit failed, http code is {}, error is {}", vitamError.getCode(),
                         vitamError.getErrors());
-                throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR);
+                throw new MetaDataClientServerException(vitamError.getDescription());
             }
 
         } catch (VitamClientInternalException | InvalidParseOperationException e) {
@@ -363,7 +373,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
                 LOGGER
                     .error("find accession register for object group failed, http code is {}, error is {}", vitamError.getCode(),
                         vitamError.getErrors());
-                throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR);
+                throw new MetaDataClientServerException(vitamError.getDescription());
             }
 
         } catch (VitamClientInternalException | InvalidParseOperationException e) {

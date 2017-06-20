@@ -329,9 +329,7 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
      * Get the File associated with this filename, trying in this order: as fullpath, as in Vitam Config Folder, as
      * Resources file
      *
-     * @param containerName container name
      * @param objectName object name
-     * @param workerId worker id
      * @param optional if file is optional
      * @return file if found, if not found, null if optional
      * @throws FileNotFoundException if file is not found and not optional

@@ -106,7 +106,7 @@ public final class AdminExternalClientFactory extends VitamClientFactory<AdminEx
      *
      * @param configuration null for MOCK
      */
-    public static final void changeMode(ClientConfiguration configuration) {
+    static final void changeMode(ClientConfiguration configuration) {
         getInstance().initialisation(configuration, getInstance().getResourcePath());
     }
 }

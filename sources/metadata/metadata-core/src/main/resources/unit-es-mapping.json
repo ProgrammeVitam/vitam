@@ -305,6 +305,14 @@
 		"_tenant": {
 			"type": "long"
 		},
+		"_sp": {
+            "type": "string",
+            "index": "not_analyzed"
+        },
+        "_sps": {
+            "type": "string",
+            "index": "not_analyzed"
+        },
 		"_uds": {
 			"type": "object",
 			"enabled": false

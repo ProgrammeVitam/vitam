@@ -48,7 +48,7 @@ public enum MetadataCollections {
     private VitamCollection vitamCollection;
 
     private MetadataCollections(final Class<?> clasz) {
-        vitamCollection = VitamCollectionHelper.getCollectionMultiTenant(clasz);
+        vitamCollection = VitamCollectionHelper.getCollection(clasz, true, clasz.equals(Unit.class));
     }
 
     /**
@@ -104,6 +104,14 @@ public enum MetadataCollections {
      */
     public ElasticsearchAccessMetadata getEsClient() {
         return (ElasticsearchAccessMetadata) vitamCollection.getEsClient();
+    }
+    
+    /**
+     * 
+     * @return True if score is to be used
+     */
+    public boolean useScore() {
+        return vitamCollection.isUseScore();
     }
 }
 

@@ -36,9 +36,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -46,13 +44,13 @@ import org.apache.commons.csv.CSVRecord;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.mongodb.client.MongoCursor;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -60,6 +58,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
@@ -143,7 +142,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
                         VitamLogbookMessages.getCodeOp(STP_IMPORT_RULES, StatusCode.STARTED), eip);
                 createLogBookEntry(logbookParametersStart);
                 try {
-                    mongoAccess.insertDocuments(validatedRules, FunctionalAdminCollections.RULES);
+                    mongoAccess.insertDocuments(validatedRules, FunctionalAdminCollections.RULES).close();
                     final LogbookOperationParameters logbookParametersEnd = LogbookParametersFactory
                         .newLogbookOperationParameters(eip, STP_IMPORT_RULES, eip, LogbookTypeProcess.MASTERDATA,
                             StatusCode.OK, VitamLogbookMessages.getCodeOp(STP_IMPORT_RULES, StatusCode.OK),
@@ -198,7 +197,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         if (!isCollectionEmptyForTenant()) {
             throw new FileRulesException(String.format(RULES_COLLECTION_IS_NOT_EMPTY, getTenant()));
         }
-        File csvFileReader = convertInputStreamToFile(rulesFileStream);
+        final File csvFileReader = convertInputStreamToFile(rulesFileStream);
         try (FileReader reader = new FileReader(csvFileReader)) {
             @SuppressWarnings("resource")
             final CSVParser parser = new CSVParser(reader, CSVFormat.DEFAULT.withHeader());
@@ -292,7 +291,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
             if (ruleDuration.equalsIgnoreCase(UNLIMITED)) {
                 return;
             } else {
-                int duration = Integer.parseInt(ruleDuration);
+                final int duration = Integer.parseInt(ruleDuration);
                 if (duration < 0) {
                     throw new FileRulesException(String.format(INVALIDPARAMETERS, RULE_DURATION, ruleDuration));
                 }
@@ -305,7 +304,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     /**
      *
      * check if Records are not Empty
-     * 
+     *
      * @param ruleId
      * @param ruleType
      * @param ruleValue
@@ -316,7 +315,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
      */
     private void checkParametersNotEmpty(String ruleId, String ruleType, String ruleValue, String ruleDuration,
         String ruleMeasurementValue) throws FileRulesException {
-        StringBuffer missingParam = new StringBuffer();
+        final StringBuffer missingParam = new StringBuffer();
         if (ruleId == null || ruleId.isEmpty()) {
             missingParam.append(",").append(RULEID);
         }
@@ -358,14 +357,15 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
      */
     private void checkAssociationRuleDurationRuleMeasurementLimit(CSVRecord record) throws FileRulesException {
         if (!record.get(RULE_DURATION).equalsIgnoreCase(UNLIMITED) &&
-            ((record.get(RULE_MEASUREMENT).equalsIgnoreCase(RuleMeasurementEnum.YEAR.getType()) &&
-                Integer.parseInt(record.get(RULE_DURATION)) > YEAR_LIMIT) ||
-                (record.get(RULE_MEASUREMENT).equalsIgnoreCase(RuleMeasurementEnum.MONTH.getType()) &&
-                    Integer.parseInt(record.get(RULE_DURATION)) > MONTH_LIMIT) ||
-                (record.get(RULE_MEASUREMENT).equalsIgnoreCase(RuleMeasurementEnum.DAY.getType()) &&
-                    Integer.parseInt(record.get(RULE_DURATION)) > DAY_LIMIT)))
+            (record.get(RULE_MEASUREMENT).equalsIgnoreCase(RuleMeasurementEnum.YEAR.getType()) &&
+                Integer.parseInt(record.get(RULE_DURATION)) > YEAR_LIMIT ||
+                record.get(RULE_MEASUREMENT).equalsIgnoreCase(RuleMeasurementEnum.MONTH.getType()) &&
+                    Integer.parseInt(record.get(RULE_DURATION)) > MONTH_LIMIT ||
+                record.get(RULE_MEASUREMENT).equalsIgnoreCase(RuleMeasurementEnum.DAY.getType()) &&
+                    Integer.parseInt(record.get(RULE_DURATION)) > DAY_LIMIT)) {
             throw new FileRulesException(
                 String.format(INVALIDPARAMETERS, RULE_DURATION, record.get(RULE_DURATION)));
+        }
 
     }
 
@@ -429,19 +429,14 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     }
 
     @Override
-    public List<FileRules> findDocuments(JsonNode select) throws ReferentialException {
-        try (
-            final MongoCursor<VitamDocument<?>> rules = mongoAccess.findDocuments(select,
-                FunctionalAdminCollections.RULES)) {
-
-            final List<FileRules> result = new ArrayList<>();
-            if (rules == null || !rules.hasNext()) {
+    public RequestResponseOK<FileRules> findDocuments(JsonNode select) throws ReferentialException {
+        try (DbRequestResult result =
+            mongoAccess.findDocuments(select, FunctionalAdminCollections.RULES)) {
+            final RequestResponseOK<FileRules> list = result.getRequestResponseOK(FileRules.class).setQuery(select);
+            if (list.isEmpty()) {
                 throw new FileRulesNotFoundException(RULES_NOT_FOUND);
             }
-            while (rules.hasNext()) {
-                result.add((FileRules) rules.next());
-            }
-            return result;
+            return list;
         } catch (final FileRulesException e) {
             LOGGER.error(e.getMessage());
             throw new FileRulesException(e);

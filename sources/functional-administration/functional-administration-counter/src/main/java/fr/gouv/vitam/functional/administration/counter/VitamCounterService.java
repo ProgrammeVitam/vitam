@@ -30,7 +30,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
 import com.mongodb.BasicDBObject;
-import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
 
 import static com.mongodb.client.model.Filters.and;
@@ -41,8 +40,9 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
-import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
+import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
+import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -107,10 +107,11 @@ public class VitamCounterService {
                     try {
                         for (Map.Entry<String, FunctionalAdminCollections> entry : collections.entrySet()) {
                             JsonNode query = generateQuery(entry.getKey());
-                            MongoCursor<VitamDocument<?>> cursor =
-                                    mongoAccess.findDocuments(query, FunctionalAdminCollections.VITAM_SEQUENCE);
-                            if (!cursor.hasNext()) {
-                                createSequence(tenantId, entry);
+                            try (DbRequestResult result =
+                                mongoAccess.findDocuments(query, FunctionalAdminCollections.VITAM_SEQUENCE)) {
+                                if (!result.getCursor().hasNext()) {
+                                    createSequence(tenantId, entry);
+                                }
                             }
                         }
                     } catch (VitamException | InvalidCreateOperationException e) {
@@ -124,7 +125,7 @@ public class VitamCounterService {
     }
 
     private JsonNode generateQuery(String code) throws InvalidParseOperationException, InvalidCreateOperationException {
-        final SelectParserSingle parser = new SelectParserSingle(new VarNameAdapter());
+        final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
         parser.parse(new Select().getFinalSelect());
         parser.addCondition(QueryHelper.eq(VitamSequence.NAME, code));
         return parser.getRequest().getFinalSelect();
@@ -142,7 +143,7 @@ public class VitamCounterService {
         node.put(VitamSequence.TENANT_ID, tenant);
         JsonNode firstSequence = JsonHandler.getFromString(node.toString());
         //  sequenceCollection.
-        mongoAccess.insertDocument(firstSequence, FunctionalAdminCollections.VITAM_SEQUENCE);
+        mongoAccess.insertDocument(firstSequence, FunctionalAdminCollections.VITAM_SEQUENCE).close();
     }
 
     /**
@@ -168,7 +169,7 @@ public class VitamCounterService {
         findOneAndUpdateOptions.returnDocument(ReturnDocument.AFTER);
         try {
             final Object result = FunctionalAdminCollections.VITAM_SEQUENCE.getCollection()
-                    .findOneAndUpdate(query, incQuery, findOneAndUpdateOptions);
+                .findOneAndUpdate(query, incQuery, findOneAndUpdateOptions);
             sequence = ((VitamSequence) result).getCounter();
         } catch (final Exception e) {
             LOGGER.error("find Document Exception", e);

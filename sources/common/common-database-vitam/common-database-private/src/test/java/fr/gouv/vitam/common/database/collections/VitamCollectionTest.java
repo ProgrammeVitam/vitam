@@ -120,7 +120,7 @@ public class VitamCollectionTest {
         classList.add(CollectionSample.class);
         mongoClient =
             new MongoClient(new ServerAddress(DATABASE_HOST, port), VitamCollection.getMongoClientOptions(classList));
-        final VitamCollection vitamCollection = VitamCollectionHelper.getCollectionMultiTenant(CollectionSample.class);
+        final VitamCollection vitamCollection = VitamCollectionHelper.getCollection(CollectionSample.class, true, false);
         assertEquals(vitamCollection.getClasz(), CollectionSample.class);
         assertEquals(vitamCollection.getName(), "CollectionSample");
         vitamCollection.initialize(esClient);

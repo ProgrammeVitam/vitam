@@ -67,10 +67,10 @@ import java.util.List;
 @javax.ws.rs.ApplicationPath("webresources")
 public class ContractResource {
 
-    static final String INGEST_CONTRACTS_URI = "/contracts";
+    static final String INGEST_CONTRACTS_URI = "/entrycontracts";
     static final String ACCESS_CONTRACTS_URI = "/accesscontracts";
-    static final String UPDATE_ACCESS_CONTRACT_URI = "/accesscontract";
-    static final String UPDATE_INGEST_CONTRACTS_URI = "/contract";
+    static final String UPDATE_ACCESS_CONTRACT_URI = "/accesscontracts";
+    static final String UPDATE_INGEST_CONTRACTS_URI = "/entrycontracts";
 
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ContractResource.class);
@@ -152,11 +152,11 @@ public class ContractResource {
 
         try (ContractService<IngestContractModel> ingestContract = new IngestContractImpl(mongoAccess,vitamCounterService)) {
 
-            final List<IngestContractModel> ingestContractModelList = ingestContract.findContracts(queryDsl);
+            final RequestResponseOK<IngestContractModel> ingestContractModelList =
+                ingestContract.findContracts(queryDsl).setQuery(queryDsl);
 
             return Response.status(Status.OK)
-                .entity(
-                    new RequestResponseOK(queryDsl).addAllResults(ingestContractModelList))
+                .entity(ingestContractModelList)
                 .build();
 
         } catch (ReferentialException e) {
@@ -282,12 +282,12 @@ public class ContractResource {
         try (ContractService<AccessContractModel> accessContract = new AccessContractImpl(mongoAccess,
             vitamCounterService)) {
 
-            final List<AccessContractModel> accessContractModelList = accessContract.findContracts(queryDsl);
+            final RequestResponseOK<AccessContractModel> accessContractModelList = accessContract.findContracts(queryDsl)
+                .setQuery(queryDsl);
 
             return Response
                 .status(Status.OK)
-                .entity(
-                    new RequestResponseOK<AccessContractModel>(queryDsl).addAllResults(accessContractModelList))
+                .entity(accessContractModelList)
                 .build();
 
         } catch (ReferentialException e) {

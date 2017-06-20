@@ -58,6 +58,7 @@ public class MatchQuery extends Query {
         super();
         switch (matchQuery) {
             case MATCH:
+            case MATCH_ALL:
             case MATCH_PHRASE:
             case MATCH_PHRASE_PREFIX:
             case PREFIX:
@@ -81,6 +82,7 @@ public class MatchQuery extends Query {
         throws InvalidCreateOperationException {
         switch (currentTokenQUERY) {
             case MATCH:
+            case MATCH_ALL:
             case MATCH_PHRASE:
             case MATCH_PHRASE_PREFIX:
             case PREFIX:

@@ -201,7 +201,27 @@ public class VitamConfiguration {
      * Should we export #score
      */
     public static final boolean EXPORT_SCORE = false;
-
+    /**
+     * Enable JAXB Parser
+     */
+    public static final boolean ENABLE_JAXB_PARSER = true;
+    /**
+     * Default LANG
+     */
+    public static final String DEFAULT_LANG = Locale.FRENCH.toString();
+    /**
+     * Max Elasticsearch Bulk
+     */
+    public static final int MAX_ELASTICSEARCH_BULK = 1000;
+    /**
+     * Max Thread for ES and MongoDB
+     */
+    public static final int NUMBER_DB_CLIENT_THREAD = 200;
+    /**
+     * Max queue in ES
+     */
+    public static final int NUMBER_ES_QUEUE = 5000;
+    
     private String config;
     private String log;
     private String data;
@@ -210,12 +230,6 @@ public class VitamConfiguration {
     private static boolean filterActivation;
     private int connectTimeout = CONNECT_TIMEOUT;
 
-    public static final boolean ENABLE_JAXB_PARSER = true;
-
-    /**
-     * Default LANG
-     */
-    public static final String DEFAULT_LANG = Locale.FRENCH.toString();
 
     static {
         getConfiguration().setDefault();

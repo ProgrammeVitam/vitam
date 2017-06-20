@@ -61,12 +61,9 @@ import static org.junit.Assume.assumeTrue;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -87,7 +84,6 @@ import org.junit.rules.TemporaryFolder;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.mongodb.BasicDBList;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.ServerAddress;
@@ -127,7 +123,6 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.objectgroup.QualifiersJson;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -150,6 +145,8 @@ public class DbRequestTest {
 
     private static final Integer TENANT_ID_0 = new Integer(0);
     private static final Integer TENANT_ID_1 = new Integer(1);
+    private static final Integer TENANT_ID_2 = new Integer(2);
+    private static final Integer TENANT_ID_3 = new Integer(3);
     private final static String CLUSTER_NAME = "vitam-cluster";
     private final static String HOST_NAME = "127.0.0.1";
     private static ElasticsearchTestConfiguration config = null;
@@ -174,8 +171,16 @@ public class DbRequestTest {
     private static final String EMPTY_VAR = "EmptyVar";
     static final int tenantId = 0;
     static final List tenantList = new ArrayList() {
+        /**
+         *
+         */
+        private static final long serialVersionUID = 408481381450976437L;
+
         {
             add(TENANT_ID_0);
+            add(TENANT_ID_1);
+            add(TENANT_ID_2);
+            add(TENANT_ID_3);
         }
     };
     static final int platformId = 10;
@@ -187,9 +192,9 @@ public class DbRequestTest {
     private static JunitHelper junitHelper;
     private static int port;
     private static final String REQUEST_SELECT_TEST = "{$query: {$eq: {\"id\" : \"id\" }}, $projection : []}";
-    private static final String REQUEST_UPDATE_TEST = "{$query: {$eq: {\"id\" : \"id\" }}}";
-    private static final String REQUEST_INSERT_TEST =
-        "{ \"#id\": \"aebaaaaaaaaaaaabaahbcakzu2stfryaaaaq\", \"id\": \"id\" }";
+    private static final String UUID2 = "aebaaaaaaaaaaaabaahbcakzu2stfryaaaaq";
+
+
     private static final String REQUEST_INSERT_TEST_1 =
         "{ \"#id\": \"aebaaaaaaaaaaaabaahbcakzu2stfryabbaq\", \"id\": \"id\" }";
     private static final String REQUEST_INSERT_TEST_2 =
@@ -204,24 +209,28 @@ public class DbRequestTest {
         "{$query: { $or : [ { $match : { 'Title' : 'Vitam' , '$max_expansions' : 1  } }, " +
             "{$match : { 'Description' : 'vitam' , '$max_expansions' : 1  } }" +
             "] } }";
-    private static final String REQUEST_INSERT_TEST_ES =
-        "{ \"#id\": \"aebaaaaaaaaaaaabaahbcakzu2stfryaaaaq\", " +
-            "\"#tenant\": 0, " +
+    private static final String REQUEST_INSERT_TEST_ES_1_TENANT_1 =
+        "{ \"#id\": \"aebaaaaaaaaaaaabaahbcakzu2stfryaabaq\", " +
+            "\"#tenant\": 1, " +
             "\"Title\": \"title vitam\", " +
             "\"Description\": \"description est OK\"," +
-            "\"_mgt\" : {\"ClassificationRule\" : {\"Rule\" : \"RuleId\"}} }";
+            "\"#management\" : {\"ClassificationRule\" : [ {\"Rule\" : \"RuleId\"} ] } }";
+    private static final String REQUEST_INSERT_TEST_ES =
+        "{ \"#id\": \"" + UUID2 + "\", " + "\"Title\": \"title vitam\", " +
+            "\"Description\": \"description est OK\"," +
+            "\"#management\" : {\"ClassificationRule\" : [ {\"Rule\" : \"RuleId\"} ] } }";
     private static final String REQUEST_INSERT_TEST_ES_2 =
-        "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaar\", \"#tenant\": 0, \"Title\": \"title vitam\", \"Description\": \"description est OK\" }";
+        "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaar\", \"Title\": \"title vitam\", \"Description\": \"description est OK\" }";
     private static final String REQUEST_INSERT_TEST_ES_3 =
-        "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaat\", \"#tenant\": 0, \"Title\": \"title vitam\", \"Description\": \"description est OK\" }";
+        "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaat\", \"Title\": \"title vitam\", \"Description\": \"description est OK\" }";
     private static final String REQUEST_INSERT_TEST_ES_4 =
-        "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaas\", \"#tenant\": 0, \"Title\": \"title sociales test_abcd_underscore othervalue france.pdf\", \"Description\": \"description est OK\" }";
-    private static final String REQUEST_UPDATE_INDEX_TEST_ELASTIC =
-        "{$query: { $eq : [ { $term : { 'Title' : 'vitam' , '$max_expansions' : 1  } }] } }";
+        "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaas\", \"Title\": \"title sociales test_abcd_underscore othervalue france.pdf\", \"Description\": \"description est OK\" }";
+    private static final String UUID1 = "aeaqaaaaaaaaaaabab4roakztdjqziaaaaaq";
     private static final String REQUEST_UPDATE_INDEX_TEST =
-        "{$roots:['aeaqaaaaaaaaaaabab4roakztdjqziaaaaaq'],$query:[],$filter:{},$action:[{$set:{'date':'09/09/2015'}},{$set:{'title':'Archive2'}}]}";
+        "{$roots:['" + UUID1 +
+            "'],$query:[],$filter:{},$action:[{$set:{'date':'09/09/2015'}},{$set:{'Title':'ArchiveDoubleTest'}}]}";
     private static final String REQUEST_SELECT_TEST_ES_UPDATE =
-        "{$query: { $match : { '#id' : 'aeaqaaaaaaaaaaabab4roakztdjqziaaaaaq' , '$max_expansions' : 1  } }}";
+        "{$query: { $eq : { '#id' : '" + UUID1 + "' } }}";
     private static final String REQUEST_INSERT_TEST_ES_UPDATE =
         "{ \"#id\": \"aeaqaaaaaaaaaaabab4roakztdjqziaaaaaq\", \"#tenant\": 0, \"Title\": \"Archive3\", " +
         "\"_mgt\": {\"StorageRule\": [{\"Rule\": \"STR001\",\"StartDate\": \"2012-11-15T14:30:23\",\"RefNonRuleId\": [],\"FinalAction\": \"Copy\"}]}," +
@@ -299,7 +308,7 @@ public class DbRequestTest {
      * Test method for
      * {@link fr.gouv.vitam.database.collections.DbRequest#execRequest(fr.gouv.vitam.request.parser.RequestParser, fr.gouv.vitam.database.collections.Result)}
      * .
-     * 
+     *
      * @throws MetaDataExecutionException
      */
     @Test(expected = MetaDataExecutionException.class)
@@ -378,19 +387,19 @@ public class DbRequestTest {
             LOGGER.debug("DeleteParser: " + deleteParser.toString());
             // Now execute the request
             executeRequest(dbRequest, deleteParser);
-        } catch (InstantiationException e1) {
+        } catch (final InstantiationException e1) {
             e1.printStackTrace();
             fail(e1.getMessage());
-        } catch (IllegalAccessException e1) {
+        } catch (final IllegalAccessException e1) {
             e1.printStackTrace();
             fail(e1.getMessage());
-        } catch (MetaDataAlreadyExistException e1) {
+        } catch (final MetaDataAlreadyExistException e1) {
             e1.printStackTrace();
             fail(e1.getMessage());
-        } catch (MetaDataNotFoundException e1) {
+        } catch (final MetaDataNotFoundException e1) {
             e1.printStackTrace();
             fail(e1.getMessage());
-        } catch (InvalidParseOperationException e1) {
+        } catch (final InvalidParseOperationException e1) {
             e1.printStackTrace();
             fail(e1.getMessage());
         } finally {
@@ -482,19 +491,19 @@ public class DbRequestTest {
             LOGGER.debug("DeleteParser: " + requestParser.toString());
 
             executeRequest(dbRequest, requestParser);
-        } catch (InstantiationException e1) {
+        } catch (final InstantiationException e1) {
             e1.printStackTrace();
             fail(e1.getMessage());
-        } catch (IllegalAccessException e1) {
+        } catch (final IllegalAccessException e1) {
             e1.printStackTrace();
             fail(e1.getMessage());
-        } catch (MetaDataAlreadyExistException e1) {
+        } catch (final MetaDataAlreadyExistException e1) {
             e1.printStackTrace();
             fail(e1.getMessage());
-        } catch (MetaDataNotFoundException e1) {
+        } catch (final MetaDataNotFoundException e1) {
             e1.printStackTrace();
             fail(e1.getMessage());
-        } catch (InvalidParseOperationException e1) {
+        } catch (final InvalidParseOperationException e1) {
             e1.printStackTrace();
             fail(e1.getMessage());
         } finally {
@@ -508,7 +517,7 @@ public class DbRequestTest {
      * Test method for
      * {@link fr.gouv.vitam.database.collections.DbRequest#execRequest(fr.gouv.vitam.request.parser.RequestParser, fr.gouv.vitam.database.collections.Result)}
      * .
-     * 
+     *
      * @throws InvalidParseOperationException
      * @throws MetaDataNotFoundException
      * @throws MetaDataAlreadyExistException
@@ -647,8 +656,36 @@ public class DbRequestTest {
             // Now execute the request
             executeRequest(dbRequest, requestParser);
 
+            // SELECT based on UUID
+            JsonNode selectRequest = createSelectRequestWithOnlyUUID(uuid);
+            // Now considering select request and parsing it as in Data Server (GET command)
+            try {
+                requestParser =
+                    RequestParserHelper.getParser(selectRequest, mongoDbVarNameAdapter);
+            } catch (final InvalidParseOperationException e) {
+                e.printStackTrace();
+                fail(e.getMessage());
+            }
+            LOGGER.debug("SelectParser: {}", requestParser);
+            // Now execute the request
+            executeRequest(dbRequest, requestParser);
+
+            // SELECT based on UUID
+            selectRequest = createSelectRequestWithOnlyUUID(uuid2);
+            // Now considering select request and parsing it as in Data Server (GET command)
+            try {
+                requestParser =
+                    RequestParserHelper.getParser(selectRequest, mongoDbVarNameAdapter);
+            } catch (final InvalidParseOperationException e) {
+                e.printStackTrace();
+                fail(e.getMessage());
+            }
+            LOGGER.debug("SelectParser: {}", requestParser);
+            // Now execute the request
+            executeRequest(dbRequest, requestParser);
+
             // SELECT
-            JsonNode selectRequest = createSelectRequestWithUUID(uuid);
+            selectRequest = createSelectRequestWithUUID(uuid);
             // Now considering select request and parsing it as in Data Server (GET command)
             try {
                 requestParser =
@@ -768,9 +805,9 @@ public class DbRequestTest {
             final SelectParserMultiple selectParser = new SelectParserMultiple(mongoDbVarNameAdapter);
             // INSERT
             final ObjectNode insertRequest1 = (ObjectNode) createInsertRequestWithUUID(uuid1);
-            ((ObjectNode) insertRequest1.get("$data")).put(TITLE, "mon titre 1");
+            ((ObjectNode) insertRequest1.get("$data")).put(TITLE, "mon titreA Complet");
             final ObjectNode insertRequest2 = (ObjectNode) createInsertRequestWithUUID(uuid2);
-            ((ObjectNode) insertRequest2.get("$data")).put(TITLE, "mon titre 2");
+            ((ObjectNode) insertRequest2.get("$data")).put(TITLE, "mon titreB Complet");
             insertRequest2.putArray("_up").addAll((ArrayNode) JsonHandler.toJsonNode(Arrays.asList(uuid1)));
             // insert1
             insertParser.parse(insertRequest1);
@@ -792,11 +829,12 @@ public class DbRequestTest {
             selectRequest.addOrderByDescFilter(TITLE);
             selectParser.parse(selectRequest.getFinalSelect());
             LOGGER.debug("SelectParser: {}", selectParser);
-            Result result0 = dbRequest.execRequest(selectParser, null);
+            final Result result0 = dbRequest.execRequest(selectParser, null);
             assertEquals(2L, result0.getNbResult());
-            BasicDBList list = (BasicDBList) result0.getFinal().get(Result.RESULT_FIELD);
-            assertEquals("mon titre 2", ((Document) list.get(0)).getString(TITLE));
-            assertEquals("mon titre 1", ((Document) list.get(1)).getString(TITLE));
+            final List<MetadataDocument<?>> list = result0.getFinal();
+            LOGGER.warn(list.toString());
+            assertEquals("mon titreB Complet", ((Document) list.get(0)).getString(TITLE));
+            assertEquals("mon titreA Complet", ((Document) list.get(1)).getString(TITLE));
 
             // select with desc sort on title and two queries
             selectRequest = new SelectMultiQuery();
@@ -807,27 +845,27 @@ public class DbRequestTest {
             selectRequest.addOrderByDescFilter(TITLE);
             selectParser.parse(selectRequest.getFinalSelect());
             LOGGER.debug("SelectParser: {}", selectParser);
-            Result result1 = dbRequest.execRequest(selectParser, null);
+            final Result result1 = dbRequest.execRequest(selectParser, null);
             assertEquals(2L, result1.getNbResult());
-            BasicDBList list1 = (BasicDBList) result1.getFinal().get(Result.RESULT_FIELD);
-            assertEquals("mon titre 2", ((Document) list1.get(0)).getString(TITLE));
-            assertEquals("mon titre 1", ((Document) list1.get(1)).getString(TITLE));
+            final List<MetadataDocument<?>> list1 = result1.getFinal();
+            assertEquals("mon titreB Complet", ((Document) list1.get(0)).getString(TITLE));
+            assertEquals("mon titreA Complet", ((Document) list1.get(1)).getString(TITLE));
 
             // select with desc sort on title and two queries and elastic search
             selectRequest = new SelectMultiQuery();
             selectRequest.addUsedProjection(all());
-            selectRequest.addQueries(match(TITLE, "mon titre").setDepthLimit(0),
+            selectRequest.addQueries(match(TITLE, "mon Complet").setDepthLimit(0),
                 or().add(eq(id(), uuid1.toString())).add(eq(id(), uuid2.toString())).setDepthLimit(0));
             selectRequest.addOrderByDescFilter(TITLE);
             selectParser.parse(selectRequest.getFinalSelect());
             LOGGER.debug("SelectParser: {}", selectParser);
-            Result result2 = dbRequest.execRequest(selectParser, null);
+            final Result result2 = dbRequest.execRequest(selectParser, null);
             assertEquals(2L, result2.getNbResult());
-            BasicDBList list2 = (BasicDBList) result2.getFinal().get(Result.RESULT_FIELD);
-            assertEquals("mon titre 2", ((Document) list2.get(0)).getString(TITLE));
-            assertEquals("mon titre 1", ((Document) list2.get(1)).getString(TITLE));
+            final List<MetadataDocument<?>> list2 = result2.getFinal();
+            assertEquals("mon titreB Complet", ((Document) list2.get(0)).getString(TITLE));
+            assertEquals("mon titreA Complet", ((Document) list2.get(1)).getString(TITLE));
 
-        } catch (Exception e1) {
+        } catch (final Exception e1) {
             e1.printStackTrace();
             fail(e1.getMessage());
         } finally {
@@ -843,7 +881,7 @@ public class DbRequestTest {
     public void testInsertUnitRequest() throws Exception {
         final GUID uuid = GUIDFactory.newUnitGUID(tenantId);
         final GUID uuid2 = GUIDFactory.newUnitGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setTenantId(0);
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         final DbRequest dbRequest = new DbRequest();
         RequestParserMultiple requestParser = null;
 
@@ -862,7 +900,7 @@ public class DbRequestTest {
     public void ShouldIndexElasticSearchWithGoodUnitSchema() throws Exception {
         final GUID uuid = GUIDFactory.newUnitGUID(tenantId);
         final GUID uuid2 = GUIDFactory.newUnitGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setTenantId(0);
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         final DbRequest dbRequest = new DbRequest();
 
         RequestParserMultiple requestParser = null;
@@ -872,10 +910,10 @@ public class DbRequestTest {
             RequestParserHelper.getParser(createInsertChild2ParentRequest(uuid2, uuid), mongoDbVarNameAdapter);
         executeRequest(dbRequest, requestParser);
 
-        QueryBuilder qb1 = QueryBuilders.matchPhrasePrefixQuery("_id", uuid);
-        QueryBuilder qb2 = QueryBuilders.matchPhrasePrefixQuery("_id", uuid2);
+        final QueryBuilder qb1 = QueryBuilders.matchPhrasePrefixQuery("_id", uuid);
+        final QueryBuilder qb2 = QueryBuilders.matchPhrasePrefixQuery("_id", uuid2);
 
-        SearchRequestBuilder request =
+        final SearchRequestBuilder request =
             esClientWithoutVitambBehavior.getClient()
                 .prepareSearch(getIndexName(MetadataCollections.C_UNIT, tenantId))
                 .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setTypes(Unit.TYPEUNIQUE).setExplain(false)
@@ -908,10 +946,11 @@ public class DbRequestTest {
         InvalidParseOperationException, InstantiationException, IllegalAccessException {
 
         final Result result = dbRequest.execRequest(requestParser, null);
-        LOGGER.debug("XXXXXXXX " + requestParser.getClass().getSimpleName() + " Result XXXXXXXX: " + result);
+        LOGGER.warn("XXXXXXXX " + requestParser.getClass().getSimpleName() + " Result XXXXXXXX: " + result);
         assertEquals("Must have 1 result", result.getNbResult(), 1);
         assertEquals("Must have 1 result", result.getCurrentIds().size(), 1);
-
+        esClient.refreshIndex(MetadataCollections.C_UNIT, tenantId);
+        esClient.refreshIndex(MetadataCollections.C_OBJECTGROUP, tenantId);
     }
 
     /**
@@ -938,7 +977,7 @@ public class DbRequestTest {
         final SelectMultiQuery select = new SelectMultiQuery();
         try {
             select.addUsedProjection(all())
-                .addQueries(and().add(eq(id(), uuid.toString()), eq(TITLE, VALUE_MY_TITLE)));
+                .addQueries(and().add(eq(id(), uuid.toString()), match(TITLE, VALUE_MY_TITLE)));
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -956,7 +995,7 @@ public class DbRequestTest {
         final UpdateMultiQuery update = new UpdateMultiQuery();
         try {
             update.addActions(set("NewVar", false), inc(MY_INT, 2), set(DESCRIPTION, "New description"))
-                .addQueries(and().add(eq(id(), uuid.toString()), eq(TITLE, VALUE_MY_TITLE)));
+                .addQueries(and().add(eq(id(), uuid.toString()), match(TITLE, VALUE_MY_TITLE)));
         } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -973,8 +1012,24 @@ public class DbRequestTest {
         final SelectMultiQuery select = new SelectMultiQuery();
         try {
             select.addUsedProjection(id(), TITLE, DESCRIPTION)
-                .addQueries(and().add(eq(id(), uuid.toString()), eq(TITLE, VALUE_MY_TITLE)));
+                .addQueries(and().add(eq(id(), uuid.toString()), match(TITLE, VALUE_MY_TITLE)));
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+        LOGGER.debug("SelectString: " + select.getFinalSelect().toString());
+        return select.getFinalSelect();
+    }
+
+    /**
+     * @param uuid
+     * @return
+     */
+    private JsonNode createSelectRequestWithOnlyUUID(GUID uuid) {
+        final SelectMultiQuery select = new SelectMultiQuery();
+        try {
+            select.addQueries(eq(id(), uuid.toString()).setDepthLimit(10));
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
@@ -1036,7 +1091,7 @@ public class DbRequestTest {
         final SelectMultiQuery select = new SelectMultiQuery();
         try {
             select.addUsedProjection(all())
-                .addQueries(and().add(eq(id(), uuid.toString()), eq(TITLE, VALUE_MY_TITLE),
+                .addQueries(and().add(eq(id(), uuid.toString()), match(TITLE, VALUE_MY_TITLE),
                     exists(CREATED_DATE), missing(UNKNOWN_VAR), isNull(EMPTY_VAR),
                     or().add(in(ARRAY_VAR, "val1"), nin(ARRAY_VAR, "val3")),
                     gt(MY_INT, 1), lt(MY_INT, 100),
@@ -1060,7 +1115,7 @@ public class DbRequestTest {
             update.addActions(set("NewVar", false), inc(MY_INT, 2), set(DESCRIPTION, "New description"),
                 unset(UNKNOWN_VAR), push(ARRAY_VAR, "val2"), min(MY_FLOAT, 1.5),
                 add(ARRAY2_VAR, "val2"))
-                .addQueries(and().add(eq(id(), uuid.toString()), eq(TITLE, VALUE_MY_TITLE)));
+                .addQueries(and().add(eq(id(), uuid.toString()), match(TITLE, VALUE_MY_TITLE)));
         } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -1095,7 +1150,7 @@ public class DbRequestTest {
         final SelectMultiQuery select = new SelectMultiQuery();
         try {
             select.addUsedProjection(id(), TITLE, DESCRIPTION)
-                .addQueries(and().add(eq(id(), uuid.toString()), eq(TITLE, VALUE_MY_TITLE)),
+                .addQueries(and().add(eq(id(), uuid.toString()), match(TITLE, VALUE_MY_TITLE)),
                     eq(id(), uuid2.toString()));
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             e.printStackTrace();
@@ -1129,7 +1184,7 @@ public class DbRequestTest {
         final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
         LOGGER.debug("InsertParser: {}", insertParser);
         final Result result = dbRequest.execRequest(insertParser, null);
-        assertEquals("Document{{results=null}}", result.getFinal().toString());
+        assertEquals("[]", result.getFinal().toString());
 
         final Bson projection = null;
         result.setFinal(projection);
@@ -1139,12 +1194,6 @@ public class DbRequestTest {
         result.putFrom(result);
         assertEquals(1, result.currentIds.size());
         assertEquals(1, (int) result.nbResult);
-
-        final Set<String> currentIds = new HashSet<>();
-        currentIds.add("UNITS");
-        currentIds.add("OBJECTGROUPS");
-        result.setCurrentIds(currentIds);
-        assertEquals(2, result.currentIds.size());
     }
 
     @Test
@@ -1171,7 +1220,7 @@ public class DbRequestTest {
             JsonHandler
                 .getFromString("{\"#id\":\"" +
                     uuid +
-                    "\", \"OriginatingAgency\": \"FRAN_NP_050056\",  \"FileInfo\": { \"Filename\": \"Filename0\"}, \"_qualifiers\": [{ \"qualifier\": \"BinaryMaster\"}]}");
+                    "\", \"#Originating_Agency\": \"FRAN_NP_050056\",  \"FileInfo\": { \"Filename\": \"Filename0\"}, \"#qualifiers\": [{ \"qualifier\": \"BinaryMaster\"}]}");
         System.out.println(json.get("_qualifiers"));
         // "OriginatingAgency": "FRAN_NP_050056"
         insert.addData((ObjectNode) json);
@@ -1207,7 +1256,7 @@ public class DbRequestTest {
     @RunWithCustomExecutor
     public void testOGElasticsearchIndex() throws Exception {
         final GUID uuid = GUIDFactory.newUnitGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setTenantId(0);
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         final DbRequest dbRequest = new DbRequest();
         RequestParserMultiple requestParser = null;
 
@@ -1223,20 +1272,20 @@ public class DbRequestTest {
         result = checkExistence(dbRequest, uuid2, true);
         assertFalse(result.isError());
 
-        QueryBuilder qb = QueryBuilders.matchPhrasePrefixQuery("_id", uuid2);
+        final QueryBuilder qb = QueryBuilders.termQuery("_id", uuid2);
 
         // Use new esClient for have full elastic index and not just the id in the response.
-        SearchRequestBuilder request =
+        final SearchRequestBuilder request =
             esClientWithoutVitambBehavior.getClient()
                 .prepareSearch(getIndexName(MetadataCollections.C_OBJECTGROUP, tenantId))
                 .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setTypes(ObjectGroup.TYPEUNIQUE).setExplain(false)
                 .setSize(GlobalDatas.LIMIT_LOAD);
         request.setQuery(qb);
-        SearchResponse response = request.get();
+        final SearchResponse response = request.get();
         assertTrue(response != null);
         checkElasticResponseField(response, uuid.getId());
-        JsonNode jsonNode = JsonHandler.getFromString(response.toString());
-        SearchHits hits = response.getHits();
+        final JsonNode jsonNode = JsonHandler.getFromString(response.toString());
+        final SearchHits hits = response.getHits();
         assertEquals(1, hits.getTotalHits());
 
         LOGGER.debug("Elasticsearch Index for objectGroup ", response);
@@ -1244,28 +1293,28 @@ public class DbRequestTest {
 
     /**
      * Check elastic Search Response field
-     * 
+     *
      * @param response ElasticSearch response
      * @param parentUuid the parentUuid
      */
     private void checkElasticResponseField(SearchResponse response, String parentUuid) {
-        Iterator<SearchHit> iterator = response.getHits().iterator();
+        final Iterator<SearchHit> iterator = response.getHits().iterator();
         while (iterator.hasNext()) {
-            SearchHit searchHit = (SearchHit) iterator.next();
-            Map<String, Object> source = searchHit.getSource();
-            for (String key : source.keySet()) {
+            final SearchHit searchHit = iterator.next();
+            final Map<String, Object> source = searchHit.getSource();
+            for (final String key : source.keySet()) {
                 if ("_qualifiers".equals(key)) {
-                    List<Map<String, Object>> qualifiers = (List<Map<String, Object>>) source.get(key);
-                    for (Map qualifier : qualifiers) {
+                    final List<Map<String, Object>> qualifiers = (List<Map<String, Object>>) source.get(key);
+                    for (final Map qualifier : qualifiers) {
                         assertEquals("BinaryMaster", qualifier.get("qualifier"));
                     }
-                } else if ("OriginatingAgency".equals(key)) {
-                    assertEquals("FRAN_NP_050056", (String) source.get(key));
+                } else if ("_Originating_Agency".equals(key)) {
+                    assertEquals("FRAN_NP_050056", source.get(key));
                 } else if ("FileInfo".equals(key)) {
-                    Map<String, Object> fileInfo = (Map<String, Object>) source.get(key);
+                    final Map<String, Object> fileInfo = (Map<String, Object>) source.get(key);
                     assertEquals("Filename0", fileInfo.get("Filename"));
                 } else if ("_up".equals(key)) {
-                    List<String> ups = (List<String>) source.get(key);
+                    final List<String> ups = (List<String>) source.get(key);
                     assertEquals(parentUuid, ups.get(0));
                 }
             }
@@ -1318,7 +1367,7 @@ public class DbRequestTest {
             (ObjectNode) JsonHandler
                 .getFromString("{\"#id\":\"" +
                     uuid +
-                    "\", \"#qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description\" : \"Test\"}}, \"title\":\"title1\"}");
+                    "\", \"#qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description\" : \"Test\"}}, \"Title\":\"title1\"}");
 
         insert.addData(json);
         final ObjectNode insertNode = insert.getFinalInsert();
@@ -1330,15 +1379,15 @@ public class DbRequestTest {
         // Check _og
         Result result = checkExistence(dbRequest, uuidUnit, false);
         assertFalse(result.isError());
-        BasicDBList list = (BasicDBList) result.getFinal().get(Result.RESULT_FIELD);
-        final Document unit = (Document) list.get(0);
+        List<MetadataDocument<?>> list = result.getFinal();
+        final Document unit = list.get(0);
         assertTrue(unit.getString("_og").equals(uuid.getId()));
 
         // Check _up is set as _og
         result = checkExistence(dbRequest, uuid, true);
         assertFalse(result.isError());
-        list = (BasicDBList) result.getFinal().get(Result.RESULT_FIELD);
-        final Document og = (Document) list.get(0);
+        list = result.getFinal();
+        final Document og = list.get(0);
         System.err.println(og);
         System.err.println(og.get("_up"));
         System.err.println(uuidUnit.getId());
@@ -1372,12 +1421,12 @@ public class DbRequestTest {
             (ObjectNode) JsonHandler
                 .getFromString("{\"#id\":\"" +
                     uuid1 +
-                    "\", \"#qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description\" : \"Test\"}}, \"title\":\"title1\"}");
+                    "\", \"#qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description\" : \"Test\"}}, \"Title\":\"title1\"}");
         final ObjectNode json1 =
             (ObjectNode) JsonHandler
                 .getFromString("{\"#id\":\"" +
                     uuid2 +
-                    "\", \"#qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description1\" : \"Test\"}}, \"title\":\"title1\"}");
+                    "\", \"#qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description1\" : \"Test\"}}, \"Title\":\"title1\"}");
         insert.addData(json).addRoots(uuid01.getId());
         ObjectNode insertRequestString = insert.getFinalInsert();
         requestParser = new InsertParserMultiple(mongoDbVarNameAdapter);
@@ -1400,11 +1449,11 @@ public class DbRequestTest {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         final DbRequest dbRequest = new DbRequest();
         final JsonNode selectRequest = JsonHandler.getFromString(REQUEST_SELECT_TEST);
-        final SelectParserMultiple selectParser = new SelectParserMultiple();
+        final SelectParserMultiple selectParser = new SelectParserMultiple(mongoDbVarNameAdapter);
         selectParser.parse(selectRequest);
         LOGGER.debug("SelectParser: {}", selectRequest);
         final Result result = dbRequest.execRequest(selectParser, null);
-        assertEquals("Document{{results=null}}", result.getFinal().toString());
+        assertEquals("[]", result.getFinal().toString());
 
     }
 
@@ -1422,7 +1471,7 @@ public class DbRequestTest {
         LOGGER.debug("InsertParser: {}", insertParser);
         dbRequest.execRequest(insertParser, null);
         final JsonNode selectRequest = JsonHandler.getFromString(REQUEST_SELECT_TEST);
-        final SelectParserMultiple selectParser = new SelectParserMultiple();
+        final SelectParserMultiple selectParser = new SelectParserMultiple(mongoDbVarNameAdapter);
         selectParser.parse(selectRequest);
         LOGGER.debug("SelectParser: {}", selectRequest);
         final Result result2 = dbRequest.execRequest(selectParser, null);
@@ -1433,7 +1482,7 @@ public class DbRequestTest {
     @RunWithCustomExecutor
     public void shouldSelectNoResultSinceOtherTenantUsed() throws Exception {
 
-        VitamThreadUtils.getVitamSession().setTenantId(5);
+        VitamThreadUtils.getVitamSession().setTenantId(2);
         final DbRequest dbRequest = new DbRequest();
         // unit is insterted with tenantId = 0
         final JsonNode insertRequest = buildQueryJsonWithOptions("", REQUEST_INSERT_TEST_2);
@@ -1441,8 +1490,9 @@ public class DbRequestTest {
         insertParser.parse(insertRequest);
         LOGGER.debug("InsertParser: {}", insertParser);
         dbRequest.execRequest(insertParser, null);
+        VitamThreadUtils.getVitamSession().setTenantId(3);
         final JsonNode selectRequest = JsonHandler.getFromString(REQUEST_SELECT_TEST);
-        final SelectParserMultiple selectParser = new SelectParserMultiple();
+        final SelectParserMultiple selectParser = new SelectParserMultiple(mongoDbVarNameAdapter);
         selectParser.parse(selectRequest);
         LOGGER.debug("SelectParser: {}", selectRequest);
         final Result result2 = dbRequest.execRequest(selectParser, null);
@@ -1454,9 +1504,7 @@ public class DbRequestTest {
     @RunWithCustomExecutor
     public void shouldSelectUnitResultWithES() throws Exception {
 
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
-        esClient.deleteIndex(MetadataCollections.C_UNIT, TENANT_ID_0);
-        esClient.addIndex(MetadataCollections.C_UNIT, TENANT_ID_0);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_2);
 
         // OG ???
 
@@ -1467,44 +1515,44 @@ public class DbRequestTest {
         LOGGER.debug("InsertParser: {}", insertParser);
         dbRequest.execRequest(insertParser, null);
         final JsonNode selectRequest1 = JsonHandler.getFromString(REQUEST_SELECT_TEST_ES_1);
-        final SelectParserMultiple selectParser1 = new SelectParserMultiple();
+        final SelectParserMultiple selectParser1 = new SelectParserMultiple(mongoDbVarNameAdapter);
         selectParser1.parse(selectRequest1);
         LOGGER.debug("SelectParser: {}", selectRequest1);
-        esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_0);
+        esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_2);
         final Result resultSelect1 = dbRequest.execRequest(selectParser1, null);
         assertEquals(1, resultSelect1.nbResult);
 
         final JsonNode selectRequest2 = JsonHandler.getFromString(REQUEST_SELECT_TEST_ES_2);
-        final SelectParserMultiple selectParser2 = new SelectParserMultiple();
+        final SelectParserMultiple selectParser2 = new SelectParserMultiple(mongoDbVarNameAdapter);
         selectParser2.parse(selectRequest2);
         LOGGER.debug("SelectParser: {}", selectRequest2);
         final Result resultSelect2 = dbRequest.execRequest(selectParser2, null);
         assertEquals(1, resultSelect2.nbResult);
 
         final JsonNode selectRequest3 = JsonHandler.getFromString(REQUEST_SELECT_TEST_ES_3);
-        final SelectParserMultiple selectParser3 = new SelectParserMultiple();
+        final SelectParserMultiple selectParser3 = new SelectParserMultiple(mongoDbVarNameAdapter);
         selectParser3.parse(selectRequest3);
         LOGGER.debug("SelectParser: {}", selectRequest3);
         final Result resultSelect3 = dbRequest.execRequest(selectParser3, null);
         assertEquals(1, resultSelect3.nbResult);
 
         final JsonNode selectRequest4 = JsonHandler.getFromString(REQUEST_SELECT_TEST_ES_4);
-        final SelectParserMultiple selectParser4 = new SelectParserMultiple();
+        final SelectParserMultiple selectParser4 = new SelectParserMultiple(mongoDbVarNameAdapter);
         selectParser4.parse(selectRequest4);
         LOGGER.debug("SelectParser: {}", selectRequest4);
         final Result resultSelect4 = dbRequest.execRequest(selectParser4, null);
         assertEquals(1, resultSelect4.nbResult);
 
         InsertMultiQuery insert = new InsertMultiQuery();
-        insert.parseData(REQUEST_INSERT_TEST_ES_2).addRoots("aebaaaaaaaaaaaabaahbcakzu2stfryaaaaq");
+        insert.parseData(REQUEST_INSERT_TEST_ES_2).addRoots(UUID2);
         insertParser.parse(insert.getFinalInsert());
         LOGGER.debug("InsertParser: {}", insertParser);
         dbRequest.execRequest(insertParser, null);
-        esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_0);
+        esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_2);
 
         SelectMultiQuery select = new SelectMultiQuery();
         select.addQueries(match("Description", "description OK").setDepthLimit(1))
-            .addRoots("aebaaaaaaaaaaaabaahbcakzu2stfryaaaaq");
+            .addRoots(UUID2);
         selectParser1.parse(select.getFinalSelect());
         LOGGER.debug("SelectParser: {}", selectParser1.getRequest());
         final Result resultSelectRel0 = dbRequest.execRequest(selectParser1, null);
@@ -1514,7 +1562,7 @@ public class DbRequestTest {
 
         select = new SelectMultiQuery();
         select.addQueries(match("Description", "description OK").setDepthLimit(1))
-            .addRoots("aebaaaaaaaaaaaabaahbcakzu2stfryaaaaq");
+            .addRoots(UUID2);
         selectParser1.parse(select.getFinalSelect());
         LOGGER.debug("SelectParser: {}", selectParser1.getRequest());
         final Result resultSelectRel1 = dbRequest.execRequest(selectParser1, null);
@@ -1524,10 +1572,10 @@ public class DbRequestTest {
 
         select = new SelectMultiQuery();
         select.addQueries(match("Description", "description OK").setDepthLimit(3))
-            .addRoots("aebaaaaaaaaaaaabaahbcakzu2stfryaaaaq");
+            .addRoots(UUID2);
         selectParser1.parse(select.getFinalSelect());
         LOGGER.debug("SelectParser: {}", selectParser1.getRequest());
-        final Result resultSelectRel3 = dbRequest.execRequest(selectParser1, null);
+        final Result<MetadataDocument<?>> resultSelectRel3 = dbRequest.execRequest(selectParser1, null);
         assertEquals(1, resultSelectRel3.nbResult);
         assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaar",
             resultSelectRel3.getCurrentIds().iterator().next().toString());
@@ -1537,9 +1585,9 @@ public class DbRequestTest {
         insertParser.parse(insert.getFinalInsert());
         LOGGER.debug("InsertParser: {}", insertParser);
         dbRequest.execRequest(insertParser, null);
-        esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_0);
+        esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_2);
 
-        final Result resultSelectRel4 = dbRequest.execRequest(selectParser1, null);
+        final Result<MetadataDocument<?>> resultSelectRel4 = dbRequest.execRequest(selectParser1, null);
         assertEquals(2, resultSelectRel4.nbResult);
         for (final String root : resultSelectRel4.getCurrentIds()) {
             assertTrue(root.equalsIgnoreCase("aeaqaaaaaet33ntwablhaaku6z67pzqaaaat") ||
@@ -1547,25 +1595,25 @@ public class DbRequestTest {
         }
 
         insert = new InsertMultiQuery();
-        insert.parseData(REQUEST_INSERT_TEST_ES_4).addRoots("aebaaaaaaaaaaaabaahbcakzu2stfryaaaaq");
+        insert.parseData(REQUEST_INSERT_TEST_ES_4).addRoots(UUID2);
         insertParser.parse(insert.getFinalInsert());
         LOGGER.debug("InsertParser: {}", insertParser);
         dbRequest.execRequest(insertParser, null);
-        esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_0);
+        esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_2);
 
         select = new SelectMultiQuery();
         select.addQueries(match("Title", "othervalue").setDepthLimit(1))
-            .addRoots("aebaaaaaaaaaaaabaahbcakzu2stfryaaaaq");
+            .addRoots(UUID2);
         selectParser1.parse(select.getFinalSelect());
         LOGGER.debug("SelectParser: {}", selectParser1.getRequest());
-        final Result resultSelectRel5 = dbRequest.execRequest(selectParser1, null);
+        final Result<MetadataDocument<?>> resultSelectRel5 = dbRequest.execRequest(selectParser1, null);
         assertEquals(1, resultSelectRel5.nbResult);
         assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaas",
             resultSelectRel5.getCurrentIds().iterator().next().toString());
 
         // Check for "France.pdf"
         select = new SelectMultiQuery();
-        select.addRoots("aebaaaaaaaaaaaabaahbcakzu2stfryaaaaq").addQueries(match("Title", "Frânce").setDepthLimit(1));
+        select.addRoots(UUID2).addQueries(match("Title", "Frânce").setDepthLimit(1));
         selectParser1.parse(select.getFinalSelect());
         LOGGER.debug("SelectParser: {}", selectParser1.getRequest());
         final Result resultSelectRel6 = dbRequest.execRequest(selectParser1, null);
@@ -1575,7 +1623,7 @@ public class DbRequestTest {
 
         // Check for "social vs sociales"
         select = new SelectMultiQuery();
-        select.addRoots("aebaaaaaaaaaaaabaahbcakzu2stfryaaaaq").addQueries(match("Title", "social").setDepthLimit(1));
+        select.addRoots(UUID2).addQueries(match("Title", "social").setDepthLimit(1));
         selectParser1.parse(select.getFinalSelect());
         LOGGER.debug("SelectParser: {}", selectParser1.getRequest());
         final Result resultSelectRel7 = dbRequest.execRequest(selectParser1, null);
@@ -1599,23 +1647,41 @@ public class DbRequestTest {
     @RunWithCustomExecutor
     public void shouldSelectUnitResultWithESTenant1() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_1);
-        esClient.addIndex(MetadataCollections.C_UNIT, TENANT_ID_1);
 
         final DbRequest dbRequest = new DbRequest();
-        final JsonNode insertRequest = buildQueryJsonWithOptions("", REQUEST_INSERT_TEST_ES);
+        final JsonNode insertRequest = buildQueryJsonWithOptions("", REQUEST_INSERT_TEST_ES_1_TENANT_1);
         final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
         insertParser.parse(insertRequest);
         LOGGER.debug("InsertParser: {}", insertParser);
         dbRequest.execRequest(insertParser, null);
         final JsonNode selectRequest1 = JsonHandler.getFromString(REQUEST_SELECT_TEST_ES_1);
-        final SelectParserMultiple selectParser1 = new SelectParserMultiple();
+        final SelectParserMultiple selectParser1 = new SelectParserMultiple(mongoDbVarNameAdapter);
         selectParser1.parse(selectRequest1);
         LOGGER.debug("SelectParser: {}", selectRequest1);
         esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_1);
         final Result resultSelect1 = dbRequest.execRequest(selectParser1, null);
         assertEquals(1, resultSelect1.nbResult);
+    }
 
-        esClient.deleteIndex(MetadataCollections.C_UNIT, TENANT_ID_1);
+    @Test
+    @RunWithCustomExecutor
+    public void shouldSelectUnitResultWithESTenant1ButTenant0() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_1);
+
+        final DbRequest dbRequest = new DbRequest();
+        final JsonNode insertRequest = buildQueryJsonWithOptions("", REQUEST_INSERT_TEST_ES_1_TENANT_1);
+        final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
+        insertParser.parse(insertRequest);
+        LOGGER.debug("InsertParser: {}", insertParser);
+        dbRequest.execRequest(insertParser, null);
+        final JsonNode selectRequest1 = JsonHandler.getFromString(REQUEST_SELECT_TEST_ES_1);
+        final SelectParserMultiple selectParser1 = new SelectParserMultiple(mongoDbVarNameAdapter);
+        selectParser1.parse(selectRequest1);
+        LOGGER.debug("SelectParser: {}", selectRequest1);
+        esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_0);
+        esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_1);
+        final Result resultSelect1 = dbRequest.execRequest(selectParser1, null);
+        assertEquals(1, resultSelect1.nbResult);
     }
 
 
@@ -1627,15 +1693,23 @@ public class DbRequestTest {
         final DbRequest dbRequest = new DbRequest();
         final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
         final InsertMultiQuery insert = new InsertMultiQuery();
-        insert.parseData(REQUEST_INSERT_TEST_ES_UPDATE).addRoots("aeaqaaaaaaaaaaabab4roakztdjqziaaaaaq");
+        insert.parseData(REQUEST_INSERT_TEST_ES_UPDATE);
         insertParser.parse(insert.getFinalInsert());
         LOGGER.debug("InsertParser: {}", insertParser);
         dbRequest.execRequest(insertParser, null);
         esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_0);
 
+        // check value should exist in the collection
+        SelectParserMultiple selectParser2 = new SelectParserMultiple(mongoDbVarNameAdapter);
+        SelectMultiQuery select1 = new SelectMultiQuery();
+        select1.addQueries(match("Title", "Archive").setDepthLimit(0)).addRoots(UUID1);
+        selectParser2.parse(select1.getFinalSelect());
+        Result resultSelectRel6 = dbRequest.execRequest(selectParser2, null);
+        assertEquals(1, resultSelectRel6.nbResult);
+
         // update title Archive 3 to Archive 2
         final JsonNode updateRequest = JsonHandler.getFromString(REQUEST_UPDATE_INDEX_TEST);
-        final UpdateParserMultiple updateParser = new UpdateParserMultiple();
+        final UpdateParserMultiple updateParser = new UpdateParserMultiple(mongoDbVarNameAdapter);
         updateParser.parse(updateRequest);
         LOGGER.debug("UpdateParser: {}", updateParser.getRequest());
         final Result result2 = dbRequest.execRequest(updateParser, null);
@@ -1644,26 +1718,23 @@ public class DbRequestTest {
         esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_0);
 
         // check old value should not exist in the collection
-        final JsonNode selectRequest2 = JsonHandler.getFromString(REQUEST_SELECT_TEST_ES_UPDATE);
-        final SelectParserMultiple selectParser2 = new SelectParserMultiple();
-        final SelectMultiQuery select1 = new SelectMultiQuery();
-        select1.addQueries(eq("title", "Archive3").setDepthLimit(1))
-            .addRoots("aeaqaaaaaaaaaaabab4roakztdjqziaaaaaq");
+        selectParser2 = new SelectParserMultiple(mongoDbVarNameAdapter);
+        select1 = new SelectMultiQuery();
+        select1.addQueries(match("Title", "ArchiveTest").setDepthLimit(0)).addRoots(UUID1);
         selectParser2.parse(select1.getFinalSelect());
-        LOGGER.debug("SelectParser: {}", selectRequest2);
-        final Result resultSelectRel6 = dbRequest.execRequest(selectParser2, null);
+        resultSelectRel6 = dbRequest.execRequest(selectParser2, null);
         assertEquals(0, resultSelectRel6.nbResult);
 
         // check new value should exist in the collection
         final JsonNode selectRequest1 = JsonHandler.getFromString(REQUEST_SELECT_TEST_ES_UPDATE);
-        final SelectParserMultiple selectParser1 = new SelectParserMultiple();
+        final SelectParserMultiple selectParser1 = new SelectParserMultiple(mongoDbVarNameAdapter);
         final SelectMultiQuery select = new SelectMultiQuery();
-        select.addQueries(eq("title", "Archive2").setDepthLimit(1)).addRoots("aeaqaaaaaaaaaaabab4roakztdjqziaaaaaq");
+        select.addQueries(match("Title", "ArchiveDoubleTest").setDepthLimit(0)).addRoots(UUID1);
         selectParser1.parse(select.getFinalSelect());
         LOGGER.debug("SelectParser: {}", selectRequest1);
         final Result resultSelectRel5 = dbRequest.execRequest(selectParser1, null);
         assertEquals(1, resultSelectRel5.nbResult);
-        assertEquals("aeaqaaaaaaaaaaabab4roakztdjqziaaaaaq",
+        assertEquals(UUID1,
             resultSelectRel5.getCurrentIds().iterator().next().toString());
     }
 
@@ -1703,8 +1774,6 @@ public class DbRequestTest {
     @RunWithCustomExecutor
     public void testInsertUnitWithTenant() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
-        esClient.addIndex(MetadataCollections.C_UNIT, TENANT_ID_0);
-        esClient.addIndex(MetadataCollections.C_UNIT, TENANT_ID_1);
         final DbRequest dbRequest = new DbRequest();
         final JsonNode insertRequest = buildQueryJsonWithOptions("", REQUEST_INSERT_TEST_1);
         final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
@@ -1713,7 +1782,7 @@ public class DbRequestTest {
         dbRequest.execRequest(insertParser, null);
 
         final JsonNode selectRequest = JsonHandler.getFromString(REQUEST_SELECT_TEST);
-        final SelectParserMultiple selectParser = new SelectParserMultiple();
+        final SelectParserMultiple selectParser = new SelectParserMultiple(mongoDbVarNameAdapter);
         selectParser.parse(selectRequest);
         LOGGER.debug("SelectParser: {}", selectRequest);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_1);
@@ -1752,8 +1821,6 @@ public class DbRequestTest {
     @RunWithCustomExecutor
     public void testInsertGOWithTenant() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
-        esClient.addIndex(MetadataCollections.C_OBJECTGROUP, TENANT_ID_0);
-        esClient.addIndex(MetadataCollections.C_OBJECTGROUP, TENANT_ID_1);
 
         final GUID uuid = GUIDFactory.newObjectGroupGUID(TENANT_ID_0);
         final DbRequest dbRequest = new DbRequest();

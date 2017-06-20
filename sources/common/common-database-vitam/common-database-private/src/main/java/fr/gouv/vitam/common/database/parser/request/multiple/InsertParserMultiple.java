@@ -49,7 +49,7 @@ public class InsertParserMultiple extends RequestParserMultiple {
     VarNameInsertAdapter insertAdapter;
 
     /**
-     *
+     * Should be used in Internal API
      */
     public InsertParserMultiple() {
         super();
@@ -57,6 +57,8 @@ public class InsertParserMultiple extends RequestParserMultiple {
     }
 
     /**
+     * Should be used in Masterdata or Metadata
+     * 
      * @param adapter VarNameAdapter
      *
      */
@@ -98,7 +100,7 @@ public class InsertParserMultiple extends RequestParserMultiple {
         }
         final JsonNode node = getRequest().getData();
         final int nodeDepth = GlobalDatasParser.getJsonNodedepth(node);
-        if (nodeDepth >= GlobalDatasParser.MAXDEPTH) {
+        if (nodeDepth >= GlobalDatas.MAXDEPTH) {
             throw new InvalidParseOperationException("Node depth exception, value: " + nodeDepth);
         }
     }

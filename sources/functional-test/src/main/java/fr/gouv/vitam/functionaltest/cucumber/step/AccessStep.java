@@ -570,7 +570,7 @@ public class AccessStep {
     public void the_LFC_status_are(List<String> eventNames, String eventStatus)
         throws Throwable {
         ArrayNode actual = (ArrayNode) results.get(0).get("events");
-        List<JsonNode> list = JsonHandler.toArrayList(actual);
+        List<JsonNode> list = (List<JsonNode>) JsonHandler.toArrayList(actual);
         try (AutoCloseableSoftAssertions softly = new AutoCloseableSoftAssertions()) {
             for (String eventName : eventNames) {
                 List<JsonNode> events =

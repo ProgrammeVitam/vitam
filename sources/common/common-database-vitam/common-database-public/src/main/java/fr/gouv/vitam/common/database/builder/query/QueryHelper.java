@@ -620,6 +620,18 @@ public class QueryHelper {
      *
      * @param variableName key name
      * @param value of key
+     * @return a MatchQuery using MATCH operator
+     * @throws InvalidCreateOperationException when creating query errors
+     */
+    public static final MatchQuery matchAll(final String variableName, final String value)
+        throws InvalidCreateOperationException {
+        return new MatchQuery(QUERY.MATCH_ALL, variableName, value);
+    }
+
+    /**
+     *
+     * @param variableName key name
+     * @param value of key
      * @return a MatchQuery using MATCH_PHRASE operator
      * @throws InvalidCreateOperationException when creating query errors
      */

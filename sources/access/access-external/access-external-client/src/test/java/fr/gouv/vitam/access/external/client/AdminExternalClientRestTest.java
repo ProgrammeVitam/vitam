@@ -274,7 +274,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
         assertThat(client.findDocumentById(AdminCollections.FORMATS, ID, TENANT_ID).getHttpCode())
-            .isEqualTo(Status.NOT_FOUND.getStatusCode());
+            .isEqualTo(Status.UNAUTHORIZED.getStatusCode());
     }
 
     @Test

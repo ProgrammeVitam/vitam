@@ -35,6 +35,8 @@ import org.bson.Document;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
+import fr.gouv.vitam.common.guid.GUIDReader;
 
 /**
  * FileFormat define the file referential format for Vitam
@@ -101,11 +103,6 @@ public class FileFormat extends VitamDocument<FileFormat> {
      * Empty value
      */
     private static final String EMPTY_STRING = "";
-
-    /**
-     * ES Mapping
-     */
-    public static final String TYPEUNIQUE = "typeunique";
 
     /**
      * empty constructor
@@ -310,5 +307,11 @@ public class FileFormat extends VitamDocument<FileFormat> {
         }
         return this;
     }
+
+    @Override
+    protected boolean isMultTenant() {
+        return false;
+    }
+
 
 }

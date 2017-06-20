@@ -197,17 +197,19 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         throws IllegalArgumentException, InvalidParseOperationException, AccessInternalExecutionException {
 
         JsonNode jsonNode = null;
+        LOGGER.debug("DEBUG: start selectUnits {}", jsonQuery);
 
         try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(jsonQuery);
             // Check correctness of request
+            LOGGER.debug("{}", jsonNode);
             final RequestParserMultiple parser = RequestParserHelper.getParser(jsonQuery.deepCopy());
             parser.getRequest().reset();
             if (!(parser instanceof SelectParserMultiple)) {
                 throw new InvalidParseOperationException("Not a Select operation");
             }
             jsonNode = metaDataClient.selectUnits(jsonQuery);
-
+            LOGGER.debug("DEBUG {}", jsonNode);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(PARSING_ERROR, e);
             throw e;

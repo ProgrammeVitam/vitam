@@ -55,7 +55,7 @@ public class RequestParserHelper {
     }
 
     /**
-     * Create one Parser according to: <br>
+     * Create one Parser for Internal API according to: <br>
      * InsertParser if { $roots: root, $query : query, $filter : filter, $data : data} <br>
      * UpdateParser if { $roots: root, $query : query, $filter : filter, $action : action } <br>
      * SelectParser if { $roots: roots, $query : query, $filter : filter, $projection : projection } <br>
@@ -70,7 +70,7 @@ public class RequestParserHelper {
     }
 
     /**
-     * Create one Parser according to: <br>
+     * Create one Parser for Metadata according to: <br>
      * InsertParser if { $roots: root, $query : query, $filter : filter, $data : data} <br>
      * UpdateParser if { $roots: root, $query : query, $filter : filter, $action : action } <br>
      * SelectParser if { $roots: roots, $query : query, $filter : filter, $projection : projection } <br>

@@ -28,12 +28,11 @@ package fr.gouv.vitam.common.database.parser.request.adapter;
 
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS;
-import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
- * Model for VarNameAdapter
+ * Model for VarNameAdapter for Single collections
  */
 public class SingleVarNameAdapter extends VarNameAdapter {
 
@@ -41,6 +40,7 @@ public class SingleVarNameAdapter extends VarNameAdapter {
      * Constructor
      */
     public SingleVarNameAdapter() {
+        // Empty
     }
 
     @Override
@@ -73,7 +73,7 @@ public class SingleVarNameAdapter extends VarNameAdapter {
                     case ID:
                         return VitamDocument.ID;
                     case VERSION:
-                    	return VitamDocument.VERSION;
+                        return VitamDocument.VERSION;
                     default:
                         break;
                 }

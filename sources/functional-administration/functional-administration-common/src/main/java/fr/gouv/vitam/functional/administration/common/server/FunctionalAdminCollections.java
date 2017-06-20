@@ -31,7 +31,17 @@ import com.mongodb.client.MongoDatabase;
 
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
-import fr.gouv.vitam.functional.administration.common.*;
+import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
+import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
+import fr.gouv.vitam.functional.administration.common.AccessContract;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
+import fr.gouv.vitam.functional.administration.common.Context;
+import fr.gouv.vitam.functional.administration.common.FileFormat;
+import fr.gouv.vitam.functional.administration.common.FileRules;
+import fr.gouv.vitam.functional.administration.common.IngestContract;
+import fr.gouv.vitam.functional.administration.common.Profile;
+import fr.gouv.vitam.functional.administration.common.VitamSequence;
 
 /**
  * All collections in functional admin module
@@ -40,63 +50,77 @@ public enum FunctionalAdminCollections {
     /**
      * Formats Collection
      */
-    FORMATS(FileFormat.class),
+    FORMATS(FileFormat.class, false, false),
 
     /**
      * Rules Collection
      */
-    RULES(FileRules.class),
+    RULES(FileRules.class, true, true),
 
     /**
      * Accession Register summary Collection
      */
-    ACCESSION_REGISTER_SUMMARY(AccessionRegisterSummary.class),
+    ACCESSION_REGISTER_SUMMARY(AccessionRegisterSummary.class, true, false),
 
     /**
      * Accession Register detail Collection
      */
     /**
-     * 
+     *
      */
-    ACCESSION_REGISTER_DETAIL(AccessionRegisterDetail.class),
-    
+    ACCESSION_REGISTER_DETAIL(AccessionRegisterDetail.class, true, false),
+
     /**
      * Ingest contract collection
-     * 
+     *
      */
-    INGEST_CONTRACT(IngestContract.class),
+    INGEST_CONTRACT(IngestContract.class, true, true),
 
     /**
      * Access contract collection
      *
      */
-    ACCESS_CONTRACT(AccessContract.class),
+    ACCESS_CONTRACT(AccessContract.class, true, true),
 
     /**
      * Access contract collection
      *
      */
-    VITAM_SEQUENCE(VitamSequence.class),
+    VITAM_SEQUENCE(VitamSequence.class, true, false),
 
     /**
      * Profile collection
      */
-    PROFILE(Profile.class),
-    
+    PROFILE(Profile.class, true, false),
+
     /**
      * Context collection
      */
-    CONTEXT(Context.class)
-    ;
+    CONTEXT(Context.class, false, false);
 
-    private VitamCollection vitamCollection;
+    final private VitamCollection vitamCollection;
+    final private boolean multitenant;
+    final private boolean usingScore;
 
-    private FunctionalAdminCollections(final Class<?> clasz) {
-        if (clasz.equals(FileFormat.class) || clasz.equals(Context.class)) {
-            vitamCollection = VitamCollectionHelper.getCollectionWithoutTenant(clasz);
-        } else {
-            vitamCollection = VitamCollectionHelper.getCollectionMultiTenant(clasz);
-        }
+    private FunctionalAdminCollections(final Class<?> clasz, boolean multitenant, boolean usingScore) {
+        this.multitenant = multitenant;
+        this.usingScore = usingScore;
+        vitamCollection = VitamCollectionHelper.getCollection(clasz, multitenant, usingScore);
+    }
+
+    /**
+     *
+     * @return True if this collection is multitenant
+     */
+    public boolean isMultitenant() {
+        return multitenant;
+    }
+
+    /**
+     * @return the usingScore
+     */
+    public boolean isUsingScore() {
+        return usingScore;
     }
 
     /**
@@ -108,7 +132,7 @@ public enum FunctionalAdminCollections {
     protected void initialize(final MongoDatabase db, final boolean recreate) {
         vitamCollection.initialize(db, recreate);
     }
-    
+
     /**
      * Initialize the collection
      *
@@ -128,6 +152,14 @@ public enum FunctionalAdminCollections {
     }
 
     /**
+     * 
+     * @return the type
+     */
+    public String getType() {
+        return "typeunique";
+    }
+    
+    /**
      *
      * @return the associated MongoCollection
      */
@@ -136,6 +168,9 @@ public enum FunctionalAdminCollections {
         return vitamCollection.getCollection();
     }
 
+    /**
+     * @return the associated VitamCollection
+     */
     public VitamCollection getVitamCollection() {
         return vitamCollection;
     }
@@ -158,12 +193,34 @@ public enum FunctionalAdminCollections {
         return vitamCollection.getCollection().count();
     }
 
-    
+    /**
+     * 
+     * @return the associated VarNameAdapter
+     */
+    public VarNameAdapter getVarNameAdapater() {
+        return new SingleVarNameAdapter();
+    }
+
     /**
      * get ElasticSearch Client
+     * 
      * @return client Es
      */
     public ElasticsearchAccessFunctionalAdmin getEsClient() {
         return (ElasticsearchAccessFunctionalAdmin) vitamCollection.getEsClient();
+    }
+    
+    /**
+     * 
+     * @param collection
+     * @return the corresponding FunctionalAdminCollections
+     */
+    public static FunctionalAdminCollections getFromVitamCollection(VitamCollection collection) {
+        for (FunctionalAdminCollections coll : FunctionalAdminCollections.values()) {
+            if (coll.getName().equals(collection.getName())) {
+                return coll;
+            }
+        }
+        return null;
     }
 }

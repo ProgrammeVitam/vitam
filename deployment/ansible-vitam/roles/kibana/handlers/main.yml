@@ -1,12 +1,11 @@
 ---
+
 # handlers file for log-server
 - name: restart kibana
-  service:
+  systemd:
     name: kibana
+    daemon_reload: yes
     state: restarted
-
-- name: systemctl reload-daemon # see https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-repositories.html
-  command: systemctl daemon-reload
 
 - name: reload consul configuration
   service:
