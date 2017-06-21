@@ -40,7 +40,7 @@ public class SipTool {
 
 
     public static Path copyAndModifyManifestInZip(Path zipPath, String text, String replacement) throws IOException {
-        File tempFile = new File(VitamConfiguration.getVitamTmpFolder() + "/" + GUIDFactory.newGUID());
+        File tempFile = new File( GUIDFactory.newGUID().toString());
         Files.copy(new FileInputStream(zipPath.toFile()), tempFile.toPath());
         try (FileSystem fs = FileSystems.newFileSystem(tempFile.toPath(), null)) {
             Path source = fs.getPath("manifest.xml");
