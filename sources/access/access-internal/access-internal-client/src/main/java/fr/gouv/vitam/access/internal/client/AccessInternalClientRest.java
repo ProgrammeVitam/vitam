@@ -248,7 +248,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                 case BAD_REQUEST:
                     throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
                 case PRECONDITION_FAILED:
-                    throw new AccessInternalClientServerException(response.getStatusInfo().getReasonPhrase());
+                    throw new IllegalArgumentException(response.getStatusInfo().getReasonPhrase());
                 case OK:
                     break;
                 case UNAUTHORIZED:

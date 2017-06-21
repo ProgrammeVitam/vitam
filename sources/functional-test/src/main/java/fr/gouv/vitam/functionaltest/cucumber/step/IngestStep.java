@@ -83,6 +83,8 @@ public class IngestStep {
     private Path sip;
 
     private World world;
+    private static  boolean deleteSip = false ;
+    private static  boolean attachMode = false ;
 
     public IngestStep(World world) {
         this.world = world;
@@ -117,6 +119,7 @@ public class IngestStep {
 
             assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
         }
+
     }
 
     /**
@@ -139,6 +142,9 @@ public class IngestStep {
 
             assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
         }
+        if(attachMode){
+            deleteSip = true;
+        }
     }
 
     /**
@@ -160,6 +166,9 @@ public class IngestStep {
                 .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1000l, TimeUnit.MILLISECONDS);
 
             assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+        }
+        if(attachMode){
+            deleteSip = true;
         }
     }
 
@@ -238,6 +247,7 @@ public class IngestStep {
     @When("je construit le sip de rattachement avec le template")
     public void build_the_attachenment() throws IOException {
         this.sip = SipTool.copyAndModifyManifestInZip(sip, SipTool.REPLACEMENT_STRING, world.getUnitId());
+        attachMode = true;
     }
 
     /**
@@ -254,8 +264,11 @@ public class IngestStep {
     }
     @After
     public void afterScenario() throws IOException {
-        if( this.sip!=null &&  this.sip.toAbsolutePath().toString().contains("/tmp")){
+
+        if( this.sip!=null  && deleteSip){
             Files.delete(this.sip);
-        }
+            deleteSip = false;
+            attachMode  = false;
+       }
     }
 }

@@ -482,7 +482,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     }
 
     @RunWithCustomExecutor
-    @Test(expected = AccessInternalClientServerException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenRaisePreconditionFailed() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
