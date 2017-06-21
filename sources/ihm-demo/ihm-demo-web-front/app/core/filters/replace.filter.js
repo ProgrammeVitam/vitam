@@ -29,8 +29,12 @@
 angular.module('ihm.demo')
   .filter('StrReplace', function () {
     return function (text) {
-      if(text){
-        return text.replace("INACTIVE","Inactif").replace("ACTIVE", "Actif");
+      if (text){
+        return text.toString()
+          .replace("INACTIVE","Inactif")
+          .replace("ACTIVE", "Actif")
+          .replace('true', 'Oui')
+          .replace('false', 'Non');
       }
       return text;
     };

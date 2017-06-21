@@ -51,6 +51,7 @@ angular.module('ihm.demo')
                 if (response.data.length !== 0) {
                     $scope.contract = response.data.$results[0];
                     $scope.tmpVars = angular.copy($scope.contract);
+                    $scope.tmpVars.isActive = $scope.contract.Status === 'ACTIVE';
                 }
             });
         };
