@@ -111,7 +111,7 @@
             <xsd:documentation>Référence à un objet-données ou à un groupe d'objets-données.</xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:choice minOccurs="0" maxOccurs="1">
+            <xsd:choice>
                 <xsd:element name="DataObjectReferenceId" type="DataObjectRefIdType">
                     <xsd:annotation>
                         <xsd:documentation>Référence à un objet-données listé dans les métadonnées de transport.</xsd:documentation>
@@ -120,12 +120,6 @@
                 <xsd:element name="DataObjectGroupReferenceId" type="GroupRefIdType">
                     <xsd:annotation>
                         <xsd:documentation>Référence à un groupe d'objets-données listé dans les métadonnées de transport.</xsd:documentation>
-                    </xsd:annotation>
-                </xsd:element>
-
-                <xsd:element name="DataObjectGroupExistingReferenceId" type="NonEmptyTokenType">
-                    <xsd:annotation>
-                        <xsd:documentation>Référence à un groupe d'objets-données déjà existants.</xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
             </xsd:choice>
