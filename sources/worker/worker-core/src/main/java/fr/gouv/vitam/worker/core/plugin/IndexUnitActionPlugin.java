@@ -201,25 +201,10 @@ public class IndexUnitActionPlugin extends ActionHandler {
 
         JsonNode archiveUnit = JsonHandler.getFromInputStream(input);
         ObjectNode archiveUnitNode = (ObjectNode) archiveUnit.get(ARCHIVE_UNIT);
-        ObjectNode workNode = (ObjectNode) archiveUnit.get(TAG_WORK);
 
         // replace _id by #id
         archiveUnitNode.set("#id", archiveUnitNode.get("_id"));
         archiveUnitNode.remove("_id");
-
-
-        // transform _up to real array
-        JsonNode upNode = workNode.get("_up");
-        if (upNode != null && upNode.isArray() && ((ArrayNode) upNode).size() > 0) {
-            // FIXME remove the ugly array ["GUID-GUID-GUID"] in extractSedaHandler
-            final JsonNode firstUpNode = ((ArrayNode) upNode).iterator().next();
-            final String[] parentsGuid = firstUpNode.asText().split(IngestWorkflowConstants.UPS_SEPARATOR);
-            final ArrayNode parentsArray = JsonHandler.createArrayNode();
-            for (final String parent : parentsGuid) {
-                parentsArray.add(parent);
-            }
-            workNode.set("_up", parentsArray);
-        }
 
         // replace Management by _mgt
         ObjectNode managementNode = (ObjectNode) archiveUnitNode.get(TAG_MANAGEMENT);

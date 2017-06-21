@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.core.handler;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
@@ -39,6 +40,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.validation.constraints.AssertTrue;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLStreamException;
@@ -210,6 +212,8 @@ public class ExtractSedaActionHandlerTest {
 
         final ItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
+        assertTrue(((String) response.getData().get(LogbookParameterName.eventDetailData.name()))
+            .contains("ArchivalProfile0"));
     }
 
     @Test

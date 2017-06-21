@@ -406,9 +406,10 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
             writeAttributeValue(xmlsw, SedaConstants.TAG_MESSAGE_REQUEST_IDENTIFIER, messageIdentifier);
 
-            if (infoATR.get(SedaConstants.TAG_ARCHIVE_PROFILE) != null) {
-                final String profilId = infoATR.get(SedaConstants.TAG_MESSAGE_IDENTIFIER).asText();
-                writeAttributeValue(xmlsw, SedaConstants.TAG_MESSAGE_REQUEST_IDENTIFIER, profilId);
+            if (infoATR.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE) != null &&
+                infoATR.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE).get(SedaConstants.TAG_ARCHIVE_PROFILE) != null) {
+                final String profilId = infoATR.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE).get(SedaConstants.TAG_ARCHIVE_PROFILE).asText();
+                writeAttributeValue(xmlsw, SedaConstants.TAG_ARCHIVE_PROFILE, profilId);
             }
 
             if (!isBlankTestWorkflow) {
@@ -502,6 +503,12 @@ public class TransferNotificationActionHandler extends ActionHandler {
                     (infoATR.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT) != null)
                         ? infoATR.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT).textValue() : "");
 
+                if (infoATR.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE) != null &&
+                    infoATR.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE).get(SedaConstants.TAG_ARCHIVE_PROFILE) != null) {
+                    final String profilId = infoATR.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE).get(SedaConstants.TAG_ARCHIVE_PROFILE).asText();
+                    writeAttributeValue(xmlsw, SedaConstants.TAG_ARCHIVE_PROFILE, profilId);
+                }
+                
                 xmlsw.writeStartElement(SedaConstants.TAG_CODE_LIST_VERSIONS);
                 if (infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS) != null) {
                     writeAttributeValue(xmlsw, SedaConstants.TAG_REPLY_CODE_LIST_VERSION,
