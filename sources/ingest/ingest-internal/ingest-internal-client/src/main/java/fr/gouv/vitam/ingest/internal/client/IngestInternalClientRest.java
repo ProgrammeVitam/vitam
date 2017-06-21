@@ -58,6 +58,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
 
 
 /**
@@ -109,7 +110,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     }
 
     @Override
-    public void upload(InputStream inputStream, MediaType archiveMimeType, String contextId) throws VitamException {
+    public void upload(InputStream inputStream, MediaType archiveMimeType, String contextId) throws WorkspaceClientServerException, VitamException {
         ParametersChecker.checkParameter("Params cannot be null", inputStream, archiveMimeType);
         ParametersChecker.checkParameter("context Id Request must not be null",
             contextId);
@@ -122,6 +123,8 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
                 inputStream, archiveMimeType, MediaType.APPLICATION_OCTET_STREAM_TYPE);
             if (Status.ACCEPTED.getStatusCode() == response.getStatus()) {
                 LOGGER.warn("SIP Warning : " + Status.ACCEPTED.getReasonPhrase());
+            } else if (Status.SERVICE_UNAVAILABLE.getStatusCode() == response.getStatus()) {
+                throw new WorkspaceClientServerException("Workspace Server Error");
             } else {
                 LOGGER.error("SIP Upload Error: " + Status.fromStatusCode(response.getStatus()).getReasonPhrase());
             }
