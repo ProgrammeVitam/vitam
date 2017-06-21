@@ -48,3 +48,14 @@ Valeurs possibles pour le champ Status de la collection AccessionRegisterDetail
   "Le fonds est complet sauvegardé", "STORED_AND_COMPLETED"
   "Le fonds est mis à jour est sauvegardé", "STORED_AND_UPDATED"
   "Le fonds n'est pas sauvagerdé", "UNSTORED"
+
+Valeurs possibles pour le champ Name de la collection VitamSecquence
+--------------------------------------------------------------------
+
+.. csv-table::
+  :header: "Prefixe", "Type de collection correspondante"
+
+  "AC", "AccessContract"
+  "IC", "IngestContract"
+  "PR", "Profile"
+  "CT", "Context"

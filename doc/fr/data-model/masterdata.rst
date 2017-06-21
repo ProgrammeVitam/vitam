@@ -318,10 +318,10 @@ Détail des champs
 "_tenant": information sur le tenant
   Il s'agit de l'identifiant du tenant
 
-"Name": nom du contrat d'entrée unique par tenant.
+"Name": *Champ obligatoire* nom du contrat d'entrée unique par tenant.
   Il s'agit d'une chaîne de caractères.
 
-"Identifier": identifiant signifiant donné au contrat.
+"Identifier": *Champ obligatoire* identifiant signifiant donné au contrat.
   Il est consituté du préfixe "IC-" suivi d'une suite de 6 chiffres. Par exemple : IC-007485.
   Il s'agit d'une chaîne de caractères.
 
@@ -346,7 +346,7 @@ Détail des champs
 "ArchiveProfiles": liste des profils d'archivage pouvant être utilisés par le contrat d'entrée.
   Tableau de chaînes de caractères correspondant à la valeur du champs Name de la collection Profile.
 
-"FilingParentId": le point de rattachement -- id d’une unité archivistique dans le plan de classement
+"FilingParentId": le point de rattachement automatique des SIP en application de ce contrat-- id d’une unité archivistique dans le plan de classement
   Il s'agit d'une chaîne de 36 caractères correspondant à un GUID dans le champ _id de la collection Unit.
 
 Collection AccessContract
@@ -418,14 +418,14 @@ Détail des champs
 "_tenant": information sur le tenant
   Il s'agit de l'identifiant du tenant
 
-"Name" : nom du contrat d'entrée unique par tenant.
+"Name" : *Champ obligatoire* nom du contrat d'entrée unique par tenant.
   Il s'agit d'une chaîne de caractères.
 
 "Identifier" : identifiant signifiant donné au contrat.
   Il est consituté du préfixe "AC-" suivi d'une suite de 6 chiffres. Par exemple : AC-001223.
   Il s'agit d'une chaîne de caractères.
 
-"Description": description du contrat d'accès.
+"Description": *Champ obligatoire* description du contrat d'accès.
   Il s'agit d'une chaîne de caractères.
 
 "Status": statut du contrat.
@@ -523,16 +523,16 @@ Détail des champs
   Il est consituté du préfixe "PR-" suivi d'une suite de 6 chiffres. Par exemple : PR-001573.
   Il s'agit d'une chaîne de caractères. 
 
-"Name": Indique le nom du profil SEDA.
+"Name": *Champ obligatoire* Indique le nom du profil SEDA.
   Il s'agit d'une chaîne de caractères unique par tenant. 
 
-"Description": Description du profil SEDA.
+"Description": *Champ obligatoire* Description du profil SEDA.
   Il s'agit d'une chaîne de caractères.
 
 "Status": Indique l'état du profil SEDA. 
   Il s'agit d'une chaîne de cractères devant correspondre à une valeur de l'énuméartion ProfileStatus, soit ACTIVE soit INACTIVE.
 
-"Format": Indique le format attendu pour le fichier décrivant les règles du profil d'archivage.
+"Format": *Champ obligatoire* Indique le format attendu pour le fichier décrivant les règles du profil d'archivage.
   Il s'agit d'une chaîne de cractères devant correspondre à l'énumération ProfileFormat. 
   
 "CreationDate": date de création du profil SEDA. 
@@ -600,7 +600,7 @@ Détail des champs
 "_id": identifiant unique dans l'ensemble du système.
   Il s'agit d'une chaîne de 36 caractères, fourni par le système
 
-"Name" : nom du contexte, qui doit être unique sur la plateforme
+"Name" : *Champ obligatoire* nom du contexte, qui doit être unique sur la plateforme
   Il s'agit d'une chaîne de caractères.
 
 "Identifier" : identifiant signifiant donné au contexte
@@ -612,7 +612,7 @@ Détail des champs
 
   * "false" : le contexte est inactif
 
-"Permissions" : début du bloc appliquant les permissions à chaque tenant.
+"Permissions" : *Champ obligatoire* début du bloc appliquant les permissions à chaque tenant.
   C'est un mot clé qui n'a pas de valeur associée.
 
 "_tenant": information sur le tenant
@@ -863,13 +863,14 @@ Collection VitamSecquence
 Utilisation de collection
 -------------------------
 
-Cette collection permet de générer des identifiants signifiants pour les enregistrement des collections suivantes :
+Cette collection permet de générer des identifiants signifiants pour les enregistrements des collections suivantes :
+
 * IngestContract
 * AccesContract
 * Context
 * Profil
   
-Ces identifiants sont reportés dans les champs identifier des collections concernées. Ceux-ci sont composé d'un préfixe de deux lettres, d'un tiret et d'une suite de six chiffres. Par exemple : IC-027593
+Ces identifiants sont composé d'un préfixe de deux lettres, d'un tiret et d'une suite de six chiffres. Par exemple : IC-027593. Il sont reportés dans les champs identifier des collections concernées. 
 
 Exemple de JSON stocké en base
 ------------------------------
@@ -890,7 +891,7 @@ Détail des champs
     Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
 
 "Name": préfixe.
-  Il s'agit du préfixe utilisé pour générer un identifiant signifiant. La valeur contenue dans ce champ doit correspondre à la map du service VitamCounterService.java.
+  Il s'agit du préfixe utilisé pour générer l'identifiant signifiant. La valeur contenue dans ce champ doit correspondre à la map du service VitamCounterService.java. La liste des valeurs possibles est détaillée en annexe 5.6.
   Il s'agit d'une chaîne de caractères.
 
 "Counter": numéro incrémental.
