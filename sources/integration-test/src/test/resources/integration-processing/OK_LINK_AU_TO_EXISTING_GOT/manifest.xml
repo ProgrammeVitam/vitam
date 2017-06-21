@@ -29,9 +29,9 @@
                     <Description>ok ID6</Description>
                     <TransactedDate>2016-11-07T08:54:11</TransactedDate>
                 </Content>
-                <DataObjectReference>
+                <DataObjectGroup>
                     <DataObjectGroupExistingReferenceId>toBeChanged</DataObjectGroupExistingReferenceId>
-                </DataObjectReference>
+                </DataObjectGroup>
             </ArchiveUnit>
         </DescriptiveMetadata>
         <ManagementMetadata>
