@@ -100,18 +100,21 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
             final StorageInformation[] informations = JsonHandler.getFromJsonNode(storageCapacityNode.get("capacities"),
                 StorageInformation[].class);
             if (informations.length > 0) {
+                //TODO Store on logbook eventDetailData
                 for (StorageInformation information : informations) {
-                    ItemStatus is = new ItemStatus(information.getOfferId());
+                    ItemStatus is = new ItemStatus(HANDLER_ID);
                     // Useful information ?
-                    is.setData("offerId", information.getOfferId());
+                    String eventDetailData = "{\"offerId\":" +   information.getOfferId();
+                    is.setData("offerId",eventDetailData);
+                    is.setEvDetailData(eventDetailData);
                     // if usable space not specified getUsableSpace() return -1
                     if (information.getUsableSpace() >= totalSizeToBeStored || information.getUsableSpace() == -1) {
                         is.increment(StatusCode.OK);
                     } else {
                         is.increment(StatusCode.KO);
                     }
-                    itemStatus.setItemsStatus(information.getOfferId(), is);
-
+                    itemStatus.setItemsStatus(HANDLER_ID, is);
+                    itemStatus.setEvDetailData(eventDetailData);
                 }
             } else {
                 LOGGER.warn("No information found for offers");

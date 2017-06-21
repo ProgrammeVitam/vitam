@@ -314,7 +314,6 @@ public class ProcessEngineImpl implements ProcessEngine {
 
                         startParameters.putParameterValue(LogbookParameterName.outcomeDetail,
                             messageLogbookEngineHelper.getOutcomeDetail(handlerId, sub.getItemId(), StatusCode.STARTED));
-
                         helper.updateDelegate(startParameters);
 
                         final LogbookOperationParameters sublogbook =
