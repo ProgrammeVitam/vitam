@@ -31,7 +31,6 @@ import java.util.List;
 
 import org.bson.BSONObject;
 import org.bson.Document;
-import org.glassfish.hk2.api.Unproxiable;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObject;
@@ -41,7 +40,6 @@ import com.mongodb.client.MongoCollection;
 import fr.gouv.vitam.common.SingletonUtils;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDObjectType;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;

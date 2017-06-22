@@ -1,6 +1,7 @@
 package fr.gouv.vitam.access.external.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
 
@@ -31,9 +32,9 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
@@ -215,6 +216,24 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         @Produces(MediaType.APPLICATION_OCTET_STREAM)
         public Response getObjectStreamPost(@Context HttpHeaders headers,
             @PathParam("id_object_group") String idObjectGroup, String query) {
+            return expectedResponse.post();
+        }
+
+        @GET
+        @Path("/units/{id_unit}/object")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getObjectGroupMetadatas(@Context HttpHeaders headers,
+            @PathParam("id_unit") String idUnit, String query) {
+            return expectedResponse.get();
+        }
+
+        @POST
+        @Path("/units/{id_unit}/object")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getObjectGroupMetadatasPost(@Context HttpHeaders headers,
+            @PathParam("id_unit") String idUnit, String query) {
             return expectedResponse.post();
         }
 

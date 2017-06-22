@@ -27,9 +27,6 @@
 package fr.gouv.vitam.metadata.core;
 
 
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.ne;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ID;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OPS;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ORIGINATING_AGENCIES;
@@ -44,8 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import fr.gouv.vitam.common.model.UnitType;
-import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -54,7 +49,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import com.mongodb.MongoWriteException;
 import com.mongodb.client.AggregateIterable;
-import com.mongodb.client.MongoCursor;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
@@ -71,6 +66,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.metadata.api.MetaData;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
@@ -78,21 +74,11 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
-import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbVarNameAdapter;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
+import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.core.utils.MetadataJsonResponseUtils;
-import org.bson.Document;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * MetaDataImpl implements a MetaData interface
@@ -107,7 +93,7 @@ public class MetaDataImpl implements MetaData {
     /**
      * MetaDataImpl constructor
      *
-     * @param configuration        of mongoDB access
+     * @param configuration of mongoDB access
      * @param mongoDbAccessFactory
      */
     private MetaDataImpl(MetaDataConfiguration configuration, MongoDbAccessMetadataFactory mongoDbAccessFactory) {
@@ -128,7 +114,7 @@ public class MetaDataImpl implements MetaData {
     /**
      * Get a new MetaDataImpl instance
      *
-     * @param configuration        of mongoDB access
+     * @param configuration of mongoDB access
      * @param mongoDbAccessFactory factory creating MongoDbAccessMetadata
      * @return a new instance of MetaDataImpl
      */
