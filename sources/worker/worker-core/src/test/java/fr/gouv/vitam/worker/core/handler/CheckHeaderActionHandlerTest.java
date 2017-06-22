@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.core.handler;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Matchers.eq;
@@ -63,6 +64,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
@@ -188,6 +190,8 @@ public class CheckHeaderActionHandlerTest {
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
         assertNotNull(response.getData());
         assertNotNull(response.getData().get(SedaConstants.TAG_MESSAGE_IDENTIFIER));
+        String evDetData = (String) response.getData().get(LogbookParameterName.eventDetailData.name());
+        assertTrue(evDetData.contains("ArchivalAgreement0"));
         action.partialClose();
 
     }

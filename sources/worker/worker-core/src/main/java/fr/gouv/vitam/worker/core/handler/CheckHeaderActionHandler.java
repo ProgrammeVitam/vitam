@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.parameters.LogbookEvDetDataType;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -78,7 +79,10 @@ public class CheckHeaderActionHandler extends ActionHandler {
         checkMandatoryParameters(params);
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
         final SedaUtils sedaUtils = SedaUtilsFactory.create(handlerIO);
-        Map<String, Object> madatoryValueMap = new HashMap<>();
+        Map<String, Object> madatoryValueMap = new HashMap<>();      
+        ObjectNode infoNode = JsonHandler.createObjectNode();
+        infoNode.put(LogbookOperationsClientHelper.EV_DET_DATA_TYPE, 
+            LogbookEvDetDataType.MASTER.name());
         final boolean shouldCheckContract  = Boolean.valueOf((String) handlerIO.getInput(CHECK_CONTRACT_RANK));
         final boolean shouldCheckOriginatingAgency = 
             Boolean.valueOf((String) handlerIO.getInput(CHECK_ORIGINATING_AGENCY_RANK));
@@ -101,6 +105,8 @@ public class CheckHeaderActionHandler extends ActionHandler {
         if (shouldCheckOriginatingAgency && 
             Strings.isNullOrEmpty((String) madatoryValueMap.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER))) {
             itemStatus.increment(StatusCode.KO);
+            itemStatus.setData(LogbookParameterName.eventDetailData.name(), 
+                JsonHandler.unprettyPrint(infoNode));
             return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
 
         }
@@ -114,20 +120,25 @@ public class CheckHeaderActionHandler extends ActionHandler {
 
         if (shouldCheckContract) {
             if (madatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT) != null) {
+                final String contractName = (String) madatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT);
+                infoNode.put(SedaConstants.TAG_ARCHIVAL_AGREEMENT, contractName);
                 handlerIO.getInput().clear();
-                handlerIO.getInput().add(madatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT));
+                handlerIO.getInput().add(contractName);
                 CheckIngestContractActionHandler checkIngestContractActionHandler = new CheckIngestContractActionHandler();
                 final ItemStatus checkContratItemStatus = checkIngestContractActionHandler.execute(params, handlerIO);
                 itemStatus.setItemsStatus(CheckIngestContractActionHandler.getId(), checkContratItemStatus);
                 checkIngestContractActionHandler.close();
                 if (checkContratItemStatus.shallStop(true)) {
+                    itemStatus.setData(LogbookParameterName.eventDetailData.name(), 
+                        JsonHandler.unprettyPrint(infoNode));
                     return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
                 }
             }            
         }
         if (shouldCheckProfile) {
             if (madatoryValueMap.get(SedaConstants.TAG_ARCHIVE_PROFILE) != null) {               
-
+                final String profileName = (String) madatoryValueMap.get(SedaConstants.TAG_ARCHIVE_PROFILE);
+                infoNode.put(SedaConstants.TAG_ARCHIVE_PROFILE, profileName);
                 handlerIO.getInput().clear();
                 handlerIO.getInput().add(madatoryValueMap.get(SedaConstants.TAG_ARCHIVE_PROFILE));
                 handlerIO.getInput().add(madatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT));
@@ -136,6 +147,8 @@ public class CheckHeaderActionHandler extends ActionHandler {
                 itemStatus.setItemsStatus(CheckArchiveProfileRelationActionHandler.getId(), checkProfilRelationItemStatus);
                 checkProfileRelation.close();
                 if (checkProfilRelationItemStatus.shallStop(true)) {
+                    itemStatus.setData(LogbookParameterName.eventDetailData.name(), 
+                        JsonHandler.unprettyPrint(infoNode));
                     return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
                 }
 
@@ -146,6 +159,8 @@ public class CheckHeaderActionHandler extends ActionHandler {
                 itemStatus.setItemsStatus(CheckArchiveProfileActionHandler.getId(), checkProfilItemStatus);
                 checkArchiveProfile.close();
                 if (checkProfilItemStatus.shallStop(true)) {
+                    itemStatus.setData(LogbookParameterName.eventDetailData.name(), 
+                        JsonHandler.unprettyPrint(infoNode));
                     return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
                 } 
 
@@ -163,6 +178,8 @@ public class CheckHeaderActionHandler extends ActionHandler {
             itemStatus.increment(StatusCode.OK);
         }
 
+        itemStatus.setData(LogbookParameterName.eventDetailData.name(), 
+            JsonHandler.unprettyPrint(infoNode));
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
