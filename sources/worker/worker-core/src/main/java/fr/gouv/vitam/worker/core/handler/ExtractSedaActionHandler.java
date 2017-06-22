@@ -2454,14 +2454,13 @@ public class ExtractSedaActionHandler extends ActionHandler {
     }
 
     private void linkToArchiveUnitDeclaredInTheIngestContract(ArrayNode upNode) {
-        if (filingParentId == null) {
-            findArchiveUnitDeclaredInTheIngestContract();
-        } else {
-            upNode.add(filingParentId);
-        }
+        findArchiveUnitDeclaredInTheIngestContract();
+        if (filingParentId != null) {
+            upNode.add(filingParentId); 
+        } 
     }
 
-    private void findArchiveUnitDeclaredInTheIngestContract() {
+    private boolean findArchiveUnitDeclaredInTheIngestContract() {
         try (final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
             final MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
 
@@ -2487,6 +2486,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         ObjectNode archiveUnit = JsonHandler.createObjectNode();
                         createArchiveUnitDeclaredInTheIngestContract(archiveUnit, res);
                         saveArchiveUnitDeclaredInTheIngestContract(archiveUnit, filingParentId);
+                        return true;
                     }
 
                 }
@@ -2502,6 +2502,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         } catch (ProcessingException e) {
             LOGGER.error("Cannot store the archive unit declared in the ingest contract :", e);
         }
+        return false;
     }
 
     private void createArchiveUnitDeclaredInTheIngestContract(ObjectNode archiveUnit, JsonNode res) {
