@@ -89,6 +89,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
     private static final String AU_NOT_HAVE_RULES = "Archive unit does not have rules";
     private static final String CHECKS_RULES = "Rules checks problem: missing parameters";
     private static final String UNLIMITED_RULE_DURATION = "unlimited";
+    private static final String NON_EXISTING_RULE = "Rule %s does not exist";
 
     private static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat(DATE_FORMAT_PATTERN);
 
@@ -283,6 +284,12 @@ public class UnitsRulesComputePlugin extends ActionHandler {
         throws FileRulesException, InvalidParseOperationException, ProcessingException, ParseException {
         String ruleId = ruleNode.get(SedaConstants.TAG_RULE_RULE).asText();
         String startDate = "";
+
+        if (getRuleNodeByID(ruleId, ruleType, rulesResults) == null) {
+            String errorMessage = String.format(NON_EXISTING_RULE, ruleId);
+            throw new ProcessingException(errorMessage);
+        }
+
         if (ruleNode.get(SedaConstants.TAG_RULE_START_DATE) != null) {
             startDate = ruleNode.get(SedaConstants.TAG_RULE_START_DATE).asText();
         }
