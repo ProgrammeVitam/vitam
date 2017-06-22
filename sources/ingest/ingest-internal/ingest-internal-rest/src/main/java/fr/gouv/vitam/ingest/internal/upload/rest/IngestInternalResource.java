@@ -759,33 +759,18 @@ public class IngestInternalResource extends ApplicationStatusResource {
                         }
                     }
                 }
-            } catch (final ContentAddressableStorageCompressedFileException e) {
-                if (parameters != null) {
-                    try {
-                        final String errorMsg = VitamLogbookMessages.getCodeOp(INGEST_INT_UPLOAD, StatusCode.KO);
-                        callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO, errorMsg);
-                        parameters.putParameterValue(LogbookParameterName.eventType, INGEST_INT_UPLOAD);
-                        callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO,
-                            VitamLogbookMessages.getCodeOp(INGEST_INT_UPLOAD, StatusCode.KO));
-                    } catch (final LogbookClientException e1) {
-                        LOGGER.error(e1);
-                    }
-                }
-                LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
-                AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                    Response.status(Status.INTERNAL_SERVER_ERROR).build());
             } catch (final ContentAddressableStorageException e) {
                 if (parameters != null) {
                     try {
                         parameters.putParameterValue(LogbookParameterName.eventType, INGEST_INT_UPLOAD);
-                        callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO, "error workspace");
+                        callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.FATAL, "error workspace");
                     } catch (final LogbookClientException e1) {
                         LOGGER.error(e1);
                     }
                 }
                 LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
                 AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                    Response.status(Status.INTERNAL_SERVER_ERROR).build());
+                    Response.status(Status.SERVICE_UNAVAILABLE).build());
                 // FIXME P1 in particular Processing Exception could it be a "normal error" ?
                 // Have to determine here if it is an internal error and FATAL result or processing error, so business
                 // error and KO result

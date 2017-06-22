@@ -297,7 +297,7 @@ public class IngestInternalResourceTest {
                 GlobalDataRest.X_CONTEXT_ID, START_CONTEXT)
             .body(inputStream).contentType(CommonMediaType.ZIP)
             .when().post(INGEST_URL)
-            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            .then().statusCode(Status.SERVICE_UNAVAILABLE.getStatusCode());
 
     }
 

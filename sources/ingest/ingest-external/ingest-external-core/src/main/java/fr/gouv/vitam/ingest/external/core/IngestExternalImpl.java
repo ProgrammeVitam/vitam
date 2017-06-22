@@ -80,6 +80,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
 import fr.gouv.vitam.workspace.common.WorkspaceFileSystem;
 
 /**
@@ -449,7 +450,7 @@ public class IngestExternalImpl implements IngestExternal {
                     }
                 } else {
                     responseNoProcess = prepareEarlyAtrKo(containerName, ingestGuid, helper, startedParameters,
-                        isFileInfected, mimeType, endParameters, logbookTypeProcess, eventType);
+                        isFileInfected, mimeType, endParameters, logbookTypeProcess, eventType, StatusCode.KO);
                 }
             } else {
                 // finalize end step param
@@ -457,7 +458,7 @@ public class IngestExternalImpl implements IngestExternal {
                     messageLogbookEngineHelper.getLabelOp(INGEST_EXT, endParameters.getStatus()));
                 helper.updateDelegate(endParameters);
                 responseNoProcess = prepareEarlyAtrKo(containerName, ingestGuid, helper, startedParameters,
-                    isFileInfected, mimeType, endParameters, logbookTypeProcess, eventType);
+                    isFileInfected, mimeType, endParameters, logbookTypeProcess, eventType, StatusCode.KO);
             }
 
             try (IngestInternalClient ingestClient =
@@ -477,6 +478,9 @@ public class IngestExternalImpl implements IngestExternal {
                     cancelOperation(guid);
                     return responseNoProcess;
                 }
+            } catch (WorkspaceClientServerException e) {
+                return prepareEarlyAtrKo(containerName, ingestGuid, helper, startedParameters,
+                    isFileInfected, mimeType, endParameters, logbookTypeProcess, eventType, StatusCode.FATAL);
             } catch (final VitamException e) {
                 throw new IngestExternalException(e);
             }
@@ -528,7 +532,7 @@ public class IngestExternalImpl implements IngestExternal {
     private Response prepareEarlyAtrKo(final GUID containerName, final GUID ingestGuid,
         final LogbookOperationsClientHelper helper, final LogbookOperationParameters startedParameters,
         boolean isFileInfected, String mimeType, final LogbookOperationParameters endParameters,
-        LogbookTypeProcess logbookTypeProcess, String logbookEventType)
+        LogbookTypeProcess logbookTypeProcess, String logbookEventType, StatusCode status)
         throws LogbookClientNotFoundException, IngestExternalException {
         Response responseNoProcess;
         // Add step started in the logbook
@@ -539,12 +543,16 @@ public class IngestExternalImpl implements IngestExternal {
         if (isFileInfected) {
             atrKo = AtrKoBuilder.buildAtrKo(containerName.getId(), "ArchivalAgencyToBeDefined",
                 "TransferringAgencyToBeDefined",
-                "SANITY_CHECK_SIP", null, StatusCode.KO);
+                "SANITY_CHECK_SIP", null, status);
 
+        } else if (status.equals(StatusCode.FATAL)) {
+            atrKo = AtrKoBuilder.buildAtrKo(containerName.getId(), "ArchivalAgencyToBeDefined",
+                "TransferringAgencyToBeDefined",
+                "STP_UPLOAD_SIP", null, status);
         } else {
             atrKo = AtrKoBuilder.buildAtrKo(containerName.getId(), "ArchivalAgencyToBeDefined",
                 "TransferringAgencyToBeDefined",
-                "CHECK_CONTAINER", ". Format non supporté : " + mimeType, StatusCode.KO);
+                "CHECK_CONTAINER", ". Format non supporté : " + mimeType, status);
         }
 
         storeATR(ingestGuid, atrKo);
@@ -553,7 +561,7 @@ public class IngestExternalImpl implements IngestExternal {
             new ByteArrayInputStream(atrKo.getBytes(CharsetUtils.UTF8)), MediaType.APPLICATION_XML_TYPE, null);
         // add the step in the logbook
         addTransferNotificationLog(ingestGuid, containerName, helper, StatusCode.OK, logbookTypeProcess);
-        addStpIngestFinalisationLog(ingestGuid, containerName, helper, StatusCode.OK, logbookTypeProcess);
+        addStpIngestFinalisationLog(ingestGuid, containerName, helper, status, logbookTypeProcess);
         // log final status PROCESS_SIP when sanity check KO or FATAL
         // in this case PROCESS_SIP inherits SANITY_CHECK Status
         startedParameters.setStatus(endParameters.getStatus());
