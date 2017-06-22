@@ -27,10 +27,8 @@
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -51,7 +49,6 @@ import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.functional.administration.client.model.ContextModel;
 
 /**
@@ -87,7 +84,6 @@ public class ContextStep {
             world.getAdminClient()
                 .importContexts(Files.newInputStream(context, StandardOpenOption.READ), world.getTenantId());
         assertThat(Response.Status.OK.getStatusCode() == response.getStatus());
-        RequestResponseOK<ContextModel> res = (RequestResponseOK) response;
     }
     
     @Then("^j'importe ce contexte en échec")
