@@ -658,7 +658,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                 case HTTP_GET:
                                     if (StringUtils.isBlank(objectID)) {
                                         result = ingestExternalClient.listOperationsDetails(tenantId);
-                                        return Response.status(Status.OK).entity(result).build();
+                                        break;
                                     } else {
                                         ItemStatus itemStatus = ingestExternalClient.getOperationProcessExecutionDetails(objectID, criteria,
                                             tenantId);
@@ -692,10 +692,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
                         }
                     }
                 }
-                // save result
-                PaginationHelper.setResult(sessionId, result.toJsonNode());
-                // pagination
-                result = RequestResponseOK.getFromJsonNode(PaginationHelper.getResult(result.toJsonNode(), pagination));
 
                 return Response.status(Status.OK).entity(result).build();
             } catch (final InvalidParseOperationException | IllegalArgumentException e) {
