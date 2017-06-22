@@ -458,7 +458,7 @@ public class IngestExternalImpl implements IngestExternal {
                     messageLogbookEngineHelper.getLabelOp(INGEST_EXT, endParameters.getStatus()));
                 helper.updateDelegate(endParameters);
                 responseNoProcess = prepareEarlyAtrKo(containerName, ingestGuid, helper, startedParameters,
-                    isFileInfected, mimeType, endParameters, logbookTypeProcess, eventType, StatusCode.FATAL);
+                    isFileInfected, mimeType, endParameters, logbookTypeProcess, eventType, StatusCode.KO);
             }
 
             try (IngestInternalClient ingestClient =

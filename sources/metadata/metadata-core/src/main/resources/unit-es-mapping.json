@@ -1,10 +1,12 @@
 {
   "properties": {
     "ArchivalAgencyArchiveUnitIdentifier": {
-      "type": "string"
+      "type": "string",
+      "index": "not_analyzed"
     },
     "ArchiveUnitProfile": {
-      "type": "string"
+      "type": "string",
+      "index": "not_analyzed"
     },
     "AcquiredDate": {
       "type": "date",
@@ -49,15 +51,18 @@
     "OriginatingAgency": {
       "properties": {
         "Identifier": {
-          "type": "string"
+          "type": "string",
+      	  "index": "not_analyzed"
         }
       }
     },
     "OriginatingAgencyArchiveUnitIdentifier": {
-      "type": "string"
+      "type": "string",
+      "index": "not_analyzed"
     },
     "OriginatingSystemId": {
-      "type": "string"
+      "type": "string",
+      "index": "not_analyzed"
     },
     "ReceivedDate": {
       "type": "date",
@@ -81,12 +86,14 @@
     "SubmissionAgency": {
       "properties": {
         "Identifier": {
-          "type": "string"
+          "type": "string",
+          "index": "not_analyzed"
         }
       }
     },
     "SystemId": {
-      "type": "string"
+      "type": "string",
+      "index": "not_analyzed"
     },
     "Tag": {
       "type": "string"
@@ -100,7 +107,8 @@
       "format": "strict_date_optional_time||epoch_millis"
     },
     "TransferringAgencyArchiveUnitIdentifier": {
-      "type": "string"
+      "type": "string",
+      "index": "not_analyzed"
     },
     "Writer": {
       "properties": {
@@ -124,13 +132,15 @@
               "format": "strict_date_optional_time||epoch_millis"
             },
             "Rule": {
-              "type": "string"
+              "type": "string",
+              "index": "not_analyzed"
             },
             "PreventInheritance": {
               "type": "boolean"
             },
             "RefNonRuleId": {
-              "type": "string"
+              "type": "string",
+              "index": "not_analyzed"
             },
             "StartDate": {
               "type": "date",
@@ -275,7 +285,8 @@
       "index": "not_analyzed"
     },
     "_ops": {
-      "type": "string"
+      "type": "string",
+      "index": "not_analyzed"
     },
     "_tenant": {
       "type": "long"
