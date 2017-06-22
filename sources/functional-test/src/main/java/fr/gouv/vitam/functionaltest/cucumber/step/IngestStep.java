@@ -115,7 +115,7 @@ public class IngestStep {
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
             world.setOperationId(operationId);
           boolean process_timeout =  world.getIngestClient()
-                .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 400, 1_000L, TimeUnit.MILLISECONDS);
+                .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 1800, 1_000L, TimeUnit.MILLISECONDS);
             if(!process_timeout){
                 fail("Sip processing not finished. Timeout exeedeed.");
             }
