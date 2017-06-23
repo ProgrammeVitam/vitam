@@ -39,6 +39,9 @@ angular.module('archive.unit')
     'ORIGINATING_AGENCY_FIELD':'OriginatingAgency',
     'ORIGINATING_AGENCY_IDENTIFIER_FIELD':'Identifier',
     'ORIGINATING_AGENCY_DESCRIPTION_FIELD':'OrganizationDescriptiveMetadata',
+     'ORIGINATING_AGENCY_MGT':"#originating_agency",
+     'ORIGINATING_AGENCIES_MGT':"#originating_agencies",
+
     'DESCIPTION_FIELD':'Description',
     'ID_KEY': '_id',
     'MGT_KEY': '_mgt',
@@ -644,8 +647,12 @@ angular.module('archive.unit')
                 var tmpValue = value;
                 self.archiveFields[key] = tmpValue[0];
                 value = tmpValue[0];
-                var fieldSet = buildSingleField(value, key, key, [], null, true);
-
+                  if (key == ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCY_MGT || key == ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCIES_MGT){
+                      fieldSet = buildSingleField(value, key, key, [], null, false);
+                  }
+                  else {
+                      fieldSet = buildSingleField(value, key, key, [], null, true);
+                  }
                 if (mainFields.indexOf(key) >= 0) {
                   self.mainFields[key] = fieldSet;
                 } else {
@@ -667,7 +674,12 @@ angular.module('archive.unit')
                 self.archiveTitle = value;
               }
 
-              self.fieldSet = buildSingleField(value, key, key, [], null, true);
+              if (key == ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCY_MGT || key == ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCIES_MGT){
+                  self.fieldSet = buildSingleField(value, key, key, [], null, false);
+              }
+              else {
+                  self.fieldSet = buildSingleField(value, key, key, [], null, true);
+              }
               if (!addedField) {
                 if (mainFields.indexOf(key) >= 0 ) {
                   self.mainFields[key] = self.fieldSet;

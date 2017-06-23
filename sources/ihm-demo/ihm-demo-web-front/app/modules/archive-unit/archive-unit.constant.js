@@ -39,6 +39,8 @@ angular.module('archive.unit')
     'TransactedDate': 'Date de transaction',
     'AcquiredDate': 'Date de numérisation',
     'SentDate': 'Date d\'envoi',
+    '#originating_agency': 'Service producteur de l\'entrée',
+    '#originating_agencies': 'Service ayant des droits  sur l\'unité',
     'ReceivedDate': 'Date de reception',
     'RegisteredDate': 'Date d\'enregistrement',
     'StartDate': 'Date de début',
