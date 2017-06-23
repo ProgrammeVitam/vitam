@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -111,12 +112,19 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
                 case INTERNAL_SERVER_ERROR:
                     LOGGER.warn(ErrorMessage.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage());
                     break;
+                case SERVICE_UNAVAILABLE:
+                    LOGGER.warn(ErrorMessage.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage());
+                    break;
                 default:
                     throw new IngestExternalException("Unknown error");
             }
             // TODO: 5/22/17 return also VitamError when needed
-            return  new RequestResponseOK<JsonNode>().parseHeadersFromResponse(response).setHttpCode(response.getStatus());
-
+            RequestResponseOK<JsonNode> responseOK =  new RequestResponseOK<JsonNode>();
+            responseOK.parseHeadersFromResponse(response)
+                .setHttpCode(response.getStatus());
+            final String atr = response.readEntity(String.class);
+            responseOK.addHeader("Result", atr);
+            return responseOK;
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Ingest External Internal Server Error", e);
             throw new IngestExternalException("Ingest External Internal Server Error", e);

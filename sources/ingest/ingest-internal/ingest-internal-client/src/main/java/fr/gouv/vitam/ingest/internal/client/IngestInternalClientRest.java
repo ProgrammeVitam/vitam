@@ -445,7 +445,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
         }
     }
 
-    private  void checkResponseStatus( Response response) throws VitamClientInternalException, WorkspaceClientServerException {
+    private void checkResponseStatus( Response response) throws VitamClientInternalException, WorkspaceClientServerException {
         if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
             LOGGER.warn("SIP Warning : " + Response.Status.NOT_FOUND.getReasonPhrase());
             throw new VitamClientInternalException(NOT_FOUND_EXCEPTION);
@@ -459,6 +459,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
             LOGGER.warn("SIP Warning : " + Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
             throw new VitamClientInternalException(INTERNAL_SERVER_ERROR);
         } else if (Status.SERVICE_UNAVAILABLE.getStatusCode() == response.getStatus()) {
+            LOGGER.warn("SIP ERROR : " + Response.Status.SERVICE_UNAVAILABLE.getReasonPhrase());
             throw new WorkspaceClientServerException("Workspace Server Error");
         }
     }

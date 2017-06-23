@@ -81,8 +81,6 @@ public class CheckHeaderActionHandler extends ActionHandler {
         final SedaUtils sedaUtils = SedaUtilsFactory.create(handlerIO);
         Map<String, Object> madatoryValueMap = new HashMap<>();      
         ObjectNode infoNode = JsonHandler.createObjectNode();
-        infoNode.put(LogbookOperationsClientHelper.EV_DET_DATA_TYPE, 
-            LogbookEvDetDataType.MASTER.name());
         final boolean shouldCheckContract  = Boolean.valueOf((String) handlerIO.getInput(CHECK_CONTRACT_RANK));
         final boolean shouldCheckOriginatingAgency = 
             Boolean.valueOf((String) handlerIO.getInput(CHECK_ORIGINATING_AGENCY_RANK));
@@ -97,10 +95,13 @@ public class CheckHeaderActionHandler extends ActionHandler {
             return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
         }
 
+
         if (madatoryValueMap.get(SedaConstants.TAG_MESSAGE_IDENTIFIER) != null) {
             itemStatus.setData(SedaConstants.TAG_MESSAGE_IDENTIFIER,
                 madatoryValueMap.get(SedaConstants.TAG_MESSAGE_IDENTIFIER));
         }
+
+        updateSedaInfo(madatoryValueMap, infoNode);
 
         if (shouldCheckOriginatingAgency && 
             Strings.isNullOrEmpty((String) madatoryValueMap.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER))) {
@@ -111,17 +112,9 @@ public class CheckHeaderActionHandler extends ActionHandler {
 
         }
 
-        if (madatoryValueMap.get(SedaConstants.TAG_COMMENT) != null) {
-            ObjectNode evDetData = JsonHandler.createObjectNode();
-            evDetData.put(EV_DETAIL_REQ, (String) madatoryValueMap.get(SedaConstants.TAG_COMMENT));
-            evDetData.put(EV_DET_DATA_TYPE, LogbookEvDetDataType.MASTER.name());
-            itemStatus.setData(LogbookParameterName.eventDetailData.name(), evDetData.toString());
-        }
-
         if (shouldCheckContract) {
             if (madatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT) != null) {
                 final String contractName = (String) madatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT);
-                infoNode.put(SedaConstants.TAG_ARCHIVAL_AGREEMENT, contractName);
                 handlerIO.getInput().clear();
                 handlerIO.getInput().add(contractName);
                 CheckIngestContractActionHandler checkIngestContractActionHandler = new CheckIngestContractActionHandler();
@@ -138,7 +131,6 @@ public class CheckHeaderActionHandler extends ActionHandler {
         if (shouldCheckProfile) {
             if (madatoryValueMap.get(SedaConstants.TAG_ARCHIVE_PROFILE) != null) {               
                 final String profileName = (String) madatoryValueMap.get(SedaConstants.TAG_ARCHIVE_PROFILE);
-                infoNode.put(SedaConstants.TAG_ARCHIVE_PROFILE, profileName);
                 handlerIO.getInput().clear();
                 handlerIO.getInput().add(madatoryValueMap.get(SedaConstants.TAG_ARCHIVE_PROFILE));
                 handlerIO.getInput().add(madatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT));
@@ -181,6 +173,23 @@ public class CheckHeaderActionHandler extends ActionHandler {
         itemStatus.setData(LogbookParameterName.eventDetailData.name(), 
             JsonHandler.unprettyPrint(infoNode));
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+    }
+
+    private void updateSedaInfo(Map<String, Object> madatoryValueMap, ObjectNode infoNode) {
+        infoNode.put(LogbookOperationsClientHelper.EV_DET_DATA_TYPE, 
+            LogbookEvDetDataType.MASTER.name());
+
+        if (madatoryValueMap.get(SedaConstants.TAG_COMMENT) != null) {
+            infoNode.put(EV_DETAIL_REQ, (String) madatoryValueMap.get(SedaConstants.TAG_COMMENT));
+        }
+        if (madatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT) != null) {
+            final String contractName = (String) madatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT);
+            infoNode.put(SedaConstants.TAG_ARCHIVAL_AGREEMENT, contractName);
+        }
+        if (madatoryValueMap.get(SedaConstants.TAG_ARCHIVE_PROFILE) != null) {               
+            final String profileName = (String) madatoryValueMap.get(SedaConstants.TAG_ARCHIVE_PROFILE);
+            infoNode.put(SedaConstants.TAG_ARCHIVE_PROFILE, profileName);
+        }
     }
 
     @Override

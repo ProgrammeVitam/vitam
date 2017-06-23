@@ -185,13 +185,15 @@ public class CheckHeaderActionHandlerTest {
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         action.getInput().add("true");
         action.getInput().add("true");
-        action.getInput().add("true");
+        action.getInput().add("false");
         final ItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
         assertNotNull(response.getData());
         assertNotNull(response.getData().get(SedaConstants.TAG_MESSAGE_IDENTIFIER));
         String evDetData = (String) response.getData().get(LogbookParameterName.eventDetailData.name());
         assertTrue(evDetData.contains("ArchivalAgreement0"));
+        assertTrue(evDetData.contains("English Comment"));
+        assertTrue(evDetData.contains("ArchivalProfile0"));
         action.partialClose();
 
     }

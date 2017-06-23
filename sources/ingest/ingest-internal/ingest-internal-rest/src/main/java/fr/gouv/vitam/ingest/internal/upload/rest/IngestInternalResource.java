@@ -695,7 +695,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
             WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
 
             try {
-                workspaceClient.checkStatus();
                 VitamThreadUtils.getVitamSession().checkValidRequestId();
                 ParametersChecker.checkParameter("HTTP Request must contains stream", uploadedInputStream);
                 ParametersChecker.checkParameter("actionId is a mandatory parameter", actionId);
@@ -714,9 +713,10 @@ public class IngestInternalResource extends ApplicationStatusResource {
                     ProcessAction.INIT.equals(ProcessAction.valueOf(actionId));
                 boolean isStartMode =
                     ProcessAction.START.equals(ProcessAction.valueOf(actionId));
-
+                parameters = logbookInitialisation(containerGUID, containerGUID, logbookTypeProcess);
 
                 if (isInitMode) {
+                    workspaceClient.checkStatus();
                     try (ProcessingManagementClient processManagementClient =
                         ProcessingManagementClientFactory.getInstance().getClient()) {
 
@@ -739,7 +739,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                         mediaType = CommonMediaType.valueOf(contentType);
                         archiveMimeType = CommonMediaType.mimeTypeOf(mediaType);
 
-                        parameters = logbookInitialisation(containerGUID, containerGUID, logbookTypeProcess);
+                        
                         prepareToStartProcess(uploadedInputStream, parameters, archiveMimeType, logbookOperationsClient,
                             containerGUID);
 
