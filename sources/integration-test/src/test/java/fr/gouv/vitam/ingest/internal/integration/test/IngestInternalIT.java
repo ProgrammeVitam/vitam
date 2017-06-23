@@ -675,7 +675,7 @@ public class IngestInternalIT {
                 if (StatusCode.KO.toString()
                     .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) &&
                     event.get(LogbookMongoDbName.eventType.getDbname())
-                        .equals("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST")) {
+                        .equals("CHECK_UNIT_SCHEMA")) {
                     checkDataObject = false;
                     break;
                 }
@@ -1145,7 +1145,7 @@ public class IngestInternalIT {
                 if (StatusCode.KO.toString()
                     .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) &&
                     event.get(LogbookMongoDbName.eventType.getDbname())
-                        .equals("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST")) {
+                        .equals("CHECK_UNIT_SCHEMA")) {
                     checkUnitSuccess = true;
                     break;
                 }

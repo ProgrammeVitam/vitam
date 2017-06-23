@@ -153,8 +153,7 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
                             UNITS_LEVEL + "/" + INGEST_LEVEL_STACK);
                         final JsonNode levelFileJson;
                         try {
-                            final InputStream levelFile =
-                                (InputStream) response.getEntity();
+                            final InputStream levelFile = (InputStream) response.getEntity();
                             levelFileJson = JsonHandler.getFromInputStream(levelFile);
                         } finally {
                             workspaceClient.consumeAnyEntityAndClose(response);

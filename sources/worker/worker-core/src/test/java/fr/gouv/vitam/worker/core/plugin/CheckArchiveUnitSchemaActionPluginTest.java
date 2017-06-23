@@ -74,6 +74,7 @@ public class CheckArchiveUnitSchemaActionPluginTest {
     private static final String ARCHIVE_UNIT = "checkArchiveUnitSchemaActionPlugin/archive-unit_OK.json";
     private static final String ARCHIVE_UNIT_NUMBER = "checkArchiveUnitSchemaActionPlugin/archive-unit_OK_Title_Number.json";
     private static final String ARCHIVE_UNIT_INVALID = "checkArchiveUnitSchemaActionPlugin/archive-unit_Invalid.json";
+    private static final String ARCHIVE_UNIT_INVALID_CHAR = "checkArchiveUnitSchemaActionPlugin/archive-unit_special_char_KO.json";
     private static final String ARCHIVE_UNIT_INVALID_DATE = "checkArchiveUnitSchemaActionPlugin/archive-unit_Invalid_date.json";
     private static final String ARCHIVE_UNIT_INVALID_XML = "checkArchiveUnitSchemaActionPlugin/archive-unit_Invalid.xml";
     private static final String ARCHIVE_UNIT_FINAL = "checkArchiveUnitSchemaActionPlugin/archive-unit_OK_final.json";    
@@ -81,6 +82,7 @@ public class CheckArchiveUnitSchemaActionPluginTest {
     private final InputStream archiveUnitNumber;
     private final InputStream archiveUnitFinal;
     private final InputStream archiveUnitInvalid;
+    private final InputStream archiveUnitInvalidChar;
     private final InputStream archiveUnitInvalidDate;
     private final InputStream archiveUnitInvalidXml;
     
@@ -98,6 +100,7 @@ public class CheckArchiveUnitSchemaActionPluginTest {
         archiveUnitNumber = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_NUMBER);
         archiveUnitFinal = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_FINAL);
         archiveUnitInvalid = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_INVALID);
+        archiveUnitInvalidChar = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_INVALID_CHAR);
         archiveUnitInvalidDate = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_INVALID_DATE);
         archiveUnitInvalidXml = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_INVALID_XML);
     }
@@ -152,15 +155,25 @@ public class CheckArchiveUnitSchemaActionPluginTest {
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
     }
-    
+
     @Test
     public void givenInvalidArchiveUnitJsonWhenExecuteThenReturnResponseKO() throws Exception {
-        // invalid archive unit -> missing title in it 
+        // invalid archive unit -> missing title in it
         when(workspaceClient.getObject(anyObject(), eq("Units/archiveUnit.json")))
             .thenReturn(Response.status(Status.OK).entity(archiveUnitInvalid).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
         assertEquals(response.getItemsStatus().get("CHECK_UNIT_SCHEMA").getItemId(), "NOT_AU_JSON_VALID");
+    }
+
+    @Test
+    public void givenArchiveUnitWithSpecialCharactersJsonWhenExecuteThenReturnResponseKO() throws Exception {
+        // invalid archive unit -> missing title in it 
+        when(workspaceClient.getObject(anyObject(), eq("Units/archiveUnit.json")))
+            .thenReturn(Response.status(Status.OK).entity(archiveUnitInvalidChar).build());
+        final ItemStatus response = plugin.execute(params, action);
+        assertEquals(response.getGlobalStatus(), StatusCode.KO);
+        assertEquals(response.getItemsStatus().get("CHECK_UNIT_SCHEMA").getItemId(), "UNIT_SANITIZE");
     }
     
     @Test

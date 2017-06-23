@@ -306,7 +306,7 @@ public class ItemStatus {
         if (statusDetails.getData() != null) {
             computeEvDetData(statusDetails);
         }
-        
+
         return this;
     }
 
@@ -325,9 +325,18 @@ public class ItemStatus {
             // update itemStatus
             for (final Entry<String, ItemStatus> itemStatus : compositeItemStatus.getItemsStatus()
                 .entrySet()) {
-                if (itemsStatus.containsKey(itemStatus.getKey())) {
-                    itemsStatus.put(itemStatus.getKey(),
-                        increment(itemsStatus.get(itemStatus.getKey()), itemStatus.getValue()));
+                final String key = itemStatus.getKey();
+                final ItemStatus value = itemStatus.getValue();
+                final ItemStatus is = itemsStatus.get(key);
+
+                if (null != is) {
+                    if (value.getGlobalStatus().isGreaterOrEqualToKo()
+                        && null != value.getData()
+                        && value.getData().size() > 0) {
+                        is.getData().putAll(value.getData());
+                    }
+
+                    itemsStatus.put(key, increment(is, value));
                 } else {
                     itemsStatus.put(itemStatus.getKey(), itemStatus.getValue());
                 }
@@ -422,7 +431,7 @@ public class ItemStatus {
 
     private void computeEvDetData(ItemStatus statusDetails) {
         String detailDataString = "";
-        if (statusDetails.getData().containsKey(EVENT_DETAIL_DATA) && 
+        if (statusDetails.getData().containsKey(EVENT_DETAIL_DATA) &&
             data.containsKey(EVENT_DETAIL_DATA)) {
             try {
                 ObjectNode subDetailData = (ObjectNode) JsonHandler.getFromString(

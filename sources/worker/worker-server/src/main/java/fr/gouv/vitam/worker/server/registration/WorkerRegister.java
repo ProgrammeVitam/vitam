@@ -29,6 +29,7 @@ package fr.gouv.vitam.worker.server.registration;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.processing.common.model.WorkerRemoteConfiguration;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
@@ -101,6 +102,9 @@ public class WorkerRegister implements Runnable {
             processingClient.registerWorker(configuration.getWorkerFamily(),
                 String.valueOf(ServerIdentity.getInstance().getGlobalPlatformId()), workerBean);
             return true;
+        } catch (final WorkerAlreadyExistsException e) {
+            LOGGER.warn("WorkerRegister run : register call failed on " + configuration.getProcessingUrl(), e);
+            return false;
         } catch (final Exception e) {
             LOGGER.error("WorkerRegister run : register call failed on " + configuration.getProcessingUrl(), e);
             return false;
