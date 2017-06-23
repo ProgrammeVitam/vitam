@@ -69,6 +69,9 @@ public class MongoDbMetadataResponseFilter {
                         replace(document, ObjectGroup.NB_COPY, VitamFieldsHelper.nbobjects());
                     }
                     break;
+                case STORAGE:
+                    replace(document, ObjectGroup.STORAGE, VitamFieldsHelper.storage());
+                    break;
                 case OBJECT:
                     replace(document, MetadataDocument.OG, VitamFieldsHelper.object());
                     break;

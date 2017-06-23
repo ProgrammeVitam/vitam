@@ -46,6 +46,7 @@ public class MongoDbVarNameAdapterTest {
         assertEquals(ObjectGroup.OBJECTSIZE, mongoVarNameAdapter.getVariableName("#size"));
         assertEquals(ObjectGroup.OBJECTFORMAT, mongoVarNameAdapter.getVariableName("#format"));
         assertEquals(MetadataDocument.QUALIFIERS, mongoVarNameAdapter.getVariableName("#qualifiers"));
+        assertEquals(ObjectGroup.STORAGE, mongoVarNameAdapter.getVariableName("#storage"));
     }
 
 }
