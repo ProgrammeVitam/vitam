@@ -1,0 +1,16 @@
+[
+  {
+    "id" : "default",
+    "baseUrl" : "http://localhost:8757",
+    "parameters" : {
+      "bob": "bob"
+    }
+  },
+  {
+    "id" : "default2",
+    "baseUrl" : "http://localhost:8758",
+    "parameters" : {
+      "bob": "bob"
+    }
+  }
+]

@@ -118,7 +118,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 // TODO P1: see what to do with RuntimeException (catch it and log it to let the
 public class StorageDistributionImpl implements StorageDistribution {
     private static final String DEFAULT_SIZE_WHEN_UNKNOWN = "1000000";
-    private static final int DEFAULT_MINIMUM_TIMEOUT = 10000;
+    private static final int DEFAULT_MINIMUM_TIMEOUT = 60000;
     private static final String STRATEGY_ID_IS_MANDATORY = "Strategy id is mandatory";
     public static final String CATEGORY_IS_MANDATORY = "Category (object type) is mandatory";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageDistributionImpl.class);

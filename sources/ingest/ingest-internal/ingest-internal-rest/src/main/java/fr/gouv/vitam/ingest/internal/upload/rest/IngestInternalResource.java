@@ -99,6 +99,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
@@ -629,7 +630,11 @@ public class IngestInternalResource extends ApplicationStatusResource {
             WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
 
             LOGGER.error("storage atr internal");
-            workspaceClient.createContainer(guid);
+            try {
+                workspaceClient.createContainer(guid);
+            } catch (ContentAddressableStorageAlreadyExistException e) {
+                LOGGER.debug(e);
+            }
             workspaceClient.putObject(guid, FOLDERNAME + guid + XML, atr);
 
             final ObjectDescription description = new ObjectDescription();
@@ -637,10 +642,10 @@ public class IngestInternalResource extends ApplicationStatusResource {
             description.setWorkspaceObjectURI(FOLDERNAME + guid + XML);
             storageClient.storeFileFromWorkspace(DEFAULT_STRATEGY,
                 StorageCollectionType.REPORTS, guid + XML, description);
+            workspaceClient.deleteContainer(guid, true);
             return Response.status(Status.OK).build();
 
-        } catch (StorageClientException | ContentAddressableStorageServerException |
-            ContentAddressableStorageAlreadyExistException e) {
+        } catch (StorageClientException | ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }

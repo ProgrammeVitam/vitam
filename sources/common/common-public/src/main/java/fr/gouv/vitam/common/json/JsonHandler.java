@@ -53,6 +53,7 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.collect.Lists;
+import com.google.common.io.ByteStreams;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -188,7 +189,7 @@ public final class JsonHandler {
         throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter("InputStream", stream);
-            return OBJECT_MAPPER.readTree(stream);
+            return OBJECT_MAPPER.readTree(ByteStreams.toByteArray(stream));
         } catch (final IOException | IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
         }
@@ -472,6 +473,7 @@ public final class JsonHandler {
         try {
             ParametersChecker.checkParameter("object or file", object, outputStream);
             OBJECT_MAPPER.writeValue(outputStream, object);
+            outputStream.flush();
         } catch (final IOException | IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
         }
@@ -637,7 +639,7 @@ public final class JsonHandler {
         ParametersChecker.checkParameter("InputStream", inputStream);
         Map<String, Object> info = null;
         try {
-            info = OBJECT_MAPPER.readValue(inputStream,
+            info = OBJECT_MAPPER.readValue(ByteStreams.toByteArray(inputStream),
                 new TypeReference<Map<String, Object>>() {});
         } catch (final IOException e) {
             throw new InvalidParseOperationException(e);
@@ -668,7 +670,7 @@ public final class JsonHandler {
         Map<String, T> info ;
         try {
             JavaType type = OBJECT_MAPPER.getTypeFactory().constructParametricType(Map.class, String.class, parameterClazz);
-            info = OBJECT_MAPPER.readValue(inputStream, type);
+            info = OBJECT_MAPPER.readValue(ByteStreams.toByteArray(inputStream), type);
         } catch (final IOException e) {
             throw new InvalidParseOperationException(e);
         } finally {
@@ -696,7 +698,7 @@ public final class JsonHandler {
         throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter("InputStream or class", inputStream, clasz);
-            return OBJECT_MAPPER.readValue(inputStream, clasz);
+            return OBJECT_MAPPER.readValue(ByteStreams.toByteArray(inputStream), clasz);
         } catch (final IOException | IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
         } finally {

@@ -150,7 +150,7 @@ public class DriverImpl extends AbstractDriver {
         try {
             final URI url = new URI(offer.getBaseUrl());
             Map<String, String> param = offer.getParameters();
-            if (param != null) {
+            if ("https".equalsIgnoreCase(url.getScheme()) || (param != null && param.get("keyStore-keyPath") != null)) {
                 List<SSLKey> keystoreList = new ArrayList<>();
                 List<SSLKey> truststoreList = new ArrayList<>();
                 keystoreList.add(new SSLKey(param.get("keyStore-keyPath"), param.get("keyStore-keyPassword")));

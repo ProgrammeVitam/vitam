@@ -99,7 +99,7 @@ public class WorkspaceClient extends DefaultClient {
             if (Status.CREATED.getStatusCode() == response.getStatus()) {
                 LOGGER.debug(containerName + ": " + Response.Status.CREATED.getReasonPhrase());
             } else if (Status.CONFLICT.getStatusCode() == response.getStatus()) {
-                LOGGER.warn(ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage());
+                LOGGER.info(ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage());
                 throw new ContentAddressableStorageAlreadyExistException(
                     ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage());
             } else {
