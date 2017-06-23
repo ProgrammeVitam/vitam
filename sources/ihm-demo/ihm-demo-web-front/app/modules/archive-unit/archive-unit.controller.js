@@ -330,7 +330,7 @@ angular.module('archive.unit')
           self.archiveFields = results[0];
           if (!!self.archiveFields._og) {
             //get archive object groups informations to be displayed in the table
-            ihmDemoFactory.getArchiveObjectGroup(self.archiveFields._og)
+            ihmDemoFactory.getArchiveObjectGroup(self.archiveFields._id)
               .then(function (response) {
                 var dataOG = response.data;
                 if (dataOG.nbObjects == null || dataOG.nbObjects == undefined ||

@@ -112,8 +112,8 @@ public abstract class Result {
     /**
      * Put from argument
      *
-     * @param from the Result for creating another 
-     * @return Result created 
+     * @param from the Result for creating another
+     * @return Result created
      */
     public Result putFrom(final Result from) {
         currentIds.addAll(from.currentIds);
@@ -138,7 +138,7 @@ public abstract class Result {
     /**
      * Ad one Id to CurrentIds
      *
-     * @param id the id as String adding to current result 
+     * @param id the id as String adding to current result
      * @return this
      */
     public Result addId(String id) {
@@ -184,9 +184,18 @@ public abstract class Result {
     }
 
     /**
+     * Gets the type
+     * 
+     * @return the type
+     */
+    public FILTERARGS getType() {
+        return type;
+    }
+
+    /**
      *
      * @return the filtered list for Select operation
-     * @throws InvalidParseOperationException if exception occurred when getting the filter list 
+     * @throws InvalidParseOperationException if exception occurred when getting the filter list
      */
     public List<MetadataDocument<?>> getMetadataDocumentListFiltered() throws InvalidParseOperationException {
         final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ElasticsearchAccessMetadata.class);
@@ -222,7 +231,7 @@ public abstract class Result {
     /**
      * Add one document into final result
      *
-     * @param document of type MetaDataDocument adding to result 
+     * @param document of type MetaDataDocument adding to result
      */
     public void addFinal(MetadataDocument<?> document) {
         if (finalResult == null) {
@@ -262,6 +271,8 @@ public abstract class Result {
         finalResult = new Document(RESULT_FIELD, list);
     }
 
+
+
     @Override
     public String toString() {
         if (finalResult == null) {
@@ -277,9 +288,9 @@ public abstract class Result {
                 .append(finalResult).append('}').toString();
         }
     }
-    
+
     /**
-     * @return boolean check if exist finalResult part   
+     * @return boolean check if exist finalResult part
      */
     public boolean hasFinalResult() {
         if (finalResult == null) {

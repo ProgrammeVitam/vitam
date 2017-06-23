@@ -37,9 +37,7 @@ import static org.mockito.Mockito.when;
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -618,6 +616,7 @@ public class AccessExternalResourceImplTest {
      * @throws Exception
      */
     @Test
+    @Deprecated
     public void givenStartedServer_WhenJsonContainsHtml_ThenReturnError_getObjectGroup_PreconditionFailed()
         throws Exception {
         // HERE
@@ -648,12 +647,50 @@ public class AccessExternalResourceImplTest {
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
+
+    /**
+     * Checks if he sent parameter contains HTML tags in getObjectGroup function
+     *
+     * @throws Exception
+     */
+    @Test
+    public void givenStartedServer_WhenJsonContainsHtml_ThenReturnError_getObjectGroupMetadatas_PreconditionFailed()
+        throws Exception {
+        // HERE
+        given()
+            .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(buildDSLWithRoots(DATA_HTML))
+            .when()
+            .get("/units/" + ID_UNIT + "/object/")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .header(GlobalDataRest.X_TENANT_ID, UNEXTISTING_TENANT_ID)
+            .body(buildDSLWithRoots(DATA_HTML))
+            .when()
+            .get("/units/" + ID_UNIT + "/object/")
+            .then()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .body(buildDSLWithRoots(DATA_HTML))
+            .when()
+            .get("/units/" + ID_UNIT + "/object/")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
     /**
      * Checks if he sent parameter contains HTML tags in getObjectGroupPost function
      *
      * @throws Exception
      */
     @Test
+    @Deprecated
     public void givenStartedServer_WhenJsonContainsHtml_ThenReturnError_getObjectGroupPost_PreconditionFailed()
         throws Exception {
         // HERE
@@ -680,6 +717,42 @@ public class AccessExternalResourceImplTest {
             .body(buildDSLWithRoots(DATA_HTML))
             .when()
             .get("/objects/" + ID_UNIT)
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    /**
+     * Checks if he sent parameter contains HTML tags in getObjectGroupPost function
+     *
+     * @throws Exception
+     */
+    @Test
+    public void givenStartedServer_WhenJsonContainsHtml_ThenReturnError_getObjectGroupMetadatasPost_PreconditionFailed()
+        throws Exception {
+        // HERE
+        given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(buildDSLWithRoots(DATA_HTML))
+            .when()
+            .get("/units/" + ID_UNIT + "/object/")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, UNEXTISTING_TENANT_ID)
+            .body(buildDSLWithRoots(DATA_HTML))
+            .when()
+            .get("/units/" + ID_UNIT + "/object/")
+            .then()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(buildDSLWithRoots(DATA_HTML))
+            .when()
+            .get("/units/" + ID_UNIT + "/object/")
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -1051,6 +1124,7 @@ public class AccessExternalResourceImplTest {
 
 
     @Test
+    @Deprecated
     public void getObjectGroupPost() throws Exception {
         reset(clientAccessInternal);
         final JsonNode result = JsonHandler.getFromString(BODY_TEST);
@@ -1118,6 +1192,115 @@ public class AccessExternalResourceImplTest {
                 "GET")
             .when().post(OBJECTS_URI + OBJECT_ID).then()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+
+    @Test
+    public void getObjectGroupMetadatas() throws Exception {
+        reset(clientAccessInternal);
+        JsonNode objectGroup = JsonHandler.getFromString(
+            "{\"$hint\":{\"total\":1},\"$context\":{\"$query\":{\"$eq\":{\"id\":\"1\"}},\"$projection\":{},\"$filter\":{}},\"$result\":[{\"#id\":\"1\",\"#object\":\"goodResult\",\"Title\":\"Archive 1\",\"DescriptionLevel\":\"Archive Mock\"}]}");
+        final JsonNode result = JsonHandler.getFromString(BODY_TEST);
+        when(clientAccessInternal.selectUnitbyId(JsonHandler.getFromString("\"" + anyString() + "\""),
+            "\"" + anyString() + "\"")).thenReturn(new RequestResponseOK().addResult(objectGroup));
+        when(clientAccessInternal.selectObjectbyId(JsonHandler.getFromString("\"" + anyString() + "\""),
+            "\"" + anyString() + "\"")).thenReturn(new RequestResponseOK().addResult(result));
+
+        // POST override GET ok
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .body(JsonHandler.getFromString(BODY_TEST))
+            .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
+                "GET")
+            .when().post("/units/" + OBJECT_ID + "/object").then()
+            .statusCode(Status.OK.getStatusCode()).contentType(MediaType.APPLICATION_JSON);
+
+        // GET ok
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .body(JsonHandler.getFromString(BODY_TEST))
+            .headers(getStreamHeaders())
+            .when().get("/units/" + OBJECT_ID + "/object").then()
+            .statusCode(Status.OK.getStatusCode()).contentType(MediaType.APPLICATION_JSON);
+
+        // POST override GET no tenant
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .body(JsonHandler.getFromString(BODY_TEST))
+            .headers(getStreamHeadersUnknwonTenant()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
+                "GET")
+            .when().post("/units/" + OBJECT_ID + "/object").then()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        // GET no tenant
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .body(JsonHandler.getFromString(BODY_TEST))
+            .headers(getStreamHeadersUnknwonTenant())
+            .when().get("/units/" + OBJECT_ID + "/object").then()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        // GET ignore override ok
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(BODY_TEST)
+            .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
+                "PUT")
+            .when().get("/units/" + OBJECT_ID + "/object").then()
+            .statusCode(Status.OK.getStatusCode());
+
+        // POST override PUT ko
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(BODY_TEST)
+            .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
+                "PUT")
+            .when().post("/units/" + OBJECT_ID + "/object").then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        // applicative error 500
+        reset(clientAccessInternal);
+        when(clientAccessInternal.selectUnitbyId(JsonHandler.getFromString("\"" + anyString() + "\""),
+            "\"" + anyString() + "\"")).thenReturn(new RequestResponseOK().addResult(objectGroup));
+        when(clientAccessInternal.selectObjectbyId(JsonHandler.getFromString("\"" + anyString() + "\""),
+            "\"" + anyString() + "\""))
+                .thenThrow(new AccessInternalClientServerException(""));
+
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(BODY_TEST)
+            .headers(getStreamHeaders())
+            .when().get("/units/" + OBJECT_ID + "/object").then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+
+        // applicative error 412
+        reset(clientAccessInternal);
+        when(clientAccessInternal.selectUnitbyId(JsonHandler.getFromString("\"" + anyString() + "\""),
+            "\"" + anyString() + "\"")).thenReturn(new RequestResponseOK().addResult(objectGroup));
+        when(clientAccessInternal.selectObjectbyId(JsonHandler.getFromString("\"" + anyString() + "\""),
+            "\"" + anyString() + "\""))
+                .thenThrow(new InvalidParseOperationException(""));
+
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(BODY_TEST)
+            .headers(getStreamHeaders())
+            .when().get("/units/" + OBJECT_ID + "/object").then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        // applicative error 404
+        reset(clientAccessInternal);
+        when(clientAccessInternal.selectUnitbyId(JsonHandler.getFromString("\"" + anyString() + "\""),
+            "\"" + anyString() + "\"")).thenReturn(new RequestResponseOK().addResult(objectGroup));
+        when(clientAccessInternal.selectObjectbyId(JsonHandler.getFromString("\"" + anyString() + "\""),
+            "\"" + anyString() + "\""))
+                .thenThrow(new AccessInternalClientNotFoundException(""));
+
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(BODY_TEST)
+            .headers(getStreamHeaders())
+            .when().get("/units/" + OBJECT_ID + "/object").then()
+            .statusCode(Status.NOT_FOUND.getStatusCode());
+
+        // applicative error 401
+        reset(clientAccessInternal);
+        when(clientAccessInternal.selectUnitbyId(JsonHandler.getFromString("\"" + anyString() + "\""),
+            "\"" + anyString() + "\"")).thenReturn(new RequestResponseOK().addResult(objectGroup));
+        when(clientAccessInternal.selectObjectbyId(JsonHandler.getFromString("\"" + anyString() + "\""),
+            "\"" + anyString() + "\""))
+                .thenThrow(new AccessUnauthorizedException(""));
+
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(BODY_TEST)
+            .headers(getStreamHeaders())
+            .when().get("/units/" + OBJECT_ID + "/object").then()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
     }
 

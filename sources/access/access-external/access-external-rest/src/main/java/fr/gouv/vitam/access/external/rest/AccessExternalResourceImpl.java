@@ -26,8 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.external.rest;
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
@@ -64,7 +62,6 @@ import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -89,7 +86,6 @@ import fr.gouv.vitam.storage.engine.common.model.response.RequestResponseError;
 @javax.ws.rs.ApplicationPath("webresources")
 public class AccessExternalResourceImpl extends ApplicationStatusResource {
 
-    private static final String ORIGINATING_AGENCY = "OriginatingAgency";
     private static final String PREDICATES_FAILED_EXCEPTION = "Predicates Failed Exception ";
     private static final String ACCESS_EXTERNAL_MODULE = "ACCESS_EXTERNAL";
     private static final String CODE_VITAM = "code_vitam";
@@ -320,6 +316,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Path("/objects/{ido}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Deprecated
     public Response getObjectGroup(@PathParam("ido") String idObjectGroup, JsonNode queryJson) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
@@ -403,6 +400,71 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         getObject(headers, idObjectGroup, query, asyncResponse, true);
     }
 
+    /**
+     * @param headers the http header defined parameters of request
+     * @param idu the id of archive unit
+     * @param queryJson the query to get object
+     * @return Response
+     */
+    @GET
+    @Path("/units/{idu}/object")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getObjectGroupMetadatas(@Context HttpHeaders headers, @PathParam("idu") String idu,
+        JsonNode queryJson) {
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        JsonNode result;
+        Status status;
+        try {
+            try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+                String idObjectGroup = idObjectGroup(idu);
+                result = client.selectObjectbyId(queryJson, idObjectGroup).toJsonNode().get("$results").get(0);
+                return Response.status(Status.OK).entity(RequestResponseOK.getFromJsonNode(result)).build();
+            }
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        } catch (final AccessInternalClientServerException e) {
+            LOGGER.error(e);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        } catch (final AccessInternalClientNotFoundException e) {
+            LOGGER.error(e);
+            status = Status.NOT_FOUND;
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error("Contract access does not allow ", e);
+            status = Status.UNAUTHORIZED;
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        }
+    }
+
+
+    /**
+     * @param headers the http header defined parameters of request
+     * @param idu the id of archive unit
+     * @param queryJson the query to get object
+     * @return Response
+     */
+    @POST
+    @Path("/units/{idu}/object")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getObjectGroupMetadatasPost(@Context HttpHeaders headers,
+        @PathParam("idu") String idu, JsonNode queryJson) {
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        Status status;
+        final String xHttpOverride = headers.getRequestHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE).get(0);
+        if (xHttpOverride == null || !"GET".equalsIgnoreCase(xHttpOverride)) {
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        } else {
+            return getObjectGroupMetadatas(headers, idu, queryJson);
+        }
+    }
 
     /**
      * @param headers the http header defined parameters of request
@@ -455,6 +517,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Path("/units/{idu}/object")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Deprecated
     public void getObjectPost(@Context HttpHeaders headers, @PathParam("idu") String idu,
         JsonNode query, @Suspended final AsyncResponse asyncResponse) {
         Status status;

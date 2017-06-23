@@ -170,7 +170,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse selectObjectById(JsonNode selectObjectQuery, String objectId, Integer tenantId,
+    public RequestResponse selectObjectById(JsonNode selectObjectQuery, String unitId, Integer tenantId,
         String contractName)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException, AccessUnauthorizedException {
@@ -178,14 +178,14 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         if (selectObjectQuery == null || selectObjectQuery.size() == 0) {
             throw new IllegalArgumentException(BLANK_DSL);
         }
-        ParametersChecker.checkParameter(BLANK_OBJECT_ID, objectId);
+        ParametersChecker.checkParameter(BLANK_OBJECT_ID, unitId);
 
         Response response = null;
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
         try {
-            response = performRequest(HttpMethod.GET, "/objects/" + objectId, headers,
+            response = performRequest(HttpMethod.GET, "/units/" + unitId + "/object", headers,
                 selectObjectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             final Status status = Status.fromStatusCode(response.getStatus());

@@ -41,19 +41,14 @@ import static com.mongodb.client.model.Updates.combine;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ID;
 
 import java.io.FileNotFoundException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.mongodb.client.model.UpdateOptions;
-import com.mongodb.client.model.Updates;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -71,6 +66,8 @@ import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.UpdateOptions;
+import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 
@@ -105,6 +102,7 @@ import fr.gouv.vitam.common.json.SchemaValidationUtils;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
@@ -159,7 +157,7 @@ public class DbRequest {
             roots = checkUnitStartupRoots(requestParser, defaultStartSet);
         } else {
             // OBJECTGROUPS:
-            LOGGER.warn(String.format("OBJECTGROUPS DbRequest: %s", requestParser.toString()));
+            LOGGER.info(String.format("OBJECTGROUPS DbRequest: %s", requestParser.toString()));
             roots = checkObjectGroupStartupRoots(requestParser, defaultStartSet);
         }
         Result result = roots;
@@ -233,7 +231,8 @@ public class DbRequest {
             return result;
         }
         if (request instanceof UpdateMultiQuery) {
-            final Result newResult = lastUpdateFilterProjection((UpdateToMongodb) requestToMongodb, result, requestParser);
+            final Result newResult =
+                lastUpdateFilterProjection((UpdateToMongodb) requestToMongodb, result, requestParser);
             if (newResult != null) {
                 result = newResult;
             }
@@ -716,8 +715,13 @@ public class DbRequest {
         if (previous.getCurrentIds().isEmpty()) {
             finalQuery = query;
         } else {
-            final Bson roots = QueryToMongodb.getRoots(MetadataDocument.UP, previous.getCurrentIds());
-            finalQuery = and(query, roots);
+            if (FILTERARGS.UNITS.equals(previous.getType())) {
+                final Bson roots = QueryToMongodb.getRoots(MetadataDocument.UP, previous.getCurrentIds());
+                finalQuery = and(query, roots);
+            } else {
+                final Bson roots = QueryToMongodb.getRoots(MetadataDocument.ID, previous.getCurrentIds());
+                finalQuery = and(query, roots);
+            }
         }
         if (tenantId != null) {
             // lets add tenant query
@@ -796,12 +800,13 @@ public class DbRequest {
      *
      * @param requestToMongodb
      * @param last
-     * @param requestParser 
+     * @param requestParser
      * @return the final Result
      * @throws InvalidParseOperationException
      * @throws MetaDataExecutionException
      */
-    protected Result lastUpdateFilterProjection(UpdateToMongodb requestToMongodb, Result last, RequestParserMultiple requestParser)
+    protected Result lastUpdateFilterProjection(UpdateToMongodb requestToMongodb, Result last,
+        RequestParserMultiple requestParser)
         throws InvalidParseOperationException, MetaDataExecutionException {
         Integer tenantId = ParameterHelper.getTenantParameter();
         final Bson roots = QueryToMongodb.getRoots(MetadataDocument.ID, last.getCurrentIds());
@@ -823,12 +828,12 @@ public class DbRequest {
 
         last.setNbResult(0);
         SchemaValidationUtils validator;
-		try {
-			validator = new SchemaValidationUtils();
-		} catch (FileNotFoundException | ProcessingException e) {
-			LOGGER.error("Unable to initialize Json Validator");
-			throw new MetaDataExecutionException(e);
-		}
+        try {
+            validator = new SchemaValidationUtils();
+        } catch (FileNotFoundException | ProcessingException e) {
+            LOGGER.error("Unable to initialize Json Validator");
+            throw new MetaDataExecutionException(e);
+        }
 
         for (MetadataDocument<?> document : listDocuments) {
             final String documentId = document.getId();
@@ -837,13 +842,13 @@ public class DbRequest {
             UpdateResult result = null;
             int tries = 0;
 
-            while(result == null && tries < 3) {
+            while (result == null && tries < 3) {
                 JsonNode jsonDocument = JsonHandler.toJsonNode(document);
                 MongoDbInMemory mongoInMemory = new MongoDbInMemory(jsonDocument);
                 requestToMongodb.getFinalUpdateActions();
-                ObjectNode updatedJsonDocument = (ObjectNode)mongoInMemory.getUpdateJson(requestParser);
+                ObjectNode updatedJsonDocument = (ObjectNode) mongoInMemory.getUpdateJson(requestParser);
 
-                updatedJsonDocument.set(VitamDocument.VERSION, new IntNode(documentVersion+1));
+                updatedJsonDocument.set(VitamDocument.VERSION, new IntNode(documentVersion + 1));
 
                 if (model == FILTERARGS.UNITS) {
                     SchemaValidationStatus status = validator.validateUnit(updatedJsonDocument);
@@ -853,7 +858,8 @@ public class DbRequest {
                 }
 
                 // Make Update
-                Bson condition = and(eq(MetadataDocument.ID, documentId), eq(MetadataDocument.VERSION, documentVersion));
+                Bson condition =
+                    and(eq(MetadataDocument.ID, documentId), eq(MetadataDocument.VERSION, documentVersion));
                 result = collection.replaceOne(condition, document.newInstance(updatedJsonDocument));
                 tries++;
             }
@@ -870,7 +876,7 @@ public class DbRequest {
                 } else {
                     indexFieldsOGUpdated(last);
                 }
-             } catch (Exception e) {
+            } catch (Exception e) {
                 throw new MetaDataExecutionException("Update concern", e);
             }
         }
@@ -1048,12 +1054,14 @@ public class DbRequest {
 
                 if (unit.getString(MetadataDocument.OG) != null && !unit.getString(MetadataDocument.OG).isEmpty()) {
                     // find the unit that we just save, to take sps field, and save it in the object group
-                    MetadataDocument newUnit = MongoDbMetadataHelper.findOne(MetadataCollections.C_UNIT, unit.getString(MetadataDocument.ID));
+                    MetadataDocument newUnit =
+                        MongoDbMetadataHelper.findOne(MetadataCollections.C_UNIT, unit.getString(MetadataDocument.ID));
                     List originatingAgencies = newUnit.get(MetadataDocument.ORIGINATING_AGENCIES, List.class);
 
                     Bson updateSps = Updates.addEachToSet(MetadataDocument.ORIGINATING_AGENCIES, originatingAgencies);
                     Bson updateUp = Updates.addToSet(MetadataDocument.UP, unit.getString(MetadataDocument.ID));
-                    Bson updateOps = Updates.addToSet(MetadataDocument.OPS, VitamThreadUtils.getVitamSession().getRequestId());
+                    Bson updateOps =
+                        Updates.addToSet(MetadataDocument.OPS, VitamThreadUtils.getVitamSession().getRequestId());
 
 
                     Bson update = combine(updateSps, updateUp, updateOps);
