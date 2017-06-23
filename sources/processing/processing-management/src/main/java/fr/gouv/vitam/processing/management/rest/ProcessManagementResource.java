@@ -232,8 +232,8 @@ public class ProcessManagementResource extends ApplicationStatusResource {
                     String hackedContext = xContextId.replace("_RESUME", "").replace("_NEXT", "");
                     extra.put("xContextId", hackedContext);
                     process.setExtraParams(extra);
-                    workParams.putParameterValue(WorkerParameterName.context, hackedContext);
                     Contexts context = Contexts.valueOf(hackedContext);
+                    workParams.putParameterValue(WorkerParameterName.context, context.getEventType());
                     LogbookTypeProcess logbookTypeProcess = context.getLogbookTypeProcess();
                     // TODO #2774: end ugly hack
 

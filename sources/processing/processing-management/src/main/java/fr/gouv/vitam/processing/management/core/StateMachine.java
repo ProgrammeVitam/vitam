@@ -493,10 +493,10 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
                 operationGuid,
                 logbookTypeProcess,
                 statusCode,
-                messageLogbookEngineHelper.getLabelOp(logbookTypeProcess.name(), statusCode),
+                messageLogbookEngineHelper.getLabelOp(eventType, statusCode),
                 operationGuid);
         parameters.putParameterValue(LogbookParameterName.outcomeDetail,
-            messageLogbookEngineHelper.getOutcomeDetail(logbookTypeProcess.name(), statusCode));
+            messageLogbookEngineHelper.getOutcomeDetail(eventType, statusCode));
         client.update(parameters);
     }
 }
