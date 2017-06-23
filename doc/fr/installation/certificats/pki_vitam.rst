@@ -1,23 +1,25 @@
-Explications relatives à la PKI
-###############################
 
-Les commandes sont à passer dans le sous-répertoire ``deployment`` de la livraison.
-
-.. caution:: par la suite, le terme <environnement> correspond à l'extension du nom de fichier d'inventaire.
+Cas 1: Je ne dispose pas de PKI, je souhaite utiliser celle de Vitam
+====================================================================
 
 
-.. figure:: images/pki-certificats.*
-    :align: center
+Procédure générale
+------------------
 
-    Vue d'ensemble de la gestion des certificats au déploiement
+.. danger:: La PKI de la solution Vitam ne doit être utilisée que pour faire des tests, et ne doit par conséquent surtout pas être utiliser en production !
+
+Il faut utiliser la "PKI" de Vitam, c'est à dire une suite de scripts qui vont générer dans l'ordre ci-dessous:
+
+- Les autorités de certifcation (CA)
+- Les certificats (clients, serveurs, de timestamping) à partir des CA
+- Les keystores, en important les certificats et CA nécessaires pour chacun des keystores
 
 
-Génération des autorités de certification
-=========================================
+Génération des CA par les scripts Vitam
+---------------------------------------
 
+Il faut faire générer les autorités de certification par le script décrit ci-dessous.
 
-Cas d'une PKI inexistante
---------------------------
 
 Dans le répertoire de déploiement, lancer le script :
 
@@ -26,7 +28,9 @@ Dans le répertoire de déploiement, lancer le script :
    pki/scripts/generate_ca.sh
 
 
-Ce script génère sous ``pki/ca`` les autorités de certification root et intermédiaires pour clients, serveurs, et timestamping.
+Ce script génère sous ``pki/ca`` les autorités de certification root et intermédiaires pour générer des certificats clients, serveurs, et de timestamping.
+
+.. warning:: Bien noter les dates de création et de fin de validité des CA. En cas d'utilisation de la PKI fournie, la CA root a une durée de validité de 10 ans ; la CA intermédiaire a une durée de 3 ans.
 
 Voici ci-dessous un exemple de rendu du script :
 
@@ -211,31 +215,18 @@ Voici ci-dessous un exemple de rendu du script :
     [INFO] [generate_ca.sh] ==============================================
     [INFO] [generate_ca.sh] Fin de la procédure de création des CA
 
-.. note::  bien noter les dates de création et de fin de validité des CA. En cas d'utilisation de la PKI fournie, la CA root a une durée de validité de 10 ans ; la CA intermédiaire a une durée de 3 ans.
 
-Cas d'une CA déjà existante
-----------------------------
+Génération des certificats par les scripts Vitam
+------------------------------------------------
 
-Pas de support pour le moment en cas de CA déjà existante uniquement.
-Il est nécessaire de générer et déposer manuellement les certificats (voir étape ci-dessous)
-
-Génération des certificats
-==========================
-
-Cas de certificats inexistants
--------------------------------
-
-.. warning:: cette étape n'est à effectuer que pour les clients ne possédant pas de certificats.
-
-Editer complètement le fichier ``environments/<fichier d'inventaire>``  pour indiquer les serveurs associés à chaque service.
-En prérequis les CA doivent être présentes.
+Le fichier d'inventaire de déploiement ``environments/<fichier d'inventaire>`` doit être correctement renseigné pour indiquer les serveurs associés à chaque service. En prérequis les CA doivent être présentes.
 
 Puis, dans le répertoire de déploiement, lancer le script :
 
 
 .. code-block:: bash
 
-   pki/scripts/generate_certs.sh <fichier d'inventaire>
+    pki/scripts/generate_certs.sh <fichier d'inventaire>
 
 Ci-dessous un exemple de sortie du script :
 
@@ -437,134 +428,8 @@ Ci-dessous un exemple de sortie du script :
 
 
 Ce script génère sous ``environmements/certs`` les certificats (format crt & key) nécessaires pour un bon fonctionnement dans VITAM.
+Les mots de passe des clés privées des certificats sont stockés dans le vault ansible environmements/certs/vault-certs.yml
 
 .. caution::  Les certificats générés à l'issue ont une durée de validité de (à vérifier).
 
-Cas de certificats déjà créés par le client
---------------------------------------------
-
-Si le client possède déjà une :term:`PKI`, ou ne compte pas utiliser la :term:`PKI` fournie par VITAM, il convient de positionner les certificats et CA sous ``environmements/certs/....`` en respectant la structure indiquée ci-dessous
-
-- cert
-    - client-external
-        - ca: CA(s) des certificats clients external
-        - clients
-            - external: Certificats des SIAs
-            - ihm-demo: Certificat de ihm-demo
-            - ihm-recette: Certificat de ihm-recette
-            - reverse: Certificat du reverse
-    - client-storage
-        - ca: CA(s) des certificats clients storage
-        - clients
-            - storage-engine: Certificat de storage-engine
-    - server
-        - ca: CA(s) des certificats côté serveurs
-        - hosts
-            - [nom_serveur]: certificats des composants installés sur le serveur donné, [nom_serveur] doit être identique à ce qui est référencé dans le ficheir d'inventaire
-    - timestamping
-        - ca: CA des certificats de timestamping
-        - vitam: Certificats de timestamping
-
-Il est aussi nécessaire de renseigner le vault contenant les passphrases des clés des certificats: ``environmements/certs/vault-certs.yml``
-
-Génération des stores
-=====================
-
-.. caution:: Avant de lancer le script de génération des stores, il est nécessaire de modifier le vault contenant les mots de passe des stores
-
-
-Lancer le script :
-
-.. code-block:: bash
-
-   ./generate_stores.sh
-
-Ci-dessous un exemple de sortie du script :
-
-.. code-block:: bash
-
-    [INFO] [generate_stores.sh] -------------------------------------------
-    [INFO] [generate_stores.sh] Creation du keystore de access-external pour le serveur localhost
-    [INFO] [generate_stores.sh] Génération du p12
-    [INFO] [generate_stores.sh] Génération du jks
-    Entry for alias access-external successfully imported.
-    Import command completed:  1 entries successfully imported, 0 entries failed or cancelled
-    [INFO] [generate_stores.sh] Suppression du p12
-    [INFO] [generate_stores.sh] -------------------------------------------
-    [INFO] [generate_stores.sh] Creation du keystore de ingest-external pour le serveur localhost
-    [INFO] [generate_stores.sh] Génération du p12
-    [INFO] [generate_stores.sh] Génération du jks
-    Entry for alias ingest-external successfully imported.
-    Import command completed:  1 entries successfully imported, 0 entries failed or cancelled
-    [INFO] [generate_stores.sh] Suppression du p12
-    [INFO] [generate_stores.sh] -------------------------------------------
-    [INFO] [generate_stores.sh] Creation du keystore de storage-offer-default pour le serveur localhost
-    [INFO] [generate_stores.sh] Génération du p12
-    [INFO] [generate_stores.sh] Génération du jks
-    Entry for alias storage-offer-default successfully imported.
-    Import command completed:  1 entries successfully imported, 0 entries failed or cancelled
-    [INFO] [generate_stores.sh] Suppression du p12
-    [INFO] [generate_stores.sh] -------------------------------------------
-    [INFO] [generate_stores.sh] Creation du keystore timestamp de logbook
-    [INFO] [generate_stores.sh] -------------------------------------------
-    [INFO] [generate_stores.sh] Creation du keystore client de ihm-demo
-    [INFO] [generate_stores.sh] Génération du p12
-    [INFO] [generate_stores.sh] Ajout du certificat public de ihm-demo dans le grantedstore external
-    Certificate was added to keystore
-    [INFO] [generate_stores.sh] -------------------------------------------
-    [INFO] [generate_stores.sh] Creation du keystore client de ihm-recette
-    [INFO] [generate_stores.sh] Génération du p12
-    [INFO] [generate_stores.sh] Ajout du certificat public de ihm-recette dans le grantedstore external
-    Certificate was added to keystore
-    [INFO] [generate_stores.sh] -------------------------------------------
-    [INFO] [generate_stores.sh] Creation du keystore client de reverse
-    [INFO] [generate_stores.sh] Génération du p12
-    [INFO] [generate_stores.sh] Ajout du certificat public de reverse dans le grantedstore external
-    Certificate was added to keystore
-    [INFO] [generate_stores.sh] -------------------------------------------
-    [INFO] [generate_stores.sh] Ajout des certificat public du répertoire external dans le grantedstore external
-    [INFO] [generate_stores.sh] -------------------------------------------
-    [INFO] [generate_stores.sh] Génération du truststore client-external
-    [INFO] [generate_stores.sh] Ajout des certificats client dans le truststore
-    [INFO] [generate_stores.sh] Ajout de /home/nico/git/vitam/deployment/pki/ca/client-external/ca-intermediate.crt dans le truststore external
-    Certificate was added to keystore
-    [INFO] [generate_stores.sh] Ajout de /home/nico/git/vitam/deployment/pki/ca/client-external/ca-root.crt dans le truststore external
-    Certificate was added to keystore
-    [INFO] [generate_stores.sh] Ajout des certificats serveur dans le truststore
-    [INFO] [generate_stores.sh] Ajout de /home/nico/git/vitam/deployment/pki/ca/server/ca-intermediate.crt dans le truststore external
-    Certificate was added to keystore
-    [INFO] [generate_stores.sh] Ajout de /home/nico/git/vitam/deployment/pki/ca/server/ca-root.crt dans le truststore external
-    Certificate was added to keystore
-    [INFO] [generate_stores.sh] -------------------------------------------
-    [INFO] [generate_stores.sh] Creation du keystore client de storage-engine
-    [INFO] [generate_stores.sh] Génération du p12
-    [INFO] [generate_stores.sh] Ajout du certificat public de storage-engine dans le grantedstore storage
-    Certificate was added to keystore
-    [INFO] [generate_stores.sh] -------------------------------------------
-    [INFO] [generate_stores.sh] Ajout des certificat public du répertoire external dans le grantedstore storage
-    [INFO] [generate_stores.sh] -------------------------------------------
-    [INFO] [generate_stores.sh] Génération du truststore client-storage
-    [INFO] [generate_stores.sh] Ajout des certificats client dans le truststore
-    [INFO] [generate_stores.sh] Ajout de /home/nico/git/vitam/deployment/pki/ca/client-storage/ca-intermediate.crt dans le truststore storage
-    Certificate was added to keystore
-    [INFO] [generate_stores.sh] Ajout de /home/nico/git/vitam/deployment/pki/ca/client-storage/ca-root.crt dans le truststore storage
-    Certificate was added to keystore
-    [INFO] [generate_stores.sh] Ajout des certificats serveur dans le truststore
-    [INFO] [generate_stores.sh] Ajout de /home/nico/git/vitam/deployment/pki/ca/server/ca-intermediate.crt dans le truststore storage
-    Certificate was added to keystore
-    [INFO] [generate_stores.sh] Ajout de /home/nico/git/vitam/deployment/pki/ca/server/ca-root.crt dans le truststore storage
-    Certificate was added to keystore
-    [INFO] [generate_stores.sh] -------------------------------------------
-    [INFO] [generate_stores.sh] Génération du truststore server
-    [INFO] [generate_stores.sh] Ajout des certificats client dans le truststore
-    [INFO] [generate_stores.sh] Ajout des certificats serveur dans le truststore
-    [INFO] [generate_stores.sh] Ajout de /home/nico/git/vitam/deployment/pki/ca/server/ca-intermediate.crt dans le truststore server
-    Certificate was added to keystore
-    [INFO] [generate_stores.sh] Ajout de /home/nico/git/vitam/deployment/pki/ca/server/ca-root.crt dans le truststore server
-    Certificate was added to keystore
-    [INFO] [generate_stores.sh] -------------------------------------------
-    [INFO] [generate_stores.sh] Fin de la génération des stores
-
-Ce script génère sous ``environmements/keystores`` les stores (jks / p12) associés pour un bon fonctionnement dans VITAM.
-
-Il est aussi possible de déposer directement les keystores au bon format en remplaçant ceux fournis par défaut, en indiquant les mots de passe d'accès dans le vault: ``environmements/group_vars/all/vault-keystores.yml``
+.. include:: keystores.rst

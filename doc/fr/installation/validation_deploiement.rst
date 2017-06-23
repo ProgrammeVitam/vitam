@@ -10,7 +10,7 @@ La procédure de validation est commune aux différentes méthodes d'installatio
 Sécurisation du fichier ``vault_pass.txt``
 ==========================================
 
-Le fichier ``vault_pass.txt`` est très sensible ; il contient le mot de passe du fichier ``environments/group_vars/all/vault.yml`` qui contient les divers mots de passe de la plate-forme. A l'issue de l'installation, il est nécessaire de le sécuriser (suppression du fichier ou application d'un ``chmod 400``).
+Le fichier ``vault_pass.txt`` est très sensible ; il contient le mot de passe du fichier ``environments/group_vars/all/vault.yml`` qui contient les divers mots de passe de la plate-forme. Il est fortement déconseillé de ne pas l'utiliser en production. A l'issue de l'installation, il est nécessaire de le sécuriser (suppression du fichier ou application d'un ``chmod 400``).
 
 .. Validation par ansible
 .. =======================
@@ -79,13 +79,6 @@ Un playbook a été créé pour charger le référentiel PRONOM dans une version
 
 Ce playbook n'est à passer que si aucun référentiel PRONOM n'a été chargé, permettant d'accélérer l'utilisation de VITAM.
 
-Si le fichier vault-password est renseigné :
-
-``ansible-playbook ansible-vitam-extra/init_pronom.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt``
-
-Sinon
-
 ``ansible-playbook ansible-vitam-extra/init_pronom.yml -i environments/<fichier d'inventaire> --ask-vault-pass``
 
 .. caution:: le playbook ne se termine pas correctement (code HTTP 403) si un référentiel PRONOM a déjà été chargé.
-
