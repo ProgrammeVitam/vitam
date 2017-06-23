@@ -191,6 +191,7 @@ public class MetaDataResource extends ApplicationStatusResource {
      */
     private Response selectUnitsByQuery(JsonNode selectRequest) {
         Status status;
+        final JsonNode copy = selectRequest.deepCopy();
         ArrayNode arrayNodeResults;
         try {
             arrayNodeResults = metaDataImpl.selectUnitsByQuery(selectRequest);
@@ -231,7 +232,7 @@ public class MetaDataResource extends ApplicationStatusResource {
         }
 
         return Response.status(Status.FOUND).entity(new RequestResponseOK(selectRequest)
-            .addAllResults(JsonHandler.toArrayList(arrayNodeResults))).build();
+            .addAllResults(JsonHandler.toArrayList(arrayNodeResults)).setQuery(copy)).build();
     }
 
     /**
@@ -462,6 +463,7 @@ public class MetaDataResource extends ApplicationStatusResource {
      */
     private Response selectObjectGroupById(JsonNode selectRequest, String objectGroupId) {
         Status status;
+        final JsonNode copy = selectRequest.deepCopy();
         ArrayNode arrayNodeResults;
         try {
             arrayNodeResults = metaDataImpl.selectObjectGroupById(selectRequest, objectGroupId);
@@ -500,7 +502,7 @@ public class MetaDataResource extends ApplicationStatusResource {
         }
 
         return Response.status(Status.OK).entity(new RequestResponseOK(selectRequest)
-            .addAllResults(toArrayList(arrayNodeResults))).build();
+            .addAllResults(toArrayList(arrayNodeResults)).setQuery(copy)).build();
     }
 
     @Path("accession-registers/units/{operationId}")
