@@ -49,6 +49,8 @@ angular.module('archive.unit')
     'LIST_ITEM_LABEL': 'Valeur',
     'UNIT_PRENT_LIST': '_up',
     'MGT_WITH_CSHARP_KEY': '#mgt',
+    'ORIGINATING_AGENCIES_WITH_CSHARP_KEY': '#originating_agencies',
+    'ORIGINATING_AGENCY_WITH_CSHARP_KEY': '#originating_agency',
     'RULES_CATEGORY_KEYS': ['AccessRule','AppraisalRule','ClassificationRule','DisseminationRule','ReuseRule','StorageRule']
   })
   .filter('filterSize', function() {
@@ -168,7 +170,15 @@ angular.module('archive.unit')
 
       fieldSet.fieldName = self.displayLabel(key, parent, constants);
 
-      if(!angular.isObject(value)) {
+      if (key == ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCY_FIELD) {
+    	  fieldSet.typeF = ARCHIVE_UNIT_MODULE_CONST.COMPLEX_FIELD_TYPE;
+    	  var contentField = value;
+          fieldSet.content = [];
+          var fieldSetFirst = buildSingleField("", ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCY_IDENTIFIER_FIELD, fieldSet.fieldId, fieldSet.parents, constants, modifAllowed);
+          fieldSet.content.push(fieldSetFirst);
+          var fieldSetSecond = buildSingleField(contentField, ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCY_DESCRIPTION_FIELD, fieldSet.fieldId, fieldSet.parents, constants, modifAllowed);
+          fieldSet.content.push(fieldSetSecond);
+      } else if(!angular.isObject(value)) {
         fieldSet.typeF = ARCHIVE_UNIT_MODULE_CONST.SIMPLE_FIELD_TYPE;
         if(!isMgtChild && modifAllowed){
           fieldSet.isModificationAllowed = true;
@@ -648,7 +658,7 @@ angular.module('archive.unit')
 
                 if (mainFields.indexOf(key) >= 0) {
                   self.mainFields[key] = fieldSet;
-                } else {
+                } else if (key != ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCIES_WITH_CSHARP_KEY) {                	
                   self.archiveArray.push(fieldSet);
                 }
 
@@ -656,7 +666,7 @@ angular.module('archive.unit')
                   if (index > 0) {
                     var newKey = self.displayLabel(key, key) + ' ' + index;
                     self.archiveFields[newKey] = objectValue;
-                    fieldSet = buildSingleField(objectValue, newKey, newKey, [], null, true);
+                    fieldSet = buildSingleField(objectValue, newKey, newKey, [], null, true);                    
                     self.archiveArray.push(fieldSet);
                   }
                 });
@@ -666,13 +676,17 @@ angular.module('archive.unit')
               if(key == ARCHIVE_UNIT_MODULE_CONST.TITLE_FIELD){
                 self.archiveTitle = value;
               }
+              
+              if (key == ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCY_WITH_CSHARP_KEY) {
+            	  key = ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCY_FIELD;
+              }
 
               self.fieldSet = buildSingleField(value, key, key, [], null, true);
               if (!addedField) {
                 if (mainFields.indexOf(key) >= 0 ) {
                   self.mainFields[key] = self.fieldSet;
                 } else {
-                  self.archiveArray.push(self.fieldSet);
+                	  self.archiveArray.push(self.fieldSet);         
                 }
               }
             }
@@ -688,7 +702,8 @@ angular.module('archive.unit')
             if (key === ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCY_FIELD) {
               var mustBeAdded = [ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCY_IDENTIFIER_FIELD,
                 ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCY_DESCRIPTION_FIELD];
-
+              
+              
               var essentialFinalContent = [];
               var extraFinalContent = [];
 
@@ -699,7 +714,7 @@ angular.module('archive.unit')
                   if(!found){
                     var currentField = item.fieldId;
                     if (currentField === childKey) {
-                      essentialFinalContent.push(item);
+                      essentialFinalContent.push(item);                      
                       found = true;
                     }
                   }
@@ -708,7 +723,7 @@ angular.module('archive.unit')
                 if(!found){
                   // Add mandatory field
                   self.fieldSet = buildSingleField('', childKey, key, [], null, true);
-                  essentialFinalContent.push(self.fieldSet);
+                  essentialFinalContent.push(self.fieldSet);                  
                 }
               });
 
