@@ -79,6 +79,7 @@ import fr.gouv.vitam.ingest.external.core.IngestExternalImpl;
 import fr.gouv.vitam.ingest.external.core.PreUploadResume;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
+import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
 
 /**
  * The Ingest External Resource
@@ -132,8 +133,16 @@ public class IngestExternalResource extends ApplicationStatusResource {
             // TODO ? ParametersChecker.checkParameter("HTTP Request must contains stream", uploadedInputStream);
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             final IngestExternalImpl ingestExtern = new IngestExternalImpl(ingestExternalConfiguration);
-            PreUploadResume preUploadResume =
-                ingestExtern.preUploadAndResume(uploadedInputStream, contextId, action, guid, asyncResponse);
+            PreUploadResume preUploadResume = null;
+            try {
+                preUploadResume =
+                    ingestExtern.preUploadAndResume(uploadedInputStream, contextId, action, guid, asyncResponse);
+            } catch (WorkspaceClientServerException e) {
+                Response response = ingestExtern.createATRWorkspaceError(contextId, action, guid,
+                    asyncResponse);
+                response.close();
+                return;
+            }
             Response response = ingestExtern.upload(preUploadResume, guid);
             response.close();
         } catch (final Exception exc) {

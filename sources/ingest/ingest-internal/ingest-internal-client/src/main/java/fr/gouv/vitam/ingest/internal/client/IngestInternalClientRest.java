@@ -398,7 +398,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
                     MediaType.APPLICATION_JSON_TYPE);
             checkResponseStatus(response);
             return response.readEntity(ItemStatus.class);
-        } catch (VitamClientInternalException e) {
+        } catch (VitamClientInternalException | WorkspaceClientServerException e) {
             LOGGER.error("VitamClientInternalException: ", e);
             throw new VitamClientException(e);
         } finally {
@@ -445,20 +445,21 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
         }
     }
 
-    private  void checkResponseStatus( Response response) throws VitamClientInternalException {
+    private  void checkResponseStatus( Response response) throws VitamClientInternalException, WorkspaceClientServerException {
         if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
             LOGGER.warn("SIP Warning : " + Response.Status.NOT_FOUND.getReasonPhrase());
             throw new VitamClientInternalException(NOT_FOUND_EXCEPTION);
         } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
             LOGGER.warn("SIP Warning : " + Response.Status.PRECONDITION_FAILED.getReasonPhrase());
             throw new VitamClientInternalException(REQUEST_PRECONDITION_FAILED);
-
         } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
             LOGGER.warn("SIP Warning : " + Response.Status.UNAUTHORIZED.getReasonPhrase());
             throw new VitamClientInternalException(UNAUTHORIZED);
         } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
             LOGGER.warn("SIP Warning : " + Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
             throw new VitamClientInternalException(INTERNAL_SERVER_ERROR);
+        } else if (Status.SERVICE_UNAVAILABLE.getStatusCode() == response.getStatus()) {
+            throw new WorkspaceClientServerException("Workspace Server Error");
         }
     }
     @Override

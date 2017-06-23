@@ -87,6 +87,8 @@ import fr.gouv.vitam.workspace.common.WorkspaceFileSystem;
  * Implementation of IngestExtern
  */
 public class IngestExternalImpl implements IngestExternal {
+    private static final String WORKSPACE_ERROR_MESSAGE = "Workspace Error. ATR is not stored";
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalImpl.class);
 
     private static final String UNDERSCORE = "_";
@@ -130,7 +132,7 @@ public class IngestExternalImpl implements IngestExternal {
     @Override
     public PreUploadResume preUploadAndResume(InputStream input, String contextId, String action, GUID guid,
         AsyncResponse asyncResponse)
-        throws IngestExternalException {
+        throws IngestExternalException, WorkspaceClientServerException {
         ParametersChecker.checkParameter("input is a mandatory parameter", input);
         VitamThreadUtils.getVitamSession().setRequestId(guid);
         // Store in local
@@ -178,6 +180,8 @@ public class IngestExternalImpl implements IngestExternal {
             try (IngestInternalClient ingestClient =
                 IngestInternalClientFactory.getInstance().getClient()) {
                 ingestClient.initWorkFlow(contextWithExecutionMode);
+            }  catch (WorkspaceClientServerException e) {
+                throw e;
             } catch (VitamException e) {
                 throw new IngestExternalException(e);
             }
@@ -555,7 +559,9 @@ public class IngestExternalImpl implements IngestExternal {
                 "CHECK_CONTAINER", ". Format non supporté : " + mimeType, status);
         }
 
-        storeATR(ingestGuid, atrKo);
+        if (!status.equals(StatusCode.FATAL)) {
+            storeATR(ingestGuid, atrKo);
+        }
 
         responseNoProcess = new AbstractMockClient.FakeInboundResponse(Status.BAD_REQUEST,
             new ByteArrayInputStream(atrKo.getBytes(CharsetUtils.UTF8)), MediaType.APPLICATION_XML_TYPE, null);
@@ -593,9 +599,40 @@ public class IngestExternalImpl implements IngestExternal {
                 status,
                 VitamLogbookMessages.getCodeOp(STP_INGEST_FINALISATION, status),
                 containerName);
+        if (status.equals(StatusCode.FATAL)) {
+            stpIngestFinalisationParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, 
+                WORKSPACE_ERROR_MESSAGE);
+        }
         helper.updateDelegate(stpIngestFinalisationParameters);
     }
 
+    public Response createATRWorkspaceError(String contextId, String action, GUID guid, AsyncResponse asyncResponse) 
+        throws LogbookClientNotFoundException, IngestExternalException {
+        final GUID containerName = guid;
+        final GUID objectName = guid;
+        final GUID ingestGuid = guid;
+        Contexts ingestContext = Contexts.valueOf(contextId);
+        // FIXME Correct logbookTypeProcess identification
+        LogbookTypeProcess logbookTypeProcess = ingestContext.getLogbookTypeProcess();
+        MessageLogbookEngineHelper messageLogbookEngineHelper = new MessageLogbookEngineHelper(logbookTypeProcess);
+        LogbookOperationParameters startedParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            ingestGuid, ingestContext.getEventType(), containerName,
+            logbookTypeProcess, StatusCode.STARTED,
+            messageLogbookEngineHelper.getLabelOp(ingestContext.getEventType(), StatusCode.STARTED) + " : " +
+                ingestGuid.toString(),
+            ingestGuid);
+
+        // TODO P1 should be the file name from a header
+        if (objectName != null) {
+            startedParameters.getMapParameters().put(LogbookParameterName.objectIdentifierIncome,
+                objectName.getId());
+        }
+        
+        LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
+        final String eventType = ingestContext.getEventType();
+        return prepareEarlyAtrKo(containerName, ingestGuid, helper, startedParameters,
+            false, "", startedParameters, logbookTypeProcess, eventType, StatusCode.FATAL);
+    }
     private void addTransferNotificationLog(GUID ingestGuid, GUID containerName, LogbookOperationsClientHelper helper,
         StatusCode status, LogbookTypeProcess logbookTypeProcess)
         throws LogbookClientNotFoundException {

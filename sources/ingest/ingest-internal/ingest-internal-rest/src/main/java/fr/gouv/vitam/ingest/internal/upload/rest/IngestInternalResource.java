@@ -60,6 +60,7 @@ import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -690,9 +691,11 @@ public class IngestInternalResource extends ApplicationStatusResource {
         boolean isCompletedProcess = false;
 
         try (LogbookOperationsClient logbookOperationsClient =
-            LogbookOperationsClientFactory.getInstance().getClient()) {
+            LogbookOperationsClientFactory.getInstance().getClient();
+            WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
 
             try {
+                workspaceClient.checkStatus();
                 VitamThreadUtils.getVitamSession().checkValidRequestId();
                 ParametersChecker.checkParameter("HTTP Request must contains stream", uploadedInputStream);
                 ParametersChecker.checkParameter("actionId is a mandatory parameter", actionId);
@@ -764,7 +767,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                         }
                     }
                 }
-            } catch (final ContentAddressableStorageException e) {
+            } catch (final ContentAddressableStorageException | VitamApplicationServerException e) {
                 if (parameters != null) {
                     try {
                         parameters.putParameterValue(LogbookParameterName.eventType, INGEST_INT_UPLOAD);
