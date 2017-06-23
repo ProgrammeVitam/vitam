@@ -265,7 +265,7 @@ public class ProcessDistributorResource {
             return Response.status(Response.Status.BAD_REQUEST).entity("{\"error\":\"" + exc.getMessage() + "\"}")
                 .build();
         } catch (final WorkerAlreadyExistsException exc) {
-            LOGGER.error(exc);
+            LOGGER.warn(exc);
             return Response.status(Response.Status.CONFLICT).entity("{\"error\":\"" + exc.getMessage() + "\"}")
                 .build();
         }

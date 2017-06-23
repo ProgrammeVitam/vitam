@@ -839,19 +839,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
                 updateManagementAndAppendGlobalMgtRule(archiveUnit, globalMgtIdExtra);
 
-                // sanityChecker
-                try {
-                    SanityChecker.checkJsonAll(archiveUnit);
-                } catch (InvalidParseOperationException e) {
-                    LOGGER.error("Sanity Checker failed for Archive Unit " + unitGuid);
-                    // delete created temporary file
-                    throw new ArchiveUnitContainSpecialCharactersException(e);
-                } finally {
-                    if (!unitTmpFileForRead.delete()) {
-                        LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
-                    }
-                }
-
                 // Write to new File
                 JsonHandler.writeAsFile(archiveUnit, unitCompleteTmpFile);
 

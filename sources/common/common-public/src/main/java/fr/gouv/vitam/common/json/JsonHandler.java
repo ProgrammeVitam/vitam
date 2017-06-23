@@ -780,12 +780,12 @@ public final class JsonHandler {
 
 	/**
 	 * Set a value in a node defined by the given path. Create path nodes if needed
-	 * 
+	 *
 	 * @param node the rootNode
 	 * @param nodePath the path of the node that must be updated/created
 	 * @param value The new value of the node
 	 * @param canCreate true if missing nodes muse be created. Else an error  was thrown for missing nodes
-	 * @throws InvalidParseOperationException 
+	 * @throws InvalidParseOperationException
 	 */
     public static void setNodeInPath(ObjectNode node, String nodePath, JsonNode value, boolean canCreate)
         throws InvalidParseOperationException {

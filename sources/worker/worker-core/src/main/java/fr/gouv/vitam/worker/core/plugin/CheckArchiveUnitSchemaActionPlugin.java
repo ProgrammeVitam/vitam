@@ -31,6 +31,7 @@ import java.io.InputStream;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.json.SchemaValidationStatus;
@@ -40,6 +41,9 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import fr.gouv.vitam.processing.common.exception.ArchiveUnitContainSpecialCharactersException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -55,7 +59,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 
 public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
     private static final String WORKSPACE_SERVER_ERROR = "Workspace Server Error";
-    
+
     private static final String SCHEMA_ERROR = "Json validation couldn't be done";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckArchiveUnitSchemaActionPlugin.class);
@@ -66,6 +70,7 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
 
     private static final String NOT_AU_JSON_VALID = "NOT_AU_JSON_VALID";
     private static final String NOT_JSON_FILE = "NOT_JSON_FILE";
+    private static final String UNIT_SANITIZE = "UNIT_SANITIZE";
 
     /**
      * Empty constructor UnitsRulesComputePlugin
@@ -100,6 +105,16 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
                     return new ItemStatus(CHECK_UNIT_SCHEMA_TASK_ID).setItemsStatus(CHECK_UNIT_SCHEMA_TASK_ID,
                         itemStatus);
             }
+        } catch (final ArchiveUnitContainSpecialCharactersException e) {
+            itemStatus.setItemId(UNIT_SANITIZE);
+            itemStatus.increment(StatusCode.KO);
+            itemStatus.setEvDetailData(e.getMessage());
+            final ObjectNode object = JsonHandler.createObjectNode();
+            object.put("UnitSanitize", e.getMessage());
+            itemStatus.setData(LogbookParameterName.eventDetailData.name(),
+                JsonHandler.unprettyPrint(object));
+            return new ItemStatus(CHECK_UNIT_SCHEMA_TASK_ID).setItemsStatus(CHECK_UNIT_SCHEMA_TASK_ID,
+                itemStatus);
         } catch (final ProcessingException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
@@ -121,6 +136,15 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
             handlerIO.getInputStreamFromWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName)) {
             SchemaValidationUtils validator = new SchemaValidationUtils();
             JsonNode archiveUnit = JsonHandler.getFromInputStream(archiveUnitToJson);
+
+            // sanityChecker
+            try {
+                SanityChecker.checkJsonAll(archiveUnit);
+            } catch (InvalidParseOperationException e) {
+                final String err = "Sanity Checker failed for Archive Unit: "+e.getMessage();
+                LOGGER.error(err);
+                throw new ArchiveUnitContainSpecialCharactersException(err);
+            }
             return validator.validateUnit(archiveUnit);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("File couldnt be converted into json", e);

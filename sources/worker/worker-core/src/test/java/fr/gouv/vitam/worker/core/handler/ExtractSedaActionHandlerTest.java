@@ -647,7 +647,7 @@ public class ExtractSedaActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenManifestWithSpecialCharactersWhenExecuteThenReturnResponseKO() throws Exception {
+    public void givenManifestWithSpecialCharactersWhenExecuteThenReturnResponseOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
         final InputStream seda_arborescence =
@@ -657,7 +657,7 @@ public class ExtractSedaActionHandlerTest {
         action.addOutIOParameters(out);
 
         final ItemStatus response = handler.execute(params, action);
-        assertEquals(StatusCode.KO, response.getGlobalStatus());
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
     @Test

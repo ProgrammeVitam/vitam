@@ -102,7 +102,12 @@ public class SchemaValidationStatus {
         /**
          * Not a json file
          */
-        NOT_JSON_FILE;
+        NOT_JSON_FILE,
+
+        /**
+         * Sanitize the unit
+         */
+        UNIT_SANITIZE;
     }
 
 }
