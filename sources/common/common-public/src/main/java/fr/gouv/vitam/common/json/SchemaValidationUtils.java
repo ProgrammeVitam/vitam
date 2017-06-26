@@ -27,8 +27,10 @@
 package fr.gouv.vitam.common.json;
 
 import java.io.FileNotFoundException;
+import java.util.Iterator;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonschema.cfg.ValidationConfiguration;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
@@ -118,6 +120,26 @@ public class SchemaValidationUtils {
                 SchemaValidationStatusEnum.NOT_JSON_FILE);
         }
         return new SchemaValidationStatus("Correct file", SchemaValidationStatusEnum.VALID);
+    }
+
+    /**
+     * Validate a json for update with a schema
+     * 
+     * @param archiveUnit the json to be validated
+     * @return a status ({@link SchemaValidationStatus})
+     */
+    public SchemaValidationStatus validateUpdateUnit(JsonNode archiveUnit) {
+        ObjectNode unitCopy = ((ObjectNode) archiveUnit).deepCopy();
+        final Iterator<String> names = unitCopy.fieldNames();
+        while (names.hasNext()) {
+            String name = names.next();
+            if ("_mgt".equals(name)) {
+                final JsonNode value = unitCopy.remove(name);
+                unitCopy.set("Management", value);
+                break;
+            }
+        }
+        return validateUnit(unitCopy);
     }
 
 }

@@ -851,7 +851,7 @@ public class DbRequest {
                 updatedJsonDocument.set(VitamDocument.VERSION, new IntNode(documentVersion + 1));
 
                 if (model == FILTERARGS.UNITS) {
-                    SchemaValidationStatus status = validator.validateUnit(updatedJsonDocument);
+                    SchemaValidationStatus status = validator.validateUpdateUnit(updatedJsonDocument);
                     if (!SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
                         throw new MetaDataExecutionException("Unable to validate updated Unit");
                     }

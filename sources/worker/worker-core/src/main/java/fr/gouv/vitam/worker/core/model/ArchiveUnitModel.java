@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.core.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 public class ArchiveUnitModel {
 
@@ -40,6 +41,7 @@ public class ArchiveUnitModel {
 
     private ManagementModel management;
 
+    @JsonUnwrapped
     @JsonProperty("Content")
     private DescriptiveMetadataModel descriptiveMetadataModel;
 

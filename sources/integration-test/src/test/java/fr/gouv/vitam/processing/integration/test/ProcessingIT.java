@@ -52,7 +52,6 @@ import java.util.zip.ZipOutputStream;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.assertj.core.api.Assertions;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -388,8 +387,8 @@ public class ProcessingIT {
     @After
     public void afterTest() {
         MongoDatabase db = mongoClient.getDatabase("Vitam");
-        db.getCollection("Unit") .deleteMany(new Document());
-        db.getCollection("ObjectGroup") .deleteMany(new Document());
+        db.getCollection("Unit").deleteMany(new Document());
+        db.getCollection("ObjectGroup").deleteMany(new Document());
     }
 
     @Test
@@ -435,16 +434,20 @@ public class ProcessingIT {
                     PropertiesUtils.getResourceAsStream("integration-processing/jeu_donnees_OK_regles_CSV_regles.csv"));
 
                 File fileProfiles = PropertiesUtils.getResourceFile("integration-processing/OK_profil.json");
-                List<ProfileModel> profileModelList = JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>(){});
+                List<ProfileModel> profileModelList =
+                    JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {});
                 RequestResponse improrResponse = client.createProfiles(profileModelList);
 
-                RequestResponseOK<ProfileModel> response = (RequestResponseOK<ProfileModel>) client.findProfiles(new Select().getFinalSelect());
+                RequestResponseOK<ProfileModel> response =
+                    (RequestResponseOK<ProfileModel>) client.findProfiles(new Select().getFinalSelect());
                 client.importProfileFile(response.getResults().get(0).getId(),
                     PropertiesUtils.getResourceAsStream("integration-processing/Profil20.rng"));
-                
+
                 // import contract
-                File fileContracts = PropertiesUtils.getResourceFile("integration-processing/referential_contracts_ok.json");
-                List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>(){});
+                File fileContracts =
+                    PropertiesUtils.getResourceFile("integration-processing/referential_contracts_ok.json");
+                List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
+                    new TypeReference<List<IngestContractModel>>() {});
 
                 Status importStatus = client.importIngestContracts(IngestContractModelList);
             } catch (final Exception e) {
@@ -457,18 +460,21 @@ public class ProcessingIT {
     private void flush() {
         ProcessDataAccessImpl.getInstance().clearWorkflow();
     }
+
     private void wait(String operationId) {
         int nbTry = 0;
-        while (! processingClient.isOperationCompleted(operationId)) {
+        while (!processingClient.isOperationCompleted(operationId)) {
             try {
                 Thread.sleep(SLEEP_TIME);
             } catch (InterruptedException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
-            if (nbTry == NB_TRY) break;
-            nbTry ++;
+            if (nbTry == NB_TRY)
+                break;
+            nbTry++;
         }
     }
+
     /**
      * This test needs Siegfried already running and started as:<br/>
      * sf -server localhost:8999<br/>
@@ -520,11 +526,13 @@ public class ProcessingIT {
             RestAssured.port = PORT_SERVICE_PROCESSING;
             RestAssured.basePath = PROCESSING_PATH;
 
-            
+
             metaDataClient.insertUnit(
-                new InsertMultiQuery().addData((ObjectNode)
-                    JsonHandler.getFromFile(PropertiesUtils.getResourceFile("integration-processing/unit_metadata.json"))).getFinalInsert());
-            
+                new InsertMultiQuery()
+                    .addData((ObjectNode) JsonHandler
+                        .getFromFile(PropertiesUtils.getResourceFile("integration-processing/unit_metadata.json")))
+                    .getFinalInsert());
+
             logbookLFCClient.create(
                 LogbookParametersFactory.newLogbookLifeCycleUnitParameters(
                     GUIDFactory.newOperationLogbookGUID(tenantId),
@@ -535,10 +543,12 @@ public class ProcessingIT {
                     "Process_SIP_unitary.OK",
                     UNIT_ATTACHEMENT_ID,
                     GUIDReader.getGUID(UNIT_ATTACHEMENT_ID)));
-            
+
             metaDataClient.insertUnit(
-                new InsertMultiQuery().addData((ObjectNode)
-                    JsonHandler.getFromFile(PropertiesUtils.getResourceFile(PROCESSING_UNIT_PLAN))).getFinalInsert());
+                new InsertMultiQuery()
+                    .addData(
+                        (ObjectNode) JsonHandler.getFromFile(PropertiesUtils.getResourceFile(PROCESSING_UNIT_PLAN)))
+                    .getFinalInsert());
             logbookLFCClient.create(
                 LogbookParametersFactory.newLogbookLifeCycleUnitParameters(
                     GUIDFactory.newOperationLogbookGUID(tenantId),
@@ -549,11 +559,12 @@ public class ProcessingIT {
                     "Process_SIP_unitary.OK",
                     UNIT_PLAN_ATTACHEMENT_ID,
                     GUIDReader.getGUID(UNIT_PLAN_ATTACHEMENT_ID)));
-            
+
             // import contract
             File fileContracts = PropertiesUtils.getResourceFile(INGEST_CONTRACTS_PLAN);
-            List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>(){});
-            
+            List<IngestContractModel> IngestContractModelList =
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
+
             functionalClient.importIngestContracts(IngestContractModelList);
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
@@ -1387,7 +1398,7 @@ public class ProcessingIT {
         // File format warning state
         assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
         // completed execution status
-        assertEquals(ProcessState.COMPLETED,processWorkflow.getState());
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         // checkMonitoring - meaning something has been added in the monitoring tool
 
     }
@@ -1533,7 +1544,8 @@ public class ProcessingIT {
         String idUnit = (String) unit.get("_id");
         replaceStringInFile(SIP_FILE_ADD_AU_LINK_OK_NAME + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
             idUnit);
-        zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() + "/" + zipName;
+        zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
+            "/" + zipName;
         zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME), zipPath);
 
 
@@ -1607,7 +1619,8 @@ public class ProcessingIT {
         replaceStringInFile(SIP_FILE_ADD_AU_LINK_OK_NAME + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
             "aeaaaaaaaaaam7mxabxccakzrw47heqaaaaq");
 
-        zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() + "/" + zipName;
+        zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
+            "/" + zipName;
         zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME), zipPath);
 
 
@@ -1658,11 +1671,9 @@ public class ProcessingIT {
 
 
     /**
-     * Test attach existing ObjectGroup to unit
-     * 1. Upload SIP
-     * 2. Get created GOT
-     * 3. Update manifest and set existing GOT
+     * Test attach existing ObjectGroup to unit 1. Upload SIP 2. Get created GOT 3. Update manifest and set existing GOT
      * 4. Upload the new SIP
+     * 
      * @throws Exception
      */
     @RunWithCustomExecutor
@@ -1718,10 +1729,12 @@ public class ProcessingIT {
         MongoIterable<Document> resultUnits = db.getCollection("Unit").find();
         Document unit = resultUnits.first();
         String idGot = (String) unit.get("_og");
-        replaceStringInFile(LINK_AU_TO_EXISTING_GOT_OK_NAME + "/manifest.xml", "(?<=<DataObjectGroupExistingReferenceId>).*?(?=</DataObjectGroupExistingReferenceId>)",
+        replaceStringInFile(LINK_AU_TO_EXISTING_GOT_OK_NAME + "/manifest.xml",
+            "(?<=<DataObjectGroupExistingReferenceId>).*?(?=</DataObjectGroupExistingReferenceId>)",
             idGot);
 
-        zipPath = PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET).toAbsolutePath().toString() + "/" + zipName;
+        zipPath = PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET).toAbsolutePath().toString() +
+            "/" + zipName;
         zipFolder(PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME), zipPath);
 
 
@@ -1774,6 +1787,7 @@ public class ProcessingIT {
 
     /**
      * Test attach existing ObjectGroup to unit, but guid of the existing got is fake and really exists
+     * 
      * @throws Exception
      */
     @RunWithCustomExecutor
@@ -1785,7 +1799,8 @@ public class ProcessingIT {
 
         // prepare zip
         String idGot = "FakeGuid";
-        replaceStringInFile(LINK_AU_TO_EXISTING_GOT_OK_NAME + "/manifest.xml", "(?<=<DataObjectGroupExistingReferenceId>).*?(?=</DataObjectGroupExistingReferenceId>)",
+        replaceStringInFile(LINK_AU_TO_EXISTING_GOT_OK_NAME + "/manifest.xml",
+            "(?<=<DataObjectGroupExistingReferenceId>).*?(?=</DataObjectGroupExistingReferenceId>)",
             idGot);
         zipFolder(PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME),
             PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET).toAbsolutePath().toString() +

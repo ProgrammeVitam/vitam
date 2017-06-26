@@ -34,22 +34,22 @@ import org.junit.Test;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.json.SchemaValidationStatus;
-import fr.gouv.vitam.common.json.SchemaValidationUtils;
 import fr.gouv.vitam.common.json.SchemaValidationStatus.SchemaValidationStatusEnum;
 
 public class SchemaValidationUtilsTest {
 
     private static final String AU_JSON_FILE = "archive-unit_OK.json";
     private static final String AU_INVALID_JSON_FILE = "archive-unit_Invalid.json";
-    private static final String COMPLEX_JSON_FILE = "complex_archive_unit.json";    
+    private static final String COMPLEX_JSON_FILE = "complex_archive_unit.json";
+
+    public static final String TAG_ARCHIVE_UNIT = "ArchiveUnit";
 
     @Test
     public void givenDefaultConstructorThenValidateJsonOK() throws Exception {
         final SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
         SchemaValidationStatus status = schemaValidation
-            .validateUnit(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_JSON_FILE)));
+            .validateUnit(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_JSON_FILE))
+                .get(TAG_ARCHIVE_UNIT));
         assertTrue(status.getValidationStatus().equals(SchemaValidationStatusEnum.VALID));
     }
 
@@ -58,23 +58,25 @@ public class SchemaValidationUtilsTest {
         final SchemaValidationUtils schemaValidation =
             new SchemaValidationUtils("json-schema/archive-unit-schema.json");
         SchemaValidationStatus status = schemaValidation
-            .validateUnit(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_JSON_FILE)));
+            .validateUnit(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_JSON_FILE))
+                .get(TAG_ARCHIVE_UNIT));
         assertTrue(status.getValidationStatus().equals(SchemaValidationStatusEnum.VALID));
     }
-    
+
     @Test
     public void givenComplexArchiveUnitJsonThenValidateJsonOK() throws Exception {
         final SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
         SchemaValidationStatus status = schemaValidation
-            .validateUnit(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(COMPLEX_JSON_FILE)));
+            .validateUnit(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(COMPLEX_JSON_FILE))
+                .get(TAG_ARCHIVE_UNIT));
         assertTrue(status.getValidationStatus().equals(SchemaValidationStatusEnum.VALID));
     }
-    
+
     @Test(expected = FileNotFoundException.class)
     public void givenConstructorWithInexistingSchemaThenException() throws Exception {
         new SchemaValidationUtils("json-schema/archive-unit-schema-inexisting.json");
     }
-    
+
     @Test(expected = InvalidParseOperationException.class)
     public void givenConstructorWithIncorrectSchemaThenException() throws Exception {
         new SchemaValidationUtils("manifestOK.xml");
@@ -87,6 +89,6 @@ public class SchemaValidationUtilsTest {
         SchemaValidationStatus status = schemaValidation
             .validateUnit(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_INVALID_JSON_FILE)));
         assertTrue(status.getValidationStatus().equals(SchemaValidationStatusEnum.NOT_AU_JSON_VALID));
-    }    
-    
+    }
+
 }

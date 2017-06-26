@@ -223,9 +223,17 @@ public class DbRequestTest {
     private static final String REQUEST_SELECT_TEST_ES_UPDATE =
         "{$query: { $match : { '#id' : 'aeaqaaaaaaaaaaabab4roakztdjqziaaaaaq' , '$max_expansions' : 1  } }}";
     private static final String REQUEST_INSERT_TEST_ES_UPDATE =
-        "{ \"#id\": \"aeaqaaaaaaaaaaabab4roakztdjqziaaaaaq\", \"#tenant\": 0, \"title\": \"Archive3\" }";
+        "{ \"#id\": \"aeaqaaaaaaaaaaabab4roakztdjqziaaaaaq\", \"#tenant\": 0, \"Title\": \"Archive3\", " +
+        "\"_mgt\": {\"StorageRule\": [{\"Rule\": \"STR001\",\"StartDate\": \"2012-11-15T14:30:23\",\"RefNonRuleId\": [],\"FinalAction\": \"Copy\"}]}," +
+        " \"DescriptionLevel\": \"Item\" }";
 
-
+    private static final String REQUEST_INSERT_TEST_ES_UPDATE_KO =
+        "{ \"#id\": \"aeaqaaaaaagbcaacabg44ak45e54criaaaaq\", \"#tenant\": 0, \"Title\": \"Archive3\", " +
+        "\"_mgt\": {\"OriginatingAgency\": \"XXXXXXX\"}," +
+        " \"DescriptionLevel\": \"toto\" }";
+    private static final String REQUEST_UPDATE_INDEX_TEST_KO =
+        "{$roots:['aeaqaaaaaagbcaacabg44ak45e54criaaaaq'],$query:[],$filter:{},$action:[{$set:{'date':'09/09/2015'}},{$set:{'title':'Archive2'}}]}";
+    
     /**
      * @throws java.lang.Exception
      */
@@ -1659,6 +1667,28 @@ public class DbRequestTest {
             resultSelectRel5.getCurrentIds().iterator().next().toString());
     }
 
+    
+    @Test(expected = MetaDataExecutionException.class)
+    @RunWithCustomExecutor
+    public void testUpdateKOSchemaUnitResultThrowsException() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
+        // insert title ARchive 3
+        final DbRequest dbRequest = new DbRequest();
+        final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
+        final InsertMultiQuery insert = new InsertMultiQuery();
+        insert.parseData(REQUEST_INSERT_TEST_ES_UPDATE_KO).addRoots("aeaqaaaaaagbcaacabg44ak45e54criaaaaq");
+        insertParser.parse(insert.getFinalInsert());
+        LOGGER.debug("InsertParser: {}", insertParser);
+        dbRequest.execRequest(insertParser, null);
+        esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_0);
+
+        final JsonNode updateRequest = JsonHandler.getFromString(REQUEST_UPDATE_INDEX_TEST_KO);
+        final UpdateParserMultiple updateParser = new UpdateParserMultiple();
+        updateParser.parse(updateRequest);
+        LOGGER.debug("UpdateParser: {}", updateParser.getRequest());
+        dbRequest.execRequest(updateParser, null);        
+    }
+    
     private static final JsonNode buildQueryJsonWithOptions(String query, String data)
         throws Exception {
         return JsonHandler.getFromString(new StringBuilder()

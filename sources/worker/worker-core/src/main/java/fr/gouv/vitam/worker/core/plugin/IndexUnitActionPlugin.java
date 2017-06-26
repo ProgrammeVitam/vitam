@@ -225,15 +225,6 @@ public class IndexUnitActionPlugin extends ActionHandler {
         archiveUnitNode.set(SedaConstants.PREFIX_MGT, (JsonNode) managementNode);
         archiveUnitNode.remove(TAG_MANAGEMENT);
 
-        // remove Content tag and move its content in ArchiveUnit
-        ObjectNode content = (ObjectNode) archiveUnitNode.get(TAG_CONTENT);
-        Iterator<String> contentFieldNames = content.fieldNames();
-        while (contentFieldNames.hasNext()) {
-            String fieldName = contentFieldNames.next();
-            archiveUnitNode.set(fieldName, content.get(fieldName));
-        }
-        archiveUnitNode.remove(TAG_CONTENT);
-
         // remove DataObjectReference
         // FIXME is it normal to have this TAG "DataObjectReference" after ExtractSeda since "_og" contains the guids
         archiveUnitNode.remove("DataObjectReference");

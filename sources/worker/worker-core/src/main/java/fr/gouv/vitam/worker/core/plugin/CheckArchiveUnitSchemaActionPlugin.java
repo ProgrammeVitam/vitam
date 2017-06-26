@@ -48,6 +48,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
+import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -144,8 +145,8 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
                 final String err = "Sanity Checker failed for Archive Unit: "+e.getMessage();
                 LOGGER.error(err);
                 throw new ArchiveUnitContainSpecialCharactersException(err);
-            }
-            return validator.validateUnit(archiveUnit);
+            }            
+            return validator.validateUnit(archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT));
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("File couldnt be converted into json", e);
             return new SchemaValidationStatus("File is not a valid json file",
