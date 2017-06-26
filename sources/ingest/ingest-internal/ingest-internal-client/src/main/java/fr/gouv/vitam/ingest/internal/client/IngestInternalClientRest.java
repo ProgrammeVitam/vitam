@@ -44,15 +44,18 @@ import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -85,6 +88,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     private static final String CONTEXT_ID_MUST_HAVE_A_VALID_VALUE = "Context id must have a valid value";
     private static final String BLANK_OPERATION_ID = "Operation identifier should be filled";
     private static final String OPERATION_URI = "/operations";
+    private static final String WORKFLOWS_URI = "/workflows";
 
     IngestInternalClientRest(IngestInternalClientFactory factory) {
         super(factory);
@@ -213,7 +217,8 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     }
 
     @Override
-    public RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId, String actionId)
+    public RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId,
+        String actionId)
         throws VitamClientException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, operationId);
         ParametersChecker.checkParameter(CONTEXT_ID_MUST_HAVE_A_VALID_VALUE, contextId);
@@ -372,7 +377,8 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
                 LOGGER.warn("SIP Warning : " + Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
                 throw new VitamClientInternalException(INTERNAL_SERVER_ERROR);
             }
-            return new RequestResponseOK().addResult(response.readEntity(JsonNode.class)).parseHeadersFromResponse(response);
+            return new RequestResponseOK().addResult(response.readEntity(JsonNode.class))
+                .parseHeadersFromResponse(response);
         } catch (VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);
             throw new VitamClientException(e);
@@ -463,13 +469,44 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
             throw new WorkspaceClientServerException("Workspace Server Error");
         }
     }
+
     @Override
-    public RequestResponse<JsonNode> listOperationsDetails() throws VitamClientException {
+    public RequestResponse<JsonNode> listOperationsDetails(ProcessQuery query) throws VitamClientException {
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, OPERATION_URI, null, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(HttpMethod.GET, OPERATION_URI, null, JsonHandler.toJsonNode(query),
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
             return new RequestResponseOK().addResult(response.readEntity(JsonNode.class)).parseHeadersFromResponse(response);
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("VitamClientInternalException: ", e);
+            throw new VitamClientException(e);
+        } catch (final InvalidParseOperationException e) {
+            throw new VitamClientException("VitamClientException: ", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse getWorkflowDefinitions() throws VitamClientException {
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, WORKFLOWS_URI, null, MediaType.APPLICATION_JSON_TYPE);
+
+            if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
+                throw new VitamClientInternalException(REQUEST_PRECONDITION_FAILED);
+            } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                throw new VitamClientInternalException(NOT_FOUND_EXCEPTION);
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new VitamClientInternalException(UNAUTHORIZED);
+            } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+                throw new VitamClientInternalException(INTERNAL_SERVER_ERROR);
+            }
+
+            return new RequestResponseOK().addResult(response.readEntity(JsonNode.class))
+                .parseHeadersFromResponse(response);
 
         } catch (VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);

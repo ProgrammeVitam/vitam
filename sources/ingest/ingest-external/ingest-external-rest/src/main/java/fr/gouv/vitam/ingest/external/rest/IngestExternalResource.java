@@ -63,9 +63,11 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -472,14 +474,17 @@ public class IngestExternalResource extends ApplicationStatusResource {
 
     /**
      * @param headers the http header of request
+     * @param query the filter query
      * @return Response
      */
     @GET
     @Path("/operations")
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response listOperationsDetails(@Context HttpHeaders headers) {
+    public Response listOperationsDetails(@Context HttpHeaders headers, ProcessQuery query) {
+        LOGGER.error("ProcessQuery: " + JsonHandler.prettyPrint(query));
         try (IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient()) {
-            RequestResponse<JsonNode> response = client.listOperationsDetails();
+            RequestResponse response = client.listOperationsDetails(query);
             return Response.status(Status.OK).entity(response).build();
         } catch (Exception e) {
             LOGGER.error(e);
@@ -487,6 +492,21 @@ public class IngestExternalResource extends ApplicationStatusResource {
         }
     }
 
-
+    /**
+     * @param headers the http header of request
+     * @return Response
+     */
+    @GET
+    @Path("/workflows")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getWorkflowDefinitions(@Context HttpHeaders headers) {
+        try (IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient()) {
+            RequestResponse<JsonNode> response = client.getWorkflowDefinitions();
+            return Response.status(Status.OK).entity(response).build();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+        }
+    }
 
 }

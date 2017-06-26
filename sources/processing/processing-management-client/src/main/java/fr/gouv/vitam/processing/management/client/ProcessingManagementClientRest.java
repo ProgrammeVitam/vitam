@@ -52,15 +52,13 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
-import fr.gouv.vitam.processing.common.exception.ProcessingUnauthorizeException;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
@@ -79,6 +77,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     private static final String BAD_REQUEST_EXCEPTION = "Bad Request Exception";
 
     private static final String OPERATION_URI = "/operations";
+    private static final String WORKFLOWS_URI = "/workflows";
     private static final String INGESTS_URI = "/ingests";
     private static final String OPERATION_ID_URI = "/id";
     private static final String CONTEXT_ID_MUST_HAVE_A_VALID_VALUE = "Context id must have a valid value";
@@ -180,7 +179,8 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     }
 
     @Override
-    public RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId, String actionId)
+    public RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId,
+        String actionId)
         throws InternalServerException, BadRequestException, WorkflowNotFoundException {
 
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, operationId);
@@ -308,8 +308,8 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     }
 
     /**
-     * Return false if status accepted
-     * Return true otherwise
+     * Return false if status accepted Return true otherwise
+     * 
      * @param operationId
      * @return
      */
@@ -326,7 +326,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             if (response.getStatus() == Status.ACCEPTED.getStatusCode()) {
                 final ProcessState state =
                     ProcessState.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATE));
-                final  StatusCode status =
+                final StatusCode status =
                     StatusCode.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
 
                 if (ProcessState.PAUSE.equals(state) && StatusCode.STARTED.compareTo(status) <= 0) {
@@ -343,6 +343,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             consumeAnyEntityAndClose(response);
         }
     }
+
     // TODO FIXE ME query never user
     @Override
     public ItemStatus getOperationProcessExecutionDetails(String id, JsonNode query)
@@ -352,7 +353,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         try {
             response =
                 performRequest(HttpMethod.GET, OPERATION_URI + "/" + id,
-                    null,query,
+                    null, query,
                     MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 throw new WorkflowNotFoundException(WORKFLOW_NOT_FOUND);
@@ -384,7 +385,8 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     }
 
     @Override
-    public RequestResponse<JsonNode>  cancelOperationProcessExecution(String id) throws InternalServerException, BadRequestException {
+    public RequestResponse<JsonNode> cancelOperationProcessExecution(String id)
+        throws InternalServerException, BadRequestException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);
         Response response = null;
         try {
@@ -403,7 +405,8 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
 
             // XXX: theoretically OK status case
             // Don't we thrown an exception if it is another status ?
-            return new RequestResponseOK().addResult(response.readEntity(JsonNode.class)).parseHeadersFromResponse(response);
+            return new RequestResponseOK().addResult(response.readEntity(JsonNode.class))
+                .parseHeadersFromResponse(response);
         } catch (final javax.ws.rs.ProcessingException e) {
             LOGGER.error(e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
@@ -502,25 +505,28 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     }
 
     @Override
-    public RequestResponse<JsonNode>  listOperationsDetails() throws VitamClientException {
+    public RequestResponse<JsonNode> listOperationsDetails(ProcessQuery query) throws VitamClientException {
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, "/operations", null, null, null,
-                MediaType.APPLICATION_JSON_TYPE);
+            response =
+                performRequest(HttpMethod.GET, "/operations", null, JsonHandler.toJsonNode(query),
+                    MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
             if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
                 throw new VitamClientException(ILLEGAL_ARGUMENT);
             }
-            return new RequestResponseOK().addResult(response.readEntity(JsonNode.class)).parseHeadersFromResponse(response);
+
+            return new RequestResponseOK().addResult(response.readEntity(JsonNode.class))
+                .parseHeadersFromResponse(response);
         } catch (VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);
             throw new VitamClientException(e);
+        } catch (final InvalidParseOperationException e) {
+            throw new IllegalArgumentException(ILLEGAL_ARGUMENT, e);
         } finally {
             consumeAnyEntityAndClose(response);
         }
     }
-
-
 
     @SuppressWarnings("unchecked")
     @Override
@@ -568,6 +574,35 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         } finally {
             consumeAnyEntityAndClose(response);
         }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> getWorkflowDefinitions() throws VitamClientException {
+
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, WORKFLOWS_URI, null, null, null,
+                MediaType.APPLICATION_JSON_TYPE);
+
+            if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
+                throw new VitamClientException(ILLEGAL_ARGUMENT);
+            } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                throw new VitamClientException(WORKFLOW_NOT_FOUND);
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new VitamClientException(ILLEGAL_ARGUMENT);
+            } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+                throw new VitamClientException(INTERNAL_SERVER_ERROR2);
+            }
+
+            return new RequestResponseOK().addResult(response.readEntity(JsonNode.class))
+                .parseHeadersFromResponse(response);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("VitamClientInternalException: ", e);
+            throw new VitamClientException(e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+
     }
 
 }

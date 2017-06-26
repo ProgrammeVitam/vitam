@@ -50,7 +50,8 @@ angular.module('core')
   'OG_LIFECYCLE_TYPE': 'objectgroup',
   'CHECK_OPERATION_STATUS': 'check',
   'CLEAR_OPERATION_STATUS_HISTORY': 'clear',
-  'WORKFLOWS_LIST': '/operations'
+  'WORKFLOWS_LIST': '/operations'  ,
+  'WORKFLOWS': '/workflows'
 })
 
 /*ihmDemoCLient create a configured http client*/
@@ -134,9 +135,14 @@ angular.module('core')
   };
 
   // Get Workflows List
-  dataFactory.getWorkflows = function(){
-    return ihmDemoCLient.getClient(IHM_URLS.WORKFLOWS_LIST).one('').get();
+  dataFactory.getWorkflows = function(criteria){
+    return ihmDemoCLient.getClient(IHM_URLS.WORKFLOWS_LIST).all('').post(criteria);
   };
+
+  // Get Workflows Definition
+  dataFactory.getWorkflowsDefinition = function() {
+    return ihmDemoCLient.getClient(IHM_URLS.WORKFLOWS).one('').get();
+  }
 
   // Execute an action
   dataFactory.executeAction = function(operationId, action){

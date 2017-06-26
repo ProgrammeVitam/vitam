@@ -26,7 +26,17 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.client;
 
+import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
+
+import java.io.InputStream;
+import java.util.concurrent.TimeUnit;
+
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
@@ -38,20 +48,13 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
-
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.InputStream;
-import java.util.concurrent.TimeUnit;
-
-import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
 
 /**
  * Mock client implementation for IngestExternal
@@ -89,7 +92,7 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
     private MultivaluedHashMap<String, Object> getDefaultHeaders(String requestId, Integer tenantId) {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(X_REQUEST_ID, requestId);
-    	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         return headers;
     }
 
@@ -134,31 +137,37 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
     }
 
     @Override
-    public RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId, String actionId, Integer tenantId)
+    public RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId,
+        String actionId, Integer tenantId)
         throws VitamClientException {
-        return new RequestResponseOK<JsonNode>().addHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, FAKE_EXECUTION_STATUS);
+        return new RequestResponseOK<JsonNode>().addHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATE,
+            FAKE_EXECUTION_STATUS);
     }
 
     @Override
-    public void initWorkFlow(String contextId, Integer tenantId) throws VitamException {
-    }
+    public void initWorkFlow(String contextId, Integer tenantId) throws VitamException {}
 
     @Override
-    public ItemStatus updateVitamProcess(String contextId, String actionId, String container, String workflow, Integer tenantId)
+    public ItemStatus updateVitamProcess(String contextId, String actionId, String container, String workflow,
+        Integer tenantId)
         throws VitamClientException {
         return new ItemStatus(ID);
     }
 
     @Override
     public void initVitamProcess(String contextId, String container, String workflow, Integer tenantId)
-        throws VitamClientException {
-    }
+        throws VitamClientException {}
 
     @Override
-    public RequestResponse<JsonNode> listOperationsDetails(Integer tenantId) throws VitamClientException {
+    public RequestResponse<JsonNode> listOperationsDetails(Integer tenantId, ProcessQuery query)
+        throws VitamClientException {
         return RequestResponse.parseFromResponse(Response.status(Status.OK).build());
     }
 
+    @Override
+    public RequestResponse<JsonNode> getWorkflowDefinitions(Integer tenantId) throws VitamClientException {
+        return RequestResponse.parseFromResponse(Response.status(Status.OK).build());
+    }
 
     @Override
     public boolean wait(int tenantId, String processId, ProcessState state, int nbTry, long timeout, TimeUnit timeUnit)
@@ -166,16 +175,19 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
         return true;
     }
 
-    @Override public boolean wait(int tenantId, String processId, int nbTry, long timeout, TimeUnit timeUnit)
+    @Override
+    public boolean wait(int tenantId, String processId, int nbTry, long timeout, TimeUnit timeUnit)
         throws VitamException {
         return true;
     }
 
-    @Override public boolean wait(int tenantId, String processId, ProcessState state) throws VitamException {
+    @Override
+    public boolean wait(int tenantId, String processId, ProcessState state) throws VitamException {
         return true;
     }
 
-    @Override public boolean wait(int tenantId, String processId) throws VitamException {
+    @Override
+    public boolean wait(int tenantId, String processId) throws VitamException {
         return true;
     }
 }

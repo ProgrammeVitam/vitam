@@ -26,25 +26,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.rest;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.http.ContentType;
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.ProcessAction;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.ProcessingEntry;
-import fr.gouv.vitam.processing.common.config.ServerConfiguration;
-import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImpl;
-import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImplFactory;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import static com.jayway.restassured.RestAssured.get;
+import static com.jayway.restassured.RestAssured.given;
+import static org.hamcrest.CoreMatchers.containsString;
+
+import java.net.URI;
+import java.util.Collections;
+
+import javax.ws.rs.core.Response.Status;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -55,12 +45,27 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import javax.ws.rs.core.Response.Status;
-import java.net.URI;
-import java.util.Collections;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.http.ContentType;
 
-import static com.jayway.restassured.RestAssured.get;
-import static com.jayway.restassured.RestAssured.given;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.ProcessQuery;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.processing.common.ProcessingEntry;
+import fr.gouv.vitam.processing.common.config.ServerConfiguration;
+import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImpl;
+import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImplFactory;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
@@ -74,6 +79,7 @@ public class ProcessManagementResourceTest {
     private static final String URL_WORKSPACE = "http://localhost:8084";
     private static final String CONTAINER_NAME = "sipContainer";
     private static final String OPERATION_URI = "/operations";
+    private static final String WORKFLOWS_URI = "/workflows";
     private static final String OPERATION_ID_URI = "/operations/xyz";
     private static final String ID = "identifier4";
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
@@ -165,6 +171,7 @@ public class ProcessManagementResourceTest {
 
     /**
      * Test with an empty step in the workflow
+     * 
      * @throws Exception
      */
     @Test
@@ -197,6 +204,7 @@ public class ProcessManagementResourceTest {
 
     /**
      * Try to resume an already running process
+     * 
      * @throws Exception
      */
     @Test
@@ -219,11 +227,6 @@ public class ProcessManagementResourceTest {
 
         ItemStatus itemStatus = new ItemStatus();
         itemStatus.increment(StatusCode.OK);
-
-        Mockito.when(processDistributorImplFactory.getDefaultDistributor()).thenReturn(processDistributorImpl);
-        Mockito.when(processDistributorImpl.distribute(Mockito.anyObject(), Mockito.anyObject(), Mockito.anyObject()))
-            .thenReturn(itemStatus);
-
 
         final GUID processId = GUIDFactory.newGUID();
         final String operationByIdURI = OPERATION_URI + "/" + processId.getId();
@@ -264,6 +267,7 @@ public class ProcessManagementResourceTest {
 
     /**
      * Cancel an not existing process workflow
+     * 
      * @throws Exception
      */
     @Test
@@ -284,6 +288,39 @@ public class ProcessManagementResourceTest {
             .body(ID).when()
             .delete(OPERATION_ID_URI).then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    /**
+     * Get the workflow definitions
+     * 
+     * @throws Exception
+     */
+    @SuppressWarnings("unchecked")
+    @Test
+    public void shouldReturnOkWhenGetWorkflowDefinitions() throws Exception {
+        WorkspaceClientFactory workspaceClientFactory = PowerMockito.mock(WorkspaceClientFactory.class);
+        PowerMockito.mockStatic(WorkspaceClientFactory.class);
+        WorkspaceClient workspaceClient = PowerMockito.mock(WorkspaceClient.class);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        PowerMockito.when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+
+
+        Mockito.when(workspaceClient.getListUriDigitalObjectFromFolder(Mockito.anyObject(), Mockito.anyObject()))
+            .thenReturn(new RequestResponseOK().addResult(Collections.<URI>emptyList()));
+
+        // Mock ProcessDistributorImplFactory + ProcessDistributorImpl + Worker response
+        PowerMockito.mockStatic(ProcessDistributorImplFactory.class);
+        ProcessDistributorImplFactory processDistributorImplFactory =
+            PowerMockito.mock(ProcessDistributorImplFactory.class);
+        ProcessDistributorImpl processDistributorImpl = Mockito.mock(ProcessDistributorImpl.class);
+
+        given()
+            .contentType(ContentType.JSON)
+            .headers(GlobalDataRest.X_REQUEST_ID, ID, GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get(WORKFLOWS_URI).then()
+            .statusCode(Status.OK.getStatusCode()).assertThat()
+            .body("DefaultIngestWorkflow.id", containsString("DefaultIngestWorkflow"));
+
     }
 
     private static String generateResponseErrorFromStatus(Status status) throws JsonProcessingException {

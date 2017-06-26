@@ -121,6 +121,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AccessContractModel;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -1545,14 +1546,16 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * @param headers request headers
      * @return the operations list
      */
-    @GET
+    @POST
     @Path("/operations")
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("operations:read")
-    public Response listOperationsDetails(@Context HttpHeaders headers) {
+    public Response listOperationsDetails(@Context HttpHeaders headers, ProcessQuery query) {
         try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
             String tenantIdHeader = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
-            RequestResponse<JsonNode> response = client.listOperationsDetails(Integer.parseInt(tenantIdHeader));
+            System.out.println("query: " + query.toString());
+            RequestResponse<JsonNode> response =
+                client.listOperationsDetails(Integer.parseInt(tenantIdHeader), query);
             return Response.status(Status.OK).entity(response).build();
         } catch (VitamClientException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
@@ -2409,5 +2412,20 @@ public class WebApplicationResource extends ApplicationStatusResource {
         } catch (BadRequestException | InvalidParseOperationException e) {
             return Response.status(Status.BAD_REQUEST).build();
         }
+    }
+
+    @GET
+    @Path("/workflows")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getWorkflowDefinitions(@Context HttpHeaders headers) {
+
+        try (IngestExternalClient ingestExternalClient = IngestExternalClientFactory.getInstance().getClient()) {
+            RequestResponse<JsonNode> result = ingestExternalClient.getWorkflowDefinitions(getTenantId(headers));
+            return Response.status(Status.OK).entity(result).build();
+        } catch (VitamClientException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+
     }
 }

@@ -26,11 +26,18 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.rest;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
@@ -57,6 +64,7 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -64,6 +72,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
@@ -77,7 +86,9 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
+import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
+import fr.gouv.vitam.processing.common.model.WorkFlow;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoring;
@@ -96,14 +107,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessManagementResource.class);
 
     private static final String ERR_OPERATION_ID_IS_MANDATORY = "The operation identifier is mandatory";
-    private static final String PROCESS_ID_FIELD = "operation_id";
-    private static final String PROCESS_TYPE_FIELD = "processType";
-    private static final String STEP_BY_STEP_FIELD = "stepByStep";
-    private static final String GLOBAL_EXECUTION_STATE_FIELD = "globalState";
-    private static final String PROCESS_DATE_FIELD = "processDate";
-    private static final String PREVIOUS_STEP = "previousStep";
-    private static final String NEXT_STEP = "nextStep";
-    private static final String STEP_EXECUTION_STATUS_FIELD = "stepStatus";
+
     private static final String ERR_PROCESS_INPUT_ISMANDATORY = "The process input object is mandatory";
 
     private final ServerConfiguration config;
@@ -164,6 +168,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     private Response buildResponse(Status status, Object entity) {
         return Response.status(status).entity(entity).build();
     }
+
     /**
      * Resume the asynchronous response following a given status and entity
      *
@@ -176,6 +181,29 @@ public class ProcessManagementResource extends ApplicationStatusResource {
             .entity(itemStatus)
             .build();
     }
+
+    @Path("workflows")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getWorkflowDefinitions() {
+        try {
+            ProcessManagement processManagement = processManagementMock;
+            if (processManagement == null) {
+                processManagement = new ProcessManagementImpl(config);
+            }
+            Map<String, WorkFlow> workflowDefinitions = processManagement.getWorkflowDefinitions();
+            return Response.status(Status.OK)
+                .entity(workflowDefinitions)
+                .build();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, "Error while finding Workflow definitions",
+                    "Error : " + e.getMessage()))
+                .build();
+        }
+    }
+
 
     /**
      * Execute the process of an operation related to the id.
@@ -201,7 +229,8 @@ public class ProcessManagementResource extends ApplicationStatusResource {
             .setUrlWorkspace(config.getUrlWorkspace());
 
         ProcessManagement processManagement = processManagementMock;
-        ParametersChecker.checkParameter("actionId is a mandatory parameter", headers.getRequestHeader(GlobalDataRest.X_ACTION));
+        ParametersChecker.checkParameter("actionId is a mandatory parameter",
+            headers.getRequestHeader(GlobalDataRest.X_ACTION));
 
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         final String xAction = headers.getRequestHeader(GlobalDataRest.X_ACTION).get(0);
@@ -260,7 +289,9 @@ public class ProcessManagementResource extends ApplicationStatusResource {
                     break;
 
                 default:
-                    return  this.buildResponse(Status.UNAUTHORIZED, getErrorEntity(Status.UNAUTHORIZED, "UNAUTHORIZED_ACTION "+ xAction, "The action "+xAction+ " is not allowed! Only INIT, NEXT and RESUME are allowed for this endpoint"));
+                    return this.buildResponse(Status.UNAUTHORIZED,
+                        getErrorEntity(Status.UNAUTHORIZED, "UNAUTHORIZED_ACTION " + xAction, "The action " + xAction +
+                            " is not allowed! Only INIT, NEXT and RESUME are allowed for this endpoint"));
             }
 
             return this.buildResponse(itemStatus);
@@ -268,15 +299,21 @@ public class ProcessManagementResource extends ApplicationStatusResource {
         } catch (StateNotAllowedException e) {
             // if there is an unauthorized action
             LOGGER.error(e);
-            return this.buildResponse(Status.UNAUTHORIZED, getErrorEntity(Status.UNAUTHORIZED, "UNAUTHORIZED_ACTION "+ xAction, "The action "+xAction+ " is not allowed! The engine exception is :"+e.getMessage()));
+            return this.buildResponse(Status.UNAUTHORIZED,
+                getErrorEntity(Status.UNAUTHORIZED, "UNAUTHORIZED_ACTION " + xAction,
+                    "The action " + xAction + " is not allowed! The engine exception is :" + e.getMessage()));
         } catch (final ProcessingException e) {
             // if there is an unauthorized action
             LOGGER.error(e);
-            return this.buildResponse(Status.PRECONDITION_FAILED, getErrorEntity(Status.PRECONDITION_FAILED, "Error processing the action :"+ xAction, "The action "+xAction+ " cause an error :"+e.getMessage()));
+            return this.buildResponse(Status.PRECONDITION_FAILED,
+                getErrorEntity(Status.PRECONDITION_FAILED, "Error processing the action :" + xAction,
+                    "The action " + xAction + " cause an error :" + e.getMessage()));
         } catch (final Exception e) {
             // if there is an unauthorized action
             LOGGER.error(e);
-            return this.buildResponse(Status.INTERNAL_SERVER_ERROR, getErrorEntity(Status.INTERNAL_SERVER_ERROR, "Internal error while processing the action :"+ xAction, "The action "+xAction+ " cause an internal error :"+e.getMessage()));
+            return this.buildResponse(Status.INTERNAL_SERVER_ERROR,
+                getErrorEntity(Status.INTERNAL_SERVER_ERROR, "Internal error while processing the action :" + xAction,
+                    "The action " + xAction + " cause an internal error :" + e.getMessage()));
         }
     }
 
@@ -299,23 +336,29 @@ public class ProcessManagementResource extends ApplicationStatusResource {
                 .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, processWorkflow.getState())
                 .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, processWorkflow.getStatus())
                 .header(GlobalDataRest.X_CONTEXT_ID, processWorkflow.getLogbookTypeProcess())
-                .entity(new ItemStatus(id).setGlobalState(processWorkflow.getState()).increment(processWorkflow.getStatus()))
+                .entity(new ItemStatus(id).setGlobalState(processWorkflow.getState())
+                    .increment(processWorkflow.getStatus()))
                 .build();
 
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.PRECONDITION_FAILED)
-                .entity(getErrorEntity(Status.PRECONDITION_FAILED, "Error while find ProcessWorkflow", "The parameter id expected not null, id :"+id+ " >> Error : "+e.getMessage()))
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED, "Error while find ProcessWorkflow",
+                    "The parameter id expected not null, id :" + id + " >> Error : " + e.getMessage()))
                 .build();
         } catch (WorkflowNotFoundException e) {
             LOGGER.error(e);
             return Response.status(Status.NOT_FOUND)
-                .entity(getErrorEntity(Status.NOT_FOUND, "Error while find ProcessWorkflow", "ProcessWorkflow not found with tenant :"+tenantId+" and with id:"+id+ " >> Error : "+e.getMessage()))
+                .entity(getErrorEntity(Status.NOT_FOUND, "Error while find ProcessWorkflow",
+                    "ProcessWorkflow not found with tenant :" + tenantId + " and with id:" + id + " >> Error : " +
+                        e.getMessage()))
                 .build();
         } catch (Exception e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, "Error while find ProcessWorkflow", "ProcessWorkflow with tenant :"+tenantId+" and with id:"+id+ " >> Error : "+e.getMessage()))
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, "Error while find ProcessWorkflow",
+                    "ProcessWorkflow with tenant :" + tenantId + " and with id:" + id + " >> Error : " +
+                        e.getMessage()))
                 .build();
         }
     }
@@ -332,7 +375,8 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateWorkFlowStatus(@Context HttpHeaders headers, @PathParam("id") String id) {
 
-        ParametersChecker.checkParameter("actionId is a mandatory parameter", headers.getRequestHeader(GlobalDataRest.X_ACTION));
+        ParametersChecker.checkParameter("actionId is a mandatory parameter",
+            headers.getRequestHeader(GlobalDataRest.X_ACTION));
         ParametersChecker.checkParameter(ERR_OPERATION_ID_IS_MANDATORY, id);
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
 
@@ -366,7 +410,9 @@ public class ProcessManagementResource extends ApplicationStatusResource {
 
                     break;
                 default:
-                    return this.buildResponse(Status.UNAUTHORIZED, getErrorEntity(Status.UNAUTHORIZED, "UNAUTHORIZED_ACTION "+ xAction, "The action "+xAction+ " is not allowed! Only INIT, NEXT and RESUME are allowed for this endpoint"));
+                    return this.buildResponse(Status.UNAUTHORIZED,
+                        getErrorEntity(Status.UNAUTHORIZED, "UNAUTHORIZED_ACTION " + xAction, "The action " + xAction +
+                            " is not allowed! Only INIT, NEXT and RESUME are allowed for this endpoint"));
             }
 
             return this.buildResponse(itemStatus);
@@ -374,15 +420,21 @@ public class ProcessManagementResource extends ApplicationStatusResource {
         } catch (StateNotAllowedException e) {
             // if there is an unauthorized action
             LOGGER.error(e);
-            return this.buildResponse(Status.UNAUTHORIZED, getErrorEntity(Status.UNAUTHORIZED, "UNAUTHORIZED_ACTION "+ xAction, "The action "+xAction+ " is not allowed! The engine exception is :"+e.getMessage()));
+            return this.buildResponse(Status.UNAUTHORIZED,
+                getErrorEntity(Status.UNAUTHORIZED, "UNAUTHORIZED_ACTION " + xAction,
+                    "The action " + xAction + " is not allowed! The engine exception is :" + e.getMessage()));
         } catch (final ProcessingException e) {
             // if there is an unauthorized action
             LOGGER.error(e);
-            return this.buildResponse(Status.PRECONDITION_FAILED, getErrorEntity(Status.PRECONDITION_FAILED, "Error processing the action :"+ xAction, "The action "+xAction+ " cause an error :"+e.getMessage()));
+            return this.buildResponse(Status.PRECONDITION_FAILED,
+                getErrorEntity(Status.PRECONDITION_FAILED, "Error processing the action :" + xAction,
+                    "The action " + xAction + " cause an error :" + e.getMessage()));
         } catch (final Exception e) {
             // if there is an unauthorized action
             LOGGER.error(e);
-            return this.buildResponse(Status.INTERNAL_SERVER_ERROR, getErrorEntity(Status.INTERNAL_SERVER_ERROR, "Internal error while processing the action :"+ xAction, "The action "+xAction+ " cause an internal error :"+e.getMessage()));
+            return this.buildResponse(Status.INTERNAL_SERVER_ERROR,
+                getErrorEntity(Status.INTERNAL_SERVER_ERROR, "Internal error while processing the action :" + xAction,
+                    "The action " + xAction + " cause an internal error :" + e.getMessage()));
         }
 
     }
@@ -411,15 +463,20 @@ public class ProcessManagementResource extends ApplicationStatusResource {
         } catch (StateNotAllowedException e) {
             // if there is an unauthorized action
             LOGGER.error(e);
-            return this.buildResponse(Status.UNAUTHORIZED, getErrorEntity(Status.UNAUTHORIZED, "UNAUTHORIZED_ACTION  CANCEL", "The action cancel is not allowed! The engine exception is :"+e.getMessage()));
+            return this.buildResponse(Status.UNAUTHORIZED,
+                getErrorEntity(Status.UNAUTHORIZED, "UNAUTHORIZED_ACTION  CANCEL",
+                    "The action cancel is not allowed! The engine exception is :" + e.getMessage()));
         } catch (final ProcessingException e) {
             // if there is an unauthorized action
             LOGGER.error(e);
-            return this.buildResponse(Status.PRECONDITION_FAILED, getErrorEntity(Status.PRECONDITION_FAILED, "Error processing the action : CANCEL", "The action cancel cause an error :"+e.getMessage()));
+            return this.buildResponse(Status.PRECONDITION_FAILED, getErrorEntity(Status.PRECONDITION_FAILED,
+                "Error processing the action : CANCEL", "The action cancel cause an error :" + e.getMessage()));
         } catch (final Exception e) {
             // if there is an unauthorized action
             LOGGER.error(e);
-            return this.buildResponse(Status.INTERNAL_SERVER_ERROR, getErrorEntity(Status.INTERNAL_SERVER_ERROR, "Internal error while processing the action : CANCEL", "The action cancel cause an internal error :"+e.getMessage()));
+            return this.buildResponse(Status.INTERNAL_SERVER_ERROR,
+                getErrorEntity(Status.INTERNAL_SERVER_ERROR, "Internal error while processing the action : CANCEL",
+                    "The action cancel cause an internal error :" + e.getMessage()));
         }
     }
 
@@ -463,92 +520,31 @@ public class ProcessManagementResource extends ApplicationStatusResource {
         }
     }
 
-
     /**
      * get the process workflow
      *
+     * @param query the filter query
+     * 
      * @return the workflow in response
      */
     @GET
     @Path("/operations")
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response findProcessWorkflows() {
+    public Response findProcessWorkflows(ProcessQuery query) {
+        ProcessManagement processManagement = processManagementMock;
+        try {
+            if (processManagement == null) {
+                processManagement = new ProcessManagementImpl(config);
+            }
+        } catch (ProcessingStorageWorkspaceException exc) {
+            LOGGER.error(exc);
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, "Error while finding existing workflow process",
+                    "Error : " + exc.getMessage())).build();
+        }
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-        List<ProcessWorkflow> listWorkflows = processMonitoring.findAllProcessWorkflow(tenantId);
-
-        listWorkflows.sort((a, b) -> b.getProcessDate().compareTo(a.getProcessDate()));
-
-        ArrayNode result = JsonHandler.createArrayNode();
-        for (ProcessWorkflow processWorkflow : listWorkflows) {
-            if (!ProcessState.COMPLETED.equals(processWorkflow.getState())) {
-
-                ObjectNode workflow = JsonHandler.createObjectNode();
-                workflow.put(PROCESS_ID_FIELD, processWorkflow.getOperationId());
-                workflow.put(PROCESS_TYPE_FIELD, processWorkflow.getLogbookTypeProcess().toString());
-                workflow.put(STEP_BY_STEP_FIELD, processWorkflow.isStepByStep());
-                workflow.put(GLOBAL_EXECUTION_STATE_FIELD, processWorkflow.getState().name());
-                workflow.put(STEP_EXECUTION_STATUS_FIELD, processWorkflow.getStatus().name());
-                workflow.put(PROCESS_DATE_FIELD, LocalDateUtil.getFormattedDate(processWorkflow.getProcessDate()));
-
-                workflow = getNextAndPreviousSteps(processWorkflow, workflow);
-
-                result.add(workflow);
-            }
-        }
-
-        return Response.status(Status.OK).entity(result).build();
-    }
-
-    // TODO: 5/27/17 refactor the following
-    private ObjectNode getNextAndPreviousSteps(ProcessWorkflow processWorkflow, ObjectNode workflow) {
-        String previousStep = "";
-        String nextStep = "";
-        String temporaryPreviousTask = "";
-        Boolean currentStepFound = false;
-
-        Iterator<ProcessStep> pwIterator = processWorkflow.getSteps().iterator();
-        while (pwIterator.hasNext() && !currentStepFound) {
-
-            final ProcessStep processStep = pwIterator.next();
-
-            switch (processWorkflow.getState()) {
-                case PAUSE:
-                case RUNNING:
-                    if (processStep.getStepStatusCode() == StatusCode.STARTED) {
-                        previousStep = processStep.getStepName();
-                        nextStep = pwIterator.hasNext() ? pwIterator.next().getStepName() : "";
-                        workflow.put(STEP_EXECUTION_STATUS_FIELD, "STARTED");
-                        currentStepFound = true;
-                    } else {
-                        if (processStep.getStepStatusCode() == StatusCode.UNKNOWN) {
-                            previousStep = temporaryPreviousTask;
-                            nextStep = processStep.getStepName();
-                            currentStepFound = true;
-                        }
-                    }
-                    break;
-                case COMPLETED:
-                    if (processStep.getStepStatusCode() == StatusCode.KO ||
-                        processStep.getStepStatusCode() == StatusCode.STARTED) {
-                        previousStep = processStep.getStepName();
-                        workflow.put(STEP_EXECUTION_STATUS_FIELD, StatusCode.KO.toString());
-                        currentStepFound = true;
-                    } else {
-                        if (processStep.getStepStatusCode() == StatusCode.UNKNOWN) {
-                            previousStep = temporaryPreviousTask;
-                            workflow.put(STEP_EXECUTION_STATUS_FIELD, StatusCode.KO.toString());
-                            currentStepFound = true;
-                        }
-                    }
-                    break;
-                default:
-                    break;
-            }
-            temporaryPreviousTask = processStep.getStepName();
-
-            workflow.put(PREVIOUS_STEP, previousStep);
-            workflow.put(NEXT_STEP, nextStep);
-        }
-        return workflow;
+        processManagement.getFilteredProcess(query, tenantId);
+        return Response.status(Status.OK).entity(processManagement.getFilteredProcess(query, tenantId)).build();
     }
 }

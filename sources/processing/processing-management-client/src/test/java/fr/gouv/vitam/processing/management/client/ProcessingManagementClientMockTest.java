@@ -26,10 +26,13 @@
  */
 package fr.gouv.vitam.processing.management.client;
 
+import static org.junit.Assert.fail;
+
 import org.junit.Test;
 
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -49,6 +52,11 @@ public class ProcessingManagementClientMockTest {
         client.checkStatus();
         client.registerWorker(null, null, null);
         client.unregisterWorker(null, null);
+        try {
+            client.getWorkflowDefinitions();
+        } catch (VitamClientException e) {
+            fail("Should not raized an exception");
+        }
     }
 
 }

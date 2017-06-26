@@ -71,6 +71,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -297,10 +298,10 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * @param uploadedInputStream input stream to upload
      * @return http response
      * @throws InternalServerException if request resources server exception
-     * @throws VitamClientException if the server is unreachable 
+     * @throws VitamClientException if the server is unreachable
      * @throws IngestInternalException if error when request to ingest internal server
      * @throws InvalidGuidOperationException if error when create guid
-     * @throws ProcessingException if error in workflow execution  
+     * @throws ProcessingException if error in workflow execution
      */
     @Path("/operations/{id}")
     @POST
@@ -444,8 +445,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
     }
 
     /**
-     * TODO FIXE ME HEAD METHOD no entity
-     * get the operation status
+     * TODO FIXE ME HEAD METHOD no entity get the operation status
      *
      * @param id operation identifier
      * @return http response
@@ -607,7 +607,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
      *
      * @param objectId the object id
      * @param type the collection type
-     * @param asyncResponse the asynchronized response 
+     * @param asyncResponse the asynchronized response
      */
     @GET
     @Path("/ingests/{objectId}/{type}")
@@ -755,8 +755,8 @@ public class IngestInternalResource extends ApplicationStatusResource {
 
                         isCompletedProcess = isCompletedProcess(processState);
 
-                        if(!isInitMode) {
-                            //Asynchrone
+                        if (!isInitMode) {
+                            // Asynchrone
 
                             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                                 Response.status(Status.ACCEPTED).build());
@@ -783,7 +783,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 // Have to determine here if it is an internal error and FATAL result or processing error, so business
                 // error and KO result
             } catch (final ProcessingException |
-                LogbookClientException | StorageClientException  |
+                LogbookClientException | StorageClientException |
                 InvalidGuidOperationException e) {
                 if (parameters != null) {
                     try {
@@ -988,7 +988,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
             helper.writeAsyncResponse(Response.fromResponse(response), Status.fromStatusCode(stepExecutionStatus));
 
         } catch (final
-        LogbookClientNotFoundException | LogbookClientServerException |
+            LogbookClientNotFoundException | LogbookClientServerException |
             LogbookClientBadRequestException | LogbookClientAlreadyExistsException | StorageClientException |
             StorageNotFoundException e) {
 
@@ -1181,22 +1181,42 @@ public class IngestInternalResource extends ApplicationStatusResource {
         return PropertiesUtils.getConfigAsStream(workflowFile);
     }
 
+    /**
+     * @param headers the http header for request
+     * @param query the filter query
+     * @return Response
+     */
+    @GET
+    @Path("/operations")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response listOperationsDetails(@Context HttpHeaders headers, ProcessQuery query) {
+        try (ProcessingManagementClient processManagementClient =
+            ProcessingManagementClientFactory.getInstance().getClient()) {
+            try {
+                return processManagementClient.listOperationsDetails(query).toResponse();
+            } catch (VitamClientException e) {
+                return Response.serverError().entity(e).build();
+            }
+        }
+    }
 
     /**
      * @param headers the http header for request
      * @return Response
      */
     @GET
-    @Path("/operations")
+    @Path("/workflows")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response listOperationsDetails(@Context HttpHeaders headers) {
-        try (ProcessingManagementClient processManagementClient =
-            ProcessingManagementClientFactory.getInstance().getClient()) {
-            try {
-                return processManagementClient.listOperationsDetails().toResponse();
-            } catch (VitamClientException e) {
-                return Response.serverError().entity(e).build();
+    public Response getWorkflowDefinitions(@Context HttpHeaders headers) {
+        ProcessingManagementClient processingClient = processingManagementClientMock;
+        try {
+            if (processingClient == null) {
+                processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             }
+            return processingClient.getWorkflowDefinitions().toResponse();
+        } catch (VitamClientException e) {
+            return Response.serverError().entity(e).build();
         }
     }
 }
