@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
+import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -62,10 +63,6 @@ public class AdminManagementExternalResourceImplTest {
     private static final String RULES_URI = "/" + AdminCollections.RULES.getName();
 
     private static final String DOCUMENT_ID = "/1";
-
-    private static final String INGEST_CONTRACTS_URI = "/contracts";
-
-    private static final String ACCESS_CONTRACTS_URI = "/accesscontracts";
 
     private static final String WRONG_URI = "/wrong-uri";
 
@@ -457,7 +454,7 @@ public class AdminManagementExternalResourceImplTest {
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(INGEST_CONTRACTS_URI)
+            .when().post(AccessExtAPI.ENTRY_CONTRACT_API)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode()).contentType("application/json");
 
     }
@@ -474,7 +471,7 @@ public class AdminManagementExternalResourceImplTest {
         stream = PropertiesUtils.getResourceAsStream("referential_contracts_ok.json");
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(INGEST_CONTRACTS_URI)
+            .when().post(AccessExtAPI.ENTRY_CONTRACT_API)
             .then().statusCode(Status.CREATED.getStatusCode());
     }
 
@@ -489,7 +486,7 @@ public class AdminManagementExternalResourceImplTest {
         doReturn(new RequestResponseOK<>().addAllResults(getIngestContracts())).when(adminCLient).findIngestContracts(anyObject());
         given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
                 .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-                .when().get(INGEST_CONTRACTS_URI)
+                .when().get(AccessExtAPI.ENTRY_CONTRACT_API)
         .then().statusCode(Status.OK.getStatusCode());
     }
 
@@ -505,7 +502,7 @@ public class AdminManagementExternalResourceImplTest {
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(ACCESS_CONTRACTS_URI)
+            .when().post(AccessExtAPI.ACCESS_CONTRACT_API)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode()).contentType("application/json");
 
     }
@@ -523,7 +520,7 @@ public class AdminManagementExternalResourceImplTest {
 
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(ACCESS_CONTRACTS_URI)
+            .when().post(AccessExtAPI.ACCESS_CONTRACT_API)
             .then().statusCode(Status.CREATED.getStatusCode());
     }
 
@@ -537,7 +534,7 @@ public class AdminManagementExternalResourceImplTest {
         doReturn(new RequestResponseOK<>().addAllResults(getAccessContracts())).when(adminCLient).findAccessContracts(anyObject());
         given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().get(ACCESS_CONTRACTS_URI)
+            .when().get(AccessExtAPI.ACCESS_CONTRACT_API)
             .then().statusCode(Status.OK.getStatusCode());
     }
 

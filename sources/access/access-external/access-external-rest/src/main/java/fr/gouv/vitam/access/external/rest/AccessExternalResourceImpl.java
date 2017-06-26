@@ -47,6 +47,8 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.access.external.api.AccessCollections;
+import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
@@ -690,7 +692,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      * @param xhttpOverride the use of override POST method
      * @return Response
      */
-    @Path("/accession-register")
+    @Path(AccessExtAPI.ACCESSION_REGISTERS_API)
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -734,7 +736,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      * @return Response
      */
     @POST
-    @Path("/accession-register/{id_document}")
+    @Path(AccessExtAPI.ACCESSION_REGISTERS_API + "/{id_document}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response findAccessionRegisterById(@PathParam("id_document") String documentId) {
         Integer tenantId = ParameterHelper.getTenantParameter();
@@ -753,7 +755,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      * @return Response
      */
     @POST
-    @Path("/accession-register/{id_document}/accession-register-detail")
+    @Path(AccessExtAPI.ACCESSION_REGISTERS_API + "/{id_document}/accession-register-detail")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response findAccessionRegisterDetail(@PathParam("id_document") String documentId, JsonNode select,

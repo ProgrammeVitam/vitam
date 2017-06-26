@@ -26,9 +26,31 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.external.rest;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriInfo;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -40,7 +62,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AccessContractModel;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
@@ -60,27 +81,6 @@ import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundE
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriInfo;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-
 /**
  * Admin Management External Resource Implement
  */
@@ -90,10 +90,6 @@ public class AdminManagementExternalResourceImpl {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementExternalResourceImpl.class);
     private static final String ACCESS_EXTERNAL_MODULE = "ADMIN_EXTERNAL";
     private static final String CODE_VITAM = "code_vitam";
-    private static final String CONTRACT_JSON_IS_MANDATORY_PATAMETER = "Contracts input file is mandatory";
-    private static final String UPDATE_ACCESS_CONTRACT = "/accesscontract";
-    private static final String UPDATE_INGEST_CONTRACT = "/contract";
-    private static final String UPDATE_CONTEXT = "/context";
 
     /**
      * Constructor
@@ -171,7 +167,7 @@ public class AdminManagementExternalResourceImpl {
                     status = client.importRulesFile(document);
                 }
 
-                if (AdminCollections.CONTRACTS.compareTo(collection)) {
+                if (AdminCollections.ENTRY_CONTRACTS.compareTo(collection)) {
                     JsonNode json = JsonHandler.getFromInputStream(document);
                     SanityChecker.checkJsonAll(json);
                     status =
@@ -358,7 +354,7 @@ public class AdminManagementExternalResourceImpl {
                     final JsonNode result = client.getRules(select);
                     return Response.status(Status.OK).entity(result).build();
                 }
-                if (AdminCollections.CONTRACTS.compareTo(collection)) {
+                if (AdminCollections.ENTRY_CONTRACTS.compareTo(collection)) {
                     RequestResponse<IngestContractModel> contracts = client.findIngestContracts(select);
                     return Response.status(Status.OK).entity(contracts.toJsonNode()).build();
                 }
@@ -427,7 +423,7 @@ public class AdminManagementExternalResourceImpl {
                 Status status = Status.CREATED;
 
 
-                if (AdminCollections.CONTRACTS.compareTo(collection)) {
+                if (AdminCollections.ENTRY_CONTRACTS.compareTo(collection)) {
                     SanityChecker.checkJsonAll(select);
                     status =
                         client.importIngestContracts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
@@ -518,7 +514,7 @@ public class AdminManagementExternalResourceImpl {
                     final JsonNode result = client.getRuleByID(documentId);
                     return Response.status(Status.OK).entity(result).build();
                 }
-                if (AdminCollections.CONTRACTS.compareTo(collection)) {
+                if (AdminCollections.ENTRY_CONTRACTS.compareTo(collection)) {
                     RequestResponse<IngestContractModel> requestResponse = client.findIngestContractsByID(documentId);
                     return Response.status(Status.OK).entity(requestResponse).build();
                 }
@@ -568,7 +564,7 @@ public class AdminManagementExternalResourceImpl {
      * @throws AdminManagementClientServerException
      * @throws InvalidParseOperationException
      */
-    @Path(UPDATE_ACCESS_CONTRACT + "/{id}")
+    @Path(AccessExtAPI.ACCESS_CONTRACT_API_UPDATE + "/{id}")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -601,7 +597,7 @@ public class AdminManagementExternalResourceImpl {
      * @throws AdminManagementClientServerException
      * @throws InvalidParseOperationException
      */
-    @Path(UPDATE_INGEST_CONTRACT + "/{id}")
+    @Path(AccessExtAPI.ENTRY_CONTRACT_API_UPDATE + "/{id}")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -626,7 +622,7 @@ public class AdminManagementExternalResourceImpl {
         }
     }
     
-    @Path(UPDATE_CONTEXT + "/{id}")
+    @Path(AccessExtAPI.CONTEXTS_API_UPDATE + "/{id}")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)

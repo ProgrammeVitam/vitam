@@ -26,60 +26,37 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.external.api;
 
-/**
- * All collections in functional admin module
- */
-public enum AdminCollections {
-    /**
-     * Formats Collection
-     */
-    FORMATS(AccessExtAPI.FORMATS),
+public class AccessExtAPI {
 
-    /**
-     * Rules Collection
-     */
-    RULES(AccessExtAPI.RULES),
+    private AccessExtAPI() {}
     
-    /**
-     * Ingest contracts collection
-     */
-    ENTRY_CONTRACTS(AccessExtAPI.ENTRY_CONTRACT),
-
-    /**
-     * Access contracts collection
-     */
-    ACCESS_CONTRACTS(AccessExtAPI.ACCESS_CONTRACT),
-
-    /**
-     * Profile collection
-     */
-    PROFILE(AccessExtAPI.PROFILES),
+    public static final String ACCESSION_REGISTERS = "accession-registers";
+    public static final String ACCESSION_REGISTERS_API = "/" + ACCESSION_REGISTERS;
+    public static final String ACCESSION_REGISTERS_API_UPDATE = "/accession-register";
     
-    /**
-     * Context collection
-     */
-    CONTEXTS(AccessExtAPI.CONTEXTS);
-
-
-    private String name;
-
-    private AdminCollections(final String collection) {
-        name = collection;
-    }
-
-    /**
-     *
-     * @return the name of the collection
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * @param value as String to compare
-     * @return True if the name of the collection equals
-     */
-    public boolean compareTo(String value) {
-        return name.equals(value);
-    }
+    public static final String ACCESSION_REGISTERS_DETAIL = "accession-register-detail";
+    
+    public static final String ENTRY_CONTRACT = "entrycontracts";
+    public static final String ENTRY_CONTRACT_API = "/" + ENTRY_CONTRACT;
+    public static final String ENTRY_CONTRACT_API_UPDATE = "/entrycontract";
+    
+    public static final String ACCESS_CONTRACT = "accesscontracts";
+    public static final String ACCESS_CONTRACT_API = "/" + ACCESS_CONTRACT;
+    public static final String ACCESS_CONTRACT_API_UPDATE = "/accesscontract";
+    
+    public static final String PROFILES = "profiles";
+    public static final String PROFILES_API = "/" + PROFILES;
+    public static final String PROFILES_API_UPDATE = "profile";
+    
+    public static final String CONTEXTS = "contexts";
+    public static final String CONTEXTS_API = "/" + CONTEXTS;
+    public static final String CONTEXTS_API_UPDATE = "context";
+    
+    public static final String FORMATS = "formats";
+    
+    public static final String RULES = "rules";
+    
+    public static final String TRACEABILITY = "traceability";
+    
+    public static final String TRACEABILITY_API = "/" + TRACEABILITY;
 }

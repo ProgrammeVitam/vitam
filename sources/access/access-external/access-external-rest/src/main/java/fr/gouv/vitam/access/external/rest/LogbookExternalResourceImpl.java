@@ -42,6 +42,7 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
@@ -366,7 +367,7 @@ public class LogbookExternalResourceImpl {
      * @return The verification report == the logbookOperation
      */
     @POST
-    @Path("/traceability/check")
+    @Path(AccessExtAPI.TRACEABILITY_API + "/check")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkOperationTraceability(JsonNode query) {
@@ -403,7 +404,7 @@ public class LogbookExternalResourceImpl {
     }
 
     @GET
-    @Path("/traceability/{idOperation}/content")
+    @Path(AccessExtAPI.TRACEABILITY_API + "/{idOperation}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void downloadTraceabilityFile(@PathParam("idOperation") String operationId,
         @Suspended final AsyncResponse asyncResponse) {

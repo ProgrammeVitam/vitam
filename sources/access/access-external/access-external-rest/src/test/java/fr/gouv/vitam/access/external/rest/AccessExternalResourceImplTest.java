@@ -62,6 +62,7 @@ import com.jayway.restassured.response.Header;
 import com.jayway.restassured.response.Headers;
 
 import fr.gouv.vitam.access.external.api.AccessCollections;
+import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
@@ -163,10 +164,9 @@ public class AccessExternalResourceImplTest {
 
     private static final String OBJECT_ID = "objectId";
     private static final String OBJECTS_URI = "/objects/";
-    private static final String ACCESSION_REGISTER_URI = "/" + AccessCollections.ACCESSION_REGISTER.getName();
-    private static final String ACCESSION_REGISTER_DETAIL_URI = AccessCollections.ACCESSION_REGISTER.getName() +
+    private static final String ACCESSION_REGISTER_DETAIL_URI = AccessExtAPI.ACCESSION_REGISTERS_API +
         "/FR_ORG_AGEC/" +
-        AccessCollections.ACCESSION_REGISTER_DETAIL.getName();
+        AccessExtAPI.ACCESSION_REGISTERS_DETAIL;
     private static AdminManagementClient adminCLient;
 
     @Rule
@@ -1506,7 +1506,7 @@ public class AccessExternalResourceImplTest {
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(select.getFinalSelect())
-            .when().post(ACCESSION_REGISTER_URI)
+            .when().post(AccessExtAPI.ACCESSION_REGISTERS_API)
             .then().statusCode(Status.OK.getStatusCode());
 
         given()
@@ -1514,7 +1514,7 @@ public class AccessExternalResourceImplTest {
             .header(X_HTTP_METHOD_OVERRIDE, "GET")
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
             .body(select.getFinalSelect())
-            .when().post(ACCESSION_REGISTER_URI)
+            .when().post(AccessExtAPI.ACCESSION_REGISTERS_API)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
@@ -1522,28 +1522,28 @@ public class AccessExternalResourceImplTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
             .body(select.getFinalSelect())
-            .when().post(ACCESSION_REGISTER_URI)
+            .when().post(AccessExtAPI.ACCESSION_REGISTERS_API)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
             .body(select.getFinalSelect())
-            .when().post(ACCESSION_REGISTER_URI)
+            .when().post(AccessExtAPI.ACCESSION_REGISTERS_API)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(select.getFinalSelect())
-            .when().post(ACCESSION_REGISTER_URI + "/" + good_id)
+            .when().post(AccessExtAPI.ACCESSION_REGISTERS_API + "/" + good_id)
             .then().statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
             .body(select.getFinalSelect())
-            .when().post(ACCESSION_REGISTER_URI + "/" + good_id)
+            .when().post(AccessExtAPI.ACCESSION_REGISTERS_API + "/" + good_id)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
@@ -1606,7 +1606,7 @@ public class AccessExternalResourceImplTest {
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(select.getFinalSelect())
-            .when().post(ACCESSION_REGISTER_URI)
+            .when().post(AccessExtAPI.ACCESSION_REGISTERS_API)
             .then().statusCode(Status.OK.getStatusCode());
 
         given()
@@ -1614,7 +1614,7 @@ public class AccessExternalResourceImplTest {
             .header(X_HTTP_METHOD_OVERRIDE, "GET")
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
             .body(select.getFinalSelect())
-            .when().post(ACCESSION_REGISTER_URI)
+            .when().post(AccessExtAPI.ACCESSION_REGISTERS_API)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
@@ -1644,7 +1644,7 @@ public class AccessExternalResourceImplTest {
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(select.getFinalSelect())
-            .when().post(ACCESSION_REGISTER_URI)
+            .when().post(AccessExtAPI.ACCESSION_REGISTERS_API)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
 
         given()
@@ -1667,7 +1667,7 @@ public class AccessExternalResourceImplTest {
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(select.getFinalSelect())
-            .when().post(ACCESSION_REGISTER_URI)
+            .when().post(AccessExtAPI.ACCESSION_REGISTERS_API)
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
         given()
