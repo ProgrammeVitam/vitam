@@ -466,6 +466,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                             if (e.getCause() instanceof ProcessingException) {
                                 throw (ProcessingException) e.getCause();
                             }
+                            throw e;
                         } catch (JAXBException e) {
                             LOGGER.error("unable to parse archiveUnit", e);
                             throw new InvalidParseOperationException(e);

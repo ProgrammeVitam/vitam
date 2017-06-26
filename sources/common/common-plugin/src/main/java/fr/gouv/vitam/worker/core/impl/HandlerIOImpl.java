@@ -42,6 +42,7 @@ import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.annotations.VisibleForTesting;
 
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -105,11 +106,13 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
     }
 
     /**
-     * Constructor with local root path
+     * Constructor with workspaceClient, local root path
+     * he is used for test purpose
      *
      * @param containerName the container name
      * @param workerId the worker id
      */
+    @VisibleForTesting
     public HandlerIOImpl(WorkspaceClient workspaceClient, String containerName, String workerId) {
         this.containerName = containerName;
         this.workerId = workerId;

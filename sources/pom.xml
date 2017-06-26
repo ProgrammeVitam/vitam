@@ -219,7 +219,7 @@
 				<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 
 				<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
-				<!-- Core plugins : Plugins corresponding to default core phases (ie. 
+				<!-- Core plugins : Plugins corresponding to default core phases (ie.
 					clean, compile). They may have muliple goals as well. -->
 				<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 				<plugin>
@@ -262,7 +262,7 @@
 					<version>2.5.2</version>
 				</plugin>
 				<plugin>
-					<!-- Copy the resources to the output directory for including in the 
+					<!-- Copy the resources to the output directory for including in the
 						JAR. -->
 					<artifactId>maven-resources-plugin</artifactId>
 					<!-- 3.0 ? -->
@@ -314,7 +314,7 @@
 						<reuseForks>false</reuseForks>
 						<trimStackTrace>false</trimStackTrace>
 						<!-- Non Parallel mode -->
-						<!-- <parallel>classes</parallel> <threadCount>1</threadCount> <perCoreThreadCount>false</perCoreThreadCount> 
+						<!-- <parallel>classes</parallel> <threadCount>1</threadCount> <perCoreThreadCount>false</perCoreThreadCount>
 							<forkCount>1</forkCount> <reuseForks>false</reuseForks> -->
 					</configuration>
 					<executions>
@@ -337,14 +337,14 @@
 					</executions>
 				</plugin>
 				<plugin>
-					<!-- Useful for integration tests - verifies the existence of certain 
+					<!-- Useful for integration tests - verifies the existence of certain
 						conditions. -->
 					<artifactId>maven-verifier-plugin</artifactId>
 					<version>1.1</version>
 				</plugin>
 
 				<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
-				<!-- Packaging types / tools : These plugins relate to packaging respective 
+				<!-- Packaging types / tools : These plugins relate to packaging respective
 					artifact types. -->
 				<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 				<plugin>
@@ -365,7 +365,7 @@
 								<Scm-commit-id>${git.commit.id}</Scm-commit-id>
 								<Scm-commit-id-abbrev>${git.commit.id.abbrev}</Scm-commit-id-abbrev>
 								<Scm-commit-time>${git.commit.time}</Scm-commit-time>
-								<!--<Scm-commit-id-describe>${git.commit.id.describe}</Scm-commit-id-describe> 
+								<!--<Scm-commit-id-describe>${git.commit.id.describe}</Scm-commit-id-describe>
 									<Scm-closest-tag-name>${git.closest.tag.name}</Scm-closest-tag-name> <Scm-closest-tag-commit-count>${git.closest.tag.commit.count}</Scm-closest-tag-commit-count> -->
 								<!-- <Sealed>true</Sealed> -->
 							</manifestEntries>
@@ -377,11 +377,11 @@
 				</plugin>
 
 				<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
-				<!-- Reporting plugins : Plugins which generate reports, are configured 
+				<!-- Reporting plugins : Plugins which generate reports, are configured
 					as reports in the POM and run under the site generation lifecycle. -->
 				<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 				<plugin>
-					<!-- The Javadoc Plugin uses the Javadoc tool to generate javadocs for 
+					<!-- The Javadoc Plugin uses the Javadoc tool to generate javadocs for
 						the specified project. -->
 					<artifactId>maven-javadoc-plugin</artifactId>
 					<version>2.10.4</version>
@@ -457,8 +457,8 @@
 					</configuration>
 				</plugin>
 				<plugin>
-					<!-- The Surefire Report Plugin parses the generated TEST-*.xml files 
-						under ${basedir}/target/surefire-reports and renders them to DOXIA which 
+					<!-- The Surefire Report Plugin parses the generated TEST-*.xml files
+						under ${basedir}/target/surefire-reports and renders them to DOXIA which
 						creates the web interface version of the test results. -->
 					<artifactId>maven-surefire-report-plugin</artifactId>
 					<version>2.19.1</version>
@@ -471,7 +471,7 @@
 				</plugin>
 
 				<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
-				<!-- Tools : These are miscellaneous tools available through Maven by 
+				<!-- Tools : These are miscellaneous tools available through Maven by
 					default. -->
 				<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 				<plugin>
@@ -485,7 +485,7 @@
 					<version>2.10</version>
 				</plugin>
 				<plugin>
-					<!-- Environmental constraint checking (Maven Version, JDK etc), User 
+					<!-- Environmental constraint checking (Maven Version, JDK etc), User
 						Custom Rule Execution. -->
 					<artifactId>maven-enforcer-plugin</artifactId>
 					<version>1.4.1</version>
@@ -496,7 +496,7 @@
 					<version>2.2</version>
 				</plugin>
 				<plugin>
-					<!-- SCM plugin ; set as using jgit for git (essentially for the release 
+					<!-- SCM plugin ; set as using jgit for git (essentially for the release
 						plugin) -->
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-scm-plugin</artifactId>
@@ -515,7 +515,7 @@
 					</dependencies>
 				</plugin>
 				<plugin>
-					<!-- Release the current project - updating the POM and tagging in the 
+					<!-- Release the current project - updating the POM and tagging in the
 						SCM. -->
 					<artifactId>maven-release-plugin</artifactId>
 					<version>2.5.3</version>
@@ -525,7 +525,7 @@
 						<!--<forceUniqueArtifactVersion>true</forceUniqueArtifactVersion> -->
 						<!-- Don't ask if you want to resolve snapshots, do it -->
 						<!-- <alwaysResolveSnapshots>true</alwaysResolveSnapshots> -->
-						<!-- Don't ask which dependencies to resolve ( 0:All 1:Project Dependencies 
+						<!-- Don't ask which dependencies to resolve ( 0:All 1:Project Dependencies
 							2:Plugins 3:Reports 4:Extensions ) -->
 						<!--<alwaysResolveDependencyType>1</alwaysResolveDependencyType> -->
 						<providerImplementations>
@@ -541,7 +541,7 @@
 					</dependencies>
 				</plugin>
 				<plugin>
-					<!-- Build a JAR of sources for use in IDEs and distribution to the 
+					<!-- Build a JAR of sources for use in IDEs and distribution to the
 						repository. -->
 					<artifactId>maven-source-plugin</artifactId>
 					<version>3.0.0</version>
@@ -675,8 +675,8 @@
 									</source>
 								</sources>
 							</mapping>
-							<!-- OMA : disabled as useless now (no files within) <mapping> <directory>/vitam/script/${unix.name}</directory> 
-								<sources> <source> <location>${project.build.directory}/script</location> 
+							<!-- OMA : disabled as useless now (no files within) <mapping> <directory>/vitam/script/${unix.name}</directory>
+								<sources> <source> <location>${project.build.directory}/script</location>
 								</source> </sources> </mapping> -->
 							<mapping>
 								<directory>/usr/lib/systemd/system/</directory>
@@ -820,11 +820,39 @@
 				<groupId>com.thaiopensource</groupId>
 				<artifactId>jing</artifactId>
 				<version>${thaiopensource.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>xml-apis</groupId>
+						<artifactId>xml-apis</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>net.sf.saxon</groupId>
+						<artifactId>saxon</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>xerces</groupId>
+						<artifactId>xercesImpl</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 			<dependency>
 				<groupId>com.thaiopensource</groupId>
 				<artifactId>trang</artifactId>
 				<version>${thaiopensource.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>xml-apis</groupId>
+						<artifactId>xml-apis</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>net.sf.saxon</groupId>
+						<artifactId>saxon</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>xerces</groupId>
+						<artifactId>xercesImpl</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
@@ -886,7 +914,7 @@
 				<artifactId>resteasy-jackson2-provider</artifactId>
 				<version>${resteasy.client.version}</version>
 			</dependency>
-			<!-- <dependency> <groupId>org.glassfish.jersey.core</groupId> <artifactId>jersey-client</artifactId> 
+			<!-- <dependency> <groupId>org.glassfish.jersey.core</groupId> <artifactId>jersey-client</artifactId>
 				<version>${jersey.version}</version> </dependency> -->
 			<dependency>
 				<groupId>org.glassfish.jersey.containers</groupId>

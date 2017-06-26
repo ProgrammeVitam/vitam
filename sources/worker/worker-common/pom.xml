@@ -95,9 +95,9 @@
 				<version>0.13.1</version>
 				<configuration>
 					<catalog>src/main/resources/seda-vitam.cat</catalog>
-								<args>
-                <arg>-Xinheritance</arg>
-            </args>
+					<args>
+                		<arg>-Xinheritance</arg>
+					</args>
 
 					<strict>false</strict>
 					<schemaDirectory>src/main/resources</schemaDirectory>
