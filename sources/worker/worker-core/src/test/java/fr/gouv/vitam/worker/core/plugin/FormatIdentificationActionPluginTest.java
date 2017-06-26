@@ -239,6 +239,8 @@ public class FormatIdentificationActionPluginTest {
         assertEquals(StatusCode.WARNING, response.getGlobalStatus());
         assertFalse(response.getItemsStatus().get(FormatIdentificationActionPlugin.FILE_FORMAT)
             .getEvDetailData().isEmpty());
+        assertTrue(response.getItemsStatus().get(FormatIdentificationActionPlugin.FILE_FORMAT)
+            .getEvDetailData().contains("Plain Text File"));
     }
 
     @Test

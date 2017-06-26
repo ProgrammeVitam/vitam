@@ -271,8 +271,8 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                     checkAndUpdateFormatIdentification(objectId, formatIdentification,
                         objectCheckFormatResult, refFormat,
                         version);
-                eventDetailData = "{\"the old format identification\":" + formatIdentification + "," +
-                    "\"the new format identification\": " + newFormatIdentification + "} ";
+                eventDetailData = "{\"Old value\":" + formatIdentification + "," +
+                    "\"New value\": " + newFormatIdentification + "} ";
                 // Reassign new format
                 ((ObjectNode) version).set(SedaConstants.TAG_FORMAT_IDENTIFICATION, newFormatIdentification);
             }
@@ -313,7 +313,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
 
         final String puid = refFormat.getPuid();
         final StringBuilder diff = new StringBuilder();
-        JsonNode newFormatIdentification = formatIdentification;
+        JsonNode newFormatIdentification = formatIdentification.deepCopy();
         if ((newFormatIdentification == null || !newFormatIdentification.isObject()) && puid != null) {
             newFormatIdentification = JsonHandler.createObjectNode();
             ((ObjectNode) version).set(SedaConstants.TAG_FORMAT_IDENTIFICATION, newFormatIdentification);
