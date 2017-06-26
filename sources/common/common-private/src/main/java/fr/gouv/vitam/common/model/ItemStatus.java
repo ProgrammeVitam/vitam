@@ -56,6 +56,8 @@ public class ItemStatus {
     private LinkedHashMap<String, ItemStatus> itemsStatus = new LinkedHashMap<>();
     private LinkedHashMap<String, ItemStatus> subTaskStatus = new LinkedHashMap<>();
 
+    @JsonProperty("masterData")
+    protected Map<String, Object> masterData;
     @JsonProperty("itemId")
     protected String itemId;
     @JsonProperty("message")
@@ -85,6 +87,7 @@ public class ItemStatus {
 
         globalStatus = StatusCode.UNKNOWN;
         data = new HashMap<>();
+        masterData = new HashMap<>();
     }
 
     /**
@@ -253,6 +256,23 @@ public class ItemStatus {
      */
     public ItemStatus setData(String key, Object value) {
         data.put(key, value);
+        return this;
+    }
+    
+    /**
+     * @return masterData
+     */
+    public Map<String, Object> getMasterData() {
+        return masterData;
+    }
+
+    /**
+     * @param key
+     * @param value
+     * @return this
+     */
+    public ItemStatus setMasterData(String key, Object value) {
+        masterData.put(key, value);
         return this;
     }
 

@@ -136,6 +136,10 @@ public enum LogbookParameterName {
      */
     objectIdentifierIncome,
     /**
+     * Master Data Identifier
+     */
+    masterData,
+    /**
      * Event Detail Data on the current "process <br>
      * <br>
      * Can be null

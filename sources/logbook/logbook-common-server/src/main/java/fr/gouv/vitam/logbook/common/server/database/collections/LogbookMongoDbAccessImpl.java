@@ -1453,6 +1453,42 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             }
         }
         final String mainLogbookDocumentId = getDocumentForUpdate(item).getId();
+        
+        String masterData = item.getParameterValue(LogbookParameterName.masterData);
+        
+        try {
+            JsonNode master = JsonHandler.getFromString(masterData);
+            Iterator<String> fieldNames = master.fieldNames();
+            List<Bson> updates = new ArrayList<Bson>();
+            while (fieldNames.hasNext()){
+                String fieldName = fieldNames.next();
+                String fieldValue = master.get(fieldName).asText();
+                String mongoDbName = LogbookMongoDbName.getLogbookMongoDbName(LogbookParameterName.valueOf(fieldName)).getDbname();
+                ObjectNode oldVal = null;
+                if (mongoDbName == LogbookMongoDbName.eventDetailData.getDbname()) {
+                    Document oldValue = (Document) collection.getCollection().
+                        find(eq(LogbookDocument.ID, mainLogbookDocumentId)).first();
+                    if (oldValue.get(mongoDbName) != null) {
+                        String old = oldValue.get(mongoDbName).toString();
+                        oldVal = (ObjectNode) JsonHandler.getFromString(old);
+                    } else {
+                        oldVal = (ObjectNode) JsonHandler.getFromString("{}");
+                    }
+                    ObjectNode newNode = JsonHandler.createObjectNode();
+                    newNode.setAll(oldVal);
+                    newNode.setAll((ObjectNode) master.get(fieldName));
+                    fieldValue = JsonHandler.writeAsString(newNode);
+                }
+                updates.add(Updates.set(mongoDbName, fieldValue));
+            }
+            if (!updates.isEmpty()){
+                collection.getCollection().updateOne(
+                    eq(LogbookDocument.ID, mainLogbookDocumentId), Updates.combine(updates));
+            }
+        } catch (InvalidParseOperationException e) {
+            LOGGER.warn("masterData is not parsable as a json. Analyse cancelled: " + masterData);
+        }
+        
 
         if (copyToMaster) {
             LOGGER.debug("Copy evDetData to master: " + evDetData);
