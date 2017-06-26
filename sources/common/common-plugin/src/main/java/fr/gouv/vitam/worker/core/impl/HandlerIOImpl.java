@@ -101,14 +101,26 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
      * @param workerId the worker id
      */
     public HandlerIOImpl(String containerName, String workerId) {
+        this(WorkspaceClientFactory.getInstance().getClient(), containerName, workerId);
+    }
+
+    /**
+     * Constructor with local root path
+     *
+     * @param containerName the container name
+     * @param workerId the worker id
+     */
+    public HandlerIOImpl(WorkspaceClient workspaceClient, String containerName, String workerId) {
         this.containerName = containerName;
         this.workerId = workerId;
         localDirectory = PropertiesUtils.fileFromTmpFolder(containerName + "_" + workerId);
         localDirectory.mkdirs();
-        client = WorkspaceClientFactory.getInstance().getClient();
+        client = workspaceClient;
         lifecyclesClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
         helper = new LogbookLifeCyclesClientHelper();
     }
+
+
 
     @Override
     public LogbookLifeCyclesClient getLifecyclesClient() {

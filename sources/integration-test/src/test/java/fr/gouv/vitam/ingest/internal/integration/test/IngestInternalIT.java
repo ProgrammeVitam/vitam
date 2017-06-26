@@ -100,6 +100,8 @@ import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.worker.server.rest.WorkerApplication;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
+
+import org.assertj.core.api.Assertions;
 import org.bson.Document;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -120,6 +122,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.jayway.restassured.RestAssured.get;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -142,7 +145,7 @@ public class IngestInternalIT {
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @ClassRule
-    public static TemporaryFolder tempFolder = new TemporaryFolder();
+    public static TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     private static final long SLEEP_TIME = 100l;
     private static final long NB_TRY = 9600; // equivalent to 16 minute
@@ -243,8 +246,13 @@ public class IngestInternalIT {
         CONFIG_ACCESS_INTERNAL_PATH =
             PropertiesUtils.getResourcePath("integration-ingest-internal/access-internal.conf").toString();
 
+        File tempFolder = temporaryFolder.newFolder();
+        System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
+
+        SystemPropertyUtil.refresh();
+
         // ES
-        config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME, TCP_PORT, HTTP_PORT);
+        config = JunitHelper.startElasticsearchForTest(temporaryFolder, CLUSTER_NAME, TCP_PORT, HTTP_PORT);
 
         final MongodStarter starter = MongodStarter.getDefaultInstance();
 
@@ -434,7 +442,6 @@ public class IngestInternalIT {
             fail("should not raized an exception");
         }
     }
-
 
     @RunWithCustomExecutor
     @Test
@@ -989,9 +996,9 @@ public class IngestInternalIT {
             ProcessWorkflow processWorkflow =
                 ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
 
-            assertNotNull(processWorkflow);
-            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+            assertThat(processWorkflow).isNotNull();
+            assertThat(processWorkflow.getState()).isEqualTo(ProcessState.COMPLETED);
+            assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.WARNING);
 
             // Try to check AU
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();

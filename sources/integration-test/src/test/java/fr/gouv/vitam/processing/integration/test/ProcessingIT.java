@@ -27,6 +27,7 @@
 package fr.gouv.vitam.processing.integration.test;
 
 import static com.jayway.restassured.RestAssured.get;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
@@ -51,6 +52,7 @@ import java.util.zip.ZipOutputStream;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.assertj.core.api.Assertions;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -509,8 +511,7 @@ public class ProcessingIT {
             // workspace client dezip SIP in workspace
             RestAssured.port = PORT_SERVICE_WORKSPACE;
             RestAssured.basePath = WORKSPACE_PATH;
-            final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_BUG_2721);
+            final InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_BUG_2721);
             workspaceClient = WorkspaceClientFactory.getInstance().getClient();
             workspaceClient.createContainer(containerName);
             workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
@@ -755,9 +756,9 @@ public class ProcessingIT {
             wait(containerName);
             ProcessWorkflow processWorkflow =
                 processMonitoring.findOneProcessWorkflow(containerName, tenantId);
-            assertNotNull(processWorkflow);
-            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+            assertThat(processWorkflow).isNotNull();
+            assertThat(processWorkflow.getState()).isEqualTo(ProcessState.COMPLETED);
+            assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.WARNING);
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
@@ -1559,6 +1560,8 @@ public class ProcessingIT {
         assertNotNull(modifiedParentUnit.first());
         Document parentUnit = modifiedParentUnit.first();
 
+        // aeaqaaaaaad44i2vabiwgak4y2bxdkiaaaaq
+
         MongoIterable<Document> newChildUnit = db.getCollection("Unit").find(Filters.eq("_up", idUnit));
         assertNotNull(newChildUnit);
         assertNotNull(newChildUnit.first());
@@ -1717,8 +1720,7 @@ public class ProcessingIT {
 
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
-        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-            zipStream);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipStream);
 
         // call processing
         RestAssured.port = PORT_SERVICE_PROCESSING;
@@ -2184,11 +2186,10 @@ public class ProcessingIT {
             assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
             wait(containerName);
-            ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
-            assertNotNull(processWorkflow);
-            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-            assertEquals(StatusCode.KO, processWorkflow.getStatus());
+            ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            assertThat(processWorkflow).isNotNull();
+            assertThat(processWorkflow.getState()).isEqualTo(ProcessState.COMPLETED);
+            assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.KO);
 
         } catch (final Exception e) {
             e.printStackTrace();

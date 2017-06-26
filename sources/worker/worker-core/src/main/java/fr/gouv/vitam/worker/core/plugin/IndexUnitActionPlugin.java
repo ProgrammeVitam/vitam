@@ -155,7 +155,8 @@ public class IndexUnitActionPlugin extends ActionHandler {
                         String unitType = UnitType.getUnitTypeString((String) handlerIO.getInput(0));
                         data.put(VitamFieldsHelper.unitType(), unitType);
                     }
-                    metadataClient.insertUnit(((InsertMultiQuery) query).addData(data).getFinalInsert());
+                    ObjectNode finalInsert = ((InsertMultiQuery) query).addData(data).getFinalInsert();
+                    metadataClient.insertUnit(finalInsert);
                 }
                 itemStatus.increment(StatusCode.OK);
             } else {
