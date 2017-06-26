@@ -60,7 +60,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
-import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.ingest.external.api.IngestExternal;
@@ -89,7 +88,7 @@ import fr.gouv.vitam.workspace.common.WorkspaceFileSystem;
  * Implementation of IngestExtern
  */
 public class IngestExternalImpl implements IngestExternal {
-    private static final String WORKSPACE_ERROR_MESSAGE = "Workspace Error. ATR is not stored";
+    private static final String WORKSPACE_ERROR_MESSAGE = "Erreur de workspace. L'ATR ne sera pas stocké.";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalImpl.class);
 

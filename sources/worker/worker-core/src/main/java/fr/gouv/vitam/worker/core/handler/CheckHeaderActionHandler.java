@@ -102,12 +102,12 @@ public class CheckHeaderActionHandler extends ActionHandler {
         }
 
         updateSedaInfo(madatoryValueMap, infoNode);
-
+        itemStatus.setData(LogbookParameterName.eventDetailData.name(), 
+            JsonHandler.unprettyPrint(infoNode));
+        
         if (shouldCheckOriginatingAgency && 
             Strings.isNullOrEmpty((String) madatoryValueMap.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER))) {
             itemStatus.increment(StatusCode.KO);
-            itemStatus.setData(LogbookParameterName.eventDetailData.name(), 
-                JsonHandler.unprettyPrint(infoNode));
             return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
 
         }
@@ -122,8 +122,6 @@ public class CheckHeaderActionHandler extends ActionHandler {
                 itemStatus.setItemsStatus(CheckIngestContractActionHandler.getId(), checkContratItemStatus);
                 checkIngestContractActionHandler.close();
                 if (checkContratItemStatus.shallStop(true)) {
-                    itemStatus.setData(LogbookParameterName.eventDetailData.name(), 
-                        JsonHandler.unprettyPrint(infoNode));
                     return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
                 }
             }            
@@ -139,8 +137,6 @@ public class CheckHeaderActionHandler extends ActionHandler {
                 itemStatus.setItemsStatus(CheckArchiveProfileRelationActionHandler.getId(), checkProfilRelationItemStatus);
                 checkProfileRelation.close();
                 if (checkProfilRelationItemStatus.shallStop(true)) {
-                    itemStatus.setData(LogbookParameterName.eventDetailData.name(), 
-                        JsonHandler.unprettyPrint(infoNode));
                     return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
                 }
 
@@ -151,8 +147,6 @@ public class CheckHeaderActionHandler extends ActionHandler {
                 itemStatus.setItemsStatus(CheckArchiveProfileActionHandler.getId(), checkProfilItemStatus);
                 checkArchiveProfile.close();
                 if (checkProfilItemStatus.shallStop(true)) {
-                    itemStatus.setData(LogbookParameterName.eventDetailData.name(), 
-                        JsonHandler.unprettyPrint(infoNode));
                     return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
                 } 
 
@@ -170,8 +164,6 @@ public class CheckHeaderActionHandler extends ActionHandler {
             itemStatus.increment(StatusCode.OK);
         }
 
-        itemStatus.setData(LogbookParameterName.eventDetailData.name(), 
-            JsonHandler.unprettyPrint(infoNode));
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
