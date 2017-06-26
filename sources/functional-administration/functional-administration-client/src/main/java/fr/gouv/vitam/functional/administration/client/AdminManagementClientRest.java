@@ -173,7 +173,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         Response response = null;
         try {
             response = performRequest(HttpMethod.POST, FORMAT_URL + "/" + id, null,
-                MediaType.APPLICATION_JSON_TYPE, false);
+                MediaType.APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
@@ -300,7 +300,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         Response response = null;
         try {
             response = performRequest(HttpMethod.POST, RULESMANAGER_URL + "/" + id, null,
-                MediaType.APPLICATION_JSON_TYPE, false);
+                MediaType.APPLICATION_JSON_TYPE);
 
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {

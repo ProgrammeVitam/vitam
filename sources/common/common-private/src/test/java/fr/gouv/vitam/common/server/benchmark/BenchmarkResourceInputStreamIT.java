@@ -93,7 +93,6 @@ public class BenchmarkResourceInputStreamIT {
 
     @Test
     public final void testStatus() {
-        BenchmarkClientFactory.getInstance().mode(BenchmarkConnectorProvider.APACHE);
         try (final BenchmarkClientRest client =
             BenchmarkClientFactory.getInstance().getClient()) {
             client.checkStatus();
@@ -104,7 +103,6 @@ public class BenchmarkResourceInputStreamIT {
 
     @Test
     public void testStream() throws VitamClientInternalException, IOException {
-        BenchmarkClientFactory.getInstance().mode(BenchmarkConnectorProvider.APACHE);
         try (final BenchmarkClientRest client =
             BenchmarkClientFactory.getInstance().getClient()) {
             String method = HttpMethod.GET;
@@ -154,7 +152,6 @@ public class BenchmarkResourceInputStreamIT {
 
     @Test
     public void testIndirectStream() throws VitamClientInternalException, IOException {
-        BenchmarkClientFactory.getInstance().mode(BenchmarkConnectorProvider.APACHE);
         try (final BenchmarkClientRest client =
             BenchmarkClientFactory.getInstance().getClient()) {
             String method = HttpMethod.GET;

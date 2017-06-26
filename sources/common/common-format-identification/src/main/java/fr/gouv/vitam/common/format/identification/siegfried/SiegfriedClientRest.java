@@ -80,7 +80,7 @@ public class SiegfriedClientRest extends DefaultClient implements SiegfriedClien
         Response response = null;
         try {
             response =
-                performRequest(HttpMethod.GET, "/" + encodedFilePath, null, MediaType.APPLICATION_JSON_TYPE, false);
+                performRequest(HttpMethod.GET, "/" + encodedFilePath, null, MediaType.APPLICATION_JSON_TYPE);
         } catch (final Exception e) {
             LOGGER.error("While call Siegfried HTTP Client", e);
             consumeAnyEntityAndClose(response);

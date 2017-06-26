@@ -207,6 +207,7 @@ public class MultipleInputStreamHandlerTest {
                 assertEquals("rank: " + i, INPUTSTREAM_SIZE, total[i]);
             }
         } catch (final IOException e) {
+            System.gc();
             LOGGER.error(e);
             fail("Should not raized an exception: " + e.getMessage());
         }
@@ -298,11 +299,16 @@ public class MultipleInputStreamHandlerTest {
     @Test
     public void testMultipleInputStreamHandlerMultiRead() {
         LOGGER.warn("start testMultipleInputStreamHandlerMultiRead Pool {}", MultipleInputStreamHandler.getPoolAvailability());
-        for (int i = 0; i < 1002; i++) {
-            if (i % 100 == 0) {
-                LOGGER.warn("Step {} Pool: {}", i, MultipleInputStreamHandler.getPoolAvailability());
+        try {
+            for (int i = 0; i < 1002; i++) {
+                if (i % 100 == 0) {
+                    LOGGER.warn("Step {} Pool: {}", i, MultipleInputStreamHandler.getPoolAvailability());
+                }
+                testMultipleInputStreamHandlerMultipleMultiThread(1, 1024, true, false);
             }
-            testMultipleInputStreamHandlerMultipleMultiThread(1, 1024, true, false);
+        } catch (OutOfMemoryError e) {
+            System.gc();
+            LOGGER.error(e);
         }
         LOGGER.warn("stop testMultipleInputStreamHandlerMultiRead Pool {}", MultipleInputStreamHandler.getPoolAvailability());
     }

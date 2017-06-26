@@ -95,7 +95,7 @@ public class WorkspaceClient extends DefaultClient {
         Response response = null;
         try {
             response = performRequest(HttpMethod.POST, CONTAINERS + containerName, null,
-                MediaType.APPLICATION_JSON_TYPE, false);
+                MediaType.APPLICATION_JSON_TYPE);
             if (Status.CREATED.getStatusCode() == response.getStatus()) {
                 LOGGER.debug(containerName + ": " + Response.Status.CREATED.getReasonPhrase());
             } else if (Status.CONFLICT.getStatusCode() == response.getStatus()) {
@@ -124,7 +124,7 @@ public class WorkspaceClient extends DefaultClient {
             MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             headers.add(GlobalDataRest.X_RECURSIVE, recursive);
             response = performRequest(HttpMethod.DELETE, CONTAINERS + containerName, headers,
-                MediaType.APPLICATION_JSON_TYPE, false);
+                MediaType.APPLICATION_JSON_TYPE);
 
             if (Response.Status.NO_CONTENT.getStatusCode() == response.getStatus()) {
                 LOGGER.debug(containerName + ": " + Response.Status.NO_CONTENT.getReasonPhrase());
@@ -149,7 +149,7 @@ public class WorkspaceClient extends DefaultClient {
         Response response = null;
         try {
             response = performRequest(HttpMethod.HEAD, CONTAINERS + containerName, null,
-                MediaType.APPLICATION_JSON_TYPE, false);
+                MediaType.APPLICATION_JSON_TYPE);
             return Response.Status.OK.getStatusCode() == response.getStatus();
         } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR2, e);
@@ -166,7 +166,7 @@ public class WorkspaceClient extends DefaultClient {
         Response response = null;
         try {
             response = performRequest(HttpMethod.GET, CONTAINERS + containerName + "/count", null,
-                MediaType.APPLICATION_JSON_TYPE, false);
+                MediaType.APPLICATION_JSON_TYPE);
             if (Response.Status.OK.getStatusCode() == response.getStatus()) {
                 JsonNode node = response.readEntity(JsonNode.class);
                 return node.get("objectNumber").asLong();
@@ -192,7 +192,7 @@ public class WorkspaceClient extends DefaultClient {
         Response response = null;
         try {
             response = performRequest(HttpMethod.POST, CONTAINERS + containerName + FOLDERS + folderName, null,
-                MediaType.APPLICATION_JSON_TYPE, false);
+                MediaType.APPLICATION_JSON_TYPE);
             if (Status.CREATED.getStatusCode() == response.getStatus()) {
                 LOGGER.debug(containerName + "/" + folderName + ": " + Response.Status.CREATED.getReasonPhrase());
             } else if (Status.CONFLICT.getStatusCode() == response.getStatus()) {
@@ -219,7 +219,7 @@ public class WorkspaceClient extends DefaultClient {
         try {
             response =
                 performRequest(HttpMethod.DELETE, CONTAINERS + containerName + FOLDERS + folderName, null,
-                    MediaType.APPLICATION_JSON_TYPE, false);
+                    MediaType.APPLICATION_JSON_TYPE);
 
             if (Response.Status.NO_CONTENT.getStatusCode() == response.getStatus()) {
                 LOGGER.debug(containerName + "/" + folderName + ": " + Response.Status.NO_CONTENT.getReasonPhrase());
@@ -245,7 +245,7 @@ public class WorkspaceClient extends DefaultClient {
         Response response = null;
         try {
             response = performRequest(HttpMethod.HEAD, CONTAINERS + containerName + FOLDERS + folderName, null,
-                MediaType.APPLICATION_JSON_TYPE, false);
+                MediaType.APPLICATION_JSON_TYPE);
             return Response.Status.OK.getStatusCode() == response.getStatus();
         } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR2, e);
@@ -358,7 +358,7 @@ public class WorkspaceClient extends DefaultClient {
         try {
             response =
                 performRequest(HttpMethod.DELETE, CONTAINERS + containerName + OBJECTS + objectName, null,
-                    MediaType.APPLICATION_JSON_TYPE, false);
+                    MediaType.APPLICATION_JSON_TYPE);
 
             if (Response.Status.NO_CONTENT.getStatusCode() == response.getStatus()) {
                 LOGGER.debug(containerName + "/" + objectName + ": " + Response.Status.NO_CONTENT.getReasonPhrase());
@@ -384,7 +384,7 @@ public class WorkspaceClient extends DefaultClient {
         Response response = null;
         try {
             response = performRequest(HttpMethod.HEAD, CONTAINERS + containerName + OBJECTS + objectName, null,
-                MediaType.APPLICATION_JSON_TYPE, false);
+                MediaType.APPLICATION_JSON_TYPE);
             return Response.Status.OK.getStatusCode() == response.getStatus();
         } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR2, e);
@@ -401,7 +401,7 @@ public class WorkspaceClient extends DefaultClient {
         Response response = null;
         try {
             response = performRequest(HttpMethod.GET, CONTAINERS + containerName + FOLDERS + folderName, null,
-                MediaType.APPLICATION_JSON_TYPE, false);
+                MediaType.APPLICATION_JSON_TYPE);
 
             if (response != null && Response.Status.OK.getStatusCode() == response.getStatus()) {
                 return new RequestResponseOK().addResult(response.readEntity(new GenericType<List<URI>>() {
@@ -492,7 +492,7 @@ public class WorkspaceClient extends DefaultClient {
             headers.add(GlobalDataRest.X_DIGEST_ALGORITHM, algo.getName());
             response =
                 performRequest(HttpMethod.HEAD, CONTAINERS + containerName + OBJECTS + objectName, null,
-                    MediaType.APPLICATION_JSON_TYPE, false);
+                    MediaType.APPLICATION_JSON_TYPE);
 
             if (Response.Status.OK.getStatusCode() == response.getStatus()) {
                 return new RequestResponseOK().addResult(response.getHeaderString(GlobalDataRest.X_DIGEST));
@@ -519,7 +519,7 @@ public class WorkspaceClient extends DefaultClient {
         try {
             response =
                 performRequest(HttpMethod.GET, CONTAINERS + containerName, null,
-                    MediaType.APPLICATION_JSON_TYPE, false);
+                    MediaType.APPLICATION_JSON_TYPE);
             if (Response.Status.OK.getStatusCode() == response.getStatus()) {
                 return new RequestResponseOK().addResult(response.readEntity(ContainerInformation.class));
             } else {
@@ -542,7 +542,7 @@ public class WorkspaceClient extends DefaultClient {
         try {
             response =
                 performRequest(HttpMethod.GET, CONTAINERS + containerName + OBJECTS + objectName, null,
-                    MediaType.APPLICATION_JSON_TYPE, false);
+                    MediaType.APPLICATION_JSON_TYPE);
 
             if (Response.Status.OK.getStatusCode() == response.getStatus()) {
                 return new RequestResponseOK().addResult(response.readEntity(JsonNode.class));

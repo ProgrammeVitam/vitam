@@ -37,17 +37,17 @@ package mon.module.driver;
 
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
+import fr.gouv.vitam.common.client.VitamRestEasyConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
 import fr.gouv.vitam.storage.driver.AbstractDriver;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
+import java.util.Map;
 import java.util.Properties;
 
 import javax.ws.rs.client.Client;
-
-import org.glassfish.jersey.client.ClientConfig;
 
 public class MonDriver extends AbstractDriver {
 
@@ -75,11 +75,11 @@ public class MonDriver extends AbstractDriver {
                 return null;
             }
 
-            public ClientConfig getDefaultConfigCient() {
+            public Map<VitamRestEasyConfiguration, Object> getDefaultConfigCient() {
                 return null;
             }
 
-            public ClientConfig getDefaultConfigCient(boolean chunkedMode) {
+            public Map<VitamRestEasyConfiguration, Object> getDefaultConfigCient(boolean chunkedMode) {
                 return null;
             }
 

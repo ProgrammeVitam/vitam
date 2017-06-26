@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.TestVitamClientFactory;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
+import fr.gouv.vitam.common.client.VitamRestEasyConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -57,7 +58,6 @@ import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
 import fr.gouv.vitam.storage.driver.model.StorageRequest;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import org.apache.commons.io.IOUtils;
-import org.glassfish.jersey.client.ClientConfig;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.client.Client;
@@ -71,6 +71,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -112,12 +113,12 @@ public class FakeDriverImpl extends AbstractDriver {
             }
 
             @Override
-            public ClientConfig getDefaultConfigCient() {
+            public Map<VitamRestEasyConfiguration, Object> getDefaultConfigCient() {
                 return null;
             }
 
             @Override
-            public ClientConfig getDefaultConfigCient(boolean chunkedMode) {
+            public Map<VitamRestEasyConfiguration, Object> getDefaultConfigCient(boolean chunkedMode) {
                 return null;
             }
 

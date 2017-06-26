@@ -85,12 +85,12 @@ public class HeaderIdHelper {
             if (requestId != null) {
                 requestId = requestId.split(",")[0];
             }
-            
+
             if (headerTenantId != null) {
                 headerTenantId = headerTenantId.split(",")[0];
                 tenantId = Integer.parseInt(headerTenantId);
             }
-            
+
             if (contractId != null) {
                 contractId = contractId.split(",")[0];
             }
@@ -104,7 +104,7 @@ public class HeaderIdHelper {
                         "Old requestId will be discarded in session.",
                     ctx);
             }
-            
+
             if (vitamSession.getTenantId() != null && !vitamSession.getTenantId().equals(tenantId)) {
                 LOGGER.info(
                     "Note : the tenantId stored in session was not empty and different from the received " +
@@ -112,7 +112,7 @@ public class HeaderIdHelper {
                         "Old tenantId will be discarded in session.",
                     ctx);
             }
-            
+
             if (vitamSession.getContractId() != null && !vitamSession.getContractId().equals(contractId)) {
                 LOGGER.info(
                     "Note : the contratId stored in session was not empty and different from the received " +
@@ -131,14 +131,14 @@ public class HeaderIdHelper {
             } else {
                 LOGGER.debug("No requestId found in {} ; setting it as empty in the current VitamSession", ctx);
             }
-            
+
             if (tenantId != null) {
                 LOGGER.debug("Got tenantId {} from {} headers ; setting it in the current VitamSession", tenantId,
                     ctx);
             } else {
                 LOGGER.debug("No tenantId found in {} ; setting it as empty in the current VitamSession", ctx);
             }
-            
+
             if (contractId != null) {
                 LOGGER.debug("Got contractId {} from {} headers ; setting it in the current VitamSession", contractId,
                     ctx);
@@ -160,12 +160,13 @@ public class HeaderIdHelper {
      * @param headers List of target HTTP headers ; required header will be added to this list.
      * @param ctx Context, or rather http message type (request or response)
      */
-    public static void putVitamIdFromSessionInHeader(MultivaluedMap<String, Object> headers, Context ctx, int statusCode) {
+    public static void putVitamIdFromSessionInHeader(MultivaluedMap<String, Object> headers, Context ctx,
+        int statusCode) {
         try {
             final String requestId = VitamThreadUtils.getVitamSession().getRequestId();
             final Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
             final String contractId = VitamThreadUtils.getVitamSession().getContractId();
-            
+
             if (requestId != null) {
                 if (headers.containsKey(GlobalDataRest.X_REQUEST_ID)) {
                     LOGGER.info("{} header was already present in the headers of the {} ; this header will be kept.",
@@ -177,18 +178,17 @@ public class HeaderIdHelper {
                 }
             } else {
                 LOGGER.warn("No RequestId found in session (somebody should have set it) ! ");
-                
                 if (ctx.equals(Context.RESPONSE) && statusCode >= Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                     String newRequestId = GUIDFactory.newGUID().toString();
 
                     if (headers.containsKey(GlobalDataRest.X_REQUEST_ID)) {
-                        LOGGER.warn("X_REQUEST_ID  header was already present in the headers");
+                        LOGGER.info("X_REQUEST_ID  header was already present in the headers");
                     } else {
                         headers.add(GlobalDataRest.X_REQUEST_ID, newRequestId);
                     }
                 }
             }
-            
+
             if (tenantId != null) {
                 if (headers.containsKey(GlobalDataRest.X_TENANT_ID)) {
                     LOGGER.info("{} header was already present in the headers of the {} ; this header will be kept.",
@@ -204,7 +204,7 @@ public class HeaderIdHelper {
                         "{} header will not be set in the http {}.",
                     GlobalDataRest.X_TENANT_ID, ctx);
             }
-            
+
             if (contractId != null) {
                 if (headers.containsKey(GlobalDataRest.X_ACCESS_CONTRAT_ID)) {
                     LOGGER.info("{} header was already present in the headers of the {} ; this header will be kept.",

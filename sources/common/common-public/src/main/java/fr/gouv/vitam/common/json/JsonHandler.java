@@ -645,7 +645,9 @@ public final class JsonHandler {
             throw new InvalidParseOperationException(e);
         } finally {
             try {
-                inputStream.close();
+                if (inputStream != null) {
+                    inputStream.close();
+                }
             } catch (final IOException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
@@ -675,7 +677,9 @@ public final class JsonHandler {
             throw new InvalidParseOperationException(e);
         } finally {
             try {
-                inputStream.close();
+                if (inputStream != null) {
+                    inputStream.close();
+                }
             } catch (final IOException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
