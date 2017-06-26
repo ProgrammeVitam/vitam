@@ -45,6 +45,7 @@ angular.module('archive.unit')
     'DESCIPTION_FIELD':'Description',
     'ID_KEY': '_id',
     'MGT_KEY': '_mgt',
+    'NBC_KEY': '_nbc',
     'TECH_KEY': '_',
     'ID_LABEL': 'ID',
     'MGT_LABEL': 'Management',
@@ -198,9 +199,10 @@ angular.module('archive.unit')
           if (angular.isArray(contentField)) {
             key = fieldSet.fieldId;
           }
-
-          if(key !== ARCHIVE_UNIT_MODULE_CONST.MGT_KEY && key !== ARCHIVE_UNIT_MODULE_CONST.ID_KEY &&
-            key.toString().charAt(0)!==ARCHIVE_UNIT_MODULE_CONST.TECH_KEY){
+          if((key !== ARCHIVE_UNIT_MODULE_CONST.MGT_KEY &&
+              key !== ARCHIVE_UNIT_MODULE_CONST.ID_KEY &&
+              key.toString().charAt(0)!==ARCHIVE_UNIT_MODULE_CONST.TECH_KEY) ||
+              key === ARCHIVE_UNIT_MODULE_CONST.NBC_KEY ){
             var fieldSetSecond = buildSingleField(value, key, fieldSet.fieldId, fieldSet.parents, constants, modifAllowed);
             fieldSetSecond.isChild = true;
 
@@ -208,7 +210,6 @@ angular.module('archive.unit')
               fieldSetSecond.fieldName = (fieldSet.fieldName ? fieldSet.fieldName : ARCHIVE_UNIT_MODULE_CONST.LIST_ITEM_LABEL) + ' ' + keyArrayIndex;
               keyArrayIndex = keyArrayIndex + 1;
             }
-
             fieldSet.content.push(fieldSetSecond);
           }
         });
@@ -221,7 +222,6 @@ angular.module('archive.unit')
     self.interceptUserChanges = function interceptUserChanges(fieldSet){
       var fieldStr = !fieldSet.fieldLabel ? fieldSet.fieldName : fieldSet.fieldLabel;
       var isDateField = fieldStr.toUpperCase().indexOf('DATE') > -1;
-
       if(isDateField && (fieldSet.currentFieldValue === '')){
         fieldSet.currentFieldValue = fieldSet.fieldValue;
         self.showAlert(null, "Erreur", "Veuillez saisir une date valide.");
@@ -650,7 +650,8 @@ angular.module('archive.unit')
             ARCHIVE_UNIT_MODULE_CONST.START_DATE_FIELD,
             ARCHIVE_UNIT_MODULE_CONST.END_DATE_FIELD];
           angular.forEach(self.archiveFields, function(value, key) {
-            if(key !== ARCHIVE_UNIT_MODULE_CONST.MGT_KEY && key !== ARCHIVE_UNIT_MODULE_CONST.ID_KEY &&
+            if(key !== ARCHIVE_UNIT_MODULE_CONST.MGT_KEY &&
+              key !== ARCHIVE_UNIT_MODULE_CONST.ID_KEY &&
               key.toString().charAt(0)!==ARCHIVE_UNIT_MODULE_CONST.TECH_KEY) {
               var addedField = false;
               if (angular.isArray(value)) {

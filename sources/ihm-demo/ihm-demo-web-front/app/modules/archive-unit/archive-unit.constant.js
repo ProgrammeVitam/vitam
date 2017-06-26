@@ -82,5 +82,8 @@ angular.module('archive.unit')
     'FileInfo.CreatingOsVersion': 'Version du système d\'exploitation utilisé pour créer le fichier',
     'FileInfo.LastModified': 'Date de dernière modification',
     'FormatIdentification.Encoding': 'Encodage',
-    'Metadata.Text':'Texte'
+    'Metadata.Text':'Texte',
+    '_storage._nbc': 'Nombre de copies',
+    '_storage.offerIds': 'offre de stockage',
+    '_storage.strategyId': 'Stratégie de stockage'
   });
