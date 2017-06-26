@@ -70,6 +70,9 @@ public class AdminManagementExternalResourceImplTest {
 
     private static final String UNEXISTING_TENANT_ID = "25";
     private static final String PROFILE_URI = "/profiles";
+    
+    private static final String TRACEABILITY_OPERATION_ID = "op_id";
+    private static final String TRACEABILITY_OPERATION_BASE_URI = AccessExtAPI.TRACEABILITY_API  + "/";
 
 
     private InputStream stream;
@@ -610,6 +613,16 @@ public class AdminManagementExternalResourceImplTest {
         List<Object> res = new ArrayList<>();
         array.forEach(e -> res.add(e));
         return res;
+    }
+    
+
+    @Test
+    public void testDownloadTraceabilityOperationFile() throws InvalidParseOperationException {
+        given()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .get(TRACEABILITY_OPERATION_BASE_URI + TRACEABILITY_OPERATION_ID)
+            .then().statusCode(Status.OK.getStatusCode());
     }
 
 }

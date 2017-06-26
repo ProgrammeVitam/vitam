@@ -58,8 +58,17 @@ public enum AdminCollections {
     /**
      * Context collection
      */
-    CONTEXTS(AccessExtAPI.CONTEXTS);
+    CONTEXTS(AccessExtAPI.CONTEXTS),
 
+    /**
+     * Accession register collection
+     */
+    ACCESSION_REGISTERS(AccessExtAPI.ACCESSION_REGISTERS),
+    
+    /**
+     * Traceability collection
+     */
+    TRACEABILITY(AccessExtAPI.TRACEABILITY);
 
     private String name;
 

@@ -52,9 +52,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.external.api.AdminCollections;
+import fr.gouv.vitam.access.internal.client.AccessInternalClient;
+import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -267,9 +272,8 @@ public class AdminManagementExternalResourceImpl {
 
     }
 
-
     /**
-     * Download the file
+     * Download the file (profile file or traceability file)
      * @param collection
      * @param profileMetadataId
      * @param asyncResponse
@@ -277,23 +281,32 @@ public class AdminManagementExternalResourceImpl {
     @GET
     @Path("/{collection}/{id}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public void downloadProfileFile(@PathParam("collection") String collection,
-        @PathParam("id") String profileMetadataId,
-        @Suspended final AsyncResponse asyncResponse) {
+    public void downloadProfileFileOrTraceabilityFile(@PathParam("collection") String collection,
+        @PathParam("id") String fileId,
+        @Suspended final AsyncResponse asyncResponse) {  
+        
+        if (AdminCollections.PROFILE.compareTo(collection)) {
+            ParametersChecker.checkParameter("Profile id should be filled", fileId);
 
-        if (!AdminCollections.PROFILE.compareTo(collection)) {
+            Integer tenantId = ParameterHelper.getTenantParameter();
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+
+            VitamThreadPoolExecutor.getDefaultExecutor()
+                .execute(() -> asyncDownloadProfileFile(fileId, asyncResponse));
+            
+        } else if (AdminCollections.TRACEABILITY.compareTo(collection)) {
+            ParametersChecker.checkParameter("Traceability operation should be filled", fileId);
+
+            Integer tenantId = ParameterHelper.getTenantParameter();
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+
+            VitamThreadPoolExecutor.getDefaultExecutor()
+                .execute(() -> downloadTraceabilityOperationFile(fileId, asyncResponse));
+        } else {
             LOGGER.error("Endpoint accept only profiles");
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, "Endpoint accept only profiles", null)).build());
         }
-
-        ParametersChecker.checkParameter("Profile id should be filled", profileMetadataId);
-
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-
-        VitamThreadPoolExecutor.getDefaultExecutor()
-            .execute(() -> asyncDownloadProfileFile(profileMetadataId, asyncResponse));
     }
 
     private void asyncDownloadProfileFile(String profileMetadataId, final AsyncResponse asyncResponse) {
@@ -322,6 +335,40 @@ public class AdminManagementExternalResourceImpl {
                     Response.status(Status.INTERNAL_SERVER_ERROR)
                         .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exc.getMessage(), null).toString())
                         .build());
+        }
+    }
+    
+    private void downloadTraceabilityOperationFile(String operationId, final AsyncResponse asyncResponse) {
+
+        AsyncInputStreamHelper helper;
+
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+
+            final Response response = client.downloadTraceabilityFile(operationId);
+            helper = new AsyncInputStreamHelper(asyncResponse, response);
+            final ResponseBuilder responseBuilder =
+                Response.status(Status.OK)
+                    .header("Content-Disposition", response.getHeaderString("Content-Disposition"))
+                    .type(response.getMediaType());
+            helper.writeResponse(responseBuilder);
+        } catch (final InvalidParseOperationException | IllegalArgumentException exc) {
+            LOGGER.error(exc);
+            final Response errorResponse = Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED, exc.getMessage(), null).toString())
+                .build();
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
+        } catch (final AccessInternalClientServerException | AccessInternalClientNotFoundException exc) {
+            LOGGER.error(exc.getMessage(), exc);
+            final Response errorResponse =
+                Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exc.getMessage(), null)
+                    .toString()).build();
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error("Contract access does not allow ", e);
+            final Response errorResponse =
+                Response.status(Status.UNAUTHORIZED).entity(getErrorEntity(Status.UNAUTHORIZED, e.getMessage(), null)
+                    .toString()).build();
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         }
     }
 
@@ -373,6 +420,11 @@ public class AdminManagementExternalResourceImpl {
                     RequestResponse result = client.findContexts(select);
                     return Response.status(Status.OK).entity(result).build();
                 }
+                
+                if (AdminCollections.ACCESSION_REGISTERS.compareTo(collection)){
+                    final RequestResponse result = client.getAccessionRegister(select);
+                    return Response.status(Status.OK).entity(result).build();
+                }
 
                 final Status status = Status.NOT_FOUND;
                 return Response.status(status).entity(getErrorEntity(status, null, null)).build();
@@ -386,6 +438,10 @@ public class AdminManagementExternalResourceImpl {
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
                 final Status status = Status.BAD_REQUEST;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            } catch (final AccessUnauthorizedException e) {
+                LOGGER.error("Access contract does not allow ", e);
+                final Status status = Status.UNAUTHORIZED;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             }
         } catch (IllegalArgumentException e) {
@@ -555,82 +611,39 @@ public class AdminManagementExternalResourceImpl {
                 .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
         }
     }
-
+    
     /**
-     * Update access contract
-     *
+     * Update document
+     * 
+     * @param collection
+     * @param id
      * @param queryDsl
      * @return
      * @throws AdminManagementClientServerException
      * @throws InvalidParseOperationException
      */
-    @Path(AccessExtAPI.ACCESS_CONTRACT_API_UPDATE + "/{id}")
+    @Path("/{collection}/{id}")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response updateAccessContract(@PathParam("id") String id, JsonNode queryDsl)
-        throws AdminManagementClientServerException, InvalidParseOperationException {
+    public Response updateDocument(@PathParam("collection") String collection, 
+        @PathParam("id") String id, JsonNode queryDsl) 
+            throws AdminManagementClientServerException, InvalidParseOperationException{
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         try {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-                RequestResponse response = client.updateAccessContract(id, queryDsl);
-                if (response.isOk()) {
-                    return Response.status(Status.OK).entity(response).build();
-                } else {
-                    final VitamError error = (VitamError) response;
-                    return Response.status(error.getHttpCode()).entity(response).build();
+                RequestResponse response = null;
+                if (AdminCollections.CONTEXTS.compareTo(collection)) {
+                    response = client.updateContext(id, queryDsl);
                 }
-            }
-        } catch (IllegalArgumentException e) {
-            LOGGER.error(e);
-            return Response.status(Status.PRECONDITION_FAILED)
-                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
-        }
-    }
+                if (AdminCollections.ACCESS_CONTRACTS.compareTo(collection)) {
+                    response = client.updateAccessContract(id, queryDsl);
+                }
+                if (AdminCollections.ENTRY_CONTRACTS.compareTo(collection)) {
+                    response = client.updateIngestContract(id, queryDsl);
+                }
 
-    /**
-     * Update ingest contract
-     *
-     * @param queryDsl the given query dsl
-     * @return
-     * @throws AdminManagementClientServerException
-     * @throws InvalidParseOperationException
-     */
-    @Path(AccessExtAPI.ENTRY_CONTRACT_API_UPDATE + "/{id}")
-    @PUT
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response updateIngestContract(@PathParam("id") String id, JsonNode queryDsl)
-        throws AdminManagementClientServerException, InvalidParseOperationException {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        try {
-            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-                RequestResponse response = client.updateIngestContract(id, queryDsl);
-                if (response.isOk()) {
-                    return Response.status(Status.OK).entity(response).build();
-                } else {
-                    final VitamError error = (VitamError) response;
-                    return Response.status(error.getHttpCode()).entity(response).build();
-                }
-            }
-        } catch (IllegalArgumentException e) {
-            LOGGER.error(e);
-            return Response.status(Status.PRECONDITION_FAILED)
-                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
-        }
-    }
-    
-    @Path(AccessExtAPI.CONTEXTS_API_UPDATE + "/{id}")
-    @PUT
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response updateContext(@PathParam("id") String id, JsonNode queryDsl) 
-        throws AdminManagementClientServerException, InvalidParseOperationException{
-        try {
-            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-                RequestResponse response = client.updateContext(id, queryDsl);
                 if (response.isOk()) {
                     return Response.status(Status.OK).entity(response).build();
                 } else {

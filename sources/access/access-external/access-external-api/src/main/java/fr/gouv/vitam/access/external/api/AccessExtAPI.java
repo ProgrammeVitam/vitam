@@ -32,25 +32,25 @@ public class AccessExtAPI {
     
     public static final String ACCESSION_REGISTERS = "accession-registers";
     public static final String ACCESSION_REGISTERS_API = "/" + ACCESSION_REGISTERS;
-    public static final String ACCESSION_REGISTERS_API_UPDATE = "/accession-register";
+    public static final String ACCESSION_REGISTERS_API_UPDATE = "/accession-registers";
     
     public static final String ACCESSION_REGISTERS_DETAIL = "accession-register-detail";
     
     public static final String ENTRY_CONTRACT = "entrycontracts";
     public static final String ENTRY_CONTRACT_API = "/" + ENTRY_CONTRACT;
-    public static final String ENTRY_CONTRACT_API_UPDATE = "/entrycontract";
+    public static final String ENTRY_CONTRACT_API_UPDATE = "/entrycontracts";
     
     public static final String ACCESS_CONTRACT = "accesscontracts";
     public static final String ACCESS_CONTRACT_API = "/" + ACCESS_CONTRACT;
-    public static final String ACCESS_CONTRACT_API_UPDATE = "/accesscontract";
+    public static final String ACCESS_CONTRACT_API_UPDATE = "/accesscontracts";
     
     public static final String PROFILES = "profiles";
     public static final String PROFILES_API = "/" + PROFILES;
-    public static final String PROFILES_API_UPDATE = "profile";
+    public static final String PROFILES_API_UPDATE = "profiles";
     
     public static final String CONTEXTS = "contexts";
     public static final String CONTEXTS_API = "/" + CONTEXTS;
-    public static final String CONTEXTS_API_UPDATE = "context";
+    public static final String CONTEXTS_API_UPDATE = "contexts";
     
     public static final String FORMATS = "formats";
     
