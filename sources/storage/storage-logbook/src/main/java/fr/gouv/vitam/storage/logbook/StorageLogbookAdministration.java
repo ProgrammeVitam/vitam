@@ -29,7 +29,6 @@ package fr.gouv.vitam.storage.logbook;
 
 import static fr.gouv.vitam.common.LocalDateUtil.getString;
 import static fr.gouv.vitam.common.LocalDateUtil.now;
-import static fr.gouv.vitam.common.model.LogbookOperationKey.STP_STORAGE_SECURISATION;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -39,7 +38,6 @@ import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import fr.gouv.vitam.common.model.LogbookOperationKey;
 import org.apache.commons.compress.archivers.ArchiveException;
 
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -91,6 +89,9 @@ public class StorageLogbookAdministration {
     private static final String STORAGE_LOGBOOK = "storage_logbook";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageLogbookAdministration.class);
+
+    private static final String STP_OP_SECURISATION = "STP_OP_SECURISATION";
+
 
     private static final String STRATEGY_ID = "default";
     public static final String STORAGE_LOGBOOK_OPERATION_ZIP = "StorageLogbookOperation";
@@ -159,7 +160,7 @@ public class StorageLogbookAdministration {
                 }
             } catch (IOException |
                 ArchiveException e) {
-                createLogbookOperationEvent(helper, eip, STP_STORAGE_SECURISATION.name(), StatusCode.FATAL);
+                createLogbookOperationEvent(helper, eip, STP_OP_SECURISATION, StatusCode.FATAL);
                 zipFile.delete();
                 throw new StorageLogException(e);
             }
@@ -185,7 +186,7 @@ public class StorageLogbookAdministration {
                     workspaceClient.deleteContainer(fileName, true);
                 } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
                     StorageServerClientException | ContentAddressableStorageNotFoundException e) {
-                    createLogbookOperationEvent(helper, eip, STP_STORAGE_SECURISATION.name(),
+                    createLogbookOperationEvent(helper, eip, STP_OP_SECURISATION,
                         StatusCode.FATAL);
                     LOGGER.error("unable to store zip file", e);
                     throw new StorageLogException(e);
@@ -193,7 +194,7 @@ public class StorageLogbookAdministration {
             } catch (ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException |
                 IOException e) {
                 LOGGER.error("unable to create container", e);
-                createLogbookOperationEvent(helper, eip, STP_STORAGE_SECURISATION.name(), StatusCode.FATAL);
+                createLogbookOperationEvent(helper, eip, STP_OP_SECURISATION, StatusCode.FATAL);
                 throw new StorageLogException(e);
 
 
@@ -201,7 +202,7 @@ public class StorageLogbookAdministration {
             } finally {
                 zipFile.delete();
             }
-            createLogbookOperationEvent(helper, eip, STP_STORAGE_SECURISATION.name(), StatusCode.OK);
+            createLogbookOperationEvent(helper, eip, STP_OP_SECURISATION, StatusCode.OK);
         } catch (LogbookClientNotFoundException | LogbookClientAlreadyExistsException e) {
             throw new StorageLogException(e);
         } finally {
@@ -214,11 +215,11 @@ public class StorageLogbookAdministration {
     private void createLogbookOperationStarted(LogbookOperationsClientHelper helper, GUID eip)
         throws LogbookClientNotFoundException, LogbookClientAlreadyExistsException {        
         final LogbookOperationParameters logbookOperationParameters = LogbookParametersFactory
-            .newLogbookOperationParameters(eip, STP_STORAGE_SECURISATION.name(), eip,
-                LogbookTypeProcess.TRACEABILITY, StatusCode.STARTED,
-                VitamLogbookMessages.getCodeOp(STP_STORAGE_SECURISATION.name(), StatusCode.STARTED), eip);
-        logbookOperationParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-            STP_STORAGE_SECURISATION.started());
+            .newLogbookOperationParameters(eip, STP_OP_SECURISATION, eip, LogbookTypeProcess.STORAGE_LOGBOOK,
+                StatusCode.STARTED,
+                VitamLogbookMessages.getCodeOp(STP_OP_SECURISATION, StatusCode.STARTED), eip);
+        logbookOperationParameters.putParameterValue(LogbookParameterName.outcomeDetail, STP_OP_SECURISATION +
+            "." + StatusCode.STARTED);
 
         LogbookOperationsClientHelper.checkLogbookParameters(logbookOperationParameters);
         helper.createDelegate(logbookOperationParameters);

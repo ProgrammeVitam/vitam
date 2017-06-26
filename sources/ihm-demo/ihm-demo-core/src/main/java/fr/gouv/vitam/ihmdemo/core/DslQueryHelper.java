@@ -35,7 +35,6 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lte;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
-import static fr.gouv.vitam.common.model.LogbookOperationKey.STP_STORAGE_SECURISATION;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +52,6 @@ import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.LogbookOperationKey;
 
 /**
  * Helper class to create DSL queries
@@ -253,7 +251,7 @@ public final class DslQueryHelper {
                     case TRACEABILITY_OK:
                         // FIXME : check if it is normal that the end event is a step event for a traceability
                         if ("true".equals(searchValue)) {
-                            query.add(eq(EVENT_OUT_DETAIL, STP_STORAGE_SECURISATION.ok()));
+                            query.add(eq(EVENT_OUT_DETAIL, "STP_OP_SECURISATION.OK"));
                         }
                         break;
                     case TRACEABILITY_ID:
