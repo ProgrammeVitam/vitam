@@ -34,6 +34,7 @@ import javax.ws.rs.core.Response;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.core.PreUploadResume;
+import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
 
 /**
  * IngestExtern interface
@@ -48,10 +49,11 @@ public interface IngestExternal {
      * @param guid
      * @param asyncResponse
      * @return
+     * @throws WorkspaceClientServerException error when workspace server is down
      */
     public PreUploadResume preUploadAndResume(InputStream input, String contextId, String action, GUID guid,
         AsyncResponse asyncResponse)
-        throws IngestExternalException;
+        throws IngestExternalException, WorkspaceClientServerException;
 
 
     /**

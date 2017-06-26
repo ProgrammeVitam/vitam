@@ -26,7 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.client;
 
+import java.io.InputStream;
+
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.client.PoolingStatusClient;
@@ -35,13 +40,8 @@ import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
-
-import javax.ws.rs.core.Response;
-import java.io.InputStream;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Ingest external interface

@@ -60,6 +60,7 @@ import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -690,7 +691,8 @@ public class IngestInternalResource extends ApplicationStatusResource {
         boolean isCompletedProcess = false;
 
         try (LogbookOperationsClient logbookOperationsClient =
-            LogbookOperationsClientFactory.getInstance().getClient()) {
+            LogbookOperationsClientFactory.getInstance().getClient();
+            WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
 
             try {
                 VitamThreadUtils.getVitamSession().checkValidRequestId();
@@ -711,9 +713,10 @@ public class IngestInternalResource extends ApplicationStatusResource {
                     ProcessAction.INIT.equals(ProcessAction.valueOf(actionId));
                 boolean isStartMode =
                     ProcessAction.START.equals(ProcessAction.valueOf(actionId));
-
+                parameters = logbookInitialisation(containerGUID, containerGUID, logbookTypeProcess);
 
                 if (isInitMode) {
+                    workspaceClient.checkStatus();
                     try (ProcessingManagementClient processManagementClient =
                         ProcessingManagementClientFactory.getInstance().getClient()) {
 
@@ -736,7 +739,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                         mediaType = CommonMediaType.valueOf(contentType);
                         archiveMimeType = CommonMediaType.mimeTypeOf(mediaType);
 
-                        parameters = logbookInitialisation(containerGUID, containerGUID, logbookTypeProcess);
+                        
                         prepareToStartProcess(uploadedInputStream, parameters, archiveMimeType, logbookOperationsClient,
                             containerGUID);
 
@@ -764,7 +767,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                         }
                     }
                 }
-            } catch (final ContentAddressableStorageException e) {
+            } catch (final ContentAddressableStorageException | VitamApplicationServerException e) {
                 if (parameters != null) {
                     try {
                         parameters.putParameterValue(LogbookParameterName.eventType, INGEST_INT_UPLOAD);

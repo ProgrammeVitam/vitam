@@ -35,6 +35,7 @@ import java.util.List;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.CharsetUtils;
@@ -59,6 +60,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
+import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.ingest.external.api.IngestExternal;
@@ -87,6 +89,8 @@ import fr.gouv.vitam.workspace.common.WorkspaceFileSystem;
  * Implementation of IngestExtern
  */
 public class IngestExternalImpl implements IngestExternal {
+    private static final String WORKSPACE_ERROR_MESSAGE = "Workspace Error. ATR is not stored";
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalImpl.class);
 
     private static final String UNDERSCORE = "_";
@@ -130,7 +134,7 @@ public class IngestExternalImpl implements IngestExternal {
     @Override
     public PreUploadResume preUploadAndResume(InputStream input, String contextId, String action, GUID guid,
         AsyncResponse asyncResponse)
-        throws IngestExternalException {
+        throws IngestExternalException, WorkspaceClientServerException {
         ParametersChecker.checkParameter("input is a mandatory parameter", input);
         VitamThreadUtils.getVitamSession().setRequestId(guid);
         // Store in local
@@ -147,7 +151,8 @@ public class IngestExternalImpl implements IngestExternal {
         LogbookTypeProcess logbookTypeProcess = ingestContext.getLogbookTypeProcess();
         LogbookOperationParameters startedParameters = null;
 
-        try {
+        try (IngestInternalClient ingestClient =
+            IngestInternalClientFactory.getInstance().getClient()) {
             MessageLogbookEngineHelper messageLogbookEngineHelper = new MessageLogbookEngineHelper(logbookTypeProcess);
 
             startedParameters = LogbookParametersFactory.newLogbookOperationParameters(
@@ -175,9 +180,11 @@ public class IngestExternalImpl implements IngestExternal {
             helper.updateDelegate(sipSanityParameters);
 
             // call ingest internal with init action (avec contextId)
-            try (IngestInternalClient ingestClient =
-                IngestInternalClientFactory.getInstance().getClient()) {
+            try {
                 ingestClient.initWorkFlow(contextWithExecutionMode);
+            }  catch (WorkspaceClientServerException e) {
+                LOGGER.error("Worspace Server error", e);
+                throw e;
             } catch (VitamException e) {
                 throw new IngestExternalException(e);
             }
@@ -555,8 +562,11 @@ public class IngestExternalImpl implements IngestExternal {
                 "CHECK_CONTAINER", ". Format non supporté : " + mimeType, status);
         }
 
-        storeATR(ingestGuid, atrKo);
+        if (!status.equals(StatusCode.FATAL)) {
+            storeATR(ingestGuid, atrKo);
+        }
 
+        LOGGER.warn("ATR KO created : " + atrKo);
         responseNoProcess = new AbstractMockClient.FakeInboundResponse(Status.BAD_REQUEST,
             new ByteArrayInputStream(atrKo.getBytes(CharsetUtils.UTF8)), MediaType.APPLICATION_XML_TYPE, null);
         // add the step in the logbook
@@ -593,6 +603,10 @@ public class IngestExternalImpl implements IngestExternal {
                 status,
                 VitamLogbookMessages.getCodeOp(STP_INGEST_FINALISATION, status),
                 containerName);
+        if (status.equals(StatusCode.FATAL)) {
+            stpIngestFinalisationParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, 
+                WORKSPACE_ERROR_MESSAGE);
+        }
         helper.updateDelegate(stpIngestFinalisationParameters);
     }
 
@@ -624,5 +638,39 @@ public class IngestExternalImpl implements IngestExternal {
             }
         }
         return null;
+    }
+
+    public void createATRFatalWorkspace(String contextId, GUID guid, AsyncResponse asyncResponse) throws VitamException {
+        Contexts ingestContext = Contexts.valueOf(contextId);
+        LogbookTypeProcess logbookTypeProcess = ingestContext.getLogbookTypeProcess();
+        LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
+        
+        MessageLogbookEngineHelper messageLogbookEngineHelper = new MessageLogbookEngineHelper(logbookTypeProcess);
+
+        LogbookOperationParameters startedParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            guid, ingestContext.getEventType(), guid,
+            logbookTypeProcess, StatusCode.STARTED,
+            messageLogbookEngineHelper.getLabelOp(ingestContext.getEventType(), StatusCode.STARTED) + " : " +
+                guid.getId(),
+                guid);
+        helper.createDelegate(startedParameters);
+        addStpIngestFinalisationLog(guid, guid, helper, StatusCode.STARTED, logbookTypeProcess);
+        addTransferNotificationLog(guid, guid, helper, StatusCode.STARTED, logbookTypeProcess);
+        addTransferNotificationLog(guid, guid, helper, StatusCode.OK, logbookTypeProcess);
+        addStpIngestFinalisationLog(guid, guid, helper, StatusCode.FATAL, logbookTypeProcess);
+        try (IngestInternalClient ingestClient =
+            IngestInternalClientFactory.getInstance().getClient()) {
+            ingestClient.uploadInitialLogbook(helper.removeCreateDelegate(guid.getId()));
+        }
+        String atr = AtrKoBuilder.buildAtrKo(guid.getId(), "ArchivalAgencyToBeDefined",
+            "TransferringAgencyToBeDefined",
+            "STP_UPLOAD_SIP", null, StatusCode.FATAL);
+
+        AsyncInputStreamHelper responseHelper = new AsyncInputStreamHelper(asyncResponse, new ByteArrayInputStream(atr.getBytes(CharsetUtils.UTF8)));
+        final ResponseBuilder responseBuilder = Response.status(Status.SERVICE_UNAVAILABLE).type(MediaType.APPLICATION_OCTET_STREAM)
+            .header(GlobalDataRest.X_REQUEST_ID, guid.getId())
+            .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED)
+            .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.FATAL);
+        responseHelper.writeResponse(responseBuilder);        
     }
 }

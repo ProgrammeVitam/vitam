@@ -85,6 +85,7 @@
             
         </DescriptiveMetadata>
         <ManagementMetadata xml:id="ID019">
+    		<ArchivalProfile>ArchivalProfile0</ArchivalProfile>
             <OriginatingAgencyIdentifier>FRAN_NP_050313</OriginatingAgencyIdentifier>
             <SubmissionAgencyIdentifier>FRAN_NP_005061</SubmissionAgencyIdentifier>
         </ManagementMetadata>

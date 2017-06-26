@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.rest;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import javax.ws.rs.Consumes;
@@ -49,6 +50,7 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -61,7 +63,6 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -75,10 +76,15 @@ import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
+import fr.gouv.vitam.ingest.external.core.AtrKoBuilder;
 import fr.gouv.vitam.ingest.external.core.IngestExternalImpl;
 import fr.gouv.vitam.ingest.external.core.PreUploadResume;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
+import fr.gouv.vitam.logbook.common.parameters.Contexts;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
 
 /**
  * The Ingest External Resource
@@ -128,12 +134,20 @@ public class IngestExternalResource extends ApplicationStatusResource {
 
     private void uploadAsync(InputStream uploadedInputStream, AsyncResponse asyncResponse,
         Integer tenantId, String contextId, String action, GUID guid) {
+
+        final IngestExternalImpl ingestExtern = new IngestExternalImpl(ingestExternalConfiguration);
         try {
             // TODO ? ParametersChecker.checkParameter("HTTP Request must contains stream", uploadedInputStream);
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-            final IngestExternalImpl ingestExtern = new IngestExternalImpl(ingestExternalConfiguration);
-            PreUploadResume preUploadResume =
-                ingestExtern.preUploadAndResume(uploadedInputStream, contextId, action, guid, asyncResponse);
+            PreUploadResume preUploadResume = null;
+            try {
+                preUploadResume =
+                    ingestExtern.preUploadAndResume(uploadedInputStream, contextId, action, guid, asyncResponse);
+            } catch (WorkspaceClientServerException e) {
+                LOGGER.error(e);
+                ingestExtern.createATRFatalWorkspace(contextId, guid, asyncResponse);
+                return;
+            }
             Response response = ingestExtern.upload(preUploadResume, guid);
             response.close();
         } catch (final Exception exc) {
