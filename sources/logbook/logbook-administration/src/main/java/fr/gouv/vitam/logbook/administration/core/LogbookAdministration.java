@@ -31,7 +31,6 @@ import static com.google.common.collect.Lists.newArrayList;
 import static fr.gouv.vitam.common.LocalDateUtil.getString;
 import static fr.gouv.vitam.common.LocalDateUtil.now;
 import static fr.gouv.vitam.common.json.JsonHandler.unprettyPrint;
-import static fr.gouv.vitam.common.model.LogbookOperationKey.STP_STORAGE_SECURISATION;
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.STARTED;
@@ -52,7 +51,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 
-import fr.gouv.vitam.common.model.LogbookOperationKey;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.bson.Document;
 
@@ -115,6 +113,7 @@ public class LogbookAdministration {
 
     private static final String TIMESTAMP = "OP_SECURISATION_TIMESTAMP";
     private static final String OP_SECURISATION_STORAGE = "OP_SECURISATION_STORAGE";
+    private static final String STP_OP_SECURISATION = "STP_OP_SECURISATION";
 
     private static final String EVENT_DATE_TIME = eventDateTime.getDbname();
     private static final String EVENT_ID = eventIdentifier.getDbname();
@@ -288,8 +287,7 @@ public class LogbookAdministration {
 
         } catch (LogbookDatabaseException | LogbookNotFoundException | IOException | InvalidCreateOperationException |
             ArchiveException | InvalidParseOperationException e) {
-            createLogbookOperationEvent(eip, tenantId, STP_STORAGE_SECURISATION.name(), FATAL,
-                null);
+            createLogbookOperationEvent(eip, tenantId, STP_OP_SECURISATION, FATAL, null);
 
             zipFile.delete();
             throw new TraceabilityException(e);
@@ -331,8 +329,7 @@ public class LogbookAdministration {
         } finally {
             zipFile.delete();
         }
-        createLogbookOperationEvent(eip, tenantId, STP_STORAGE_SECURISATION.name(), OK,
-            traceabilityEvent);
+        createLogbookOperationEvent(eip, tenantId, STP_OP_SECURISATION, OK, traceabilityEvent);
         return eip;
     }
 
@@ -399,8 +396,7 @@ public class LogbookAdministration {
 
     private void createLogbookOperationStructure(GUID eip, Integer tenantId) throws TraceabilityException {
         final LogbookOperationParameters logbookParameters =
-            newLogbookOperationParameters(eip, STP_STORAGE_SECURISATION.name(), eip, TRACEABILITY,
-                STARTED, null, null, eip);
+            newLogbookOperationParameters(eip, STP_OP_SECURISATION, eip, TRACEABILITY, STARTED, null, null, eip);
 
         LogbookOperationsClientHelper.checkLogbookParameters(logbookParameters);
         try {
