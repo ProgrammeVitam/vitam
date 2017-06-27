@@ -244,18 +244,20 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
             ClientMockResultHelper.getFormatList().toString());
     }
 
-    @Test(expected = AccessExternalClientNotFoundException.class)
+    @Test
     public void testFindDocumentAccessExternalClientNotFoundException()
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode(), TENANT_ID);
+        assertThat(client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode(), TENANT_ID)
+            .getHttpCode()).isEqualTo(Status.NOT_FOUND.getStatusCode());
     }
 
-    @Test(expected = AccessExternalClientException.class)
+    @Test
     public void testFindDocumentAccessExternalClientException()
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode(), TENANT_ID);
+        assertThat(client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode(), TENANT_ID)
+            .getHttpCode()).isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
@@ -267,18 +269,20 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
             ClientMockResultHelper.getFormat().toString());
     }
 
-    @Test(expected = AccessExternalClientNotFoundException.class)
+    @Test
     public void testFindDocumentByIdAccessExternalClientNotFoundException()
         throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.findDocumentById(AdminCollections.FORMATS, ID, TENANT_ID);
+        assertThat(client.findDocumentById(AdminCollections.FORMATS, ID, TENANT_ID).getHttpCode())
+            .isEqualTo(Status.NOT_FOUND.getStatusCode());
     }
 
-    @Test(expected = AccessExternalClientException.class)
+    @Test
     public void testFindDocumentByIdAccessExternalClientException()
         throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.findDocumentById(AdminCollections.FORMATS, ID, TENANT_ID);
+        assertThat(client.findDocumentById(AdminCollections.FORMATS, ID, TENANT_ID).getHttpCode())
+            .isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
 

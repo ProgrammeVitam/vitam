@@ -118,7 +118,77 @@ public enum VitamCode {
 
     CONTEXT_VALIDATION_ERROR(ServiceName.FUNCTIONAL_ADMINISTRATION, DomainName.VALIDATION, "12",
         Status.BAD_REQUEST,
-        "Request context validation error");
+        "Request context validation error"),
+
+    ACCESS_EXTERNAL_SELECT_UNITS_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "00",
+        Status.BAD_REQUEST,
+        "Access external client error in selectUnits method."),
+
+    ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "01",
+        Status.BAD_REQUEST,
+        "Access external client error in selectUnitbyId method."),
+
+    ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "02",
+        Status.BAD_REQUEST,
+        "Access external client error in updateUnitbyId method."),
+
+    ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "03",
+        Status.BAD_REQUEST,
+        "Access external client error in selectObjectById method."),
+
+    ACCESS_EXTERNAL_SELECT_OPERATION_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "04",
+        Status.BAD_REQUEST,
+        "Access external client error in selectOperation method."),
+
+    ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "05",
+        Status.BAD_REQUEST,
+        "Access external client error in selectOperationbyId method."),
+
+    ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "06",
+        Status.BAD_REQUEST,
+        "Access external client error in selectUnitLifeCycleById method."),
+
+    ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "07",
+        Status.BAD_REQUEST,
+        "Access external client error in selectUnitLifeCycle method."),
+
+    ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "08",
+        Status.BAD_REQUEST,
+        "Access external client error in selectObjectGroupLifeCycleById method."),
+
+    ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_SUMMARY_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "09",
+        Status.BAD_REQUEST,
+        "Access external client error in getAccessionRegisterSummary method."),
+
+    ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_DETAIL_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "10",
+        Status.BAD_REQUEST,
+        "Access external client error in getAccessionRegisterSummary method."),
+
+    ACCESS_EXTERNAL_CHECK_TRACEABILITY_OPERATION_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "11",
+        Status.BAD_REQUEST,
+        "Access external client error in checkTraceabilityOperation method."),
+
+    ADMIN_EXTERNAL_FIND_DOCUMENT_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "12",
+        Status.BAD_REQUEST,
+        "Admin external client error in findDocuments method."),
+
+    ADMIN_EXTERNAL_FIND_DOCUMENT_BY_ID_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "13",
+        Status.BAD_REQUEST,
+        "Admin external client error in findDocumentById method."),
+
+    INGEST_EXTERNAL_UPLOAD_ERROR(ServiceName.EXTERNAL_INGEST, DomainName.IO, "00",
+        Status.BAD_REQUEST,
+        "Ingest external client error in upload method."),
+
+    INGEST_EXTERNAL_EXECUTE_OPERATION_PROCESS_ERROR(ServiceName.EXTERNAL_INGEST, DomainName.IO, "01",
+        Status.BAD_REQUEST,
+        "Ingest external client error in executeOperationProcess method."),
+
+    INGEST_EXTERNAL_CANCEL_OPERATION_PROCESS_EXECUTION_ERROR(ServiceName.EXTERNAL_INGEST, DomainName.IO, "02",
+        Status.BAD_REQUEST,
+        "Ingest external client error in cancelOperationProcessExecution method.");
+
+
 
     private final ServiceName service;
     private final DomainName domain;
