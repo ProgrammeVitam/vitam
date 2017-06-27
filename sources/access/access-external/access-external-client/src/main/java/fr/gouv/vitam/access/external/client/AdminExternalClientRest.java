@@ -93,6 +93,9 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                 throw new AccessExternalClientNotFoundException(URI_NOT_FOUND);
             }
+            if (response.getStatus() == Status.FORBIDDEN.getStatusCode()) {
+                throw new AccessExternalClientException(JsonHandler.unprettyPrint(response.readEntity(String.class)));
+            }
             final Status status = Status.fromStatusCode(response.getStatus());
             return status;
         } catch (final VitamClientInternalException e) {

@@ -83,6 +83,7 @@ import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
+import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
@@ -208,6 +209,10 @@ public class AdminManagementExternalResourceImpl {
                 LOGGER.error(e);
                 final Status status = Status.CONFLICT;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            } catch (final FileRulesImportInProgressException e) {
+                LOGGER.warn(e);
+                return Response.status(Status.FORBIDDEN)
+                    .entity(getErrorEntity(Status.FORBIDDEN, e.getMessage(), null)).build();
             } catch (final ReferentialException e) {
                 LOGGER.error(e);
                 return Response.status(Status.BAD_REQUEST)

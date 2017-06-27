@@ -42,6 +42,7 @@ import java.util.Map.Entry;
 import org.bson.conversions.Bson;
 import org.bson.json.JsonMode;
 import org.bson.json.JsonWriterSettings;
+import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -157,20 +158,20 @@ public class DbRequestSingle {
     /**
      * Helper to detect an insert that should be an Update
      * 
-     * @param e exception catched 
+     * @param e exception catched
      * @return true if an insert that should be an Update, else False
      */
     public static boolean checkInsertOrUpdate(Exception e) {
         if (e instanceof DatabaseException &&
             (((DatabaseException) e).getCause() instanceof MongoBulkWriteException |
-                ((DatabaseException) e).getCause() instanceof MongoWriteException)) {
+            ((DatabaseException) e).getCause() instanceof MongoWriteException)) {
             LOGGER.info("Document existed, updating ...");
             return true;
         }
         Throwable d = e.getCause();
         if (d instanceof DatabaseException &&
             (((DatabaseException) d).getCause() instanceof MongoBulkWriteException |
-                ((DatabaseException) d).getCause() instanceof MongoWriteException)) {
+            ((DatabaseException) d).getCause() instanceof MongoWriteException)) {
             LOGGER.info("Document existed, updating ...");
             return true;
         }
@@ -246,7 +247,14 @@ public class DbRequestSingle {
         if (!mapIdJson.isEmpty()) {
             final BulkResponse bulkResponse = addEntryIndexes(mapIdJson);
             if (bulkResponse.hasFailures()) {
-                LOGGER.error("Insert Documents Exception");
+                // Add usefull information
+                StringBuffer sb = new StringBuffer();
+                for (BulkItemResponse bulkItemResponse : bulkResponse) {
+                    if (bulkItemResponse.getFailure() != null) {
+                        sb.append(bulkItemResponse.getFailure().getCause());
+                    }
+                }
+                LOGGER.error(String.format("Insert Documents Exception caused by : %s", sb.toString()));
                 throw new DatabaseException("Insert Document Exception");
             }
         }
@@ -350,6 +358,7 @@ public class DbRequestSingle {
         }
         parser.getRequest().setQuery(new NopQuery());
         return selectMongoDbExecute(parser, list, listFloat);
+
     }
 
     /**
@@ -484,19 +493,21 @@ public class DbRequestSingle {
             VitamDocument<?> updatedDocument = null;
             int nbTry = 0;
             boolean modified = false;
+
             while (updatedDocument == null && nbTry < 3) {
                 nbTry++;
                 JsonNode jsonDocument = JsonHandler.toJsonNode(document);
                 MongoDbInMemory mongoInMemory = new MongoDbInMemory(jsonDocument);
-                ObjectNode updatedJsonDocument = (ObjectNode)mongoInMemory.getUpdateJson(request, false, vaNameAdapter);
+                ObjectNode updatedJsonDocument =
+                    (ObjectNode) mongoInMemory.getUpdateJson(request, false, vaNameAdapter);
                 final String documentAfterUpdate = JsonHandler.prettyPrint(updatedDocument);
-                if (! documentAfterUpdate.equals(documentBeforeUpdate)) {
+                if (!documentAfterUpdate.equals(documentBeforeUpdate)) {
                     modified = true;
                     updatedJsonDocument.set(VitamDocument.VERSION, new IntNode(documentVersion + 1));
-    
+
                     MongoCollection collection = vitamCollection.getCollection();
                     Bson condition = and(eq(VitamDocument.ID, documentId), eq(VitamDocument.VERSION, documentVersion));
-    
+
                     FindOneAndReplaceOptions options = new FindOneAndReplaceOptions();
                     options.returnDocument(ReturnDocument.AFTER);
                     try {
@@ -521,7 +532,7 @@ public class DbRequestSingle {
                     getConcernedDiffLines(getUnifiedDiff(documentBeforeUpdate, documentAfterUpdate)));
             }
         }
-        if (! listUpdatedDocuments.isEmpty()) {
+        if (!listUpdatedDocuments.isEmpty()) {
             insertToElasticsearch(listUpdatedDocuments);
         }
         return new DbRequestResult()
@@ -587,7 +598,7 @@ public class DbRequestSingle {
             max--;
             bulkRequest
                 .add(
-                    client.prepareDelete(vitamCollection.getName().toLowerCase(), VitamCollection.getTypeunique(), id));
+                client.prepareDelete(vitamCollection.getName().toLowerCase(), VitamCollection.getTypeunique(), id));
             if (max == 0) {
                 max = VitamConfiguration.MAX_ELASTICSEARCH_BULK;
                 final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new

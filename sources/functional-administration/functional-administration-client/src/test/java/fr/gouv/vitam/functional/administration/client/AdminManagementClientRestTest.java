@@ -30,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -468,6 +469,8 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         } catch (FileRulesException e) {
             assertEquals("Wrong format", e.getMessage());
             throw (e);
+        } catch (ReferentialException e) {
+            fail("May not happen here");
         }
     }
 
@@ -481,8 +484,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     @Test(expected = InvalidParseOperationException.class)
     @RunWithCustomExecutor
     public void givenInvalidQuerythenReturnko()
-        throws FileRulesException, InvalidParseOperationException, DatabaseConflictException, FileNotFoundException,
-        AdminManagementClientServerException {
+        throws ReferentialException, InvalidParseOperationException, DatabaseConflictException, FileNotFoundException {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
         final Select select = new Select();
         final InputStream stream =

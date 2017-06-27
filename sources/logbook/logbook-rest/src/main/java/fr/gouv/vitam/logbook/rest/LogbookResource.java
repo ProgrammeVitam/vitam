@@ -193,6 +193,7 @@ public class LogbookResource extends ApplicationStatusResource {
             } else {
                 final List<LogbookOperation> result = logbookOperation.select(queryDsl, false);
                 if (result.size() != 1) {
+                    // TODO: Seriously ? Slice is false, select may return a list of operations. Why is this an error ?
                     throw new LogbookDatabaseException("Result size different than 1.");
                 }
                 return Response.status(Status.OK)

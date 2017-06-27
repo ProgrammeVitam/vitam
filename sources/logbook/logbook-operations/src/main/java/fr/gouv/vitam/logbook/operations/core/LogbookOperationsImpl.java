@@ -81,6 +81,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
     @Override
     public List<LogbookOperation> select(JsonNode select)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
+        // TODO: why true by default ? this is a queryDSL, all the request options are in, so why ?
         return select(select, true);
     }
 
@@ -90,6 +91,9 @@ public class LogbookOperationsImpl implements LogbookOperations {
         try (final MongoCursor<LogbookOperation> logbook = mongoDbAccess.getLogbookOperations(select, sliced)) {
             final List<LogbookOperation> result = new ArrayList<>();
             if (logbook == null || !logbook.hasNext()) {
+                // TODO: seriously, thrown a not found exception here ??? Not found only if I search a specific
+                // operation with an ID, not if the logbook is empty ! But fix this and evreything may be broken
+                // Should return an empty list i think.
                 throw new LogbookNotFoundException("Logbook entry not found");
             }
             while (logbook.hasNext()) {

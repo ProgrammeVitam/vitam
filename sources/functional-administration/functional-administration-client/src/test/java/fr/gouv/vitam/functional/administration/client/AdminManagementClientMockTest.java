@@ -121,7 +121,7 @@ public class AdminManagementClientMockTest {
     @Test
     @RunWithCustomExecutor
     public void givenClientMockWhenWhenImportRuleThenReturnOK()
-        throws FileFormatException, FileRulesException, DatabaseConflictException, FileNotFoundException {
+        throws ReferentialException, FileRulesException, DatabaseConflictException, FileNotFoundException {
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         client.importRulesFile(stream);

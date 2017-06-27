@@ -25,7 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.test;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.jayway.restassured.RestAssured;
 import com.mongodb.MongoClient;
@@ -70,7 +69,6 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -79,9 +77,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * !!! WARNING !!! : in case of modification of class fr.gouv.vitam.driver.fake.FakeDriverImpl, you need to recompile
  * the storage-offer-mock.jar from the storage-offer-mock module and copy it in src/test/resources in place of the
@@ -91,14 +87,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class FunctionalAdminIT {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FunctionalAdminIT.class);
-
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
         VitamThreadPoolExecutor.getDefaultExecutor());
-
     private static final Integer TENANT_ID = 1;
-
-
     static JunitHelper junitHelper;
     static final String COLLECTION_NAME = "Profile";
     static final String DATABASE_HOST = "localhost";
@@ -111,8 +103,6 @@ public class FunctionalAdminIT {
     @ClassRule
     public static TemporaryFolder temporaryFolder = new TemporaryFolder();
     private static String TMP_FOLDER;
-
-
     private static final String REST_URI = StorageClientFactory.RESOURCE_PATH;
     private static final String STORAGE_CONF = "functional-admin/storage-engine.conf";
     private static int serverPort;
@@ -121,18 +111,15 @@ public class FunctionalAdminIT {
     private static WorkspaceApplication workspaceApplication;
     private static VitamCounterService vitamCounterService;
     private static MongoDbAccessAdminImpl dbImpl;
-
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
-
         try {
             TMP_FOLDER = temporaryFolder.newFolder().getAbsolutePath();
         } catch (IOException e) {
             TMP_FOLDER = "/vitam/temp";
         }
-
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         junitHelper = JunitHelper.getInstance();
         mongoPort = junitHelper.findAvailablePort();
@@ -142,14 +129,12 @@ public class FunctionalAdminIT {
             .build());
         mongod = mongodExecutable.start();
         client = new MongoClient(new ServerAddress(DATABASE_HOST, mongoPort));
-
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, mongoPort));
         dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
         List tenants = new ArrayList<>();
         tenants.add(new Integer(TENANT_ID));
         vitamCounterService = new VitamCounterService(dbImpl, tenants);
-
         workspacePort = junitHelper.findAvailablePort();
         // launch workspace
         try {
@@ -160,8 +145,6 @@ public class FunctionalAdminIT {
             throw new IllegalStateException(
                 "Cannot start Workspace Server", e);
         }
-
-
         // Prepare storage
         final StorageConfiguration serverConfiguration =
             PropertiesUtils.readYaml(PropertiesUtils.findFile(STORAGE_CONF), StorageConfiguration.class);
@@ -173,15 +156,12 @@ public class FunctionalAdminIT {
         }
         serverConfiguration
             .setUrlWorkspace(serverConfiguration.getUrlWorkspace() + ":" + Integer.toString(workspacePort));
-
         serverConfiguration.setTenants(tenants);
         serverConfiguration.setZippingDirecorty(TMP_FOLDER);
         serverConfiguration.setLoggingDirectory(TMP_FOLDER);
-
         serverPort = junitHelper.findAvailablePort();;
         RestAssured.port = serverPort;
         RestAssured.basePath = REST_URI;
-
         try {
             storageApplication = new StorageApplication(serverConfiguration);
             storageApplication.start();
@@ -190,59 +170,43 @@ public class FunctionalAdminIT {
             throw new IllegalStateException(
                 "Cannot start storage Server", e);
         }
-
         WorkspaceClientFactory.changeMode("http://localhost:" + workspacePort);
         final WorkspaceClientFactory workspaceClientFactory = WorkspaceClientFactory.getInstance();
-
         profileService =
             new ProfileServiceImpl(MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)),
                 workspaceClientFactory, vitamCounterService);
     }
-
-
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
         workspaceApplication.stop();
         storageApplication.stop();
-
         mongod.stop();
         mongodExecutable.stop();
         junitHelper.releasePort(mongoPort);
         junitHelper.releasePort(serverPort);
         junitHelper.releasePort(workspacePort);
-
         client.close();
         profileService.close();
     }
-
-
     @Test
     @RunWithCustomExecutor
     public final void testUploadDownloadProfileFile() throws Exception {
-
-
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         File fileMetadataProfile = PropertiesUtils.getResourceFile("functional-admin/profile_ok.json");
         List<ProfileModel> profileModelList =
             JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ProfileModel>>() {});
         RequestResponse response = profileService.createProfiles(profileModelList);
-
         assertThat(response.isOk());
         RequestResponseOK<ProfileModel> responseCast = (RequestResponseOK<ProfileModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
-
         final ProfileModel profileModel = responseCast.getResults().iterator().next();
         InputStream xsdProfile =
             new FileInputStream(PropertiesUtils.getResourceFile("functional-admin/profile_ok.xsd"));
-
         RequestResponse requestResponse = profileService.importProfileFile(profileModel.getIdentifier(), xsdProfile);
         assertThat(requestResponse.isOk()).isTrue();
-
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
         profileService.downloadProfileFile(profileModel.getIdentifier(), responseAsync);
         assertThat(responseAsync.isDone()).isTrue();
-
     }
-
 }

@@ -77,6 +77,7 @@ import fr.gouv.vitam.functional.administration.common.exception.AdminManagementC
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
+import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
@@ -330,6 +331,9 @@ public class AdminManagementResource extends ApplicationStatusResource {
         try (RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess)) {
             rulesFileManagement.importFile(rulesStream);
             return Response.status(Status.CREATED).entity(Status.CREATED.getReasonPhrase()).build();
+        } catch (final FileRulesImportInProgressException e) {
+            LOGGER.warn(e);
+            return Response.status(Status.FORBIDDEN).entity(e.getMessage()).build();
         } catch (final FileRulesException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage())

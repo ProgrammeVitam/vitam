@@ -120,7 +120,7 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     }
 
     @Override
-    public Status importRulesFile(InputStream stream) throws FileRulesException, DatabaseConflictException {
+    public Status importRulesFile(InputStream stream) throws ReferentialException, DatabaseConflictException {
         ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, stream);
         LOGGER.debug("import file Rules request:");
         StreamUtils.closeSilently(stream);
