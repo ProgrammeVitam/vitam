@@ -153,6 +153,9 @@ _profil : Type de document utilisé lors de l'entrée, correspond au ArchiveUnit
   * "FinalAction": champ décrivant le sort final. Ce champ est disponible pour les règles de catégorie "StorageRule" et "AppraisalRule". La valeur contenue dans le champ doit être disponible soit dans l'énumération FinalActionAppraisalCodeType soit dans FinalActionStorageCodeType
   * "EndDate": Date de fin d'application de la règle; Cette valeur est issue d'un calcul réalisé par la solution logicielle Vitam consistant en l'ajout du délai correspondant à la règle dans la collection FileRules et le champ startDate.
 
+"_v": version de l'objet décrit
+  Il s'agit d'un entier.
+
 Collection ObjectGroup
 ======================
 
@@ -353,6 +356,9 @@ Détail des champs du JSON
 "OriginatingAgency": service producteur déclaré dans le message ArchiveTransfer (OriginatingAgencyIdentifier)
   Il s'agit d'une chaîne de caractères.
 
-"_sps": services producteurs liées au groupe d'objet.
+"_sps": services producteurs liées au groupe d'objet
   Il s'agit d'un tableau contenant tous les services producteurs référençant le groupe d'objet.
   Il s'agit d'un tableau de chaînes de caractère.
+
+"_v": version de l'objet décrit
+  Il s'agit d'un entier.

@@ -110,27 +110,27 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 
     *Ce champ existe uniquement pour la structure incluante.*
 
-"evId" (event Identifier) : identifiant de l'événement 
+"evId" (event Identifier): identifiant de l'événement 
     Il s'agit d'une chaîne de 36 caractères.
     Il identifie l'opération de manière unique dans la collection.
     Cet identifiant doit être l'identifiant d'un événement dans le cadre de l'opération (evIdProc) et doit donc être différent par pair (début/fin).
 
      *Ce champ existe pour les structures incluantes et incluses*
 
-"evType" (event Type) : nom de l'événement
+"evType" (event Type): nom de l'événement
     Issu de la définition du workflow en json (fichier default-workflow.json).
     La liste des valeurs possibles pour ce champ se trouve en annexe. Seul le code est stocké dans ce champ, la traduction se faisant via un fichier properties (vitam-logbook-message-fr.properties)
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evDateTime" (event DateTime) : date de l'événement
+"evDateTime" (event DateTime): date de l'événement
     Il s'agit d'une date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes]
     Positionnée par le client LogBook.
     ``Exemple : "2016-08-17T08:26:04.227"``
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evDetData" (event Detail Data) : détails de l'événement.
+"evDetData" (event Detail Data): détails de l'événement.
     Donne plus de détail sur l'événement ou son résultat.
     Par exemple, pour l'étape ATR_NOTIFICATION, ce champ détaille le nom de l'ArchiveTransferReply, son empreinte et l'algorithme utilisé pour calculer l'empreinte.
     Sur la structure incluante du journal d'opérations d'entrée, il contient un JSON composé des champs suivants :
@@ -144,19 +144,19 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
     
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evIdProc" (event Identifier Process) : identifiant du processus. 
+"evIdProc" (event Identifier Process): identifiant du processus. 
     Il s'agit d'une chaîne de 36 caractères.
     Toutes les mêmes entrées du journal des opérations partagent la même valeur, qui est celle du champ "_id"
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evTypeProc" (event Type Process) : type de processus.
+"evTypeProc" (event Type Process): type de processus.
     Il s'agit d'une chaîne de caractères.
     Nom du processus qui effectue l'action, parmi une liste de processus possibles fixée. Cette liste est disponible en annexe 5.3.
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"outcome" : Statut de l'événement.
+"outcome": Statut de l'événement.
     Il s'agit d'une chaîne de caractères devant correspondre une valeur de la liste suivante :
 
     - STARTED (début de l'événement)
@@ -167,64 +167,64 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"outDetail" (outcome Detail) : code correspondant au résultat de l'événement.
+"outDetail" (outcome Detail): code correspondant au résultat de l'événement.
     Il s'agit d'une chaîne de caractères.
     Il contient le code correspondant au résultat de l'événement, incluant le statut. La liste des valeurs possibles pour ce champ se trouve en annexe. Seul le code doit être stocké dans ce champ, la traduction doit se faire via un fichier properties (vitam-logbook-message-fr.properties)
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"outMessg" (outcomeDetailMessage) : détail de l'événement.
+"outMessg" (outcomeDetailMessage): détail de l'événement.
     Il s'agit d'une chaîne de caractères.
     C'est un message intelligible destiné à être lu par un être humain en tant que détail de l'événement.
     Traduction issue du fichier vitam-logbook-message-fr.properties du code présent dans outDetail.
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"agId" (agent Identifier) : identifiant de l'agent interne réalisant l'action.
+"agId" (agent Identifier): identifiant de l'agent interne réalisant l'action.
     Il s'agit de plusieurs chaînes de caractères indiquant le nom, le rôle et le PID de l'agent. Ce champ est calculé par le journal à partir de ServerIdentifier.
     ``Exemple : {\"name\":\"ingest-internal_1\",\"role\":\"ingest-internal\",\"pid\":425367}``
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"agIdApp" (agent Identifier Application) : identifiant de l’application externe qui appelle Vitam pour effectuer l'opération
+"agIdApp" (agent Identifier Application): identifiant de l’application externe qui appelle Vitam pour effectuer l'opération
     *Actuellement, la valeur est toujours 'null' mais sera renseignée une fois le mécanisme d'authentification mis en place. Ce champ existe uniquement pour la structure incluante.*
 
-"agIdAppSession" (agent Identifier Application Session) : identifiant donnée par l’application utilisatrice externe qui appelle la solution logicielle Vitam lors de la session utilisée pour lancer l’opération. 
+"agIdAppSession" (agent Identifier Application Session): identifiant donnée par l’application utilisatrice externe qui appelle la solution logicielle Vitam lors de la session utilisée pour lancer l’opération. 
     L’application externe est responsable de la gestion de cet identifiant. Il correspond à un identifiant pour une session donnée côté application externe.
 
     *Actuellement, la valeur est toujours 'null' mais sera renseignée une fois le mécanisme d'authentification mis en place. Ce champ existe pour les structures incluantes et incluses*
 
-"evIdReq" (event Identifier Request) : identifiant de la requête déclenchant l’opération.
+"evIdReq" (event Identifier Request): identifiant de la requête déclenchant l’opération.
     Il s'agit d'une chaîne de 36 caractères.
     Une requestId est créée pour chaque nouvelle requête http venant de l’extérieur.
     Dans le cas du processus d'entrée, il devrait s'agir du numéro de l'opération (EvIdProc).
 
     *Ce champ existe pour les structures incluantes et incluses*. Il s'agit du X-Application-Id.
 
-"agIdSubm" (agent Identifier Submission) : identifiant du service versant.
+"agIdSubm" (agent Identifier Submission): identifiant du service versant.
     Il s'agit d'une chaîne de caractères.
     Reprend le contenu du champ SubmissionAgencyIdentifier du message ArchiveTransfer.
 
     *Ce champ existe uniquement pour la structure incluante.*
 
-"agIdOrig" (agent Identifier Originating) : identifiant du service producteur.
+"agIdOrig" (agent Identifier Originating): identifiant du service producteur.
     Il s'agit d'une chaîne de caractères.
     Reprend le contenu du champ OriginatingAgencyIdentifier du message ArchiveTransfer.
 
     *Ce champ existe uniquement pour la structure incluante.*
 
-"obId" (object Identifier) : identifiant Vitam du lot d’objets auquel s’applique l’opération (lot correspondant à une liste).
+"obId" (object Identifier): identifiant Vitam du lot d’objets auquel s’applique l’opération (lot correspondant à une liste).
     Il s'agit d'une chaîne de 36 caractères.
     Dans le cas d’une opération d'entrée, il s’agit du GUID de l’entrée (evIdProc). Dans le cas d’une opération ‘Audit’, il s’agit par exemple du nom d’un lot d’archives prédéfini
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"obIdReq" (object Identifier Request) : Identifiant Vitam de la requête caractérisant un lot d’objets auquel s’applique l’opération.
+"obIdReq" (object Identifier Request): Identifiant Vitam de la requête caractérisant un lot d’objets auquel s’applique l’opération.
     Ne concerne que les lots d’objets dynamiques, c’est-à-dire obtenus par la présente requête. Ne concerne pas les lots ayant un identifiant défini.
 
     *Actuellement, la valeur est toujours 'null'. Ce champ existe pour les structures incluantes et incluses*
 
-"obIdIn" (ObjectIdentifierIncome) : Identifiant externe du lot d’objets auquel s’applique l’opération.
+"obIdIn" (ObjectIdentifierIncome): Identifiant externe du lot d’objets auquel s’applique l’opération.
       Chaîne de caractère intelligible pour un humain qui permet de comprendre à quel SIP ou quel lot d'archives se reporte l'événement.
       Reprend le contenu du champ MessageIdentifier du message ArchiveTransfer.
 
@@ -238,6 +238,11 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 "_tenant": identifiant du tenant.
       Il s'agit d'un entier.
       *Ce champ existe uniquement pour la structure incluante.*
+
+"_v": version de l'objet décrit
+	Il s'agit d'un entier.
+
+    *Ce champ existe uniquement pour la structure incluante.*
 
 Détail des champs du JSON stocké en base spécifiques à une opération de sécurisation
 ------------------------------------------------------------------------------------
@@ -395,19 +400,19 @@ Extrait d'un JSON correspondant à un journal de cycle de vie d'une unité archi
 Détail des champs du JSON stocké en base
 -----------------------------------------
 
-"_id" : Identifiant unique donné par le système lors de l'initialisation du journal du cycle de vie.
+"_id": Identifiant unique donné par le système lors de l'initialisation du journal du cycle de vie.
     Il est constitué d'une chaîne de 36 caractères correspondant à un GUID.
     Cet identifiant constitue la clé primaire du journal du cycle de vie de l'unité archivistique. Il reprend la valeur du champs _id de la collection unit.
 
     *Ce champ existe uniquement pour la structure incluante.*
 
-"evId" (event Identifier) : identifiant de l'événement.
+"evId" (event Identifier): identifiant de l'événement.
     Il est constitué d'une chaîne de 36 caractères correspondant à un GUID. 
     Il identifie l'événement de manière unique dans la base.
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evType" (event Type) : nom de l'événement.
+"evType" (event Type): nom de l'événement.
     Il s'agit d'une chaîne de caractères.
     La liste des valeurs possibles pour ce champ se trouve en annexe. Seul le code est stocké dans ce champ, la traduction se fait via un fichier properties (vitam-logbook-message-fr.properties)
 
@@ -420,13 +425,13 @@ Détail des champs du JSON stocké en base
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evIdProc" (event Identifier Process) : identifiant du processus. 
+"evIdProc" (event Identifier Process): identifiant du processus. 
     Il s'agit d'une chaîne de 36 caractères.
     Toutes les mêmes entrées du journal du cycle de vie partagent la même valeur, qui est celle du champ "_id"
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evTypeProc" (event Type Process) : type de processus.
+"evTypeProc" (event Type Process): type de processus.
     Il s'agit d'une chaîne de caractères.
     Nom du processus qui effectue l'action, parmi une liste de processus possible fixée. Cette liste est disponible en annexe.
 
@@ -443,30 +448,32 @@ Détail des champs du JSON stocké en base
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"outDetail" (outcome Detail) : code correspondant à l'erreur.
+"outDetail" (outcome Detail): code correspondant à l'erreur.
     Il s'agit d'une chaîne de caractères.
     Il contient le code fin de l'événement, incluant le statut. La liste des valeurs possibles pour ce champ se trouve en annexe. Seul le code est stocké dans ce champ, la traduction se fait via le fichier properties (vitam-logbook-message-fr.properties)
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"outMessg" (outcomeDetailMessage) : détail de l'événement.
+"outMessg" (outcomeDetailMessage): détail de l'événement.
     Il s'agit d'une chaîne de caractères.
     C'est un message intelligible destiné à être lu par un être humain en tant que détail de l'événement.
     Traduction issue du fichier vitam-logbook-message-fr.properties du code présent dans outDetail.
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"agId" (agent Identifier) : identifiant de l'agent réalisant l'action.
+"agId" (agent Identifier): identifiant de l'agent réalisant l'action.
     Il s'agit de plusieurs chaînes de caractères indiquant le nom, le rôle et le PID de l'agent. Ce champ est calculé par le journal à partir de ServerIdentifier.
     ``Exemple : {\"name\":\"ingest-internal_1\",\"role\":\"ingest-internal\",\"pid\":425367}``
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"obId" (object Identifier) : identifiant Vitam de l'objet ou du lot d’objets auquel s’applique l’opération (lot correspondant à une liste).
+"obId" (object Identifier): identifiant Vitam de l'objet ou du lot d’objets auquel s’applique l’opération (lot correspondant à une liste).
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evDetData" (event Detail Data) : détails des données de l'événement.
-    Donne plus de détail sur l'événement. Par exemple, l'historisation de métadonnés lors d'une modification se fait dans ce champ.
+"evDetData" (event Detail Data): détails des données de l'événement.
+    Donne plus de détail sur l'événement. Par exemple, l'historisation de métadonnés lors d'une modification se fait dans ce champ. Dans la structure incluse correspondant à cet événement, il contient un JSON composé du champ suivant :
+
+    - Diff: contient la différence entre les métadonnées d'origines et les métadonnées modifiées. Chaîne de caractères.
 
     *Ce champ existe pour les structures incluantes et incluses*
 
@@ -479,7 +486,10 @@ Détail des champs du JSON stocké en base
     Il s'agit d'un entier.
     *Ce champ existe pour les structures incluantes et incluses*
 
+"_v": version de l'objet décrit
+	Il s'agit d'un entier.
 
+    *Ce champ existe uniquement pour la structure incluante.*
 
 Détail des champs du JSON stocké en base spécifiques à une mise à jour
 -----------------------------------------------------------------------
@@ -575,44 +585,44 @@ Exemple de JSON stocké en base
 Détail des champs du JSON stocké en base
 -----------------------------------------
 
-"_id" : Identifiant unique donné par le système lors de l'initialisation du journal du cycle de vie.
+"_id": Identifiant unique donné par le système lors de l'initialisation du journal du cycle de vie.
     Il est constitué d'une chaîne de 36 caractères correspondant à un GUID. Il reprend la valeur de la collection ObjectGroup.
     Cet identifiant constitue la clé primaire du journal du cycle de vie du groupe d'objet.
 
     *Ce champ existe uniquement pour la structure incluante.*
 
-"evId" (event Identifier) : identifiant de l'événement.
+"evId" (event Identifier): identifiant de l'événement.
     Il est constitué d'une chaîne de 36 caractères correspondant à un GUID.
     Il identifie l'événement de manière unique dans la base.
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evType" (event Type) : nom de l'événement.
+"evType" (event Type): nom de l'événement.
     Il s'agit d'une chaîne de caractères.
     La liste des valeurs possibles pour ce champ se trouve en annexe. Seul le code doit être stocké dans ce champ, la traduction doit se faire via le fichier properties (vitam-logbook-message-fr.properties)
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evDateTime" (event DateTime) : date de l'événement.
+"evDateTime" (event DateTime): date de l'événement.
     Il s'agit d'une date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes]
     ``Exemple : "2016-08-17T08:26:04.227"``
     Positionné par le client LogBook.
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evIdProc" (event Identifier Process) : identifiant du processus. 
+"evIdProc" (event Identifier Process): identifiant du processus. 
     Il s'agit d'une chaîne de 36 caractères.
     Toutes les mêmes entrées du journal du cycle de vie partagent la même valeur, qui est celle du champ "_id"
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evTypeProc" (event Type Process) : type de processus.
+"evTypeProc" (event Type Process): type de processus.
     Il s'agit d'une chaîne de caractères.
     Nom du processus qui effectue l'action, parmi une liste de processus possibles fixée. Cette liste est disponible en annexe.
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"outcome" : Statut de l'événement.
+"outcome": Statut de l'événement.
     Il s'agit d'une chaîne de caractères devant correspondre une valeur de la liste suivante :
 
     - STARTED (début de l'événement)
@@ -623,7 +633,7 @@ Détail des champs du JSON stocké en base
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"outDetail" (outcome Detail) : code correspondant à l'erreur
+"outDetail" (outcome Detail): code correspondant à l'erreur
     Il s'agit d'une chaîne de caractères.
     Il contient le code fin de l'événement, incluant le statut. La liste des valeurs possibles pour ce champ se trouve en annexe. Seul le code est stocké dans ce champ, la traduction doit se faire via le fichier properties (vitam-logbook-message-fr.properties)
 
@@ -642,11 +652,17 @@ Détail des champs du JSON stocké en base
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"obId" (object Identifier) : identifiant Vitam du lot d’objets auquel s’applique l’opération (lot correspondant à une liste).
+"obId" (object Identifier): identifiant Vitam du lot d’objets auquel s’applique l’opération (lot correspondant à une liste).
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evDetData" (event Detail Data) : détails des données de l'événement.
+"evDetData" (event Detail Data): détails des données de l'événement.
     Donne plus de détail sur l'événement.
+    Par exemple, pour l'événement LFC.CHECK_DIGEST, lorsque l'empreinte d'un objet inscrite dans le bordereau n'est pas calculée en SHA512, ce champ détaille l'empreinte d'origine et celle réalisée ensuite par la solution logicielle Vitam. Dans la structure incluse correspondant à cet événement, il contient un JSON composé des champs suivants :
+
+    - MessageDigest : empreinte de l'objet dans le bordereau. Chaîne de caractères. Reprends le champ "MessageDigest" du message ArchiveTransfer.
+    - Algorithm : algorithme de hachage utilisé dans le bordereau. Chaîne de caractères. Reprends l'attribut de champ "MessageDigest" du message ArchiveTransfer.
+    - SystemMessageDigest : empreinte de l'objet réalisé par la solution logicielle Vitam. Chaîne de caractères.
+    - SystemAlgorithm : algorithme de hachage utilisé par la solution logicielle Vitam. Chaîne de caractères.
 
     *Ce champ existe pour les structures incluantes et incluses*
 
@@ -657,6 +673,10 @@ Détail des champs du JSON stocké en base
 
 "_tenant": identifiant du tenant
     Il s'agit d'un entier.
+
     *Ce champ existe pour les structures incluantes et incluses*
 
+"_v": version de l'objet décrit
+    Il s'agit d'un entier.
 
+    *Ce champ existe uniquement pour la structure incluante.*
