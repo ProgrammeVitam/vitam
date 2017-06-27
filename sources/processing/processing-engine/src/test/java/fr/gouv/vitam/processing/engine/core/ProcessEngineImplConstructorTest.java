@@ -27,13 +27,14 @@
 
 package fr.gouv.vitam.processing.engine.core;
 
-import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
+import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImpl;
+import fr.gouv.vitam.processing.distributor.core.WorkerManager;
 
 // TODO: 5/27/17 ProcessEngine
 /**
@@ -43,7 +44,9 @@ public class ProcessEngineImplConstructorTest {
 
     @Test
     public void initWithoutMock() throws WorkflowNotFoundException {
-        ProcessEngineFactory.get().create(WorkerParametersFactory.newWorkerParameters());
+        WorkerManager workerManager = new WorkerManager();
+        ProcessDistributorImpl processDistributor = new ProcessDistributorImpl(workerManager);
+        ProcessEngineFactory.get().create(WorkerParametersFactory.newWorkerParameters(), processDistributor);
     }
 
     @Test

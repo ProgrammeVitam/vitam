@@ -74,6 +74,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.model.WorkFlow;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
+import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoring;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.api.ProcessManagement;
@@ -97,16 +98,17 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     private final ProcessManagement processManagement;
     private final ProcessMonitoring processMonitoring;
     private final AtomicLong runningWorkflows = new AtomicLong(0L);
+    private ProcessDistributor processDistributor;
 
     /**
      * ProcessManagementResource : initiate the ProcessManagementResource resources
      *
      * @param configuration the server configuration to be applied
      */
-    public ProcessManagementResource(ServerConfiguration configuration) throws ProcessingStorageWorkspaceException {
-
+    public ProcessManagementResource(ServerConfiguration configuration, ProcessDistributor processDistributor) throws ProcessingStorageWorkspaceException {
+        processManagementMock = null;
         config = configuration;
-        processManagement = new ProcessManagementImpl(config);;
+        processManagement = new ProcessManagementImpl(config, processDistributor);
 
         processMonitoring = ProcessMonitoringImpl.getInstance();
         LOGGER.info("init Process Management Resource server");

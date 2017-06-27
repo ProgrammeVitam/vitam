@@ -74,8 +74,9 @@ import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 
 public class ProcessDistributorImplTest {
     private WorkerParameters params;
-    private static final ProcessDistributorImpl PROCESS_DISTRIBUTOR =
-        ProcessDistributorImplFactory.getDefaultDistributor();
+
+    private static WorkerManager workerManager = new WorkerManager();
+    private static final ProcessDistributorImpl PROCESS_DISTRIBUTOR = new ProcessDistributorImpl(workerManager);
     private static final String WORKFLOW_ID = "workflowJSONv1";
     private static final String CONTAINER_NAME = "containerName1";
     private ProcessMonitoringImpl processMonitoring;
@@ -98,7 +99,7 @@ public class ProcessDistributorImplTest {
     @Before
     public void setUp() throws Exception {
         VitamConfiguration.getConfiguration().setData(PropertiesUtils.getResourcePath("").toString());
-        WorkerManager.initialize();
+        workerManager.initialize();
 
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
@@ -162,7 +163,7 @@ public class ProcessDistributorImplTest {
         final String familyId = "DefaultWorkflow";
         final String workerId = "NewWorkerId" + GUIDFactory.newGUID().getId();
         try {
-            WorkerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
+            workerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
         } catch (WorkerAlreadyExistsException e) {
             fail("In Junit, there can't be an already registered Worker . Parallel issue");
         } catch (ProcessingBadRequestException e) {

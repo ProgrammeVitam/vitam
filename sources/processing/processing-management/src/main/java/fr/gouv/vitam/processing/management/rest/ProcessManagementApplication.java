@@ -39,6 +39,9 @@ import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
+import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
+import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImpl;
+import fr.gouv.vitam.processing.distributor.core.WorkerManager;
 import fr.gouv.vitam.processing.distributor.rest.ProcessDistributorResource;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
@@ -110,6 +113,12 @@ public class ProcessManagementApplication
 
     @Override
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
+
+        WorkerManager workerManager = new WorkerManager();
+        workerManager.initialize();
+
+        ProcessDistributor processDistributor = new ProcessDistributorImpl(workerManager);
+
         setServiceRegistry(new VitamServiceRegistry());
         WorkspaceClientFactory.changeMode(getConfiguration().getUrlWorkspace());
         // Logbook dependency

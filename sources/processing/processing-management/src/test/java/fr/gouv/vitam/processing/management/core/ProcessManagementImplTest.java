@@ -53,6 +53,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
@@ -80,6 +82,9 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoring;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
+import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
+import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImpl;
+import fr.gouv.vitam.processing.distributor.core.WorkerManager;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"javax.net.ssl.*"})
@@ -90,6 +95,8 @@ public class ProcessManagementImplTest {
     private static final String CONTAINER_NAME = "container1";
     private static final String ID = "id1";
     private static WorkspaceProcessDataManagement processDataManagement;
+    private WorkerManager workerManager = new WorkerManager();
+    private ProcessDistributor processDistributor = new ProcessDistributorImpl(workerManager);
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -111,7 +118,7 @@ public class ProcessManagementImplTest {
         PowerMockito.when(processDataManagement.getProcessWorkflowFor(Matchers.eq(1), Matchers.anyString()))
             .thenReturn(new HashMap<>());
         processManagementImpl =
-            new ProcessManagementImpl(new ServerConfiguration());
+            new ProcessManagementImpl(new ServerConfiguration(), processDistributor);
         processManagementImpl.resume(
             WorkerParametersFactory.newWorkerParameters(ID, ID, CONTAINER_NAME, ID, ID,
                 "http://localhost:8083",
@@ -127,7 +134,7 @@ public class ProcessManagementImplTest {
         PowerMockito.verifyNoMoreInteractions(processDataManagement);
         PowerMockito.when(processDataManagement.getProcessWorkflowFor(Matchers.eq(2), Matchers.anyString()))
             .thenReturn(new HashMap<>());
-        processManagementImpl = new ProcessManagementImpl(new ServerConfiguration());
+        processManagementImpl = new ProcessManagementImpl(new ServerConfiguration(), processDistributor);
         Assert.assertNotNull(processManagementImpl);
         List<ProcessWorkflow> processWorkflowList = processManagementImpl.findAllProcessWorkflow(2);
         Assert.assertNotNull(processWorkflowList);
@@ -144,7 +151,7 @@ public class ProcessManagementImplTest {
         ServerConfiguration serverConfiguration = new ServerConfiguration();
         serverConfiguration.setUrlMetadata("fakeurl:1111");
         serverConfiguration.setUrlWorkspace("fakeurl:1112");
-        processManagementImpl = new ProcessManagementImpl(serverConfiguration);
+        processManagementImpl = new ProcessManagementImpl(serverConfiguration, processDistributor);
         Assert.assertNotNull(processManagementImpl);
         List<ProcessWorkflow> processWorkflowList = processManagementImpl.findAllProcessWorkflow(3);
         Assert.assertNotNull(processWorkflowList);

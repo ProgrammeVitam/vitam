@@ -92,7 +92,6 @@ public class ProcessDistributorResourceTest {
     private static final Integer TENANT_ID = 0;
 
     private final String FAMILY_ID_E = "/error";
-    private final String WORKER_ID_E = "/error";
 
     private static final String JSON_REGISTER = "{ \"name\" : \"workername\", \"family\" : \"idFamily\", \"capacity\" : 10, \"storage\" : 100," +
         "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"89102\" } }";
@@ -108,7 +107,7 @@ public class ProcessDistributorResourceTest {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         VitamConfiguration.getConfiguration().setData(PropertiesUtils.getResourcePath("").toString());
-        WorkerManager.initialize();
+        // WorkerManager.initialize();
         
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
@@ -252,11 +251,13 @@ public class ProcessDistributorResourceTest {
 
     private static VitamServer buildTestServer() throws VitamApplicationServerException {
         final VitamServer vitamServer = VitamServerFactory.newVitamServer(serverPort);
+        WorkerManager workerManager = new WorkerManager();
 
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonFeature.class);
         final ProcessDistributorResourceTest outer = new ProcessDistributorResourceTest();
-        resourceConfig.register(new ProcessDistributorResource(outer.new ProcessDistributorInnerClass()));
+
+        resourceConfig.register(new ProcessDistributorResource(workerManager));
 
         final ServletContainer servletContainer = new ServletContainer(resourceConfig);
         final ServletHolder sh = new ServletHolder(servletContainer);

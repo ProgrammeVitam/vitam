@@ -70,6 +70,8 @@ import fr.gouv.vitam.processing.data.core.ProcessDataAccess;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
+import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
+import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
 import fr.gouv.vitam.processing.engine.core.ProcessEngineFactory;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoring;
@@ -77,6 +79,9 @@ import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.api.ProcessManagement;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * ProcessManagementImpl implementation of ProcessManagement API
@@ -101,7 +106,8 @@ public class ProcessManagementImpl implements ProcessManagement {
 
     private ServerConfiguration config;
     private final ProcessDataAccess processData;
-    private final Map<String, WorkFlow> poolWorkflows;
+    private final Map<String, WorkFlow> poolWorkflow;
+    private ProcessDistributor processDistributor;
 
     private ProcessMonitoring processMonitoring;
 
@@ -109,13 +115,17 @@ public class ProcessManagementImpl implements ProcessManagement {
      * constructor of ProcessManagementImpl
      *
      * @param config configuration of process engine server
+     * @param processDistributor
      * @throws ProcessingStorageWorkspaceException thrown when error occurred on loading paused process
      */
-    public ProcessManagementImpl(ServerConfiguration config) throws ProcessingStorageWorkspaceException {
+    public ProcessManagementImpl(ServerConfiguration config,
+        ProcessDistributor processDistributor) throws ProcessingStorageWorkspaceException {
+
         ParametersChecker.checkParameter("Server config cannot be null", config);
         this.config = config;
         processData = ProcessDataAccessImpl.getInstance();
-        poolWorkflows = new ConcurrentHashMap<>();
+        poolWorkflow = new ConcurrentHashMap<>();
+        this.processDistributor = processDistributor;
         new ProcessWorkFlowsCleaner(this, TimeUnit.HOURS);
         try {
             populateWorkflow("DefaultFilingSchemeWorkflow");
@@ -127,7 +137,7 @@ public class ProcessManagementImpl implements ProcessManagement {
             LOGGER.error(WORKFLOW_NOT_FOUND_MESSAGE, e);
         }
 
-        loadProcessFromWorkSpace(config.getUrlMetadata(), config.getUrlWorkspace());
+        loadProcessFromWorkSpace(config.getUrlMetadata(), config.getUrlWorkspace(), this.processDistributor);
 
         processMonitoring = ProcessMonitoringImpl.getInstance();
     }
@@ -173,7 +183,7 @@ public class ProcessManagementImpl implements ProcessManagement {
         final ProcessWorkflow processWorkflow;
         if (ParametersChecker.isNotEmpty(workflowId)) {
             processWorkflow = processData
-                .initProcessWorkflow(poolWorkflows.get(workflowId), workerParameters.getContainerName(),
+                .initProcessWorkflow(poolWorkflow.get(workflowId), workerParameters.getContainerName(),
                     logbookTypeProcess, tenantId);
         } else {
             processWorkflow = processData
@@ -194,7 +204,7 @@ public class ProcessManagementImpl implements ProcessManagement {
         workerParameters.setLogbookTypeProcess(logbookTypeProcess);
         WorkspaceClientFactory.changeMode(config.getUrlWorkspace());
 
-        final ProcessEngine processEngine = ProcessEngineFactory.get().create(workerParameters);
+        final ProcessEngine processEngine = ProcessEngineFactory.get().create(workerParameters, processDistributor);
         final StateMachine stateMachine = StateMachineFactory.get().create(processWorkflow, processEngine);
         processEngine.setCallback(stateMachine);
 
@@ -212,7 +222,7 @@ public class ProcessManagementImpl implements ProcessManagement {
      */
     public void populateWorkflow(String workflowId) throws WorkflowNotFoundException {
         ParametersChecker.checkParameter("workflowId is a mandatory parameter", workflowId);
-        poolWorkflows.put(workflowId, ProcessPopulator.populate(workflowId));
+        poolWorkflow.put(workflowId, ProcessPopulator.populate(workflowId));
     }
 
 
@@ -326,7 +336,7 @@ public class ProcessManagementImpl implements ProcessManagement {
     public Map<String, WorkFlow> getWorkflowDefinitions() {
         return poolWorkflows;
     }
-    
+
     public Map<Integer, Map<String, ProcessWorkflow>>  getWorkFlowList() {
         return processData.getWorkFlowList();
     }
@@ -360,7 +370,7 @@ public class ProcessManagementImpl implements ProcessManagement {
                         .setContainerName(operationId);
 
 
-                final ProcessEngine processEngine = ProcessEngineFactory.get().create(workerParameters);
+                final ProcessEngine processEngine = ProcessEngineFactory.get().create(workerParameters, processDistributor);
                 final StateMachine stateMachine = StateMachineFactory.get().create(processWorkflow, processEngine);
                 processEngine.setCallback(stateMachine);
 

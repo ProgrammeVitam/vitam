@@ -48,6 +48,24 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import static com.jayway.restassured.RestAssured.get;
+import static com.jayway.restassured.RestAssured.given;
+
+import java.net.URI;
+import java.util.Collections;
+
+import javax.ws.rs.core.Response.Status;
+
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.restassured.RestAssured;
@@ -66,14 +84,12 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImpl;
-import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImplFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
 @PrepareForTest({WorkspaceClientFactory.class, ProcessDistributorImplFactory.class,WorkspaceProcessDataManagement.class})
-
 public class ProcessManagementResourceTest {
 
     private static final String DATA_URI = "/processing/v1";
@@ -148,15 +164,11 @@ public class ProcessManagementResourceTest {
             .thenReturn(new RequestResponseOK().addResult(Collections.<URI>emptyList()));
 
         // Mock ProcessDistributorImplFactory + ProcessDistributorImpl + Worker response
-        PowerMockito.mockStatic(ProcessDistributorImplFactory.class);
-        ProcessDistributorImplFactory processDistributorImplFactory =
-            PowerMockito.mock(ProcessDistributorImplFactory.class);
         ProcessDistributorImpl processDistributorImpl = Mockito.mock(ProcessDistributorImpl.class);
 
         ItemStatus itemStatus = new ItemStatus();
         itemStatus.increment(StatusCode.OK);
 
-        Mockito.when(processDistributorImplFactory.getDefaultDistributor()).thenReturn(processDistributorImpl);
         Mockito.when(processDistributorImpl.distribute(Mockito.anyObject(), Mockito.anyObject(), Mockito.anyObject()))
             .thenReturn(itemStatus);
 
@@ -182,7 +194,7 @@ public class ProcessManagementResourceTest {
 
     /**
      * Test with an empty step in the workflow
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -215,7 +227,7 @@ public class ProcessManagementResourceTest {
 
     /**
      * Try to resume an already running process
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -231,13 +243,15 @@ public class ProcessManagementResourceTest {
             .thenReturn(new RequestResponseOK().addResult(Collections.<URI>emptyList()));
 
         // Mock ProcessDistributorImplFactory + ProcessDistributorImpl + Worker response
-        PowerMockito.mockStatic(ProcessDistributorImplFactory.class);
-        ProcessDistributorImplFactory processDistributorImplFactory =
-            PowerMockito.mock(ProcessDistributorImplFactory.class);
+
         ProcessDistributorImpl processDistributorImpl = Mockito.mock(ProcessDistributorImpl.class);
 
         ItemStatus itemStatus = new ItemStatus();
         itemStatus.increment(StatusCode.OK);
+
+        Mockito.when(processDistributorImpl.distribute(Mockito.anyObject(), Mockito.anyObject(), Mockito.anyObject()))
+            .thenReturn(itemStatus);
+
 
         final GUID processId = GUIDFactory.newGUID();
         final String operationByIdURI = OPERATION_URI + "/" + processId.getId();
@@ -278,7 +292,7 @@ public class ProcessManagementResourceTest {
 
     /**
      * Cancel an not existing process workflow
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -303,7 +317,7 @@ public class ProcessManagementResourceTest {
 
     /**
      * Get the workflow definitions
-     * 
+     *
      * @throws Exception
      */
     @SuppressWarnings("unchecked")
