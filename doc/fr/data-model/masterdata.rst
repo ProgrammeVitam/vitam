@@ -157,6 +157,9 @@ Les valeurs des balises extensions seront stockées de la façon suivante dans l
 	Il s'agit d'une chaîne de caractères
   C'est un champ propre à la solution logicielle VITAM.
 
+"_v": version de l'objet décrit
+  Il s'agit d'un entier.
+
 Collection FileRules
 ====================
 
@@ -248,6 +251,9 @@ Les préfixes indiquent le type de règle dont il s'agit. La liste des valeurs p
     ``Exemple : "2016-08-17T08:26:04.227"``
 
 "UpdateDate": Date de dernière mise à jour de la règle dans la collection FileRule.
+
+"_v": version de l'objet décrit
+  Il s'agit d'un entier.
 
 Collection IngestContract
 =========================
@@ -348,6 +354,9 @@ Détail des champs
 
 "FilingParentId": le point de rattachement automatique des SIP en application de ce contrat-- id d’une unité archivistique dans le plan de classement
   Il s'agit d'une chaîne de 36 caractères correspondant à un GUID dans le champ _id de la collection Unit.
+
+"_v": version de l'objet décrit
+  Il s'agit d'un entier.
 
 Collection AccessContract
 =========================
@@ -452,6 +461,9 @@ Détail des champs
 "WritingPermission": droit d'écriture. 
   Peut être true ou false. S'il est true, le détenteur du contrat peut effectuer des mises à jour.
 
+"_v": version de l'objet décrit
+  Il s'agit d'un entier.
+
 Collection Profile
 ===================
 
@@ -550,6 +562,8 @@ Détail des champs
 "Path": Chaîne de caractères. 
   Indique le chemin pour accéder au fichier du profil d'archivage.
 
+"_v": version de l'objet décrit
+  Il s'agit d'un entier.
 
 Collection Context
 ==================
@@ -622,6 +636,8 @@ Détail des champs
 
 "IngestContracts": tableau d'identifiants de contrats d'entrées appliqués sur le tenant
 
+"_v": version de l'objet décrit
+  Il s'agit d'un entier.
 
 Collection AccessionRegisterSummary
 ===================================
@@ -722,6 +738,9 @@ on récupère la valeur FRAN_NP_051314
     - "remained": Volume actualisé en octets des fichiers conservés dans le système. La valeur contenue dans ce champ est un entier.
 
 "creationDate":  Date d'inscription du producteur d'archives concerné dans le registre des fonds. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+
+"_v": version de l'objet décrit
+  Il s'agit d'un entier.
 
 Collection AccessionRegisterDetail
 ==================================
@@ -900,4 +919,7 @@ Détail des champs
 
 "_tenant": information sur le tenant
   Il s'agit de l'identifiant du tenant utilisant l'enregistrement
+  Il s'agit d'un entier.
+
+"_v": version de l'objet décrit
   Il s'agit d'un entier.
