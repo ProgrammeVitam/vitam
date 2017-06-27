@@ -4,40 +4,17 @@ INGEST : Workflow d'entrée
 Introduction
 ============
 
-Ce document décrit le processus (workflow) d'entrée interne et externe ("ingest interne" et "ingest externe") mis en place dans Vitam. Ce document est rattaché à la version de Vitam avec lequel il est livré.
+Ce document décrit le processus (workflow) d'entrée, utilisé lors du versement de Submission Information Package (SIP) dans la solution logicielle Vitam. Ce workflow se décompose en deux grosses catégorie : le processus d'entrée externe "ingest externe" et le processus d'entrée interne "ingest interne". Le premier prend en charge le SIP et effectue des contrôles techniques préalable, tandis que le second débute dès le premier traitement métier.
 
-Processus d'entrée (vision métier)
-==================================
-
-Un workflow est un processus composé d’étapes (macro-workflow), elles-mêmes composées d’une liste d’actions à exécuter de manière séquentielle, une seule fois ou répétées sur une liste d’éléments (micro-workflow).
-
-Chaque étape, chaque action peuvent avoir les statuts suivants :
-
-- OK : le traitement associé s'est passé correctement. Le workflow continue.
-- Warning : le traitement associé a généré un avertissement (Par exemple le format de l'objet est mal déclaré dans le bordereau de versement). Le workflow continue.
-- KO : le traitement associé a généré une erreur métier. Le workflow s'arrête si le modèle d'execution est bloquant (cf. ci-dessous).
-- FATAL : le traitement associé a généré une erreur technique. Le workflow s'arrête.
-
-Chaque action peut avoir les modèles d'éxécutions suivants (toutes les étapes sont par défaut bloquantes) :
-
-- Bloquant
-
-    * Si une action est identifiée en erreur, l'étape en cours est alors arrêtée et le workflow passe à la derniere étape de finalisation de l'entrée. Une notification de l'échec de l'entrée est généré et le statut du processus d’entrée passe à « erreur ».
-
-- Non bloquant
-
-    * Si une action est identifiée en erreur, le reste des actions de l'étape est exécuté avant que le statut de l'étape passe à « erreur ». L'étape en cours est alors arrêtée et le workflow passe à la dernière étape de finalisation de l'entrée. Une notification de l'échec de l'entrée est généré et le statut du processus d’entrée passe à « erreur ».
-
-
-Le processus d'entrée débute lors du lancement du chargement d'un Submission Information Package (SIP) dans la solution Vitam. De plus, toutes les étapes et actions sont journalisées dans le journal des opérations.
-Les étapes et actions associées ci-dessous décrivent le processus d'entrée (clé et description de la clé associée dans le journal des opérations) tel qu'implémenté dans la version actuelle de la solution logicielle :
+Toutes les étapes et actions sont journalisées dans le journal des opérations.
+Les étapes et actions associées ci-dessous décrivent le processus d'entrée (clé et description de la clé associée dans le journal des opérations) tel qu'implémenté dans la version actuelle de la solution logicielle Vitam.
 
 Le processus d'entrée externe comprend deux étapes : STP_SANITY_CHECK_SIP et CHECK_CONTAINER (voir ci dessous). Les autres étapes font parties du processus d'entrée interne.
 
 Le cas du processus d'entrée "test à blanc"
 ===========================================
 
-Il est possible de procéder à un versement "à blanc", pour tester la conformité du bordereau sans pour autant archiver le SIP et stocker les objets. Dans ce cas, le processus d'entrée à blanc diffère du processus d'entrée "classique" en ignorant un certains nombres d'étapes.
+Il est possible de procéder à un versement "à blanc", pour tester la conformité du SIP par rapport à la forme attendue par la solution logicielle Vitam sans pour autant le prendre en charge. Dans ce cas, le processus d'entrée à blanc diffère du processus d'entrée "classique" en ignorant un certains nombres d'étapes.
 
 Les étapes non exécutées dans le processus d'entrée à blanc sont les suivantes :
 
@@ -68,7 +45,7 @@ Contrôle sanitaire (SANITY_CHECK_SIP)
 Contrôle du format du conteneur du SIP (CHECK_CONTAINER)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+ **Règle** : Vitam vérifie le format du SIP via un outil d'identification de format, qui lui même se base sur un référientiel des formats qu'il embarque
++ **Règle** : vérification du format du SIP via un outil d'identification de format, qui lui même se base sur le référientiel des formats qu'il embarque
 
 + **Formats acceptés** : .zip, .tar, .tar.gz, .tar.bz2
 
@@ -86,17 +63,17 @@ Contrôle du format du conteneur du SIP (CHECK_CONTAINER)
 Réception dans vitam (STP_UPLOAD_SIP) : Etape de réception du SIP dans Vitam
 ============================================================================
 
-* **Règle** : Vitam vérifie la bonne réception du SIP qu'on lui envoie
+* **Règle** : vérification de la bonne réception du SIP dans l'espace de travail interne ("workspace")
 
 * **Type** : bloquant.
 
 * **Statuts** :
 
-  + OK : le SIP a été reçu dans Vitam (STP_UPLOAD_SIP.OK=Succès du processus de téléchargement du SIP)
+  + OK : le SIP a été réceptionné dans l'espace de travail interne (STP_UPLOAD_SIP.OK=Succès du processus de téléchargement du SIP)
 
-  + KO : le SIP n'a pas été reçu dans Vitam (STP_UPLOAD_SIP.KO=Échec du processus de téléchargement du SIP)
+  + KO : le SIP n'a pas réceptionné dans l'espace de travail interne (STP_UPLOAD_SIP.KO=Échec du processus de téléchargement du SIP)
 
-  + FATAL : la réception du SIP dans Vitam n'a pas été possible suite à une erreur technique, par exemple si le serveur est indisponible (STP_UPLOAD_SIP.FATAL=Erreur Fatale lors du processus de téléchargement du SIP)
+  + FATAL : la réception du SIP dans la solution logicelle Vitam n'a pas été possible suite à une erreur technique, par exemple si le serveur est indisponible (STP_UPLOAD_SIP.FATAL=Erreur Fatale lors du processus de téléchargement du SIP)
 
 
 Contrôle du SIP (STP_INGEST_CONTROL_SIP)
@@ -105,24 +82,27 @@ Contrôle du SIP (STP_INGEST_CONTROL_SIP)
 Vérification globale du SIP (CHECK_SEDA) : Vérification de la cohérence physique du SIP
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+ **Type de manifeste accepté** : le manifeste est obligatoire dans le SIP, doit être nommé manifest.xml, doit être conforme au schéma xsd par défaut fourni avec le standard SEDA v. 2.0 et doit satisfaire les exigences du document de spécification des SIP pour Vitam
++ **Règle** : vérification du SIP reçu par rapport au type de SIP accepté
+
++ **Type de SIP accepté** : le manifeste est obligatoire dans le SIP, doit être nommé manifest.xml, doit être conforme au schéma xsd par défaut fourni avec le standard SEDA v. 2.0 et doit satisfaire les exigences du document de spécification des SIP pour la solution logicielle Vitam
 
 + **Type** : bloquant.
 
 + **Statuts** :
 
   - OK : le SIP est présent, nommé manifest.xml et conforme au schéma xsd par défaut fourni avec le standard SEDA v.2.0. (CHECK_SEDA.OK=Succès de la vérification globale du SIP)
-  - KO : le manifeste est introuvable dans le SIP ou n'a pas d'extension .xml (CHECK_SEDA.NO_FILE.KO=Échec de la vérification globale du SIP : le manifeste est introuvable dans le SIP)
-  - KO : le manifeste n'est pas au format XML (CHECK_SEDA.NOT_XML_FILE.KO=Échec de la vérification globale du SIP : le manifeste de versement au mauvais format)
-  - KO : le manifeste ne respecte pas le schéma par défaut fourni avec le standard SEDA 2.0 (CHECK_SEDA.NOT_XSD_VALID.KO=Échec de la vérification globale du SIP : manifeste non conforme au schéma SEDA 2.0)
-  - KO : le SIP contient plus d'un seul dossier "Content" (CHECK_SEDA.CONTAINER_FORMAT.DIRECTORY.KO=Le SIP contient plus d'un dossier ou un dossier dont le nommage est invalide)
-  - KO : le SIP contient plus d'un seul fichier à la racine (CHECK_SEDA.CONTAINER_FORMAT.FILE.KO=Le SIP contient plus d'un fichier à sa racine)
+  - KO :
+    - Cas 1 : le manifeste est introuvable dans le SIP ou n'a pas d'extension .xml (CHECK_SEDA.NO_FILE.KO=Échec de la vérification globale du SIP : le manifeste est introuvable dans le SIP)
+    - Cas 2 : le manifeste n'est pas au format XML (CHECK_SEDA.NOT_XML_FILE.KO=Échec de la vérification globale du SIP : le manifeste de versement au mauvais format)
+    - Cas 3 : le manifeste ne respecte pas le schéma par défaut fourni avec le standard SEDA 2.0 (CHECK_SEDA.NOT_XSD_VALID.KO=Échec de la vérification globale du SIP : manifeste non conforme au schéma SEDA 2.0)
+    - Cas 4 : le SIP contient plus d'un seul dossier "Content" (CHECK_SEDA.CONTAINER_FORMAT.DIRECTORY.KO=Le SIP contient plus d'un dossier ou un dossier dont le nommage est invalide)
+    - Cas 5 : le SIP contient plus d'un seul fichier à la racine (CHECK_SEDA.CONTAINER_FORMAT.FILE.KO=Le SIP contient plus d'un fichier à sa racine)
   - FATAL : le manifeste n'a pas pu être contrôlé suite à une erreur technique (CHECK_SEDA.FATAL=Erreur fatale lors de la vérification globale du SIP)
 
 Vérification de l'en-tête du bordereau (CHECK_HEADER)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+ **Règles** : les informations générales du manifest.xml (nommées "header") doivent être correctes. L'existence du service producteur (OriginatingAgencyIdentifier) est vérifiée dans cette tâche
++ **Règles** : vérification des informations du manifest.xml (nommées "header") et de l'existence du service producteur (OriginatingAgencyIdentifier)
 
 + **Type** : bloquant.
 
@@ -140,15 +120,15 @@ La tâche contient les traitements suivants
 
 * Vérification de la présence et contrôle du contrat d'entrée (CHECK_CONTRACT_INGEST)
 
-    + **Règle** : vérification du contrat d'entrée déclaré dans le SIP par rapport au référentiel des contrats d'entrée importé dans le système.
+    + **Règle** : vérification du contrat d'entrée déclaré dans le SIP par rapport au référentiel des contrats d'entrée présent dans le système.
 
     + **Statuts** :
 
-      - OK : S'il y a un contrat déclaré dans le SIP et que ce contrat est trouvé dans le référentiel de contrat avec un statut actif (ACTIVE)
+      - OK : le contrat déclaré dans le SIP est valide (contrat trouvé dans le référentiel des contrats et contrat trouvé au statuf actif)
 
-      - KO : si le contrat déclaré est invalide (contrat non trouvé dans la référentiel de contrat OU contrat trouvé mais en statut inactif (INACTIVE)
+      - KO : le contrat déclaré dans le SIP est invalide (contrat non trouvé dans la référentiel de contrat OU contrat trouvé mais en statut inactif
 
-      - FATAL : une erreur technique est survenue lors de la vérification de la présence et contrôle du contrat d'entrée
+      - FATAL : une erreur technique est survenue lors de la vérification de la présence et du contrôle du contrat d'entrée
 
 * Vérification de la conformité du manifeste par le profil (CHECK_ARCHIVEPROFILE)
 
@@ -180,38 +160,38 @@ Vérification du contenu du bordereau (CHECK_DATAOBJECTPACKAGE)
 
   + **Type** : bloquant.
 
-Cette tâche contient plusieurs traitements, chacun ayant un contrôle et des points de sorties spécifique
+Cette tâche contient plusieurs traitements, chacun ayant une finalité et des points de sorties spécifiques
 
 * Vérification des usages des groupes d'objets (CHECK_MANIFEST_DATAOBJECT_VERSION)
 
-    + **Règle** : tous les objets décrits dans le manifeste du SIP doivent déclarer un usage conforme à la liste des usages acceptés dans la solution logicielle
+    + **Règle** : tous les objets décrits dans le manifeste du SIP doivent déclarer un usage conforme à la liste des usages acceptés dans la solution logicielle Vitam ainsi qu'un numéro de version respectant la norme de ce champ.
 
-    + **Types d'usages acceptés**: original papier (PhysicalMaster), original numérique (BinaryMaster), diffusion (Dissemination), vignette (Thumbnail), contenu brut (TextContent)
+    + **Types d'usages acceptés**: original papier (PhysicalMaster), original numérique (BinaryMaster), diffusion (Dissemination), vignette (Thumbnail), contenu brut (TextContent). Pour les numéros de version, il s'agit d'un entier positif ou nul (0, 1, 2...)
 
     + **Statuts** :
 
       - OK : les objets contenus dans le SIP déclarent tous dans le manifeste un usage cohérent avec ceux acceptés, et optionnellement un numéro de version respectant la norme de ce champ usage, par exemple "BinaryMaster_2" (CHECK_MANIFEST_DATAOBJECT_VERSION.OK=Succès de la vérification des usages des groupes d'objets)
 
-      - KO : un ou plusieurs objets contenus dans le SIP déclarent dans le manifeste un usage incohérent avec ceux acceptés (CHECK_MANIFEST_DATAOBJECT_VERSION.KO=Échec de la vérification des usages des groupes d'objets)
+      - KO : un ou plusieurs objets contenus dans le SIP déclarent dans le manifeste un usage ou un numéro de version incohérent avec ceux acceptés (CHECK_MANIFEST_DATAOBJECT_VERSION.KO=Échec de la vérification des usages des groupes d'objets)
 
       - FATAL : les usages déclarés dans le manifeste pour les objets contenus dans le SIP n'ont pas pu être contrôlés suite à une erreur technique (CHECK_MANIFEST_DATAOBJECT_VERSION.FATAL=Erreur fatale lors de la vérification des usages des groupes d'objets)
 
 
 * Vérification du nombre d'objets (CHECK_MANIFEST_OBJECTNUMBER)
 
-    + **Règle** : le nombre d'objets binaires reçus dans la solution logicielle doit être strictement égal au nombre d'objets binaires déclaré dans le manifeste du SIP
+    + **Règle** : le nombre d'objets binaires reçus dans la solution logicielle Vitam doit être strictement égal au nombre d'objets binaires déclaré dans le manifeste du SIP
 
     + **Statuts** :
 
-      - OK : le nombre d'objets reçus dans la solution logicielle est strictement égal au nombre d'objets déclaré dans le manifeste du SIP (CHECK_MANIFEST_OBJECTNUMBER.OK=Succès de la vérification du nombre d'objets)
+      - OK : le nombre d'objets reçus dans la solution logicielle Vitam est strictement égal au nombre d'objets déclaré dans le manifeste du SIP (CHECK_MANIFEST_OBJECTNUMBER.OK=Succès de la vérification du nombre d'objets)
 
-      - KO : le nombre d'objets reçus dans la solution logicielle est inférieur ou supérieur au nombre d'objets déclaré dans le manifeste du SIP (CHECK_MANIFEST_OBJECTNUMBER.KO=Échec de la vérification du nombre d'objets)
+      - KO : le nombre d'objets reçus dans la solution logicielle Vitam est inférieur ou supérieur au nombre d'objets déclaré dans le manifeste du SIP (CHECK_MANIFEST_OBJECTNUMBER.KO=Échec de la vérification du nombre d'objets)
 
       - FATAL : une erreur technique est survenue lors de la vérification du nombre d'objets (CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST_OBJECTNUMBER.FATAL=Erreur fatale lors de la vérification du nombre dobjets)
 
 * Vérification de la cohérence du bordereau (CHECK_MANIFEST)
 
-    + **Règle** : cette action permet la création des journaux de cycle de vie des unités archivistiques (ArchiveUnit) et des groupes d'objets (ObjectGroup), la vérification de la présence de cycles de vie dans les arborescences des ArchiveUnits, la création de l'arbre d'ordre d'indexation et l'extraction des métadonnées contenues dans la balise ManagementMetadata du manifeste pour le calcul des règles de gestion.
+    + **Règle** : création des journaux de cycle de vie des unités archivistiques (ArchiveUnit) et des groupes d'objets (ObjectGroup), extraction des unités archivistiques, objets binaires et objets physiques, vérification de la présence de cycles dans les arborescences des unités archivistiques et création de l'arbre d'ordre d'indexation, extraction des métadonnées contenues dans la balise ManagementMetadata du manifeste pour le calcul des règles de gestion et rattachement des unités du SIP aux unités présentes dans le système si demandé.
 
     + **Statuts** :
 
@@ -225,7 +205,7 @@ Cette tâche contient plusieurs traitements, chacun ayant un contrôle et des po
 
 * Vérification de la cohérence entre objets, groupes d'objets et unités archivistiques (CHECK_CONSISTENCY)
 
-    + **Règle** : Chaque objet ou groupe d'objets doit être référencé par un ArchiveUnit, les objets sans groupe d'objets mais référencés par un ArchiveUnit sont rattachés chacun à un groupe d'objets.
+    + **Règle** : vérification que chaque objet ou groupe d'objets est référencé par un ArchiveUnit, rattachement à un groupe d'objet pour les objets sans groupe d'objets mais référencés par un ArchiveUnit. Création de la table de concordance (MAP) pour les identifiants des objets et des unités du SIP et génération de leurs identifiants Vitam (GUID)
 
     + **Statuts** :
 
@@ -263,7 +243,7 @@ Vérification de l'intégrité des objets (CHECK_DIGEST)
 Identification des formats (OG_OBJECTS_FORMAT_CHECK)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+ **Règle** :  Vitam identifie les formats de chaque objet binaire présent dans le SIP, afin de garantir une information homogène et objective. Cette action met en œuvre un outil d'identification prenant l'objet en entrée et fournissant des informations de format en sortie. Ces informations sont comparées avec les formats identifiés dans le référentiel des formats interne au système et avec celles déclarées dans le manifeste. En cas d'incohérence entre la déclaration de l'application versante et le format identifié par le système, le SIP sera tout de même accepté, générant un warning. Vitam se servira alors des informations qu'il a lui même identifiées et non de celles de l'application versante.
++ **Règle** :  identification des formats de chaque objet binaire présent dans le SIP, afin de garantir une information homogène et objective. Cette action met en œuvre un outil d'identification prenant l'objet en entrée et fournissant des informations de format en sortie. Ces informations sont comparées avec les formats identifiés dans le référentiel des formats interne au système et avec celles déclarées dans le manifeste. En cas d'incohérence entre la déclaration de l'application versante et le format identifié par le système, le SIP sera tout de même accepté, générant un warning. La solution logicielle Vitam se servira alors des informations qu'elle a elle même identifiée et non de celles fournies par l'application versante.
 
 + **Type** : bloquant.
 
@@ -284,7 +264,7 @@ Contrôle et traitements des unités archivistiques (STP_UNIT_CHECK_AND_TRANSFOR
 Vérification globale de l'unité archivistique (CHECK_UNIT_SCHEMA)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+ **Règle** :  Contrôle de la cohérence intellectuelle des informations des unités archivistiques du bordereau.
++ **Règle** :  contrôle additionnel sur la validité des champs de l'unité archivistique par rapport au schéma prédéfini Vitam
 
 + **Type** : bloquant.
 
@@ -299,7 +279,7 @@ Vérification globale de l'unité archivistique (CHECK_UNIT_SCHEMA)
 Application des règles de gestion et calcul des dates d'échéances (UNITS_RULES_COMPUTE)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+ **Règle** : Vitam calcule les dates d'échéances des unités archivistiques du SIP. Pour les unités racines, il utilise pour cela les règles de gestions incluses dans la balise Management de chacune d'entre elles ainsi que celles présentes dans la balise ManagementMetadata. Vitam effectue également ce calcul pour les autres unités archivistiques du SIP possédant des règles de gestions déclarées dans leurs balises Management, sans prendre en compte le ManagementMetadata. Le référentiel utilisé pour ces calculs est le référentiel des règles de gestion.
++ **Règle** : calcul des dates d'échéances des unités archivistiques du SIP. Pour les unités racines, c'est à dire les unités déclarées dans le SIP et n'ayant aucun parents dans l'aborescence, la solution logicielle Vitam utilise les règles de gestions incluses dans le bloc Management de chacune de ces unités ainsi que celles présentes dans le bloc ManagementMetadata. La solution logicielle Vitam effectue également ce calcul pour les autres unités archivistiques du SIP possédant des règles de gestions déclarées dans leurs balises Management, sans prendre en compte le ManagementMetadata. Le référentiel utilisé pour ces calculs est le référentiel des règles de gestion interne au système.
 
 + **Type** : bloquant.
 
@@ -318,7 +298,7 @@ Préparation de la prise en charge (STP_STORAGE_AVAILABILITY_CHECK)
 Vérification de la disponibilité de l'offre de stockage (STORAGE_AVAILABILITY_CHECK)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+ **Règle** :  Vérification de la disponibilité de l'offre de stockage et de l'espace disponible pour y stocker le contenu du SIP
++ **Règle** :  Vérification de la disponibilité de l'offre de stockage et de l'espace disponible pour y stocker le contenu du SIP compte tenu de la taille des objet sà stocker
 
 + **Type** : bloquant.
 
@@ -338,7 +318,7 @@ Rangement des objets (STP_OG_STORING)
 Enregistrement des objets binaires sur l'offre de stockage (OG_STORAGE)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+ **Règle** :  Action de stockage du contenu du SIP sur les offres de stockage
++ **Règle** :  stockage des objets contenus dans le SIP sur les offres de stockage
 
 + **Type** : Bloquant.
 
@@ -356,7 +336,7 @@ Enregistrement des objets binaires sur l'offre de stockage (OG_STORAGE)
 Indexation des métadonnées des groupes d'objets (OG_METADATA_INDEXATION)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+ **Règle** : les métadonnées liées aux groupes d'objets sont indexées, c'est à dire la taille des objets, l'empreinte des objets, les métadonnées liées aux formats (Type MIME, PUID, etc.)
++ **Règle** : indexation des métadonnées liées aux groupes d'objets, c'est à dire la taille des objets, l'empreinte des objets, les métadonnées liées aux formats (Type MIME, PUID, etc.)
 
 + **Type** : bloquant.
 
@@ -368,24 +348,24 @@ Indexation des métadonnées des groupes d'objets (OG_METADATA_INDEXATION)
 
   - FATAL : l'indexation des métadonnées des groupes d'objets n'a pas pu être réalisée suite à une erreur technique (OG_METADATA_INDEXATION.FATAL=Erreur fatale lors de l'indexation des métadonnées des objets et groupes d'objets)
 
-Sécurisation des métadonnées des groupes d'objets (OG_METADATA_STORAGE)
+Sauvegarde des métadonnées des groupes d'objets (OG_METADATA_STORAGE)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+ **Règle** : les métadonnées liées aux groupes d'objets sont stockées dans l'offre de stockage afin de les sécuriser
++ **Règle** : sauvegarde des métadonnées liées aux groupes d'objets dans l'offre de stockage
 
 + **Type** : bloquant.
 
 + **Statuts** :
 
-  - OK : les métadonnées des groupes d'objets ont été sécurisées avec succès (OG_METADATA_STORAGE.OK=Succès de l'enregistrement des métadonnées des groupes d''objets)
+  - OK : les métadonnées des groupes d'objets ont été sauvegardées avec succès (OG_METADATA_STORAGE.OK=Succès de l'enregistrement des métadonnées des groupes d''objets)
 
-  - KO : les métadonnées des groupes d'objets n'ont pas pu être sécurisées (OG_METADATA_STORAGE.KO=Échec de l'enregistrement des métadonnées des objets et groupes d'objets)
+  - KO : les métadonnées des groupes d'objets n'ont pas pu être sauvegardées (OG_METADATA_STORAGE.KO=Échec de l'enregistrement des métadonnées des objets et groupes d'objets)
 
 
 Sécurisation du journal des cycles de vie des groupes d'objets (COMMIT_LIFE_CYCLE_OBJECT_GROUP)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+ **Règle** : Suite à l'indexation des métadonnées liées aux groupes d'objets, les journaux de cycle de vie des groupes d'objets sont sécurisés en base (avant cette étape, les journaux de cycle de vie des groupes d'objets sont dans une collection temporaire afin de garder une cohérence entre les métadonnées indexées et les JCV lors d'une entrée en succès ou en échec)
++ **Règle** : sécurisation en base des journaux de cycle de vie des groupes d'objets (avant cette étape, les journaux de cycle de vie des groupes d'objets sont dans une collection temporaire afin de garder une cohérence entre les métadonnées indexées et les journaux lors d'une entrée en succès ou en échec)
 
 + **Type** : bloquant.
 
@@ -397,11 +377,13 @@ Sécurisation du journal des cycles de vie des groupes d'objets (COMMIT_LIFE_CYC
 
 
 
-Rangement des unites archivistiques (STP_UNIT_STORING)
+Rangement des unités archivistiques (STP_UNIT_STORING)
 ======================================================
 
 Indexation des métadonnées des unités archivistiques (UNIT_METADATA_INDEXATION)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
++ **Règle** : indexation des métadonnées liées aux unités archivistiques, c'est à dire le titre des unités, leurs descriptions, leurs dates extrêmes, etc.
 
 + **Type** : bloquant.
 
@@ -417,19 +399,21 @@ Indexation des métadonnées des unités archivistiques (UNIT_METADATA_INDEXATIO
 Sécurisation des métadonnées des unités archivistiques (UNIT_METADATA_STORAGE)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
++ **Règle** : sauvegarde des métadonnées liées aux unités archivistiques dans l'offre de stockage
+
 + **Type** : bloquant.
 
 + **Statuts** :
 
-  - OK : les métadonnées des unités archivistiques ont été stockées avec succès (UNIT_METADATA_STORAGE.OK=Succès de l'enregistrement des métadonnées des unités archivistiques)
+  - OK : les métadonnées des unités archivistiques ont été sauvegardées avec succès (UNIT_METADATA_STORAGE.OK=Succès de l'enregistrement des métadonnées des unités archivistiques)
 
-  - KO : les métadonnées des unités archivistiques n'ont pas pu être stockées (UNIT_METADATA_STORAGE.KO=Échec de l'enregistrement des métadonnées des unités archivistiques)
+  - KO : les métadonnées des unités archivistiques n'ont pas pu être sauvegardées (UNIT_METADATA_STORAGE.KO=Échec de l'enregistrement des métadonnées des unités archivistiques)
 
 
 Sécurisation du journal des cycles de vie des unités archivistiques (COMMIT_LIFE_CYCLE_UNIT)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+ **Règle** : Suite à l'indexation des métadonnées liées aux unités archivistiques, les journaux de cycle de vie des unités archivistiques sont sécurisés en base (avant cette étape, les journaux de cycle de vie des unités archivistiques sont dans une collection temporaire afin de garder une cohérence entre les métadonnées indexées et les JCV lors d'une entrée en succès ou en échec)
++ **Règle** : sécurisation en base des journaux de cycle de vie des unités archivistiques (avant cette étape, les journaux de cycle de vie des unités archivistiques sont dans une collection temporaire afin de garder une cohérence entre les métadonnées indexées et les journaux lors d'une entrée en succès ou en échec)
 
 + **Type** : bloquant.
 
@@ -446,7 +430,7 @@ Registre des fonds (STP_ACCESSION_REGISTRATION)
 Alimentation du registre des fonds (ACCESSION_REGISTRATION)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+ **Règle** : le registre des fonds est alimenté par service producteur. Les informations concernant la nouvelle entrée (nombre d'objets, volumétrie) vient s'ajouter aux informations existantes pour un même producteur.
++ **Règle** : enregistrement dans le registre des fonds des informations concernant la nouvelle entrée (nombre d'objets, volumétrie). Ces informations viennent s'ajouter aux informations existantes pour un même service producteur. Si le service producteur n'existait pas dans le système et qu'il effectue sa première entrée, cette entrée est enregistrée et ce producteur est créé dans la solution logicielle Vitam.
 
 + **Type** : bloquant.
 
@@ -465,7 +449,7 @@ Finalisation de l'entrée (STP_INGEST_FINALISATION)
 Notification de la fin de l'opération d'entrée (ATR_NOTIFICATION)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+ **Règle** : une fois toutes les étapes passées avec succès ou lorsqu'une étape est en échec, cette étape est lancée. Elle génère une notification de réponse (ArchiveTransferReply ou ATR), le stocke dans l'offre de stockage et l'envoie au service versant.
++ **Règle** : génération de la notification de réponse (ArchiveTransferReply ou ATR) une fois toutes les étapes passées avec succès ou lorsqu'une étape est en échec, puis enregistrement de cette notification dans l'offre de stockage et envoie au service versant.
 
 + **Type** : non bloquant.
 
@@ -477,10 +461,10 @@ Notification de la fin de l'opération d'entrée (ATR_NOTIFICATION)
 
   - FATAL : la notification de la fin de l'opération n'a pas pu être réalisée suite à une erreur technique (ATR_NOTIFICATION.FATAL=Erreur fatale lors de la notification à l'opérateur de versement)
 
-Mise en cohérence des journaux de cycle de vie (ROLL_BACK) (post Bêta)
+Mise en cohérence des journaux de cycle de vie (ROLL_BACK)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+ **Règle** : une fois toutes les étapes passées avec succès ou lorsqu'une étape est en échec, cette étape est lancée suite à la notification de la fin d'opération d'entrée afin de purger les collections temporaire des journaux de cycle de vie.
++ **Règle** : purge des collections temporaire des journaux de cycle de vie.
 
 + **Type** : bloquant.
 
@@ -494,8 +478,8 @@ Mise en cohérence des journaux de cycle de vie (ROLL_BACK) (post Bêta)
 Structure du Workflow
 =====================
 
-Le workflow actuel mis en place dans la solution logicielle est défini dans l'unique fichier "DefaultIngestWorkflow.json".
-Il décrit le processus d'entrée (hors Ingest externe) pour entrer un SIP, indexer les métadonnées et stocker les objets contenues dans le SIP.
+Le workflow actuel mis en place dans la solution logicielle Vitam est défini dans l'unique fichier "DefaultIngestWorkflow.json".
+Il décrit le processus d'entrée (hors Ingest externe) pour entrer un SIP, indexer les métadonnées et stocker les objets contenus dans le SIP.
 
 D'une façon synthétique, le workflow est décrit de cette façon :
 
@@ -510,15 +494,16 @@ D'une façon synthétique, le workflow est décrit de cette façon :
 
   * CHECK_SEDA (CheckSedaActionHandler.java) :
 
-    + Test de l'existence du manifest.xml,
+    + Test de l'existence du manifest.xml
+
+    + Validation XSD du manifeste
+
+    + Validation de la structure du manifeste par rapport au schema par défaut fourni avec le standard SEDA v. 2.0.
 
     + Test de l'existence d'un fichier unique à la racine du SIP
 
     + Test de l'existence d'un dossier unique à la racine, nommé "Content" (insensible à la casse)
 
-    +  Validation XSD du manifeste,
-
-    + Validation de la structure du manifeste par rapport au schema par défaut fourni avec le standard SEDA v. 2.0.
 
   * CHECK_HEADER (CheckHeaderActionHandler.java)
 
@@ -542,7 +527,7 @@ D'une façon synthétique, le workflow est décrit de cette façon :
 
     + Contient CHECK_MANIFEST_DATAOBJECT_VERSION (CheckVersionActionHandler.java) :
 
-      - Vérification des usages des objets.
+      - Vérification des usages et numéro de version des objets.
 
     + Contient CHECK_MANIFEST_OBJECTNUMBER (CheckObjectsNumberActionHandler.java) :
 
@@ -550,7 +535,7 @@ D'une façon synthétique, le workflow est décrit de cette façon :
 
       - Création de la liste des objets dans le workspace GUID/SIP/content/,
 
-      - Comparaison du nombre et des URI des objets contenus dans le SIP avec ceux définis dans le manifeste.
+      - Comparaison du nombre des objets contenus dans le SIP avec ceux définis dans le manifeste.
 
 
     * Contient CHECK_MANIFEST (ExtractSedaActionHandler.java) :
@@ -564,9 +549,9 @@ D'une façon synthétique, le workflow est décrit de cette façon :
       - Création de l'arbre d'ordre d'indexation,
 
       - Extraction des métadonnées contenues dans le bloc ManagementMetadata du manifeste pour le calcul des règles de gestion,
-        
+
       - Vérification du GUID de la structure de rattachement
-        
+
       - Vérification de la cohérence entre l'unit rattachée et l'unit de rattachement.
 
     * Contient CHECK_CONSISTENCY (CheckObjectUnitConsistencyActionHandler.java) :
@@ -600,6 +585,10 @@ D'une façon synthétique, le workflow est décrit de cette façon :
 
 - **Step 3** - STP_UNIT_CHECK_AND_PROCESS : Contrôle et traitements des units / distribution sur LIST GUID
 
+  * CHECK_UNIT_SCHEMA (CheckArchiveUnitSchemaActionPlugin.java) :
+
+    + contrôle de validité des champs des unités archivistiques
+
   * UNITS_RULES_COMPUTE (UnitsRulesComputePlugin.java) :
 
     + vérification de l'existence de la règle dans le référentiel des règles de gestion
@@ -622,15 +611,29 @@ D'une façon synthétique, le workflow est décrit de cette façon :
 
   * OG_METADATA_INDEXATION (IndexObjectGroupActionPlugin.java) :
 
+    + Indexation des métadonnées des ObjectGroup.
+
+  * OG_METADATA_STORAGE (StoreMetaDataObjectGroupActionPlugin.java) :
+
     + Enregistrement en base des métadonnées des ObjectGroup.
+
+  * COMMIT_LIFE_CYCLE_OBJECT_GROUP (CommitLifeCycleObjectGroupActionHandler.java)
+
+    + Sécurisation en base des journaux de cycle de vie des groupes d'objets
 
 - **Step 6** - STP_UNIT_STORING : Rangement des unités archivistique / distribution sur LIST GUID/Units
 
   * UNIT_METADATA_INDEXATION (IndexUnitActionPlugin.java) :
 
-    + Transformation sous la forme Json des ArchiveUnits et intégration du GUID Unit et du GUID ObjectGroup,
+    + Transformation sous la forme Json des ArchiveUnits et intégration du GUID Unit et du GUID ObjectGroup
 
-    + Enregistrement en base des métadonnées des ArchiveUnits.
+  * UNIT_METADATA_STORAGE (StoreMetaDataUnitActionPlugin.java.java) :
+
+    + Enregistrement en base des métadonnées des unités.
+
+  * COMMIT_LIFE_CYCLE_UNIT (CommitLifeCycleUnitActionHandler.java)
+
+      + Sécurisation en base des journaux de cycle de vie des unités archivistiques
 
 - **Step 7** - STP_ACCESSION_REGISTRATION : Alimentation du registre des fonds
 
@@ -646,79 +649,6 @@ D'une façon synthétique, le workflow est décrit de cette façon :
 
     + Stockage de l'ArchiveTransferReply dans les offres de stockage.
 
+  * ROLL_BACK (RollBackActionHandler.java)
 
-
-Structure du fichier Properties du Worflow
-==========================================
-
-Le fichier Properties permet de définir la structure du Workflow pour les étapes et actions réalisées dans le module d'Ingest Interne, en excluant les étapes et actions réalisées dans le module d'Ingest externe.
-
-La structure du fichier est la suivante :
-
-.. figure:: images/workflow.jpg
-  :align: center
-
-  Structure du fichier de définition du workflow
-
-
-Un Workflow est défini en JSON avec la structure suivante :
-
-- un bloc en-tête contenant :
-
-    + ``ID`` : identifiant unique du workflow,
-
-    + ``Comment`` : description du workflow ou toutes autres informations utiles concernant le workflow
-
-- une liste d'étapes dont la structure est la suivante :
-
-    + ``workerGroupId`` : identifiant de famille de Workers,
-
-    + ``stepName`` : nom de l'étape, servant de clé pour identifier l'étape,
-
-
-    + ``Behavior`` : modèle d'exécution pouvant avoir les types suivants :
-
-      - BLOCKING : le traitement est bloqué en cas d'erreur, il est nécessaire de recommencer le workflow. Les étapes FINALLY (voir plus bas) sont tout de même exécutées
-
-      - NOBLOCKING : le traitement peut continuer malgrée les erreurs ou avertissements,
-
-      - FINALLY : le traitement correspondant est toujours exécuté, même si les étapes précédentes se sont terminées en échec
-
-
-    + ``Distribution`` : modèle de distribution, décrit comme suit :
-
-      - ``Kind`` : un type pouvant être REF (i.e. élément unique) ou LIST (i.e. liste d'éléments)
-
-      - ``Element`` : l'élément de distribution indiquant l'élément unique sous forme d'URI (REF) ou la liste d'éléments en pointant vers un dossier (LIST).
-
-
-    + une liste d'Actions :
-
-      - ``ActionKey`` : nom de l'action
-
-
-      - ``Behavior`` : modèle d'exécution pouvant avoir les types suivants :
-        - BLOCKING : l'action est bloquante en cas d'erreur. Les actions suivantes (de la meme étape) ne seront pas éxécutées.
-        - NOBLOCKING : l'action peut continuer malgrée les erreurs ou avertissements.
-
-
-      - ``In`` : liste de paramètres d'entrées :
-        - ``Name`` : nom utilisé pour référencer cet élément entre différents handlers d'une même étape,
-
-        - ``URI`` : cible comportant un schema (WORKSPACE, MEMORY, VALUE) et un path où chaque handler peut accéder à ces valeurs via le handlerIO :
-          - WORKSPACE : path indique le chemin relatif sur le workspace (implicitement un File),
-          - MEMORY : path indique le nom de la clef de valeur (implicitement un objet mémoire déjà alloué par un Handler précédent),
-          - VALUE : path indique la valeur statique en entrée (implicitement une valeur String).
-
-
-      - ``Out`` : liste de paramètres de sorties :
-        - ``Name`` : nom utilisé pour référencer cet élément entre différents handlers d'une même étape,
-
-        - ``URI`` : cible comportant un schema (WORKSPACE, MEMORY) et un path où chaque handler peut stocker les valeurs finales via le handlerIO :
-          - WORKSPACE : path indique le chemin relatif sur le workspace (implicitement un File local),
-          - MEMORY : path indique le nom de la clef de valeur (implicitement un objet mémoire).
-
-
-.. image:: images/Workflow_file_structure.png
-        :align: center
-        :alt: Exemple partiel de workflow, avec les notions étapes et actions
+    + Purge des collections temporaire des journaux de cycle de vie.
