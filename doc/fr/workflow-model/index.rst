@@ -12,6 +12,7 @@ Sommaire
    workflow.rst
    workflow-tree.rst
    workflow-plan.rst
+   workflow-traceability.rst
    workflow-check-traceability.rst
    
 .. only:: latex
