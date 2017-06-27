@@ -89,6 +89,11 @@ angular.module('archive.unit')
       if (!!labelValue) {
         return labelValue;
       }
+      // Return label value for multivalued fields if found
+      labelValue = constants[parent + ".default"];
+      if (!!labelValue) {
+        return labelValue + " " + key;
+      }
       return $scope.fieldLabel = key;
     };
 

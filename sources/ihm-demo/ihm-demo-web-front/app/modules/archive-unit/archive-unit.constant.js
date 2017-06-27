@@ -62,7 +62,9 @@ angular.module('archive.unit')
     'ClassificationRule.FinalAction': 'Action finale',
     'ClassificationRule.ClassificationLevel': 'Niveau de classification',
     'ClassificationRule.ClassificationOwner': 'Émetteur de la classification',
-    '#mgt.NeedAuthorization': 'Autorisation requise'
+    '#mgt.NeedAuthorization': 'Autorisation requise',
+    'Titles.default': 'Titre',
+    'Descriptions.default': 'Description'
   })
   .constant('ARCHIVE_UNIT_MODULE_OG_FIELD_LABEL', {
     '_id': 'Identifiant',
