@@ -271,8 +271,8 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                     checkAndUpdateFormatIdentification(objectId, formatIdentification,
                         objectCheckFormatResult, refFormat,
                         version);
-                eventDetailData = "{\"Old value\":" + formatIdentification + "," +
-                    "\"New value\": " + newFormatIdentification + "} ";
+                eventDetailData = "{\"diff\": {\"-\":" + formatIdentification + "," +
+                    "\"+\": " + newFormatIdentification + "}}";
                 // Reassign new format
                 ((ObjectNode) version).set(SedaConstants.TAG_FORMAT_IDENTIFICATION, newFormatIdentification);
             }

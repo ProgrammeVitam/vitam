@@ -124,10 +124,6 @@ public class CheckHeaderActionHandler extends ActionHandler {
         }
 
         if (madatoryValueMap.get(SedaConstants.TAG_COMMENT) != null) {
-            ObjectNode evDetData = JsonHandler.createObjectNode();
-            evDetData.put(EV_DETAIL_REQ, (String) madatoryValueMap.get(SedaConstants.TAG_COMMENT));
-            evDetData.put(EV_DET_DATA_TYPE, LogbookEvDetDataType.MASTER.name());
-            itemStatus.setData(LogbookParameterName.eventDetailData.name(), evDetData.toString());
             itemStatus.setMasterData(LogbookParameterName.outcomeDetailMessage.name(), 
                 (String) madatoryValueMap.get(SedaConstants.TAG_COMMENT));
         }
