@@ -71,7 +71,7 @@ documentation:
   # root endpoint request
   displayName: Opérations
   description: |
-    Administration des Workflows Asynchrones (opérations). Certaines opérations devraient être limitées aux seuls administrateurs car elles impactent le back-office. 
+    Administration des Workflows Asynchrones (opérations). Certaines opérations devraient être limitées aux seuls administrateurs car elles impactent le back-office.
 
     **DEPRECATED** Les fonctions sensibles (PAUSE, CANCEL, NEXT) seront déplacées sur une ressources spécifique d'administration pour la V1.
   is: [ StandardTraits.StandardOptionalHeader,
@@ -117,6 +117,21 @@ documentation:
        204:
          description: |
            Opération introuvable
+
+/workflows:
+  # root endpoint request
+  displayName: Définitions de workflow
+  description: |
+    Gestion des définitions des Workflows disponibles.
+
+  is: [ StandardTraits.StandardOptionalHeader,
+    StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+    StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
+  get:
+    description: |
+     Request that will return a listing of ingests operations
+    is: [IngestTraits.IngestWorkflowsResponse ]
+
 /status:
   get:
     is: [ StandardTraits.StandardHeader204,

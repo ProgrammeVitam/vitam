@@ -1,0 +1,19 @@
+{
+  "id": "",
+  "states": [
+    "RUNNING"
+  ],
+  "statuses": [
+    "OK",
+    "WARNING"
+  ],
+  "workflows": [
+    "DefaultIngestWorkflow"
+  ],
+  "listSteps": [
+    "STP_OG_STORING",
+    "STP_UNIT_STORING"
+  ],
+  "startDateMin": "01/02/2017",
+  "startDateMax": "01/02/2017"
+}

@@ -13,3 +13,34 @@ types:
     #with RAML 1.0, this include should be working, if not use the following
     type: !include xsd/seda-2.0-main.xsd
     example: !include examples/sedaArchiveTransferReply.xml
+
+  ProcessQuery:
+      displayName: Process Query
+      description: External Ingest Vitam operations query
+      type: object
+      properties:
+        id?:
+          description: Contains a process id
+          type: string
+        states?:
+          description: Contains the states of the processes (valid values = RUNNING, PAUSE, COMPLETED)
+          type: string[]
+        statuses?:
+          description: Contains the statuses of the processes (valid values = UNKNOWN, STARTED, OK, WARNING, KO, FATAL)
+          type: string[]
+        workflows?:
+          description: Contains the workflow identifiers of the processes
+          type: string[]
+        listSteps?:
+          description: Contains the next steps of the processes
+          type: string[]
+        startDateMin?:
+          description: Contains the minimum starting date of the processes with format "DD-MM-YYYY"
+          type: string
+        startDateMax?:
+          description: Contains the maximum starting date of the processes with format "DD-MM-YYYY"
+          type: string
+      example: {
+          "id": "1288",
+          "states": ["COMPLETED"]
+      }
