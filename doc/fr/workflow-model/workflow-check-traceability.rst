@@ -4,9 +4,9 @@ TRACEABILITY : Workflow de contrôle d'intégrité d'un journal sécurisé
 Introduction
 ============
 
-Ce chapitre décrit le processus (workflow) de contrôle d'intégrité d'un journal sécurisé mis en place dans Vitam.
+Ce chapitre décrit le processus (workflow) de contrôle d'intégrité d'un journal sécurisé mis en place dans la solution logicielle Vitam.
 
-Celui ci est défini dans le fichier “DefaultCheckTraceability.json”. Il décrit le processus de contrôle d'intégrité d'un journal sécurisé.
+Celui-ci est défini dans le fichier “DefaultCheckTraceability.json”. Il décrit le processus de contrôle d'intégrité d'un journal sécurisé.
 
 Processus de contrôle d'intégrité d'un journal sécurisé (vision métier)
 =======================================================================
