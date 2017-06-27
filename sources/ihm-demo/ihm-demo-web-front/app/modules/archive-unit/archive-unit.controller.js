@@ -36,6 +36,7 @@ angular.module('archive.unit')
     'START_DATE_FIELD':'StartDate',
     'END_DATE_FIELD':'EndDate',
     'DESCRIPTION_LEVEL_FIELD':'DescriptionLevel',
+    'SUBMISSION_AGENCY_FIELD': 'SubmissionAgency',
     'ORIGINATING_AGENCY_FIELD':'OriginatingAgency',
     'ORIGINATING_AGENCY_IDENTIFIER_FIELD':'Identifier',
     'ORIGINATING_AGENCY_DESCRIPTION_FIELD':'OrganizationDescriptiveMetadata',
@@ -79,7 +80,8 @@ angular.module('archive.unit')
       }
       var buildedKey = key;
       if (parent !== buildedKey) {
-        buildedKey = parent + '.' + buildedKey;
+        // split(' ')[0] in order to skip ' <nb>' for arrays and get only the 'master' camelCase key (exemple from 'ParentKey 1')
+        buildedKey = parent.split(' ')[0] + '.' + buildedKey;
       }
 
       // Return label value if find, field name else
@@ -174,15 +176,7 @@ angular.module('archive.unit')
 
       fieldSet.fieldName = self.displayLabel(key, parent, constants);
 
-      if (key == ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCY_FIELD) {
-    	  fieldSet.typeF = ARCHIVE_UNIT_MODULE_CONST.COMPLEX_FIELD_TYPE;
-    	  var contentField = value;
-          fieldSet.content = [];
-          var fieldSetFirst = buildSingleField("", ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCY_IDENTIFIER_FIELD, fieldSet.fieldId, fieldSet.parents, constants, modifAllowed);
-          fieldSet.content.push(fieldSetFirst);
-          var fieldSetSecond = buildSingleField(contentField, ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCY_DESCRIPTION_FIELD, fieldSet.fieldId, fieldSet.parents, constants, modifAllowed);
-          fieldSet.content.push(fieldSetSecond);
-      } else if(!angular.isObject(value)) {
+      if(!angular.isObject(value)) {
         fieldSet.typeF = ARCHIVE_UNIT_MODULE_CONST.SIMPLE_FIELD_TYPE;
         if(!isMgtChild && modifAllowed){
           fieldSet.isModificationAllowed = true;
@@ -653,6 +647,7 @@ angular.module('archive.unit')
           var mainFields = [ARCHIVE_UNIT_MODULE_CONST.TITLE_FIELD,
             ARCHIVE_UNIT_MODULE_CONST.DESCIPTION_FIELD,
             ARCHIVE_UNIT_MODULE_CONST.DESCRIPTION_LEVEL_FIELD,
+            ARCHIVE_UNIT_MODULE_CONST.SUBMISSION_AGENCY_FIELD,
             ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCY_FIELD,
             ARCHIVE_UNIT_MODULE_CONST.START_DATE_FIELD,
             ARCHIVE_UNIT_MODULE_CONST.END_DATE_FIELD];
@@ -666,14 +661,14 @@ angular.module('archive.unit')
                 self.archiveFields[key] = tmpValue[0];
                 value = tmpValue[0];
                   if (key == ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCY_MGT || key == ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCIES_MGT){
-                      fieldSet = buildSingleField(value, key, key, [], null, false);
+                    fieldSet = buildSingleField(value, key, key, [], null, false);
                   }
                   else {
-                      fieldSet = buildSingleField(value, key, key, [], null, true);
+                    fieldSet = buildSingleField(value, key, key, [], null, true);
                   }
                 if (mainFields.indexOf(key) >= 0) {
                   self.mainFields[key] = fieldSet;
-                } else if (key != ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCIES_WITH_CSHARP_KEY) {                	
+                } else {
                   self.archiveArray.push(fieldSet);
                 }
 
@@ -681,7 +676,11 @@ angular.module('archive.unit')
                   if (index > 0) {
                     var newKey = self.displayLabel(key, key) + ' ' + index;
                     self.archiveFields[newKey] = objectValue;
-                    fieldSet = buildSingleField(objectValue, newKey, newKey, [], null, true);                    
+                    if (key == ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCY_MGT || key == ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCIES_MGT){
+                      fieldSet = buildSingleField(objectValue, newKey, newKey, [], null, false);
+                    } else {
+                      fieldSet = buildSingleField(objectValue, newKey, newKey, [], null, true);
+                    }
                     self.archiveArray.push(fieldSet);
                   }
                 });
@@ -691,22 +690,18 @@ angular.module('archive.unit')
               if(key == ARCHIVE_UNIT_MODULE_CONST.TITLE_FIELD){
                 self.archiveTitle = value;
               }
-              
-              if (key == ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCY_WITH_CSHARP_KEY) {
-            	  key = ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCY_FIELD;
-              }
 
               if (key == ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCY_MGT || key == ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCIES_MGT){
-                  self.fieldSet = buildSingleField(value, key, key, [], null, false);
+                self.fieldSet = buildSingleField(value, key, key, [], null, false);
               }
               else {
-                  self.fieldSet = buildSingleField(value, key, key, [], null, true);
+                self.fieldSet = buildSingleField(value, key, key, [], null, true);
               }
               if (!addedField) {
                 if (mainFields.indexOf(key) >= 0 ) {
                   self.mainFields[key] = self.fieldSet;
                 } else {
-                	  self.archiveArray.push(self.fieldSet);         
+                	self.archiveArray.push(self.fieldSet);
                 }
               }
             }
@@ -715,51 +710,13 @@ angular.module('archive.unit')
           // Handle missing main fields
           angular.forEach(mainFields, function(key) {
             if (!self.mainFields[key]) {
-              self.fieldSet = buildSingleField('', key, key, [], null, true);
+
+              if (key === ARCHIVE_UNIT_MODULE_CONST.SUBMISSION_AGENCY_FIELD || key === ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCY_FIELD) {
+                self.fieldSet = buildSingleField({'Identifier': ''}, key, key, [], null, true);
+              } else {
+                self.fieldSet = buildSingleField('', key, key, [], null, true);
+              }
               self.mainFields[key] = self.fieldSet;
-            }
-
-            if (key === ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCY_FIELD) {
-              var mustBeAdded = [ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCY_IDENTIFIER_FIELD,
-                ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCY_DESCRIPTION_FIELD];
-              
-              
-              var essentialFinalContent = [];
-              var extraFinalContent = [];
-
-              // Start by adding the essential fields
-              angular.forEach(mustBeAdded, function(childKey) {
-                var found = false;
-                angular.forEach(self.mainFields[key].content, function(item, index) {
-                  if(!found){
-                    var currentField = item.fieldId;
-                    if (currentField === childKey) {
-                      essentialFinalContent.push(item);                      
-                      found = true;
-                    }
-                  }
-                });
-
-                if(!found){
-                  // Add mandatory field
-                  self.fieldSet = buildSingleField('', childKey, key, [], null, true);
-                  essentialFinalContent.push(self.fieldSet);                  
-                }
-              });
-
-              // Add extra fields
-              angular.forEach(self.mainFields[key].content, function(item, index) {
-                var itemIndex = mustBeAdded.indexOf(item.fieldId);
-                if (itemIndex < 0) {
-                  // Extra field
-                  extraFinalContent.push(item);
-                }
-              });
-
-              // Reorder elements
-              self.mainFields[key].content = [];
-              self.mainFields[key].content.push.apply(self.mainFields[key].content, essentialFinalContent);
-              self.mainFields[key].content.push.apply(self.mainFields[key].content, extraFinalContent);
             }
           });
 
