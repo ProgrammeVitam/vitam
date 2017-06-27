@@ -277,13 +277,13 @@ angular.module('archive.unit')
 
       // Call REST service
       ihmDemoFactory.saveArchiveUnit(self.archiveId, self.modifiedFields)
-        .then(function () {
+        .then(function (response) {
           // SUCCESS
           // Archive unit updated: send new select query to back office
-          // Find archive unit details
+          // Find archive unit details        	
           var displayUpdatedArchiveCallBack = function (data) {
             if(data.$results == null || data.$results == undefined ||
-              data.$hits == null || data.$hits == undefined) {
+              data.$hits == null || data.$hits == undefined || data.httpCode > 200) {
               console.log("Erreur survenue lors de la mise à jour de l'unité archivistique");
               self.showAlert($event, "Erreur", "Erreur survenue lors de la mise à jour de l'unité archivistique");
             } else {
@@ -323,7 +323,14 @@ angular.module('archive.unit')
             console.log(errorMsg);
             self.showAlert($event, "Erreur", "Erreur survenue lors de la mise à jour de l'unité archivistique");
           };
-          archiveDetailsService.findArchiveUnitDetails(self.archiveId, displayUpdatedArchiveCallBack, failureUpdateDisplayCallback);
+          if(response.data.httpCode >= 400) {
+        	  console.log("Erreur survenue lors de la mise à jour de l'unité archivistique");
+        	  self.refreshArchiveDetails();
+              self.showAlert($event, "Erreur", "Erreur survenue lors de la mise à jour de l'unité archivistique");
+          }
+          else {
+        	  archiveDetailsService.findArchiveUnitDetails(self.archiveId, displayUpdatedArchiveCallBack, failureUpdateDisplayCallback);
+          }
 
         }, function (error) {
           console.log('Update Archive unit failed : ' + error.message);

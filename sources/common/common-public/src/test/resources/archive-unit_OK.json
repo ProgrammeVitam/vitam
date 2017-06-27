@@ -73,21 +73,19 @@
                 "ArchiveUnitRefId": "ID_CHILD"
             }
         },
-        "Content": {
-            "AnyOtherField": "AnyOtherValue",
-            "DescriptionLevel": "Item",
-            "Description": null,
-            "Title": "My title",
-            "Event": [{
-            	"EventType":"Création",
-            	"EventDateTime":"2010-01-01T10:22:02"
-            }],
-            "AuthorizedAgent": [{
-                "FirstName": "Ludovic",
-                "GivenName": "BLANCHET",
-                "BirthName": "1990-10-01",
-                "BirthPlace": "Lagny sur Marne"
-            }]
-        }
+        "AnyOtherField": "AnyOtherValue",
+        "DescriptionLevel": "Item",
+        "Description": null,
+        "Title": "My title",
+        "Event": [{
+        	"EventType":"Création",
+        	"EventDateTime":"2010-01-01T10:22:02"
+        }],
+        "AuthorizedAgent": [{
+            "FirstName": "Ludovic",
+            "GivenName": "BLANCHET",
+            "BirthName": "1990-10-01",
+            "BirthPlace": "Lagny sur Marne"
+        }]
     }
 }
