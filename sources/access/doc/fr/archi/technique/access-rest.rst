@@ -24,9 +24,9 @@ Rest API
 | https://vitam/access-external/v1/units/unit_id
 | https://vitam/access-external/v1/objects
 | https://vitam/access-external/v1/units/unit_id/object
-| https://vitam/access-external/v1/accession-register
-| https://vitam/access-external/v1/accession-register/document_id
-| https://vitam/access-external/v1/accession-register/document_id/accession-register-detail
+| https://vitam/access-external/v1/accession-registers
+| https://vitam/access-external/v1/accession-registers/document_id
+| https://vitam/access-external/v1/accession-registers/document_id/accession-register-detail
 | https://vitam/access-external/v1/operations
 | https://vitam/access-external/v1/operations/operation_id
 | https://vitam/access-external/v1/unitlifecycles/lifecycle_id
@@ -350,16 +350,17 @@ la classe contient actuellement 10 méthodes :
         InputStream profileFile) {
      ...
 
-4. downloadProfileFile()
+4. downloadProfileFileOrTraceabilityFile()
 
-  Télécharger un fichier d'un profile métadata existant au format xsd ou rng.
+  Télécharger un fichier d'un profile métadata existant au format xsd ou rng  Ou
+  télécharger un fichier d'opération de traçabilité
 
 .. code-block:: java
 
 	@GET
     @Path("/{collection}/{id}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public void downloadProfileFile(@PathParam("collection") String collection, @PathParam("id") String profileMetadataId,
+    public void downloadProfileFileOrTraceabilityFile(@PathParam("collection") String collection, @PathParam("id") String profileMetadataId,
         @Suspended final AsyncResponse asyncResponse) {
      ...
 
