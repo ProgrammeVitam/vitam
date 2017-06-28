@@ -181,7 +181,7 @@ public class IngestExternalImpl implements IngestExternal {
             // call ingest internal with init action (avec contextId)
             try {
                 ingestClient.initWorkFlow(contextWithExecutionMode);
-            }  catch (WorkspaceClientServerException e) {
+            } catch (WorkspaceClientServerException e) {
                 LOGGER.error("Worspace Server error", e);
                 throw e;
             } catch (VitamException e) {
@@ -455,16 +455,18 @@ public class IngestExternalImpl implements IngestExternal {
                         throw new IngestExternalException(e);
                     }
                 } else {
-                    responseNoProcess = prepareEarlyAtrKo(containerName, ingestGuid, helper, startedParameters,
-                        isFileInfected, mimeType, endParameters, logbookTypeProcess, eventType, StatusCode.KO);
+                    responseNoProcess = prepareEarlyAtrKo(containerName, ingestGuid, helper, messageLogbookEngineHelper,
+                        startedParameters, isFileInfected, mimeType, endParameters, logbookTypeProcess, eventType,
+                        StatusCode.KO);
                 }
             } else {
                 // finalize end step param
                 endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                     messageLogbookEngineHelper.getLabelOp(INGEST_EXT, endParameters.getStatus()));
                 helper.updateDelegate(endParameters);
-                responseNoProcess = prepareEarlyAtrKo(containerName, ingestGuid, helper, startedParameters,
-                    isFileInfected, mimeType, endParameters, logbookTypeProcess, eventType, StatusCode.KO);
+                responseNoProcess =
+                    prepareEarlyAtrKo(containerName, ingestGuid, helper, messageLogbookEngineHelper, startedParameters,
+                        isFileInfected, mimeType, endParameters, logbookTypeProcess, eventType, StatusCode.KO);
             }
 
             try (IngestInternalClient ingestClient =
@@ -485,8 +487,9 @@ public class IngestExternalImpl implements IngestExternal {
                     return responseNoProcess;
                 }
             } catch (WorkspaceClientServerException e) {
-                return prepareEarlyAtrKo(containerName, ingestGuid, helper, startedParameters,
-                    isFileInfected, mimeType, endParameters, logbookTypeProcess, eventType, StatusCode.FATAL);
+                return prepareEarlyAtrKo(containerName, ingestGuid, helper, messageLogbookEngineHelper,
+                    startedParameters, isFileInfected, mimeType, endParameters, logbookTypeProcess, eventType,
+                    StatusCode.FATAL);
             } catch (final VitamException e) {
                 throw new IngestExternalException(e);
             }
@@ -521,22 +524,25 @@ public class IngestExternalImpl implements IngestExternal {
     }
 
     /**
-     *
+     * 
      * @param containerName
      * @param ingestGuid
      * @param helper
+     * @param messageLogbookEngineHelper
      * @param startedParameters
      * @param isFileInfected
      * @param mimeType
      * @param endParameters
      * @param logbookTypeProcess
      * @param logbookEventType
+     * @param status
      * @return
      * @throws LogbookClientNotFoundException
      * @throws IngestExternalException
      */
     private Response prepareEarlyAtrKo(final GUID containerName, final GUID ingestGuid,
-        final LogbookOperationsClientHelper helper, final LogbookOperationParameters startedParameters,
+        final LogbookOperationsClientHelper helper, final MessageLogbookEngineHelper messageLogbookEngineHelper,
+        final LogbookOperationParameters startedParameters,
         boolean isFileInfected, String mimeType, final LogbookOperationParameters endParameters,
         LogbookTypeProcess logbookTypeProcess, String logbookEventType, StatusCode status)
         throws LogbookClientNotFoundException, IngestExternalException {
@@ -574,8 +580,10 @@ public class IngestExternalImpl implements IngestExternal {
         // log final status PROCESS_SIP when sanity check KO or FATAL
         // in this case PROCESS_SIP inherits SANITY_CHECK Status
         startedParameters.setStatus(endParameters.getStatus());
+        startedParameters.putParameterValue(LogbookParameterName.outcomeDetail,
+            messageLogbookEngineHelper.getOutcomeDetail(logbookEventType, endParameters.getStatus()));
         startedParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-            VitamLogbookMessages.getCodeOp(logbookEventType, endParameters.getStatus()));
+            messageLogbookEngineHelper.getLabelOp(logbookEventType, endParameters.getStatus()));
         // update PROCESS_SIP
         helper.updateDelegate(startedParameters);
         return responseNoProcess;
@@ -603,7 +611,7 @@ public class IngestExternalImpl implements IngestExternal {
                 VitamLogbookMessages.getCodeOp(STP_INGEST_FINALISATION, status),
                 containerName);
         if (status.equals(StatusCode.FATAL)) {
-            stpIngestFinalisationParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, 
+            stpIngestFinalisationParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 WORKSPACE_ERROR_MESSAGE);
         }
         helper.updateDelegate(stpIngestFinalisationParameters);
@@ -639,11 +647,12 @@ public class IngestExternalImpl implements IngestExternal {
         return null;
     }
 
-    public void createATRFatalWorkspace(String contextId, GUID guid, AsyncResponse asyncResponse) throws VitamException {
+    public void createATRFatalWorkspace(String contextId, GUID guid, AsyncResponse asyncResponse)
+        throws VitamException {
         Contexts ingestContext = Contexts.valueOf(contextId);
         LogbookTypeProcess logbookTypeProcess = ingestContext.getLogbookTypeProcess();
         LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
-        
+
         MessageLogbookEngineHelper messageLogbookEngineHelper = new MessageLogbookEngineHelper(logbookTypeProcess);
 
         LogbookOperationParameters startedParameters = LogbookParametersFactory.newLogbookOperationParameters(
@@ -651,7 +660,7 @@ public class IngestExternalImpl implements IngestExternal {
             logbookTypeProcess, StatusCode.STARTED,
             messageLogbookEngineHelper.getLabelOp(ingestContext.getEventType(), StatusCode.STARTED) + " : " +
                 guid.getId(),
-                guid);
+            guid);
         helper.createDelegate(startedParameters);
         addStpIngestFinalisationLog(guid, guid, helper, StatusCode.STARTED, logbookTypeProcess);
         addTransferNotificationLog(guid, guid, helper, StatusCode.STARTED, logbookTypeProcess);
@@ -665,11 +674,13 @@ public class IngestExternalImpl implements IngestExternal {
             "TransferringAgencyToBeDefined",
             "STP_UPLOAD_SIP", null, StatusCode.FATAL);
 
-        AsyncInputStreamHelper responseHelper = new AsyncInputStreamHelper(asyncResponse, new ByteArrayInputStream(atr.getBytes(CharsetUtils.UTF8)));
-        final ResponseBuilder responseBuilder = Response.status(Status.SERVICE_UNAVAILABLE).type(MediaType.APPLICATION_OCTET_STREAM)
-            .header(GlobalDataRest.X_REQUEST_ID, guid.getId())
-            .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED)
-            .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.FATAL);
-        responseHelper.writeResponse(responseBuilder);        
+        AsyncInputStreamHelper responseHelper =
+            new AsyncInputStreamHelper(asyncResponse, new ByteArrayInputStream(atr.getBytes(CharsetUtils.UTF8)));
+        final ResponseBuilder responseBuilder =
+            Response.status(Status.SERVICE_UNAVAILABLE).type(MediaType.APPLICATION_OCTET_STREAM)
+                .header(GlobalDataRest.X_REQUEST_ID, guid.getId())
+                .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED)
+                .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.FATAL);
+        responseHelper.writeResponse(responseBuilder);
     }
 }
