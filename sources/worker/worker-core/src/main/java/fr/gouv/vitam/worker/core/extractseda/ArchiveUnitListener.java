@@ -53,6 +53,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 
+import fr.gouv.culture.archivesdefrance.seda.v2.AgentType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectRefType;
 import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
@@ -609,6 +610,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         module.addSerializer(XMLGregorianCalendar.class, new XMLGregorianCalendarSerializer());
         module.addSerializer(TextByLang.class, new TextByLangSerializer());
         module.addSerializer(KeywordsType.KeywordType.class, new KeywordTypeSerializer());
+        module.addSerializer(AgentType.class, new AgentTypeSerializer());
 
         objectMapper.registerModule(module);
 
