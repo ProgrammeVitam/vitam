@@ -17,7 +17,7 @@ Il explicite chaque processus (appellés également "workflow"), et pour chacun 
 Ce document comprend également du matériel additionnel pour faciliter la compréhension des processus comme des fiches récaputilatives et des schémas. Il explique également la manière dont est formée la structure des fichiers de workflow.
 
 Description d'un processus
-=========
+===========================
 
 Un workflow est un processus composé d’étapes (macro-workflow), elles-mêmes composées d’une liste d’actions à exécuter de manière séquentielle, une seule fois ou répétées sur une liste d’éléments (micro-workflow).
 

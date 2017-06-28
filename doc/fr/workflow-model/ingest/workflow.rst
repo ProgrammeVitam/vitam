@@ -1,5 +1,5 @@
-INGEST : Workflow d'entrée
-##########################
+Workflow d'entrée
+#################
 
 Introduction
 ============
@@ -191,13 +191,13 @@ Cette tâche contient plusieurs traitements, chacun ayant une finalité et des p
 
 * Vérification de la cohérence du bordereau (CHECK_MANIFEST)
 
-    + **Règle** : création des journaux de cycle de vie des unités archivistiques (ArchiveUnit) et des groupes d'objets (ObjectGroup), extraction des unités archivistiques, objets binaires et objets physiques, vérification de la présence de cycles dans les arborescences des unités archivistiques et création de l'arbre d'ordre d'indexation, extraction des métadonnées contenues dans la balise ManagementMetadata du manifeste pour le calcul des règles de gestion et rattachement des unités du SIP aux unités présentes dans le système si demandé.
+    + **Règle** : création des journaux de cycle de vie des unités archivistiques (ArchiveUnit) et des groupes d'objets (ObjectGroup), extraction des unités archivistiques, objets binaires et objets physiques, vérification de la présence de cycles dans les arborescences des unités archivistiques et création de l'arbre d'ordre d'indexation, extraction des métadonnées contenues dans la balise ManagementMetadata du manifeste pour le calcul des règles de gestion, rattachement des unités du SIP aux unités présentes dans le système si demandé, détection des problèmes d'encodage dans le manifeste et vérification que les objets ne font pas références directement à des unité si ces objets possèdent des groupes d'objets.
 
     + **Statuts** :
 
-      - OK : les journaux de cycles de vie des ArchiveUnits et des ObjectGroups ont été créés avec succès, aucune récursivité n'a été detectée dans l'arborescence des ArchiveUnits, la structure de rattachement déclarée existe, le type de structure de rattachement est autorisé (CHECK_MANIFEST.OK=Contrôle du bordereau réalisé avec succès)
+      - OK : les journaux de cycles de vie des ArchiveUnits et des ObjectGroups ont été créés avec succès, aucune récursivité n'a été detectée dans l'arborescence des ArchiveUnits, la structure de rattachement déclarée existe, le type de structure de rattachement est autorisé, aucun problème d'encodage détecté et les objets avec groupe d'objet ne référencent pas directement les unités (CHECK_MANIFEST.OK=Contrôle du bordereau réalisé avec succès)
 
-      - KO : Une récursivité a été détectée dans l'arborescence des ArchiveUnits, la strucutre de rattachement déclarée est inexistante, le type de structure de rattachement est interdit (CHECK_MANIFEST.KO=Échec de contrôle du bordereau)
+      - KO : Une récursivité a été détectée dans l'arborescence des ArchiveUnits, la strucutre de rattachement déclarée est inexistante, le type de structure de rattachement est interdit, il y a un problème d'encodage ou des objets avec groupe d'objet référencent directement des unités (CHECK_MANIFEST.KO=Échec de contrôle du bordereau)
 
       - FATAL : la vérification de la cohérence du bordereau n'a pas pu être réalisée suite à une erreur système, e.g. les journaux de cycle de vie n'ont pas pu être créés (CHECK_MANIFEST.FATAL=Erreur fatale lors de contrôle du bordereau)
 
@@ -270,11 +270,11 @@ Vérification globale de l'unité archivistique (CHECK_UNIT_SCHEMA)
 
 + **Statuts** :
 
-  - OK : tous les champs de l'unité archivistique sont valides (CHECK_UNIT_SCHEMA.OK=Succès de la vérification globale de l''unité archivistique).
+  - OK : tous les champs de l'unité archivistique sont valides (CHECK_UNIT_SCHEMA.OK=Succès du contrôle additionnel sur la validité des champs de l'unité archivistique).
 
-  - KO : au moins un champ de l'unité archivistique n'est pas valide (titre vide, date incorrecte...) (CHECK_UNIT_SCHEMA.KO=Échec lors de la vérification globale de l''unité archivistique).
+  - KO : au moins un champ de l'unité archivistique n'est pas valide (titre vide, date incorrecte...) (CHECK_UNIT_SCHEMA.KO=Échec lors du contrôle additionnel sur la validité des champs de l'unité archivistique).
 
-  - FATAL : la vérification de l'unité archivistique n'a pu être effectuée suite à une erreur système (CHECK_UNIT_SCHEMA.FATAL=Erreur fatale de la vérification globale de l''unité archivistique).
+  - FATAL : la vérification de l'unité archivistique n'a pu être effectuée suite à une erreur système (CHECK_UNIT_SCHEMA.FATAL=Erreur fatale du contrôle additionnel sur la validité des champs de l'unité archivistique).
 
 Application des règles de gestion et calcul des dates d'échéances (UNITS_RULES_COMPUTE)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -553,6 +553,10 @@ D'une façon synthétique, le workflow est décrit de cette façon :
       - Vérification du GUID de la structure de rattachement
 
       - Vérification de la cohérence entre l'unit rattachée et l'unit de rattachement.
+
+      - Vérification des problèmes d'encodage dans le manifeste
+
+      - Vérification que les objets ayant un groupe d'objet ne référencent pas directement les unités archivistiques
 
     * Contient CHECK_CONSISTENCY (CheckObjectUnitConsistencyActionHandler.java) :
 

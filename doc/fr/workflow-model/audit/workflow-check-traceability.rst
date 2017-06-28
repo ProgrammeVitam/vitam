@@ -1,5 +1,5 @@
-TRACEABILITY : Workflow de contrôle d'intégrité d'un journal sécurisé
-#####################################################################
+Workflow de contrôle d'intégrité d'un journal sécurisé
+######################################################
 
 Introduction
 ============

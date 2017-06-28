@@ -1,25 +1,27 @@
-INGEST : Workflow d'entrée d'un plan de classement
-##################################################
+Workflow d'import d'un arbre de positionnement
+##############################################
 
 Introduction
 ============
 
-Cette section décrit le processus (workflow-plan) d'entrée d'un plan de classement dans la solution logicielle Vitam. La structure d'un plan de classement diffère de celle d'un SIP dans le fait qu'un plan ne doit pas avoir d'objets et n'utilise pas de profil. Il s'agit plus simplement d'une arborescence représenté par des unités archivistiques. Ce processus partage donc certaines étapes avec celui du versement d'un SIP classique, en ignorent certaines et rajoute des tâches additionnelles.
+Cette section décrit le processus (workflow-tree) permettant d'importer un arbre de positionnement dans la solution logicielle Vitam. La structure d'un arbre de positionnement diffère de celle d'un SIP en plusieurs points.
 
-Le workflow actuel mis en place dans la solution logicielle Vitam est défini dans le fichier "DefaultFilingSchemeWorkflow.json".
+Un arbre ne doit pas avoir d'objets et n'utilise ni de service producteur ni de contrat. Il s'agit plus simplement d'une arborescence représenté par des unités archivistiques. Ce processus partage donc certaines étapes avec celui du versement d'un SIP classique, en ignore certaines et rajoute des tâches additionnelles.
 
-Processus d'entrée d'un plan de classement (vision métier)
-==========================================================
+Le workflow mis en place dans la solution logicielle Vitam est défini dans le fichier "DefaultHoldingSchemeWorkflow.json"
 
-Le processus d'entrée d'un plan est identique au workflow d'entrée d'un SIP, il début lors de l'entrée d'un plan de classement dans la solution logicielle Vitam. De plus, toutes les étapes et actions sont journalisées dans le journal des opérations.
+Processus d'import d'un arbre (vision métier)
+=============================================
 
-- Un workflow-plan est un processus composé d’étapes elles-mêmes composées d’une liste d’actions
+Le processus d'import d'un arbre est identique au workflow d'entrée d'un SIP, il débute lors du lancement du chargement de l'arbre dans la solution logicielle Vitam. De plus, toutes les étapes et actions sont journalisées dans le journal des opérations.
+
+- Un workflow-tree est un processus composé d’étapes elles-mêmes composées d’une liste d’actions
 
 - Chaque étape et chaque action peuvent avoir les statuts suivants : OK, KO, Warning, FATAL
 
 - Chaque action peut avoir les modèles d'éxécutions : Bloquant ou Non bloquant
 
-Les étapes et actions associées ci-dessous décrivent le processus d'entrée (clé et description de la clé associée dans le journal des opérations), non encore abordées dans la description de l'entrée d'un SIP.
+Les étapes et actions associées ci-dessous décrivent le processus d'import (clé et description de la clé associée dans le journal des opérations), non encore abordées dans la description de l'entrée d'un SIP.
 
 
 Traitement additionnel dans la tâche CHECK_DATAOBJECTPACKAGE
@@ -37,13 +39,12 @@ Traitement additionnel dans la tâche CHECK_DATAOBJECTPACKAGE
 
   - FATAL : une erreur technique est survenue lors de la vérification de la non existence d'objet numérique (CHECK_DATAOBJECTPACKAGE.CHECK_NO_OBJECT.FATAL=Erreur fatale lors de la vérification de l'absence d''objet)
 
-
   D'une façon synthétique, le workflow est décrit de cette façon :
 
-.. image:: images/Workflow_FilingScheme.jpg
+  .. figure:: images/Workflow_HoldingScheme.jpg
     :align: center
 
-Diagramme d'activité du workflow du plan de classement
+    Diagramme d'activité du workflow de l'arbre de positionnement
 
 - **Step 1** - STP_INGEST_CONTROL_SIP : Check SIP  / distribution sur REF GUID/SIP/manifest.xml
 
@@ -63,15 +64,9 @@ Diagramme d'activité du workflow du plan de classement
 
     + Test de l'existence du service producteur dans le bordereau
 
-    + Contient CHECK_CONTRACT_INGEST (CheckIngestContractActionHandler.java) :
-
-      - Recherche le nom de contrat d'entrée dans le SIP,
-
-      - Vérification de la validité de contrat par rapport la référentiel de contrats importée dans le système
-
   * CHECK_DATAOBJECTPACKAGE (CheckDataObjectPackageActionHandler.java)
 
-    + Contient CHECK_NO_OBJECT
+    + Contient CHECK_NO_OBJECT (CheckNoObjectsActionHandler.java)
 
       - Vérification de la non existence d'objets
 
@@ -79,14 +74,13 @@ Diagramme d'activité du workflow du plan de classement
 
       - Comptage des objets (BinaryDataObject) dans le manifest.xml en s'assurant de l'absence de doublon, que le nombre d'objets binaires reçus est strictement égal au nombre d'objets attendus
 
-      - Création de la liste des objets binaires dans le workspace GUID/SIP/content/,
+      - Création de la liste des objets dans le workspace GUID/SIP/content/,
 
       - Comparaison du nombre et des URI des objets binaires contenus dans le SIP avec ceux définis dans le manifeste.
 
-
     * Contient CHECK_MANIFEST (ExtractSedaActionHandler.java) :
 
-      - Extraction des ArchiveUnits, des BinaryDataObject,
+      - Extraction des ArchiveUnits, des BinaryDataObject, des PhysicalDataObject,
 
       - Création des journaux de cycle de vie des ArchiveUnits et des ObjectGroup,
 
@@ -99,17 +93,13 @@ Diagramme d'activité du workflow du plan de classement
       - Vérification du GUID de la structure de rattachement,
 
       - Vérification de la cohérence entre l'unit rattachée et l'unit de rattachement.
+      
+      - Vérification des problèmes d'encodage dans le manifeste
+
+      - Vérification que les objets ayant un groupe d'objet ne référencent pas directement les unités archivistiques
 
 
-- **Step 2** - STP_UNIT_CHECK_AND_PROCESS : Contrôle et traitements des units / distribution sur LIST GUID
-
-  * UNITS_RULES_COMPUTE (UnitsRulesComputePlugin.java) :
-
-    + vérification de l'existence de la règle dans le référentiel des règles de gestion
-
-  * calcul des échéances associées à chaque ArchiveUnit.
-
-- **Step 3** - STP_UNIT_STORING : Rangement des unités archivistique / distribution sur LIST GUID/Units
+- **Step 2** - STP_UNIT_STORING : Rangement des unités archivistique / distribution sur LIST GUID/Units
 
   * UNIT_METADATA_INDEXATION (IndexUnitActionPlugin.java) :
 
@@ -123,13 +113,7 @@ Diagramme d'activité du workflow du plan de classement
 
       + Sécurisation en base des journaux de cycle de vie des unités archivistiques
 
-- **Step 4** - STP_ACCESSION_REGISTRATION : Alimentation du registre des fonds
-
-  * ACCESSION_REGISTRATION (AccessionRegisterActionHandler.java) :
-
-    + Création/Mise à jour et enregistrement des collections AccessionRegisterDetail et AccessionRegisterSummary concernant les archives prises en compte, par service producteur.
-
-- **Step 5 et finale** - STP_INGEST_FINALISATION : Finalisation de l'entrée. Cette étape est obligatoire et sera toujours exécutée, en dernière position.
+- **Step 3 et finale** - STP_INGEST_FINALISATION : Finalisation de l'entrée. Cette étape est obligatoire et sera toujours exécutée, en dernière position.
 
   * ATR_NOTIFICATION (TransferNotificationActionHandler.java) :
 
