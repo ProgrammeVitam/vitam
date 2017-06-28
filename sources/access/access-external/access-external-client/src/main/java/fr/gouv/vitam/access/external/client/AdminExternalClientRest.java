@@ -19,6 +19,7 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalNotFoundExce
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
+import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
@@ -26,6 +27,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 
 /**
@@ -105,12 +107,30 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
                 select, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE, false);
 
-            if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
-                throw new AccessExternalClientNotFoundException(URI_NOT_FOUND);
-            } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
-                throw new AccessExternalClientException(REQUEST_PRECONDITION_FAILED);
+            RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
+            if (!requestResponse.isOk()) {
+                return requestResponse;
+            } else {
+                final VitamError vitamError =
+                    new VitamError(VitamCode.ADMIN_EXTERNAL_FIND_DOCUMENT_BY_ID_ERROR.getItem())
+                        .setMessage(VitamCode.ADMIN_EXTERNAL_FIND_DOCUMENT_BY_ID_ERROR.getMessage())
+                        .setState(StatusCode.KO.name())
+                        .setContext("AdminExternalModule")
+                        .setDescription(VitamCode.ADMIN_EXTERNAL_FIND_DOCUMENT_BY_ID_ERROR.getMessage());
+
+                if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
+                    return  vitamError.setHttpCode(Status.NOT_FOUND.getStatusCode())
+                        .setDescription(VitamCode.ADMIN_EXTERNAL_FIND_DOCUMENT_ERROR.getMessage() + " Cause : " +
+                            Status.NOT_FOUND.getReasonPhrase());
+                } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
+                    return  vitamError.setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
+                        .setDescription(VitamCode.ADMIN_EXTERNAL_FIND_DOCUMENT_ERROR.getMessage() + " Cause : " +
+                            Status.PRECONDITION_FAILED.getReasonPhrase());
+                } else {
+                    return requestResponse;
+                }
             }
-            return RequestResponse.parseFromResponse(response);
+
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
@@ -130,12 +150,29 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             response = performRequest(HttpMethod.POST, documentType.getName() + "/" + documentId, headers,
                 MediaType.APPLICATION_JSON_TYPE);
 
-            if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
-                throw new AccessExternalClientNotFoundException(URI_NOT_FOUND);
-            } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
-                throw new AccessExternalClientException(REQUEST_PRECONDITION_FAILED);
+            RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
+            if (!requestResponse.isOk()) {
+                return requestResponse;
+            } else {
+                final VitamError vitamError = new VitamError(VitamCode.ADMIN_EXTERNAL_FIND_DOCUMENT_BY_ID_ERROR.getItem())
+                    .setMessage(VitamCode.ADMIN_EXTERNAL_FIND_DOCUMENT_BY_ID_ERROR.getMessage())
+                    .setState(StatusCode.KO.name())
+                    .setContext("AdminExternalModule")
+                    .setDescription(VitamCode.ADMIN_EXTERNAL_FIND_DOCUMENT_BY_ID_ERROR.getMessage());
+
+                if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
+                    return  vitamError.setHttpCode(Status.UNAUTHORIZED.getStatusCode())
+                        .setDescription(VitamCode.ADMIN_EXTERNAL_FIND_DOCUMENT_BY_ID_ERROR.getMessage() + " Cause : " +
+                            Status.UNAUTHORIZED.getReasonPhrase());
+                } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
+                    return  vitamError.setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
+                        .setDescription(VitamCode.ADMIN_EXTERNAL_FIND_DOCUMENT_BY_ID_ERROR.getMessage() + " Cause : " +
+                            Status.PRECONDITION_FAILED.getReasonPhrase());
+                } else {
+                    return requestResponse;
+                }
             }
-            return RequestResponse.parseFromResponse(response);
+
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
@@ -157,6 +194,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             response = performRequest(HttpMethod.POST, collection.getName(), headers,
                 contracts, MediaType.APPLICATION_OCTET_STREAM_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
+
+
             // FIXME quick fix for response OK, adapt response for all response types
             if (response.getStatus() == Response.Status.OK.getStatusCode() ||
                 response.getStatus() == Response.Status.CREATED.getStatusCode()) {
