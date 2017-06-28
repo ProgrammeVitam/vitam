@@ -98,12 +98,12 @@
 						<th ng-show="ctrl.hasPermission('traceability:content:read')" >Télécharger</th>
 					</tr>
 
-					<tbody ng-init="logDetails=log.events[log.events.length-1].evDetData" ng-click="ctrl.goToDetails(log.evIdProc)"
+					<tbody ng-init="logDetails=log.events[log.events.length-1].evDetData"
 						   ng-repeat='log in ctrl.operationList | startFrom:(ctrl.currentPage-1)*ctrl.itemsPerPage | limitTo:ctrl.itemsPerPage'>
 					<tr>
-						<td>{{logDetails.LogType}}</td>
-						<td>{{logDetails.StartDate | vitamFormatDate}}</td>
-						<td>{{logDetails.EndDate | vitamFormatDate}}</td>
+						<td ng-click="ctrl.goToDetails(log.evIdProc)">{{logDetails.LogType}}</td>
+						<td ng-click="ctrl.goToDetails(log.evIdProc)">{{logDetails.StartDate | vitamFormatDate}}</td>
+						<td ng-click="ctrl.goToDetails(log.evIdProc)">{{logDetails.EndDate | vitamFormatDate}}</td>
 						<td ng-show="ctrl.hasPermission('traceability:content:read')">
 							<a href="" ng-click="ctrl.downloadOperation(log.evIdProc)">
 								<i class="material-icons">file_download</i>
