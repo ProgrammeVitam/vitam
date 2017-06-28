@@ -30,10 +30,14 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.processing.common.automation.IEventsState;
+import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.common.model.WorkFlow;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+
+
 
 /**
  * ProcessManagement interface
@@ -117,6 +121,7 @@ public interface ProcessManagement extends VitamAutoCloseable {
      */
     ProcessWorkflow findOneProcessWorkflow(String operationId, Integer tenantId);
 
+
     /**
      * Retrieve the loaded workflow definitions
      * 
@@ -132,4 +137,21 @@ public interface ProcessManagement extends VitamAutoCloseable {
      * @return filtered process list
      */
     JsonNode getFilteredProcess(ProcessQuery query, Integer tenantId);
+
+    /**
+     *
+     * @return WorkFlow List
+     */
+    Map<Integer, Map<String, ProcessWorkflow>> getWorkFlowList();
+    /**
+     * sProcessMonitorList
+     * @return
+     */
+    Map<String, IEventsState>  getProcessMonitorList();
+    /**
+     *server configuration
+     * @return
+     */
+    ServerConfiguration getConfiguration();
+
 }
