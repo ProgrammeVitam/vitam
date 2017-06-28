@@ -115,7 +115,7 @@ public class ApplicativeTestResource {
     /**
      * return a specific report according to his name.
      * @param fileName name of the report
-     * @return
+     * @return 200 if report is ok, 404 if exception occurs
      * @throws IOException
      */
     @GET

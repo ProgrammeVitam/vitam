@@ -123,7 +123,7 @@ public class ProfileManager {
      * @param profileModel
      * @param inputStream
      * @param error
-     * @return
+     * @return boolean true/false
      */
     public boolean validateProfileFile(ProfileModel profileModel, InputStream inputStream, VitamError error) {
 
@@ -148,7 +148,7 @@ public class ProfileManager {
      * Juste check if inputStream is xml valide
      * @param inputStream
      * @param error
-     * @return
+     * @return boolean true/false
      */
     public boolean validateXSD(InputStream inputStream, VitamError error) {
 
@@ -184,7 +184,7 @@ public class ProfileManager {
      *
      * @param inputStream
      * @param error
-     * @return
+     * @return boolean true/false
      */
     public boolean validateRNG(InputStream inputStream, VitamError error) {
 

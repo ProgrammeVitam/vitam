@@ -150,7 +150,7 @@ public class VitamCounterService {
      *
      * @param tenant
      * @param code
-     * @return
+     * @return String
      * @throws InvalidCreateOperationException
      * @throws InvalidParseOperationException
      * @throws ReferentialException

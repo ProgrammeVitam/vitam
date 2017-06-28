@@ -84,7 +84,7 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
 
     /**
      *
-     * @return
+     * @return loggingDirectory
      */
     public String getLoggingDirectory() {
         return loggingDirectory;
@@ -100,7 +100,7 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
 
     /**
      *
-     * @return
+     * @return zippingDirecorty
      */
     public String getZippingDirecorty() {
         return zippingDirecorty;

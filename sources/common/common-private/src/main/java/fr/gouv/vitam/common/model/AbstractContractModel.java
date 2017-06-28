@@ -116,7 +116,7 @@ public class AbstractContractModel {
 
     /**
      * Get the identifier of the contract
-     * @return
+     * @return String
      */
     public String getIdentifier() {
         return identifier;
@@ -126,7 +126,7 @@ public class AbstractContractModel {
      * Set the identifier of the contract
      * This value must be unique by tenant
      * @param identifier as String
-     * @return
+     * @return this
      */
     public AbstractContractModel setIdentifier(String identifier) {
         this.identifier = identifier;

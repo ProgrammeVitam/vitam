@@ -56,7 +56,7 @@ public class LogInformation {
 
     /**
      * get begin log time
-     * @return
+     * @return LocalDateTime beginTime
      */
     public LocalDateTime getBeginTime() {
         return beginTime;
@@ -64,7 +64,7 @@ public class LogInformation {
 
     /**
      * get end log file time
-     * @return
+     * @return LocalDateTime endTime
      */
     public LocalDateTime getEndTime() {
         return endTime;

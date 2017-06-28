@@ -44,7 +44,6 @@ public class TestVitamClientFactory<T extends BasicClient> extends VitamClientFa
     /**
      * @param serverPort
      * @param resourcePath
-     * @param suppressHttpCompliance
      */
     public TestVitamClientFactory(int serverPort, String resourcePath) {
         super(new ClientConfigurationImpl(LOCALHOST, serverPort), resourcePath);

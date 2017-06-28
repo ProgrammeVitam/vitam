@@ -100,7 +100,7 @@ public class PerformanceService {
     /**
      * indicate if a report is in progress
      *
-     * @return
+     * @return boolean true/false
      */
     public boolean inProgress() {
         return performanceTestInProgress.get();
@@ -205,7 +205,7 @@ public class PerformanceService {
     /**
      * list all the sip
      *
-     * @return
+     * @return list of Path
      * @throws IOException
      */
     public List<Path> listSipDirectory() throws IOException {
@@ -226,7 +226,7 @@ public class PerformanceService {
     /**
      * list all reports
      *
-     * @return
+     * @return list of path
      * @throws IOException
      */
     public List<Path> listReportDirectory() throws IOException {
@@ -241,7 +241,7 @@ public class PerformanceService {
      * return an InputStream for a reportName
      *
      * @param reportName path of the report
-     * @return
+     * @return InputStream
      * @throws IOException
      */
     public InputStream readReport(String reportName) throws IOException {

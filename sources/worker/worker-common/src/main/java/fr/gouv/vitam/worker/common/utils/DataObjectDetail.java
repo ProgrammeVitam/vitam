@@ -55,8 +55,6 @@ public class DataObjectDetail {
      * Sets the version
      * 
      * @param version the version to set
-     *
-     * @return this
      */
     public void setVersion(String version) {
         this.version = version;
@@ -66,8 +64,6 @@ public class DataObjectDetail {
      * Sets the physical
      * 
      * @param physical the physical to set
-     *
-     * @return this
      */
     public void setPhysical(boolean physical) {
         this.physical = physical;

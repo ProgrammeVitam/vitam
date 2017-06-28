@@ -282,7 +282,7 @@ public class VitamLogbookMessages {
 
     /**
      *
-     * @return
+     * @return String
      */
     public static final String getSeparator() {
         return SEPARATOR;
@@ -291,7 +291,7 @@ public class VitamLogbookMessages {
     /**
      *
      * @param key
-     * @return
+     * @return boolean true/false
      */
     public static final boolean containsKey(String key) {
         return VITAM_MESSAGES.messages.containsKey(key);

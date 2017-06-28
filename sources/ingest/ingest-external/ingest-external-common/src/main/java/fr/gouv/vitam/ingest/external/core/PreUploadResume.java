@@ -56,42 +56,42 @@ public class PreUploadResume {
     }
 
     /**
-     * @return
+     * @return LogbookTypeProcess
      */
     public LogbookTypeProcess getLogbookTypeProcess() {
         return logbookTypeProcess;
     }
 
     /**
-     * @return
+     * @return LogbookOperationParameters
      */
     public LogbookOperationParameters getStartedParameters() {
         return startedParameters;
     }
 
     /**
-     * @return
+     * @return WorkspaceFileSystem
      */
     public WorkspaceFileSystem getWorkspaceFileSystem() {
         return workspaceFileSystem;
     }
 
     /**
-     * @return
+     * @return String
      */
     public String getContextWithExecutionMode() {
         return contextWithExecutionMode;
     }
 
     /**
-     * @return
+     * @return LogbookOperationsClientHelper
      */
     public LogbookOperationsClientHelper getHelper() {
         return helper;
     }
 
     /**
-     * @return
+     * @return String
      */
     public String getEventType() {
         return eventType;

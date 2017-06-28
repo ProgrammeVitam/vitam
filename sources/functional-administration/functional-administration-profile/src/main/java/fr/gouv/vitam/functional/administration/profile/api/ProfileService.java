@@ -73,7 +73,7 @@ public interface ProfileService extends VitamAutoCloseable {
      * TODO 4. In case of rng, check if RG exists ?!
      * @param profileMetadataId
      * @param profileFile
-     * @return
+     * @return RequestResponseOK if success or VitamError
      * @throws VitamException
      */
     public RequestResponse importProfileFile(String profileMetadataId,
@@ -109,7 +109,7 @@ public interface ProfileService extends VitamAutoCloseable {
      * Find profile by id
      * 
      * @param id
-     * @return
+     * @return ProfileModel
      */
     public ProfileModel findOne(String id) throws ReferentialException, InvalidParseOperationException;
 
@@ -118,7 +118,7 @@ public interface ProfileService extends VitamAutoCloseable {
      * Find profile by identifier
      *
      * @param identifier
-     * @return
+     * @return ProfileModel
      */
     public ProfileModel findByIdentifier(String identifier) throws ReferentialException, InvalidParseOperationException;
 
@@ -127,7 +127,7 @@ public interface ProfileService extends VitamAutoCloseable {
      * find Profile by QueryDsl
      * 
      * @param queryDsl
-     * @return
+     * @return list of ProfileModel
      */
     public List<ProfileModel> findProfiles(JsonNode queryDsl) throws ReferentialException, InvalidParseOperationException;
 

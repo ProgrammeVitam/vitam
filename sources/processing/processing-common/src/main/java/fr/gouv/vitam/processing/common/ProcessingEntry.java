@@ -88,7 +88,7 @@ public class ProcessingEntry {
     }
 
     /**
-     * @return the extra parameters used to create a process entry
+     * @param extraParams
      */
     public void setExtraParams(Map<String, String> extraParams) {
         this.extraParams = extraParams;

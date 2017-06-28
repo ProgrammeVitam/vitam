@@ -221,7 +221,7 @@ public class IngestContract extends VitamDocument<IngestContract> {
     /**
      * Set the collection of archive profiles
      * @param archiveProfiles
-     * @return
+     * @return this
      */
     public IngestContract setArchiveProfiles(Set<String> archiveProfiles) {
         append(ARCHIVEPROFILES, archiveProfiles);

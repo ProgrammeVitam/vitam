@@ -454,7 +454,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         /**
          * Validate that contract have not a missing mandatory parameter
          * 
-         * @return
+         * @return GenericContractValidator
          */
         private static GenericContractValidator<IngestContractModel> createMandatoryParamsValidator() {
             return (contract, jsonFormat) -> {
@@ -471,7 +471,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         /**
          * Set a default value if null
          * 
-         * @return
+         * @return GenericContractValidator
          */
         private static GenericContractValidator createWrongFieldFormatValidator() {
             return (contract, inputList) -> {
@@ -542,7 +542,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         /**
          * Check if the contract the same name already exists in database
          * 
-         * @return
+         * @return GenericContractValidator
          */
         private static GenericContractValidator createCheckDuplicateInDatabaseValidator() {
             return (contract, contractName) -> {
@@ -560,7 +560,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         /**
          * Check if the profiles exists bien dans la base de données
          *
-         * @return
+         * @return GenericContractValidator
          */
         public static GenericContractValidator<IngestContractModel> createCheckProfilesExistsInDatabaseValidator() {
             return (contract, contractName) -> {

@@ -165,7 +165,7 @@ public class VitamSession {
 	/**
 	 *
 	 *
-	 * @return
+	 * @return AccessContractModel
 	 */
 	public AccessContractModel getContract() {
 		return contract;

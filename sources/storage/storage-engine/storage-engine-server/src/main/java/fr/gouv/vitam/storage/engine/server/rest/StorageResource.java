@@ -1214,7 +1214,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     /**
      * Getter of Storage service
      * 
-     * @return
+     * @return StorageLogbookService
      */
     public StorageLogbookService getStorageLogbookService() {
         return storageLogbookService;

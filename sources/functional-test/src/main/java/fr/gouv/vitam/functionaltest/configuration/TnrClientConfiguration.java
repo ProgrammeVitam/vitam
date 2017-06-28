@@ -45,7 +45,7 @@ public class TnrClientConfiguration {
     }
 
     /**
-     * @return
+     * @return urlWorkspace
      */
     public String getUrlWorkspace() {
         return urlWorkspace;

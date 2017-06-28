@@ -142,7 +142,7 @@ public class ContractResource {
      * Find ingest contracts by queryDsl
      *
      * @param queryDsl
-     * @return
+     * @return Response
      */
     @GET
     @Path(INGEST_CONTRACTS_URI)
@@ -272,7 +272,7 @@ public class ContractResource {
     /**
      * find access contracts by queryDsl
      *
-     * @return
+     * @return Response
      */
     @Path(ACCESS_CONTRACTS_URI)
     @GET

@@ -58,7 +58,9 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
  * 
  * @see SwiftApi
  * @see BlobStoreContext
- * @see <a href="https://github.com/jclouds/jclouds/pull/1046">https://github.com/jclouds/jclouds/pull/1046</a>
+ * @see <a href="https://github.com/jclouds/jclouds/pull/1046">
+ *          https://github.com/jclouds/jclouds/pull/1046
+ *      </a>
  * 
  *      <br/>
  *      Managing the header name in the TempAuth (Identity Protocol v1)

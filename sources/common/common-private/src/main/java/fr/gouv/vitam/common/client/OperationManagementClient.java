@@ -99,7 +99,6 @@ public interface OperationManagementClient extends MockOrRestClient {
      * 
      * 
      * @param contextId :define the execution context of workflow
-     * @return Response response containing message and status
      * @throws VitamClientException
      * @throws VitamException
      */
@@ -113,7 +112,7 @@ public interface OperationManagementClient extends MockOrRestClient {
      * @param actionId
      * @param container
      * @param workflow
-     * @return
+     * @return ItemStatus
      * @throws InternalServerException
      * @throws BadRequestException
      * @throws VitamClientException
@@ -129,7 +128,6 @@ public interface OperationManagementClient extends MockOrRestClient {
      * @param contextId
      * @param container
      * @param workflow
-     * @return status code
      * @throws InternalServerException
      * @throws VitamClientException
      * @throws BadRequestException

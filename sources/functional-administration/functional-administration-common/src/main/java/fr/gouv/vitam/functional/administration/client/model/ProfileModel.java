@@ -126,7 +126,7 @@ public class ProfileModel {
 
     /**
      * Get the identifier of the profile
-     * @return
+     * @return identifier as String
      */
     public String getIdentifier() {
         return identifier;
@@ -136,7 +136,7 @@ public class ProfileModel {
      * Set the identifier of the profile
      * This value must be unique by tenant
      * @param identifier as String
-     * @return
+     * @return this
      */
     public ProfileModel setIdentifier(String identifier) {
         this.identifier = identifier;
@@ -211,7 +211,7 @@ public class ProfileModel {
     /**
      * Set the profile file format (xsd, rng, ...)
      * @param format
-     * @return
+     * @return this
      */
     public ProfileModel setFormat(ProfileFormat format) {
         this.format = format;
@@ -220,7 +220,7 @@ public class ProfileModel {
 
     /**
      *
-     * @return
+     * @return path as String
      */
     public String getPath() {
         return path;
@@ -229,7 +229,7 @@ public class ProfileModel {
     /**
      * Profile path in storage
      * @param path
-     * @return
+     * @return this
      */
     public ProfileModel setPath(String path) {
         this.path = path;
