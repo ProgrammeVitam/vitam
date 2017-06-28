@@ -145,7 +145,7 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
                 final String err = "Sanity Checker failed for Archive Unit: "+e.getMessage();
                 LOGGER.error(err);
                 throw new ArchiveUnitContainSpecialCharactersException(err);
-            }            
+            }
             return validator.validateUnit(archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT));
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("File couldnt be converted into json", e);
