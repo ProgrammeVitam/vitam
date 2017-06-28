@@ -8,9 +8,7 @@ Lancer une opération de sécurisation
 
 L'interface de lancement est accessible par le menu : Menu > Sécurisation du journal des opérations
 
-L'interface contient simplement un bouton "Générer le journal des opérations". Au clic sur ce bouton, le système va lancer l'opération de sécurisation des journaux. Elle prendra en compte tous les journaux du dernier créé au dernier non sécurisé.
-
-Il est également possible d'afficher le JSON de résultat en cliquant sur le lien nommé "Lien vers les résulstats Json". Le fichier apparait en plein écran et il est possile de l'enregistrer.
+L'interface contient simplement un bouton "Générer le journal des opérations". Au clic sur ce bouton, le système va lancer l'opération de sécurisation des journaux. Elle prendra en compte tous les journaux du dernier créé au dernier non sécurisé. Un message s'affiche alors sur l'écran précisant le succès de l'opération.
 
 .. image:: images/RECETTE_lancer_secu.png
 
@@ -35,6 +33,6 @@ Il contient les fichiers suivants :
 Journalisation des opérations de sécurisation
 =============================================
 
-La sécurisation des journaux des opérations donne lieu à la création d'un journal des opérations de type TRACEABILITY. 
+La sécurisation des journaux des opérations donne lieu à la création d'un journal des opérations de type TRACEABILITY, consultable depuis l'IHM Démo. 
 
 Ces journaux sont créés par tenant.

@@ -7,7 +7,7 @@ Principes généraux
 Avertissement
 -------------
 
-L'IHM de recette est développée à des fins de tests uniquement.
+L'IHM de recette est développée à des fins de test uniquement.
 
 **Elle n'a aucunement vocation à être utilisée en production**
 
@@ -34,7 +34,7 @@ Titre des onglets
 
 Sur IHM recette, le titre des pages est celui du dernier nœud du fil d’Ariane, précédé du mot “Recette -”. Par exemple :
 
-* Recette - Test SOAP-UI
+* Recette - Test Fonctionnels
 * Recette - Administration des collections
 
 Sélection d'un tenant
@@ -43,7 +43,7 @@ Sélection d'un tenant
 Lors de la connexion, l'utilisateur n'est positionné sur aucun tenant.
 De ce fait, ses actions d'administration sont restreintes car celles-ci sont pour la plupart liées à un tenant. Par défaut, un certain nombre de boutons sont donc grisés et inactifs.
 
-Pour sélectionner un tenant, il suffit de choisir celui désiré dans le menu déroulant en haut à droite de l'écran et de valider sa sélection.
+Pour sélectionner un tenant, il suffit de choisir celui désiré dans le menu déroulant en haut à droite de l'écran et de valider sa sélection en cliquant sur le bouton "Accéder".
 
 .. image:: images/selection_tenant.png
 
@@ -65,6 +65,7 @@ Le menu de navigation contient les entrées suivantes :
   * Transfert (test de performance)
   * Sécurisation d'un journal des opérations
   * Tests fonctionnels
+  * Tests requêtes DSL
 
 .. image:: images/RECETTE_navigation.png
 

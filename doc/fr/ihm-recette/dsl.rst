@@ -14,7 +14,7 @@ Champs disponibles
 
 **Collection** : champ obligatoire. Liste permettant de sélectionner la collection sur laquelle la requête va être exécutée.
 
-**Action** : champ obligatoire. Liste permettant de sélectionner le type d'action à effectuer. 
+**Action** : champ obligatoire. Liste permettant de sélectionner le type d'action à effectuer. Actuellement, il n'est possible de sélectionner que "Rechercher", sauf pour la collection "Contexte" qui a également l'option "Mise à jour".
 
 **Identifiant** : champs optionnel. Permet de renseigner le GUID de l'objet recherché.
 
