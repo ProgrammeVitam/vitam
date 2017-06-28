@@ -18,6 +18,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
+import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -62,10 +63,8 @@ public class LogbookExternalResourceImplTest {
     private static final String OPERATIONS_URI = "/operations";
     private static final String OPERATION_ID_URI = "/{id_op}";
 
-    private static final String CHECK_TRACEABILITY_OPERATION_URI = "traceability/check";
-    private static final String TRACEABILITY_OPERATION_BASE_URI = "traceability/";
-    private static final String TRACEABILITY_OPERATION_CONTENT_URI = "/content";
-
+    private static final String CHECK_TRACEABILITY_OPERATION_URI =  AccessExtAPI.TRACEABILITY_API + "/check";
+    private static final String TRACEABILITY_OPERATION_BASE_URI = AccessExtAPI.TRACEABILITY_API  + "/";
 
     private static final String MOCK_SELECT_RESULT = "{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
         "    \"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
@@ -660,15 +659,6 @@ public class LogbookExternalResourceImplTest {
             .body(JsonHandler.getFromString(request))
             .when()
             .post(CHECK_TRACEABILITY_OPERATION_URI)
-            .then().statusCode(Status.OK.getStatusCode());
-    }
-
-    @Test
-    public void testDownloadTraceabilityOperationFile() throws InvalidParseOperationException {
-        given()
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when()
-            .get(TRACEABILITY_OPERATION_BASE_URI + TRACEABILITY_OPERATION_ID + TRACEABILITY_OPERATION_CONTENT_URI)
             .then().statusCode(Status.OK.getStatusCode());
     }
 }

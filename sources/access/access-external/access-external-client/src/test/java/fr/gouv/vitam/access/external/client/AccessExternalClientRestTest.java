@@ -26,6 +26,7 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -302,7 +303,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         }
 
         @POST
-        @Path("/accession-register")
+        @Path(AccessExtAPI.ACCESSION_REGISTERS_API)
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response findAccessionRegister(@PathParam("id_op") String operationId,
@@ -312,7 +313,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         }
 
         @POST
-        @Path("/accession-register/{id_document}/accession-register-detail")
+        @Path(AccessExtAPI.ACCESSION_REGISTERS_API + "/{id_document}/accession-register-detail")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response findAccessionRegisterDetail(@PathParam("id_op") String operationId,
@@ -325,7 +326,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         // Functionalities related to TRACEABILITY operation
 
         @POST
-        @Path("/traceability/check")
+        @Path(AccessExtAPI.TRACEABILITY_API + "/check")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response checkTraceabilityOperation(JsonNode query)
@@ -334,7 +335,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         }
 
         @GET
-        @Path("/traceability/{idOperation}/content")
+        @Path(AccessExtAPI.TRACEABILITY_API + "/{idOperation}")
         @Produces(MediaType.APPLICATION_OCTET_STREAM)
         public Response downloadTraceabilityOperationFile(@PathParam("idOperation") String operationId)
             throws InvalidParseOperationException {

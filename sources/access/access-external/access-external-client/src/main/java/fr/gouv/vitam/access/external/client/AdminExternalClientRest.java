@@ -10,6 +10,7 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
@@ -36,9 +37,9 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
 
     private static final String URI_NOT_FOUND = "URI not found";
     private static final String REQUEST_PRECONDITION_FAILED = "Request precondition failed";
-    private static final String UPDATE_ACCESS_CONTRACT = "/accesscontract/";
-    private static final String UPDATE_INGEST_CONTRACT = "/contract/";
-    private static final String UPDATE_CONTEXT = "/context/";
+    private static final String UPDATE_ACCESS_CONTRACT = AccessExtAPI.ACCESS_CONTRACT_API_UPDATE + "/";
+    private static final String UPDATE_INGEST_CONTRACT = AccessExtAPI.ENTRY_CONTRACT_API_UPDATE + "/";
+    private static final String UPDATE_CONTEXT = AccessExtAPI.CONTEXTS_API_UPDATE + "/";
 
     AdminExternalClientRest(AdminExternalClientFactory factory) {
         super(factory);

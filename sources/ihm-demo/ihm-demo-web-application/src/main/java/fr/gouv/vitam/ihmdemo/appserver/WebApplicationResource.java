@@ -1674,7 +1674,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             RequestResponse response =
-                adminClient.importContracts(input, getTenantId(headers), AdminCollections.CONTRACTS);
+                adminClient.importContracts(input, getTenantId(headers), AdminCollections.ENTRY_CONTRACTS);
             if (response != null && response instanceof RequestResponseOK) {
                 return Response.status(Status.OK).build();
             }
@@ -1709,7 +1709,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
             try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
                 RequestResponse response =
-                    adminClient.findDocuments(AdminCollections.CONTRACTS, query, getTenantId(headers));
+                    adminClient.findDocuments(AdminCollections.ENTRY_CONTRACTS, query, getTenantId(headers));
                 if (response != null && response instanceof RequestResponseOK) {
                     return Response.status(Status.OK).entity(response).build();
                 }
@@ -1740,7 +1740,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             RequestResponse response =
-                adminClient.findDocumentById(AdminCollections.CONTRACTS, id, getTenantId(headers));
+                adminClient.findDocumentById(AdminCollections.ENTRY_CONTRACTS, id, getTenantId(headers));
             if (response != null && response instanceof RequestResponseOK) {
                 return Response.status(Status.OK).entity(response).build();
             }

@@ -42,6 +42,7 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
@@ -366,7 +367,7 @@ public class LogbookExternalResourceImpl {
      * @return The verification report == the logbookOperation
      */
     @POST
-    @Path("/traceability/check")
+    @Path(AccessExtAPI.TRACEABILITY_API + "/check")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkOperationTraceability(JsonNode query) {
@@ -399,55 +400,6 @@ public class LogbookExternalResourceImpl {
             LOGGER.error("Contract access does not allow ", e);
             final Status status = Status.UNAUTHORIZED;
             return Response.status(status).entity(getErrorEntity(status)).build();
-        }
-    }
-
-    @GET
-    @Path("/traceability/{idOperation}/content")
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public void downloadTraceabilityFile(@PathParam("idOperation") String operationId,
-        @Suspended final AsyncResponse asyncResponse) {
-
-        ParametersChecker.checkParameter("Traceability operation should be filled", operationId);
-
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-
-        VitamThreadPoolExecutor.getDefaultExecutor()
-            .execute(() -> downloadTraceabilityOperationFile(operationId, asyncResponse));
-    }
-
-    private void downloadTraceabilityOperationFile(String operationId, final AsyncResponse asyncResponse) {
-
-        AsyncInputStreamHelper helper;
-
-        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-
-            final Response response = client.downloadTraceabilityFile(operationId);
-            helper = new AsyncInputStreamHelper(asyncResponse, response);
-            final ResponseBuilder responseBuilder =
-                Response.status(Status.OK)
-                    .header("Content-Disposition", response.getHeaderString("Content-Disposition"))
-                    .type(response.getMediaType());
-            helper.writeResponse(responseBuilder);
-        } catch (final InvalidParseOperationException | IllegalArgumentException exc) {
-            LOGGER.error(exc);
-            final Response errorResponse = Response.status(Status.PRECONDITION_FAILED)
-                .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString())
-                .build();
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
-        } catch (final AccessInternalClientServerException | AccessInternalClientNotFoundException exc) {
-            LOGGER.error(exc.getMessage(), exc);
-            final Response errorResponse =
-                Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR)
-                    .toString()).build();
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
-        } catch (AccessUnauthorizedException e) {
-            LOGGER.error("Contract access does not allow ", e);
-            final Response errorResponse =
-                Response.status(Status.UNAUTHORIZED).entity(getErrorEntity(Status.UNAUTHORIZED)
-                    .toString()).build();
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         }
     }
 }

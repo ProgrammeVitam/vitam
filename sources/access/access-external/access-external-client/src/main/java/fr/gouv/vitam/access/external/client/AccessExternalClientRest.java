@@ -1,7 +1,14 @@
 package fr.gouv.vitam.access.external.client;
 
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.access.external.api.AccessCollections;
+
+import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -20,12 +27,6 @@ import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 
 /**
  * Rest client implementation for Access External
@@ -51,7 +52,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     private static final String LOGBOOK_OPERATIONS_URL = "/operations";
     private static final String LOGBOOK_UNIT_LIFECYCLE_URL = "/unitlifecycles";
     private static final String LOGBOOK_OBJECT_LIFECYCLE_URL = "/objectgrouplifecycles";
-    private static final String LOGBOOK_CHECK = "/traceability/check";
+    private static final String LOGBOOK_CHECK = AccessExtAPI.TRACEABILITY_API + "/check";
     private static final Select emptySelectQuery = new Select();
 
     AccessExternalClientRest(AccessExternalClientFactory factory) {
@@ -429,7 +430,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
 
         try {
-            response = performRequest(HttpMethod.POST, AccessCollections.ACCESSION_REGISTER.getName(), headers,
+            response = performRequest(HttpMethod.POST, AccessExtAPI.ACCESSION_REGISTERS_API, headers,
                 query, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
@@ -461,8 +462,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
         try {
             response = performRequest(HttpMethod.POST,
-                AccessCollections.ACCESSION_REGISTER.getName() + "/" + id + "/" +
-                    AccessCollections.ACCESSION_REGISTER_DETAIL.getName(),
+                AccessExtAPI.ACCESSION_REGISTERS_API + "/" + id + "/" +
+                    AccessExtAPI.ACCESSION_REGISTERS_DETAIL,
                 headers,
                 query, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
@@ -521,7 +522,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
             headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
 
-            response = performRequest(HttpMethod.GET, "traceability/" + operationId + "/content", headers, null,
+            response = performRequest(HttpMethod.GET, AccessExtAPI.TRACEABILITY_API + "/" + operationId, headers, null,
                 null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
             final Status status = Status.fromStatusCode(response.getStatus());

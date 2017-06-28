@@ -30,7 +30,6 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -146,7 +145,7 @@ public class AccessStep {
             String newContract = CONTRACT_WITH_LINK.replace(UNIT_GUID, unitGuid);
             JsonNode node = JsonHandler.getFromString(newContract);
             world.getAdminClient().importContracts(new ByteArrayInputStream(newContract.getBytes()), 
-                world.getTenantId(), AdminCollections.CONTRACTS);
+                world.getTenantId(), AdminCollections.ENTRY_CONTRACTS);
         } catch (AccessExternalClientException | IllegalStateException | InvalidParseOperationException e) {
             // Do Nothing
             LOGGER.warn("Contrat d'entrée est déjà importé");
