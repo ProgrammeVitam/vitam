@@ -1298,7 +1298,7 @@ Registre des fonds
 
 Code : #RFOND1
 
-``API testé: {{accessServiceUrl}}/access-external/v1/accession-register``
+``API testé: {{accessServiceUrl}}/admin-external/v1/accession-registers``
 
 Requête :
 

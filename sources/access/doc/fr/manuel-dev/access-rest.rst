@@ -62,13 +62,13 @@ Rest API
 
 -Accession Register
 
-| POST https://vitam/access-external/v1/accession-register
+| POST https://vitam/admin-external/v1/accession-registers
 	récupérer le registre de fond
 
-| POST https://vitam/access-external/v1/accession-register/document_id
+| POST https://vitam/admin-external/v1/accession-registers/document_id
 	récupérer le registre de fond avec la filtre (le contenu de la requête) et id
 
-| POST https://vitam/access-external/v1/accession-register/document_id/accession-register-detail
+| POST https://vitam/admin-external/v1/accession-registers/document_id/accession-register-detail
 	récupérer le détail du registre de fond avec la filtre (le contenu de la requête) et id
 
 
@@ -127,12 +127,12 @@ Rest API
 
 -Contrat d'accès
 
-| PUT https://vitam/admin-external/v1/accesscontract
+| PUT https://vitam/admin-external/v1/accesscontracts
 	Mise à jour du contrat d'accès
 
 -Contrat d'entrée
 
-|PUT https://vitam/admin-external/v1/contract
+|PUT https://vitam/admin-external/v1/entrycontracts
 Mise à jour du contrat d'entrès
 
 - Profiles

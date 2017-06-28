@@ -27,19 +27,19 @@ Recherche par producteur (FRAN_NP_005568)
 
 **Client Java**
 
-Endpoint : /access-external/v1/accession-register
+Endpoint : /admin-external/v1/accession-registers
 
 .. image:: images/Exemple_producteur.png
 
 **Client Java avec construction DSL**
 
-Endpoint : /access-external/v1/accession-register
+Endpoint : /admin-external/v1/accession-registers
 
 .. image:: images/Exemple_producteur_DSL.png
 
 **Postman**
 
-POST /access-external/v1/accession-register
+POST /admin-external/v1/accession-registers
 
 .. image:: images/Exemple_producteur_POSTMAN.png
 
