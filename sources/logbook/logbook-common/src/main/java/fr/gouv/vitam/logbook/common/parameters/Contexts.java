@@ -36,7 +36,8 @@ public enum Contexts {
     BLANK_TEST(LogbookTypeProcess.INGEST_TEST, "PROCESS_SIP_UNITARY"),
     HOLDING_SCHEME(LogbookTypeProcess.MASTERDATA, "HOLDINGSCHEME"),
     FILING_SCHEME(LogbookTypeProcess.INGEST, "FILINGSCHEME"),
-    DEFAULT_WORKFLOW(LogbookTypeProcess.INGEST, "PROCESS_SIP_UNITARY");
+    DEFAULT_WORKFLOW(LogbookTypeProcess.INGEST, "PROCESS_SIP_UNITARY"),
+    CHECK(LogbookTypeProcess.CHECK, "CHECK_LOGBOOK_OP_SECURISATION");
 
     private LogbookTypeProcess logbookTypeProcess;
     private String eventType;

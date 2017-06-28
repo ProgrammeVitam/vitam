@@ -41,6 +41,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -129,6 +130,9 @@ public class LogbookInternalResourceImpl {
     // TODO Add Enumeration of all possible WORKFLOWS
     private static final String DEFAULT_CHECK_TRACEABILITY_WORKFLOW = "DefaultCheckTraceability";
     private static final String DEFAULT_STORAGE_STRATEGY = "default";
+
+    private static final long SLEEP_TIME = 100l;
+    private static final long NB_TRY = 9600; // equivalent to 8 minutes
 
     /**
      * Default Constructor
@@ -334,14 +338,14 @@ public class LogbookInternalResourceImpl {
         GUID checkOperationGUID = null;
         try (LogbookOperationsClient logbookOperationsClient =
             LogbookOperationsClientFactory.getInstance().getClient();
-            ProcessingManagementClient processManagementClient =
+            ProcessingManagementClient processingClient =
                 ProcessingManagementClientFactory.getInstance().getClient()) {
 
             LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
 
             // Initialize a new process
             checkOperationGUID = GUIDFactory.newOperationLogbookGUID(tenantId);
-            processManagementClient.initVitamProcess(LogbookTypeProcess.CHECK.toString(), checkOperationGUID.getId(),
+            processingClient.initVitamProcess(LogbookTypeProcess.CHECK.toString(), checkOperationGUID.getId(),
                 DEFAULT_CHECK_TRACEABILITY_WORKFLOW);            
 
             // Create logbookOperation for check TRACEABILITY process
@@ -351,9 +355,22 @@ public class LogbookInternalResourceImpl {
 
             // Run the WORKFLOW
             response =
-                processManagementClient.executeCheckTraceabilityWorkFlow(checkOperationGUID.getId(), query,
+                processingClient.executeCheckTraceabilityWorkFlow(checkOperationGUID.getId(), query,
                     DEFAULT_CHECK_TRACEABILITY_WORKFLOW, LogbookTypeProcess.CHECK.toString(),
                     ProcessAction.RESUME.getValue());
+
+
+            int nbTry = 0;
+            while (!processingClient.isOperationCompleted(checkOperationGUID.getId())) {
+                try {
+                    Thread.sleep(SLEEP_TIME);
+                } catch (InterruptedException e) {
+                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                }
+                if (nbTry == NB_TRY)
+                    break;
+                nbTry++;
+            }
 
             // Get the created logbookOperation and return the response
             final JsonNode result = logbookOperationsClient.selectOperationById(checkOperationGUID.getId(), null);
