@@ -212,10 +212,11 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
             request.setQuery(query);
         }
         try {
-            LOGGER.error(request.toString());
+            // TODO add a test to check wether is_debug_enabled
+            LOGGER.debug(request.toString());
             return request.get();
         } catch (final Exception e) {
-            LOGGER.debug(e.getMessage(), e);
+            LOGGER.error(e.getMessage(), e);
             throw new LogbookException(e);
         }
     }
