@@ -1,5 +1,5 @@
-TRACEABILITY : Workflow de création d'un journal sécurisé
-#########################################################
+Workflow de création d'un journal sécurisé
+##########################################
 
 Introduction
 ============
@@ -13,7 +13,7 @@ Processus de sécurisation des journaux (vision métier)
 
 Le processus de sécurisation des journaux consiste en la création d'une fichier zip contenant l'ensemble des journaux d'opérations à sécuriser, ainsi que le tampon d'horodatage calculé à partir de l'arbre de Merkle de la liste de ces mêmes journaux.
 
-Ce fichier zip est ensuite enregistré sur les offres de stockage. 
+Ce fichier zip est ensuite enregistré sur les offres de stockage.
 
 Sécurisation des journaux (STP_OP_SECURISATION)
 ===============================================

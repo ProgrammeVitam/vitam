@@ -7,14 +7,14 @@ Sommaire
 ####################################################
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
-   workflow.rst
-   workflow-tree.rst
-   workflow-plan.rst
-   workflow-traceability.rst
-   workflow-check-traceability.rst
-   
+   introduction.rst
+   ingest/_toc_ingest.rst
+   masterdata/_toc_masterdata.rst
+   audit/_toc_audit.rst
+   traceability/_toc_traceability.rst
+
 .. only:: latex
 
   Annexes
@@ -25,4 +25,3 @@ Sommaire
 
       \listoffigures
       \listoftables
-
