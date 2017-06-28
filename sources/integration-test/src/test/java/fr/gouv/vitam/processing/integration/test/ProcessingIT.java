@@ -590,11 +590,9 @@ public class ProcessingIT {
             assertEquals(logbookResult.get("$results").get(0).get("events").get(0).get("outDetail").asText(),
                 "STP_INGEST_FINALISATION.OK");
             
-            assertEquals(logbookResult.get("$results").get(0).get("outMessg").asText(),
-                "bug2721_2racines_meme_rattachement");
-            assertEquals(logbookResult.get("$results").get(0).get("agIdOrig").asText(), "producteur1");
             assertEquals(logbookResult.get("$results").get(0).get("obIdIn").asText(),
                 "bug2721_2racines_meme_rattachement");
+            assertEquals(logbookResult.get("$results").get(0).get("agIdOrig").asText(), "producteur1");
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
@@ -648,14 +646,12 @@ public class ProcessingIT {
             selectQuery.setQuery(QueryHelper.eq("evIdProc", containerName));
             JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
             
-            assertEquals(logbookResult.get("$results").get(0).get("outMessg").asText(),
+            assertEquals(logbookResult.get("$results").get(0).get("obIdIn").asText(),
                 "Transfert des enregistrements des délibérations de l'assemblée départementale");
             assertEquals(logbookResult.get("$results").get(0).get("agIdSubm").asText(),
                 "https://demo.logilab.fr/seda/157118");
             assertEquals(logbookResult.get("$results").get(0).get("agIdOrig").asText(), 
                 "https://demo.logilab.fr/seda/157118");
-            assertEquals(logbookResult.get("$results").get(0).get("obIdIn").asText(),
-                "IDMessage");
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
