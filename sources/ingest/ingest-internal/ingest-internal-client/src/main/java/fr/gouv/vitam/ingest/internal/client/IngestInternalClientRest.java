@@ -60,6 +60,8 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientNotFoundException;
+import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
 
@@ -114,7 +116,8 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     }
 
     @Override
-    public void upload(InputStream inputStream, MediaType archiveMimeType, String contextId) throws WorkspaceClientServerException, VitamException {
+    public void upload(InputStream inputStream, MediaType archiveMimeType, String contextId)
+        throws WorkspaceClientServerException, VitamException {
         ParametersChecker.checkParameter("Params cannot be null", inputStream, archiveMimeType);
         ParametersChecker.checkParameter("context Id Request must not be null",
             contextId);
@@ -178,22 +181,43 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     }
 
     @Override
-    public Response downloadObjectAsync(String objectId, IngestCollection type) throws VitamClientException {
+    public Response downloadObjectAsync(String objectId, IngestCollection type)
+        throws InvalidParseOperationException, IngestInternalClientServerException,
+        IngestInternalClientNotFoundException {
 
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, objectId);
         ParametersChecker.checkParameter(BLANK_TYPE, type);
 
         Response response = null;
+        Status status = Status.BAD_REQUEST;
 
         try {
             response = performRequest(HttpMethod.GET, INGEST_URL + "/" + objectId + "/" + type.getCollectionName(),
                 null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            status = Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case INTERNAL_SERVER_ERROR:
+                    LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
+                    throw new IngestInternalClientServerException(INTERNAL_SERVER_ERROR);
+                case NOT_FOUND:
+                    throw new IngestInternalClientNotFoundException(status.getReasonPhrase());
+                case BAD_REQUEST:
+                    throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
+                case PRECONDITION_FAILED:
+                    throw new IllegalArgumentException(response.getStatusInfo().getReasonPhrase());
+                case OK:
+                    break;
+                default:
+                    LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
+                    throw new IngestInternalClientServerException(
+                        INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
+            }
             return response;
         } catch (final VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);
-            throw new VitamClientException(e);
+            throw new IngestInternalClientServerException(e);
         } finally {
-            if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
+            if (status != Status.OK) {
                 consumeAnyEntityAndClose(response);
             }
         }
@@ -452,7 +476,8 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
         }
     }
 
-    private void checkResponseStatus( Response response) throws VitamClientInternalException, WorkspaceClientServerException {
+    private void checkResponseStatus(Response response)
+        throws VitamClientInternalException, WorkspaceClientServerException {
         if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
             LOGGER.warn("SIP Warning : " + Response.Status.NOT_FOUND.getReasonPhrase());
             throw new VitamClientInternalException(NOT_FOUND_EXCEPTION);

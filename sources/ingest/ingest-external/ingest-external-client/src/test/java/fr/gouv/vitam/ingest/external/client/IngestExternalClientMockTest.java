@@ -42,7 +42,10 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.client.IngestCollection;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientNotFoundException;
+import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientServerException;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 
 public class IngestExternalClientMockTest {
@@ -79,7 +82,9 @@ public class IngestExternalClientMockTest {
     }
 
     @Test
-    public void givenNonEmptyStreamWhenDownloadSuccess() throws IngestExternalException, XMLStreamException {
+    public void givenNonEmptyStreamWhenDownloadSuccess()
+        throws IngestExternalException, XMLStreamException, IngestExternalClientServerException,
+        IngestExternalClientNotFoundException, InvalidParseOperationException {
         IngestExternalClientFactory.changeMode(null);
 
         final IngestExternalClient client =

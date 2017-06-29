@@ -64,6 +64,8 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientNotFoundException;
+import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientServerException;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.common.client.ErrorMessage;
 
@@ -81,6 +83,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     private static final String WORKFLOWS_URI = "/workflows";
     private static final String REQUEST_PRECONDITION_FAILED = "Request precondition failed";
     private static final String NOT_FOUND_EXCEPTION = "Not Found Exception";
+    private static final String INVALID_PARSE_OPERATION = "Invalid Parse Operation";
     private static final String UNAUTHORIZED = "Unauthorized";
     private static final int TIME_TO_SLEEP = 1000; // one seconds
     private static final int NB_TRY = 100;
@@ -131,13 +134,11 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         } finally {
             consumeAnyEntityAndClose(response);
         }
-
-
     }
 
-
     public Response downloadObjectAsync(String objectId, IngestCollection type, Integer tenantId)
-        throws IngestExternalException {
+        throws IngestExternalClientServerException, IngestExternalClientNotFoundException,
+        InvalidParseOperationException, IngestExternalException {
 
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, objectId);
         ParametersChecker.checkParameter(BLANK_TYPE, type);
@@ -148,6 +149,18 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         try {
             response = performRequest(HttpMethod.GET, INGEST_URL + "/" + objectId + "/" + type.getCollectionName(),
                 headers, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+            if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+                LOGGER.error("Internal Server Error" + " : " + status.getReasonPhrase());
+                throw new IngestExternalClientServerException("Internal Server Error");
+            } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                throw new IngestExternalClientNotFoundException(status.getReasonPhrase());
+            } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
+                throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
+            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
+                throw new IngestExternalClientServerException(response.getStatusInfo().getReasonPhrase());
+            }
+
         } catch (final VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);
             throw new IngestExternalException("Ingest External Internal Server Error", e);
@@ -179,32 +192,37 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
             if (!requestResponse.isOk()) {
                 return requestResponse;
             } else {
-                final VitamError vitamError = new VitamError(VitamCode.INGEST_EXTERNAL_EXECUTE_OPERATION_PROCESS_ERROR.getItem())
-                    .setMessage(VitamCode.INGEST_EXTERNAL_EXECUTE_OPERATION_PROCESS_ERROR.getMessage())
-                    .setState(StatusCode.KO.name())
-                    .setContext("IngestExternalModule")
-                    .setDescription("");
+                final VitamError vitamError =
+                    new VitamError(VitamCode.INGEST_EXTERNAL_EXECUTE_OPERATION_PROCESS_ERROR.getItem())
+                        .setMessage(VitamCode.INGEST_EXTERNAL_EXECUTE_OPERATION_PROCESS_ERROR.getMessage())
+                        .setState(StatusCode.KO.name())
+                        .setContext("IngestExternalModule")
+                        .setDescription("");
 
                 if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                     LOGGER.warn("SIP Warning : " + Response.Status.NOT_FOUND.getReasonPhrase());
                     return vitamError.setHttpCode(Status.NOT_FOUND.getStatusCode())
-                        .setDescription(VitamCode.INGEST_EXTERNAL_EXECUTE_OPERATION_PROCESS_ERROR.getMessage() + " Cause : " +
-                            Status.NOT_FOUND.getReasonPhrase());
+                        .setDescription(
+                            VitamCode.INGEST_EXTERNAL_EXECUTE_OPERATION_PROCESS_ERROR.getMessage() + " Cause : " +
+                                Status.NOT_FOUND.getReasonPhrase());
                 } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
                     LOGGER.warn("SIP Warning : " + Response.Status.PRECONDITION_FAILED.getReasonPhrase());
                     return vitamError.setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
-                        .setDescription(VitamCode.INGEST_EXTERNAL_EXECUTE_OPERATION_PROCESS_ERROR.getMessage() + " Cause : " +
-                            Status.PRECONDITION_FAILED.getReasonPhrase());
+                        .setDescription(
+                            VitamCode.INGEST_EXTERNAL_EXECUTE_OPERATION_PROCESS_ERROR.getMessage() + " Cause : " +
+                                Status.PRECONDITION_FAILED.getReasonPhrase());
                 } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
                     LOGGER.warn("SIP Warning : " + Response.Status.UNAUTHORIZED.getReasonPhrase());
                     return vitamError.setHttpCode(Status.UNAUTHORIZED.getStatusCode())
-                        .setDescription(VitamCode.INGEST_EXTERNAL_EXECUTE_OPERATION_PROCESS_ERROR.getMessage() + " Cause : " +
-                            Status.UNAUTHORIZED.getReasonPhrase());
+                        .setDescription(
+                            VitamCode.INGEST_EXTERNAL_EXECUTE_OPERATION_PROCESS_ERROR.getMessage() + " Cause : " +
+                                Status.UNAUTHORIZED.getReasonPhrase());
                 } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                     LOGGER.warn("SIP Warning : " + Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
                     return vitamError.setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
-                        .setDescription(VitamCode.INGEST_EXTERNAL_EXECUTE_OPERATION_PROCESS_ERROR.getMessage() + " Cause : " +
-                            Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
+                        .setDescription(
+                            VitamCode.INGEST_EXTERNAL_EXECUTE_OPERATION_PROCESS_ERROR.getMessage() + " Cause : " +
+                                Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
                 } else {
                     return requestResponse;
                 }
@@ -412,29 +430,37 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
                 if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                     LOGGER.warn("SIP Warning : " + Response.Status.NOT_FOUND.getReasonPhrase());
                     return vitamError.setHttpCode(Status.NOT_FOUND.getStatusCode())
-                        .setDescription(VitamCode.INGEST_EXTERNAL_CANCEL_OPERATION_PROCESS_EXECUTION_ERROR.getMessage() + " Cause : " +
-                            Status.NOT_FOUND.getReasonPhrase());
+                        .setDescription(
+                            VitamCode.INGEST_EXTERNAL_CANCEL_OPERATION_PROCESS_EXECUTION_ERROR.getMessage() +
+                                " Cause : " +
+                                Status.NOT_FOUND.getReasonPhrase());
                 } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
                     LOGGER.warn("SIP Warning : " + Response.Status.PRECONDITION_FAILED.getReasonPhrase());
                     return vitamError.setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
-                        .setDescription(VitamCode.INGEST_EXTERNAL_CANCEL_OPERATION_PROCESS_EXECUTION_ERROR.getMessage() + " Cause : " +
-                            Status.PRECONDITION_FAILED.getReasonPhrase());
+                        .setDescription(
+                            VitamCode.INGEST_EXTERNAL_CANCEL_OPERATION_PROCESS_EXECUTION_ERROR.getMessage() +
+                                " Cause : " +
+                                Status.PRECONDITION_FAILED.getReasonPhrase());
                 } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
                     LOGGER.warn("SIP Warning : " + Response.Status.UNAUTHORIZED.getReasonPhrase());
                     return vitamError.setHttpCode(Status.UNAUTHORIZED.getStatusCode())
-                        .setDescription(VitamCode.INGEST_EXTERNAL_CANCEL_OPERATION_PROCESS_EXECUTION_ERROR.getMessage() + " Cause : " +
-                            Status.UNAUTHORIZED.getReasonPhrase());
+                        .setDescription(
+                            VitamCode.INGEST_EXTERNAL_CANCEL_OPERATION_PROCESS_EXECUTION_ERROR.getMessage() +
+                                " Cause : " +
+                                Status.UNAUTHORIZED.getReasonPhrase());
                 } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                     LOGGER.warn("SIP Warning : " + Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
                     return vitamError.setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
-                        .setDescription(VitamCode.INGEST_EXTERNAL_CANCEL_OPERATION_PROCESS_EXECUTION_ERROR.getMessage() + " Cause : " +
-                            Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
+                        .setDescription(
+                            VitamCode.INGEST_EXTERNAL_CANCEL_OPERATION_PROCESS_EXECUTION_ERROR.getMessage() +
+                                " Cause : " +
+                                Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
                 } else {
                     return requestResponse;
                 }
             }
-            //return new RequestResponseOK().addResult(response.readEntity(JsonNode.class))
-            //    .parseHeadersFromResponse(response);
+            // return new RequestResponseOK().addResult(response.readEntity(JsonNode.class))
+            // .parseHeadersFromResponse(response);
 
         } catch (VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);

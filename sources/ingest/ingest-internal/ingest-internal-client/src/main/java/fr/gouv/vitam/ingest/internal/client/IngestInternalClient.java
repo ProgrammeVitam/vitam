@@ -37,10 +37,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.client.OperationManagementClient;
 import fr.gouv.vitam.common.exception.InternalServerException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientNotFoundException;
+import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 
 /**
@@ -83,14 +86,16 @@ public interface IngestInternalClient extends OperationManagementClient {
 
     /**
      * Download object stored by ingest operation
-     * 
      * @param objectId
      * @param type
      * @return object as stream
-     * @throws VitamClientException
+     * @throws InvalidParseOperationException
+     * @throws IngestInternalClientServerException
+     * @throws IngestInternalClientNotFoundException
      */
     Response downloadObjectAsync(String objectId, IngestCollection type)
-        throws VitamClientException;
+        throws InvalidParseOperationException, IngestInternalClientServerException,
+        IngestInternalClientNotFoundException;
 
     /**
      * Store ATR in storage

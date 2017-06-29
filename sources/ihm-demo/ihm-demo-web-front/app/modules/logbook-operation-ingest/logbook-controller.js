@@ -36,7 +36,7 @@ angular.module('ihm.demo')
       return input;
     }
   })
-  .controller('logbookController', function($scope, $window, $filter, ihmDemoCLient, ITEM_PER_PAGE,
+  .controller('logbookController', function($scope, $window, $filter, $mdDialog, ihmDemoCLient, ITEM_PER_PAGE,
                                             processSearchService, resultStartService, loadStaticValues) {
 
     $scope.startFormat = resultStartService.startFormat;

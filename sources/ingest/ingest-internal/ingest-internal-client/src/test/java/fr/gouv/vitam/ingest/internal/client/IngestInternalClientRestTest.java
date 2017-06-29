@@ -82,6 +82,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
+import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientNotFoundException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -418,14 +419,18 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
     @Test
     public void givenInputstreamWhenDownloadObjectThenStoreATR()
         throws Exception {
-
         when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
-
         final InputStream fakeUploadResponseInputStream =
             client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class);
         assertNotNull(fakeUploadResponseInputStream);
         client.storeATR(GUIDFactory.newGUID(), fakeUploadResponseInputStream);
+    }
 
+    @Test(expected = IngestInternalClientNotFoundException.class)
+    public void givenNotFoundWhenDownloadObjectThenReturnKo()
+        throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND.getStatusCode()).build());
+        client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class);
     }
 
     @Test(expected = VitamClientInternalException.class)
@@ -665,7 +670,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         client.executeOperationProcess(ID, null, CONTEXTID, ProcessAction.START.getValue());
 
     }
-    
+
 
     @Test
     public void givenOKWhenDefinitionsWorkflowThenReturnMap() throws Exception {

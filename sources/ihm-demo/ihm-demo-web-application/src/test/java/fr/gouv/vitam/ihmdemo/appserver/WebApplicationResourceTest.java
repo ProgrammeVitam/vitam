@@ -101,6 +101,7 @@ import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 import fr.gouv.vitam.ihmdemo.core.JsonTransformer;
 import fr.gouv.vitam.ihmdemo.core.UiConstants;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
+import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientNotFoundException;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
@@ -592,7 +593,8 @@ public class WebApplicationResourceTest {
         String reqId = firstRequestId.get(GlobalDataRest.X_REQUEST_ID.toLowerCase()).asText();
         File temporarySipFile = PropertiesUtils.fileFromTmpFolder(reqId);
         given()
-            .headers(WebApplicationResource.X_SIZE_TOTAL, "5000000", WebApplicationResource.X_CHUNK_OFFSET, "1048576", GlobalDataRest.X_REQUEST_ID, reqId)
+            .headers(WebApplicationResource.X_SIZE_TOTAL, "5000000", WebApplicationResource.X_CHUNK_OFFSET, "1048576",
+                GlobalDataRest.X_REQUEST_ID, reqId)
             .contentType(ContentType.BINARY)
             .config(RestAssured.config().encoderConfig(
                 EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
@@ -600,16 +602,18 @@ public class WebApplicationResourceTest {
             .statusCode(Status.OK.getStatusCode()).when()
             .post("/ingest/upload").getBody();
         given()
-            .headers(WebApplicationResource.X_SIZE_TOTAL, "5000000", WebApplicationResource.X_CHUNK_OFFSET, "2097152", GlobalDataRest.X_REQUEST_ID, reqId)
+            .headers(WebApplicationResource.X_SIZE_TOTAL, "5000000", WebApplicationResource.X_CHUNK_OFFSET, "2097152",
+                GlobalDataRest.X_REQUEST_ID, reqId)
             .contentType(ContentType.BINARY)
             .config(RestAssured.config().encoderConfig(
                 EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
             .content(stream3).expect()
             .statusCode(Status.OK.getStatusCode()).when()
             .post("/ingest/upload").getBody();
-        
+
         given()
-            .headers(WebApplicationResource.X_SIZE_TOTAL, "5000000", WebApplicationResource.X_CHUNK_OFFSET, "3145728", GlobalDataRest.X_REQUEST_ID, reqId)
+            .headers(WebApplicationResource.X_SIZE_TOTAL, "5000000", WebApplicationResource.X_CHUNK_OFFSET, "3145728",
+                GlobalDataRest.X_REQUEST_ID, reqId)
             .contentType(ContentType.BINARY)
             .config(RestAssured.config().encoderConfig(
                 EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
@@ -617,7 +621,8 @@ public class WebApplicationResourceTest {
             .statusCode(Status.OK.getStatusCode()).when()
             .post("/ingest/upload").getBody();
         given()
-            .headers(WebApplicationResource.X_SIZE_TOTAL, "5000000", WebApplicationResource.X_CHUNK_OFFSET, "4194304", GlobalDataRest.X_REQUEST_ID, reqId)
+            .headers(WebApplicationResource.X_SIZE_TOTAL, "5000000", WebApplicationResource.X_CHUNK_OFFSET, "4194304",
+                GlobalDataRest.X_REQUEST_ID, reqId)
             .contentType(ContentType.BINARY)
             .config(RestAssured.config().encoderConfig(
                 EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
@@ -696,7 +701,7 @@ public class WebApplicationResourceTest {
         IOUtils.toByteArray(stream);
 
         given()
-        .headers(GlobalDataRest.X_REQUEST_ID, "no_req_id")
+            .headers(GlobalDataRest.X_REQUEST_ID, "no_req_id")
             .contentType(ContentType.BINARY)
             .config(RestAssured.config().encoderConfig(
                 EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
@@ -1369,6 +1374,19 @@ public class WebApplicationResourceTest {
         RestAssured.given()
             .when().get(INGEST_URI + "/1/unknown")
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+
+        Mockito.doThrow(new IngestExternalClientNotFoundException("")).when(ingestClient).downloadObjectAsync(
+            anyObject(),
+            anyObject(), anyObject());
+        RestAssured.given()
+            .when().get(INGEST_URI + "/1/" + IngestCollection.MANIFESTS.getCollectionName())
+            .then().statusCode(Status.NOT_FOUND.getStatusCode());
+
+        Mockito.doThrow(new IngestExternalException("")).when(ingestClient).downloadObjectAsync(anyObject(),
+            anyObject(), anyObject());
+        RestAssured.given()
+            .when().get(INGEST_URI + "/1/" + IngestCollection.MANIFESTS.getCollectionName())
+            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
     @Test

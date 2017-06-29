@@ -142,6 +142,8 @@ import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 import fr.gouv.vitam.ihmdemo.core.JsonTransformer;
 import fr.gouv.vitam.ihmdemo.core.UiConstants;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
+import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientNotFoundException;
+import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientServerException;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
@@ -161,6 +163,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String CODE_VITAM = "code_vitam";
     private static final String BAD_REQUEST_EXCEPTION_MSG = "Bad request Exception";
     private static final String ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG = "Access client unavailable";
+    private static final String INGEST_CLIENT_NOT_FOUND_EXCEPTION_MSG = "Ingest client unavailable";
     private static final String ACCESS_SERVER_EXCEPTION_MSG = "Access Server exception";
     private static final String INTERNAL_SERVER_ERROR_MSG = "INTERNAL SERVER ERROR";
     private static final String SEARCH_CRITERIA_MANDATORY_MSG = "Search criteria payload is mandatory";
@@ -1013,7 +1016,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
-     * Retrieve an Object data as an input stream
+     * Retrieve an Object data as an input stream. Download by access.
      *
      * @param headers HTTP Headers
      * @param objectGroupId the object group Id
@@ -1039,7 +1042,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
-     * Retrieve an Object data stored by ingest operation as an input stream
+     * Retrieve an Object data stored by ingest operation as an input stream. Download by ingests.
      *
      * @param headers HTTP Headers
      * @param objectId the object id to get
@@ -1061,6 +1064,22 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     private void asyncGetObjectStorageStream(AsyncResponse asyncResponse, String objectId, String type,
         Integer tenantId) {
+        try {
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(objectId));
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(type));
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(tenantId));
+            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, objectId);
+            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, type);
+            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, tenantId);
+        } catch (final InvalidParseOperationException exc) {
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.BAD_REQUEST).build());
+            return;
+        } catch (final IllegalArgumentException exc) {
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                Response.status(Status.PRECONDITION_FAILED).build());
+            return;
+        }
+
         try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
             IngestCollection collection = IngestCollection.valueOf(type.toUpperCase());
             Response response = client.downloadObjectAsync(objectId, collection, tenantId);
@@ -1073,7 +1092,15 @@ public class WebApplicationResource extends ApplicationStatusResource {
         } catch (IllegalArgumentException exc) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, exc);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.BAD_REQUEST).build());
+        } catch (final IngestExternalClientNotFoundException exc) {
+            LOGGER.error(INGEST_CLIENT_NOT_FOUND_EXCEPTION_MSG, exc);
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                Response.status(Status.NOT_FOUND).build());
         } catch (final IngestExternalException exc) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, exc);
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        } catch (final Exception exc) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, exc);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR).build());
@@ -2250,7 +2277,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     private File downloadAndSaveATR(String guid, Integer tenantId)
-        throws VitamClientException, IngestExternalException {
+        throws VitamClientException, IngestExternalException, IngestExternalClientServerException,
+        IngestExternalClientNotFoundException, InvalidParseOperationException {
         File file = null;
         Response response = null;
         try (IngestExternalClient ingestExternalClient = IngestExternalClientFactory.getInstance().getClient()) {

@@ -37,11 +37,14 @@ import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.client.PoolingStatusClient;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientNotFoundException;
+import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientServerException;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 
 /**
@@ -72,13 +75,15 @@ public interface IngestExternalClient extends MockOrRestClient, PoolingStatusCli
      * @param objectId
      * @param type
      * @param tenantId
-     * @return object as stream
+     * @return objest as stream
+     * @throws IngestExternalClientServerException
+     * @throws IngestExternalClientNotFoundException
+     * @throws InvalidParseOperationException
      * @throws IngestExternalException
-     * @throws VitamClientException
-     * 
      */
     Response downloadObjectAsync(String objectId, IngestCollection type, Integer tenantId)
-        throws IngestExternalException;
+        throws IngestExternalClientServerException, IngestExternalClientNotFoundException,
+        InvalidParseOperationException, IngestExternalException;
 
     /**
      * 

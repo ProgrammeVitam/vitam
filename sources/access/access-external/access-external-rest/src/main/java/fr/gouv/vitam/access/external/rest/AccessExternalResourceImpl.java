@@ -695,13 +695,18 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
                 .entity(getErrorEntity(Status.PRECONDITION_FAILED, exc.getLocalizedMessage()).toString())
                 .build();
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
-        } catch (final AccessInternalClientServerException | AccessInternalClientNotFoundException exc) {
+        } catch (final AccessInternalClientServerException exc) {
             LOGGER.error(exc.getMessage(), exc);
             final Response errorResponse =
                 Response.status(Status.INTERNAL_SERVER_ERROR)
                     .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exc.getLocalizedMessage())
                         .toString())
                     .build();
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
+        } catch (final AccessInternalClientNotFoundException exc) {
+            LOGGER.error(exc.getMessage(), exc);
+            final Response errorResponse =
+                Response.status(Status.NOT_FOUND).entity(getErrorEntity(Status.NOT_FOUND, exc.getLocalizedMessage()).toString()).build();
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         } catch (AccessUnauthorizedException e) {
             final Response errorResponse =
