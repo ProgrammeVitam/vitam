@@ -50,12 +50,7 @@ import javax.ws.rs.core.UriInfo;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.external.api.AdminCollections;
-import fr.gouv.vitam.access.internal.client.AccessInternalClient;
-import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
-import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
-import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.VitamError;
@@ -193,6 +188,16 @@ public class AdminManagementExternalResourceImpl {
                         new TypeReference<List<ContextModel>>() {}));
                 }
 
+                if (AdminCollections.PROFILE.compareTo(collection)) {
+                    JsonNode json = JsonHandler.getFromInputStream(document);
+                    SanityChecker.checkJsonAll(json);
+                    RequestResponse requestResponse =
+                        client.createProfiles(JsonHandler.getFromStringAsTypeRefence(json.toString(),
+                            new TypeReference<List<ProfileModel>>() {}));
+                    return Response.status(requestResponse.getStatus())
+                        .entity(requestResponse).build();
+                }
+
                 // Send the http response with no entity and the status got from internalService;
                 ResponseBuilder ResponseBuilder = Response.status(status);
                 return ResponseBuilder.build();
@@ -273,7 +278,10 @@ public class AdminManagementExternalResourceImpl {
     }
 
     /**
-     * Download the file (profile file or traceability file)
+     * Download the file (profile file or traceability file)<br/>
+     * <br/>
+     * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
+     * 
      * @param collection
      * @param fileId
      * @param asyncResponse
@@ -294,18 +302,10 @@ public class AdminManagementExternalResourceImpl {
             VitamThreadPoolExecutor.getDefaultExecutor()
                 .execute(() -> asyncDownloadProfileFile(fileId, asyncResponse));
             
-        } else if (AdminCollections.TRACEABILITY.compareTo(collection)) {
-            ParametersChecker.checkParameter("Traceability operation should be filled", fileId);
-
-            Integer tenantId = ParameterHelper.getTenantParameter();
-            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-
-            VitamThreadPoolExecutor.getDefaultExecutor()
-                .execute(() -> downloadTraceabilityOperationFile(fileId, asyncResponse));
         } else {
             LOGGER.error("Endpoint accept only profiles");
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, "Endpoint accept only profiles", null)).build());
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.NOT_IMPLEMENTED)
+                .entity(getErrorEntity(Status.NOT_IMPLEMENTED, "Endpoint accept only profiles", null)).build());
         }
     }
 
@@ -335,40 +335,6 @@ public class AdminManagementExternalResourceImpl {
                     Response.status(Status.INTERNAL_SERVER_ERROR)
                         .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exc.getMessage(), null).toString())
                         .build());
-        }
-    }
-    
-    private void downloadTraceabilityOperationFile(String operationId, final AsyncResponse asyncResponse) {
-
-        AsyncInputStreamHelper helper;
-
-        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-
-            final Response response = client.downloadTraceabilityFile(operationId);
-            helper = new AsyncInputStreamHelper(asyncResponse, response);
-            final ResponseBuilder responseBuilder =
-                Response.status(Status.OK)
-                    .header("Content-Disposition", response.getHeaderString("Content-Disposition"))
-                    .type(response.getMediaType());
-            helper.writeResponse(responseBuilder);
-        } catch (final InvalidParseOperationException | IllegalArgumentException exc) {
-            LOGGER.error(exc);
-            final Response errorResponse = Response.status(Status.PRECONDITION_FAILED)
-                .entity(getErrorEntity(Status.PRECONDITION_FAILED, exc.getMessage(), null).toString())
-                .build();
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
-        } catch (final AccessInternalClientServerException | AccessInternalClientNotFoundException exc) {
-            LOGGER.error(exc.getMessage(), exc);
-            final Response errorResponse =
-                Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exc.getMessage(), null)
-                    .toString()).build();
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
-        } catch (AccessUnauthorizedException e) {
-            LOGGER.error("Contract access does not allow ", e);
-            final Response errorResponse =
-                Response.status(Status.UNAUTHORIZED).entity(getErrorEntity(Status.UNAUTHORIZED, e.getMessage(), null)
-                    .toString()).build();
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         }
     }
 
@@ -464,13 +430,12 @@ public class AdminManagementExternalResourceImpl {
     @Produces(MediaType.APPLICATION_JSON)
     public Response createOrfindDocuments(@PathParam("collection") String collection, JsonNode select,
         @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
-
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-
         if (xhttpOverride != null && "GET".equalsIgnoreCase(xhttpOverride)) {
             return findDocuments(collection, select);
         } else {
+            Integer tenantId = ParameterHelper.getTenantParameter();
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+
             ParametersChecker.checkParameter("Json select is a mandatory parameter", select);
             ParametersChecker.checkParameter(collection, "The collection is mandatory");
 
@@ -503,6 +468,12 @@ public class AdminManagementExternalResourceImpl {
 
                 }
 
+                if (AdminCollections.CONTEXTS.compareTo(collection)) {
+                    SanityChecker.checkJsonAll(select);
+                    status = client.importContexts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
+                        new TypeReference<List<ContextModel>>() {}));
+                }
+
                 // Send the http response with the entity and the status got from internalService;
                 ResponseBuilder ResponseBuilder = Response.status(status)
                     .entity(respEntity != null ? respEntity : "Successfully imported");
@@ -532,13 +503,12 @@ public class AdminManagementExternalResourceImpl {
     public Response findDocumentByID(@PathParam("collection") String collection,
         @PathParam("id_document") String documentId,
         @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
-
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-
         if (xhttpOverride != null && "GET".equalsIgnoreCase(xhttpOverride)) {
             return findDocumentByID(collection, documentId);
         } else {
+            Integer tenantId = ParameterHelper.getTenantParameter();
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+
             return Response.status(Status.BAD_REQUEST)
                 .entity(getErrorEntity(Status.BAD_REQUEST, "Method not yet implemented", null)).build();
         }

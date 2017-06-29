@@ -64,7 +64,10 @@ public interface IngestExternalClient extends MockOrRestClient, PoolingStatusCli
         throws IngestExternalException;
 
     /**
-     * Download object stored by ingest operation
+     * Download object stored by ingest operation<br>
+     * <br>
+     * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
+     * 
      *
      * @param objectId
      * @param type
@@ -77,18 +80,63 @@ public interface IngestExternalClient extends MockOrRestClient, PoolingStatusCli
     Response downloadObjectAsync(String objectId, IngestCollection type, Integer tenantId)
         throws IngestExternalException;
 
+    /**
+     * 
+     * @param operationId
+     * @param workflow
+     * @param contextId
+     * @param actionId
+     * @param tenantId
+     * @return
+     * @throws VitamClientException
+     * @deprecated use updateOperationActionProcess
+     */
+    @Deprecated
     RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId,
         String actionId, Integer tenantId)
         throws VitamClientException;
 
+    /**
+     * Update the oprration according to the action
+     * 
+     * @param actionId
+     * @param operationId
+     * @param tenantId
+     * @return the status
+     * @throws VitamClientException
+     */
     Response updateOperationActionProcess(String actionId, String operationId, Integer tenantId)
         throws VitamClientException;
 
+    /**
+     * 
+     * @param id
+     * @param tenantId
+     * @return the status of the operation (HEAD only)
+     * @throws VitamClientException
+     */
     ItemStatus getOperationProcessStatus(String id, Integer tenantId) throws VitamClientException;
 
+    /**
+     * 
+     * @param id
+     * @param query
+     * @param tenantId
+     * @return the details of the operation
+     * @throws VitamClientException
+     */
     ItemStatus getOperationProcessExecutionDetails(String id, JsonNode query, Integer tenantId)
         throws VitamClientException;
 
+    /**
+     * Cancel the operation
+     *  
+     * @param id
+     * @param tenantId
+     * @return the status
+     * @throws VitamClientException
+     * @throws BadRequestException
+     */
     RequestResponse<JsonNode> cancelOperationProcessExecution(String id, Integer tenantId)
         throws VitamClientException, BadRequestException;
 
@@ -104,12 +152,24 @@ public interface IngestExternalClient extends MockOrRestClient, PoolingStatusCli
      * @throws InternalServerException
      * @throws BadRequestException
      * @throws VitamClientException
+     * @deprecated use updateOperationActionProcess
      */
     @Deprecated // Not used
     ItemStatus updateVitamProcess(String contextId, String actionId, String container, String workflow,
         Integer tenantId)
         throws InternalServerException, BadRequestException, VitamClientException;
 
+    /**
+     * 
+     * @param contextId
+     * @param container
+     * @param workFlow
+     * @param tenantId
+     * @throws InternalServerException
+     * @throws VitamClientException
+     * @deprecated use updateOperationActionProcess
+     */
+    @Deprecated
     void initVitamProcess(String contextId, String container, String workFlow, Integer tenantId)
         throws InternalServerException, VitamClientException;
 
@@ -119,6 +179,7 @@ public interface IngestExternalClient extends MockOrRestClient, PoolingStatusCli
      * @param contextId
      * @param tenantId
      * @throws VitamException
+     * @deprecated use updateOperationActionProcess
      */
     @Deprecated
     void initWorkFlow(String contextId, Integer tenantId) throws VitamException;
@@ -134,5 +195,11 @@ public interface IngestExternalClient extends MockOrRestClient, PoolingStatusCli
     RequestResponse<JsonNode> listOperationsDetails(Integer tenantId, ProcessQuery query) throws VitamClientException;
 
     // FIXME P1 : is tenant really necessary ?
+    /**
+     * 
+     * @param tenantId
+     * @return the Workflow definitions
+     * @throws VitamClientException
+     */
     RequestResponse<JsonNode> getWorkflowDefinitions(Integer tenantId) throws VitamClientException;
 }

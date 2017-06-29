@@ -52,6 +52,8 @@ public class ApplicationStatusResource implements VitamResource {
      */
     public static final String STATUS_URL = VitamConfiguration.STATUS_URL;
     public static final String TENANTS_URL = VitamConfiguration.TENANTS_URL;
+    protected static final String MISSING_XHTTPOVERRIDE = "X-HTTP-OVERRIDE=GET missing";
+    protected static final String NOT_YET_SUPPORTED = "Not yet supported";
 
     private final VitamStatusService statusService;
     private List<Integer> tenants;

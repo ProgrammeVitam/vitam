@@ -63,6 +63,7 @@ import com.jayway.restassured.response.Headers;
 
 import fr.gouv.vitam.access.external.api.AccessCollections;
 import fr.gouv.vitam.access.external.api.AccessExtAPI;
+import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
@@ -1537,7 +1538,7 @@ public class AccessExternalResourceImplTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(select.getFinalSelect())
             .when().post(AccessExtAPI.ACCESSION_REGISTERS_API + "/" + good_id)
-            .then().statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -1633,9 +1634,9 @@ public class AccessExternalResourceImplTest {
             .when().post(ACCESSION_REGISTER_DETAIL_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
-        PowerMockito.doThrow(new InvalidParseOperationException("")).when(adminCLient)
+        PowerMockito.doThrow(new InvalidParseOperationException("fake message")).when(adminCLient)
             .getAccessionRegister(anyObject());
-        PowerMockito.doThrow(new InvalidParseOperationException("")).when(adminCLient)
+        PowerMockito.doThrow(new InvalidParseOperationException("fake message")).when(adminCLient)
             .getAccessionRegisterDetail(anyString(), anyObject());
 
         given()
@@ -1656,9 +1657,9 @@ public class AccessExternalResourceImplTest {
             .when().post(ACCESSION_REGISTER_DETAIL_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
 
-        PowerMockito.doThrow(new IllegalArgumentException("")).when(adminCLient)
+        PowerMockito.doThrow(new IllegalArgumentException("fake message")).when(adminCLient)
             .getAccessionRegister(anyObject());
-        PowerMockito.doThrow(new IllegalArgumentException("")).when(adminCLient)
+        PowerMockito.doThrow(new IllegalArgumentException("fake message")).when(adminCLient)
             .getAccessionRegisterDetail(anyString(), anyObject());
 
         given()

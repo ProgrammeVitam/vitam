@@ -79,6 +79,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 public class LogbookExternalResourceImpl {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookExternalResourceImpl.class);
+    protected static final String MISSING_XHTTPOVERRIDE = "X-HTTP-OVERRIDE=GET missing";
     private static final String ACCESS_EXTERNAL_MODULE = "LOGBOOK_EXTERNAL";
     private static final String CODE_VITAM = "code_vitam";
     private static final String EVENT_ID_PROCESS = "evIdProc";
@@ -93,6 +94,64 @@ public class LogbookExternalResourceImpl {
     }
 
     /***** LOGBOOK OPERATION - START *****/
+
+    /**
+     * GET with request in body
+     *
+     * @param query DSL as String
+     * @return Response contains the list of logbook operations
+     */
+    @GET
+    @Path("/operations")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response selectOperation(JsonNode query) {
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+
+        Status status;
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+            final JsonNode result = client.selectOperation(query).toJsonNode().get("$results").get(0);
+            return Response.status(Status.OK).entity(result).build();
+        } catch (final LogbookClientException e) {
+            LOGGER.error(e);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error("Contract access does not allow ", e);
+            status = Status.UNAUTHORIZED;
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+        }
+    }
+
+    /**
+     * @param query as JsonNode
+     * @param xhttpOverride header parameter indicate that we use POST with X-Http-Method-Override,
+     * @return Response of SELECT query with POST method
+     */
+    @POST
+    @Path("/operations")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response selectOperationWithPostOverride(JsonNode query,
+        @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
+        Status status;
+        if (xhttpOverride != null && "GET".equals(xhttpOverride)) {
+            return selectOperation(query);
+        } else {
+            Integer tenantId = ParameterHelper.getTenantParameter();
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status, MISSING_XHTTPOVERRIDE)).build();
+        }
+
+    }
+
     /**
      * @param operationId the operation id
      * @param queryDsl the query
@@ -122,96 +181,45 @@ public class LogbookExternalResourceImpl {
         } catch (final LogbookClientException e) {
             LOGGER.error(e);
             status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         } catch (InvalidCreateOperationException e) {
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error("Contract access does not allow ", e);
             status = Status.UNAUTHORIZED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         }
     }
 
+    /**
+     * @param queryDSL
+     * @param operationId
+     * @param xhttpOverride
+     * @return the selected operation
+     */
     @POST
     @Path("/operations/{id_op}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response selectOperationByPost(JsonNode queryDSL, @PathParam("id_op") String operationId,
         @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-
         Status status;
         if (xhttpOverride != null && "GET".equals(xhttpOverride)) {
             ParametersChecker.checkParameter("Operation id is required", operationId);
             return getOperationById(operationId, queryDSL);
         } else {
+            Integer tenantId = ParameterHelper.getTenantParameter();
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, MISSING_XHTTPOVERRIDE)).build();
         }
-    }
-
-    /**
-     * GET with request in body
-     *
-     * @param query DSL as String
-     * @return Response contains the list of logbook operations
-     */
-    @GET
-    @Path("/operations")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response selectOperation(JsonNode query) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-
-        Status status;
-        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            final JsonNode result = client.selectOperation(query).toJsonNode().get("$results").get(0);
-            return Response.status(Status.OK).entity(result).build();
-        } catch (final LogbookClientException e) {
-            LOGGER.error(e);
-            status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(getErrorEntity(status)).build();
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.error(e);
-            status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
-        } catch (AccessUnauthorizedException e) {
-            LOGGER.error("Contract access does not allow ", e);
-            status = Status.UNAUTHORIZED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
-        }
-    }
-
-    /**
-     * @param query as JsonNode
-     * @param xhttpOverride header parameter indicate that we use POST with X-Http-Method-Override,
-     * @return Response of SELECT query with POST method
-     */
-    @POST
-    @Path("/operations")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response selectOperationWithPostOverride(JsonNode query,
-        @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-
-        Status status;
-        if (xhttpOverride != null && "GET".equals(xhttpOverride)) {
-            return selectOperation(query);
-        } else {
-            status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
-        }
-
     }
 
     /**
@@ -244,19 +252,19 @@ public class LogbookExternalResourceImpl {
         } catch (final LogbookClientException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         } catch (InvalidCreateOperationException e) {
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error("Contract access does not allow ", e);
             status = Status.UNAUTHORIZED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         }
     }
 
@@ -271,15 +279,15 @@ public class LogbookExternalResourceImpl {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUnitLifeCycleWithPostOverride(@PathParam("id_lc") String unitLifeCycleId,
         JsonNode query, @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-
         Status status;
         if (xhttpOverride != null && "GET".equals(xhttpOverride)) {
             return getUnitLifeCycle(unitLifeCycleId, query);
         } else {
+            Integer tenantId = ParameterHelper.getTenantParameter();
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, MISSING_XHTTPOVERRIDE)).build();
         }
 
     }
@@ -314,19 +322,19 @@ public class LogbookExternalResourceImpl {
         } catch (final LogbookClientException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         } catch (InvalidCreateOperationException e) {
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error("Contract access does not allow ", e);
             status = Status.UNAUTHORIZED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         }
     }
 
@@ -341,23 +349,27 @@ public class LogbookExternalResourceImpl {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getObjectGroupLifeCycleWithPostOverride(@PathParam("id_lc") String objectGroupLifeCycleId,
         JsonNode query, @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-
         Status status;
         if (xhttpOverride != null && "GET".equals(xhttpOverride)) {
             return getObjectGroupLifeCycle(objectGroupLifeCycleId, query);
         } else {
+            Integer tenantId = ParameterHelper.getTenantParameter();
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, MISSING_XHTTPOVERRIDE)).build();
         }
     }
 
     /***** LIFE CYCLES - END *****/
 
-    private VitamError getErrorEntity(Status status) {
+    private VitamError getErrorEntity(Status status, String message) {
+        String aMessage =
+            (message != null && !message.trim().isEmpty()) ? message
+                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+
         return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(ACCESS_EXTERNAL_MODULE)
-            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase());
+            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
 
     /**
@@ -399,7 +411,60 @@ public class LogbookExternalResourceImpl {
         } catch (AccessUnauthorizedException e) {
             LOGGER.error("Contract access does not allow ", e);
             final Status status = Status.UNAUTHORIZED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         }
     }
+    
+
+    @GET
+    @Path(AccessExtAPI.TRACEABILITY_API + "/{idOperation}")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public void downloadTraceabilityFile(@PathParam("idOperation") String operationId,
+        @Suspended final AsyncResponse asyncResponse) {
+
+        ParametersChecker.checkParameter("Traceability operation should be filled", operationId);
+
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+
+        VitamThreadPoolExecutor.getDefaultExecutor()
+            .execute(() -> downloadTraceabilityOperationFile(operationId, asyncResponse));
+    }
+
+    private void downloadTraceabilityOperationFile(String operationId, final AsyncResponse asyncResponse) {
+        AsyncInputStreamHelper helper;
+
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+
+            final Response response = client.downloadTraceabilityFile(operationId);
+            helper = new AsyncInputStreamHelper(asyncResponse, response);
+            final ResponseBuilder responseBuilder =
+                Response.status(Status.OK)
+                    .header("Content-Disposition", response.getHeaderString("Content-Disposition"))
+                    .type(response.getMediaType());
+            helper.writeResponse(responseBuilder);
+        } catch (final InvalidParseOperationException | IllegalArgumentException exc) {
+            LOGGER.error(exc);
+            final Response errorResponse = Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED, exc.getMessage()))
+                .build();
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
+        } catch (final AccessInternalClientServerException exc) {
+            LOGGER.error(exc.getMessage(), exc);
+            final Response errorResponse =
+                Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exc.getMessage())).build();
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
+        } catch (final AccessInternalClientNotFoundException exc) {
+            LOGGER.error(exc.getMessage(), exc);
+            final Response errorResponse =
+                Response.status(Status.NOT_FOUND).entity(getErrorEntity(Status.NOT_FOUND, exc.getMessage())).build();
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error("Contract access does not allow ", e);
+            final Response errorResponse =
+                Response.status(Status.UNAUTHORIZED).entity(getErrorEntity(Status.UNAUTHORIZED, e.getMessage())).build();
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
+        }
+    }
+
 }

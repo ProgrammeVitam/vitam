@@ -48,23 +48,24 @@ documentation:
             body:
     headers:
       X-Action:
+        enum: [ "RESUME", "PAUSE" ]
         required: true
       X-Context-Id:
         required: false
         description: |
             Il indique le workflow à exécuter DefaultIngestWorkflow pour lancer le workflow INGEST (avec toutes les étapes) ou DefaultIngestWorkflowBlankTest pour lancer le workflow INGEST-TEST (test à blanc sans les étapes de stockage d'objets et d'indéxation des UA et des GOT)
-        enum: [ "DefaultIngestWorkflow", "DefaultIngestWorkflowBlankTest" ]
+        enum: [ "DefaultIngestWorkflow", "DefaultIngestWorkflowBlankTest", "DefaultFilingSchemeWorkflow", "DefaultHoldingSchemeWorkflow" ]
 
   /{objectId}/{type}:
       displayName: IngestsType
       description: |
-        Télécharger un objet associé au processus INGEST (ATR ou Manifest)
+        Télécharger un objet associé au processus INGEST (reports ou manifests)
       is: [ StandardTraits.StandardOptionalHeader,
       StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
       StandardTraits.StandardHeader409, StandardTraits.StandardHeader412, IngestTraits.IngestFinalResponse ]
       get:
         description:  |
-          Permet de télécharger un objet en précisant son identifiant et son type (ATR ou Manifest)
+          Permet de télécharger un objet en précisant son identifiant et son type (reports ou manifests)
 
 
 /operations:
@@ -113,8 +114,11 @@ documentation:
       responses:
        200:
          description: |
-           L'opération existe et le statut est retourné avec succès
-       204:
+           L'opération existe et est terminé, le statut est retourné
+       202:
+         description: |
+           L'opération existe mais n'est pas terminée
+       404:
          description: |
            Opération introuvable
 

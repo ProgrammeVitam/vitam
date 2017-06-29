@@ -13,8 +13,12 @@ traits:
     description: Response model for Units collection in access
     is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AllowsHeader,
       StandardTraits.PaginationRequestHeader,  StandardTraits.PaginationNextHeader,  StandardTraits.PaginationResponseHeader,
-      StandardTraits.StandardHeader200, StandardTraits.StandardHeader206,
-      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+      StandardTraits.StandardHeader200, StandardTraits.StandardHeader206, StandardTraits.StandardHeader400,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader403, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    headers:
+      X-Access-Contract-Id:
+        type: string
+        required: true
     body:
       application/json:
         description: Body contains in JSON format the VITAM DSL request part
@@ -49,8 +53,12 @@ traits:
     description: Response model for Objects collection in access
     is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AllowsHeader,
       StandardTraits.PaginationRequestHeader,  StandardTraits.PaginationNextHeader,  StandardTraits.PaginationResponseHeader,
-      StandardTraits.StandardHeader200, StandardTraits.StandardHeader206,
-      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+      StandardTraits.StandardHeader200, StandardTraits.StandardHeader206, StandardTraits.StandardHeader400,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader403, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    headers:
+      X-Access-Contract-Id:
+        type: string
+        required: true
     body:
       application/json:
         description: Body contains in JSON format the VITAM DSL request part
@@ -84,7 +92,8 @@ traits:
   AccessUniqueObjectQualifierHeadResponse:
     description: Response model for Object collection under Units collection in access or direct access to get one specific Qualifier version
     is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AllowsHeader,
-      StandardTraits.StandardHeader204, StandardTraits.StandardHeader404]
+      StandardTraits.StandardHeader204, StandardTraits.StandardHeader400,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader403, StandardTraits.StandardHeader404]
     headers:
       X-Qualifier?:
         type: AccessTypes.Qualifiers
@@ -99,6 +108,9 @@ traits:
           The rank of the version only when used with Accept: application/octet-stream or application/zip or application/x-tar. If the rank is missing, it means the last version.
           Extra qualifier "All" means all Qualifiers and all Versions in conjunction with application/zip or application/x-tar for GET (HEAD allows all).
           **ONLY VALID with Accept application/octet-stream, application/zip or application/x-tar**
+      X-Access-Contract-Id:
+        type: string
+        required: true
     responses:
       204:
         headers:
@@ -120,8 +132,12 @@ traits:
   AccessUniqueObjectQualifierResponse:
     description: Response model for Object collection under Units collection in access or direct access to get one specific Qualifier version
     is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AllowsHeader,
-      StandardTraits.StandardHeader200,
-      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+      StandardTraits.StandardHeader200, StandardTraits.StandardHeader400,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader403, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    headers:
+      X-Access-Contract-Id:
+        type: string
+        required: true
     responses:
       200:
         description: Returns the list of 1 Object matching the DSL query
@@ -152,8 +168,12 @@ traits:
   AccessUniqueObjectResponse:
     description: Response model for Object collection under Units collection in access
     is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AllowsHeader,
-      StandardTraits.StandardHeader200,
-      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+      StandardTraits.StandardHeader200, StandardTraits.StandardHeader400,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader403, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    headers:
+      X-Access-Contract-Id:
+        type: string
+        required: true
     body:
       application/json?:
         description: Body contains in JSON format the VITAM DSL request part if any (may be absent, meaning access to this Object)
@@ -178,8 +198,12 @@ traits:
 
   AccessUpdateUnitResponse:
     description: Response model for Update Unit under Units collection in access
-    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader200,
-          StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader200, StandardTraits.StandardHeader400,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader403, StandardTraits.StandardHeader404, StandardTraits.StandardHeader405, StandardTraits.StandardHeader412 ]
+    headers:
+      X-Access-Contract-Id:
+        type: string
+        required: true
     body:
       application/json?:
         description: Body contains in JSON format the VITAM DSL request part for Update action
