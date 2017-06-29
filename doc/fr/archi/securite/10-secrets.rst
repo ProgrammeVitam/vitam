@@ -8,7 +8,7 @@ Les secrets nécessaires au bon déploiement de VITAM sont les suivants :
 
     - Ces certificats seront déployés dans des `keystores java <https://docs.oracle.com/cd/E19509-01/820-3503/ggffo/index.html>`_ en tant qu'élément de configuration de ces services (Cf. le :term:`DIN` pour plus d'information)
 
-* Certificats x509 client pour les clients du SAE (ex: les SIA, le service ``ihm-demo``), ainsi que les CA (finales et intermédiaires) et CRL associées
+* Certificats x509 client pour les clients du SAE (ex: les applciations métier, le service ``ihm-demo``), ainsi que les CA (finales et intermédiaires) et CRL associées
 
 	- Ces certificats seront déployés dans des `keystores java <https://docs.oracle.com/cd/E19509-01/820-3503/ggffo/index.html>`_ en tant qu'élément de configuration de ces services (Cf. le :term:`DIN` pour plus d'information)
 
