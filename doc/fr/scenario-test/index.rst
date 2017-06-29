@@ -12,10 +12,6 @@
       * les tables des matières dans un fichier _toc.rst à la racine du dossier correspondant
 
 
-########
-Sommaire
-########
-
 .. toctree::
    :maxdepth: 2
 

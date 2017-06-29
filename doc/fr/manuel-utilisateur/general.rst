@@ -1,7 +1,7 @@
 Généralités
 ###########
 
-Menus
+Menu
 =====
 
 Le menu est situé en haut des pages. Il est présent sur toutes les pages et est découpé en 4 grandes sections :
@@ -111,6 +111,6 @@ Sur IHM recette, le titre des pages est celui du dernier noeud du fil d'Ariane, 
 Gestion des erreurs techniques
 ------------------------------
 
-En cas d'erreur technique non gérée par le système, une fenêtre pop-up avertit l'utilisateur qu'un problème a eu lieu au travers un message généraliste, et lui indique des informations à transmettre à son administrateur technique.
+En cas d'erreur technique non gérée par le système, une fenêtre pop-up avertit l'utilisateur qu'un problème a eu lieu au travers d'un message généraliste, et lui indique des informations à transmettre à son administrateur technique.
 
 .. image:: images/error_popup.png
