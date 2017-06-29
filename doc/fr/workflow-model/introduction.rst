@@ -4,7 +4,7 @@ Introduction
 Avertissement
 =============
 
-Cette documentation est un travail en cours. Elle est susceptible de changer de manière conséquente.
+Cette documentation est un travail en cours. Elle est susceptible de changer dans les prochaines releases.
 
 Objectif du document
 ====================

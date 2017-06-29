@@ -11,6 +11,8 @@
 # $ActionQueueHighWatermark 100000 # Ecriture sur le disque à partir de 100.000 messages en memoire dans la queue
 # $ActionQueueLowWatermark 10000 # Une fois qu'il n'y a plus que 10.000 messages dans la file, on arrete d'utiliser le disque
 
+{% if (groups['hosts-logstash']|length) > 0 %}
+
 $ActionQueueType LinkedList
 $ActionQueueFileName logstash-vitam-queue
 $ActionQueueMaxDiskSpace 1g
@@ -82,3 +84,5 @@ $ActionResumeRetryCount -1
 $ActionQueueHighWatermark 100000
 $ActionQueueLowWatermark 10000
 :programname, startswith, "curator"  @@logstash.service.consul:{{vitam_logstash_port}}
+
+{% endif %}
