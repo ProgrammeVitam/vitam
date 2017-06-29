@@ -199,6 +199,7 @@ public class LogbookInternalResourceImpl {
             final JsonNode result = client.selectOperation(query);
             return Response.status(Status.OK).entity(result).build();
         } catch (final LogbookClientNotFoundException e) {
+            LOGGER.error(e);
             return Response.status(Status.OK).entity(new RequestResponseOK().toJsonNode()).build();
         } catch (final LogbookClientException e) {
             LOGGER.error(e);

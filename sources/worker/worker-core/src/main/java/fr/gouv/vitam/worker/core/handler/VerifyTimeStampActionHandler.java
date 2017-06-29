@@ -129,6 +129,7 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
                 compareTimeStamps(encodedTimeStampToken);
                 itemStatus.setItemsStatus(HANDLER_SUB_ACTION_COMPARE_TOKEN_TIMESTAMP, subItemStatusTokenComparison.increment(StatusCode.OK));
             } catch (ProcessingException e) {
+                LOGGER.error("Timestamps are not equal", e);
                 // lets stop the process and return an error
                 itemStatus.setItemsStatus(HANDLER_SUB_ACTION_COMPARE_TOKEN_TIMESTAMP, subItemStatusTokenComparison.increment(StatusCode.KO));
                 return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
@@ -137,9 +138,10 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
             // 2nd part - using bouncy castle, lets validate the timestamp
             final ItemStatus subItemStatusTokenValidation = new ItemStatus(HANDLER_SUB_ACTION_VALIDATE_TOKEN_TIMESTAMP);
             try {
-                validateTimestamp(itemStatus, encodedTimeStampToken);
+                validateTimestamp(encodedTimeStampToken);
                 itemStatus.setItemsStatus(HANDLER_SUB_ACTION_VALIDATE_TOKEN_TIMESTAMP, subItemStatusTokenValidation.increment(StatusCode.OK));
             } catch (ProcessingException e) {
+                LOGGER.error("Timestamps is not valid", e);
                 // lets stop the process and return an error
                 itemStatus.setItemsStatus(HANDLER_SUB_ACTION_VALIDATE_TOKEN_TIMESTAMP, subItemStatusTokenValidation.increment(StatusCode.KO));
                 return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
@@ -154,7 +156,7 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
                     tokenFile.close();
                 }
             } catch (Exception e) {
-                LOGGER.error(e.getMessage());
+                LOGGER.error("Error with tokenFile", e);
             }
         }
 
@@ -163,12 +165,12 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
 
     private void compareTimeStamps(String timeStampToken) throws ProcessingException, UnsupportedEncodingException {
         String traceabilityTimeStamp = traceabilityEvent.get("TimeStampToken").asText();
-        if (traceabilityEvent != null && !timeStampToken.equals(traceabilityTimeStamp)) {
+        if (!timeStampToken.equals(traceabilityTimeStamp)) {
             throw new ProcessingException("TimeStamp tokens are different");
         }
     }    
 
-    private void validateTimestamp(ItemStatus itemStatus, String encodedTimeStampToken) throws ProcessingException {
+    private void validateTimestamp(String encodedTimeStampToken) throws ProcessingException {
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
         VerifyTimeStampActionConfiguration configuration = null;
         try {

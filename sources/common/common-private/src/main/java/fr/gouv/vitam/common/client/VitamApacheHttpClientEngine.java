@@ -117,7 +117,7 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
                     HeaderElement he = (HeaderElement) iterator.next();
                     String param = he.getName();
                     String value = he.getValue();
-                    if (value != null && param.equalsIgnoreCase("timeout")) {
+                    if (value != null && "timeout".equalsIgnoreCase(param)) {
                         try {
                             return Long.parseLong(value) * 1000;
                         } catch (NumberFormatException ignore) {}
@@ -634,7 +634,7 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
         }
 
         private boolean canResponseHaveBody(final HttpRequest request, final HttpResponse response) {
-            if (request != null && request.getRequestLine().getMethod().equalsIgnoreCase("HEAD")) {
+            if (request != null && "HEAD".equalsIgnoreCase(request.getRequestLine().getMethod())) {
                 return false;
             }
             final int status = response.getStatusLine().getStatusCode();

@@ -193,7 +193,7 @@ public class SedaUtils {
             final QName commentName = new QName(NAMESPACE_URI, SedaConstants.TAG_COMMENT);
             final QName profilName = new QName(NAMESPACE_URI, SedaConstants.TAG_ARCHIVE_PROFILE);
 
-            String sedaComment = "";
+            StringBuffer sedaComment = new StringBuffer();
             reader = xmlInputFactory.createXMLEventReader(xmlFile);
             while (true) {
                 final XMLEvent event = reader.nextEvent();
@@ -215,11 +215,10 @@ public class SedaUtils {
                     }
 
                     if (element.getName().equals(commentName)) {
-                        // TODO: use equals + sting concatenation in loop is not a good idea
-                        if (sedaComment != "") {
-                            sedaComment = sedaComment + "_" + reader.getElementText();
+                        if (!"".equals(sedaComment.toString())) {
+                            sedaComment.append("_" + reader.getElementText());
                         } else {
-                            sedaComment = reader.getElementText();
+                            sedaComment.append(reader.getElementText());
                         }
 
                     }
@@ -232,8 +231,8 @@ public class SedaUtils {
                 }
             }
 
-            if (!sedaComment.isEmpty()) {
-                madatoryValueMap.put(SedaConstants.TAG_COMMENT, sedaComment);
+            if (sedaComment.length() > 0) {
+                madatoryValueMap.put(SedaConstants.TAG_COMMENT, sedaComment.toString());
             }
 
         } catch (final XMLStreamException e) {
@@ -391,11 +390,10 @@ public class SedaUtils {
 
     /**
      *
-     * @param params - parameters of workspace server
      * @return ExtractUriResponse - Object ExtractUriResponse contains listURI, listMessages and value boolean(error).
      * @throws ProcessingException - throw when error in execution.
      */
-    public ExtractUriResponse getAllDigitalObjectUriFromManifest(WorkerParameters params)
+    public ExtractUriResponse getAllDigitalObjectUriFromManifest()
         throws ProcessingException {
         return parsingUriSEDAWithWorkspaceClient();
     }

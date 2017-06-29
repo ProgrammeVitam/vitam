@@ -179,7 +179,7 @@ public class CheckDataObjectPackageActionHandlerTest {
             PropertiesUtils.getResourceAsStream(SIP_ARBORESCENCE);        
         PowerMockito.when(SedaUtilsFactory.create(anyObject())).thenReturn(sedaUtils);
 
-        when(sedaUtils.getAllDigitalObjectUriFromManifest(anyObject())).thenReturn(extractUriResponseOK);
+        when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractUriResponseOK);
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(seda_arborescence).build());
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))

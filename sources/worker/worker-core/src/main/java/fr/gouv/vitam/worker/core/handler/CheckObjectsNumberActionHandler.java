@@ -124,7 +124,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
         throws ProcessingException {
         // get uri list from manifest
         final SedaUtils sedaUtils = SedaUtilsFactory.create(handlerIO);
-        return sedaUtils.getAllDigitalObjectUriFromManifest(params);
+        return sedaUtils.getAllDigitalObjectUriFromManifest();
     }
 
 
