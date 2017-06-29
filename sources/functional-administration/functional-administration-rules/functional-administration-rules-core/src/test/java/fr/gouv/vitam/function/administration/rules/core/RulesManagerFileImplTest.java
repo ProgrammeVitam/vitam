@@ -171,7 +171,7 @@ public class RulesManagerFileImplTest {
         final List<FileRules> fileList = rulesFileManager.findDocuments(select.getFinalSelect());
         final String id = fileList.get(0).getString("RuleId");
         final FileRules file = rulesFileManager.findDocumentById(id);
-        // assertEquals(file, fileList.get(0));
+        assertEquals(file, fileList.get(0));
         client.close();
     }
 }

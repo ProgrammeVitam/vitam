@@ -219,7 +219,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
      * @throws IOException                    when error json occurs
      */
     @POST
-    @Path("format/{id_format}")
+    @Path("format/{id_format:.+}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response findFileFormatByID(@PathParam("id_format") String formatId)
         throws InvalidParseOperationException, IOException {
@@ -371,18 +371,13 @@ public class AdminManagementResource extends ApplicationStatusResource {
         throws InvalidParseOperationException, IOException,
         ReferentialException, InvalidCreateOperationException {
         ParametersChecker.checkParameter("ruleId is a mandatory parameter", ruleId);
-        List<FileRules> fileRules = null;
+        FileRules fileRule = null;
         JsonNode result = null;
         try (RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess)) {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(ruleId));
-            result = findRulesByRuleValueQueryBuilder(ruleId);
-            fileRules = rulesFileManagement.findDocuments(result);
-            if (fileRules == null || fileRules.size() > 1) {
-                throw new FileRulesException("NO DATA for the specified rule Value or More than one records exists");
-            }
+            fileRule = rulesFileManagement.findDocumentById(ruleId);
             return Response.status(Status.OK).entity(new RequestResponseOK()
-                .addResult(JsonHandler.toJsonNode(fileRules.get(0)))).build();
-
+                .addResult(JsonHandler.toJsonNode(fileRule))).build();
         } catch (final FileRulesException e) {
             LOGGER.error(e);
             final Status status = Status.NOT_FOUND;
@@ -392,27 +387,6 @@ public class AdminManagementResource extends ApplicationStatusResource {
             final Status status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(status).build();
         }
-    }
-
-    /**
-     * findRulesByRuleValueQueryBuilder: build a dsl query based on a RuleId and order the result
-     *
-     * @param rulesId
-     * @return
-     * @throws InvalidCreateOperationException
-     * @throws InvalidParseOperationException
-     */
-    private JsonNode findRulesByRuleValueQueryBuilder(String rulesId)
-        throws InvalidCreateOperationException, InvalidParseOperationException {
-        JsonNode result;
-        final Select select =
-            new Select();
-        select.addOrderByDescFilter(rulesId);
-        final BooleanQuery query = and();
-        query.add(eq("RuleId", rulesId));
-        select.setQuery(query);
-        result = select.getFinalSelect();
-        return result;
     }
 
     /**

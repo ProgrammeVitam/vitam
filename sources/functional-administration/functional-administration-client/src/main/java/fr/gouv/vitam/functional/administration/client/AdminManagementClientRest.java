@@ -62,7 +62,11 @@ import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
 import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
 import fr.gouv.vitam.functional.administration.client.model.RegisterValueDetailModel;
+import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
+import fr.gouv.vitam.functional.administration.common.Context;
+import fr.gouv.vitam.functional.administration.common.IngestContract;
+import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
@@ -572,7 +576,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             final SelectParserSingle parser = new SelectParserSingle(new VarNameAdapter());
             Select select = new Select();
             parser.parse(select.getFinalSelect());
-            parser.addCondition(QueryHelper.eq("#id", documentId));
+            parser.addCondition(QueryHelper.eq(AccessContract.IDENTIFIER, documentId));
             JsonNode queryDsl = parser.getRequest().getFinalSelect();
 
 
@@ -640,7 +644,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             final SelectParserSingle parser = new SelectParserSingle(new VarNameAdapter());
             Select select = new Select();
             parser.parse(select.getFinalSelect());
-            parser.addCondition(QueryHelper.eq("#id", documentId));
+            parser.addCondition(QueryHelper.eq(IngestContract.IDENTIFIER, documentId));
             JsonNode queryDsl = parser.getRequest().getFinalSelect();
 
             response = performRequest(HttpMethod.GET, INGEST_CONTRACTS_URI, null, queryDsl,
@@ -781,7 +785,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             final SelectParserSingle parser = new SelectParserSingle(new VarNameAdapter());
             Select select = new Select();
             parser.parse(select.getFinalSelect());
-            parser.addCondition(QueryHelper.eq("#id", documentId));
+            parser.addCondition(QueryHelper.eq(Profile.IDENTIFIER, documentId));
             JsonNode queryDsl = parser.getRequest().getFinalSelect();
 
 
@@ -937,7 +941,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             final SelectParserSingle parser = new SelectParserSingle(new VarNameAdapter());
             Select select = new Select();
             parser.parse(select.getFinalSelect());
-            parser.addCondition(QueryHelper.eq("#id", id));
+            parser.addCondition(QueryHelper.eq(Context.IDENTIFIER, id));
             JsonNode queryDsl = parser.getRequest().getFinalSelect();
 
 

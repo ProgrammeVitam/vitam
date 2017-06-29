@@ -347,7 +347,7 @@ public class AdminManagementResourceTest {
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(jsonDocument)
-            .pathParam("id_format", jsonDocument.get(0).get("_id").asText())
+            .pathParam("id_format", jsonDocument.get(0).get("PUID").asText())
             .when().post(GET_BYID_FORMAT_URI + FORMAT_ID_URI)
             .then().statusCode(Status.OK.getStatusCode());
     }

@@ -297,6 +297,9 @@ public class MongoDbAccessAdminImplTest {
         final String id = f1.getString("_id");
         final FileFormat f2 = (FileFormat) mongoAccess.getDocumentById(id, formatCollection);
         assertEquals(f2, f1);
+        final String puid = f1.getString(FileFormat.PUID);
+        final FileFormat f3 = (FileFormat) mongoAccess.getDocumentByUniqueId(puid, formatCollection, FileFormat.PUID);
+        assertEquals(f3, f1);
         formatCollection.getEsClient().refreshIndex(formatCollection);
         assertEquals(false, fileList.hasNext());
 

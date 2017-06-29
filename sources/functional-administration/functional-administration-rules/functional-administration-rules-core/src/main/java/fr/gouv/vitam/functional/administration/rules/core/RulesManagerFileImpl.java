@@ -421,9 +421,12 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
 
     @Override
     public FileRules findDocumentById(String id) throws ReferentialException {
-        return (FileRules) mongoAccess.getDocumentById(id, FunctionalAdminCollections.RULES);
+        FileRules fileRule = (FileRules) mongoAccess.getDocumentByUniqueId(id, FunctionalAdminCollections.RULES, FileRules.RULEID);
+        if (fileRule == null) {
+            throw new FileRulesException("FileRules Not Found");
+        }
+        return fileRule;
     }
-
 
     @Override
     public List<FileRules> findDocuments(JsonNode select) throws ReferentialException {

@@ -42,7 +42,6 @@ angular.module('core')
      */
     accessionRegisterResource.getDetails = function (id, criteria) {
       return ihmDemoCLient.getClient(ACCESSION_REGISTER_ROOT).all(id + ACCESSION_REGISTER_DETAIL).post(criteria);
-      // return $http.post(IHM_URLS.IHM_BASE_URL + ACCESSION_REGISTER_ROOT + id + ACCESSION_REGISTER_DETAIL, criteria);
     };
 
     /** Get summary of an accession register (POST method)
@@ -53,7 +52,6 @@ angular.module('core')
      */
     accessionRegisterResource.getSummary = function (criteria) {
       return ihmDemoCLient.getClient('').all(ACCESSION_REGISTER_ROOT).post(criteria);
-      // return $http.post(IHM_URLS.IHM_BASE_URL + ACCESSION_REGISTER_ROOT, criteria);
     };
 
     return accessionRegisterResource;
