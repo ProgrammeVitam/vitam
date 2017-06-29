@@ -10,7 +10,7 @@ Objectif du document
 ====================
 
 Ce document a pour objectif de présenter les différents processus employés par la solution logicielle Vitam.
-Il est destiné aux administrateurs aussi bien techniques que fonctionnels, aux archivistes souhaitant une connaissance plus avancée du logiciel et aux développeurs.
+Il est destiné aux administrateurs aussi bien techniques que fonctionnels, aux archivistes souhaitant une connaissance plus avancée du logiciel ainsi qu'aux développeurs.
 
 Il explicite chaque processus (appellés également "workflow"), et pour chacun leurs tâches et traitements.
 
@@ -27,10 +27,10 @@ Pour chacun de ces éléments, le document décrit :
 - Les statuts de sortie possibles (OK,KO...), avec les raisons de ces sorties et les clés associées
 - Des informations complémentaires, selon le type d'élément traité
 
-Chaque étape, chaque actions peuvent avoir les statuts suivants :
+Chaque étape, chaque action peuvent avoir les statuts suivants :
 
 - OK : le traitement associé s'est passé correctement. Le workflow continue.
-- Warning : le traitement associé a généré un avertissement (Par exemple le format de l'objet est mal déclaré dans le bordereau de versement). Le workflow continue.
+- Warning : le traitement associé a généré un avertissement (Par exemple le format de l'objet est mal déclaré dans le bordereau, aussi appellé "manifeste"). Le workflow continue.
 - KO : le traitement associé a généré une erreur métier. Le workflow s'arrête si le modèle d'execution est bloquant (cf. ci-dessous).
 - FATAL : le traitement associé a généré une erreur technique. Le workflow s'arrête.
 
@@ -38,13 +38,13 @@ Chaque action peut avoir les modèles d'éxécutions suivants (toutes les étape
 
 - Bloquant
 
-    * Si une action est identifiée en erreur, l'étape en cours est alors arrêtée et le workflow passe à la derniere étape de finalisation de l'entrée. Une notification de l'échec de l'entrée est généré et le statut du processus d’entrée passe à « erreur ».
+    * Si une action est identifiée en erreur, l'étape en cours est alors arrêtée et le workflow passe à un nouvel état. Dans certains cas, il est directement terminé en erreur alors que dans d'autres, ils passent à une étape de finalisation. Ces comportements spécifiques sont décrits dans chaque workflow.
 
 - Non bloquant
 
-    * Si une action est identifiée en erreur, le reste des actions de l'étape est exécuté avant que le statut de l'étape passe à « erreur ». L'étape en cours est alors arrêtée et le workflow passe à la dernière étape de finalisation de l'entrée. Une notification de l'échec de l'entrée est généré et le statut du processus d’entrée passe à « erreur ».
+    * Si une action est identifiée en erreur, le reste des actions de l'étape est exécuté avant que le statut de l'étape passe à « erreur ». Le workflow passe alors à un nouvel état. Dans certains cas, il est directement terminé en erreur alors que dans d'autres, ils passent à une étape de finalisation. Ces comportements spécifiques sont décrits dans chaque workflow.
 
-Structure du fichier Properties du Worflow
+Structure d'un fichier Properties du Worflow
 ==========================================
 
 Le fichier Properties permet de définir la structure du Workflow pour les étapes et actions réalisées dans le module d'Ingest Interne, en excluant les étapes et actions réalisées dans le module d'Ingest externe.
@@ -74,7 +74,7 @@ Un Workflow est défini en JSON avec la structure suivante :
 
     + ``Behavior`` : modèle d'exécution pouvant avoir les types suivants :
 
-      - BLOCKING : le traitement est bloqué en cas d'erreur, il est nécessaire de recommencer le workflow. Les étapes FINALLY (voir plus bas) sont tout de même exécutées
+      - BLOCKING : le traitement est bloqué en cas d'erreur, il est nécessaire de recommencer le workflow. Les étapes FINALLY (définition ci-dessous) sont tout de même exécutées
 
       - NOBLOCKING : le traitement peut continuer malgré les erreurs ou avertissements,
 
@@ -94,24 +94,33 @@ Un Workflow est défini en JSON avec la structure suivante :
 
 
       - ``Behavior`` : modèle d'exécution pouvant avoir les types suivants :
-        - BLOCKING : l'action est bloquante en cas d'erreur. Les actions suivantes (de la meme étape) ne seront pas éxécutées.
-        - NOBLOCKING : l'action peut continuer malgrée les erreurs ou avertissements.
+
+        - BLOCKING : l'action est bloquante en cas d'erreur. Les actions suivantes (de la même étape) ne seront pas éxécutées.
+
+        - NOBLOCKING : l'action peut continuer malgré les erreurs ou avertissements.
 
 
       - ``In`` : liste de paramètres d'entrées :
+      
         - ``Name`` : nom utilisé pour référencer cet élément entre différents handlers d'une même étape,
 
         - ``URI`` : cible comportant un schema (WORKSPACE, MEMORY, VALUE) et un path où chaque handler peut accéder à ces valeurs via le handlerIO :
-          - WORKSPACE : path indique le chemin relatif sur le workspace (implicitement un File),
-          - MEMORY : path indique le nom de la clef de valeur (implicitement un objet mémoire déjà alloué par un Handler précédent),
-          - VALUE : path indique la valeur statique en entrée (implicitement une valeur String).
+
+          - WORKSPACE : path indiquant le chemin relatif sur le workspace (implicitement un File),
+
+          - MEMORY : path indiquant le nom de la clef de valeur (implicitement un objet mémoire déjà alloué par un Handler précédent),
+
+          - VALUE : path indiquant la valeur statique en entrée (implicitement une valeur String).
 
 
       - ``Out`` : liste de paramètres de sorties :
+
         - ``Name`` : nom utilisé pour référencer cet élément entre différents handlers d'une même étape,
 
         - ``URI`` : cible comportant un schema (WORKSPACE, MEMORY) et un path où chaque handler peut stocker les valeurs finales via le handlerIO :
+
           - WORKSPACE : path indique le chemin relatif sur le workspace (implicitement un File local),
+
           - MEMORY : path indique le nom de la clef de valeur (implicitement un objet mémoire).
 
 

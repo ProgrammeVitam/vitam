@@ -4,20 +4,14 @@ Workflow d'entrée d'un plan de classement
 Introduction
 ============
 
-Cette section décrit le processus (workflow-plan) d'entrée d'un plan de classement dans la solution logicielle Vitam. La structure d'un plan de classement diffère de celle d'un SIP dans le fait qu'un plan ne doit pas avoir d'objets et n'utilise pas de profil. Il s'agit plus simplement d'une arborescence représenté par des unités archivistiques. Ce processus partage donc certaines étapes avec celui du versement d'un SIP classique, en ignorent certaines et rajoute des tâches additionnelles.
+Cette section décrit le processus (workflow-plan) d'entrée d'un plan de classement dans la solution logicielle Vitam. La structure d'un plan de classement diffère de celle d'un SIP par l'absence d'objet et de vérification par rapport à un profil SEDA. Il s'agit plus simplement d'une arborescence représentée par des unités archivistiques. Ce processus partage donc certaines étapes avec celui du transfert d'un SIP classique, en ignore certaines et rajoute des tâches additionnelles.
 
-Le workflow actuel mis en place dans la solution logicielle Vitam est défini dans le fichier "DefaultFilingSchemeWorkflow.json".
+Le workflow actuel mis en place dans la solution logicielle Vitam est défini dans le fichier "DefaultFilingSchemeWorkflow.json". Ce fichier est disponible dans : sources/processing/processing-management/src/main/resources/
 
 Processus d'entrée d'un plan de classement (vision métier)
 ==========================================================
 
-Le processus d'entrée d'un plan est identique au workflow d'entrée d'un SIP, il début lors de l'entrée d'un plan de classement dans la solution logicielle Vitam. De plus, toutes les étapes et actions sont journalisées dans le journal des opérations.
-
-- Un workflow-plan est un processus composé d’étapes elles-mêmes composées d’une liste d’actions
-
-- Chaque étape et chaque action peuvent avoir les statuts suivants : OK, KO, Warning, FATAL
-
-- Chaque action peut avoir les modèles d'éxécutions : Bloquant ou Non bloquant
+Le processus d'entrée d'un plan est identique au workflow d'entrée d'un SIP. Il débute lors du lancement du téléchargement d'un plan de classement dans la solution logicielle Vitam. Toutes les étapes et actions sont journalisées dans le journal des opérations.
 
 Les étapes et actions associées ci-dessous décrivent le processus d'entrée (clé et description de la clé associée dans le journal des opérations), non encore abordées dans la description de l'entrée d'un SIP.
 
@@ -31,14 +25,14 @@ Traitement additionnel dans la tâche CHECK_DATAOBJECTPACKAGE
 
   + **Statuts** :
 
-	- OK : aucun objet numérique n'est présent dans le manifeste (CHECK_DATAOBJECTPACKAGE.CHECK_NO_OBJECT.OK=Succès de la vérification de l'absence d'objet)
+	 - OK : aucun objet numérique n'est présent dans le manifeste (CHECK_DATAOBJECTPACKAGE.CHECK_NO_OBJECT.OK=Succès de la vérification de l'absence d'objet)
 
-	- KO : des objet numériques sont présent dans le manifeste (CHECK_DATAOBJECTPACKAGE.CHECK_NO_OBJECT.KO=Échec de la vérification de l'absence d''objet : objet(s) trouvé(s))
+   - KO : des objets numériques sont présent dans le manifeste (CHECK_DATAOBJECTPACKAGE.CHECK_NO_OBJECT.KO=Échec de la vérification de l'absence d'objet : objet(s) trouvé(s))
 
-  - FATAL : une erreur technique est survenue lors de la vérification de la non existence d'objet numérique (CHECK_DATAOBJECTPACKAGE.CHECK_NO_OBJECT.FATAL=Erreur fatale lors de la vérification de l'absence d''objet)
+   - FATAL : une erreur technique est survenue lors de la vérification de la non existence d'objet numérique (CHECK_DATAOBJECTPACKAGE.CHECK_NO_OBJECT.FATAL=Erreur fatale lors de la vérification de l'absence d'objet)
 
 
-  D'une façon synthétique, le workflow est décrit de cette façon :
+D'une façon synthétique, le workflow est décrit de cette façon :
 
 .. image:: images/Workflow_FilingScheme.jpg
     :align: center
@@ -67,13 +61,13 @@ Diagramme d'activité du workflow du plan de classement
 
       - Recherche le nom de contrat d'entrée dans le SIP,
 
-      - Vérification de la validité de contrat par rapport la référentiel de contrats importée dans le système
+      - Vérification de la validité de contrat par rapport au référentiel de contrats importée dans le système
 
   * CHECK_DATAOBJECTPACKAGE (CheckDataObjectPackageActionHandler.java)
 
     + Contient CHECK_NO_OBJECT
 
-      - Vérification de la non existence d'objets
+      - Vérification de l'absence d'objets
 
     + Contient CHECK_MANIFEST_OBJECTNUMBER (CheckObjectsNumberActionHandler.java) :
 
@@ -84,25 +78,25 @@ Diagramme d'activité du workflow du plan de classement
       - Comparaison du nombre et des URI des objets binaires contenus dans le SIP avec ceux définis dans le manifeste.
 
 
-    * Contient CHECK_MANIFEST (ExtractSedaActionHandler.java) :
+  * Contient CHECK_MANIFEST (ExtractSedaActionHandler.java) :
 
-      - Extraction des ArchiveUnits, des BinaryDataObject,
+    - Extraction des unités archivistiques, des BinaryDataObject, des PhysicalDataObject,
 
-      - Création des journaux de cycle de vie des ArchiveUnits et des ObjectGroup,
+    - Création des journaux du cycle de vie des unités archivistiques et des groupes d'objets,
 
-      - Vérification de la présence de cycles dans les arboresences des Units,
+    - Vérification de la présence de cycles dans les arboresences des Units,
 
-      - Création de l'arbre d'ordre d'indexation,
+    - Création de l'arbre d'ordre d'indexation,
 
-      - Extraction des métadonnées contenues dans le bloc ManagementMetadata du manifeste pour le calcul des règles de gestion,
+    - Extraction des métadonnées contenues dans le bloc ManagementMetadata du manifeste pour le calcul des règles de gestion,
 
-      - Vérification du GUID de la structure de rattachement,
+    - Vérification du GUID de la structure de rattachement
 
-      - Vérification de la cohérence entre l'unit rattachée et l'unit de rattachement.
+    - Vérification de la cohérence entre l'unité archivistique rattachée et l'unité archivistique de rattachement.
 
-      - Vérification des problèmes d'encodage dans le manifeste
+    - Vérification des problèmes d'encodage dans le manifeste
 
-      - Vérification que les objets ayant un groupe d'objet ne référencent pas directement les unités archivistiques
+    - Vérification que les objets ayant un groupe d'objets ne référencent pas directement les unités archivistiques
 
 
 - **Step 2** - STP_UNIT_CHECK_AND_PROCESS : Contrôle et traitements des units / distribution sur LIST GUID
@@ -111,21 +105,21 @@ Diagramme d'activité du workflow du plan de classement
 
     + vérification de l'existence de la règle dans le référentiel des règles de gestion
 
-  * calcul des échéances associées à chaque ArchiveUnit.
+    + calcul des échéances associées à chaque unité archivistique.
 
 - **Step 3** - STP_UNIT_STORING : Rangement des unités archivistique / distribution sur LIST GUID/Units
 
   * UNIT_METADATA_INDEXATION (IndexUnitActionPlugin.java) :
 
-    + Transformation sous la forme Json des ArchiveUnits et intégration du GUID Unit et du GUID ObjectGroup
+    + Transformation sous la forme Json des unités archivistiques et intégration du GUID Unit et du GUID des groupes d'objets
 
   * UNIT_METADATA_STORAGE (StoreMetaDataUnitActionPlugin.java.java) :
 
-    + Enregistrement en base des métadonnées des unités.
+    + Sauvegarde sur les offres de stockage des métadonnées des unités archivistiques.
 
   * COMMIT_LIFE_CYCLE_UNIT (CommitLifeCycleUnitActionHandler.java)
 
-      + Sécurisation en base des journaux de cycle de vie des unités archivistiques
+    + Sécurisation en base des journaux du cycle de vie des unités archivistiques
 
 - **Step 4** - STP_ACCESSION_REGISTRATION : Alimentation du registre des fonds
 
@@ -139,4 +133,4 @@ Diagramme d'activité du workflow du plan de classement
 
     + Génération de l'ArchiveTransferReply.xml (peu importe le statut du processus d'entrée, l'ArchiveTransferReply est obligatoirement généré),
 
-    + Stockage de l'ArchiveTransferReply dans les offres de stockage.
+    + Écriture de l'ArchiveTransferReply sur les offres de stockage.
