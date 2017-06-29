@@ -4,13 +4,13 @@ Base MasterData
 Collections contenues dans la base
 ===================================
 
-La base contient les collections relatives aux référentiels utilisés par la solution logicielle Vitam.
+La base Masterdata contient les collections relatives aux référentiels utilisés par la solution logicielle Vitam.
 
-Collection Formats (FileFormat)
-===============================
+Collection FileFormat
+=====================
 
-Utilisation de la collection Formats (FileFormat)
---------------------------------------------------
+Utilisation de la collection FileFormat
+---------------------------------------
 
 La collection FileFormat permet de référencer et décrire les différents formats de fichiers ainsi que leur description. La collection est initialisée à partir de l'import du fichier de signature PRONOM, mis à disposition par The National Archive (UK).
 
@@ -23,19 +23,20 @@ Exemple de JSON stocké en base
     "_id": "aeaaaaaaaahbl62nabduoak3jc2zqciaadiq",
     "CreatedDate": "2016-09-27T15:37:53",
     "VersionPronom": "88",
+     "PUID": "fmt/961",
     "Version": "2",
-    "HasPriorityOverFileFormatID": [
-        "fmt/714"
-    ],
-    "MIMEType": "audio/mobile-xmf",
     "Name": "Mobile eXtensible Music Format",
-    "Group": "",
-    "Alert": false,
-    "Comment": "",
     "Extension": [
         "mxmf"
     ],
-    "PUID": "fmt/961"
+    "HasPriorityOverFileFormatID": [
+        "fmt/714"
+    ],
+    "MIMEType": "audio/mobile-xmf", 
+    "Group": "",
+    "Alert": false,
+    "Comment": "",
+    "_v": 0
   }
 
 
@@ -74,14 +75,14 @@ Dans cet exemple, le numéro de version est 88 :
     Il s'agit d'une chaîne de caractères.
     Elle est renseignée avec le contenu de l'attribut "MIMEType" de la balise <FileFormat>. Cet attribut est facultatif dans le fichier de signature.
 
-**"HasPriorityOverFileFormatID"** : liste des PUID des formats sur lesquels le format a la priorité.
+**"HasPriorityOverFileFormatID"**: liste des PUID des formats sur lesquels le format a la priorité.
 
 ::
 
   <HasPriorityOverFileFormatID>1121</HasPriorityOverFileFormatID>
 
 Cet ID est ensuite utilisé dans Vitam pour retrouver le PUID correspondant.
-    S'il existe plusieurs balises <HasPriorityOverFileFormatID> dans le xml pour un format donné, alors les PUID seront stocké dans le JSON sous la forme suivante :
+    S'il existe plusieurs balises <HasPriorityOverFileFormatID> dans le fichier xml initial pour un format donné, alors les PUID seront stocké dans le JSON sous la forme suivante :
 
 ::
 
@@ -93,7 +94,7 @@ Cet ID est ensuite utilisé dans Vitam pour retrouver le PUID correspondant.
 
 "PUID": identifiant unique du format au sein du référentiel PRONOM.
     Il s'agit d'une chaîne de caractères.
-    Il est issu du champ "PUID" de la balise <FileFormat>. La valeur est composée du préfixe fmt ou x-fmt, puis d'un nombre correspondant au numéro d'entrée du format dans le référentiel pronom. Les deux éléments sont séparés par un "/"
+    Il est issu du champ "PUID" de la balise <FileFormat>. La valeur est composée du préfixe "fmt" ou "x-fmt", puis d'un nombre correspondant au numéro d'entrée du format dans le référentiel PRONOM. Les deux éléments sont séparés par un "/"
 
 Par exemple
 
@@ -103,7 +104,7 @@ Par exemple
 
 Les PUID comportant un préfixe "x-fmt" indiquent que ces formats sont en cours de validation par The National Archives (UK). Ceux possédant un préfixe "fmt" sont validés.
 
-"Version": Version du format.
+"Version": version du format.
     Il s'agit d'une chaîne de caractères.
 
 Exemples de formats :
@@ -120,11 +121,11 @@ L'attribut "version" n'est pas obligatoire dans la balise <fileformat> du fichie
     Il s'agit d'une chaîne de caractères.
     Le nom du format est issu de la valeur de l'attribut "Name" de la balise <FileFormat> du fichier de signature.
 
-"Extension" : Extension(s) du format.
+"Extension": Extension(s) du format.
     Il s'agit d'un tableau de chaînes de caractères.
     Il contient les valeurs situées entre les balises <Extension> elles-mêmes encapsulées entre les balises <FileFormat>. Le champ <Extension> peut-être multivalué. Dans ce cas, les différentes valeurs situées entre les différentes balises <Extensions> sont placées dans le tableau et séparées par une virgule.
 
-Par exemple, pour le format PUID : fmt/918 on la XML suivant :
+Par exemple, pour le format dont le PUID est : fmt/918 on la XML suivant :
 
 ::
 
@@ -135,7 +136,7 @@ Par exemple, pour le format PUID : fmt/918 on la XML suivant :
      <Extension>hx</Extension>
    </FileFormat>
 
-Les valeurs des balises extensions seront stockées de la façon suivante dans le JSON :
+Les valeurs des balises <Extensions> seront stockées de la façon suivante dans le JSON :
 
 ::
 
@@ -145,17 +146,17 @@ Les valeurs des balises extensions seront stockées de la façon suivante dans l
       "hx"
   ],
 
-"Alert": Alerte sur l'obsolescence du format.
-    Il s'agit d'un booléen dont la valeur est par défaut placée à False.
+"Alert": alerte sur l'obsolescence du format.
+    Il s'agit d'un booléen dont la valeur est par défaut placée à false.
 
 "Comment": commentaire.
-	Il s'agit d'une chaîne de caractères
-	C'est un champ propre à la solution logicielle VITAM.
+	Il s'agit d'une chaîne de caractères.
+	C'est un champ propre à la solution logicielle Vitam.
 
 
-"Group": Champs permettant d'indiquer le nom d'une famille de format.
-	Il s'agit d'une chaîne de caractères
-  C'est un champ propre à la solution logicielle VITAM.
+"Group": Champ permettant d'indiquer le nom d'une famille de format.
+	Il s'agit d'une chaîne de caractères.
+  C'est un champ propre à la solution logicielle Vitam.
 
 "_v": version de l'objet décrit
   Il s'agit d'un entier.
@@ -168,7 +169,7 @@ Utilisation de la collection FileRules
 
 La collection FileRules permet de stocker unitairement les différentes règles de gestion utilisées dans la solution logicielle Vitam pour calculer les échéances associées aux unités archivistiques.
 
-Cette collection est alimentée par l'import d'un fichier csv contenant l'ensemble des règles.
+Cette collection est alimentée par l'import d'un fichier CSV contenant l'ensemble des règles.
 
 Exemple de JSON stocké en base
 ------------------------------
@@ -185,7 +186,8 @@ Exemple de JSON stocké en base
    "RuleDuration": "50",
    "RuleMeasurement": "YEAR",
    "CreationDate": "2017-04-07",
-   "UpdateDate": "2017-04-07"
+   "UpdateDate": "2017-04-07",
+   "_v": 0
   }
 
 
@@ -200,7 +202,7 @@ Structure du fichier d'import
 La liste des type de règles disponibles est en annexe 5.4.
 
 Les valeurs renseignées dans la colonne unité de mesure doivent correspondre à une valeur de l'énumération RuleMeasurementEnum, à savoir :
-  * MOUNTH
+  * MONTH
   * DAY
   * YEAR
   * SECOND
@@ -208,12 +210,12 @@ Les valeurs renseignées dans la colonne unité de mesure doivent correspondre �
 Détail des champs
 -----------------
 
-"_id": Identifiant unique par tenant de la règle de gestion.
+"_id": identifiant unique par tenant de la règle de gestion.
     Il s'agit d'une chaîne de caractères composée de 36 caractères correspondant à une GUID.
 
-"RuleId": Identifiant unique par tenant de la règle dans le référentiel utilisé.
+"RuleId": identifiant unique par tenant de la règle dans le référentiel utilisé.
     Il s'agit d'une chaîne de caractères.
-    La valeur est reprise du champs RuleId du fichier d'import. Par commodité, les exemples sont composés d'un Préfixe puis d'une nombre séparés par un tiret, mais ce formalisme n'est pas obligatoire.
+    La valeur est reprise du champs RuleId du fichier d'import. Par commodité, les exemples sont composés d'un préfixe puis d'une nombre, séparés par un tiret, mais ce formalisme n'est pas obligatoire.
 
 Par exemple :
 
@@ -221,9 +223,9 @@ Par exemple :
 
  ACC-00027
 
-Les préfixes indiquent le type de règle dont il s'agit. La liste des valeurs pouvant être utilisée comme préfixe ainsi que les types de règles auxquelles elles font référence sont disponibles en annexe.
+Les préfixes indiquent le type de règle dont il s'agit. La liste des valeurs pouvant être utilisées comme préfixes ainsi que les types de règles auxquelles elles font référence sont disponibles en annexe.
 
-"RuleType": *Champ obligatoire* type de règle.
+"RuleType": *Champ obligatoire* Type de règle.
     Il s'agit d'une chaîne de caractères.
     Il correspond à la valeur située dans la colonne RuleType du fichier d'import. Les valeurs possibles pour ce champ sont indiquées en annexe.
 
@@ -237,11 +239,11 @@ Les préfixes indiquent le type de règle dont il s'agit. La liste des valeurs p
 
 "RuleDuration": *Champ obligatoire* Durée de la règle.
     Il s'agit d'un entier compris entre 0 et 9999.
-    Associé à la valeur "RuleMeasurement", il permet de décrire la durée d'application de la règle de gestion. Il correspond à la valeur de la colonne RuleDuration du fichier d'import.
+    Associé à la valeur indiqué dans RuleMeasurement, il permet de décrire la durée d'application de la règle de gestion. Il correspond à la valeur de la colonne RuleDuration du fichier d'import.
 
-"RuleMeasurement": *Champ obligatoire* Unité de mesure de la durée décrite dans la colonne "RuleDuration" du fichier d'import.
+"RuleMeasurement": *Champ obligatoire* Unité de mesure de la durée décrite dans la colonne RuleDuration du fichier d'import.
     Il s'agit d'une chaîne de caractères devant correspondre à une valeur de l'énumération RuleMeasurementEnum, à savoir :
-      * MOUNTH
+      * MONTH
       * DAY
       * YEAR
       * SECOND
@@ -250,10 +252,12 @@ Les préfixes indiquent le type de règle dont il s'agit. La liste des valeurs p
     Il s'agit d'une date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes]
     ``Exemple : "2016-08-17T08:26:04.227"``
 
-"UpdateDate": Date de dernière mise à jour de la règle dans la collection FileRule.
+"UpdateDate": Date de dernière mise à jour de la règle dans la collection FileRules.
+    Il s'agit d'une date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes]
+    ``Exemple : "2016-08-17T08:26:04.227"``
 
-"_v": version de l'objet décrit
-  Il s'agit d'un entier.
+"_v": version de l'objet décrit.
+    Il s'agit d'un entier.
 
 Collection IngestContract
 =========================
@@ -282,14 +286,15 @@ Exemple de JSON stocké en base
       "ArchiveProfiles": [
           "ArchiveProfile8"
       ],
-      "FilingParentId": "aeaqaaaaaagbcaacaax56ak35rpo6zqaaaaq"
+      "FilingParentId": "aeaqaaaaaagbcaacaax56ak35rpo6zqaaaaq",
+      "_v": 0
     }
 
 
 Exemple d'un fichier d'import de contrat
 ----------------------------------------
 
-Les contrats d'entrée sont importés dans la solution logicielle Vitam sous la forme d'un fichier Json.
+Les contrats d'entrée sont importés dans la solution logicielle Vitam sous la forme d'un fichier JSON.
 
 ::
 
@@ -305,11 +310,13 @@ Les contrats d'entrée sont importés dans la solution logicielle Vitam sous la 
             "Status" : "INACTIVE",
             "ArchiveProfiles": [
               "ArchiveProfile8"
-            ]
+            ],
+            "FilingParentId" : "aeaqaaaaaahkwxukabcg2ak4u2qq7eaaaaaq"
         }
     ]
 
 Les champs à renseigner obligatoirement à la création d'un contrat sont :
+
 * Name
 * Description
 
@@ -321,14 +328,14 @@ Détail des champs
 "_id": identifiant unique par tenant.
   Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
 
-"_tenant": information sur le tenant
-  Il s'agit de l'identifiant du tenant
+"_tenant": information sur le tenant.
+  Il s'agit de l'identifiant du tenant.
 
-"Name": *Champ obligatoire* nom du contrat d'entrée unique par tenant.
+"Name": *Champ obligatoire* Nom du contrat d'entrée, unique par tenant.
   Il s'agit d'une chaîne de caractères.
 
-"Identifier": *Champ obligatoire* identifiant signifiant donné au contrat.
-  Il est consituté du préfixe "IC-" suivi d'une suite de 6 chiffres. Par exemple : IC-007485.
+"Identifier": *Champ obligatoire* Identifiant signifiant donné au contrat.
+  Il est constitué du préfixe "IC-" suivi d'une suite de 6 chiffres. Par exemple : IC-007485.
   Il s'agit d'une chaîne de caractères.
 
 "Description": description du contrat d'entrée.
@@ -350,9 +357,9 @@ Détail des champs
   La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
 
 "ArchiveProfiles": liste des profils d'archivage pouvant être utilisés par le contrat d'entrée.
-  Tableau de chaînes de caractères correspondant à la valeur du champs Name de la collection Profile.
+  Tableau de chaînes de caractères correspondant à la valeur du champ Identifier de la collection Profile.
 
-"FilingParentId": le point de rattachement automatique des SIP en application de ce contrat-- id d’une unité archivistique dans le plan de classement
+"FilingParentId": point de rattachement automatique des SIP en application de ce contrat correspondant à l'id d’une unité archivistique dans le plan de classement
   Il s'agit d'une chaîne de 36 caractères correspondant à un GUID dans le champ _id de la collection Unit.
 
 "_v": version de l'objet décrit
@@ -384,7 +391,10 @@ Exemple de JSON stocké en base
     "DeactivationDate": null,
     "OriginatingAgencies":["FRA-56","FRA-47"],
     "DataObjectVersion": ["PhysicalMaster", "BinaryMaster", "Dissemination", "Thumbnail", "TextContent"],
-    "WritingPermission": true
+    "WritingPermission": true,
+    "EveryOriginatingAgency": false,
+    "EveryDataObjectVersion": true,
+    "_v": 0
     }
 
 Exemple d'un fichier d'import de contrat d'accès
@@ -413,6 +423,7 @@ Les contrats d'entrée sont importés dans la solution logicielle Vitam sous la 
     ]
 
 Les champs à renseigner obligatoirement à la création d'un contrat sont :
+
 * Name
 * Description
 
@@ -424,17 +435,17 @@ Détail des champs
 "_id": identifiant unique par tenant.
   Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
 
-"_tenant": information sur le tenant
-  Il s'agit de l'identifiant du tenant
+"_tenant": information sur le tenant.
+  Il s'agit de l'identifiant du tenant.
 
-"Name" : *Champ obligatoire* nom du contrat d'entrée unique par tenant.
+"Name": *Champ obligatoire* Nom du contrat d'entrée unique par tenant.
   Il s'agit d'une chaîne de caractères.
 
-"Identifier" : identifiant signifiant donné au contrat.
+"Identifier": identifiant signifiant donné au contrat.
   Il est consituté du préfixe "AC-" suivi d'une suite de 6 chiffres. Par exemple : AC-001223.
   Il s'agit d'une chaîne de caractères.
 
-"Description": *Champ obligatoire* description du contrat d'accès.
+"Description": *Champ obligatoire* Description du contrat d'accès.
   Il s'agit d'une chaîne de caractères.
 
 "Status": statut du contrat.
@@ -455,11 +466,19 @@ Détail des champs
 "OriginatingAgencies": services producteurs pour lesquels le détenteur du contrat peut consulter les archives.
   Il s'agit d'un tableau de chaînes de caractères.
 
-"DataObjectVersion": usages d'un groupe d'objet à qui l'utilisateur souhaite d'avoir d'access.
+"DataObjectVersion": usages d'un groupe d'objet auxquels le détenteur d'un contrat a access.
   Il s'agit d'un tableau de chaînes de caractères.
 
 "WritingPermission": droit d'écriture. 
   Peut être true ou false. S'il est true, le détenteur du contrat peut effectuer des mises à jour.
+
+"EveryOriginatingAgency": droit de consultation sur tous les services producteurs.
+  Il s'agit d'un booléen.
+  Si la valeur est à true, alors le détenteur du contrat peut accéder aux archives de tous les services producteurs.
+
+"EveryDataObjectVersion": droit de consultation sur tous les usages.
+  Il s'agit d'un booléen.
+  Si la valeur est à true, alors le détenteur du contrat peut accéder à tous les types d'usages.
 
 "_v": version de l'objet décrit
   Il s'agit d'un entier.
@@ -489,6 +508,7 @@ Exemple de JSON stocké en base
     "LastUpdate": "2017-05-22T09:23:33.637",
     "ActivationDate": "2016-12-10T00:00",
     "DeactivationDate": "2016-12-10T00:00",
+    "_v": 1,
     "Path": "1_profile_aegaaaaaaehlfs7waax4iak4f52mzriaaaaq_20170522_092333.xsd"
   }
 
@@ -501,14 +521,12 @@ Un fichier d'import peut décrire plusieurs profils.
 
   [
     {
-      "Identifier":"ArchiveProfile0",
       "Name":"ArchiveProfile0",
       "Description":"Description of the Profile",
       "Status":"ACTIVE",
       "Format":"XSD"
     },
       {
-      "Identifier":"ArchiveProfile1",
       "Name":"ArchiveProfile1",
       "Description":"Description of the profile 2",
       "Status":"ACTIVE",
@@ -528,7 +546,7 @@ Détail des champs
 "_id": identifiant unique.
   Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
 
-"_tenant": Identifiant du tenant.
+"_tenant": identifiant du tenant.
   Il s'agit d'un entier.
 
 "Identifier": Indique l'identifiant signifiant du profil SEDA.
@@ -542,28 +560,28 @@ Détail des champs
   Il s'agit d'une chaîne de caractères.
 
 "Status": Indique l'état du profil SEDA. 
-  Il s'agit d'une chaîne de cractères devant correspondre à une valeur de l'énuméartion ProfileStatus, soit ACTIVE soit INACTIVE.
+  Il s'agit d'une chaîne de caractères devant correspondre à une valeur de l'énuméartion ProfileStatus, soit ACTIVE soit INACTIVE.
 
 "Format": *Champ obligatoire* Indique le format attendu pour le fichier décrivant les règles du profil d'archivage.
-  Il s'agit d'une chaîne de cractères devant correspondre à l'énumération ProfileFormat. 
+  Il s'agit d'une chaîne de caractères devant correspondre à l'énumération ProfileFormat. 
   
 "CreationDate": date de création du profil SEDA. 
   Il s'agit d'une date au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
 
 "LastUpdate": date de dernière modification du profil SEDA dans la collection profile.. 
-  Il s'agit d'une au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+  Il s'agit d'une date au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
 
 "ActivationDate": date d'activation du profil SEDA. 
-  Il s'agit d'une au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+  Il s'agit d'une date au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
 
 "DeactivationDate": date de désactivation du profil SEDA. 
   Il s'agit d'une date au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
 
-"Path": Chaîne de caractères. 
-  Indique le chemin pour accéder au fichier du profil d'archivage.
-
 "_v": version de l'objet décrit
   Il s'agit d'un entier.
+
+"Path": Indique le chemin pour accéder au fichier du profil d'archivage.
+  Chaîne de caractères. 
 
 Collection Context
 ==================
@@ -602,39 +620,41 @@ Exemple de JSON stocké en base
       "Identifier": "CT-000001"
   }
 
-Il est possible de mettre plusieurs contextes dans un même fichier, sur le même modèle que les contrats d'entrées ou d'accès par exemple. On pourra noter que le contexte est multi-tenant et défini chaque tenant de manière indépendante.
+Il est possible de mettre plusieurs contextes dans un même fichier, sur le même modèle que les contrats d'entrées ou d'accès par exemple. On pourra noter que le contexte est multi-tenant et définit chaque tenant de manière indépendante.
 
 Les champs à renseigner obligatoirement à la création d'un contexte sont :
+
 * Name
-* Permissions. La valeur de permissions peut cependant être vide : "Permissions : []"
+* Permissions. La valeur de Permissions peut cependant être vide : "Permissions : []"
 
 Détail des champs
 -----------------
 
 "_id": identifiant unique dans l'ensemble du système.
-  Il s'agit d'une chaîne de 36 caractères, fourni par le système
+  Il s'agit d'une chaîne de 36 caractères,.
 
-"Name" : *Champ obligatoire* nom du contexte, qui doit être unique sur la plateforme
+"Name": *Champ obligatoire* nom du contexte, qui doit être unique sur la plateforme.
   Il s'agit d'une chaîne de caractères.
 
-"Identifier" : identifiant signifiant donné au contexte
-  Il s'agit d'une chaîne de caractères, fourni par le système
+"Identifier": identifiant signifiant donné au contexte.
+  Il est consituté du préfixe "CT-" suivi d'une suite de 6 chiffres. Par exemple : CT-001573.
+  Il s'agit d'une chaîne de caractères. 
+
 
 "Status": statut du contexte. Il peut être "true" ou "false" et a la valeur par défaut : "false". Selon son statut :
 
   * "true" : le contexte est actif
-
   * "false" : le contexte est inactif
 
-"Permissions" : *Champ obligatoire* début du bloc appliquant les permissions à chaque tenant.
+"Permissions": *Champ obligatoire* Début du bloc appliquant les permissions à chaque tenant.
   C'est un mot clé qui n'a pas de valeur associée.
 
-"_tenant": information sur le tenant
-  Il s'agit de l'identifiant du tenant dans lequel vont s'appliquer des permissions
+"_tenant": information sur le tenant.
+  Il s'agit de l'identifiant du tenant dans lequel vont s'appliquer des permissions.
 
-"AccessContracts": tableau d'identifiants de contrats d'accès appliqués sur le tenant
+"AccessContracts": tableau d'identifiants de contrats d'accès appliqués sur le tenant.
 
-"IngestContracts": tableau d'identifiants de contrats d'entrées appliqués sur le tenant
+"IngestContracts": tableau d'identifiants de contrats d'entrées appliqués sur le tenant.
 
 "_v": version de l'objet décrit
   Il s'agit d'un entier.
@@ -676,7 +696,8 @@ Exemple de JSON stocké en base
           "deleted": 0,
           "remained": 18292981
       },
-      "creationDate": "2017-04-12T17:01:11.764"
+      "creationDate": "2017-04-12T17:01:11.764",
+      "_v": 1
   }
 
 Exemple de la description dans le XML d'entrée
@@ -694,12 +715,14 @@ Les seuls élements issus du  message ArchiveTransfer, utilisés ici sont ceux c
 Détail des champs
 -----------------
 
-"_id": Identifiant unique. Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
+"_id": identifiant unique. 
+  Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
 
-"_tenant": 0
+"_tenant": identifiant du tenant.
+  Il s'agit d'un entier.
 
-"OriginatingAgency": La valeur de ce champ est une chaîne de caractère.
-Ce champ est la clef primaire et sert de concaténation pour toutes les entrées effectuées sur ce producteur d'archives. Il est contenu entre dans le bloc <OriginatinAgencyIdentifier> du message ArchiveTransfer.
+"OriginatingAgency": la valeur de ce champ est une chaîne de caractère.
+  Ce champ est la clef primaire et sert de concaténation pour toutes les entrées effectuées sur ce producteur d'archives. Récupère la valeur contenue dans le bloc <OriginatinAgencyIdentifier> du message ArchiveTransfer.
 
 Par exemple pour
 
@@ -707,20 +730,20 @@ Par exemple pour
 
   <OriginatingAgencyIdentifier>FRAN_NP_051314</OriginatingAgencyIdentifier>
 
-on récupère la valeur FRAN_NP_051314
+On récupère la valeur FRAN_NP_051314.
 
 "TotalObjectGroups": Contient la répartition du nombre de groupes d'objets du service producteur par état
     (total, deleted et remained)
 
     - "total": Nombre total de groupes d'objets pris en charge dans le système pour ce service producteur. La valeur contenue dans le champ est un entier.
-    - "deleted": Nombre de groupes d'objets supprimées ou sortis du système. La valeur contenue dans ce champ est un entier.
+    - "deleted": Nombre de groupes d'objets supprimés ou sortis du système. La valeur contenue dans ce champ est un entier.
     - "remained": Nombre actualisé de groupes d'objets conservés dans le système. La valeur contenue dans ce champ est un entier.
 
 "TotalObjects": Contient la répartition du nombre d'objets du service producteur par état
     (total, deleted et remained)
 
     - "total": Nombre total d'objets pris en charge dans le système pour ce service producteur. La valeur contenue dans le champ est un entier.
-    - "deleted": Nombre d'objets supprimées ou sortis du système. La valeur contenue dans ce champ est un entier.
+    - "deleted": Nombre d'objets supprimés ou sortis du système. La valeur contenue dans ce champ est un entier.
     - "remained": Nombre actualisé d'objets conservés dans le système. La valeur contenue dans ce champ est un entier.
 
 "TotalUnits": Contient la répartition du nombre d'unités archivistiques du service producteur par état
@@ -734,12 +757,13 @@ on récupère la valeur FRAN_NP_051314
     (total, deleted et remained)
 
     - "total": Volume total en octets des fichiers pris en charge dans le système pour ce service producteur. La valeur contenue dans le champ est un entier.
-    - "deleted": Volume total en octets des fichiers supprimées ou sortis du système. La valeur contenue dans ce champ est un entier.
+    - "deleted": Volume total en octets des fichiers supprimés ou sortis du système. La valeur contenue dans ce champ est un entier.
     - "remained": Volume actualisé en octets des fichiers conservés dans le système. La valeur contenue dans ce champ est un entier.
 
-"creationDate":  Date d'inscription du producteur d'archives concerné dans le registre des fonds. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+"creationDate":  Date d'inscription du producteur d'archives concerné dans le registre des fonds. 
+  La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
 
-"_v": version de l'objet décrit
+"_v": Version de l'objet décrit
   Il s'agit d'un entier.
 
 Collection AccessionRegisterDetail
@@ -787,7 +811,8 @@ Exemple de JSON stocké en base
       },
       "OperationIds": [
           "aedqaaaaakhpuaosabkcgak4ebd7deiaaaaq"
-      ]
+      ],
+    "_v": 5
   }
 
 Exemple de la description dans le XML d'entrée
@@ -805,16 +830,16 @@ Les seuls élements issus du message ArchiveTransfer utilisés ici sont ceux cor
 Détail des champs
 -----------------
 
-"_id": Identifiant unique.
-    Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
+"_id": identifiant unique.
+  Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
 
-"_tenant": Identifiant du tenant.
+"_tenant": identifiant du tenant.
   Il s'agit d'un entier.
 
 "OriginatingAgency": Contient l'identifiant du service producteur.
-    Il est contenu dans le bloc <OriginatinAgencyIdentifier>.
+  Il est issu du le bloc <OriginatinAgencyIdentifier>.
 
-Par exemple pour
+Par exemple :
 
 ::
 
@@ -832,10 +857,10 @@ Par exemple pour
 
   <SubmissionAgencyIdentifier>FRAN_NP_005761</SubmissionAgencyIdentifier>
 
-on récupère la valeur FRAN_NP_005761
-La valeur est une chaîne de caractère.
+On récupère la valeur FRAN_NP_005761.
+La valeur est une chaîne de caractères.
 
-Ce champ est facultatif dans le bordereau. Si elle est absente ou vide, alors la valeur contenue dans le champ <OriginatingAgencyIdentifier>. est reportée dans ce champ
+Ce champ est facultatif dans le bordereau. S'il' est absente ou vide, alors la valeur contenue dans le champ <OriginatingAgencyIdentifier> est reportée dans ce champ.
 
 "ArchivalAgreement": Contient le contrat utilisé pour réaliser l'entrée.
   Il est contenu entre les balises <ArchivalAgreement> et correspond à la valeur contenue dans le champ Name de la collection IngestContract.
@@ -846,19 +871,21 @@ Par exemple pour
 
   <ArchivalAgreement>ArchivalAgreement0</ArchivalAgreement>
 
-on récupère la valeur ArchivalAgreement0
-La valeur est une chaîne de caractère.
+On récupère la valeur ArchivalAgreement0.
+La valeur est une chaîne de caractères.
 
-"StartDate": date de la première opération d'entrée correspondant à l'enregistrement concerné. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00".
+"StartDate": date de la première opération d'entrée correspondant à l'enregistrement concerné. 
+  La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00".
 
-"EndDate": Date de la dernière opération d'entrée correspondant à l'enregistrement concerné. au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+"EndDate": date de la dernière opération d'entrée correspondant à l'enregistrement concerné. 
+  La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
 
-"Status": Indication sur l'état des archives concernées par l'enregistrement.
-La liste des valeurs possibles pour ce champ se trouve en annexe 5.5.
+"Status": indication sur l'état des archives concernées par l'enregistrement.
+  La liste des valeurs possibles pour ce champ se trouve en annexe 5.5.
 
 "TotalObjectGroups": Contient la répartition du nombre de groupes d'objets du fonds par état pour l'opération journalisée (total, deleted et remained) :
     - "total": Nombre total de groupes d'objets pris en charge dans le cadre de l'enregistrement concerné. La valeur contenue dans le champ est un entier.
-    - "deleted": Nombre de groupes d'objets supprimées ou sortis du système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
+    - "deleted": Nombre de groupes d'objets supprimés ou sortis du système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
     - "remained": Nombre de groupes d'objets conservés dans le système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
 
 "TotalUnits": Contient la répartition du nombre d'unités archivistiques du fonds par état pour l'opération journalisée (total, deleted et remained) :
@@ -868,15 +895,15 @@ La liste des valeurs possibles pour ce champ se trouve en annexe 5.5.
 
 "TotalObjects": Contient la répartition du nombre d'objets du fonds par état pour l'opération journalisée (total, deleted et remained) :
     - "total": Nombre total d'objets pris en charge dans le cadre de l'enregistrement concerné. La valeur contenue dans le champ est un entier.
-    - "deleted": Nombre d'objets supprimées ou sortis du système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
+    - "deleted": Nombre d'objets supprimés ou sortis du système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
     - "remained": Nombre d'objets conservés dans le système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
 
 "ObjectSize": Contient la répartition du volume total des fichiers du fonds par état pour l'opération journalisée (total, deleted et remained) :
     - "total": Volume total en octet des fichiers pris en charge dans le cadre de l'enregistrement concerné. La valeur contenue dans le champ est un entier.
-    - "deleted": Volume total en octets des fichiers supprimées ou sortis du système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
+    - "deleted": Volume total en octets des fichiers supprimés ou sortis du système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
     - "remained": Volume total en octets des fichiers conservés dans le système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
 
-Collection VitamSecquence
+Collection VitamSequence
 =========================
 
 Utilisation de collection
@@ -889,7 +916,7 @@ Cette collection permet de générer des identifiants signifiants pour les enreg
 * Context
 * Profil
   
-Ces identifiants sont composé d'un préfixe de deux lettres, d'un tiret et d'une suite de six chiffres. Par exemple : IC-027593. Il sont reportés dans les champs identifier des collections concernées. 
+Ces identifiants sont composés d'un préfixe de deux lettres, d'un tiret et d'une suite de six chiffres. Par exemple : IC-027593. Il sont reportés dans les champs Identifier des collections concernées. 
 
 Exemple de JSON stocké en base
 ------------------------------
@@ -900,7 +927,8 @@ Exemple de JSON stocké en base
     "_id": "aeaaaaaaaahkwxukabqteak4q5mtmdyaaaaq",
     "Name": "AC",
     "Counter": 44,
-    "_tenant": 1
+    "_tenant": 1,
+    "_v": 0
   }
 
 Détail des champs
@@ -910,7 +938,7 @@ Détail des champs
     Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
 
 "Name": préfixe.
-  Il s'agit du préfixe utilisé pour générer l'identifiant signifiant. La valeur contenue dans ce champ doit correspondre à la map du service VitamCounterService.java. La liste des valeurs possibles est détaillée en annexe 5.6.
+  Il s'agit du préfixe utilisé pour générer un identifiant signifiant. La valeur contenue dans ce champ doit correspondre à la map du service VitamCounterService.java. La liste des valeurs possibles est détaillée en annexe 5.6.
   Il s'agit d'une chaîne de caractères.
 
 "Counter": numéro incrémental.
