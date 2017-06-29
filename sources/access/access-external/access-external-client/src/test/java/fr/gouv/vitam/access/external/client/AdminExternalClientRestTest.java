@@ -19,14 +19,11 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriInfo;
 
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -38,7 +35,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
-import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.error.VitamError;
@@ -63,6 +59,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     protected static final String HOSTNAME = "localhost";
     protected AdminExternalClientRest client;
     final int TENANT_ID = 0;
+    final String CONTRACT = "contract";
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -166,8 +163,14 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
             return expectedResponse.get();
         }
 
-
-
+        @POST
+        @Path(AccessExtAPI.ACCESSION_REGISTERS_API + "/{id_document}/accession-register-detail")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response findAccessionRegisterDetail(@PathParam("id_document") String documentId,
+            JsonNode select) {
+            return expectedResponse.post();
+        }
 
         @PUT
         @Path("/{collections}/{id}")
@@ -619,6 +622,69 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         RequestResponse resp = client.importContexts(fileContexts, TENANT_ID);
         Assert.assertTrue(RequestResponseOK.class.isAssignableFrom(resp.getClass()));
         Assert.assertTrue((((RequestResponseOK) resp).isOk()));
+    }
+
+    /***
+     *
+     * Accession register test
+     *
+     ***/
+
+    @Test
+    @RunWithCustomExecutor
+    public void selectAccessionExternalSumary() throws Exception {
+        when(mock.post()).thenReturn(
+            Response.status(Status.OK).entity(ClientMockResultHelper.getAccessionRegisterSummary()).build());
+        assertThat(client.findDocuments(AdminCollections.ACCESSION_REGISTERS, JsonHandler.getFromString(queryDsql),
+            TENANT_ID, CONTRACT).getHttpCode()).isEqualTo(Status.OK.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void selectAccessionExternalSumaryError() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        assertThat(client.findDocuments(AdminCollections.ACCESSION_REGISTERS, JsonHandler.getFromString(queryDsql),
+            TENANT_ID, CONTRACT).getHttpCode()).isEqualTo(Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void selectAccessionExternalDetail() throws Exception {
+        when(mock.post()).thenReturn(
+            Response.status(Status.OK).entity(ClientMockResultHelper.getAccessionRegisterDetail()).build());
+        assertThat(client.getAccessionRegisterDetail(ID, JsonHandler.getFromString(queryDsql), TENANT_ID, CONTRACT)
+            .getHttpCode()).isEqualTo(Status.OK.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void selectAccessionExternalDetailError() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        assertThat(client.getAccessionRegisterDetail(ID, JsonHandler.getFromString(queryDsql), TENANT_ID, CONTRACT)
+            .getHttpCode()).isEqualTo(Status.NOT_FOUND.getStatusCode());
+    }
+
+    /***
+     *
+     * TRACEABILITY operation test
+     *
+     ***/
+
+    @Test
+    @RunWithCustomExecutor
+    public void testCheckTraceabilityOperation()
+        throws Exception {
+        when(mock.post()).thenReturn(
+            Response.status(Status.OK).entity(ClientMockResultHelper.getLogbooksRequestResponse()).build());
+        client.checkTraceabilityOperation(JsonHandler.getFromString(queryDsql), TENANT_ID, CONTRACT);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testDownloadTraceabilityOperationFile()
+        throws Exception {
+        when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
+        client.downloadTraceabilityOperationFile(ID, TENANT_ID, CONTRACT);
     }
 
 }

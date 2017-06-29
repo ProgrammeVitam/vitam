@@ -1,7 +1,6 @@
 package fr.gouv.vitam.access.external.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
 
@@ -31,19 +30,15 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFou
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
-import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 
 public class AccessExternalClientRestTest extends VitamJerseyTest {
     protected static final String HOSTNAME = "localhost";
@@ -736,68 +731,6 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         assertThat(client.selectObjectGroupLifeCycleById(ID, TENANT_ID, CONTRACT).getHttpCode())
             .isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
-    }
-
-    /***
-     *
-     * Accession register test
-     *
-     ***/
-
-    @Test
-    @RunWithCustomExecutor
-    public void selectAccessionExternalSumary() throws Exception {
-        when(mock.post()).thenReturn(
-            Response.status(Status.OK).entity(ClientMockResultHelper.getAccessionRegisterSummary()).build());
-        assertThat(client.getAccessionRegisterSummary(JsonHandler.getFromString(queryDsql), TENANT_ID, CONTRACT)).isNotNull();
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void selectAccessionExternalSumaryError() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        assertThat(client.getAccessionRegisterSummary(JsonHandler.getFromString(queryDsql), TENANT_ID, CONTRACT)
-            .getHttpCode()).isEqualTo(Status.NOT_FOUND.getStatusCode());
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void selectAccessionExternalDetail() throws Exception {
-        when(mock.post()).thenReturn(
-            Response.status(Status.OK).entity(ClientMockResultHelper.getAccessionRegisterSummary()).build());
-        client.getAccessionRegisterDetail(ID, JsonHandler.getFromString(queryDsql), TENANT_ID, CONTRACT);
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void selectAccessionExternalDetailError() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        assertThat(client.getAccessionRegisterDetail(ID, JsonHandler.getFromString(queryDsql), TENANT_ID, CONTRACT)
-            .getHttpCode()).isEqualTo(Status.NOT_FOUND.getStatusCode());
-    }
-
-
-    /***
-     *
-     * TRACEABILITY operation test
-     * 
-     ***/
-
-    @Test
-    @RunWithCustomExecutor
-    public void testCheckTraceabilityOperation()
-        throws Exception {
-        when(mock.post()).thenReturn(
-            Response.status(Status.OK).entity(ClientMockResultHelper.getLogbooksRequestResponse()).build());
-        client.checkTraceabilityOperation(JsonHandler.getFromString(queryDsql), TENANT_ID, CONTRACT);
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void testDownloadTraceabilityOperationFile()
-        throws Exception {
-        when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
-        client.downloadTraceabilityOperationFile(ID, TENANT_ID, CONTRACT);
     }
 
 }

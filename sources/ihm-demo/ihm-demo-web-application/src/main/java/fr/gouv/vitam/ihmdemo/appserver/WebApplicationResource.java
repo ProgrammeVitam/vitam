@@ -83,8 +83,6 @@ import com.google.common.collect.Iterables;
 
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.api.ErrorMessage;
-import fr.gouv.vitam.access.external.client.AccessExternalClient;
-import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
@@ -1334,6 +1332,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
         final List<String> requestIds = HttpHeaderHelper.getHeaderValues(headers, IhmWebAppHeader.REQUEST_ID.name());
         Integer tenantId = getTenantId(headers);
+        String contractName = headers.getHeaderString(GlobalDataRest.X_ACCESS_CONTRAT_ID);
         if (requestIds != null) {
             requestId = requestIds.get(0);
             // get result from shiro session
@@ -1353,7 +1352,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
             try {
                 SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-                result = UserInterfaceTransactionManager.findAccessionRegisterSummary(options, getTenantId(headers));
+                result = UserInterfaceTransactionManager.findAccessionRegisterSummary(options, getTenantId(headers),
+                    contractName);
 
                 // save result
                 PaginationHelper.setResult(sessionId, result.toJsonNode());
@@ -1393,9 +1393,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
         String options) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
         RequestResponse result = null;
+        String contractName = headers.getHeaderString(GlobalDataRest.X_ACCESS_CONTRAT_ID);
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-            result = UserInterfaceTransactionManager.findAccessionRegisterDetail(id, options, getTenantId(headers));
+            result = UserInterfaceTransactionManager.findAccessionRegisterDetail(id, options, getTenantId(headers),
+                contractName);
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
             return Response.status(Status.BAD_REQUEST).build();
@@ -2320,6 +2322,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
             // Get tenantId value
             Integer tenantIdHeader = getTenantId(headers);
+            String contractName = headers.getHeaderString(GlobalDataRest.X_ACCESS_CONTRAT_ID);
 
             // Prepare DSLQuery based on the received criteria
             final Map<String, Object> optionsMap = JsonHandler.getMapFromString(operationCriteria);
@@ -2327,7 +2330,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
             // Start check process
             RequestResponse<JsonNode> result =
-                UserInterfaceTransactionManager.checkTraceabilityOperation(dslQuery, tenantIdHeader);
+                UserInterfaceTransactionManager.checkTraceabilityOperation(dslQuery, tenantIdHeader, contractName);
 
             // By default the returned status is different from the result of the verification process because we are
             // returning the report
@@ -2392,7 +2395,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         Integer tenantId, String contractId) {
 
         Response response = null;
-        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+        try (AdminExternalClient client = AdminExternalClientFactory.getInstance().getClient()) {
 
             response = client.downloadTraceabilityOperationFile(operationId, tenantId, contractId);
 

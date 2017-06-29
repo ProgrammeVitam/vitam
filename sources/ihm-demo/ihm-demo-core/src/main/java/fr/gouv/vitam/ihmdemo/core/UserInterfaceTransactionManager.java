@@ -31,13 +31,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.time.LocalDateTime;
 import java.util.Map;
 
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.access.external.api.AdminCollections;
+import fr.gouv.vitam.access.external.client.AdminExternalClient;
+import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
+import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -356,14 +359,15 @@ public class UserInterfaceTransactionManager {
      * @throws InvalidCreateOperationException if error when create query
      * @throws AccessUnauthorizedException
      */
-    public static RequestResponse<JsonNode> findAccessionRegisterSummary(String options, Integer tenantId)
-        throws LogbookClientException, InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException, InvalidCreateOperationException, AccessUnauthorizedException {
-        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+    public static RequestResponse<JsonNode> findAccessionRegisterSummary(String options, Integer tenantId,
+        String contractName)
+        throws LogbookClientException, InvalidParseOperationException, AccessExternalClientException,
+        InvalidCreateOperationException, AccessUnauthorizedException {
+        try (AdminExternalClient adminExternalClient = AdminExternalClientFactory.getInstance().getClient()) {
             final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
             final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-            return client.getAccessionRegisterSummary(query, tenantId,
-                VitamThreadUtils.getVitamSession().getContractId());
+            return adminExternalClient.findDocuments(AdminCollections.ACCESSION_REGISTERS, query, tenantId,
+                contractName);
         }
     }
 
@@ -380,15 +384,15 @@ public class UserInterfaceTransactionManager {
      */
 
 
-    public static RequestResponse<JsonNode> findAccessionRegisterDetail(String id, String options, Integer tenantId)
+    public static RequestResponse<JsonNode> findAccessionRegisterDetail(String id, String options, Integer tenantId,
+        String contractName)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException, InvalidCreateOperationException, AccessUnauthorizedException {
 
-        try (AccessExternalClient accessClient = AccessExternalClientFactory.getInstance().getClient()) {
+        try (AdminExternalClient adminExternalClient = AdminExternalClientFactory.getInstance().getClient()) {
             final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
             final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-            return accessClient.getAccessionRegisterDetail(id, query, tenantId,
-                VitamThreadUtils.getVitamSession().getContractId());
+            return adminExternalClient.getAccessionRegisterDetail(id, query, tenantId, contractName);
         }
     }
 
@@ -404,11 +408,11 @@ public class UserInterfaceTransactionManager {
      * @throws AccessUnauthorizedException
      */
     @SuppressWarnings("unchecked")
-    public static RequestResponse<JsonNode> checkTraceabilityOperation(JsonNode query, Integer tenantId)
+    public static RequestResponse<JsonNode> checkTraceabilityOperation(JsonNode query, Integer tenantId,
+        String contractName)
         throws AccessExternalClientServerException, InvalidParseOperationException, AccessUnauthorizedException {
-        try (AccessExternalClient accessClient = AccessExternalClientFactory.getInstance().getClient()) {
-            return accessClient.checkTraceabilityOperation(query, tenantId,
-                VitamThreadUtils.getVitamSession().getContractId());
+        try (AdminExternalClient adminExternalClient = AdminExternalClientFactory.getInstance().getClient()) {
+            return adminExternalClient.checkTraceabilityOperation(query, tenantId, contractName);
         }
     }
 

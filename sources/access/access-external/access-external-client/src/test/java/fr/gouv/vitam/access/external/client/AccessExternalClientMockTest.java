@@ -2,17 +2,10 @@ package fr.gouv.vitam.access.external.client;
 
 import static org.junit.Assert.assertNotNull;
 
-import java.io.IOException;
-
 import org.junit.Before;
 import org.junit.Test;
 
-import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
-import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
 public class AccessExternalClientMockTest {
 
@@ -95,11 +88,5 @@ public class AccessExternalClientMockTest {
     public void givenMockConfExistWhenAccessExternal_selectObjectGroupLifeCycleByIdLogbook_ThenRetururnResult()
         throws Exception {
         assertNotNull(client.selectObjectGroupLifeCycleById(ID, TENANT_ID, CONTRACT));
-    }
-
-    @Test
-    public void givenMockConfExistWhenAccessExternal_checkTraceabilityOperation_ThenReturnResult()
-        throws Exception {
-        assertNotNull(client.checkTraceabilityOperation(JsonHandler.getFromString(queryDsql), TENANT_ID, CONTRACT));
     }
 }

@@ -47,7 +47,6 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
@@ -68,7 +67,6 @@ import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
@@ -78,9 +76,6 @@ import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.response.RequestResponseError;
 
 /**
@@ -396,7 +391,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
 
     /**
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
-     * 
+     *
      * @param headers the http header defined parameters of request
      * @param idObjectGroup the id object group
      * @param query the query to get object
@@ -481,7 +476,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
 
     /**
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
-     * 
+     *
      * @param headers the http header defined parameters of request
      * @param idu the id of archive unit
      * @param query the query to get object
@@ -524,7 +519,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
 
     /**
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
-     * 
+     *
      * @param headers the http header defined parameters of request
      * @param idu the id of archive unit
      * @param query the query to get object
@@ -714,189 +709,6 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
                     .toString()).build();
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         }
-    }
-
-
-    /**
-     * findDocuments
-     *
-     * @param select the query to find document of accession register
-     * @param xhttpOverride the use of override POST method
-     * @return Response
-     */
-    @Path(AccessExtAPI.ACCESSION_REGISTERS_API)
-    @GET
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response findAccessionRegister(JsonNode select) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-
-        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            final RequestResponse result = client.getAccessionRegister(select);
-            if (result.isOk()) {
-                return Response.status(Status.OK).entity(((RequestResponseOK) result).setQuery(select))
-                    .build();
-            } else {
-                return Response.status(result.getHttpCode()).entity(result).build();
-            }
-        } catch (final ReferentialNotFoundException e) {
-            LOGGER.error(e);
-            return Response.status(Status.OK).entity(new RequestResponseOK()).build();
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.error(e);
-            final Status status = Status.BAD_REQUEST;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
-        } catch (final AccessUnauthorizedException e) {
-            LOGGER.error("Access contract does not allow ", e);
-            final Status status = Status.UNAUTHORIZED;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
-        } catch (final Exception e) {
-            LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
-        }
-    }
-
-
-
-    /**
-     * findDocumentByID
-     *
-     * @param documentId the document id to get
-     * @return Response
-     */
-    @GET
-    @Path(AccessExtAPI.ACCESSION_REGISTERS_API + "/{id_document}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response findAccessionRegisterById(@PathParam("id_document") String documentId) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-
-        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            Select select = new Select();
-            select.setQuery(QueryHelper.and().add(QueryHelper.eq("OriginatingAgency", documentId),
-                QueryHelper.eq(VitamFieldsHelper.tenant(), tenantId)));
-            final RequestResponse result = client.getAccessionRegister(select.getFinalSelect());
-            if (result.isOk()) {
-                return Response.status(Status.OK).entity(((RequestResponseOK) result).setQuery(select.getFinalSelect()))
-                    .build();
-            } else {
-                return Response.status(result.getHttpCode()).entity(result).build();
-            }
-        } catch (final ReferentialNotFoundException e) {
-            LOGGER.error(e);
-            return Response.status(Status.OK).entity(new RequestResponseOK()).build();
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.error(e);
-            final Status status = Status.BAD_REQUEST;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
-        } catch (final AccessUnauthorizedException e) {
-            LOGGER.error("Access contract does not allow ", e);
-            final Status status = Status.UNAUTHORIZED;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
-        } catch (final Exception e) {
-            LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
-        }
-    }
-
-
-    /**
-     * findAccessionRegisterDetail
-     *
-     * @param documentId the document id of accession register to get
-     * @param select the query to get document
-     * @param xhttpOverride the use of override POST method
-     * @return Response
-     */
-    @GET
-    @Path(AccessExtAPI.ACCESSION_REGISTERS_API + "/{id_document}/accession-register-detail")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response findAccessionRegisterDetail(@PathParam("id_document") String documentId, JsonNode select) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        ParametersChecker.checkParameter("accession register id is a mandatory parameter", documentId);
-        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            RequestResponse accessionRegisterDetail =
-                client.getAccessionRegisterDetail(documentId, select);
-            return Response.status(Status.OK).entity(accessionRegisterDetail).build();
-        } catch (final ReferentialNotFoundException e) {
-            return Response.status(Status.OK).entity(new RequestResponseOK()).build();
-        } catch (InvalidParseOperationException e) {
-            LOGGER.error(e);
-            final Status status = Status.BAD_REQUEST;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
-        } catch (Exception e) {
-            LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
-        }
-    }
-
-    /**
-     * findDocuments
-     *
-     * @param select the query to find document of accession register
-     * @param xhttpOverride the use of override POST method
-     * @return Response
-     */
-    @Path(AccessExtAPI.ACCESSION_REGISTERS_API)
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response findAccessionRegister(JsonNode select,
-        @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
-        if (xhttpOverride == null || !"GET".equalsIgnoreCase(xhttpOverride)) {
-            final Status status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status, MISSING_XHTTPOVERRIDE)).build();
-        }
-        return findAccessionRegister(select);
-    }
-
-
-
-    /**
-     * findDocumentByID
-     *
-     * @param documentId the document id to get
-     * @param xhttpOverride the use of override POST method
-     * @return Response
-     */
-    @POST
-    @Path(AccessExtAPI.ACCESSION_REGISTERS_API + "/{id_document}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response findAccessionRegisterById(@PathParam("id_document") String documentId,
-        @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
-        if (xhttpOverride == null || !"GET".equalsIgnoreCase(xhttpOverride)) {
-            final Status status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status, MISSING_XHTTPOVERRIDE)).build();
-        }
-        return findAccessionRegisterById(documentId);
-    }
-
-
-    /**
-     * findAccessionRegisterDetail
-     *
-     * @param documentId the document id of accession register to get
-     * @param select the query to get document
-     * @param xhttpOverride the use of override POST method
-     * @return Response
-     */
-    @POST
-    @Path(AccessExtAPI.ACCESSION_REGISTERS_API + "/{id_document}/accession-register-detail")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response findAccessionRegisterDetail(@PathParam("id_document") String documentId, JsonNode select,
-        @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
-        if (xhttpOverride == null || !"GET".equalsIgnoreCase(xhttpOverride)) {
-            final Status status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status, MISSING_XHTTPOVERRIDE)).build();
-        }
-        return findAccessionRegisterDetail(documentId, select);
     }
 
     private Response buildErrorResponse(VitamCode vitamCode, String message) {
