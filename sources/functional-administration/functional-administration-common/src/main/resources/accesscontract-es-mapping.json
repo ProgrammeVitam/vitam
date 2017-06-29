@@ -15,10 +15,8 @@
       "index": "not_analyzed"
     },
     "OriginatingAgencies": {
-      "properties": {
-        "type": "string",
-        "null_value": "NULL"
-      }
+      "type": "string",
+      "null_value": "NULL"
     },
     "CreationDate": {
       "type": "date",

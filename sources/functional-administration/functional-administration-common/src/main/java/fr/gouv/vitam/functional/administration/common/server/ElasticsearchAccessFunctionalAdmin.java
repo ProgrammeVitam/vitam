@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
@@ -245,8 +246,9 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
             return AccessContract.TYPEUNIQUE;
         } else if (collection.equals(FunctionalAdminCollections.PROFILE)) {
             return Profile.TYPEUNIQUE;
+        } else if (collection.equals(FunctionalAdminCollections.CONTEXT)) {
+            return Context.TYPEUNIQUE;
         }
-
         return "";
     }
 }
