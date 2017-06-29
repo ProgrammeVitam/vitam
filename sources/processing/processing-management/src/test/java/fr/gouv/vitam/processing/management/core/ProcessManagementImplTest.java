@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.core;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -35,6 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.assertj.core.api.Assertions;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -46,6 +49,7 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
@@ -173,86 +177,76 @@ public class ProcessManagementImplTest {
 
         ProcessQuery pq = new ProcessQuery();
 
-        ArrayNode arrayResult = (ArrayNode) processManagementImpl.getFilteredProcess(pq, 0);
-        Assert.assertEquals(5, arrayResult.size());
-        arrayResult.removeAll();
+        List<JsonNode> results = processManagementImpl.getFilteredProcess(pq, 0);
+        assertThat(results).hasSize(5);
 
         LocalDate date = LocalDate.now(ZoneOffset.UTC);
         LocalDate dateMax = LocalDate.now(ZoneOffset.UTC);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         pq.setStartDateMin(date.format(formatter));
         pq.setStartDateMax(dateMax.format(formatter));
-        arrayResult = (ArrayNode) processManagementImpl.getFilteredProcess(pq, 0);
-        Assert.assertEquals(1, arrayResult.size());
-        arrayResult.removeAll();
+        results = processManagementImpl.getFilteredProcess(pq, 0);
+        Assert.assertEquals(1, results.size());
 
         dateMax = dateMax.plusDays(1);
         pq.setStartDateMax(dateMax.format(formatter));
-        arrayResult = (ArrayNode) processManagementImpl.getFilteredProcess(pq, 0);
-        Assert.assertEquals(2, arrayResult.size());
-        arrayResult.removeAll();
+        results = processManagementImpl.getFilteredProcess(pq, 0);
+        Assert.assertEquals(2, results.size());
 
         dateMax = dateMax.plusDays(2);
         pq.setStartDateMax(dateMax.format(formatter));
-        arrayResult = (ArrayNode) processManagementImpl.getFilteredProcess(pq, 0);
-        Assert.assertEquals(4, arrayResult.size());
-        arrayResult.removeAll();
+        results = processManagementImpl.getFilteredProcess(pq, 0);
+        Assert.assertEquals(4, results.size());
 
         dateMax = dateMax.plusDays(1);
         pq.setStartDateMax(dateMax.format(formatter));
-        arrayResult = (ArrayNode) processManagementImpl.getFilteredProcess(pq, 0);
-        Assert.assertEquals(5, arrayResult.size());
-        arrayResult.removeAll();
+        results = processManagementImpl.getFilteredProcess(pq, 0);
+        Assert.assertEquals(5, results.size());
 
         date = date.plusDays(1);
         pq.setStartDateMin(date.format(formatter));
-        arrayResult = (ArrayNode) processManagementImpl.getFilteredProcess(pq, 0);
-        Assert.assertEquals(4, arrayResult.size());
-        arrayResult.removeAll();
+        results = processManagementImpl.getFilteredProcess(pq, 0);
+        Assert.assertEquals(4, results.size());
 
         pq.setStartDateMin(null);
         pq.setStartDateMax(null);
         List<String> list = new ArrayList<>();
         list.add(StatusCode.OK.name());
         pq.setStatuses(list);
-        arrayResult = (ArrayNode) processManagementImpl.getFilteredProcess(pq, 0);
-        Assert.assertEquals(5, arrayResult.size());
-        arrayResult.removeAll();
+        results = processManagementImpl.getFilteredProcess(pq, 0);
+        Assert.assertEquals(5, results.size());
 
         list.clear();
         list.add(StatusCode.KO.name());
         pq.setStatuses(list);
-        arrayResult = (ArrayNode) processManagementImpl.getFilteredProcess(pq, 0);
-        Assert.assertEquals(0, arrayResult.size());
+        results = processManagementImpl.getFilteredProcess(pq, 0);
+        Assert.assertEquals(0, results.size());
         list.add(StatusCode.OK.name());
         pq.setStatuses(list);
-        arrayResult = (ArrayNode) processManagementImpl.getFilteredProcess(pq, 0);
-        Assert.assertEquals(5, arrayResult.size());
-        arrayResult.removeAll();
+        results = processManagementImpl.getFilteredProcess(pq, 0);
+        Assert.assertEquals(5, results.size());
 
         pq.setStatuses(null);
         pq.setId("operationId0");
-        arrayResult = (ArrayNode) processManagementImpl.getFilteredProcess(pq, 0);
-        Assert.assertEquals(1, arrayResult.size());
-        arrayResult.removeAll();
+        results = processManagementImpl.getFilteredProcess(pq, 0);
+        Assert.assertEquals(1, results.size());
 
         pq.setId(null);
         list.clear();
         list.add(ProcessState.PAUSE.name());
         pq.setStates(list);
-        arrayResult = (ArrayNode) processManagementImpl.getFilteredProcess(pq, 0);
-        Assert.assertEquals(5, arrayResult.size());
-        arrayResult.removeAll();
+        results = processManagementImpl.getFilteredProcess(pq, 0);
+        Assert.assertEquals(5, results.size());
 
         list.clear();
         list.add(ProcessState.RUNNING.name());
         pq.setStates(list);
-        arrayResult = (ArrayNode) processManagementImpl.getFilteredProcess(pq, 0);
-        Assert.assertEquals(0, arrayResult.size());
+        results = processManagementImpl.getFilteredProcess(pq, 0);
+        Assert.assertEquals(0, results.size());
         list.add(ProcessState.PAUSE.name());
         pq.setStates(list);
-        arrayResult = (ArrayNode) processManagementImpl.getFilteredProcess(pq, 0);
-        Assert.assertEquals(5, arrayResult.size());
+        results = processManagementImpl.getFilteredProcess(pq, 0);
+        Assert.assertEquals(5, results.size());
     }
 
     private Map<String, ProcessWorkflow> getPausedWorkflowMap() {

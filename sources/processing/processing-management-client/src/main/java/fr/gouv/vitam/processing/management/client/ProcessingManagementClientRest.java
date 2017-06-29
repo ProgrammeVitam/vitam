@@ -27,6 +27,7 @@
 package fr.gouv.vitam.processing.management.client;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.HttpMethod;
@@ -223,7 +224,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
      * Generate the default header map
      *
      * @param contextId the context id
-     * @param actionId the storage action id
+     * @param actionId  the storage action id
      * @return header map
      */
     private MultivaluedHashMap<String, Object> getDefaultHeaders(String contextId, String actionId) {
@@ -234,7 +235,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     }
 
     @Override
-    public Response updateOperationActionProcess(String actionId, String operationId)
+    public RequestResponse<ItemStatus> updateOperationActionProcess(String actionId, String operationId)
         throws InternalServerException, BadRequestException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, operationId);
         ParametersChecker.checkParameter(ACTION_ID_MUST_HAVE_A_VALID_VALUE, actionId);
@@ -251,11 +252,15 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
                 throw new IllegalArgumentException(ILLEGAL_ARGUMENT);
             } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new InternalServerException(INTERNAL_SERVER_ERROR2);
+            }else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new InternalServerException(INTERNAL_SERVER_ERROR2);
             }
 
             // XXX: theoretically OK status case
             // Don't we thrown an exception if it is another status ?
-            return Response.fromResponse(response).build();
+
+            ItemStatus itemStatus = response.readEntity(ItemStatus.class);
+            return new RequestResponseOK<ItemStatus>().addResult(itemStatus).parseHeadersFromResponse(response);
         } catch (final javax.ws.rs.ProcessingException e) {
             LOGGER.error(e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
@@ -309,7 +314,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
 
     /**
      * Return false if status accepted Return true otherwise
-     * 
+     *
      * @param operationId
      * @return
      */
@@ -385,7 +390,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     }
 
     @Override
-    public RequestResponse<JsonNode> cancelOperationProcessExecution(String id)
+    public ItemStatus cancelOperationProcessExecution(String id)
         throws InternalServerException, BadRequestException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);
         Response response = null;
@@ -400,13 +405,12 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new InternalServerException(INTERNAL_SERVER_ERROR2);
             } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                throw new BadRequestException(BAD_REQUEST_EXCEPTION);
+                throw new InternalServerException(INTERNAL_SERVER_ERROR2);
             }
 
             // XXX: theoretically OK status case
             // Don't we thrown an exception if it is another status ?
-            return new RequestResponseOK().addResult(response.readEntity(JsonNode.class))
-                .parseHeadersFromResponse(response);
+            return response.readEntity(ItemStatus.class);
         } catch (final javax.ws.rs.ProcessingException e) {
             LOGGER.error(e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
@@ -516,8 +520,10 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
                 throw new VitamClientException(ILLEGAL_ARGUMENT);
             }
 
-            return new RequestResponseOK().addResult(response.readEntity(JsonNode.class))
-                .parseHeadersFromResponse(response);
+            List<JsonNode> list =
+                JsonHandler.getFromString(response.readEntity(String.class), List.class, JsonNode.class);
+
+            return new RequestResponseOK<JsonNode>().addAllResults(list).parseHeadersFromResponse(response);
         } catch (VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);
             throw new VitamClientException(e);
@@ -594,15 +600,17 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
                 throw new VitamClientException(INTERNAL_SERVER_ERROR2);
             }
 
-            return new RequestResponseOK().addResult(response.readEntity(JsonNode.class))
+            JsonNode workFlow =
+                JsonHandler.getFromString(response.readEntity(String.class), JsonNode.class);
+
+            return new RequestResponseOK<JsonNode>().addResult(workFlow)
                 .parseHeadersFromResponse(response);
-        } catch (VitamClientInternalException e) {
+        } catch (VitamClientInternalException | InvalidParseOperationException e) {
             LOGGER.error("VitamClientInternalException: ", e);
             throw new VitamClientException(e);
         } finally {
             consumeAnyEntityAndClose(response);
         }
-
     }
 
 }

@@ -180,7 +180,7 @@ angular.module('workflows')
     };
 
     var successCallback = function (response) {
-      $scope.search.response.data = response.data.$results[0].$results[0].$results[0];
+      $scope.search.response.data = response.data.$results;
       $scope.search.response.totalResult = $scope.search.response.data.length;
       $scope.search.pagination.resultPages = Math.ceil($scope.search.response.totalResult / $scope.search.pagination.itemsPerPage);
       if ($scope.search.pagination.resultPages > 0) {
@@ -237,7 +237,7 @@ angular.module('workflows')
         function onSuccess(result) {
           console.log('result: ', result.data$results);
           // FIXME Request return $results.$results.$results.<someResults>
-          initWorkflowCategories(result.data.$results[0].$results[0].$results[0]);
+          initWorkflowCategories(result.data.$results);
           $scope.updateSelectableSteps($scope.search.form.categories);
         }
       );

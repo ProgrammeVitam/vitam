@@ -256,7 +256,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
 
 
     @Override
-    public Response updateOperationActionProcess(String actionId, String operationId) throws VitamClientException {
+    public RequestResponse<ItemStatus> updateOperationActionProcess(String actionId, String operationId) throws VitamClientException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, operationId);
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
@@ -279,7 +279,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
                 LOGGER.warn("SIP Warning : " + Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
                 throw new VitamClientInternalException(INTERNAL_SERVER_ERROR);
             }
-            return Response.fromResponse(response).build();
+            return RequestResponse.parseFromResponse(response, ItemStatus.class);
         } finally {
             consumeAnyEntityAndClose(response);
         }
@@ -355,7 +355,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     }
 
     @Override
-    public RequestResponse<JsonNode> cancelOperationProcessExecution(String id)
+    public ItemStatus cancelOperationProcessExecution(String id)
         throws VitamClientException, BadRequestException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);
         Response response = null;
@@ -377,8 +377,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
                 LOGGER.warn("SIP Warning : " + Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
                 throw new VitamClientInternalException(INTERNAL_SERVER_ERROR);
             }
-            return new RequestResponseOK().addResult(response.readEntity(JsonNode.class))
-                .parseHeadersFromResponse(response);
+            return response.readEntity(ItemStatus.class);
         } catch (VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);
             throw new VitamClientException(e);
@@ -392,6 +391,8 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
         throws InternalServerException, BadRequestException, VitamClientException {
         ParametersChecker.checkParameter(CONTEXT_ID_MUST_HAVE_A_VALID_VALUE, contextId);
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+
+        // TODO I'm not sure that we can compare String and Enum
         if (actionId.equals(ProcessAction.START)) {
             ParametersChecker.checkParameter(CONTEXT_ID_MUST_HAVE_A_VALID_VALUE, contextId);
             headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
@@ -477,8 +478,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
             response = performRequest(HttpMethod.GET, OPERATION_URI, null, JsonHandler.toJsonNode(query),
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
-            return new RequestResponseOK().addResult(response.readEntity(JsonNode.class)).parseHeadersFromResponse(response);
-
+            return RequestResponse.parseFromResponse(response);
         } catch (VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);
             throw new VitamClientException(e);
@@ -490,7 +490,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     }
 
     @Override
-    public RequestResponse getWorkflowDefinitions() throws VitamClientException {
+    public RequestResponse<JsonNode> getWorkflowDefinitions() throws VitamClientException {
         Response response = null;
         try {
             response = performRequest(HttpMethod.GET, WORKFLOWS_URI, null, MediaType.APPLICATION_JSON_TYPE);
@@ -505,8 +505,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
                 throw new VitamClientInternalException(INTERNAL_SERVER_ERROR);
             }
 
-            return new RequestResponseOK().addResult(response.readEntity(JsonNode.class))
-                .parseHeadersFromResponse(response);
+            return RequestResponse.parseFromResponse(response);
 
         } catch (VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);

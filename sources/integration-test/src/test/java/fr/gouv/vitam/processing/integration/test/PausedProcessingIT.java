@@ -70,6 +70,7 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -400,8 +401,9 @@ public class PausedProcessingIT {
         LOGGER.info("After RE-START");
 
         // Next on the old paused ans persisted workflow
-        Response ret = processingClient.updateOperationActionProcess(ProcessAction.NEXT.getValue(),
-            containerName);
+        RequestResponse<ItemStatus> ret =
+            processingClient.updateOperationActionProcess(ProcessAction.NEXT.getValue(),
+                containerName);
         assertNotNull(ret);
 
         assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());

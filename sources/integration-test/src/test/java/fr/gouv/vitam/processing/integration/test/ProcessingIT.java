@@ -102,6 +102,7 @@ import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -569,7 +570,7 @@ public class ProcessingIT {
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
 
-            final Response ret =
+            RequestResponse<ItemStatus> ret =
                 processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
             assertNotNull(ret);
             assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
@@ -685,7 +686,7 @@ public class ProcessingIT {
 
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             processingClient.initVitamProcess(Contexts.HOLDING_SCHEME.name(), containerName, INGEST_TREE_WORFKLOW);
-            final Response ret =
+            RequestResponse<ItemStatus> ret =
                 processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
             assertNotNull(ret);
 
@@ -730,7 +731,7 @@ public class ProcessingIT {
 
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, INGEST_PLAN_WORFKLOW);
-            final Response ret =
+            RequestResponse<ItemStatus> ret =
                 processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
             assertNotNull(ret);
 
@@ -2128,8 +2129,9 @@ public class ProcessingIT {
             assertNotNull(dataManagement.getProcessWorkflow(String.valueOf(ServerIdentity.getInstance().getServerId()),
                 containerName));
 
-            Response ret = processingClient.updateOperationActionProcess(ProcessAction.NEXT.getValue(),
-                containerName);
+            RequestResponse<ItemStatus> ret =
+                processingClient.updateOperationActionProcess(ProcessAction.NEXT.getValue(),
+                    containerName);
             assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
             wait(containerName);
@@ -2212,7 +2214,7 @@ public class ProcessingIT {
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
 
-            final Response ret =
+            RequestResponse<ItemStatus> ret =
                 processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
             assertNotNull(ret);
             assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
@@ -2258,7 +2260,8 @@ public class ProcessingIT {
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
 
-            final Response ret =
+
+            RequestResponse<ItemStatus> ret =
                 processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
             assertNotNull(ret);
             assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
@@ -2352,7 +2355,7 @@ public class ProcessingIT {
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
 
-            final Response ret =
+            RequestResponse<ItemStatus> ret =
                 processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
             assertNotNull(ret);
 

@@ -26,13 +26,18 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.client;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -49,6 +54,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.assertj.core.api.Assertions;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 
@@ -69,6 +75,7 @@ import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
+import fr.gouv.vitam.processing.common.exception.ProcessingUnauthorizeException;
 import fr.gouv.vitam.processing.common.model.WorkFlow;
 
 
@@ -262,14 +269,15 @@ public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
     @Test
     public void givenUnauthorizedOperationWhenUpdatingByIdThenReturnUnauthorized() throws Exception {
         when(mock.put()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
-        client.updateOperationActionProcess(ACTION_ID, ID);
+        assertThatThrownBy(() -> client.updateOperationActionProcess(ACTION_ID, ID)).isInstanceOf(InternalServerException.class);
+
     }
 
     @Test
     public void givenBadRequestWhenUpdatingByIdWorkFlowThenReturnBadRequest() throws Exception {
         final ItemStatus desired = new ItemStatus("ID");
         when(mock.put()).thenReturn(Response.status(Status.BAD_REQUEST).entity(desired).build());
-        final Response response = client.updateOperationActionProcess(ACTION_ID, ID);
+        RequestResponse<ItemStatus> response = client.updateOperationActionProcess(ACTION_ID, ID);
         assertNotNull(response);
     }
 
@@ -283,7 +291,7 @@ public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
     public void updateOperationByIdProcessOk() throws Exception {
         final ItemStatus desired = new ItemStatus("ID");
         when(mock.put()).thenReturn(Response.status(Status.OK).entity(desired).build());
-        final Response response = client.updateOperationActionProcess(ACTION_ID, ID);
+        RequestResponse<ItemStatus> response = client.updateOperationActionProcess(ACTION_ID, ID);
         assertNotNull(response);
         assertEquals(Status.OK.getStatusCode(), response.getStatus());
     }
@@ -349,15 +357,11 @@ public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
         client.cancelOperationProcessExecution(ID);
     }
 
-    @Test(expected = BadRequestException.class)
+    @Test
     public void givenBadRequestWhenCancelProcessingOperationThenReturnBadRequest() throws Exception {
         final ItemStatus desired = new ItemStatus("ID");
         when(mock.delete()).thenReturn(Response.status(Status.UNAUTHORIZED).entity(desired).build());
-        final RequestResponse<JsonNode> ret = client.cancelOperationProcessExecution(ID);
-        assertNotNull(ret);
-        assertTrue(ret.isOk());
-
-        // assertEquals(desired.getGlobalStatus(), ret.getGlobalStatus());s
+        assertThatThrownBy(() -> client.cancelOperationProcessExecution(ID)).isInstanceOf(InternalServerException.class);
     }
 
     @Test(expected = InternalServerException.class)
@@ -370,10 +374,8 @@ public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
     public void CancelOperationProcessOk() throws Exception {
         final ItemStatus desired = new ItemStatus("ID");
         when(mock.delete()).thenReturn(Response.status(Status.OK).entity(desired).build());
-        final RequestResponse<JsonNode> ret = client.cancelOperationProcessExecution(ID);
-
-        assertTrue(ret.isOk());
-
+        final ItemStatus ret = client.cancelOperationProcessExecution(ID);
+        assertNotNull(ret);
         // assertEquals(desired.getGlobalStatus(), ret.getGlobalStatus());
     }
 

@@ -30,6 +30,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -401,10 +402,12 @@ public class ProcessManagementImpl implements ProcessManagement {
     }
 
 
-    public JsonNode getFilteredProcess(ProcessQuery query, Integer tenantId) {
+    public List<JsonNode> getFilteredProcess(ProcessQuery query, Integer tenantId) {
         List<ProcessWorkflow> listWorkflows = processMonitoring.findAllProcessWorkflow(tenantId);
         listWorkflows.sort((a, b) -> b.getProcessDate().compareTo(a.getProcessDate()));
-        ArrayNode result = JsonHandler.createArrayNode();
+
+        List<JsonNode> results = new ArrayList<>();
+
         for (ProcessWorkflow processWorkflow : listWorkflows) {
             ObjectNode workflow = JsonHandler.createObjectNode();
             workflow = getNextAndPreviousSteps(processWorkflow, workflow);
@@ -439,9 +442,9 @@ public class ProcessManagementImpl implements ProcessManagement {
             workflow.put(GLOBAL_EXECUTION_STATE_FIELD, processWorkflow.getState().name());
             workflow.put(STEP_EXECUTION_STATUS_FIELD, processWorkflow.getStatus().name());
             workflow.put(PROCESS_DATE_FIELD, LocalDateUtil.getFormattedDate(processWorkflow.getProcessDate()));
-            result.add(workflow);
+            results.add(workflow);
         }
-        return result;
+        return results;
     }
 
     private boolean isContainsStep(List<String> stepsName, ObjectNode workflow) {

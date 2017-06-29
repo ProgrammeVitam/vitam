@@ -192,9 +192,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
                 processManagement = new ProcessManagementImpl(config);
             }
             Map<String, WorkFlow> workflowDefinitions = processManagement.getWorkflowDefinitions();
-            return Response.status(Status.OK)
-                .entity(workflowDefinitions)
-                .build();
+            return Response.status(Status.OK).entity(workflowDefinitions).build();
         } catch (Exception e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
@@ -537,14 +535,16 @@ public class ProcessManagementResource extends ApplicationStatusResource {
             if (processManagement == null) {
                 processManagement = new ProcessManagementImpl(config);
             }
+
+            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+            return Response.status(Status.OK).entity(processManagement.getFilteredProcess(query, tenantId)).build();
+
         } catch (ProcessingStorageWorkspaceException exc) {
             LOGGER.error(exc);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, "Error while finding existing workflow process",
                     "Error : " + exc.getMessage())).build();
         }
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-        processManagement.getFilteredProcess(query, tenantId);
-        return Response.status(Status.OK).entity(processManagement.getFilteredProcess(query, tenantId)).build();
     }
+
 }

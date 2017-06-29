@@ -136,7 +136,7 @@ public interface ProcessManagement extends VitamAutoCloseable {
      * @param tenantId the tenandId
      * @return filtered process list
      */
-    JsonNode getFilteredProcess(ProcessQuery query, Integer tenantId);
+    List<JsonNode> getFilteredProcess(ProcessQuery query, Integer tenantId);
 
     /**
      *

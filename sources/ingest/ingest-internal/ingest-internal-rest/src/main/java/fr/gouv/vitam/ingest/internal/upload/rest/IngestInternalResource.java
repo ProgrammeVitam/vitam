@@ -562,7 +562,10 @@ public class IngestInternalResource extends ApplicationStatusResource {
         Status status;
         try (ProcessingManagementClient processManagementClient =
             ProcessingManagementClientFactory.getInstance().getClient()) {
-            return processManagementClient.cancelOperationProcessExecution(id).toResponse();
+            ItemStatus itemStatus = processManagementClient.cancelOperationProcessExecution(id);
+            return Response.status(Status.OK)
+                .entity(itemStatus)
+                .build();
         } catch (final IllegalArgumentException e) {
             // if the entry argument if illegal
             LOGGER.error(e);
@@ -595,7 +598,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 .entity(getErrorEntity(status))
                 .build();
         }
-
     }
 
 
@@ -932,16 +934,16 @@ public class IngestInternalResource extends ApplicationStatusResource {
         final GUID containerGUID) {
         ProcessingManagementClient processingClient = processingManagementClientMock;
         LogbookTypeProcess logbookTypeProcess = null;
-        Response updateResponse = null;
         try {
             if (processingClient == null) {
                 processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             }
 
             // Execute the given action
-            updateResponse = processingClient.updateOperationActionProcess(actionId, containerGUID.getId());
+            RequestResponse<ItemStatus> updateResponse =
+                processingClient.updateOperationActionProcess(actionId, containerGUID.getId());
 
-            if (Status.UNAUTHORIZED.getStatusCode() == updateResponse.getStatus()) {
+            if (Status.UNAUTHORIZED.getStatusCode() == updateResponse.getHttpCode()) {
                 AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                     Response.status(Status.UNAUTHORIZED).build());
                 return;
@@ -964,7 +966,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
 
             // Process the returned response
             ProcessState processState = ProcessState.valueOf(globalExecutionState);
-            int stepExecutionStatus = updateResponse.getStatus();
+            int stepExecutionStatus = updateResponse.getHttpCode();
 
             Response response = Response.status(stepExecutionStatus).build();
             if (isCompletedProcess(processState)) {
@@ -1009,7 +1011,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR).build());
         } finally {
-            DefaultClient.staticConsumeAnyEntityAndClose(updateResponse);
             if (processingClient != null) {
                 processingClient.close();
             }
