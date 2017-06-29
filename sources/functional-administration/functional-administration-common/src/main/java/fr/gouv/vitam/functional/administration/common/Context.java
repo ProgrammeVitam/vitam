@@ -59,6 +59,11 @@ public class Context extends VitamDocument<Context>{
      * the Context description
      */
     public static final String PERMISSION = "Permissions";
+
+    /**
+     * ES Mapping
+     */
+    public static final String TYPEUNIQUE = "typeunique";
     
     /**
      * Empty Constructor

@@ -12,6 +12,7 @@
       "index": "not_analyzed"
     },
     "Permissions": {
+      "type": "object",
       "properties": {
         "AccessContracts": {
           "type": "string"
