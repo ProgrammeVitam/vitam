@@ -50,7 +50,7 @@ public interface ProcessingManagementClient extends OperationManagementClient {
      * Check if process workflow is completed of not TODO Move this method to OperationManagementClient
      * 
      * @param operationId
-     * @return
+     * @return boolean true/false
      */
     boolean isOperationCompleted(String operationId);
 
@@ -83,7 +83,7 @@ public interface ProcessingManagementClient extends OperationManagementClient {
      * @param workflow
      * @param contextId
      * @param actionId
-     * @return
+     * @return Response
      * @throws InternalServerException
      * @throws BadRequestException
      * @throws WorkflowNotFoundException

@@ -2337,7 +2337,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * @param operationId the TRACEABILITY operation identifier
      * @param contractId the contractId
      * @param asyncResponse the async response
-     * @return a response containing the file name stream
      */
     @GET
     @Path("/traceability/{idOperation}/content")

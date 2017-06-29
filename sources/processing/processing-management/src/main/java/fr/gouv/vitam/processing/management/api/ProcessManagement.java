@@ -55,7 +55,7 @@ public interface ProcessManagement extends VitamAutoCloseable {
      * @param workflowId
      * @param logbookTypeProcess
      * @param tenantId
-     * @return
+     * @return ProcessWorkflow
      * @throws ProcessingException
      */
     ProcessWorkflow init(WorkerParameters workerParameters, String workflowId, LogbookTypeProcess logbookTypeProcess,

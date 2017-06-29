@@ -153,7 +153,7 @@ public class AccessContractModel extends AbstractContractModel {
      * Set the 'everyDataObjectVersion' flag on the contract.
      * 
      * @param everyDataObjectVersion if true, all data object version are enabled for this contract
-     * @return
+     * @return this
      */
     public AccessContractModel setEveryDataObjectVersion(boolean everyDataObjectVersion) {
         this.everyDataObjectVersion = everyDataObjectVersion;

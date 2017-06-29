@@ -191,7 +191,6 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
     /**
      *
      * @param collection
-     * @param query
      * @param query as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }" "{ "ids" : { "
      *        values" : [list of id] } }"
      * @param filter

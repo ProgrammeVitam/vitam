@@ -71,7 +71,7 @@ public class ProcessWorkflow {
     private boolean stepByStep = false;
     /**
      * Set the state of the workflow process
-     * @return
+     * @return ProcessState
      */
     public ProcessState getState() {
         return state;
@@ -100,7 +100,7 @@ public class ProcessWorkflow {
 
     /**
      * get the status of the processWorkflow
-     * @return
+     * @return StatusCode
      */
     public StatusCode getStatus() {
         return status;
@@ -109,7 +109,7 @@ public class ProcessWorkflow {
     /**
      * set the status of the workflow
      * @param status
-     * @return
+     * @return this
      */
     public ProcessWorkflow setStatus(StatusCode status) {
         ParametersChecker.checkParameter(MANDATORY_PARAMETER, status);

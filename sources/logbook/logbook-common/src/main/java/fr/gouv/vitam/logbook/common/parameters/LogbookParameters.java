@@ -131,7 +131,6 @@ public interface LogbookParameters extends VitamParameter<LogbookParameterName> 
      *
      * @param handlerId the Handler Id
      * @param subTaskId the subTask Id if any (may be null)
-     * @param code the Status Code
      * @param additionalMessage the additional message (as " Details= ...") if any (may be null)
      * @param params the additional parameters for the message if any (may be null)
      * @return this

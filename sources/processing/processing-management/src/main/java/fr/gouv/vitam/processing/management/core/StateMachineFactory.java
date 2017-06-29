@@ -49,7 +49,7 @@ public class StateMachineFactory {
      * @return StateMachine object created
      * @param processWorkflow
      * @param processEngine
-     * @return
+     * @return StateMachine
      */
     public StateMachine create(ProcessWorkflow processWorkflow, ProcessEngine processEngine) {
         ParametersChecker.checkParameter("ProcessWorkflow cannot be null", processWorkflow);

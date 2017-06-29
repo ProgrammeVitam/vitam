@@ -194,7 +194,7 @@ public interface AdminExternalClient extends BasicClient {
      * Download the profile file according to profileMetadataId
      * @param tenantId
      * @param profileMetadataId
-     * @return
+     * @return Response
      */
     Response downloadProfileFile(String profileMetadataId, Integer tenantId) throws AccessExternalClientException, AccessExternalNotFoundException;
 
@@ -203,7 +203,7 @@ public interface AdminExternalClient extends BasicClient {
      * 
      * @param contexts
      * @param tenantId
-     * @return
+     * @return Vitam response
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
      */
@@ -214,7 +214,7 @@ public interface AdminExternalClient extends BasicClient {
      * 
      * @param id
      * @param queryDsl
-     * @return
+     * @return Vitam response
      * @throws AccessExternalClientException
      * @throws InvalidParseOperationException 
      */

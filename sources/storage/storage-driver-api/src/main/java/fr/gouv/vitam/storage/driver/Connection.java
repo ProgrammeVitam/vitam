@@ -164,7 +164,7 @@ public interface Connection extends AutoCloseable {
      * Get metadata of object
      * 
      * @param request
-     * @return
+     * @return a result that may contain information about the storage metadata
      * @throws StorageDriverException
      */
     StorageMetadatasResult getMetadatas(StorageObjectRequest request) throws StorageDriverException;

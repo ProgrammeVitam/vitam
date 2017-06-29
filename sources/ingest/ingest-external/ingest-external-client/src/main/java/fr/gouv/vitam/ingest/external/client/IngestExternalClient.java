@@ -100,7 +100,7 @@ public interface IngestExternalClient extends MockOrRestClient, PoolingStatusCli
      * @param container
      * @param workflow
      * @param tenantId
-     * @return
+     * @return ItemStatus
      * @throws InternalServerException
      * @throws BadRequestException
      * @throws VitamClientException

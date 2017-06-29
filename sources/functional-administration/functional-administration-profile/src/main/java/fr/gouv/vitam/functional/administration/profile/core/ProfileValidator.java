@@ -91,7 +91,7 @@ public interface ProfileValidator {
          * If id exists, it should be an update instead of create
          *
          * @param profileIdentifier
-         * @return
+         * @return RejectionCause
          */
         public static RejectionCause rejectIdNotAllowedInCreate(String profileIdentifier){
             return new RejectionCause(String.format(ERR_ID_NOT_ALLOWED_IN_CREATE , profileIdentifier));
@@ -102,7 +102,7 @@ public interface ProfileValidator {
          * The profile identifier  must be unique
          *
          * @param profileIdentifier
-         * @return
+         * @return RejectionCause
          */
         public static RejectionCause rejectDuplicatedEntry(String profileIdentifier){
             return new RejectionCause(String.format(ERR_DUPLICATE_PROFILE_ENTRY , profileIdentifier));
@@ -112,7 +112,7 @@ public interface ProfileValidator {
          * Verify for each profile if already exists one in database that have the same identifier and/or name.
          * The database my manage this kind of constraint (by creating an unique index on the field or column)
          * @param identifier
-         * @return
+         * @return RejectionCause
          */
         public static RejectionCause rejectDuplicatedInDatabase(String identifier){
             return new RejectionCause(String.format(ERR_DUPLICATE_PROFILE , identifier));
@@ -121,7 +121,7 @@ public interface ProfileValidator {
         /**
          * Reject if one of multiple mandatory parameter are null
          * @param fieldName
-         * @return
+         * @return RejectionCause
          */
         public static RejectionCause rejectMandatoryMissing(String fieldName){
             return new RejectionCause(String.format(ERR_MANDATORY_FIELD , fieldName));

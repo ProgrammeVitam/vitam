@@ -79,7 +79,7 @@ public interface ContractService<T extends AbstractContractModel> extends VitamA
      * Find contract by id
      * 
      * @param id
-     * @return
+     * @return T
      */
     public T findOne(String id) throws ReferentialException, InvalidParseOperationException;
 
@@ -88,7 +88,7 @@ public interface ContractService<T extends AbstractContractModel> extends VitamA
      * find contract by QueryDsl
      * 
      * @param queryDsl
-     * @return
+     * @return list of T
      */
     public List<T> findContracts(JsonNode queryDsl) throws ReferentialException, InvalidParseOperationException;
 

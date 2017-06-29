@@ -137,7 +137,7 @@ public class ContextResource {
      * Find contexts by queryDsl
      *
      * @param queryDsl
-     * @return
+     * @return Response
      */
     @GET
     @Path(CONTEXTS_URI)
@@ -172,7 +172,7 @@ public class ContextResource {
      *
      * @param contextId
      * @param queryDsl
-     * @return
+     * @return Response
      */
     @Path(UPDATE_CONTEXT_URI + "/{id}")
     @PUT

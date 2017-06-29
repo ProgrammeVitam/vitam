@@ -58,7 +58,7 @@ public interface ContextValidator {
          * If id exists, it should be an update instead of create
          *
          * @param contextIdentifier
-         * @return
+         * @return ContextRejectionCause
          */
         public static ContextRejectionCause rejectIdNotAllowedInCreate(String contextIdentifier){
             return new ContextRejectionCause(String.format(ERR_ID_NOT_ALLOWED_IN_CREATE , contextIdentifier));
@@ -69,7 +69,7 @@ public interface ContextValidator {
          * The context identifier  must be unique
          *
          * @param contextIdentifier
-         * @return
+         * @return ContextRejectionCause
          */
         public static ContextRejectionCause rejectDuplicatedEntry(String contextIdentifier){
             return new ContextRejectionCause(String.format(ERR_DUPLICATE_CONTEXT_ENTRY , contextIdentifier));
@@ -78,7 +78,7 @@ public interface ContextValidator {
         /**
          * Reject if one of multiple mandatory parameter are null
          * @param fieldName
-         * @return
+         * @return ContextRejectionCause
          */
         public static ContextRejectionCause rejectMandatoryMissing(String fieldName){
             return new ContextRejectionCause(String.format(ERR_MANDATORY_FIELD , fieldName));
@@ -88,7 +88,7 @@ public interface ContextValidator {
          * Verify for each context if already exists one in database that have the same name.
          * The database my manage this kind of constraint (by creating an unique index on the field or column)
          * @param contextName
-         * @return
+         * @return ContextRejectionCause
          */
         public static ContextRejectionCause rejectDuplicatedInDatabase(String contextName){
             return new ContextRejectionCause(String.format(ERR_DUPLICATE_CONTEXT , contextName));

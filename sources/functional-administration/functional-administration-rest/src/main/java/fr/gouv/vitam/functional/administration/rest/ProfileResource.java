@@ -242,7 +242,7 @@ public class ProfileResource {
      * Find profiles by queryDsl
      *
      * @param queryDsl
-     * @return
+     * @return Response
      */
     @GET
     @Path(PROFILE_URI)

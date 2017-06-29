@@ -371,7 +371,7 @@ public class ItemStatus {
 
     /**
      * Get the global state
-     * @return
+     * @return globalState as type ProcessState
      */
     public ProcessState getGlobalState() {
         return globalState;

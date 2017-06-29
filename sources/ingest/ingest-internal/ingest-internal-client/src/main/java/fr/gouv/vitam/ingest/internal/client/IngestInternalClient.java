@@ -57,7 +57,6 @@ public interface IngestInternalClient extends OperationManagementClient {
      * @param inputStream SIP
      * @param contextId context Identifier
      * @throws VitamException if stream is null
-     * @return Response {@link Response}
      *
      */
     void upload(InputStream inputStream, MediaType archiveType, String contextId) throws VitamException;

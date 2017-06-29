@@ -568,13 +568,12 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
 
     /**
      * @param collection
+     * @param tenantId
      * @param type
      * @param query as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }" "{ "ids" : { "
      *        values" : [list of id] } }"
      * @param filter the filter
      * @param sorts the list of sort
-     * @param offset the offset
-     * @param limit the limit
      * @return a structure as ResultInterface
      * @throws MetaDataExecutionException
      */

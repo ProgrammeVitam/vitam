@@ -275,7 +275,7 @@ public class AdminManagementExternalResourceImpl {
     /**
      * Download the file (profile file or traceability file)
      * @param collection
-     * @param profileMetadataId
+     * @param fileId
      * @param asyncResponse
      */
     @GET
@@ -524,7 +524,7 @@ public class AdminManagementExternalResourceImpl {
      * @param collection
      * @param documentId
      * @param xhttpOverride
-     * @return
+     * @return Response
      */
     @Path("/{collection}/{id_document}")
     @POST
@@ -618,7 +618,7 @@ public class AdminManagementExternalResourceImpl {
      * @param collection
      * @param id
      * @param queryDsl
-     * @return
+     * @return Response
      * @throws AdminManagementClientServerException
      * @throws InvalidParseOperationException
      */

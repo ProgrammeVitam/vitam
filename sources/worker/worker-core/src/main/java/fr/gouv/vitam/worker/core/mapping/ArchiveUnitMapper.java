@@ -60,7 +60,7 @@ public class ArchiveUnitMapper {
      * @param archiveUnitType
      * @param id
      * @param groupId
-     * @return
+     * @return ArchiveUnitRoot
      */
     public ArchiveUnitRoot map(ArchiveUnitType archiveUnitType, String id, String groupId) {
 

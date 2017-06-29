@@ -112,8 +112,7 @@ public enum FunctionalAdminCollections {
     /**
      * Initialize the collection
      *
-     * @param db database type
-     * @param recreate true is as recreate type
+     * @param esClient
      */
     protected void initialize(final ElasticsearchAccessFunctionalAdmin esClient) {
         vitamCollection.initialize(esClient);

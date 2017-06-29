@@ -216,7 +216,7 @@ public class AccessContract extends VitamDocument<AccessContract> {
     /**
      * Set the collection of originating agencies
      * @param originatingAgencies
-     * @return
+     * @return this
      */
     public AccessContract setOriginatingAgencies(Set<String> originatingAgencies) {
         append(ORIGINATINGAGENCIES, originatingAgencies);

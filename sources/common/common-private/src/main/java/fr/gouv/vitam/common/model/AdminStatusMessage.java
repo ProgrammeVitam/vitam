@@ -120,7 +120,7 @@ public class AdminStatusMessage {
 
     /**
      *
-     * @return
+     * @return componentsVersions as JsonNode
      */
     public JsonNode getComponentsVersions() {
         return componentsVersions;

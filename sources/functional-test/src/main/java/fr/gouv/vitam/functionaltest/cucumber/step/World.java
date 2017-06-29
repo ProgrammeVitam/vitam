@@ -180,7 +180,7 @@ public class World {
     /**
      * Workspace client
      *
-     * @return
+     * @return workspaceClient
      */
     public WorkspaceClient getWorkspaceClient() {
         return workspaceClient;
@@ -191,7 +191,7 @@ public class World {
     /**
      * Workspace client
      *
-     * @return
+     * @return logbookOperationsClient
      */
     public LogbookOperationsClient getLogbookOperationsClient() {
         return logbookOperationsClient;
@@ -213,7 +213,7 @@ public class World {
 
     /**
      *
-     * @return
+     * @return unitId
      */
     public String getUnitId() {
         return unitId;
@@ -227,7 +227,7 @@ public class World {
         this.unitId = unitId;
     }
     /**
-     * @return
+     * @return contractId
      */
     public String getContractId() {
         if (contractId == null) {
@@ -238,7 +238,7 @@ public class World {
 
     /**
      * @param contractId
-     * @return
+     * @return this
      */
     public World setContractId(String contractId) {
         this.contractId = contractId;
