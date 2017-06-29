@@ -55,6 +55,7 @@ public class VitamSession {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamSession.class);
     private final VitamThreadFactory.VitamThread owningThread;
     private String requestId = null;
+    private String internalRequestId = null;
     private Integer tenantId = null;
     private String contractId = null;
     private AccessContractModel contract = null;
@@ -76,6 +77,7 @@ public class VitamSession {
     public static VitamSession from(VitamSession origin) {
         final VitamSession newSession = new VitamSession(origin.owningThread);
         newSession.requestId = origin.getRequestId();
+        newSession.internalRequestId = origin.getInternalRequestId();
         newSession.tenantId = origin.getTenantId();
         newSession.contractId = origin.getContractId();
         newSession.contract = origin.getContract();
@@ -135,6 +137,23 @@ public class VitamSession {
         }
         requestId = newRequestId;
         MDC.put(GlobalDataRest.X_REQUEST_ID, newRequestId);
+    }
+    
+    /**
+     * Set the server request id
+     *
+     * @param newRequestId the request id
+     */
+    public void setInternalRequestId(String newRequestId) {
+        internalRequestId = newRequestId;
+    }
+    
+    /**
+     * Get the server request id 
+     *
+     */
+    public String getInternalRequestId() {
+        return internalRequestId;
     }
 
     /**
@@ -203,6 +222,7 @@ public class VitamSession {
             throw new IllegalArgumentException("VitamSession should not be null");
         }
         setRequestId(newSession.getRequestId());
+        setInternalRequestId(newSession.getInternalRequestId());
         setTenantId(newSession.getTenantId());
         setContractId(newSession.getContractId());
         setContract(newSession.getContract());

@@ -96,6 +96,19 @@ public class LocalhostClientFactory extends VitamClientFactory<LocalhostClientFa
                 consumeAnyEntityAndClose(response);
             }
         }
+        
+        public int doRequestAndGetStatus(final String subResource, final MultivaluedHashMap<String, Object> headers) {
+            Response response = null;
+            try {
+                response = performRequest(HttpMethod.GET, subResource, headers,
+                    MediaType.APPLICATION_JSON_TYPE);
+                return response.getStatus();
+            } catch (final VitamClientInternalException e) {
+                throw new IllegalStateException(INTERNAL_SERVER_ERROR, e); // access-common
+            } finally {
+                consumeAnyEntityAndClose(response);
+            }
+        }
     }
 
 }
