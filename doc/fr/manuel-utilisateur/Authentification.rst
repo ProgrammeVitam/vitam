@@ -50,16 +50,19 @@ Trois niveaux de permissions sont gérés au travers des rôles suivants :
 
 **Admin** : rôle accordant des droits étendus. Permet d'accéder à l'ensemble des fonctionnalités, aux fonctionnalités d'administration fonctionnelle et à l'IHM de recette.
 
-**User** : permet d'accéder au fonctionnalités suivantes :
+**User** : permet d'accéder aux fonctionnalités suivantes :
 	
 	* Transfert d'archives
+    * Transfert de plan de classement
 	* Suivi des opérations d'entrée
 	* Recherche et consultation d'archives
 	* Consultation du registre des fonds
 	* Détail des unités archivistiques
 	* Consultation des référentiels
 	* Consultation des journaux d'opération
-	* Accès au gestionnaire des versements
+	* Accès aux contrats d'entrée
+    * Accès aux contrats d'accès
+    * Opérations de sécurisation
 	  
 Menu d'administration en vue user :
 

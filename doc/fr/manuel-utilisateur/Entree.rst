@@ -10,7 +10,7 @@ Le SIP est un fichier compressé comportant le bordereau de versement SEDA au fo
 Transfert d'un SIP dans la solution logicielle Vitam
 ====================================================
 
-Le transfert d'un SIP dans la solution logicielle Vitam s'effectue depuis l'écran "Transfert". Par défaut, lors de sa connexion, l'utilisateur est dirigé vers cette page. Il peut également y accéder en cliquant sur le menu "Entrée" puis le sous-menu "Transfert".
+Le transfert d'un SIP dans la solution logicielle Vitam s'effectue depuis l'écran "Transfert". Par défaut, lors de sa connexion, l'utilisateur est dirigé vers cette page. Il peut également y accéder en cliquant sur le menu "Entrée" puis le sous-menu "Transfert SIP".
 
 .. image:: images/menu_entree.png
 
@@ -80,8 +80,8 @@ Les blocs <event> sont composés des balises suivantes :
 
 La notification comprend ensuite la liste des erreurs rencontrées (échecs ou avertissement), au niveau des unités archivistiques comme au niveau des groupes d'objets, sous la forme de blocs <event>.
 
-Transfert d'un plan de classement
-=================================
+Transfert d'un SIP de plan de classement
+=======================================
 
 Le transfert d'un plan de classement dans Vitam s'effectue depuis l'écran "Transfert du plan de classement", accessible depuis le menu "Entrée" puis en cliquant sur le sous-menu du même nom
 
@@ -89,7 +89,7 @@ Le transfert d'un plan de classement dans Vitam s'effectue depuis l'écran "Tran
 
 Pour débuter une entrée, l’utilisateur doit sélectionner le plan, sous le format demandé, à transférer dans Vitam. Pour cela, il clique sur le bouton « Parcourir », une nouvelle fenêtre s'ouvre dans laquelle il a la possibilité de sélectionner le plan.
 
-Une fois celui-ci sélectionné, il apparaît sur l'écran "Téléchargement du plan de classement". Le nom du fichier s'affiche à droite du bouton "choisissez un fichier" et une nouvelle ligne apparaît en dessous avec le nom du fichier, sa taille ainsi qu'un champ statut pour l'instant vide.
+Une fois celui-ci sélectionné, il apparaît sur l'écran "Téléchargement du plan de classement". Le nom du fichier s'affiche à droite du bouton "choisissez un fichier" et une nouvelle ligne apparaît en dessous avec le nom du fichier, sa taille ainsi qu'un champ statut.
 
 Deux listes déroulantes sont présentes sur l'écran :
 
@@ -111,14 +111,14 @@ Les informations visibles à l'écran sont :
 
 - Une barre de progression affiche l’avancement du téléchargement du plan dans Vitam (une barre de progression complète signifie que le téléchargement est achevé).
 
-NB : Suite au téléchargement du plan, un temps d'attente est nécessairen correspondant au traitement du plan par le système avant affichage du statut final. Dans ce cas, une roue de chargement est affichée au niveau du statut.
+NB : Suite au téléchargement du plan, un temps d'attente est nécessaire, correspondant au traitement du plan par le système avant affichage du statut final. Dans ce cas, une roue de chargement est affichée au niveau du statut.
 
 .. image:: images/upload_plan.png
 
 Si l'utilisateur tente d'importer un plan au format non conforme (s'il ne s'agit pas des formats ZIP, TAR, TAR.GZ, TAR.BZ2) alors le système empêche le téléchargement.
 Une fenêtre pop-up s'ouvre indiquant les formats autorisés.
 
-Toute opération d'entrée (succès, avertissement et échec) fait l'objet d'une écriture dans le journal des opérations et génére une notification qui est proposée en téléchargement à l'utilisateur.
+Toute opération d'entrée (succès, avertissement et échec) fait l'objet d'une écriture dans le journal des opérations et génère une notification qui est proposée en téléchargement à l'utilisateur.
 
 Cette notification ou ArchiveTransferReply (ATR) est au format XML conforme au schéma SEDA 2.0.
 Lors d'une entrée en succès dans VITAM, l'ATR comprend les informations suivantes :
@@ -177,12 +177,26 @@ Le résultat de la recherche est affiché sous forme de tableau. Par défaut, le
 - Intitulé
 - Statut : Succès, Erreur, En cours, Alerte (Warning)
 - Service Versant
+- Contrat
 - Date de début d'opération d'entrée
 - Date de fin d'opération d'entrée
 - Bordereau : permet le téléchargement du manifest.xml
 - AR : permet le téléchargement de l'accusé de réception (ATR)
 
 .. image:: images/op_entree_liste.png
+
+
+Il y a également la possibilité d'afficher d'autres informations, soit en les sélectionnant individuellement, soit en les sélectionnant toutes par un clic sur "Tout sélectionner".
+
+Les informations supplémentaires disponibles sont :
+
+- Profil
+- Date
+- Niveau de service
+- Signature
+
+.. image:: images/op_entree_info_complementaires.png
+
 
 Consultation du détail
 ----------------------
@@ -197,10 +211,12 @@ En haut de la page figure le numéro de l'opération d'entrée, sous la forme "D
 
 Le détail est affiché sous forme de tableau comportant pour chaque événement les éléments suivants :
 
-- Etape : nom de l'étape ou de la tâche correspondante
+- Etape : nom de l'étape correspondante
+- Tâche : nom de la tâche correspondante
+- Traitement : nom du traitement correspondant
 - Date : date à laquelle l'étape ou la tâche a été effectuée
 - Statut : statut final de l'étape ou de la tâche
-- Message : message expliquant le statut de cette étape ou de la tâche
+- Message : message expliquant le statut de l'étape, tâche ou traitement correspondant
 
 .. image:: images/op_entree_detail.png
 

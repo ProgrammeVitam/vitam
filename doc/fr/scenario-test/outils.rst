@@ -1,26 +1,27 @@
 OUTILS DE TESTS
-##########################################################
+################
 
-Afin de tester l'environnement de manière approfondie. Divers tests permettent, selon leur type, de vérifier chaque aspect de l'environnement.
-Les tests manuels disposent d'une grande amplitude d'actions et les tests automatiquement permettent de vérifier de manière régulière qu'une régression n'est survenue et que tout fonctionne correctement.
+Divers outils ont été mis en place afin de vérifier chaque aspect de la solution logicielle VITAM.
+Les tests manuels disposent d'une grande amplitude d'actions et les tests automatiques permettent de vérifier de manière régulière qu'une régression n'est pas survenue et que tout fonctionne correctement.
 
-Plusieurs documentations sont à disposition :
+Plusieurs documents complémentaires sont à disposition :
  - La documentation des Tests de Non Régression (TNR) se trouve ici : configuration-tnr/configuration-d-un-scenario.rst
  - Le manuel d'intégration applicative qui a vocation à présenter la manière d'interroger le DSL : configuration-tnr/configuration-d-un-scenario.rst
- - Le tableau du cahier de test :
+ - Le tableau du cahier de test
 
- **Administration des collections**
 
-L'administration des collections est accessible dans l'IHM recette via le menu éponyme. permet de purger les référentiels, les journaux et les objets de manière individuelle ou de tous les purger en même temps.
+**Administration des collections**
+
+L'administration des collections est accessible dans l'IHM recette via le menu éponyme. Cela permet de purger les référentiels, les journaux et les objets de manière. La purge peut être réalisée de manière individuelle par collection.
 
 
 Tests Manuels
 ###############
 
-Les tests manuels peuvent être effectués via :
- * Cahier de tests manuels, qui permettent
- * Postman, qui permet de lancer des tests sur l'API
- * IHM recette, qui permet de lancer des requêtes DSL
+Les tests manuels peuvent être effectués :
+ * A l'aide du cahier de tests manuels
+ * Via Postman, qui permet de lancer des tests sur l'API
+ * Via l'IHM recette, qui permet de lancer des requêtes DSL
 
 
 Cahier de tests manuels
@@ -33,7 +34,9 @@ Cahier de tests manuels
   - Le titre explicite du cas de test
   - L'itération à laquelle le test se raccroche
   - La nature du test (TNR ou Manuel)
+  - Numéro du bug associé, s'il existe
   - La liste des User Stories qui traitent ce cas de test
+  - Nom de l'activité, nom associé code Story Map
   - Le Code Story Map, c'est-à-dire le code attribué à ce sujet (entrée, accès, stockage, etc.)
   - Le Use Case ou déroulement du test étape par étape
   - Si ce test est un test IHM ou API
@@ -42,7 +45,7 @@ Cahier de tests manuels
 Postman
 ---------
 
-Postman est un plugin disponible via Google Chrome et peut être utilisé pour tester les services API. Il s’agit en réalité d’un client HTTP puissant pour tester les services Web. Suite à l'installation d'un certificat, propre à VITAM, des requêtes DSL peuvent être lancées en GET ou POST.
+Postman est un plugin disponible via Google Chrome et peut être utilisé pour tester les services API. Il s’agit en réalité d’un client HTTP puissant pour tester les services Web. Suite à l'installation d'un certificat, propre à VITAM, des requêtes DSL peuvent être lancées en GET ou POST (voir : )
 
 .. image:: images/POSTMAN_requete.png
 
@@ -57,7 +60,7 @@ Les résultats seront ensuite retournés sous format JSON.
 Requêtes DSL
 ---------------
 
-Il est possible de lancer des requêtes DSL via l'IHM de recette via le menu "Requêtes DSL", sans besoin de certificat. Cela permet de tester de manière simple et rapide  des requêtes DSL.
+Il est possible de lancer des requêtes DSL via l'IHM de recette depuis le menu "Requêtes DSL", sans besoin de certificat. Cela permet de tester de manière simple et rapide des requêtes DSL.
 
 Il s'agit d'un formulaire permettant de gérer plusieurs variables, telles que le tenant, le contrat d'accès, la collection, l'action testée et un identifiant. La requête est ensuite placée dans un champ texte.
 
@@ -78,11 +81,11 @@ Tests Automatisés
 Cucumber
 ---------
 
-Cucumber est un outil de tests fonctionnels, il est accessible via l'IHM de recette dans le menu "Tests fonctionnels". Ces tests sont écrits à la manière de critère d'acceptances, ce qui offre une grande variété de combinaisons.
+Cucumber est un outil de tests fonctionnels, il est accessible via l'IHM de recette dans le menu "Tests fonctionnels". Ces tests sont effectués via des ordres écrit avec des phrases simples, ce qui offre une grande variété de combinaisons.
 
 Il existe une liste de contextes et de fonctions disponibles. Il s'agit ensuite de les associer et les manipuler afin de créer son propre test.
 
-Les résultats sont retournés sous forme detableau
+Les résultats sont retournés sous forme de tableau
 
 .. image:: images/RECETTE_test_fonctionnels_ecran_principal.png
 
@@ -93,7 +96,7 @@ Les résultats sont retournés sous forme detableau
 Tests de stockage
 ------------------
 
-Ces tests permettent de vérifier qu'un objet est biens stockés plusieurs fois sur la plateforme afin d'assurer sa pérénnité.
+Ces tests permettent de vérifier qu'un objet est bien stocké plusieurs fois sur la plateforme afin d'assurer sa pérennité.
 
 Ce test vérifie :
 
