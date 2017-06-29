@@ -72,7 +72,7 @@ public class ClientMockResultHelper {
                     "\"outcome\": \"STARTED\"," +
                     "\"outDetail\": null," +
                     "\"outMessg\": \"SIP entry : SIP.zip\"," +
-                    "\"agId\": {\"name\":\"ingest_1\",\"role\":\"ingest\",\"pid\":425367}," +
+                    "\"agId\": \"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"ingest-external\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\"," +
                     "\"agIdApp\": null," +
                     "\"agIdAppSession\": null," +
                     "\"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
@@ -92,7 +92,7 @@ public class ClientMockResultHelper {
                     "\"outcome\": \"STARTED\"," +
                     "\"outDetail\": null," +
                     "\"outMessg\": \"SIP entry : SIP.zip\"," +
-                    "\"agId\": {\"name\":\"ingest_1\",\"role\":\"ingest\",\"pid\":425367}," +
+                    "\"agId\": \"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"ingest-external\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\"," +
                     "\"agIdApp\": null," +
                     "\"agIdAppSession\": null," +
                     "\"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
@@ -244,7 +244,7 @@ public class ClientMockResultHelper {
             "\"outcome\": \"STARTED\"," +
             "\"outDetail\": null," +
             "\"outMessg\": \"SIP entry : SIP.zip\"," +
-            "\"agId\": {\"name\":\"traceability_1\",\"role\":\"traceability\",\"pid\":425367}," +
+            "\"agId\": \"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"storage\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\"," +
             "\"agIdApp\": null," +
             "\"agIdAppSession\": null," +
             "\"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
