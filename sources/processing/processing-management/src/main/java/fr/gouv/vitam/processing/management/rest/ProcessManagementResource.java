@@ -106,7 +106,6 @@ public class ProcessManagementResource extends ApplicationStatusResource {
      * @param configuration the server configuration to be applied
      */
     public ProcessManagementResource(ServerConfiguration configuration, ProcessDistributor processDistributor) throws ProcessingStorageWorkspaceException {
-        processManagementMock = null;
         config = configuration;
         processManagement = new ProcessManagementImpl(config, processDistributor);
 

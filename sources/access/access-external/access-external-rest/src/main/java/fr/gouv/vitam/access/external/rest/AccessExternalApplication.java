@@ -129,7 +129,7 @@ public class AccessExternalApplication
 
 
     @Override
-    protected void setFilter(ServletContextHandler context) throws VitamApplicationServerException {
+    protected void setFilter(ServletContextHandler context, boolean isAdminConnector) throws VitamApplicationServerException {
         if (getConfiguration().isAuthentication()) {
             File shiroFile = null;
             try {

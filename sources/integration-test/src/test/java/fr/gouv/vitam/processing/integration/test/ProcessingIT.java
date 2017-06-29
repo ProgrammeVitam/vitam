@@ -62,7 +62,6 @@ import org.junit.AfterClass;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -225,6 +224,7 @@ public class ProcessingIT {
 
     private static String WORFKLOW_NAME_2 = "DefaultIngestWorkflow";
     private static String WORFKLOW_NAME = "DefaultIngestWorkflow";
+    private static String BIG_WORFKLOW_NAME = "BigIngestWorkflow";
     private static String INGEST_TREE_WORFKLOW = "DefaultHoldingSchemeWorkflow";
     private static String INGEST_PLAN_WORFKLOW = "DefaultFilingSchemeWorkflow";
 
@@ -1928,7 +1928,7 @@ public class ProcessingIT {
         // re-launch worker
         workerApplication.stop();
         // FIXME Sleep to be removed when asynchronous mode is implemented
-        Thread.sleep(8500);
+        //Thread.sleep(8500);
         SystemPropertyUtil.set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
         workerApplication = new WorkerApplication(CONFIG_BIG_WORKER_PATH);
         workerApplication.start();
@@ -1951,7 +1951,7 @@ public class ProcessingIT {
             RestAssured.port = PORT_SERVICE_PROCESSING;
             RestAssured.basePath = PROCESSING_PATH;
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-            processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
+            processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, BIG_WORFKLOW_NAME);
 
             final RequestResponse<JsonNode> ret = processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
                 Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
@@ -2020,23 +2020,34 @@ public class ProcessingIT {
 
     @RunWithCustomExecutor
     @Test
-    @Ignore
     public void testWorkerUnRegister() throws Exception {
         try {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
 
+            //1. Stop the worker this will unregister the worker
             workerApplication.stop();
+            Thread.sleep(500);
+
+            //2. Start the worker this will register the worker
             SystemPropertyUtil.set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
             workerApplication = new WorkerApplication(CONFIG_WORKER_PATH);
             workerApplication.start();
+            Thread.sleep(500);
+
+            //3. Stop processing, this will make worker retry register
             processManagementApplication.stop();
+            Thread.sleep(500);
+
             SystemPropertyUtil.set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT,
                 Integer.toString(PORT_SERVICE_PROCESSING));
             processManagementApplication = new ProcessManagementApplication(CONFIG_PROCESSING_PATH);
             processManagementApplication.start();
             SystemPropertyUtil.clear(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT);
-            // Wait processing server start
-            Thread.sleep(10000);
+            //4.Wait processing server start
+            Thread.sleep(500);
+
+            // For test, worker.conf is modified to have registerDelay: 1 (mean every one second worker try to register it self
+
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");

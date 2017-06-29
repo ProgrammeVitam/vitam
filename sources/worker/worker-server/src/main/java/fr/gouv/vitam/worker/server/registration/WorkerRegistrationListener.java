@@ -73,7 +73,7 @@ public class WorkerRegistrationListener implements ServletContextListener {
         try (ProcessingManagementClient processingClient =
             ProcessingManagementClientFactory.getInstance().getClient()) {
             processingClient.unregisterWorker(configuration.getWorkerFamily(),
-                String.valueOf(ServerIdentity.getInstance().getServerId()));
+                String.valueOf(ServerIdentity.getInstance().getGlobalPlatformId()));
         } catch (final Exception e) {
             LOGGER.error("WorkerUnRegister run : unregister call failed on " + configuration.getProcessingUrl(), e);
         }

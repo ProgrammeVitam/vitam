@@ -54,6 +54,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
 import fr.gouv.vitam.processing.common.exception.WorkerNotFoundException;
+import fr.gouv.vitam.processing.distributor.api.IWorkerManager;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.distributor.core.WorkerManager;
 
@@ -66,14 +67,14 @@ public class ProcessDistributorResource {
     private static final String PROCESSING_MODULE = "PROCESSING";
     private static final String CODE_VITAM = "code_vitam";
 
-    private final WorkerManager workerManager;
+    private final IWorkerManager workerManager;
 
     /**
      * Constructor
      *
      * @param workerManager
      */
-    public ProcessDistributorResource(WorkerManager workerManager) {
+    public ProcessDistributorResource(IWorkerManager workerManager) {
         this.workerManager = workerManager;
 
         LOGGER.info("init Process Distributor Resource server");
@@ -255,6 +256,10 @@ public class ProcessDistributorResource {
         } catch (final WorkerAlreadyExistsException exc) {
             LOGGER.warn(exc);
             return Response.status(Status.CONFLICT).entity("{\"error\":\"" + exc.getMessage() + "\"}")
+                .build();
+        } catch (IllegalArgumentException e) {
+            LOGGER.warn(e);
+            return Response.status(Status.CONFLICT).entity("{\"error\":\"" + e.getMessage() + "\"}")
                 .build();
         }
         return Response.status(Status.OK).entity("{\"success\" :\"Worker " + idWorker + " created \"}").build();

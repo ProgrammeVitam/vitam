@@ -112,7 +112,10 @@ public final class WorkerApplication extends AbstractVitamApplication<WorkerAppl
     }
 
     @Override
-    protected void setFilter(ServletContextHandler context) {
+    protected void setFilter(ServletContextHandler context, boolean isAdminConnector) {
+        if (isAdminConnector) {
+            return;
+        }
         context.addEventListener(new WorkerRegistrationListener(getConfiguration()));
     }
 

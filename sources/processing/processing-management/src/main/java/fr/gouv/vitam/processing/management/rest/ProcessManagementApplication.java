@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.rest;
 
+import fr.gouv.vitam.processing.distributor.api.IWorkerManager;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import fr.gouv.vitam.common.ServerIdentity;
@@ -114,10 +115,9 @@ public class ProcessManagementApplication
     @Override
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
 
-        WorkerManager workerManager = new WorkerManager();
-        workerManager.initialize();
+        IWorkerManager workerManager = null;
+        ProcessDistributor processDistributor = null;
 
-        ProcessDistributor processDistributor = new ProcessDistributorImpl(workerManager);
 
         setServiceRegistry(new VitamServiceRegistry());
         WorkspaceClientFactory.changeMode(getConfiguration().getUrlWorkspace());
@@ -128,13 +128,23 @@ public class ProcessManagementApplication
             // Metadata dependency: optional ???
             .registerOptional(MetaDataClientFactory.getInstance());
         // FIXME P1 worker optional register: How to do it ?
-        try {
-            resourceConfig
-                .register(new ProcessManagementResource(getConfiguration()))
-                .register(new ProcessDistributorResource(getConfiguration()));
-        } catch (Exception e) {
-           LOGGER.error("Error while initiate ProcessManagementResource", e);
+
+        if (VitamConfiguration.ENABLE_DISTRIBUTOR_V2) {
+            workerManager = new fr.gouv.vitam.processing.distributor.v2.WorkerManager();
+            processDistributor = new fr.gouv.vitam.processing.distributor.v2.ProcessDistributorImpl(workerManager);
+        } else {
+            workerManager = new WorkerManager();
+            processDistributor = new ProcessDistributorImpl((WorkerManager)workerManager);
         }
+        try {
+        resourceConfig
+            .register(new ProcessManagementResource(getConfiguration(), processDistributor))
+            .register(new ProcessDistributorResource(workerManager));
+
+        } catch (Exception e) {
+            LOGGER.error("Error while initiate ProcessManagementResource", e);
+        }
+        workerManager.initialize();
     }
 
     @Override

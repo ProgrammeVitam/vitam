@@ -26,17 +26,22 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.rest;
 
-import static com.jayway.restassured.RestAssured.get;
-import static com.jayway.restassured.RestAssured.given;
-import static org.hamcrest.CoreMatchers.containsString;
-
-import java.net.URI;
-import java.util.Collections;
-import java.util.HashMap;
-
-import javax.ws.rs.core.Response.Status;
-
+import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.http.ContentType;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.processing.common.ProcessingEntry;
+import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
+import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImpl;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -48,48 +53,22 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import static com.jayway.restassured.RestAssured.get;
-import static com.jayway.restassured.RestAssured.given;
-
+import javax.ws.rs.core.Response.Status;
 import java.net.URI;
 import java.util.Collections;
+import java.util.HashMap;
 
-import javax.ws.rs.core.Response.Status;
-
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.http.ContentType;
-
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.ProcessAction;
-import fr.gouv.vitam.common.model.ProcessQuery;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.ProcessingEntry;
-import fr.gouv.vitam.processing.common.config.ServerConfiguration;
-import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImpl;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import static com.jayway.restassured.RestAssured.get;
+import static com.jayway.restassured.RestAssured.given;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.mockito.Matchers.anyObject;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({WorkspaceClientFactory.class, ProcessDistributorImplFactory.class,WorkspaceProcessDataManagement.class})
+@PrepareForTest({WorkspaceClientFactory.class, WorkspaceProcessDataManagement.class})
 public class ProcessManagementResourceTest {
 
     private static final String DATA_URI = "/processing/v1";
@@ -154,13 +133,13 @@ public class ProcessManagementResourceTest {
     @Test
     public void shouldReturnResponseAccepted() throws Exception {
 
-        WorkspaceClientFactory workspaceClientFactory = PowerMockito.mock(WorkspaceClientFactory.class);
-        PowerMockito.mockStatic(WorkspaceClientFactory.class);
-        WorkspaceClient workspaceClient = PowerMockito.mock(WorkspaceClient.class);
-        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
-        PowerMockito.when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        mockStatic(WorkspaceClientFactory.class);
+        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
+        when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
 
-        Mockito.when(workspaceClient.getListUriDigitalObjectFromFolder(Mockito.anyObject(), Mockito.anyObject()))
+        Mockito.when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
             .thenReturn(new RequestResponseOK().addResult(Collections.<URI>emptyList()));
 
         // Mock ProcessDistributorImplFactory + ProcessDistributorImpl + Worker response
@@ -169,7 +148,7 @@ public class ProcessManagementResourceTest {
         ItemStatus itemStatus = new ItemStatus();
         itemStatus.increment(StatusCode.OK);
 
-        Mockito.when(processDistributorImpl.distribute(Mockito.anyObject(), Mockito.anyObject(), Mockito.anyObject()))
+        Mockito.when(processDistributorImpl.distribute(anyObject(), anyObject(), anyObject()))
             .thenReturn(itemStatus);
 
 
@@ -199,13 +178,13 @@ public class ProcessManagementResourceTest {
      */
     @Test
     public void shouldReturnPreconditionFailedIfNotStepFound() throws Exception {
-        WorkspaceClientFactory workspaceClientFactory = PowerMockito.mock(WorkspaceClientFactory.class);
-        PowerMockito.mockStatic(WorkspaceClientFactory.class);
-        WorkspaceClient workspaceClient = PowerMockito.mock(WorkspaceClient.class);
-        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
-        PowerMockito.when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        mockStatic(WorkspaceClientFactory.class);
+        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
+        when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
 
-        Mockito.when(workspaceClient.getListUriDigitalObjectFromFolder(Mockito.anyObject(), Mockito.anyObject()))
+        Mockito.when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
             .thenReturn(new RequestResponseOK().addResult(Collections.<URI>emptyList()));
 
         final GUID processId = GUIDFactory.newGUID();
@@ -233,13 +212,13 @@ public class ProcessManagementResourceTest {
     @Test
     public void shouldReturnResponseUauthorized() throws Exception {
 
-        WorkspaceClientFactory workspaceClientFactory = PowerMockito.mock(WorkspaceClientFactory.class);
-        PowerMockito.mockStatic(WorkspaceClientFactory.class);
-        WorkspaceClient workspaceClient = PowerMockito.mock(WorkspaceClient.class);
-        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
-        PowerMockito.when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        mockStatic(WorkspaceClientFactory.class);
+        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
+        when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
 
-        Mockito.when(workspaceClient.getListUriDigitalObjectFromFolder(Mockito.anyObject(), Mockito.anyObject()))
+        Mockito.when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
             .thenReturn(new RequestResponseOK().addResult(Collections.<URI>emptyList()));
 
         // Mock ProcessDistributorImplFactory + ProcessDistributorImpl + Worker response
@@ -249,7 +228,7 @@ public class ProcessManagementResourceTest {
         ItemStatus itemStatus = new ItemStatus();
         itemStatus.increment(StatusCode.OK);
 
-        Mockito.when(processDistributorImpl.distribute(Mockito.anyObject(), Mockito.anyObject(), Mockito.anyObject()))
+        Mockito.when(processDistributorImpl.distribute(anyObject(), anyObject(), anyObject()))
             .thenReturn(itemStatus);
 
 
@@ -297,13 +276,13 @@ public class ProcessManagementResourceTest {
      */
     @Test
     public void shouldReturnPreconditionFaildIfcancelWorkflowById() throws Exception {
-        WorkspaceClientFactory workspaceClientFactory = PowerMockito.mock(WorkspaceClientFactory.class);
-        PowerMockito.mockStatic(WorkspaceClientFactory.class);
-        WorkspaceClient workspaceClient = PowerMockito.mock(WorkspaceClient.class);
-        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
-        PowerMockito.when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        mockStatic(WorkspaceClientFactory.class);
+        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
+        when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
 
-        Mockito.when(workspaceClient.getListUriDigitalObjectFromFolder(Mockito.anyObject(), Mockito.anyObject()))
+        Mockito.when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
             .thenReturn(new RequestResponseOK().addResult(Collections.<URI>emptyList()));
 
         given()
@@ -323,21 +302,14 @@ public class ProcessManagementResourceTest {
     @SuppressWarnings("unchecked")
     @Test
     public void shouldReturnOkWhenGetWorkflowDefinitions() throws Exception {
-        WorkspaceClientFactory workspaceClientFactory = PowerMockito.mock(WorkspaceClientFactory.class);
-        PowerMockito.mockStatic(WorkspaceClientFactory.class);
-        WorkspaceClient workspaceClient = PowerMockito.mock(WorkspaceClient.class);
-        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
-        PowerMockito.when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        mockStatic(WorkspaceClientFactory.class);
+        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
+        when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
 
-
-        Mockito.when(workspaceClient.getListUriDigitalObjectFromFolder(Mockito.anyObject(), Mockito.anyObject()))
+        Mockito.when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
             .thenReturn(new RequestResponseOK().addResult(Collections.<URI>emptyList()));
-
-        // Mock ProcessDistributorImplFactory + ProcessDistributorImpl + Worker response
-        PowerMockito.mockStatic(ProcessDistributorImplFactory.class);
-        ProcessDistributorImplFactory processDistributorImplFactory =
-            PowerMockito.mock(ProcessDistributorImplFactory.class);
-        ProcessDistributorImpl processDistributorImpl = Mockito.mock(ProcessDistributorImpl.class);
 
         given()
             .contentType(ContentType.JSON)
@@ -346,11 +318,5 @@ public class ProcessManagementResourceTest {
             .statusCode(Status.OK.getStatusCode()).assertThat()
             .body("DefaultIngestWorkflow.id", containsString("DefaultIngestWorkflow"));
 
-    }
-
-    private static String generateResponseErrorFromStatus(Status status) throws JsonProcessingException {
-        return new ObjectMapper().writeValueAsString(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-            .setContext("ingest").setState("code_vitam")
-            .setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase()));
     }
 }

@@ -202,6 +202,8 @@ public class VitamConfiguration {
      */
     public static final boolean EXPORT_SCORE = false;
 
+    public static final int DISTRIBUTEUR_BATCH_SIZE = 10;
+
     private String config;
     private String log;
     private String data;
@@ -211,6 +213,7 @@ public class VitamConfiguration {
     private int connectTimeout = CONNECT_TIMEOUT;
 
     public static final boolean ENABLE_JAXB_PARSER = true;
+    public static final boolean ENABLE_DISTRIBUTOR_V2 = true;
 
     /**
      * Default LANG

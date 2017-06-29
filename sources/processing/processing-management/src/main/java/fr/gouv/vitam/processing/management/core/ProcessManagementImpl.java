@@ -109,8 +109,6 @@ public class ProcessManagementImpl implements ProcessManagement {
     private final Map<String, WorkFlow> poolWorkflow;
     private ProcessDistributor processDistributor;
 
-    private ProcessMonitoring processMonitoring;
-
     /**
      * constructor of ProcessManagementImpl
      *
@@ -133,42 +131,14 @@ public class ProcessManagementImpl implements ProcessManagement {
             populateWorkflow("DefaultIngestBlankTestWorkflow");
             populateWorkflow("DefaultIngestWorkflow");
             populateWorkflow("DefaultCheckTraceability");
-        } catch (final WorkflowNotFoundException e) {
-            LOGGER.error(WORKFLOW_NOT_FOUND_MESSAGE, e);
-        }
-
-        loadProcessFromWorkSpace(config.getUrlMetadata(), config.getUrlWorkspace(), this.processDistributor);
-
-        processMonitoring = ProcessMonitoringImpl.getInstance();
-    }
-
-    /**
-     * FOR TEST PURPOSE ONLY (mock processMonitoring)
-     * @param config
-     * @param processMonitoring
-     * @throws ProcessingStorageWorkspaceException
-     */
-    public ProcessManagementImpl(ServerConfiguration config, ProcessMonitoring processMonitoring) throws
-        ProcessingStorageWorkspaceException {
-        ParametersChecker.checkParameter("Server config cannot be null", config);
-        this.config = config;
-        processData = ProcessDataAccessImpl.getInstance();
-        poolWorkflows = new ConcurrentHashMap<>();
-
-        try {
-            populateWorkflow("DefaultFilingSchemeWorkflow");
-            populateWorkflow("DefaultHoldingSchemeWorkflow");
-            populateWorkflow("DefaultIngestBlankTestWorkflow");
-            populateWorkflow("DefaultIngestWorkflow");
-            populateWorkflow("DefaultCheckTraceability");
+            populateWorkflow("BigIngestWorkflow");
         } catch (final WorkflowNotFoundException e) {
             LOGGER.error(WORKFLOW_NOT_FOUND_MESSAGE, e);
         }
 
         loadProcessFromWorkSpace(config.getUrlMetadata(), config.getUrlWorkspace());
-
-        this.processMonitoring = processMonitoring;
     }
+
 
     @Override
     public ProcessWorkflow init(WorkerParameters workerParameters, String workflowId,
@@ -334,7 +304,7 @@ public class ProcessManagementImpl implements ProcessManagement {
 
     @Override
     public Map<String, WorkFlow> getWorkflowDefinitions() {
-        return poolWorkflows;
+        return poolWorkflow;
     }
 
     public Map<Integer, Map<String, ProcessWorkflow>>  getWorkFlowList() {
@@ -370,7 +340,8 @@ public class ProcessManagementImpl implements ProcessManagement {
                         .setContainerName(operationId);
 
 
-                final ProcessEngine processEngine = ProcessEngineFactory.get().create(workerParameters, processDistributor);
+                final ProcessEngine processEngine = ProcessEngineFactory.get().create(workerParameters,
+                    this.processDistributor);
                 final StateMachine stateMachine = StateMachineFactory.get().create(processWorkflow, processEngine);
                 processEngine.setCallback(stateMachine);
 
@@ -413,7 +384,7 @@ public class ProcessManagementImpl implements ProcessManagement {
 
 
     public List<JsonNode> getFilteredProcess(ProcessQuery query, Integer tenantId) {
-        List<ProcessWorkflow> listWorkflows = processMonitoring.findAllProcessWorkflow(tenantId);
+        List<ProcessWorkflow> listWorkflows = this.findAllProcessWorkflow(tenantId);
         listWorkflows.sort((a, b) -> b.getProcessDate().compareTo(a.getProcessDate()));
 
         List<JsonNode> results = new ArrayList<>();
