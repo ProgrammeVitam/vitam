@@ -59,7 +59,7 @@ public interface OperationManagementClient extends MockOrRestClient {
      * @throws InternalServerException
      * @throws BadRequestException
      */
-    RequestResponse<JsonNode> cancelOperationProcessExecution(String id)
+    ItemStatus cancelOperationProcessExecution(String id)
         throws InternalServerException, BadRequestException, VitamClientException;
 
     /**
@@ -73,7 +73,7 @@ public interface OperationManagementClient extends MockOrRestClient {
      * @throws BadRequestException
      * @throws VitamClientException
      */
-    Response updateOperationActionProcess(String actionId, String operationId)
+    RequestResponse<ItemStatus> updateOperationActionProcess(String actionId, String operationId)
         throws InternalServerException, BadRequestException, VitamClientException;
 
 

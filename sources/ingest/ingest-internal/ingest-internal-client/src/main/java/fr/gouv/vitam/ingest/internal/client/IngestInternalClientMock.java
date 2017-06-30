@@ -114,14 +114,14 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
     }
 
     @Override
-    public RequestResponse<JsonNode> cancelOperationProcessExecution(String id) throws VitamClientException {
+    public ItemStatus cancelOperationProcessExecution(String id) throws VitamClientException {
         // return new ItemStatus(ID);
-        return new RequestResponseOK<JsonNode>().setHttpCode(Status.OK.getStatusCode());
+        return new ItemStatus(ID);
     }
 
     @Override
-    public Response updateOperationActionProcess(String actionId, String operationId) throws VitamClientException {
-        return Response.status(Status.OK).build();
+    public RequestResponse<ItemStatus> updateOperationActionProcess(String actionId, String operationId) throws VitamClientException {
+        return new RequestResponseOK<ItemStatus>();
     }
 
     @Override

@@ -62,6 +62,7 @@ import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
 import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
 import fr.gouv.vitam.functional.administration.client.model.RegisterValueDetailModel;
+import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
@@ -551,7 +552,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     AccessContractModel.class);
             }
 
-            return RequestResponse.parseFromResponse(response);
+            return RequestResponse.parseFromResponse(response, AccessContractModel.class);
 
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
@@ -592,7 +593,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 return resp;
             }
 
-            return RequestResponse.parseFromResponse(response);
+            return RequestResponse.parseFromResponse(response, AccessContractModel.class);
 
         } catch (InvalidCreateOperationException e) {
             LOGGER.error("unable to create query", e);
@@ -620,7 +621,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     IngestContractModel.class);
             }
 
-            return RequestResponse.parseFromResponse(response);
+            return RequestResponse.parseFromResponse(response, IngestContractModel.class);
 
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
@@ -658,7 +659,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 return resp;
             }
 
-            return RequestResponse.parseFromResponse(response);
+            return RequestResponse.parseFromResponse(response, IngestContractModel.class);
 
         } catch (InvalidCreateOperationException e) {
             LOGGER.error("unable to create query", e);
@@ -761,7 +762,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     ProfileModel.class);
             }
 
-            return RequestResponse.parseFromResponse(response);
+            return RequestResponse.parseFromResponse(response, ProfileModel.class);
 
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
@@ -801,7 +802,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 return resp;
             }
 
-            return RequestResponse.parseFromResponse(response);
+            return RequestResponse.parseFromResponse(response, ProfileModel.class);
 
         } catch (InvalidCreateOperationException e) {
             LOGGER.error("unable to create query", e);
@@ -828,7 +829,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 return new RequestResponseOK<AccessContractModel>();
             }
 
-            return RequestResponse.parseFromResponse(response);
+            return RequestResponse.parseFromResponse(response, AccessContractModel.class);
 
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
@@ -851,7 +852,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
                 return new RequestResponseOK<IngestContractModel>();
             }
-            return RequestResponse.parseFromResponse(response);
+            return RequestResponse.parseFromResponse(response, IngestContractModel.class);
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
@@ -894,7 +895,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 return new RequestResponseOK<ContextModel>();
             }
 
-            return RequestResponse.parseFromResponse(response);
+            return RequestResponse.parseFromResponse(response, ContextModel.class);
 
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
@@ -918,7 +919,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     ContextModel.class);
             }
 
-            return RequestResponse.parseFromResponse(response);
+            return RequestResponse.parseFromResponse(response, ContextModel.class);
 
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
@@ -957,7 +958,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 return resp;
             }
 
-            return RequestResponse.parseFromResponse(response);
+            return RequestResponse.parseFromResponse(response, ContextModel.class);
 
         } catch (InvalidCreateOperationException e) {
             LOGGER.error("unable to create query", e);

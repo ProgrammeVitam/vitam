@@ -611,7 +611,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
                 String id = responseDetails.get(GUID_INDEX).toString();
 
-                if (client.wait(tenantId, id, 30, 1000l, TimeUnit.MILLISECONDS)) {
+                if (client.wait(tenantId, id, 30, 1000L, TimeUnit.MILLISECONDS)) {
 
                     final ItemStatus itemStatus =
                         client.getOperationProcessExecutionDetails(id, JsonHandler.createObjectNode(), tenantId);

@@ -77,6 +77,7 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
@@ -668,7 +669,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
 
     @Test
     public void givenOKWhenDefinitionsWorkflowThenReturnMap() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.OK).entity(JsonHandler.createObjectNode()).build());
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<>()).build());
         client.getWorkflowDefinitions();
     }
 

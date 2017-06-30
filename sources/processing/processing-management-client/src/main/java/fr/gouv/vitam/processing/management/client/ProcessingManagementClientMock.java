@@ -114,7 +114,7 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
 
 
     @Override
-    public RequestResponse<JsonNode> cancelOperationProcessExecution(String id)
+    public ItemStatus cancelOperationProcessExecution(String id)
         throws InternalServerException, BadRequestException, VitamClientException {
         final List<Integer> status = new ArrayList<>();
         status.add(0);
@@ -123,19 +123,19 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
         status.add(0);
         status.add(0);
         status.add(0);
-        final ItemStatus it =
+        final ItemStatus itemStatus =
             new ItemStatus("FakeId", "FakeMessage", StatusCode.OK, status, SingletonUtils.singletonMap(), null,
                 null, null);
 
-        return new RequestResponseOK().addResult(it).setHttpCode(Status.OK.getStatusCode());
+        return itemStatus;
     }
 
 
 
     @Override
-    public Response updateOperationActionProcess(String actionId, String operationId)
+    public RequestResponse<ItemStatus> updateOperationActionProcess(String actionId, String operationId)
         throws InternalServerException, BadRequestException, VitamClientException {
-        return Response.ok().build();
+        return new RequestResponseOK<>();
     }
 
 

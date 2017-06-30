@@ -69,6 +69,7 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
@@ -132,20 +133,20 @@ public class IngestExternalResource extends ApplicationStatusResource {
     private void uploadAsync(InputStream uploadedInputStream, AsyncResponse asyncResponse,
         Integer tenantId, String contextId, String action, GUID guid) {
 
-        final IngestExternalImpl ingestExtern = new IngestExternalImpl(ingestExternalConfiguration);
+        final IngestExternalImpl ingestExternal = new IngestExternalImpl(ingestExternalConfiguration);
         try {
             ParametersChecker.checkParameter("HTTP Request must contains stream", uploadedInputStream);
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             PreUploadResume preUploadResume = null;
             try {
                 preUploadResume =
-                    ingestExtern.preUploadAndResume(uploadedInputStream, contextId, action, guid, asyncResponse);
+                    ingestExternal.preUploadAndResume(uploadedInputStream, contextId, action, guid, asyncResponse);
             } catch (WorkspaceClientServerException e) {
                 LOGGER.error(e);
-                ingestExtern.createATRFatalWorkspace(contextId, guid, asyncResponse);
+                ingestExternal.createATRFatalWorkspace(contextId, guid, asyncResponse);
                 return;
             }
-            Response response = ingestExtern.upload(preUploadResume, guid);
+            Response response = ingestExternal.upload(preUploadResume, guid);
             response.close();
         } catch (final Exception exc) {
             LOGGER.error(exc);
@@ -350,10 +351,9 @@ public class IngestExternalResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getWorkFlowStatus(@PathParam("id") String id, JsonNode query) {
         Status status;
-        ItemStatus pwork = null;
+        ItemStatus itemStatus = null;
         try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
-            pwork = ingestInternalClient.getOperationProcessExecutionDetails(id, query);
-
+            itemStatus = ingestInternalClient.getOperationProcessExecutionDetails(id, query);
         } catch (final IllegalArgumentException e) {
             // if the entry argument if illegal
             LOGGER.error(e);
@@ -390,7 +390,8 @@ public class IngestExternalResource extends ApplicationStatusResource {
                 .build();
         }
 
-        return Response.status(Status.OK).entity(pwork).build();
+        // TODO : manage missing itemStatus with 404 http error
+        return Response.status(Status.OK).entity(itemStatus).build();
     }
 
     /**
@@ -420,11 +421,12 @@ public class IngestExternalResource extends ApplicationStatusResource {
 
     private void updateOperationActionProcessAsync(final AsyncResponse asyncResponse, String operationId,
         String action) {
-        Response response = null;
 
         try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
             VitamThreadUtils.getVitamSession().setRequestId(operationId);
-            response = ingestInternalClient.updateOperationActionProcess(action, operationId);
+            RequestResponse<ItemStatus> itemStatusRequestResponse =
+                ingestInternalClient.updateOperationActionProcess(action, operationId);
+            Response response = itemStatusRequestResponse.toResponse();
 
             AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
             helper.writeAsyncResponse(Response.fromResponse(response), Status.fromStatusCode(response.getStatus()));
@@ -465,8 +467,8 @@ public class IngestExternalResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter("operationId must not be null", id);
         Status status;
         try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
-            final RequestResponse<JsonNode> response = ingestInternalClient.cancelOperationProcessExecution(id);
-            return Response.status(Status.OK).entity(response).build();
+            final ItemStatus itemStatus = ingestInternalClient.cancelOperationProcessExecution(id);
+            return new RequestResponseOK<ItemStatus>().addResult(itemStatus).toResponse();
         } catch (final IllegalArgumentException e) {
             // if the entry argument if illegal
             LOGGER.error(e);
