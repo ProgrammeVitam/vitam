@@ -52,7 +52,6 @@ import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
  */
 public class CheckHeaderActionHandler extends ActionHandler {
 
-    private static final String EV_DET_DATA_TYPE = "evDetDataType";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckHeaderActionHandler.class);
     private static final String HANDLER_ID = "CHECK_HEADER";
     private static final int CHECK_CONTRACT_RANK = 0;
@@ -144,7 +143,6 @@ public class CheckHeaderActionHandler extends ActionHandler {
         }
         if (shouldCheckProfile) {
             if (madatoryValueMap.get(SedaConstants.TAG_ARCHIVE_PROFILE) != null) {               
-                final String profileName = (String) madatoryValueMap.get(SedaConstants.TAG_ARCHIVE_PROFILE);
                 handlerIO.getInput().clear();
                 handlerIO.getInput().add(madatoryValueMap.get(SedaConstants.TAG_ARCHIVE_PROFILE));
                 handlerIO.getInput().add(madatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT));
@@ -202,7 +200,7 @@ public class CheckHeaderActionHandler extends ActionHandler {
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-
+        //do nothing
     }
 
 }

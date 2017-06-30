@@ -517,7 +517,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
             try {
-                randomAccessFile.close();
+                if (randomAccessFile != null) {
+                    randomAccessFile.close();
+                }
             } catch (IOException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
@@ -595,10 +597,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, operationId);
         // mapping X-request-ID
         final List<Object> responseDetails = uploadRequestsStatus.get(operationId);
-        if (responseDetails != null
-            && responseDetails.size() >= 3 
-            && responseDetails.get(1).equals(Status.SERVICE_UNAVAILABLE)) {
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(((String) responseDetails.get(2)).getBytes(CharsetUtils.UTF8))
+        if (responseDetails != null && responseDetails.size() >= 3 &&
+            responseDetails.get(1).equals(Status.SERVICE_UNAVAILABLE)) {
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(((String) responseDetails.get(2)).getBytes(CharsetUtils.UTF8))
                 .type(MediaType.APPLICATION_OCTET_STREAM_TYPE)
                 .header("Content-Disposition",
                     "attachment; filename=ATR_" + operationId + ".xml")
@@ -1995,7 +1997,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             }
 
             if (updateData.get(AccessContractModel.EVERY_DATA_OBJECT_VERSION) != null) {
-                Boolean everyVersion = BooleanUtils.toBooleanObject(updateData.get(AccessContractModel.EVERY_DATA_OBJECT_VERSION));
+                Boolean everyVersion =
+                    BooleanUtils.toBooleanObject(updateData.get(AccessContractModel.EVERY_DATA_OBJECT_VERSION));
                 if (everyVersion == null) {
                     return Response.status(Status.BAD_REQUEST).entity("Invalid EveryDataObjectVersion value").build();
                 }

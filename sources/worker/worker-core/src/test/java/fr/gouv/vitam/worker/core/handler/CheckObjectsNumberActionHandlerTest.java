@@ -161,7 +161,7 @@ public class CheckObjectsNumberActionHandlerTest {
     @Test
     public void givenWorkspaceExistWhenExecuteThenRaiseXMLStreamExceptionAndReturnResponseFATAL()
         throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException {
-        Mockito.doThrow(new ProcessingException("")).when(sedaUtils).getAllDigitalObjectUriFromManifest(anyObject());
+        Mockito.doThrow(new ProcessingException("")).when(sedaUtils).getAllDigitalObjectUriFromManifest();
 
         checkObjectsNumberActionHandler =
             new CheckObjectsNumberActionHandler();
@@ -175,7 +175,7 @@ public class CheckObjectsNumberActionHandlerTest {
     public void givenWorkspaceNotExistWhenExecuteThenRaiseProcessingExceptionReturnResponseFATAL()
         throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException {
 
-        Mockito.doThrow(new ProcessingException("")).when(sedaUtils).getAllDigitalObjectUriFromManifest(anyObject());
+        Mockito.doThrow(new ProcessingException("")).when(sedaUtils).getAllDigitalObjectUriFromManifest();
 
         checkObjectsNumberActionHandler =
             new CheckObjectsNumberActionHandler();
@@ -194,7 +194,7 @@ public class CheckObjectsNumberActionHandlerTest {
         checkObjectsNumberActionHandler =
             new CheckObjectsNumberActionHandler();
 
-        when(sedaUtils.getAllDigitalObjectUriFromManifest(anyObject())).thenReturn(extractUriResponseOK);
+        when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractUriResponseOK);
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
             .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOK));
 
@@ -215,7 +215,7 @@ public class CheckObjectsNumberActionHandlerTest {
         checkObjectsNumberActionHandler =
             new CheckObjectsNumberActionHandler();
 
-        when(sedaUtils.getAllDigitalObjectUriFromManifest(anyObject())).thenReturn(extractDuplicatedUriResponseKO);
+        when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractDuplicatedUriResponseKO);
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
             .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOK));
 
@@ -236,7 +236,7 @@ public class CheckObjectsNumberActionHandlerTest {
         checkObjectsNumberActionHandler =
             new CheckObjectsNumberActionHandler();
 
-        when(sedaUtils.getAllDigitalObjectUriFromManifest(anyObject())).thenReturn(extractOutNumberUriResponseKO);
+        when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractOutNumberUriResponseKO);
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
             .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOK));
 
@@ -259,7 +259,7 @@ public class CheckObjectsNumberActionHandlerTest {
         checkObjectsNumberActionHandler =
             new CheckObjectsNumberActionHandler();
 
-        when(sedaUtils.getAllDigitalObjectUriFromManifest(anyObject())).thenReturn(extractUriResponseOK);
+        when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractUriResponseOK);
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
             .thenReturn(new RequestResponseOK().addResult(uriOutNumberListWorkspaceKO));
 
@@ -281,7 +281,7 @@ public class CheckObjectsNumberActionHandlerTest {
         checkObjectsNumberActionHandler =
             new CheckObjectsNumberActionHandler();
 
-        when(sedaUtils.getAllDigitalObjectUriFromManifest(anyObject())).thenReturn(extractUriResponseOK);
+        when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractUriResponseOK);
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
             .thenReturn(new RequestResponseOK().addResult(uriOutNumberListWorkspaceKO));
 

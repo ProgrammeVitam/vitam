@@ -26,22 +26,20 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.core;
 
-import fr.gouv.vitam.common.model.ProcessState;
-import fr.gouv.vitam.processing.common.config.ServerConfiguration;
-import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
-import org.junit.Test;
-
-
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import fr.gouv.vitam.common.model.ProcessState;
+import fr.gouv.vitam.processing.common.config.ServerConfiguration;
+import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 
 public class ProcessWorkFlowsCleanerTest {
 
