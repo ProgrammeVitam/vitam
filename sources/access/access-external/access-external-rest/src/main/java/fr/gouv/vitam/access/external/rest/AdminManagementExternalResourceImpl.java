@@ -497,7 +497,7 @@ public class AdminManagementExternalResourceImpl {
      * @param xhttpOverride
      * @return Response
      */
-    @Path("/{collection}/{id_document}")
+    @Path("/{collection}/{id_document:.+}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     public Response findDocumentByID(@PathParam("collection") String collection,
@@ -521,7 +521,7 @@ public class AdminManagementExternalResourceImpl {
      * @param documentId the document id to find
      * @return Response
      */
-    @Path("/{collection}/{id_document}")
+    @Path("/{collection}/{id_document:.+}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response findDocumentByID(@PathParam("collection") String collection,

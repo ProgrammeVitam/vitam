@@ -64,8 +64,7 @@
             <!-- <tbody ng-repeat="file in search.response.data | startFrom:startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage, search.pagination.startOffset) | limitTo: search.pagination.itemsPerPage">-->
 			<!-- FIXME: Should reset search.pagination.startOffset (and remove the 0) in last param of startFrom filter when mongo OK (See Item #2227) commented tbody should be used once the fix is found -->
             <tbody ng-repeat="file in search.response.data | startFrom:startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage, 0) | limitTo: search.pagination.itemsPerPage">            
-            
-              <tr ng-click="openDialog($event, file._id)">
+              <tr ng-click="openDialog($event, file.PUID)">
                 <td style="text-overflow: ellipsis;max-width:20%" scope="row" >{{file.PUID}}</td>
                 <td style="text-overflow: ellipsis;max-width:20%">{{file.Name}}</td>
                 <td style="text-overflow: ellipsis;max-width:20%">{{file.Version}}</td>

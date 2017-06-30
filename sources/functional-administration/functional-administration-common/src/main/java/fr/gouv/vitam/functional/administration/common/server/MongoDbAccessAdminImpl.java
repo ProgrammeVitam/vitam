@@ -140,6 +140,12 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
     }
 
     @Override
+    public VitamDocument<?> getDocumentByUniqueId(String id, FunctionalAdminCollections collection, String field)
+        throws ReferentialException {
+        return (VitamDocument<?>) collection.getCollection().find(eq(field, id)).first();
+    }
+
+    @Override
     public MongoCursor<VitamDocument<?>> findDocuments(JsonNode select, FunctionalAdminCollections collection)
         throws ReferentialException {
         try {

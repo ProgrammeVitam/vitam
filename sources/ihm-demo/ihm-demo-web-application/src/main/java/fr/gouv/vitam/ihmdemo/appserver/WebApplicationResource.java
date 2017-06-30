@@ -887,7 +887,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * @return Response
      */
     @POST
-    @Path("/admin/formats/{idFormat}")
+    @Path("/admin/formats/{idFormat:.+}")
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("admin:formats:read")
     public Response getFormatById(@Context HttpHeaders headers, @PathParam("idFormat") String formatId,

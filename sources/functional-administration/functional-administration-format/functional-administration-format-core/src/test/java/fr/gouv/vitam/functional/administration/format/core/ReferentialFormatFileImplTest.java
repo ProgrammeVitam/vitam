@@ -161,7 +161,7 @@ public class ReferentialFormatFileImplTest {
         final Select select = new Select();
         select.setQuery(eq("PUID", "fmt/164"));
         final List<FileFormat> fileList = formatFile.findDocuments(select.getFinalSelect());
-        final String id = fileList.get(0).getString("_id");
+        final String id = fileList.get(0).getString("PUID");
         final FileFormat file = formatFile.findDocumentById(id);
         assertEquals("[wps]", file.get("Extension").toString());
         assertEquals(file, fileList.get(0));

@@ -147,6 +147,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         try {
+            // FIXME Why do a POST with HTTP_OVERRIDE when a GET without body is needed ?
             response = performRequest(HttpMethod.POST, documentType.getName() + "/" + documentId, headers,
                 MediaType.APPLICATION_JSON_TYPE);
 
