@@ -1,34 +1,36 @@
 plateforme_secret: vitamsecret
-cerebro_secret_key: changemeornot
+cerebro_secret_key: tGz28hJkiW[p@a34G
 mongoAdminUser: vitamdb-admin
-mongoAdminPassword: qwertz
+mongoAdminPassword: azerty
+mongoLocalAdminUser: vitamdb-localadmin
+mongoLocalAdminPassword: qwerty
 mongoMetadataUser: metadata
-mongoMetadataPassword: qwertz
+mongoMetadataPassword: azerty
 mongoLogbookUser: logbook
-mongoLogbookPassword: qwertz
+mongoLogbookPassword: azerty
 mongoFunctionalAdminUser: functional-admin
-mongoFunctionalAdminPassword: qwertz
+mongoFunctionalAdminPassword: azerty
 mongoSecurityInternalUser: security-internal
-mongoSecurityInternalPassword: qwertz
+mongoSecurityInternalPassword: azerty
 mongoClientUser: mongoclient
-mongoClientPassword: qwertz
-mongoPassPhrase: mongogogo
-vitam_keystone_passwd: 2kwRWUKXyjR64VtUCma1vd5TS8DFZjQnpeJ0sLbN
-consul_encrypt: Biz14ohqN4HtvZmsXp3N4A==
+mongoClientPassword: azerty
+mongoPassPhrase: mongogo
+vitam_keystone_passwd: 2kwRWUKXyjR65VtUCma1vd5TS8DFZjQnpeJ0sLbN
+consul_encrypt: Biz14ohqN4HtvZmrXp3N4A==
 vitam_users:
-  - vitam_uuser:
-    login: uuser
-    password: monuuser
-    role: user
   - vitam_aadmin:
     login: aadmin
-    password: monaadmin
+    password: aadmin1234
     role: admin
+  - vitam_uuser:
+    login: uuser
+    password: uuser1234
+    role: user
   - vitam_gguest:
     login: gguest
-    password: mongguest
+    password: gguest1234
     role: guest
   - techadmin:
     login: techadmin
-    password: montechadmin
+    password: techadmin1234
     role: admin

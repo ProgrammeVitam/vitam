@@ -1,0 +1,12 @@
+
+admin = db.getSiblingDB("admin")
+
+if (! db.getUser("{{mongoLocalAdminUser}}")) {
+    db.createUser(
+        {
+            user: "{{mongoLocalAdminUser}}",
+            pwd: "{{mongoLocalAdminPassword}}",
+            roles: [ { role: "clusterAdmin", db: "admin" } ]
+        }
+    )
+}
