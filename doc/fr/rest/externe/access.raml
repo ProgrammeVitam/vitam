@@ -71,8 +71,6 @@ documentation:
     headers:
       X-Http-Method-Override:
         required: true
-      X-Access-Contract-Id:
-        required: true
   put:
     description: |
       **UNSUPPORTED** Request that will update a set of Units according to the query and the filter parts. The actions to be applied on the set of Units are specified in the action part of the request.
@@ -122,8 +120,6 @@ documentation:
         headers:
           X-Http-Method-Override:
             required: true
-          X-Access-Contract-Id:
-            required: true
       head:
         description: |
           **UNSUPPORTED** Test the existence of this Object
@@ -148,8 +144,6 @@ documentation:
     is: [AccessTraits.AccessObjectResponse, StandardTraits.OverrideGet]
     headers:
       X-Http-Method-Override:
-        required: true
-      X-Access-Contract-Id:
         required: true
 
   /{ido}:
@@ -178,8 +172,6 @@ documentation:
       headers:
         X-Http-Method-Override:
           required: true
-      X-Access-Contract-Id:
-        required: true
     head:
       description: |
         **DEPRECATED** : ne sera plus supporté en V1.
@@ -208,8 +200,6 @@ documentation:
     headers:
       X-Http-Method-Override:
         required: true
-      X-Access-Contract-Id:
-        required: true
 
   /{idu}:
     displayName: AccessionRegister
@@ -228,8 +218,6 @@ documentation:
       headers:
         X-Http-Method-Override:
           required: true
-      X-Access-Contract-Id:
-        required: true
 
     /accession-register-detail:
       displayName: AccessionRegisterDetail

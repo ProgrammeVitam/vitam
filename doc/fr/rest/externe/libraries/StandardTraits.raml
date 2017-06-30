@@ -145,6 +145,11 @@ traits:
       404:
         description: Not Found, requested resource does not exist
         headers: *standardheader
+  StandardHeader405:
+    responses:
+      405:
+        description: Method Not Allowed, requested resource is not allowed
+        headers: *standardheader
   StandardHeader409:
     responses:
       409:

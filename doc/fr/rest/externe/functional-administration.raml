@@ -48,9 +48,6 @@ documentation:
     description: |
       This allow to submit a new Referential from a PRONOM source file (see TNA) to check if this could be imported.
     is: [RegisterTraits.RegisterUpload]
-    headers:
-      X-Http-Method-Override:
-        required: false
 
   /{idu}:
     displayName: FileFormat
@@ -88,9 +85,6 @@ documentation:
     description: |
       This allow to submit a new Referential from a CSV source file containing Rules definitions to check if this could be imported.
     is: [RegisterTraits.RegisterUpload]
-    headers:
-      X-Http-Method-Override:
-        required: false
 
   /{idu}:
     displayName: Rule
@@ -118,6 +112,7 @@ documentation:
     is: [RegisterTraits.RegisterListingResponse]
   post:
     description: |
+      Request that will return results composed of AccessContracts if the request is using POST with X-Http-Method-Override: GET.
       Importe un ensemble des contrats d'accès qui sont sauvegardés et indexés en cas de succès
     is: [RegisterTraits.RegisterListingResponse, StandardTraits.OverrideGet, RegisterTraits.RegisterUpload]
     headers:
@@ -134,18 +129,12 @@ documentation:
       is: [RegisterTraits.RegisterListingResponse]
     put:
       description: |
-
          Update the given access contract
       is: [RegisterTraits.RegisterUpload]
-      headers:
-        X-Http-Method-Override:
-          required: false
 
 /entrycontracts:
   displayName: Ingest contracts
   description: |
-     **NOTE: DEPRECATED sera changé en entrycontracts** 
-
      API qui définit les requêtes pour accéder au contracts d'entrée
      La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste de contrats d'entrée selon le DSL Vitam en cas de succès.
   get:
@@ -154,8 +143,9 @@ documentation:
     is: [RegisterTraits.RegisterListingResponse]
   post:
     description: |
+      Request that will return results composed of EntryContracts if the request is using POST with X-Http-Method-Override: GET.
       Importe un ensemble des contrats d'entrée qui sont sauvegardés et indexés en cas de succès
-    is: [RegisterTraits.RegisterItemResponse]
+    is: [RegisterTraits.RegisterItemResponse, StandardTraits.OverrideGet, RegisterTraits.RegisterUpload]
     headers:
       X-Http-Method-Override:
         required: false
@@ -170,12 +160,8 @@ documentation:
       is: [RegisterTraits.RegisterListingResponse]
     put:
        description: |
-
          Update the given ingest contract
        is: [RegisterTraits.RegisterUpload]
-       headers:
-         X-Http-Method-Override:
-           required: false
 
 /contexts:
   displayName: External Application contexts
@@ -188,8 +174,9 @@ documentation:
     is: [RegisterTraits.RegisterListingResponse]
   post:
     description: |
+      Request that will return results composed of Contexts if the request is using POST with X-Http-Method-Override: GET.
       Importe un ensemble des contextes qui sont sauvegardés et indexés en cas de succès
-    is: [RegisterTraits.RegisterItemResponse]
+    is: [RegisterTraits.RegisterItemResponse, StandardTraits.OverrideGet, RegisterTraits.RegisterUpload]
     headers:
       X-Http-Method-Override:
         required: false
@@ -204,14 +191,10 @@ documentation:
       is: [RegisterTraits.RegisterListingResponse]
     put:
        description: |
-
          Update the given context
        is: [RegisterTraits.RegisterUpload]
-       headers:
-         X-Http-Method-Override:
-           required: false
 
-/profiles
+/profiles:
   displayName: profil
   description: |
     API qui définit les requêtes pour accéder au profil
@@ -222,8 +205,9 @@ documentation:
     is: [RegisterTraits.RegisterListingResponse]
   post:
     description: |
+      Request that will return results composed of Profiles if the request is using POST with X-Http-Method-Override: GET.
       Importe un ensemble des profils qui sont sauvegardés et indexés en cas de succès
-    is: [RegisterTraits.RegisterItemResponse]
+    is: [RegisterTraits.RegisterItemResponse, StandardTraits.OverrideGet, RegisterTraits.RegisterUpload]
     headers:
       X-Http-Method-Override:
         required: false
@@ -234,16 +218,17 @@ documentation:
       API qui permet de mettre à jour un profil via une requête de mise à jour
     get:
       description: |
-         API qui définit les requêtes pour accéder à un profil
-      is: [RegisterTraits.RegisterListingResponse]
+         API qui définit les requêtes pour accéder à un profil ou à son schéma XSD ou RNG
+      is: [RegisterTraits.RegisterListingResponse, RegisterTraits.RegisterFileItemResponse]
     put:
        description: |
-
          Update the given profile
        is: [RegisterTraits.RegisterUpload]
-       headers:
-         X-Http-Method-Override:
-           required: false
+    post:
+       description: |
+          Upload a profile in XSD or RNG format
+       is: [RegisterTraits.RegisterProfileUpload]
+
 
 /status:
   get:

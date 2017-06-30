@@ -66,6 +66,35 @@ traits:
         description: Body contains the <<resourcePathName | !uppercamelcase>> source file in XML (Formats from PRONOM registry)
       application/csv:
         description: Body contains the <<resourcePathName | !uppercamelcase>> source file in CSV (Rules)
+      application/json:
+        description: Body contains the <<resourcePathName | !uppercamelcase>> source file in Json (entrycontracts, accesscontracts, contexts, profiles)
+      application/octet-stream:
+        description: Body contains the <<resourcePathName | !uppercamelcase>> source file in InputStream (for all)
     responses:
       201:
         description: Returns if upload or check of <<resourcePathName | !uppercamelcase>> is OK
+
+
+  RegisterProfileUpload:
+    description: Response model for upload of <<resourcePathName | !uppercamelcase>>
+    is: [ StandardTraits.StandardOptionalHeader,
+      StandardTraits.StandardHeader200,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    body:
+      application/octet-stream:
+        description: Body contains the <<resourcePathName | !uppercamelcase>> source file in InputStream (for Profile as XSD or RNG format)
+    responses:
+      201:
+        description: Returns if upload or check of <<resourcePathName | !uppercamelcase>> is OK
+
+  RegisterFileItemResponse:
+    description: Response model for one <<resourcePathName | !uppercamelcase>> download item
+    is: [ StandardTraits.StandardOptionalHeader,
+      StandardTraits.StandardHeader200,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    responses:
+      200:
+        description: Returns one <<resourcePathName | !uppercamelcase>> file item
+        body:
+          application/octet-stream:
+            description: one <<resourcePathName | !uppercamelcase>> file item

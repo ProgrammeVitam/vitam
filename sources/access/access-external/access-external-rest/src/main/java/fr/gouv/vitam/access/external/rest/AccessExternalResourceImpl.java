@@ -47,7 +47,6 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.access.external.api.AccessCollections;
 import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
@@ -55,7 +54,10 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFou
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
@@ -121,22 +123,22 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("Predicate Failed Exception ", e);
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         } catch (final AccessInternalClientServerException e) {
             LOGGER.error("Request unauthorized ", e);
             status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         } catch (final AccessInternalClientNotFoundException e) {
             LOGGER.error("Request resources does not exits ", e);
             status = Status.NOT_FOUND;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error("Contract access does not allow ", e);
             status = Status.UNAUTHORIZED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         } catch (BadRequestException e) {
             LOGGER.error("No search query specified, this is mandatory", e);
-            return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY);
+            return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, e.getLocalizedMessage());
         }
     }
 
@@ -161,7 +163,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             return getUnits(queryJson);
         } else {
             status = Status.UNAUTHORIZED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, MISSING_XHTTPOVERRIDE)).build();
         }
     }
 
@@ -179,7 +181,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
+        return Response.status(status).entity(getErrorEntity(status, NOT_YET_SUPPORTED)).build();
     }
 
     /**
@@ -205,19 +207,19 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         } catch (final AccessInternalClientServerException e) {
             LOGGER.error("Unauthorized request Exception ", e);
-            status = Status.UNAUTHORIZED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         } catch (final AccessInternalClientNotFoundException e) {
             LOGGER.error("Request resources does not exits", e);
             status = Status.NOT_FOUND;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error("Contract access does not allow ", e);
             status = Status.UNAUTHORIZED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         }
     }
 
@@ -244,7 +246,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             return getUnitById(queryJson, idUnit);
         } else {
             status = Status.UNAUTHORIZED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, MISSING_XHTTPOVERRIDE)).build();
         }
     }
 
@@ -270,23 +272,23 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         } catch (final AccessInternalClientServerException e) {
             LOGGER.error(e.getMessage(), e);
             status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         } catch (final AccessInternalClientNotFoundException e) {
             LOGGER.error(e.getMessage(), e);
             status = Status.NOT_FOUND;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         } catch (NoWritingPermissionException e) {
             LOGGER.error(e.getMessage(), e);
             status = Status.METHOD_NOT_ALLOWED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error("Contract access does not allow ", e);
             status = Status.UNAUTHORIZED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         }
     }
 
@@ -304,7 +306,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
+        return Response.status(status).entity(getErrorEntity(status, NOT_YET_SUPPORTED)).build();
     }
 
     /**
@@ -313,6 +315,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      * @param idObjectGroup the object group id
      * @param queryJson the query to get object
      * @return Response
+     * @Deprecated use /units/idu/object
      */
     @GET
     @Path("/objects/{ido}")
@@ -332,19 +335,19 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         } catch (final AccessInternalClientServerException e) {
             LOGGER.error(e);
             status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         } catch (final AccessInternalClientNotFoundException e) {
             LOGGER.error(e);
             status = Status.NOT_FOUND;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error("Contract access does not allow ", e);
             status = Status.UNAUTHORIZED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         }
     }
 
@@ -353,11 +356,13 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      * @param idObjectGroup the id object group
      * @param query the query to get object
      * @param asyncResponse the synchronized response
+     * @Deprecated use /units/idu/object
      */
     @GET
     @Path("/objects/{ido}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Deprecated
     public void getObjectIdoGet(@Context HttpHeaders headers, @PathParam("ido") String idObjectGroup,
         JsonNode query, @Suspended final AsyncResponse asyncResponse) {
         getObject(headers, idObjectGroup, query, asyncResponse, false);
@@ -368,11 +373,13 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      * @param idObjectGroup the id object group
      * @param queryJson the query to get object
      * @return Response
+     * @Deprecated use /units/idu/object
      */
     @POST
     @Path("/objects/{ido}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Deprecated
     public Response getObjectGroupPost(@Context HttpHeaders headers,
         @PathParam("ido") String idObjectGroup, JsonNode queryJson) {
         Integer tenantId = ParameterHelper.getTenantParameter();
@@ -381,22 +388,26 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         final String xHttpOverride = headers.getRequestHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE).get(0);
         if (xHttpOverride == null || !"GET".equalsIgnoreCase(xHttpOverride)) {
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, MISSING_XHTTPOVERRIDE)).build();
         } else {
             return getObjectGroup(idObjectGroup, queryJson);
         }
     }
 
     /**
+     * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
+     * 
      * @param headers the http header defined parameters of request
      * @param idObjectGroup the id object group
      * @param query the query to get object
      * @param asyncResponse the synchronized response
+     * @Deprecated use /units/idu/object
      */
     @POST
     @Path("/objects/{ido}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Deprecated
     public void getObjectIdoPost(@Context HttpHeaders headers, @PathParam("ido") String idObjectGroup,
         JsonNode query, @Suspended final AsyncResponse asyncResponse) {
         getObject(headers, idObjectGroup, query, asyncResponse, true);
@@ -427,19 +438,19 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         } catch (final AccessInternalClientServerException e) {
             LOGGER.error(e);
             status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         } catch (final AccessInternalClientNotFoundException e) {
             LOGGER.error(e);
             status = Status.NOT_FOUND;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error("Contract access does not allow ", e);
             status = Status.UNAUTHORIZED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         }
     }
 
@@ -462,13 +473,15 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         final String xHttpOverride = headers.getRequestHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE).get(0);
         if (xHttpOverride == null || !"GET".equalsIgnoreCase(xHttpOverride)) {
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, MISSING_XHTTPOVERRIDE)).build();
         } else {
             return getObjectGroupMetadatas(headers, idu, queryJson);
         }
     }
 
     /**
+     * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
+     * 
      * @param headers the http header defined parameters of request
      * @param idu the id of archive unit
      * @param query the query to get object
@@ -488,28 +501,30 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             status = Status.PRECONDITION_FAILED;
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(status).build());
+                Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build());
         } catch (final AccessInternalClientServerException e) {
             LOGGER.error("Unauthorized request Exception ", e);
-            status = Status.UNAUTHORIZED;
+            status = Status.INTERNAL_SERVER_ERROR;
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(status).build());
+                Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build());
         } catch (final AccessInternalClientNotFoundException e) {
             LOGGER.error("Request resources does not exits", e);
             status = Status.NOT_FOUND;
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(status).build());
+                Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build());
         } catch (AccessUnauthorizedException e) {
             LOGGER.error("Contract access does not allow ", e);
             status = Status.UNAUTHORIZED;
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(status).build());
+                Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build());
         }
     }
 
 
 
     /**
+     * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
+     * 
      * @param headers the http header defined parameters of request
      * @param idu the id of archive unit
      * @param query the query to get object
@@ -519,7 +534,6 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Path("/units/{idu}/object")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Deprecated
     public void getObjectPost(@Context HttpHeaders headers, @PathParam("idu") String idu,
         JsonNode query, @Suspended final AsyncResponse asyncResponse) {
         Status status;
@@ -531,22 +545,22 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             status = Status.PRECONDITION_FAILED;
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(status).build());
+                Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build());
         } catch (final AccessInternalClientServerException e) {
             LOGGER.error("Unauthorized request Exception ", e);
             status = Status.UNAUTHORIZED;
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(status).build());
+                Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build());
         } catch (final AccessInternalClientNotFoundException e) {
             LOGGER.error("Request resources does not exits", e);
             status = Status.NOT_FOUND;
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(status).build());
+                Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build());
         } catch (AccessUnauthorizedException e) {
             LOGGER.error("Contract access does not allow ", e);
             status = Status.UNAUTHORIZED;
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(status).build());
+                Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build());
         }
     }
 
@@ -555,38 +569,45 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      *
      * @param queryDsl the query to get list of object group
      * @return Response
+     * @Deprecated use /units/idu/object
      */
     @GET
     @Path("/objects")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Deprecated
     public Response getObjectsList(JsonNode queryDsl) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
+        return Response.status(status).entity(getErrorEntity(status, NOT_YET_SUPPORTED)).build();
     }
 
     /**
      * @param xhttpOverride the use of override POST method
      * @param query the query to get object
      * @return Response
+     * @Deprecated use /units/idu/object
      */
     @POST
     @Path("/objects")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Deprecated
     public Response getObjectListPost(@HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride,
         JsonNode query) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
+        return Response.status(status).entity(getErrorEntity(status, NOT_YET_SUPPORTED)).build();
     }
 
-    private VitamError getErrorEntity(Status status) {
+    private VitamError getErrorEntity(Status status, String message) {
+        String aMessage =
+            (message != null && !message.trim().isEmpty()) ? message
+                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
         return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(ACCESS_EXTERNAL_MODULE)
-            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase());
+            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
 
     private String idObjectGroup(String idu)
@@ -620,14 +641,17 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
                 if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.METHOD_OVERRIDE)) {
                     AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                         Response.status(Status.PRECONDITION_FAILED)
-                            .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build());
+                            .entity(getErrorEntity(Status.PRECONDITION_FAILED, MISSING_XHTTPOVERRIDE).toString())
+                            .build());
                     return;
                 }
                 final String xHttpOverride = headers.getRequestHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE).get(0);
                 if (!HttpMethod.GET.equalsIgnoreCase(xHttpOverride)) {
                     AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                        Response.status(Status.METHOD_NOT_ALLOWED).entity(getErrorEntity(Status.METHOD_NOT_ALLOWED)
-                            .toString()).build());
+                        Response.status(Status.METHOD_NOT_ALLOWED)
+                            .entity(getErrorEntity(Status.METHOD_NOT_ALLOWED, MISSING_XHTTPOVERRIDE)
+                                .toString())
+                            .build());
                     return;
                 }
             }
@@ -637,13 +661,14 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
                     VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() + ")");
                 AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                     Response.status(Status.PRECONDITION_FAILED)
-                        .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build());
+                        .entity(getErrorEntity(Status.PRECONDITION_FAILED, "QUALIFIER or VERSION missing").toString())
+                        .build());
                 return;
             }
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             final Response errorResponse = Response.status(Status.PRECONDITION_FAILED)
-                .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString())
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getLocalizedMessage()).toString())
                 .build();
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
             return;
@@ -667,18 +692,20 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         } catch (final InvalidParseOperationException | IllegalArgumentException exc) {
             LOGGER.error(exc);
             final Response errorResponse = Response.status(Status.PRECONDITION_FAILED)
-                .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString())
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED, exc.getLocalizedMessage()).toString())
                 .build();
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         } catch (final AccessInternalClientServerException | AccessInternalClientNotFoundException exc) {
             LOGGER.error(exc.getMessage(), exc);
             final Response errorResponse =
-                Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR)
-                    .toString()).build();
+                Response.status(Status.INTERNAL_SERVER_ERROR)
+                    .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exc.getLocalizedMessage())
+                        .toString())
+                    .build();
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         } catch (AccessUnauthorizedException e) {
             final Response errorResponse =
-                Response.status(Status.UNAUTHORIZED).entity(getErrorEntity(Status.UNAUTHORIZED)
+                Response.status(Status.UNAUTHORIZED).entity(getErrorEntity(Status.UNAUTHORIZED, e.getLocalizedMessage())
                     .toString()).build();
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         }
@@ -693,37 +720,36 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      * @return Response
      */
     @Path(AccessExtAPI.ACCESSION_REGISTERS_API)
-    @POST
+    @GET
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response findAccessionRegister(JsonNode select,
-        @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
+    public Response findAccessionRegister(JsonNode select) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
-        if (xhttpOverride == null || !"GET".equalsIgnoreCase(xhttpOverride)) {
-            final Status status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(status).build();
-        }
-
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             final RequestResponse result = client.getAccessionRegister(select);
-            return Response.status(Status.OK).entity(result).build();
+            if (result.isOk()) {
+                return Response.status(Status.OK).entity(((RequestResponseOK) result).setQuery(select))
+                    .build();
+            } else {
+                return Response.status(result.getHttpCode()).entity(result).build();
+            }
         } catch (final ReferentialNotFoundException e) {
             LOGGER.error(e);
             return Response.status(Status.OK).entity(new RequestResponseOK()).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             final Status status = Status.BAD_REQUEST;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         } catch (final AccessUnauthorizedException e) {
             LOGGER.error("Access contract does not allow ", e);
             final Status status = Status.UNAUTHORIZED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         } catch (final Exception e) {
             LOGGER.error(e);
             final Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         }
     }
 
@@ -735,14 +761,115 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      * @param documentId the document id to get
      * @return Response
      */
-    @POST
+    @GET
     @Path(AccessExtAPI.ACCESSION_REGISTERS_API + "/{id_document}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response findAccessionRegisterById(@PathParam("id_document") String documentId) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
+
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            Select select = new Select();
+            select.setQuery(QueryHelper.and().add(QueryHelper.eq("OriginatingAgency", documentId),
+                QueryHelper.eq(VitamFieldsHelper.tenant(), tenantId)));
+            final RequestResponse result = client.getAccessionRegister(select.getFinalSelect());
+            if (result.isOk()) {
+                return Response.status(Status.OK).entity(((RequestResponseOK) result).setQuery(select.getFinalSelect()))
+                    .build();
+            } else {
+                return Response.status(result.getHttpCode()).entity(result).build();
+            }
+        } catch (final ReferentialNotFoundException e) {
+            LOGGER.error(e);
+            return Response.status(Status.OK).entity(new RequestResponseOK()).build();
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            final Status status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+        } catch (final AccessUnauthorizedException e) {
+            LOGGER.error("Access contract does not allow ", e);
+            final Status status = Status.UNAUTHORIZED;
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+        } catch (final Exception e) {
+            LOGGER.error(e);
+            final Status status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+        }
+    }
+
+
+    /**
+     * findAccessionRegisterDetail
+     *
+     * @param documentId the document id of accession register to get
+     * @param select the query to get document
+     * @param xhttpOverride the use of override POST method
+     * @return Response
+     */
+    @GET
+    @Path(AccessExtAPI.ACCESSION_REGISTERS_API + "/{id_document}/accession-register-detail")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response findAccessionRegisterDetail(@PathParam("id_document") String documentId, JsonNode select) {
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        ParametersChecker.checkParameter("accession register id is a mandatory parameter", documentId);
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            RequestResponse accessionRegisterDetail =
+                client.getAccessionRegisterDetail(documentId, select);
+            return Response.status(Status.OK).entity(accessionRegisterDetail).build();
+        } catch (final ReferentialNotFoundException e) {
+            return Response.status(Status.OK).entity(new RequestResponseOK()).build();
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error(e);
+            final Status status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            final Status status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+        }
+    }
+
+    /**
+     * findDocuments
+     *
+     * @param select the query to find document of accession register
+     * @param xhttpOverride the use of override POST method
+     * @return Response
+     */
+    @Path(AccessExtAPI.ACCESSION_REGISTERS_API)
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response findAccessionRegister(JsonNode select,
+        @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
+        if (xhttpOverride == null || !"GET".equalsIgnoreCase(xhttpOverride)) {
+            final Status status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status, MISSING_XHTTPOVERRIDE)).build();
+        }
+        return findAccessionRegister(select);
+    }
+
+
+
+    /**
+     * findDocumentByID
+     *
+     * @param documentId the document id to get
+     * @param xhttpOverride the use of override POST method
+     * @return Response
+     */
+    @POST
+    @Path(AccessExtAPI.ACCESSION_REGISTERS_API + "/{id_document}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response findAccessionRegisterById(@PathParam("id_document") String documentId,
+        @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
+        if (xhttpOverride == null || !"GET".equalsIgnoreCase(xhttpOverride)) {
+            final Status status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status, MISSING_XHTTPOVERRIDE)).build();
+        }
+        return findAccessionRegisterById(documentId);
     }
 
 
@@ -760,36 +887,18 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response findAccessionRegisterDetail(@PathParam("id_document") String documentId, JsonNode select,
         @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-
         if (xhttpOverride == null || !"GET".equalsIgnoreCase(xhttpOverride)) {
             final Status status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, MISSING_XHTTPOVERRIDE)).build();
         }
-        ParametersChecker.checkParameter("accession register id is a mandatory parameter", documentId);
-        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            RequestResponse accessionRegisterDetail =
-                client.getAccessionRegisterDetail(documentId, select);
-            return Response.status(Status.OK).entity(accessionRegisterDetail).build();
-        } catch (final ReferentialNotFoundException e) {
-            return Response.status(Status.OK).entity(new RequestResponseOK()).build();
-        } catch (InvalidParseOperationException e) {
-            LOGGER.error(e);
-            final Status status = Status.BAD_REQUEST;
-            return Response.status(status).entity(getErrorEntity(status)).build();
-        } catch (Exception e) {
-            LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(getErrorEntity(status)).build();
-        }
+        return findAccessionRegisterDetail(documentId, select);
     }
 
-    private Response buildErrorResponse(VitamCode vitamCode) {
+    private Response buildErrorResponse(VitamCode vitamCode, String message) {
         return Response.status(vitamCode.getStatus())
             .entity(new RequestResponseError().setError(new VitamError(VitamCodeHelper.getCode(vitamCode))
                 .setContext(vitamCode.getService().getName()).setState(vitamCode.getDomain().getName())
-                .setMessage(vitamCode.getMessage()).setDescription(vitamCode.getMessage())).toString())
+                .setMessage(vitamCode.getMessage()).setDescription(message)).toString())
             .build();
     }
 

@@ -288,8 +288,9 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
             LOGGER.error("VitamClientInternalException: ", e);
             throw new VitamClientException(e);
         }
-
-        return response;
+        Response newResponse = Response.fromResponse(response).build();
+        consumeAnyEntityAndClose(response);
+        return newResponse;
     }
 
     @Override

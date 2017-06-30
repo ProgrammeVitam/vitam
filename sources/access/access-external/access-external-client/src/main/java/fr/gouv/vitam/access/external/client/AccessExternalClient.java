@@ -49,6 +49,7 @@ public interface AccessExternalClient extends BasicClient {
      *
      * @param selectQuery the select query
      * @param tenantId the working tenant
+     * @param contractName the contract name
      * @return Json representation
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
@@ -65,6 +66,7 @@ public interface AccessExternalClient extends BasicClient {
      * @param selectQuery the select query
      * @param unitId the unit id to select
      * @param tenantId the working tenant
+     * @param contractName the contract name
      * @return Json representation
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
@@ -81,6 +83,7 @@ public interface AccessExternalClient extends BasicClient {
      * @param updateQuery the update query
      * @param unitId the unit id to update
      * @param tenantId
+     * @param contractName the contract name
      * @return Json representation
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
@@ -92,19 +95,24 @@ public interface AccessExternalClient extends BasicClient {
         AccessExternalClientNotFoundException, NoWritingPermissionException, AccessUnauthorizedException;
 
     /**
-     * getObjectAsInputStream
+     * getObjectAsInputStream<br>
+     * <br>
+     * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
      *
      * @param selectQuery the select query
      * @param objectId the object id to get
      * @param usage kind of usage
      * @param version the version
      * @param tenantId the working tenant
+     * @param contractName the contract name
      * @return Response including InputStream
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
      * @throws AccessUnauthorizedException
+     * @deprecated use getObjectByUnit
      */
+    @Deprecated
     Response getObject(JsonNode selectQuery, String objectId, String usage, int version, Integer tenantId,
         String contractName)
         throws InvalidParseOperationException, AccessExternalClientServerException,
@@ -116,6 +124,7 @@ public interface AccessExternalClient extends BasicClient {
      * @param selectQuery the select query
      * @param unitId the unit id for getting object
      * @param tenantId the working tenant
+     * @param contractName the contract name
      * @return Json representation
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
@@ -127,10 +136,33 @@ public interface AccessExternalClient extends BasicClient {
         AccessExternalClientNotFoundException, AccessUnauthorizedException;
 
     /**
+     * getObjectAsInputStream<br>
+     * <br>
+     * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
+     *
+     * @param selectQuery the select query
+     * @param unitId the unit id for getting the object
+     * @param usage kind of usage
+     * @param version the version
+     * @param tenantId the working tenant
+     * @param contractName the contract name
+     * @return Response including InputStream
+     * @throws InvalidParseOperationException
+     * @throws AccessExternalClientServerException
+     * @throws AccessExternalClientNotFoundException
+     * @throws AccessUnauthorizedException
+     */
+    Response getUnitObject(JsonNode selectQuery, String unitId, String usage, int version, Integer tenantId,
+        String contractName)
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException, AccessUnauthorizedException;
+
+    /**
      * selectOperation
      *
      * @param select the select query
      * @param tenantId the working tenant
+     * @param contractName the contract name
      * @return Json representation
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
@@ -144,6 +176,7 @@ public interface AccessExternalClient extends BasicClient {
      *
      * @param processId the process id
      * @param tenantId the working tenant
+     * @param contractName the contract name
      * @return Json representation
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
@@ -157,6 +190,7 @@ public interface AccessExternalClient extends BasicClient {
      *
      * @param idUnit the unit id
      * @param tenantId the working tenant
+     * @param contractName the contract name
      * @return Json representation
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
@@ -170,6 +204,7 @@ public interface AccessExternalClient extends BasicClient {
      *
      * @param queryDsl the query for get lfc
      * @param tenantId the working tenant
+     * @param contractName the contract name
      * @return Json representation
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
@@ -183,6 +218,7 @@ public interface AccessExternalClient extends BasicClient {
      *
      * @param idObject the object id
      * @param tenantId the working tenant
+     * @param contractName the contract name
      * @return Json representation
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
@@ -198,12 +234,15 @@ public interface AccessExternalClient extends BasicClient {
      *
      * @param query The DSL Query as Json Node
      * @param tenantId the working tenant
+     * @param contractName the contract name
      * @return The AccessionregisterSummary list as a response JsonNode
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
      * @throws AccessUnauthorizedException
+     * @deprecated will be moved to AdminExternalClient
      */
+    @Deprecated
     RequestResponse getAccessionRegisterSummary(JsonNode query, Integer tenantId, String contractName)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException, AccessUnauthorizedException;
@@ -214,26 +253,46 @@ public interface AccessExternalClient extends BasicClient {
      * @param id the id of accession register
      * @param query The DSL Query as a JSON Node
      * @param tenantId the working tenant
+     * @param contractName the contract name
      * @return The AccessionregisterDetails list as a response jsonNode
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
      * @throws AccessUnauthorizedException
+     * @deprecated will be moved to AdminExternalClient
      */
+    @Deprecated
     RequestResponse getAccessionRegisterDetail(String id, JsonNode query, Integer tenantId, String contractName)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException, AccessUnauthorizedException;
 
     /**
      * @param query
+     * @param tenantId
+     * @param contractName the contract name
      * @throws AccessExternalClientServerException
      * @throws InvalidParseOperationException
      * @throws AccessUnauthorizedException
+     * @deprecated will be moved to AdminExternalClient
      */
+    @Deprecated
     RequestResponse checkTraceabilityOperation(JsonNode query, Integer tenantId, String contractName)
         throws AccessExternalClientServerException, InvalidParseOperationException, AccessUnauthorizedException;
 
-
+    /**
+     * Download the Traceability result file<br>
+     * <br>
+     * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
+     * 
+     * @param operationId
+     * @param tenantId
+     * @param contractName the contract name
+     * @return the response containing the file
+     * @throws AccessExternalClientServerException
+     * @throws AccessUnauthorizedException
+     * @deprecated will be moved to AdminExternalClient
+     */
+    @Deprecated
     Response downloadTraceabilityOperationFile(String operationId, Integer tenantId, String contractName)
         throws AccessExternalClientServerException, AccessUnauthorizedException;
 }
