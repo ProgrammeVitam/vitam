@@ -1,1 +1,1 @@
-../archi/technique/10-it-services.rst
+../archi/archi-exploit-infra/10-it-services.rst

@@ -45,7 +45,7 @@ Chaque action peut avoir les modèles d'éxécutions suivants (toutes les étape
     * Si une action est identifiée en erreur, le reste des actions de l'étape est exécuté avant que le statut de l'étape passe à « erreur ». Le workflow passe alors à un nouvel état. Dans certains cas, il est directement terminé en erreur alors que dans d'autres, ils passent à une étape de finalisation. Ces comportements spécifiques sont décrits dans chaque workflow.
 
 Structure d'un fichier Properties du Worflow
-==========================================
+=============================================
 
 Le fichier Properties permet de définir la structure du Workflow pour les étapes et actions réalisées dans le module d'Ingest Interne, en excluant les étapes et actions réalisées dans le module d'Ingest externe.
 
