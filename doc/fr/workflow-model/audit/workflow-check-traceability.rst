@@ -27,8 +27,8 @@ PREPARE_TRACEABILITY_CHECK (PrepareTraceabilityCheckProcessActionHandler.java)
 * Type : bloquant
 * Statuts :
 	* OK : l'opération donnée en entrée est une opération de type TRACEABILITY, le zip a été trouvé et son contenu extrait (PREPARE_TRACEABILITY_CHECK.OK=Succès de la préparation du processus de la vérification des journaux sécurisés)
-	* KO : l'opération donnée en entrée n'est pas une opération de type TRACEABILITY (PREPARE_TRACEABILITY_CHECK.KO=Échec de la préparation du processus de la vérification des journaux sécurisés)
-	* FATAL : Une erreur technique est survenue lors de la préparation du processus de vérification (PREPARE_TRACEABILITY_CHECK.FATAL=Erreur fatale lors de la préparation du processus de la vérification des journaux sécurisés)
+	* KO : l'opération donnée en entrée n'est pas une opération de type TRACEABILITY (PREPARE_TRACEABILITY_CHECK.KO=Échec de la préparation du processus de  vérification des journaux sécurisés)
+	* FATAL : Une erreur technique est survenue lors de la préparation du processus de vérification (PREPARE_TRACEABILITY_CHECK.FATAL=Erreur fatale lors de la préparation du processus de vérification des journaux sécurisés)
 
 Vérification de l'arbre de Merkle (STP_MERKLE_TREE)
 ===================================================
@@ -40,8 +40,8 @@ CHECK_MERKLE_TREE (VerifyMerkleTreeActionHandler.java)
 * Type : bloquant
 * Statuts :
 	* OK : les arbres de Merkle correspondent (CHECK_MERKLE_TREE.OK=Succès de la vérification de l'arbre de MERKLE)
-	* KO : les arbres de Merkle ne correspondent pas (CHECK_Merkle_TREE.KO=Échec de la vérification de larbre de MERKLE)
-	* FATAL : erreur technique lors de la vérification des arbres de Merkle (CHECK_MERKLE_TREE.FATAL=Erreur lors de la vérification de l''arbre de MERKLE)
+	* KO : les arbres de Merkle ne correspondent pas (CHECK_Merkle_TREE.KO=Échec de la vérification de l'arbre de MERKLE)
+	* FATAL : erreur technique lors de la vérification des arbres de Merkle (CHECK_MERKLE_TREE.FATAL=Erreur lors de la vérification de l'arbre de MERKLE)
 
 **La tâche contient les traitements suivants**
 
@@ -50,7 +50,7 @@ CHECK_MERKLE_TREE (VerifyMerkleTreeActionHandler.java)
 	* Type : bloquant
 	* Statuts :
 		* OK : l'arbre de Merkle des journaux contenus dans le journal sécurisé correspond à celui stocké dans les métadonnées du journal sécurisé (CHECK_MERKLE_TREE.COMPARE_MERKLE_HASH_WITH_SAVED_HASH.OK=Succès de la comparaison de l'arbre de MERKLE avec le Hash enregistré)
-		* KO : l'arbre de Merkle des journaux contenus dans le journal sécurisé ne correspond pas à celui stocké dans les métadonnées du journal sécurisé (CHECK_MERKLE_TREE.COMPARE_MERKLE_HASH_WITH_SAVED_HASH.KO=Échec de la comparaison de larbre de MERKLE avec le Hash enregistré)
+		* KO : l'arbre de Merkle des journaux contenus dans le journal sécurisé ne correspond pas à celui stocké dans les métadonnées du journal sécurisé (CHECK_MERKLE_TREE.COMPARE_MERKLE_HASH_WITH_SAVED_HASH.KO=Échec de la comparaison de l'arbre de MERKLE avec le Hash enregistré)
 
 * Comparaison de l'arbre de MERKLE avec le Hash indexé
 	* Règle : vérification que l'arbre de Merkle calculé à partir des journaux indexés est identique à celui stocké dans les métadonnées du journal sécurisé
