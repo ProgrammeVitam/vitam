@@ -4,16 +4,16 @@ Workflow de contrôle d'intégrité d'un journal sécurisé
 Introduction
 ============
 
-Ce chapitre décrit le processus (workflow) de contrôle d'intégrité d'un journal sécurisé mis en place dans la solution logicielle Vitam.
+Cette section décrit le processus (workflow) de contrôle d'intégrité d'un journal sécurisé mis en place dans la solution logicielle Vitam.
 
-Celui-ci est défini dans le fichier “DefaultCheckTraceability.json”. Il décrit le processus de contrôle d'intégrité d'un journal sécurisé.
+Celui-ci est défini dans le fichier “DefaultCheckTraceability.json” (situé ici : sources/processing/processing-management/src/main/resources/)
 
 Processus de contrôle d'intégrité d'un journal sécurisé (vision métier)
 =======================================================================
 
-Le processus de vérification des journaux sécurisés débute lorsqu'un identifiant d'opération de sécurisation des journaux d'opération est soumis au service de contrôle d'intégrité des journaux sécurisés. Le service permet de récupérer le journal sécurisé, d'en extraire son contenu et de valider que son contenu n'a pas été altéré.
+Le processus de contrôle d'intégrité débute lorsqu'un identifiant d'opération de sécurisation des journaux d'opération est soumis au service de contrôle d'intégrité des journaux sécurisés. Le service permet de récupérer le journal sécurisé, d'en extraire son contenu et de valider que son contenu n'a pas été altéré.
 
-Pour cela, il calcule un arbre de merkle à partir des journaux d'opérations que contient le journal sécurisé, puis en calcule un second à partir des journaux correspondants disponibles dans la solution logicielle Vitam. Une comparaison est ensuite effectuée entre ces deux arbres et celui contenu dans les métadonnées du journal sécurisé.
+Pour cela, il calcule un arbre de Merkle à partir des journaux d'opérations que contient le journal sécurisé, puis en calcule un second à partir des journaux correspondants disponibles dans la solution logicielle Vitam. Une comparaison est ensuite effectuée entre ces deux arbres et celui contenu dans les métadonnées du journal sécurisé.
 
 Ensuite, dans une dernière étape, le tampon d'horodatage est vérifié et validé.
 
@@ -36,28 +36,28 @@ Vérification de l'arbre de Merkle (STP_MERKLE_TREE)
 CHECK_MERKLE_TREE (VerifyMerkleTreeActionHandler.java)
 ------------------------------------------------------
 
-* Règle : recalcule de l'arbre de merkle des journaux contenus dans le journal sécurisé, calcule un autre arbre à partir des journaux indexés correspondants et vérification que tous deux correspondent à celui stocké dans les métadonnées du journal sécurisé
+* Règle : recalcul de l'arbre de Merkle des journaux contenus dans le journal sécurisé, calcul d'un autre arbre à partir des journaux indexés correspondants et vérification que tous deux correspondent à celui stocké dans les métadonnées du journal sécurisé
 * Type : bloquant
 * Statuts :
-	* OK : les arbres de merkle correspondent (CHECK_MERKLE_TREE.OK=Succès de la vérification de l'arbre de MERKLE)
-	* KO : les arbres de merkle ne correspondent pas (CHECK_MERKLE_TREE.KO=Échec de la vérification de larbre de MERKLE)
-	* FATAL : erreur technique lors de la vérification des arbres de merkle (CHECK_MERKLE_TREE.FATAL=Erreur lors de la vérification de l''arbre de MERKLE)
+	* OK : les arbres de Merkle correspondent (CHECK_MERKLE_TREE.OK=Succès de la vérification de l'arbre de MERKLE)
+	* KO : les arbres de Merkle ne correspondent pas (CHECK_Merkle_TREE.KO=Échec de la vérification de larbre de MERKLE)
+	* FATAL : erreur technique lors de la vérification des arbres de Merkle (CHECK_MERKLE_TREE.FATAL=Erreur lors de la vérification de l''arbre de MERKLE)
 
 **La tâche contient les traitements suivants**
 
 * Comparaison de l'arbre de MERKLE avec le Hash enregistré
-	* Règle : vérification que l'arbre de merkle calculé à partir des journaux contenus dans le journal sécurisé est identique à celui présent dans les métadonnées du journal sécurisé
+	* Règle : vérification que l'arbre de Merkle calculé à partir des journaux contenus dans le journal sécurisé est identique à celui stocké dans les métadonnées du journal sécurisé
 	* Type : bloquant
 	* Statuts :
-		* OK : l'arbre de merkle des journaux contenus dans le journal sécurisé correspond à celui stocké dans les métadonnées du journal sécurisé (CHECK_MERKLE_TREE.COMPARE_MERKLE_HASH_WITH_SAVED_HASH.OK=Succès de la comparaison de l'arbre de MERKLE avec le Hash enregistré)
-		* KO : l'arbre de merkle des journaux contenus dans le journal sécurisé ne correspond pas à celui stocké dans les métadonnées du journal sécurisé (CHECK_MERKLE_TREE.COMPARE_MERKLE_HASH_WITH_SAVED_HASH.KO=Échec de la comparaison de larbre de MERKLE avec le Hash enregistré)
+		* OK : l'arbre de Merkle des journaux contenus dans le journal sécurisé correspond à celui stocké dans les métadonnées du journal sécurisé (CHECK_MERKLE_TREE.COMPARE_MERKLE_HASH_WITH_SAVED_HASH.OK=Succès de la comparaison de l'arbre de MERKLE avec le Hash enregistré)
+		* KO : l'arbre de Merkle des journaux contenus dans le journal sécurisé ne correspond pas à celui stocké dans les métadonnées du journal sécurisé (CHECK_MERKLE_TREE.COMPARE_MERKLE_HASH_WITH_SAVED_HASH.KO=Échec de la comparaison de larbre de MERKLE avec le Hash enregistré)
 
 * Comparaison de l'arbre de MERKLE avec le Hash indexé
-	* Règle : vérification que l'arbre de merkle calculé à partir des journaux indexés est identique à celui présent dans les métadonnées du journal sécurisé
+	* Règle : vérification que l'arbre de Merkle calculé à partir des journaux indexés est identique à celui stocké dans les métadonnées du journal sécurisé
 	* Type : bloquant
 	* Statuts :
-		* OK : l'arbre de merkle des journaux indexés correspond à celui stocké dans les métadonnées du journal sécurisé (CHECK_MERKLE_TREE.COMPARE_MERKLE_HASH_WITH_INDEXED_HASH.OK=Succès de la comparaison de l'arbre de MERKLE avec le Hash indexé)
-		* KO : l'arbre de merkle des journaux indexés ne correspond pas à celui stocké dans les métadonnées du journal sécurisé (CHECK_MERKLE_TREE.COMPARE_MERKLE_HASH_WITH_INDEXED_HASH.KO=Échec de la comparaison de l'arbre de MERKLE avec le Hash indexé)
+        * OK : l'arbre de Merkle des journaux indexés correspond à celui stocké dans les métadonnées du journal sécurisé (CHECK_MERKLE_TREE.COMPARE_MERKLE_HASH_WITH_INDEXED_HASH.OK=Succès de la comparaison de l'arbre de MERKLE avec le Hash indexé)
+		* KO : l'arbre de Merkle des journaux indexés ne correspond pas à celui stocké dans les métadonnées du journal sécurisé (CHECK_MERKLE_TREE.COMPARE_MERKLE_HASH_WITH_INDEXED_HASH.KO=Échec de la comparaison de l'arbre de MERKLE avec le Hash indexé)
 
 
 Vérification de l'horodatage (STP_VERIFY_STAMP)
@@ -69,24 +69,24 @@ VERIFY_TIMESTAMP (VerifyTimeStampActionHandler.java)
 * Règle : vérification et validation du tampon d'horodatage.
 * Type : bloquant
 * Statuts :
-  * OK : le tampon d'horadatage est correct (VERIFY_TIMESTAMP.OK=Succès de la vérification de l''horodatage)
-  * KO : le tampon d'horadatage est incorrect (VERIFY_TIMESTAMP.KO=Échec de la vérification de l''horodatage)
-  * FATAL : erreur technique lors de la vérification du tampon d'horodatage (VERIFY_TIMESTAMP.FATAL=Erreur lors de la vérification de l''horodatage)
+    * OK : le tampon d'horadatage est correct (VERIFY_TIMESTAMP.OK=Succès de la vérification de l'horodatage)
+    * KO : le tampon d'horadatage est incorrect (VERIFY_TIMESTAMP.KO=Échec de la vérification de l'horodatage)
+    * FATAL : erreur technique lors de la vérification du tampon d'horodatage (VERIFY_TIMESTAMP.FATAL=Erreur lors de la vérification de l'horodatage)
 
 **La tâche contient les traitements suivants**
 
-* Comparaison du tampon dans le fichier par rapport au tampon enregistré dans le logbook (COMPARE_TOKEN_TIMESTAMP)
+* Comparaison du tampon du fichier (token.tsp) par rapport au tampon enregistré dans le logbook (COMPARE_TOKEN_TIMESTAMP)
 	* Règle : vérification que le tampon enregistré dans la collection logbookOperation est le même que celui présent dans le fichier zip généré
 	* Type : bloquant
 	* Status :
-		* OK : les tampons sont identiques (VERIFY_TIMESTAMP.COMPARE_TOKEN_TIMESTAMP.OK=Succès de la comparaison des tampons d''horodatage)
-		* KO : les tampons sont différents (VERIFY_TIMESTAMP.COMPARE_TOKEN_TIMESTAMP.KO=Échec de la comparaison des tampons d''horodatage)
+		* OK : les tampons sont identiques (VERIFY_TIMESTAMP.COMPARE_TOKEN_TIMESTAMP.OK=Succès de la comparaison des tampons d'horodatage)
+		* KO : les tampons sont différents (VERIFY_TIMESTAMP.COMPARE_TOKEN_TIMESTAMP.KO=Échec de la comparaison des tampons d'horodatage)
 * Validation du tampon d'horodatage (VALIDATE_TOKEN_TIMESTAMP)
-	* Règle : vaalidation du tampon d'horodatage par rapport à la signature
+	* Règle : vérification cryptographique du tampon et vérification de la chaîne de certification
 	* Type : bloquant
 	* Status :
-		* OK : le tampons est validé (VERIFY_TIMESTAMP.VALIDATE_TOKEN_TIMESTAMP.OK=Succès de la validation du tampon d''horodatage)
-		* KO : le tampons est invalidé (VERIFY_TIMESTAMP.VALIDATE_TOKEN_TIMESTAMP.KO=Échec de la validation du tampon d''horodatage)
+		* OK : le tampon est validé (VERIFY_TIMESTAMP.VALIDATE_TOKEN_TIMESTAMP.OK=Succès de la validation du tampon d'horodatage)
+		* KO : le tampon est invalidé (VERIFY_TIMESTAMP.VALIDATE_TOKEN_TIMESTAMP.KO=Échec de la validation du tampon d'horodatage)
 
 .. figure:: images/workflow_traceability.png
 	:align: center
