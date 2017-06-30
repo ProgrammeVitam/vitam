@@ -24,7 +24,7 @@ Le fichier ``vault_pass.txt`` est très sensible ; il contient le mot de passe d
 Validation manuelle
 ===================
 
-Chaque service VITAM (en dehors de bases de données) expose des URL de statut présente à l'adresse suivante : ``<protocole web https ou https>://<host>:<port>/admin/v1/status``
+Chaque service VITAM (en dehors de bases de données) expose des URL de statut présente à l'adresse suivante : ``<protocole web http ou https>://<host>:<port>/admin/v1/status``
 Cette URL doit retourner une réponse HTTP 204 sur une requête HTTP GET, si OK.
 
 Un playbook d'appel de l'intégralité des autotests est également inclus (``deployment/ansible-vitam-exploitation/status_vitam.yml``). Il est à lancer de la même manière que pour l'installation de vitam (en changeant juste le nom du playbook à exécuter).
@@ -33,7 +33,7 @@ Un playbook d'appel de l'intégralité des autotests est également inclus (``de
 
 Il est également possible de vérifier la version installée de chaque composant par l'URL :
 
-``<protocole web https ou https>://<host>:<port>/admin/v1/version``
+``<protocole web http ou https>://<host>:<port>/admin/v1/version``
 
 Validation via Consul
 ======================

@@ -89,7 +89,7 @@ Le fichier ``vault-extra.yml`` peut être également présent sous |repertoire_i
    :language: ini
    :linenos:
 
-.. note:: pour , utiliser le même mot de passe que ``vault-vitam.yml``.
+.. note:: Pour ce fichier, l'encrypter avec le même mot de passe que ``vault-vitam.yml``.
 
 
 Le déploiement s'effectue depuis la machine "ansible" et va distribuer la solution VITAM selon l'inventaire correctement renseigné.
@@ -172,12 +172,20 @@ Fichier de mot de passe
 
 Si le fichier ``deployment/vault_pass.txt`` est renseigné avec le mot de passe du fichier ``environments/group_vars/all/vault-vitam.yml``, le mot de passe ne sera pas demandé. Si le fichier est absent, le mot de passe du "vault" sera demandé.
 
+.. _pkiconfsection:
+
 PKI
 ---
 Se positionner dans le répertoire ``deployment``.
 
 
-1. paramétrer les fichiers ``environments/group_vars/all/vault-vitam.yml`` et ``environments/group_vars/all/vault-keystores.yml``, ainsi que le fichier d'inventaire de la plate-forme sous ``environments`` (se baser sur le fichier hosts.example)
+1. paramétrer les fichiers ``environments/group_vars/all/vault-vitam.yml`` et ``environments/group_vars/all/vault-keystores.yml`` (définition des mots de passe des différents stores java - à adapter aux exigences de sécurité de l'exploitant), ainsi que le fichier d'inventaire de la plate-forme sous ``environments`` (se baser sur le fichier hosts.example)
+
+Exemple de fichier ``vault-keystores.yml`` :
+
+.. literalinclude:: ../../../../deployment/environments/group_vars/all/vault-keystores.txt
+   :language: ini
+   :linenos:
 
 2. En absence d'une PKI, exécuter le script
 
@@ -185,7 +193,7 @@ Se positionner dans le répertoire ``deployment``.
 
    ./pki/scripts/generate_ca.sh
 
-.. note:: En cas d'absence de PKI, il permet de générer  une PKI, ainsi que des certificats pour les échanges https entre composants. Se reporter au chapitre PKI si le client préfère utiliser sa propre PKI.
+.. note:: En cas d'absence de :term:`PKI`, il permet de générer  une :term:`PKI`, ainsi que des certificats pour les échanges https entre composants. Autrement, passer à l'étape suivante.
 
 3. Génération des certificats, si aucun n'est fourni par le client
 
@@ -193,9 +201,9 @@ Se positionner dans le répertoire ``deployment``.
 
    pki/scripts/generate_certs.sh <environnement>
 
-.. note:: Basé sur le contenu du fichier ``vault.yml``, ce script  génère des certificats  nécessaires au bon fonctionnement de VITAM.
+.. note:: Ce script  génère des certificats  nécessaires au bon fonctionnement de VITAM ainsi qu'un fichier ``(deployment)/environments/certs/vault-certs.yml`` contenant les mots de passe correspondants.
 
-3. Génération des stores Java, s'ile ne sont pas fournis par le client
+4. Génération des stores Java, s'ile ne sont pas fournis par le client
 
 .. code-block:: bash
 
@@ -205,7 +213,9 @@ Se positionner dans le répertoire ``deployment``.
 
 Mise en place des repositories VITAM (optionnel)
 -------------------------------------------------
-Si gestion par VITAM des repositories CentOS spécifiques à VITAM :
+
+VITAM fournit un playbook permettant de définir sur les partitions cible la configuration d'appel aux repositories spécifiques à VITAM :
+
 
 Editer le fichier ``environments/group_vars/all/repositories.yml`` à partir des modèles suivants (décommenter également les lignes) :
 
@@ -248,7 +258,7 @@ A l'issue, vérifier le contenu des fichiers générés sous ``environments/host
 Déploiement
 -------------
 
-Une fois l'étape "réseaux" effectuée avec succès, le déploiement est à réaliser avec la commande suivante :
+Une fois l'étape de PKI effectuée avec succès, le déploiement est à réaliser avec la commande suivante :
 
 .. code-block:: bash
 
@@ -257,7 +267,7 @@ Une fois l'étape "réseaux" effectuée avec succès, le déploiement est à ré
 Extra
 ------
 
-Plusieurs playbooks d'extra sont fournis pour usage "tel quel".
+Deux playbook d'extra sont fournis pour usage "tel quel".
 
 1. ihm-recette
 
@@ -267,27 +277,12 @@ Ce playbook permet d'installer également le composant :term:`VITAM` ihm-recette
 
    ansible-playbook ansible-vitam-extra/ihm-recette.yml -i environments/<ficher d'inventaire> --ask-vault-pass
 
-2. reverse
 
-Ce playbook permet d'installer des composants à vocation des développeurs : head et mongo-express (containeurs docker).
-
-.. code-block:: bash
-
-   ansible-playbook ansible-vitam-extra/dev-tools.yml -i environments/<ficher d'inventaire> --ask-vault-pass
-
-3. dev-tools
-
-Ce playbook permet d'installer un serveur Apache en mode *reverse proxy* devant la solution logicielle :term:`VITAM`.
-
-.. code-block:: bash
-
-   ansible-playbook ansible-vitam-extra/reverse.yml -i environments/<ficher d'inventaire> --ask-vault-pass
-
-
-4. extra complet
+2. extra complet
 
 Ce playbook permet d'installer :
   - topbeat
+  - packetbeat
   - un serveur Apache pour naviguer sur le ``/vitam``  des différentes machines hébergeant :term:`VITAM`
   - mongo-express (en docker  ; une connexion internet est alors nécessaire)
   - le composant :term:`VITAM` library, hébergeant les documentations du projet

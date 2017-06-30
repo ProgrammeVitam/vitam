@@ -9,7 +9,7 @@ Pour chacune des 3 sections suivantes, vous devez être dans l'un des cas décri
 Authentification du compte utilisateur utilisé pour la connexion SSH
 ====================================================================
 
-Pour le login du compte utilisateur, voir le paragraphe décrivant le fichier d'inventaire
+Pour le login du compte utilisateur, voir  la section :ref:`inventaire`.
 
 Par clé SSH avec passphrase
 ---------------------------
@@ -50,14 +50,14 @@ Une fois que l'on est connecté  sur le serveur cible, il faut définir la méth
 Par sudo avec mot de passe
 --------------------------
 
-Dans ce cas, il faut rajouter les options --ask-sudo-pass
+Dans ce cas, il faut rajouter les options ``--ask-sudo-pass``
 
-Au lancement de la commande ansible (ou ansible-playbook), il sera demandé le mot de passe demandé par sudo
+Au lancement de la commande ``ansible`` (ou ``ansible-playbook``), il sera demandé le mot de passe demandé par ``sudo``
 
 Par su
 ------
 
-Dans ce cas, il faut rajouter les options --become-method=su --ask-su-pass
+Dans ce cas, il faut rajouter les options ``--become-method=su --ask-su-pass``
 
 Au lancement de la commande ansible (ou ansible-playbook), il sera demandé le mot de passe root
 
@@ -69,4 +69,4 @@ Il n'y a pas d'option à rajouter (l'élévation par sudo est la configuration p
 Déjà Root
 ---------
 
-Dans ce cas, il n'y a pas de paramétrages supplémentaire
+Dans ce cas, il n'y a pas de paramétrages supplémentaire à effectuer.

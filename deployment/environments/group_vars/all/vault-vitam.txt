@@ -1,32 +1,32 @@
 plateforme_secret: vitamsecret
-cerebro_secret_key: changeme
+cerebro_secret_key: changemeornot
 mongoAdminUser: vitamdb-admin
-mongoAdminPassword: azerty
+mongoAdminPassword: qwertz
 mongoMetadataUser: metadata
-mongoMetadataPassword: azerty
+mongoMetadataPassword: qwertz
 mongoLogbookUser: logbook
-mongoLogbookPassword: azerty
+mongoLogbookPassword: qwertz
 mongoFunctionalAdminUser: functional-admin
-mongoFunctionalAdminPassword: azerty
+mongoFunctionalAdminPassword: qwertz
 mongoClientUser: mongoclient
-mongoClientPassword: azerty
-mongoPassPhrase: mongogo
-vitam_keystone_passwd: 2kwRWUKXyjR65VtUCma1vd5TS8DFZjQnpeJ0sLbN
-consul_encrypt: Biz14ohqN4HtvZmrXp3N4A==
+mongoClientPassword: qwertz
+mongoPassPhrase: mongogogo
+vitam_keystone_passwd: 2kwRWUKXyjR64VtUCma1vd5TS8DFZjQnpeJ0sLbN
+consul_encrypt: Biz14ohqN4HtvZmsXp3N4A==
 vitam_users:
   - vitam_uuser:
     login: uuser
-    password: uuser1234
+    password: monuuser
     role: user
   - vitam_aadmin:
     login: aadmin
-    password: aadmin1234
+    password: monaadmin
     role: admin
   - vitam_gguest:
     login: gguest
-    password: gguest1234
+    password: mongguest
     role: guest
   - techadmin:
     login: techadmin
-    password: techadmin1234
+    password: montechadmin
     role: admin
