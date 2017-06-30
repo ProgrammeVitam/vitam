@@ -25,7 +25,7 @@ OP_SECURISATION_TIMESTAMP (LogbookAdministration.java)
 * Type : bloquant
 * Status :
 	* OK : le tampon d'horodatage est calculé (OP_SECURISATION_TIMESTAMP.OK=Succès de création du tampon d'horodatage de l'ensemble des journaux)
-	* FATAL : l'horodatage n'a pas été calculé suite à une erreur technique (OP_SECURISATION_TIMESTAMP.FATAL=Erreur fatale lors de création du tampon  d'horodatage de l''ensemble des journaux)
+	* FATAL : l'horodatage n'a pas été calculé suite à une erreur technique (OP_SECURISATION_TIMESTAMP.FATAL=Erreur fatale lors de création du tampon  d'horodatage de l'ensemble des journaux)
 
 OP_SECURISATION_STORAGE (LogbookAdministration.java)
 ------------------------------------------------------
