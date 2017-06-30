@@ -2,12 +2,12 @@ Annexes
 #######
 
 Valeurs possibles pour le champ evType du LogBook Operation
---------------------------------------------------------
+------------------------------------------------------------
 
 L'ensemble des étapes, tâches et traitements sont détaillés dans la documentation modèle de workflow
 
 Valeurs possibles pour le champ evType du LogBook LifeCycle
---------------------------------------------------------
+------------------------------------------------------------
   
 L'ensemble des étapes, tâches et traitements sont détaillées dans la documentation modèle de workflow
 
