@@ -1,18 +1,21 @@
-OUTILS DE TESTS
-################
+Outils de tests
+###############
 
-Divers outils ont été mis en place afin de vérifier chaque aspect de la solution logicielle VITAM.
-Les tests manuels disposent d'une grande amplitude d'actions et les tests automatiques permettent de vérifier de manière régulière qu'une régression n'est pas survenue et que tout fonctionne correctement.
+Divers outils ont été mis en place afin de vérifier chaque aspect de la solution logicielle VITAM :
+
+  * Les tests manuels disposent d'une grande amplitude d'action
+
+  * Les tests automatiques permettent de vérifier de manière régulière qu'une régression n'est pas survenue et que tout fonctionne correctement (chapitre 4).
 
 Plusieurs documents complémentaires sont à disposition :
- - La documentation des Tests de Non Régression (TNR) se trouve ici : configuration-tnr/configuration-d-un-scenario.rst
- - Le manuel d'intégration applicative qui a vocation à présenter la manière d'interroger le DSL : configuration-tnr/configuration-d-un-scenario.rst
- - Le tableau du cahier de test
+ - La documentation des Tests de Non Régression (TNR) se trouve dans : doc/fr/configuration-tnr/configuration.rst
+ - Le manuel d'intégration applicative qui a vocation à présenter la manière d'interroger le DSL est présent dans ce même document  doc/fr/configuration-tnr/configuration.rst
+ - Le tableau du cahier des tests manuels se trouvent dans l'outil Jalios
 
 
 **Administration des collections**
 
-L'administration des collections est accessible dans l'IHM recette via le menu éponyme. Cela permet de purger les référentiels, les journaux et les objets de manière. La purge peut être réalisée de manière individuelle par collection.
+L'administration des collections est accessible dans l'IHM recette via le menu éponyme. Cela permet de purger les référentiels, les journaux et les objets par collection (au sens MongoDB) ou pour la totalité des collections (sauf le référentiel des formats) présentent sur cette IHM. Il n'est cependant pas possible actuellement de purger les référentiels non affichés sur l'IHM recette (contexte ou profil, par exemple).
 
 
 Tests Manuels
@@ -39,13 +42,12 @@ Cahier de tests manuels
   - Nom de l'activité, nom associé code Story Map
   - Le Code Story Map, c'est-à-dire le code attribué à ce sujet (entrée, accès, stockage, etc.)
   - Le Use Case ou déroulement du test étape par étape
-  - Si ce test est un test IHM ou API
   - Le ou les jeux de tests associés
 
 Postman
 ---------
 
-Postman est un plugin disponible via Google Chrome et peut être utilisé pour tester les services API. Il s’agit en réalité d’un client HTTP puissant pour tester les services Web. Suite à l'installation d'un certificat, propre à VITAM, des requêtes DSL peuvent être lancées en GET ou POST (voir : )
+Postman est un plugin disponible via Google Chrome et peut être utilisé pour tester les services API. Il s’agit en réalité d’un client HTTP puissant pour tester les services Web. Suite à l'installation d'un certificat, propre à la solution logicielle Vitam, des requêtes DSL peuvent être lancées en GET ou POST.
 
 .. image:: images/POSTMAN_requete.png
 
