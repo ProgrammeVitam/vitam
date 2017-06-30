@@ -2,13 +2,14 @@
 Cas 1: Je ne dispose pas de PKI, je souhaite utiliser celle de Vitam
 ====================================================================
 
+Dans ce cas, il est nécessaire d'utiliser la :term:`PKI` fournie avec la solution logicielle VITAM.
 
 Procédure générale
 ------------------
 
-.. danger:: La PKI de la solution Vitam ne doit être utilisée que pour faire des tests, et ne doit par conséquent surtout pas être utiliser en production !
+.. danger:: La :term:`PKI` fournie avec la solution logicielle Vitam ne doit être utilisée que pour faire des tests, et ne doit par conséquent surtout pas être utilisée en environnement de production !
 
-Il faut utiliser la "PKI" de Vitam, c'est à dire une suite de scripts qui vont générer dans l'ordre ci-dessous:
+La :term:`PKI` de la solution logicielle VITAM est une suite de scripts qui vont générer dans l'ordre ci-dessous:
 
 - Les autorités de certifcation (CA)
 - Les certificats (clients, serveurs, de timestamping) à partir des CA
@@ -38,17 +39,17 @@ Voici ci-dessous un exemple de rendu du script :
 
     [INFO] [generate_ca.sh] Lancement de la procédure de création des CA
     [INFO] [generate_ca.sh] ==============================================
-    [INFO] [generate_ca.sh] Répertoire /home/nico/git/vitam/deployment/pki/ca absent ; création...
-    [INFO] [generate_ca.sh] Création du répertoire de travail temporaire tempcerts sous /home/nico/git/vitam/deployment/pki/tempcerts...
+    [INFO] [generate_ca.sh] Répertoire /home/utilisateur/git/vitam/deployment/pki/ca absent ; création...
+    [INFO] [generate_ca.sh] Création du répertoire de travail temporaire tempcerts sous /home/utilisateur/git/vitam/deployment/pki/tempcerts...
     [INFO] [generate_ca.sh] Création de CA root pour server...
     [INFO] [generate_ca.sh] Create CA request...
     Generating a 2048 bit RSA private key
     ........................+++
     ....................+++
-    writing new private key to '/home/nico/git/vitam/deployment/pki/ca/server/ca-root.key'
+    writing new private key to '/home/utilisateur/git/vitam/deployment/pki/ca/server/ca-root.key'
     -----
     [INFO] [generate_ca.sh] Create CA certificate...
-    Using configuration from /home/nico/git/vitam/deployment/pki/config/server/ca-config
+    Using configuration from /home/utilisateur/git/vitam/deployment/pki/config/server/ca-config
     Check that the request matches the signature
     Signature ok
     The Subject's Distinguished Name is as follows
@@ -66,10 +67,10 @@ Voici ci-dessous un exemple de rendu du script :
     Generating a 4096 bit RSA private key
     .................................++
     ..................................................................................................++
-    writing new private key to '/home/nico/git/vitam/deployment/pki/ca/server/ca-intermediate.key'
+    writing new private key to '/home/utilisateur/git/vitam/deployment/pki/ca/server/ca-intermediate.key'
     -----
     [INFO] [generate_ca.sh] Sign...
-    Using configuration from /home/nico/git/vitam/deployment/pki/config/server/ca-config
+    Using configuration from /home/utilisateur/git/vitam/deployment/pki/config/server/ca-config
     Check that the request matches the signature
     Signature ok
     The Subject's Distinguished Name is as follows
@@ -88,10 +89,10 @@ Voici ci-dessous un exemple de rendu du script :
     Generating a 2048 bit RSA private key
     .........................................................+++
     ....................................+++
-    writing new private key to '/home/nico/git/vitam/deployment/pki/ca/client-external/ca-root.key'
+    writing new private key to '/home/utilisateur/git/vitam/deployment/pki/ca/client-external/ca-root.key'
     -----
     [INFO] [generate_ca.sh] Create CA certificate...
-    Using configuration from /home/nico/git/vitam/deployment/pki/config/client-external/ca-config
+    Using configuration from /home/utilisateur/git/vitam/deployment/pki/config/client-external/ca-config
     Check that the request matches the signature
     Signature ok
     The Subject's Distinguished Name is as follows
@@ -109,10 +110,10 @@ Voici ci-dessous un exemple de rendu du script :
     Generating a 4096 bit RSA private key
     ......................++
     ....++
-    writing new private key to '/home/nico/git/vitam/deployment/pki/ca/client-external/ca-intermediate.key'
+    writing new private key to '/home/utilisateur/git/vitam/deployment/pki/ca/client-external/ca-intermediate.key'
     -----
     [INFO] [generate_ca.sh] Sign...
-    Using configuration from /home/nico/git/vitam/deployment/pki/config/client-external/ca-config
+    Using configuration from /home/utilisateur/git/vitam/deployment/pki/config/client-external/ca-config
     Check that the request matches the signature
     Signature ok
     The Subject's Distinguished Name is as follows
@@ -131,10 +132,10 @@ Voici ci-dessous un exemple de rendu du script :
     Generating a 2048 bit RSA private key
     ...............+++
     ..................................+++
-    writing new private key to '/home/nico/git/vitam/deployment/pki/ca/client-storage/ca-root.key'
+    writing new private key to '/home/utilisateur/git/vitam/deployment/pki/ca/client-storage/ca-root.key'
     -----
     [INFO] [generate_ca.sh] Create CA certificate...
-    Using configuration from /home/nico/git/vitam/deployment/pki/config/client-storage/ca-config
+    Using configuration from /home/utilisateur/git/vitam/deployment/pki/config/client-storage/ca-config
     Check that the request matches the signature
     Signature ok
     The Subject's Distinguished Name is as follows
@@ -152,10 +153,10 @@ Voici ci-dessous un exemple de rendu du script :
     Generating a 4096 bit RSA private key
     ...............................................................................................................................................................++
     ..............................................................................................................................................................................................................................................................................................++
-    writing new private key to '/home/nico/git/vitam/deployment/pki/ca/client-storage/ca-intermediate.key'
+    writing new private key to '/home/utilisateur/git/vitam/deployment/pki/ca/client-storage/ca-intermediate.key'
     -----
     [INFO] [generate_ca.sh] Sign...
-    Using configuration from /home/nico/git/vitam/deployment/pki/config/client-storage/ca-config
+    Using configuration from /home/utilisateur/git/vitam/deployment/pki/config/client-storage/ca-config
     Check that the request matches the signature
     Signature ok
     The Subject's Distinguished Name is as follows
@@ -174,10 +175,10 @@ Voici ci-dessous un exemple de rendu du script :
     Generating a 2048 bit RSA private key
     .........................+++
     ........................................+++
-    writing new private key to '/home/nico/git/vitam/deployment/pki/ca/timestamping/ca-root.key'
+    writing new private key to '/home/utilisateur/git/vitam/deployment/pki/ca/timestamping/ca-root.key'
     -----
     [INFO] [generate_ca.sh] Create CA certificate...
-    Using configuration from /home/nico/git/vitam/deployment/pki/config/timestamping/ca-config
+    Using configuration from /home/utilisateur/git/vitam/deployment/pki/config/timestamping/ca-config
     Check that the request matches the signature
     Signature ok
     The Subject's Distinguished Name is as follows
@@ -195,10 +196,10 @@ Voici ci-dessous un exemple de rendu du script :
     Generating a 4096 bit RSA private key
     ........................++
     .........++
-    writing new private key to '/home/nico/git/vitam/deployment/pki/ca/timestamping/ca-intermediate.key'
+    writing new private key to '/home/utilisateur/git/vitam/deployment/pki/ca/timestamping/ca-intermediate.key'
     -----
     [INFO] [generate_ca.sh] Sign...
-    Using configuration from /home/nico/git/vitam/deployment/pki/config/timestamping/ca-config
+    Using configuration from /home/utilisateur/git/vitam/deployment/pki/config/timestamping/ca-config
     Check that the request matches the signature
     Signature ok
     The Subject's Distinguished Name is as follows
@@ -219,7 +220,7 @@ Voici ci-dessous un exemple de rendu du script :
 Génération des certificats par les scripts Vitam
 ------------------------------------------------
 
-Le fichier d'inventaire de déploiement ``environments/<fichier d'inventaire>`` doit être correctement renseigné pour indiquer les serveurs associés à chaque service. En prérequis les CA doivent être présentes.
+Le fichier d'inventaire de déploiement ``environments/<fichier d'inventaire>`` (cf. :ref:`inventaire`) doit être correctement renseigné pour indiquer les serveurs associés à chaque service. En prérequis les CA doivent être présentes.
 
 Puis, dans le répertoire de déploiement, lancer le script :
 
@@ -244,10 +245,10 @@ Ci-dessous un exemple de sortie du script :
     Generating a 4096 bit RSA private key
     ................................................................................................................................................++
     .........................................++
-    writing new private key to '/home/nico/git/vitam/deployment/environments/certs/server/hosts/localhost/ingest-external.key'
+    writing new private key to '/home/utilisateur/git/vitam/deployment/environments/certs/server/hosts/localhost/ingest-external.key'
     -----
     [INFO] [generate_certs.sh] Generation du certificat signé avec CA server...
-    Using configuration from /home/nico/git/vitam/deployment/pki/config/server/ca-config
+    Using configuration from /home/utilisateur/git/vitam/deployment/pki/config/server/ca-config
     Check that the request matches the signature
     Signature ok
     The Subject's Distinguished Name is as follows
@@ -266,10 +267,10 @@ Ci-dessous un exemple de sortie du script :
     Generating a 4096 bit RSA private key
     ..........++
     ...................++
-    writing new private key to '/home/nico/git/vitam/deployment/environments/certs/server/hosts/localhost/access-external.key'
+    writing new private key to '/home/utilisateur/git/vitam/deployment/environments/certs/server/hosts/localhost/access-external.key'
     -----
     [INFO] [generate_certs.sh] Generation du certificat signé avec CA server...
-    Using configuration from /home/nico/git/vitam/deployment/pki/config/server/ca-config
+    Using configuration from /home/utilisateur/git/vitam/deployment/pki/config/server/ca-config
     Check that the request matches the signature
     Signature ok
     The Subject's Distinguished Name is as follows
@@ -289,10 +290,10 @@ Ci-dessous un exemple de sortie du script :
     Generating a 4096 bit RSA private key
     .....................++
     ........++
-    writing new private key to '/home/nico/git/vitam/deployment/environments/certs/server/hosts/localhost/storage-offer-default.key'
+    writing new private key to '/home/utilisateur/git/vitam/deployment/environments/certs/server/hosts/localhost/storage-offer-default.key'
     -----
     [INFO] [generate_certs.sh] Generation du certificat signé avec CA server...
-    Using configuration from /home/nico/git/vitam/deployment/pki/config/server/ca-config
+    Using configuration from /home/utilisateur/git/vitam/deployment/pki/config/server/ca-config
     Check that the request matches the signature
     Signature ok
     The Subject's Distinguished Name is as follows
@@ -313,10 +314,10 @@ Ci-dessous un exemple de sortie du script :
     Generating a 4096 bit RSA private key
     .........................................................................................................++
     ...........++
-    writing new private key to '/home/nico/git/vitam/deployment/environments/certs/timestamping/vitam/logbook.key'
+    writing new private key to '/home/utilisateur/git/vitam/deployment/environments/certs/timestamping/vitam/logbook.key'
     -----
     [INFO] [generate_certs.sh] Generation du certificat signé avec CA timestamping...
-    Using configuration from /home/nico/git/vitam/deployment/pki/config/timestamping/ca-config
+    Using configuration from /home/utilisateur/git/vitam/deployment/pki/config/timestamping/ca-config
     Check that the request matches the signature
     Signature ok
     The Subject's Distinguished Name is as follows
@@ -337,10 +338,10 @@ Ci-dessous un exemple de sortie du script :
     Generating a 4096 bit RSA private key
     ....++
     ........++
-    writing new private key to '/home/nico/git/vitam/deployment/environments/certs/client-external/clients/ihm-demo/ihm-demo.key'
+    writing new private key to '/home/utilisateur/git/vitam/deployment/environments/certs/client-external/clients/ihm-demo/ihm-demo.key'
     -----
     [INFO] [generate_certs.sh] Generation du certificat signé avec client-external...
-    Using configuration from /home/nico/git/vitam/deployment/pki/config/client-external/ca-config
+    Using configuration from /home/utilisateur/git/vitam/deployment/pki/config/client-external/ca-config
     Check that the request matches the signature
     Signature ok
     The Subject's Distinguished Name is as follows
@@ -360,10 +361,10 @@ Ci-dessous un exemple de sortie du script :
     Generating a 4096 bit RSA private key
     .......................................................................++
     ...............................................................................................................................................................++
-    writing new private key to '/home/nico/git/vitam/deployment/environments/certs/client-external/clients/ihm-recette/ihm-recette.key'
+    writing new private key to '/home/utilisateur/git/vitam/deployment/environments/certs/client-external/clients/ihm-recette/ihm-recette.key'
     -----
     [INFO] [generate_certs.sh] Generation du certificat signé avec client-external...
-    Using configuration from /home/nico/git/vitam/deployment/pki/config/client-external/ca-config
+    Using configuration from /home/utilisateur/git/vitam/deployment/pki/config/client-external/ca-config
     Check that the request matches the signature
     Signature ok
     The Subject's Distinguished Name is as follows
@@ -383,10 +384,10 @@ Ci-dessous un exemple de sortie du script :
     Generating a 4096 bit RSA private key
     ...............................++
     .................................................................................................++
-    writing new private key to '/home/nico/git/vitam/deployment/environments/certs/client-external/clients/reverse/reverse.key'
+    writing new private key to '/home/utilisateur/git/vitam/deployment/environments/certs/client-external/clients/reverse/reverse.key'
     -----
     [INFO] [generate_certs.sh] Generation du certificat signé avec client-external...
-    Using configuration from /home/nico/git/vitam/deployment/pki/config/client-external/ca-config
+    Using configuration from /home/utilisateur/git/vitam/deployment/pki/config/client-external/ca-config
     Check that the request matches the signature
     Signature ok
     The Subject's Distinguished Name is as follows
@@ -406,10 +407,10 @@ Ci-dessous un exemple de sortie du script :
     Generating a 4096 bit RSA private key
     ...........++
     ..........................................................................................++
-    writing new private key to '/home/nico/git/vitam/deployment/environments/certs/client-storage/clients/storage-engine/storage-engine.key'
+    writing new private key to '/home/utilisateur/git/vitam/deployment/environments/certs/client-storage/clients/storage-engine/storage-engine.key'
     -----
     [INFO] [generate_certs.sh] Generation du certificat signé avec client-storage...
-    Using configuration from /home/nico/git/vitam/deployment/pki/config/client-storage/ca-config
+    Using configuration from /home/utilisateur/git/vitam/deployment/pki/config/client-storage/ca-config
     Check that the request matches the signature
     Signature ok
     The Subject's Distinguished Name is as follows

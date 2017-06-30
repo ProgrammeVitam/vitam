@@ -4,7 +4,7 @@ Génération des magasins de certificats
 
 En prérequis, les certificats et les autorités de certification doivent être présents dans les répertoires attendus.
 
-.. caution:: Avant de lancer le script de génération des stores, il est nécessaire de modifier le vault contenant les mots de passe des stores: environmements/group_vars/all/vault-keystores.yml
+.. caution:: Avant de lancer le script de génération des stores, il est nécessaire de modifier le vault contenant les mots de passe des stores: ``environmements/group_vars/all/vault-keystores.yml``, décrit dans la section :ref:`pkiconfsection`.
 
 Lancer le script :
 
