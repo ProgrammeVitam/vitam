@@ -47,6 +47,7 @@ public class ValidationXsdUtilsTest {
     private static final String SEDA_VALIDATION_FILE = "seda-2.0-main.xsd";
     private static final String SEDA_FILE = "sip1.xml";
     private static final String SEDA_FILE2 = "manifestOK.xml";
+    private static final String SEDA_FILE_DATA_OBJ_REF = "manifestWithDataObjectGroupExistingReferenceId.xml";
     private static final String SEDA_WRONG_FILE = "wrong_sip1.xml";
     private static final String SEDA_ARCHIVE_TRANSFER_REPLY = "ATR_example.xml";
     private static final String SEDA_ARCHIVE_TRANSFER_REPLY_NOTVALID = "ATR_example_notvalid.xml";
@@ -122,6 +123,15 @@ public class ValidationXsdUtilsTest {
     public void givenXmlUpdateDeleteRefUnknownArchiveUnitWhenCheckXsdThenThrowException()
         throws XMLStreamException, SAXException, IOException {
         ValidationXsdUtils.checkWithXSD(PropertiesUtils.getResourceAsStream(SEDA_UPDATE_NOT_VALID_2), SEDA_VITAM_VALIDATION_FILE);
+    }
+    
+    
+    @Test
+    public void givenXmlWithDataObjectGroupExistingReferenceIdWhenCheckXsdThenOK()
+        throws XMLStreamException, SAXException, IOException {
+        assertTrue(
+            ValidationXsdUtils.checkWithXSD(PropertiesUtils.getResourceAsStream(SEDA_FILE_DATA_OBJ_REF),
+                SEDA_VITAM_VALIDATION_FILE));
     }
     
     @Test
