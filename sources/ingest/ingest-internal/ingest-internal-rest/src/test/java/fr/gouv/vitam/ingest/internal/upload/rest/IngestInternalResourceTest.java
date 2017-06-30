@@ -460,23 +460,6 @@ public class IngestInternalResourceTest {
             .then().statusCode(Status.OK.getStatusCode());
     }
 
-    /*@Test
-    public void givenOperationsRequestResponseThenReturnOk()
-        throws Exception {
-        reset(workspaceClient);
-        reset(processingClient);
-        ProcessQuery query = new ProcessQuery();
-        query.setId("TEST");
-
-
-        Mockito.doReturn(new RequestResponseOK().setHttpCode(Status.OK.getStatusCode()))
-            .when(processingClient)
-            .listOperationsDetails(Matchers.any());
-
-        RestAssured.given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(query)
-            .when().get("operations").then().statusCode(Status.OK.getStatusCode());
-    }*/
-
     @Test
     public void givenWorkflowDefinitionsInternalServerExceptionThenReturnInternalServerError()
         throws Exception {

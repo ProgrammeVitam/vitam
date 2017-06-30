@@ -71,6 +71,8 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientNotFoundException;
+import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientServerException;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.tools.SipTool;
@@ -83,8 +85,8 @@ public class IngestStep {
     private Path sip;
 
     private World world;
-    private static  boolean deleteSip = false ;
-    private static  boolean attachMode = false ;
+    private static boolean deleteSip = false;
+    private static boolean attachMode = false;
 
     public IngestStep(World world) {
         this.world = world;
@@ -114,9 +116,9 @@ public class IngestStep {
                 .upload(inputStream, world.getTenantId(), DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
             world.setOperationId(operationId);
-          boolean process_timeout =  world.getIngestClient()
+            boolean process_timeout = world.getIngestClient()
                 .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 1800, 1_000L, TimeUnit.MILLISECONDS);
-            if(!process_timeout){
+            if (!process_timeout) {
                 fail("Sip processing not finished. Timeout exeedeed.");
             }
             assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
@@ -126,6 +128,7 @@ public class IngestStep {
 
     /**
      * call vitam to upload the plan
+     * 
      * @throws IOException
      * @throws IngestExternalException
      */
@@ -139,14 +142,14 @@ public class IngestStep {
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 
             world.setOperationId(operationId);
-            boolean process_timeout =  world.getIngestClient()
+            boolean process_timeout = world.getIngestClient()
                 .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 200, 1_000L, TimeUnit.MILLISECONDS);
-            if(!process_timeout){
+            if (!process_timeout) {
                 fail("Sip processing not finished. Timeout exeedeed.");
             }
             assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
         }
-        if(attachMode){
+        if (attachMode) {
             deleteSip = true;
         }
     }
@@ -166,14 +169,14 @@ public class IngestStep {
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 
             world.setOperationId(operationId);
-            boolean process_timeout =  world.getIngestClient()
+            boolean process_timeout = world.getIngestClient()
                 .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L, TimeUnit.MILLISECONDS);
-            if(!process_timeout){
+            if (!process_timeout) {
                 fail("Sip processing not finished. Timeout exeedeed.");
             }
             assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
         }
-        if(attachMode){
+        if (attachMode) {
             deleteSip = true;
         }
     }
@@ -190,7 +193,8 @@ public class IngestStep {
     public void the_logbook_operation_has_a_status(String status)
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         RequestResponse requestResponse =
-            world.getAccessClient().selectOperationbyId(world.getOperationId(), world.getTenantId(), world.getContractId());
+            world.getAccessClient().selectOperationbyId(world.getOperationId(), world.getTenantId(),
+                world.getContractId());
         if (requestResponse instanceof RequestResponseOK) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
 
@@ -198,9 +202,11 @@ public class IngestStep {
             JsonNode last = Iterables.getLast(actual);
             assertThat(last.get("outcome").textValue())
                 .as("last event has status %s, but %s was expected. Event name is: %s", last.get("outcome").textValue(),
-                    status, last.get("evType").textValue()).isEqualTo(status);
+                    status, last.get("evType").textValue())
+                .isEqualTo(status);
         } else {
-            LOGGER.error(String.format("logbook operation return a vitam error for operationId: %s", world.getOperationId()));
+            LOGGER.error(
+                String.format("logbook operation return a vitam error for operationId: %s", world.getOperationId()));
 
             fail(String.format("logbook operation return a vitam error for operationId: %s", world.getOperationId()));
         }
@@ -219,7 +225,8 @@ public class IngestStep {
     public void the_status_are(List<String> eventNames, String eventStatus)
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         RequestResponse requestResponse =
-            world.getAccessClient().selectOperationbyId(world.getOperationId(), world.getTenantId(), world.getContractId());
+            world.getAccessClient().selectOperationbyId(world.getOperationId(), world.getTenantId(),
+                world.getContractId());
 
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
@@ -244,7 +251,8 @@ public class IngestStep {
             }
         } else {
             VitamError error = (VitamError) requestResponse;
-            LOGGER.error(String.format("logbook operation return a vitam error for operationId: %s, requestId is %s", world.getOperationId(), error.getCode()));
+            LOGGER.error(String.format("logbook operation return a vitam error for operationId: %s, requestId is %s",
+                world.getOperationId(), error.getCode()));
             Fail.fail("cannot find logbook with id: " + world.getOperationId());
         }
     }
@@ -258,23 +266,30 @@ public class IngestStep {
 
     /**
      * check if the atr is available
+     * 
+     * @throws InvalidParseOperationException
+     * @throws IngestExternalClientNotFoundException
+     * @throws IngestExternalClientServerException
      */
     @Then("je peux télécharger son ATR")
-    public void download_atr() throws IngestExternalException, IOException {
+    public void download_atr()
+        throws IngestExternalException, IOException, IngestExternalClientServerException,
+        IngestExternalClientNotFoundException, InvalidParseOperationException {
         Response response = world.getIngestClient()
-                .downloadObjectAsync(world.getOperationId(), IngestCollection.REPORTS, world.getTenantId());
+            .downloadObjectAsync(world.getOperationId(), IngestCollection.REPORTS, world.getTenantId());
         InputStream inputStream = response.readEntity(InputStream.class);
         assertThat(inputStream).isNotNull();
         StreamUtils.closeSilently(inputStream);
         world.getIngestClient().consumeAnyEntityAndClose(response);
     }
+
     @After
     public void afterScenario() throws IOException {
 
-        if( this.sip!=null  && deleteSip){
+        if (this.sip != null && deleteSip) {
             Files.delete(this.sip);
             deleteSip = false;
-            attachMode  = false;
-       }
+            attachMode = false;
+        }
     }
 }

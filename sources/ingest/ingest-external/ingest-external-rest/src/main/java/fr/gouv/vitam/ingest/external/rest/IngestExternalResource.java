@@ -58,6 +58,7 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -82,6 +83,8 @@ import fr.gouv.vitam.ingest.external.core.IngestExternalImpl;
 import fr.gouv.vitam.ingest.external.core.PreUploadResume;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
+import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientNotFoundException;
+import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServerException;
 import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
 
 /**
@@ -191,14 +194,24 @@ public class IngestExternalResource extends ApplicationStatusResource {
             final Response response = ingestInternalClient.downloadObjectAsync(objectId, collection);
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
             helper.writeResponse(Response.status(response.getStatus()));
+            
+
         } catch (IllegalArgumentException e) {
             LOGGER.error("IllegalArgumentException was thrown : ", e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.BAD_REQUEST).entity(new ByteArrayInputStream(getErrorEntity(Status.BAD_REQUEST, e.getLocalizedMessage()).toString().getBytes())).build());
-        } catch (VitamClientException e) {
-            LOGGER.error("VitamClientException was thrown : ", e);
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error("Predicates Failed Exception", e);
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                Response.status(Status.PRECONDITION_FAILED).entity(new ByteArrayInputStream(getErrorEntity(Status.PRECONDITION_FAILED, e.getLocalizedMessage()).toString().getBytes())).build());
+        } catch (final IngestInternalClientServerException e) {
+            LOGGER.error("Internal Server Exception ", e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR).entity(new ByteArrayInputStream(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getLocalizedMessage()).toString().getBytes())).build());
+        } catch (final IngestInternalClientNotFoundException e) {
+            LOGGER.error("Request resources does not exits", e);
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                Response.status(Status.NOT_FOUND).entity(new ByteArrayInputStream(getErrorEntity(Status.NOT_FOUND, e.getLocalizedMessage()).toString().getBytes())).build());
         }
     }
 
