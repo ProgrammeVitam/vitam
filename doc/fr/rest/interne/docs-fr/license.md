@@ -1,1 +1,1 @@
-Ce document est distribué sous les termes de la licence [Creative Commons Attribution - Partage dans les Mêmes Conditions 3.0 France (CC BY-SA 3.0 FR)](https://creativecommons.org/licenses/by-sa/3.0/fr/)
+Ce document est distribué sous les termes de la [Licence Ouverte V2.0](https://www.etalab.gouv.fr/wp-content/uploads/2017/04/ETALAB-Licence-Ouverte-v2.0.pdf)

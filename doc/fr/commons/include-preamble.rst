@@ -4,7 +4,7 @@ Rappels
 Information concernant les licences
 ===================================
 
-Le logiciel :term:`VITAM` est publié sous la license `CeCILL 2.1 <http://www.cecill.info/licences/Licence_CeCILL_V2.1-fr.html>`_ ; la documentation associée (comprenant le présent document) est publiée sous license `CC-BY-SA 3.0 <https://creativecommons.org/licenses/by-sa/3.0/fr/legalcode>`_.
+Le logiciel :term:`VITAM` est publié sous la license `CeCILL 2.1 <http://www.cecill.info/licences/Licence_CeCILL_V2.1-fr.html>`_ ; la documentation associée (comprenant le présent document) est publiée sous `Licence Ouverte V2.0 <https://www.etalab.gouv.fr/wp-content/uploads/2017/04/ETALAB-Licence-Ouverte-v2.0.pdf>`_.
 
 Documents de référence
 ======================
