@@ -545,38 +545,44 @@ public class IngestExternalImpl implements IngestExternal {
         final LogbookOperationParameters startedParameters,
         boolean isFileInfected, String mimeType, final LogbookOperationParameters endParameters,
         LogbookTypeProcess logbookTypeProcess, String logbookEventType, StatusCode status)
-        throws LogbookClientNotFoundException, IngestExternalException {
+        throws LogbookClientNotFoundException {
         Response responseNoProcess;
         // Add step started in the logbook
         addStpIngestFinalisationLog(ingestGuid, containerName, helper, StatusCode.STARTED, logbookTypeProcess);
         addTransferNotificationLog(ingestGuid, containerName, helper, StatusCode.STARTED, logbookTypeProcess);
         // FIXME P1 later on real ATR KO
+        StatusCode atrStatusCode = StatusCode.OK;
         String atrKo = null;
-        if (isFileInfected) {
-            atrKo = AtrKoBuilder.buildAtrKo(containerName.getId(), "ArchivalAgencyToBeDefined",
-                "TransferringAgencyToBeDefined",
-                "SANITY_CHECK_SIP", null, status);
-
-        } else if (status.equals(StatusCode.FATAL)) {
-            atrKo = AtrKoBuilder.buildAtrKo(containerName.getId(), "ArchivalAgencyToBeDefined",
-                "TransferringAgencyToBeDefined",
-                "STP_UPLOAD_SIP", null, status);
-        } else {
-            atrKo = AtrKoBuilder.buildAtrKo(containerName.getId(), "ArchivalAgencyToBeDefined",
-                "TransferringAgencyToBeDefined",
-                "CHECK_CONTAINER", ". Format non supporté : " + mimeType, status);
-        }
-
-        if (!status.equals(StatusCode.FATAL)) {
-            storeATR(ingestGuid, atrKo);
+        try {
+	        if (isFileInfected) {
+	            atrKo = AtrKoBuilder.buildAtrKo(containerName.getId(), "ArchivalAgencyToBeDefined",
+	                "TransferringAgencyToBeDefined",
+	                "SANITY_CHECK_SIP", null, status);
+	
+	        } else if (status.equals(StatusCode.FATAL)) {
+	            atrKo = AtrKoBuilder.buildAtrKo(containerName.getId(), "ArchivalAgencyToBeDefined",
+	                "TransferringAgencyToBeDefined",
+	                "STP_UPLOAD_SIP", null, status);
+	        } else {
+	            atrKo = AtrKoBuilder.buildAtrKo(containerName.getId(), "ArchivalAgencyToBeDefined",
+	                "TransferringAgencyToBeDefined",
+	                "CHECK_CONTAINER", ". Format non supporté : " + mimeType, status);
+	        }
+	
+	        if (!status.equals(StatusCode.FATAL)) {
+	            storeATR(ingestGuid, atrKo);
+	        }
+        } catch (IngestExternalException e) {
+        	LOGGER.error(e);
+        	atrStatusCode = StatusCode.KO;
         }
 
         LOGGER.warn("ATR KO created : " + atrKo);
         responseNoProcess = new AbstractMockClient.FakeInboundResponse(Status.BAD_REQUEST,
             new ByteArrayInputStream(atrKo.getBytes(CharsetUtils.UTF8)), MediaType.APPLICATION_XML_TYPE, null);
         // add the step in the logbook
-        addTransferNotificationLog(ingestGuid, containerName, helper, StatusCode.OK, logbookTypeProcess);
-        addStpIngestFinalisationLog(ingestGuid, containerName, helper, status, logbookTypeProcess);
+        addTransferNotificationLog(ingestGuid, containerName, helper, atrStatusCode, logbookTypeProcess);
+        addStpIngestFinalisationLog(ingestGuid, containerName, helper, atrStatusCode, logbookTypeProcess);
         // log final status PROCESS_SIP when sanity check KO or FATAL
         // in this case PROCESS_SIP inherits SANITY_CHECK Status
         startedParameters.setStatus(endParameters.getStatus());
