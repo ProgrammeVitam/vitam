@@ -6,8 +6,8 @@ The content of this repository is licensed under the following terms & condition
  
 ----
 
-Le contenu de ce dépôt est publiés avec les licenses suivantes :
+Le contenu de ce dépôt est publiés avec les licences suivantes :
 
-- Le code source est publié sous licence [CeCILL 2.1](http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.txt) ; le texte de la license est disponible dans le fichier [Licence\_CeCILL\_V2.1-fr.txt](./Licence_CeCILL_V2.1-fr.txt) ;
+- Le code source est publié sous licence [CeCILL 2.1](http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.txt) ; le texte de la licence est disponible dans le fichier [Licence\_CeCILL\_V2.1-fr.txt](./Licence_CeCILL_V2.1-fr.txt) ;
 
-- La documentation (en particulier le contenu des dossiers `**/doc`) est publiée sous license [Licence Ouverte](https://www.etalab.gouv.fr/wp-content/uploads/2017/04/ETALAB-Licence-Ouverte-v2.0.pdf) ; le texte de la license est disponible dans le fichier [Licence Ouverte](./Licence_ouverte-V2-fr.txt).
+- La documentation (en particulier le contenu des dossiers `**/doc`) est publiée sous la [Licence Ouverte V2.0](https://www.etalab.gouv.fr/wp-content/uploads/2017/04/ETALAB-Licence-Ouverte-v2.0.pdf) ; le texte de la licence est disponible dans le fichier [Licence Ouverte](./Licence_ouverte-V2-fr.txt).
