@@ -1,12 +1,14 @@
 {
   "service": {
     "name": "cerebro",
+    "port": {{cerebro_port}},
+    "address": "{{ip_service}}",
     "enableTagOverride": false,
     "checks": [
       {
         "id": "Check status",
         "notes": "Status check",
-        "http": "http://localhost:{{ cerebro_port }}/cerebro/",
+        "http": "http://{{ip_service}}:{{ cerebro_port }}/cerebro/",
         "interval": "1s"
       }
     ]

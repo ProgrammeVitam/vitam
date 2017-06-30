@@ -9,8 +9,9 @@ Procédure de déploiement de Vitam:
 Tips: pours tous les cas d'appel de ansible-playbook, il est possible de remplacer l'argument "--vault-password-file vault_pass.txt" par "--ask-vault-pass" si vous ne voulez pas stocker le mot de passe de chiffrement des vault ansible dans un fichier
 
 
-1.  Créer un fichier d'inventaire ansible en se basant sur le fichier d'exemple:
-    ``environments/group_vars/all/example_repo.yml``
+1.  Créer un fichier d'inventaire des repositories des composants VITAM en se basant sur le fichier d'exemple:
+    ``environments/group_vars/all/example_bootstrap_repo_centos.yml`` pour un environnement CentOS
+    ``environments/group_vars/all/example_bootstrap_repo_debian.yml`` pour un environnement Debian
 
 
 2.  Générer les autorités de certification des certificats (si vous n'avez pas vos propres autorités de certification et que vous ne souhaitez pas vous en occuper)
@@ -62,12 +63,16 @@ Tips: pours tous les cas d'appel de ansible-playbook, il est possible de remplac
     b.  Lancer le boostrap pour ajouter les repositories sur les machines cibles
         ``ansible-playbook ansible-vitam-extra/bootstrap.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt``
 
+6. Générer les host_vars "réseau"
+    ``ansible-playbook ansible-vitam/generate_network_vars.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt``
+   A l'issue, vérifier les fichiers sous ``environments/host_vars`` et les adapter au besoin.
 
-6.  Déployer Vitam
+
+7.  Déployer Vitam
     ``ansible-playbook ansible-vitam/vitam.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt``
 
 
-7.  Déployer les extras de Vitam
+8.  Déployer les extras de Vitam
     a.  Extras complets
         ``ansible-playbook ansible-vitam-extra/extra.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt``
     b.  Ihm-recette seulement

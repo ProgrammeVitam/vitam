@@ -1,5 +1,10 @@
 ---
 
+### HOSTS NETWORK VARS CHECK ###
+- hosts: hosts
+  roles:
+    - check_networks
+
 - hosts: hosts-dev-tools
   roles:
-    - dev-tools
+    - {role: dev-tools, when: "inventory_hostname != 'localhost'"}

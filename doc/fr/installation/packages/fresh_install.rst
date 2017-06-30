@@ -226,14 +226,29 @@ Ce fichier permet de définir une liste de repositories. Décommenter et adapter
 
 Pour mettre en place ces repositories sur les machines cibles, lancer la commande :
 
-``ansible-playbook ansible-vitam-extra/bootstrap.yml -i environments/<fichier d'inventaire>  --ask-vault-pass``
+.. code-block::
+
+  ansible-playbook ansible-vitam-extra/bootstrap.yml -i environments/<fichier d'inventaire>  --ask-vault-pass
 
 .. note:: En environnement CentOS, il est recommandé de créer des noms de repository commençant par  "vitam-".
+
+Réseaux
+-------------
+
+Une fois l'étape de PKI effectuée avec succès, il convient de procéder à la définition des host_vars :
+
+.. code-block:: bash
+
+   ansible-playbook ansible-vitam/generate_network_vars.yml -i environments/<ficher d'inventaire> --ask-vault-pass
+
+A l'issue, vérifier le contenu des fichiers générés sous ``environments/host_vars/`` et les adapter au besoin.
+
+.. note:: cette définition des host_vars se base sur la directive ansible ``ansible_default_ipv4.address``, qui se base sur l'adresse IP associée à la route réseau définie par défaut.
 
 Déploiement
 -------------
 
-Une fois l'étape de PKI effectuée avec succès, le déploiement est à réaliser avec la commande suivante :
+Une fois l'étape "réseaux" effectuée avec succès, le déploiement est à réaliser avec la commande suivante :
 
 .. code-block:: bash
 
@@ -242,7 +257,7 @@ Une fois l'étape de PKI effectuée avec succès, le déploiement est à réalis
 Extra
 ------
 
-Deux playbook d'extra sont fournis pour usage "tel quel".
+Plusieurs playbooks d'extra sont fournis pour usage "tel quel".
 
 1. ihm-recette
 
@@ -252,12 +267,27 @@ Ce playbook permet d'installer également le composant :term:`VITAM` ihm-recette
 
    ansible-playbook ansible-vitam-extra/ihm-recette.yml -i environments/<ficher d'inventaire> --ask-vault-pass
 
+2. reverse
 
-2. extra complet
+Ce playbook permet d'installer des composants à vocation des développeurs : head et mongo-express (containeurs docker).
+
+.. code-block:: bash
+
+   ansible-playbook ansible-vitam-extra/dev-tools.yml -i environments/<ficher d'inventaire> --ask-vault-pass
+
+3. dev-tools
+
+Ce playbook permet d'installer un serveur Apache en mode *reverse proxy* devant la solution logicielle :term:`VITAM`.
+
+.. code-block:: bash
+
+   ansible-playbook ansible-vitam-extra/reverse.yml -i environments/<ficher d'inventaire> --ask-vault-pass
+
+
+4. extra complet
 
 Ce playbook permet d'installer :
   - topbeat
-  - packetbeat
   - un serveur Apache pour naviguer sur le ``/vitam``  des différentes machines hébergeant :term:`VITAM`
   - mongo-express (en docker  ; une connexion internet est alors nécessaire)
   - le composant :term:`VITAM` library, hébergeant les documentations du projet

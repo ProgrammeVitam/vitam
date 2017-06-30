@@ -3,24 +3,22 @@
   "node_name": "{{ansible_hostname}}",
   "log_level": "INFO",
   "enable_syslog": true,
-{% if (ansible_interfaces|length > 2) or (inventory_hostname in groups['hosts-dev-tools'])  %}
-  "advertise_addr": "{{ ansible_eth0["ipv4"]["address"] }}",
+  "advertise_addr": "{{ip_admin}}",
 
-{% endif %}
 
-{% if inventory_hostname in groups['hosts-consul-server'] %}
+  {% if inventory_hostname in groups['hosts-consul-server'] %}
   "bootstrap_expect": {{ groups['hosts-consul-server']|length }},
   "server": true,
   "ui": true,
   "addresses" : {
-    "http": "0.0.0.0"
-    },
-{% endif %}
-
+      "http": "{{ip_service}}"
+  },
+  {% endif %}
+  "bind_addr": "{{ip_admin}}",
   "recursors": [ "{{ dns_servers|join('", "') }}" ],
   "domain": "{{consul_domain}}",
   "datacenter": "{{environnement}}-dc1",
-  "retry_join": [ "{{ groups['hosts-consul-server']|join('", "') }}" ],
+  "retry_join": [ {% for item in groups['hosts-consul-server'] %}"{{hostvars[item]['ip_admin']}}"{% if not loop.last %},{% endif %}{% endfor %} ],
   "retry_interval": "10s",
   "enable_syslog": true,
   "disable_remote_exec": true,

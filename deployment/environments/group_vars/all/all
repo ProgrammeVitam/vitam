@@ -5,7 +5,6 @@ vitam_folder_root: /vitam
 docker_registry_httponly: yes
 vitam_docker_tag: latest
 port_http_timeout: 86400
-
 syslog_facility: local0
 
 # Composants colocalisés
@@ -127,6 +126,7 @@ vitam_kibana_port: 5601
 vitam_curator_host: "{{ (groups['hosts-log-server'] | length > 0) | ternary(groups['hosts-log-server'][0], '') }}"
 
 vitam_library_port: 8090
+vitam_library_port_admin: 28090
 
 vitam_siegfried_port: 19000
 
@@ -147,7 +147,7 @@ mongod_folder_database: "{{vitam_folder_root}}/data/mongod/db"
 mongoc_folder_database: "{{vitam_folder_root}}/data/mongoc/db"
 
 service_restart_timeout: 150
-service_stop_timeout: 900
+service_stop_timeout: 3600
 clamav_port: 3310
 
 cerebro_port: 9000

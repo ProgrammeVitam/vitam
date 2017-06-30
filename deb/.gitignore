@@ -2,3 +2,4 @@
 *.zip
 *.tar
 *.tar.gz
+.config

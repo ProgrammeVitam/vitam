@@ -2,12 +2,13 @@
   "service": {
     "name": "mongoclient",
     "port":  {{ mongoclientPort }},
+    "address": "{{ip_service}}",
     "enableTagOverride": false,
     "checks": [
       {
-        "id": "admin status",
-        "notes": "Status admin : /admin/v1/status",
-        "http": "http://localhost:{{ mongoclientPort }}{{ mongoclientbaseUrl }}/healthcheck",
+        "id": "healthcheck",
+        "notes": "Mongoclient health check",
+        "http": "http://{{ip_service}}:{{ mongoclientPort }}{{ mongoclientbaseUrl }}/healthcheck",
         "interval": "1s"
       }
     ]

@@ -1,5 +1,5 @@
 ---
-mongoclient_root_url: "http://localhost"
+mongoclient_root_url: "http://{{ip_admin}}"
 mongoclient_port: 3000
 #mongoclient_user: ""
 #mongoclient_pwd: ""

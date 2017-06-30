@@ -1,10 +1,11 @@
 ---
+
 - name: restart clamav
   service:
     name: "clamd@scan"
     state: restarted
 
 - name: restart debian_clamav
-  service:
-    name: "clamav-daemon"
+  systemd:
+    name: clamav-daemon
     state: restarted

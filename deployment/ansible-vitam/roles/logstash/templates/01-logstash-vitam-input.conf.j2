@@ -4,6 +4,7 @@ input
     # --- syslog input etc ...
     syslog {
         add_field => [ "input", "syslog" ]
+        host => "{{ ip_admin }}"
         port => 10514
     }
 

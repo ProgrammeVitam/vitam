@@ -21,7 +21,15 @@
   replace:
     dest: /opt/kibana/config/kibana.yml
     regexp: '^# elasticsearch\.url:.*$'
-    replace: "elasticsearch.url: \"http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}\""
+    replace: "elasticsearch.url: \"http://elasticsearch-log.service.consul:{{elasticsearch_log_http_port}}\""
+  notify:
+    - restart kibana
+
+- name: Configure Kibana web listening
+  replace:
+    dest: /opt/kibana/config/kibana.yml
+    regexp: '^# server\.host:.*$'
+    replace: "server.host: \"{{ip_service}}\""
   notify:
     - restart kibana
 
