@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.rest;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import javax.ws.rs.Consumes;
@@ -199,19 +198,19 @@ public class IngestExternalResource extends ApplicationStatusResource {
         } catch (IllegalArgumentException e) {
             LOGGER.error("IllegalArgumentException was thrown : ", e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.BAD_REQUEST).entity(new ByteArrayInputStream(getErrorEntity(Status.BAD_REQUEST, e.getLocalizedMessage()).toString().getBytes())).build());
+                Response.status(Status.BAD_REQUEST).build());
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("Predicates Failed Exception", e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.PRECONDITION_FAILED).entity(new ByteArrayInputStream(getErrorEntity(Status.PRECONDITION_FAILED, e.getLocalizedMessage()).toString().getBytes())).build());
+                Response.status(Status.PRECONDITION_FAILED).build());
         } catch (final IngestInternalClientServerException e) {
             LOGGER.error("Internal Server Exception ", e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.INTERNAL_SERVER_ERROR).entity(new ByteArrayInputStream(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getLocalizedMessage()).toString().getBytes())).build());
+                Response.status(Status.INTERNAL_SERVER_ERROR).build());
         } catch (final IngestInternalClientNotFoundException e) {
             LOGGER.error("Request resources does not exits", e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.NOT_FOUND).entity(new ByteArrayInputStream(getErrorEntity(Status.NOT_FOUND, e.getLocalizedMessage()).toString().getBytes())).build());
+                Response.status(Status.NOT_FOUND).build());
         }
     }
 
