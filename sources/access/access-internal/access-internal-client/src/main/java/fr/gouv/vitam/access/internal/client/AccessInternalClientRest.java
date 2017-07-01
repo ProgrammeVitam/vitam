@@ -27,7 +27,6 @@
 
 package fr.gouv.vitam.access.internal.client;
 
-import javax.ws.rs.BadRequestException;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -425,10 +424,15 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             switch (status) {
                 case OK:
                     LOGGER.info(CHECKS_OPERATION_TRACEABILITY_OK);
-                    return new RequestResponseOK()
-                        .addResult(JsonHandler.getFromString(response.readEntity(String.class)));
+                    return RequestResponse.parseFromResponse(response);
                 case UNAUTHORIZED:
                     throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
+                case EXPECTATION_FAILED:
+                case BAD_REQUEST:
+                case NOT_FOUND:
+                    LOGGER.error("checks operation tracebility is " + status.name() + ":" + status.getReasonPhrase() +
+                        JsonHandler.prettyPrint(response.getEntity()));
+                    return RequestResponse.parseFromResponse(response);
                 default:
                     LOGGER.error("checks operation tracebility is " + status.name() + ":" + status.getReasonPhrase());
                     throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());

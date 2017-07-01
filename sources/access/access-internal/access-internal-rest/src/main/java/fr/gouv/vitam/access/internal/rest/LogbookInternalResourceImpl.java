@@ -67,6 +67,7 @@ import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -131,8 +132,8 @@ public class LogbookInternalResourceImpl {
     private static final String DEFAULT_CHECK_TRACEABILITY_WORKFLOW = "DefaultCheckTraceability";
     private static final String DEFAULT_STORAGE_STRATEGY = "default";
 
-    private static final long SLEEP_TIME = 100l;
-    private static final long NB_TRY = 9600; // equivalent to 8 minutes
+    private static final long SLEEP_TIME = 1000l;
+    private static final long NB_TRY = 600; // equivalent to 10 minutes
 
     /**
      * Default Constructor
@@ -337,6 +338,7 @@ public class LogbookInternalResourceImpl {
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         Response response = null;
         GUID checkOperationGUID = null;
+        LOGGER.debug("Start Check in Resource");
         try (LogbookOperationsClient logbookOperationsClient =
             LogbookOperationsClientFactory.getInstance().getClient();
             ProcessingManagementClient processingClient =
@@ -354,15 +356,19 @@ public class LogbookInternalResourceImpl {
             logbookOperationsClient.bulkCreate(checkOperationGUID.getId(),
                 helper.removeCreateDelegate(checkOperationGUID.getId()));
 
+            LOGGER.debug("Started Check in Resource");
             // Run the WORKFLOW
             response =
                 processingClient.executeCheckTraceabilityWorkFlow(checkOperationGUID.getId(), query,
                     DEFAULT_CHECK_TRACEABILITY_WORKFLOW, LogbookTypeProcess.CHECK.toString(),
                     ProcessAction.RESUME.getValue());
+            LOGGER.debug("Check in Resource launched");
 
 
             int nbTry = 0;
-            while (!processingClient.isOperationCompleted(checkOperationGUID.getId())) {
+            boolean done = processingClient.isOperationCompleted(checkOperationGUID.getId());
+            
+            while (! done) {
                 try {
                     Thread.sleep(SLEEP_TIME);
                 } catch (InterruptedException e) {
@@ -371,13 +377,25 @@ public class LogbookInternalResourceImpl {
                 if (nbTry == NB_TRY)
                     break;
                 nbTry++;
+                done = processingClient.isOperationCompleted(checkOperationGUID.getId());
             }
-
-            // Get the created logbookOperation and return the response
-            final JsonNode result = logbookOperationsClient.selectOperationById(checkOperationGUID.getId(), null);
-            cleanWorkspace(checkOperationGUID.getId());
-            return Response.ok().entity(RequestResponseOK.getFromJsonNode(result)).build();            
-            
+            LOGGER.debug("End of Check in Resource: {} nbTry {}", done, nbTry);
+            if (done) {
+                // Get the created logbookOperation and return the response
+                final JsonNode result = logbookOperationsClient.selectOperationById(checkOperationGUID.getId(), null);
+                cleanWorkspace(checkOperationGUID.getId());
+                return Response.ok().entity(RequestResponseOK.getFromJsonNode(result)).build();            
+            } else {
+                ItemStatus itemStatus = processingClient.getOperationProcessStatus(checkOperationGUID.getId());
+                Status status = Status.EXPECTATION_FAILED;
+                if (itemStatus == null) {
+                    itemStatus = new ItemStatus(checkOperationGUID.getId()).setMessage("Unknown status of the workflow");
+                    status = Status.INTERNAL_SERVER_ERROR;
+                }
+                return Response.status(status).entity(new VitamError(status.name())
+                    .setDescription(JsonHandler.unprettyPrint(itemStatus)).setHttpCode(status.getStatusCode())
+                    .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())).build();
+            }
         } catch (BadRequestException | LogbookClientBadRequestException e) {            
             LOGGER.error(e);
             final Status status = Status.BAD_REQUEST;
