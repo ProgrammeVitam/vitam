@@ -192,7 +192,8 @@ documentation:
     post:
       description: |
         Permet de lancer une opération de sécurisation des journaux d'opération sur un tenant donné.
-      is: [StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader200]
+      is: [StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader200, StandardTraits.StandardHeader400,
+        , StandardTraits.StandardHeader500, StandardTraits.StandardHeader401, StandardTraits.StandardHeader200, StandardTraits.StandardHeader417]
       body:
         application/json:
           description: Body contains a Query in DSL Vitam to filter the Logbook operations

@@ -124,7 +124,7 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
                     }
                 }
                 // otherwise keep alive for 60 seconds
-                return VitamConfiguration.getDelayValidationAfterInactivity();
+                return VitamConfiguration.getMaxDelayUnusedConnection();
             }
         };
     }

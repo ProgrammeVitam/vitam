@@ -749,14 +749,14 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             final Status status = Status.fromStatusCode(response.getStatus());
 
             RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
-            if (!requestResponse.isOk()) {
+            if (requestResponse.isOk()) {
                 return requestResponse;
             } else {
                 final VitamError vitamError = new VitamError(VitamCode.ACCESS_EXTERNAL_CHECK_TRACEABILITY_OPERATION_ERROR.getItem())
                     .setMessage(VitamCode.ACCESS_EXTERNAL_CHECK_TRACEABILITY_OPERATION_ERROR.getMessage())
-                    .setState(StatusCode.KO.name())
                     .setContext("AccessExternalModule")
-                    .setDescription(VitamCode.ACCESS_EXTERNAL_CHECK_TRACEABILITY_OPERATION_ERROR.getMessage());
+                    .setDescription(VitamCode.ACCESS_EXTERNAL_CHECK_TRACEABILITY_OPERATION_ERROR.getMessage() + " Cause : " +
+                        ((VitamError) requestResponse).getDescription());
 
                 switch (status) {
                     case OK:
@@ -767,10 +767,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                                 Status.UNAUTHORIZED.getReasonPhrase());
                     default:
                         LOGGER
-                            .error("checks operation tracebility is " + status.name() + ":" + status.getReasonPhrase());
-                        return vitamError.setHttpCode(status.getStatusCode())
-                            .setDescription(VitamCode.ACCESS_EXTERNAL_CHECK_TRACEABILITY_OPERATION_ERROR.getMessage() + " Cause : " +
-                                status.getReasonPhrase());
+                            .error("checks operation tracebility is " + status.name() + ":" + vitamError.getDescription());
+                        return vitamError.setHttpCode(status.getStatusCode());
                 }
             }
 

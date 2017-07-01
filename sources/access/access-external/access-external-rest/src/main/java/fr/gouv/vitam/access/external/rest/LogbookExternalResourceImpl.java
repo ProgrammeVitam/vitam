@@ -390,8 +390,10 @@ public class LogbookExternalResourceImpl {
             Integer tenantId = ParameterHelper.getTenantParameter();
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
             RequestResponse<JsonNode> result = client.checkTraceabilityOperation(query);
-
-            return Response.status(Status.OK).entity(result).build();
+            if (result.isOk()){
+                return Response.status(Status.OK).entity(result).build();
+            }
+            return Response.status(result.getHttpCode()).entity(result).build();
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
             final Status status = Status.BAD_REQUEST;

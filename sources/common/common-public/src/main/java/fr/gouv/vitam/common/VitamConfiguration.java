@@ -98,10 +98,6 @@ public class VitamConfiguration {
      */
     private static final int MAX_CLIENT_PER_HOST = 200;
     /**
-     * Max delay to check an unused client in pool before being returned (Apache Only)
-     */
-    public static final int DELAY_VALIDATION_AFTER_INACTIVITY = 60000;
-    /**
      * Max delay to check if no buffer is available while trying to continue to read (MultipleInputStreamHandler Only)
      * 
      * Not final to allow Junit to decrease it
@@ -124,13 +120,17 @@ public class VitamConfiguration {
      */
     private static final int DELAY_GET_CLIENT = 60000;
     /**
-     * Specify the delay where connections returned to pool will be checked (Apache Only)
+     * Max delay to check if an unused client in pool is still connected (Apache Only)
      */
-    private static final int INTERVAL_DELAY_CHECK_IDLE = 50000;
+    public static final int DELAY_VALIDATION_AFTER_INACTIVITY = 60000;
     /**
-     * Specify the delay of unused connection returned in the pool before being really closed (Apache Only)
+     * Specify the delay where connections returned to pool will be checked (Apache Only) (5 minutes)
      */
-    private static final int MAX_DELAY_UNUSED_CONNECTION = 100000;
+    private static final int INTERVAL_DELAY_CHECK_IDLE = 300000;
+    /**
+     * Specify the delay of unused connection returned in the pool before being really closed (Apache Only) (5 minutes)
+     */
+    private static final int MAX_DELAY_UNUSED_CONNECTION = 300000;
     /**
      * Use a new JAX_RS client each time
      */
@@ -207,6 +207,9 @@ public class VitamConfiguration {
 
     public static final boolean ENABLE_JAXB_PARSER = true;
 
+    /**
+     * Default LANG
+     */
     public static final String DEFAULT_LANG = Locale.FRENCH.toString();
 
     static {
