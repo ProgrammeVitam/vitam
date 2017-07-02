@@ -937,7 +937,7 @@ public class DbRequest {
             .select(MetadataCollections.C_OBJECTGROUP, finalQuery, ObjectGroup.OBJECTGROUP_VITAM_PROJECTION);
         // TODO maybe retry once if in error ?
         try (final MongoCursor<ObjectGroup> cursor = iterable.iterator()) {
-            MetadataCollections.C_OBJECTGROUP.getEsClient().updateBulkOGEntriesIndexes(cursor, tenantId);;
+            MetadataCollections.C_OBJECTGROUP.getEsClient().updateBulkOGEntriesIndexes(cursor, tenantId);
         }
 
     }

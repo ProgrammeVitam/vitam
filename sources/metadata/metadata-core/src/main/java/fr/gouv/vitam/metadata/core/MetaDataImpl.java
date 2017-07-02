@@ -27,6 +27,8 @@
 package fr.gouv.vitam.metadata.core;
 
 
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ID;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OPS;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ORIGINATING_AGENCIES;
@@ -42,21 +44,26 @@ import java.util.Map;
 import java.util.Set;
 
 import org.bson.Document;
+import org.bson.conversions.Bson;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import com.mongodb.MongoWriteException;
 import com.mongodb.client.AggregateIterable;
+import com.mongodb.client.result.UpdateResult;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.parser.request.multiple.InsertParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
@@ -74,8 +81,10 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbVarNameAdapter;
+import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.core.utils.MetadataJsonResponseUtils;
@@ -100,6 +109,10 @@ public class MetaDataImpl implements MetaData {
         mongoDbAccess = MongoDbAccessMetadataFactory.create(configuration);
     }
 
+    /**
+     * 
+     * @param mongoDbAccess
+     */
     public MetaDataImpl(MongoDbAccessMetadataImpl mongoDbAccess) {
         this.mongoDbAccess = mongoDbAccess;
     }
@@ -277,6 +290,41 @@ public class MetaDataImpl implements MetaData {
             throw new MetaDataExecutionException(e);
         }
         return arrayNodeResponse;
+    }
+    
+    // TODO : handle version
+    @Override
+    public void updateObjectGroupId(JsonNode updateQuery, String objectId)
+        throws InvalidParseOperationException, MetaDataExecutionException {
+        Result result = null;
+        if (updateQuery.isNull()) {
+            throw new InvalidParseOperationException(REQUEST_IS_NULL);
+        }
+        try {
+            final RequestParserMultiple updateRequest = new UpdateParserMultiple(new MongoDbVarNameAdapter());
+            updateRequest.parse(updateQuery);
+            // Reset $roots (add or override unit_id on roots)
+            if (objectId != null && !objectId.isEmpty()) {
+                final RequestMultiple request = updateRequest.getRequest();
+                if (request != null) {
+                    LOGGER.debug("Reset $roots objectId by :" + objectId);
+                    request.resetRoots().addRoots(objectId);
+                    LOGGER.debug("DEBUG: {}", request);
+                }
+            }
+
+            // Execute DSL request
+            result = DbRequestFactoryImpl.getInstance().create().execRequest(updateRequest, result);
+            if (result.getNbResult() == 0) {
+                throw new MetaDataNotFoundException("ObjectGroup not found: " + objectId);
+            }
+        } catch (final MetaDataExecutionException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            throw e;
+        } catch (final InstantiationException | MetaDataAlreadyExistException | MetaDataNotFoundException | IllegalAccessException e) {
+            LOGGER.error(e);
+            throw new MetaDataExecutionException(e);
+        }
     }
 
     // TODO : in order to deal with selection (update from the root) in the query, the code should be modified

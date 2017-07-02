@@ -2415,25 +2415,32 @@ public class ExtractSedaActionHandler extends ActionHandler {
      */
     private ObjectNode createStorageFieldInObjectGroup() {
         ObjectNode storage = JsonHandler.createObjectNode();
-        try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-            JsonNode storageInformation = storageClient.getStorageInformation(DEFAULT_STRATEGY);
-            if (storageInformation != null) {
-                ArrayNode capacities = (ArrayNode) storageInformation.get("capacities");
-                ArrayNode offersIds = JsonHandler.createArrayNode();
-                Integer nbc = null;
-                for (JsonNode capacity : capacities) {
-                    offersIds.add(capacity.get("offerId").asText());
-                    JsonNode nbcNode = capacity.get("nbc");
-                    if (nbcNode != null) {
-                        nbc = nbcNode.asInt();
+        // Was calling Storage for nothing since information is not known yet
+        storage.put(SedaConstants.TAG_NB, 0);
+        storage.set(SedaConstants.OFFER_IDS, JsonHandler.createArrayNode());
+        storage.put(SedaConstants.STRATEGY_ID, DEFAULT_STRATEGY);
+        // FIXME: to be removed
+        if (false) {
+            try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
+                JsonNode storageInformation = storageClient.getStorageInformation(DEFAULT_STRATEGY);
+                if (storageInformation != null) {
+                    ArrayNode capacities = (ArrayNode) storageInformation.get("capacities");
+                    ArrayNode offersIds = JsonHandler.createArrayNode();
+                    Integer nbc = null;
+                    for (JsonNode capacity : capacities) {
+                        offersIds.add(capacity.get("offerId").asText());
+                        JsonNode nbcNode = capacity.get("nbc");
+                        if (nbcNode != null) {
+                            nbc = nbcNode.asInt();
+                        }
                     }
+                    storage.put(SedaConstants.TAG_NB, nbc);
+                    storage.set(SedaConstants.OFFER_IDS, offersIds);
+                    storage.put(SedaConstants.STRATEGY_ID, DEFAULT_STRATEGY);
                 }
-                storage.put(SedaConstants.TAG_NB, nbc);
-                storage.set(SedaConstants.OFFER_IDS, offersIds);
-                storage.put(SedaConstants.STRATEGY_ID, DEFAULT_STRATEGY);
+            } catch (StorageNotFoundClientException | StorageServerClientException e) {
+                LOGGER.error(e);
             }
-        } catch (StorageNotFoundClientException | StorageServerClientException e) {
-            LOGGER.error(e);
         }
         return storage;
     }

@@ -442,7 +442,7 @@ public class InsertParserMultipleTest {
         assertEquals(LocalDateUtil.getDate(value.get(Query.DATE).asText()), GlobalDatasParser.getValue(value));
     }
 
-    @Test(expected = InvalidParseOperationException.class)
+    @Test//Empty data seems allowed (expected = InvalidParseOperationException.class)
     public void shouldRaiseException_GlobalDatasParserNull() throws InvalidParseOperationException {
         final InsertParserMultiple request = new InsertParserMultiple();
         final String s =

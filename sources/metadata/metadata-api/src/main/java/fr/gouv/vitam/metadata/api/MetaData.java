@@ -63,6 +63,10 @@ public interface MetaData {
         MetaDataAlreadyExistException, MetaDataExecutionException, MetaDataDocumentSizeException;
 
 
+    /**
+     * @param operationId
+     * @return the list of documents
+     */
     List<Document> selectAccessionRegisterOnObjectGroupByOperationId(String operationId);
 
     /**
@@ -164,6 +168,18 @@ public interface MetaData {
     /**
      * find the number of archive unit per originating agency for a operationId
      * @param operationId operation id
+     * @return the list of documents
      */
     List<Document> selectAccessionRegisterOnUnitByOperationId(String operationId);
+
+
+    /**
+     * 
+     * @param updateRequest
+     * @param objectId
+     * @throws InvalidParseOperationException
+     * @throws MetaDataExecutionException 
+     */
+    void updateObjectGroupId(JsonNode updateRequest, String objectId)
+        throws InvalidParseOperationException, MetaDataExecutionException;
 }

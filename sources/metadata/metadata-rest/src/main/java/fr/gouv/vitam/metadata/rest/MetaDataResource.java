@@ -46,7 +46,7 @@ import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.google.common.collect.Lists;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -64,7 +64,6 @@ import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
-import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 
 /**
@@ -456,6 +455,60 @@ public class MetaDataResource extends ApplicationStatusResource {
                 .build();
         }
         return selectObjectGroupById(selectRequest, objectGroupId);
+    }
+
+    /**
+     * Get ObjectGroup
+     *
+     * @param updateRequest the query to update the objectgroup
+     * @param objectGroupId the objectGroup ID to get
+     * @return a response with the select query and the required object group (can be empty)
+     */
+    @Path("objectgroups/{id_og}")
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateObjectGroupById(JsonNode updateRequest, @PathParam("id_og") String objectGroupId) {
+        Status status;
+        try {
+            ParametersChecker.checkParameter("UpdateQuery required", updateRequest);
+            ParametersChecker.checkParameter("ObjectGroupId required", objectGroupId);
+        } catch (final IllegalArgumentException exc) {
+            LOGGER.error(exc);
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(Status.PRECONDITION_FAILED).entity(
+                new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext("METADATA")
+                    .setState(CODE_VITAM)
+                    .setMessage(Status.PRECONDITION_FAILED.getReasonPhrase())
+                    .setDescription(Status.PRECONDITION_FAILED.getReasonPhrase()))
+                .build();
+        }
+        try {
+            metaDataImpl.updateObjectGroupId(updateRequest, objectGroupId);
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext("METADATA")
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase()))
+                .build();
+        } catch (MetaDataExecutionException e) {
+            LOGGER.error(e);
+            status = Status.EXPECTATION_FAILED;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext("METADATA")
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase()))
+                .build();
+        }
+        return Response.status(Status.CREATED).entity(new RequestResponseOK().addResult(objectGroupId)).build();
+
     }
 
     /**

@@ -31,16 +31,22 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
@@ -68,13 +74,14 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
         checkMandatoryParameters(params);
         handlerIO = actionDefinition;
         final ItemStatus itemStatus = new ItemStatus(STORING_OBJECT_TASK_ID);
-        try {
+        try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
             checkMandatoryIOParameter(actionDefinition);
 
             // get list of object group's objects
-            final Map<String, String> objectGuids = getMapOfObjectsIdsAndUris(params);
+            final MapOfObjects mapOfObjects = getMapOfObjectsIdsAndUris(params);
             // get list of object uris
-            for (final Map.Entry<String, String> objectGuid : objectGuids.entrySet()) {
+            LOGGER.debug("Pre OG: {}", JsonHandler.prettyPrint(mapOfObjects.jsonOG));
+            for (final Map.Entry<String, String> objectGuid : mapOfObjects.binaryObjectsToStore.entrySet()) {
                 // Execute action on the object
 
                 // store binary data object
@@ -85,10 +92,31 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
                 // set type and object name
                 description.setType(StorageCollectionType.OBJECTS).setObjectName(objectGuid.getKey());
 
-                storeObject(description, itemStatus);
+                StoredInfoResult result = storeObject(description, itemStatus);
+
+                if (result != null) {
+                    try {
+                        storeStorageInfo((ObjectNode) mapOfObjects.objectJsonMap.get(objectGuid.getKey()), result, false);
+                    } catch (InvalidCreateOperationException e) {
+                        LOGGER.error(e);
+                    }
+                }
+                LOGGER.debug("Final OBJ: {}", mapOfObjects.objectJsonMap.get(objectGuid.getKey()));
+
                 // subtask
                 itemStatus.setSubTaskStatus(objectGuid.getKey(), itemStatus);
 
+            }
+            // store OG to workspace
+            ((ObjectNode) mapOfObjects.jsonOG).remove(SedaConstants.PREFIX_WORK);
+            LOGGER.info("Pre Final OG: {}", JsonHandler.prettyPrint(mapOfObjects.jsonOG));
+            try {
+                handlerIO.transferJsonToWorkspace(StorageCollectionType.OBJECTGROUPS.getCollectionName(),
+                    params.getObjectName(),
+                    mapOfObjects.jsonOG, false);
+            } catch (ProcessingException e) {
+                LOGGER.error(params.getObjectName(), e);
+                throw e;
             }
 
         } catch (final ProcessingException e) {
@@ -102,46 +130,62 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
         return new ItemStatus(STORING_OBJECT_TASK_ID).setItemsStatus(STORING_OBJECT_TASK_ID, itemStatus);
     }
 
+    private static class MapOfObjects {
+        private JsonNode jsonOG;
+        private Map<String, JsonNode> objectJsonMap;
+        private Map<String, String> binaryObjectsToStore;
+    }
 
     /**
      * Get the list of objects linked to the current object group
      *
      * @param params worker parameters
-     * @return the list of object guid
+     * @return the list of object guid and corresponding Json
      * @throws ProcessingException throws when error occurs while retrieving the object group file from workspace
      */
-    private Map<String, String> getMapOfObjectsIdsAndUris(WorkerParameters params) throws ProcessingException {
-        final Map<String, String> binaryObjectsToStore = new HashMap<>();
+    private MapOfObjects getMapOfObjectsIdsAndUris(WorkerParameters params) throws ProcessingException {
+        final MapOfObjects mapOfObjects = new MapOfObjects();
+        mapOfObjects.binaryObjectsToStore = new HashMap<>();
+        mapOfObjects.objectJsonMap = new HashMap<>();
         final String containerId = params.getContainerName();
         final String objectName = params.getObjectName();
         ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
         ParametersChecker.checkParameter("ObjectName id is a mandatory parameter", objectName);
-        final JsonNode jsonOG;
         // Get objectGroup objects ids
-        jsonOG = handlerIO.getJsonFromWorkspace(
+        mapOfObjects.jsonOG = handlerIO.getJsonFromWorkspace(
             IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + objectName);
         // Filter on objectGroup objects ids to retrieve only binary objects
         // informations linked to the ObjectGroup
-        final JsonNode work = jsonOG.get(SedaConstants.PREFIX_WORK);
+        final JsonNode original = mapOfObjects.jsonOG.get(SedaConstants.PREFIX_QUALIFIERS);
+        final JsonNode work = mapOfObjects.jsonOG.get(SedaConstants.PREFIX_WORK);
         final JsonNode qualifiers = work.get(SedaConstants.PREFIX_QUALIFIERS);
         if (qualifiers == null) {
-            return binaryObjectsToStore;
+            return mapOfObjects;
         }
 
+        final List<JsonNode> originalVersions = original.findValues(SedaConstants.TAG_VERSIONS);
         final List<JsonNode> versions = qualifiers.findValues(SedaConstants.TAG_VERSIONS);
         if (versions == null || versions.isEmpty()) {
-            return binaryObjectsToStore;
+            return mapOfObjects;
         }
         for (final JsonNode version : versions) {
             for (final JsonNode binaryObject : version) {
                 if (binaryObject.get(SedaConstants.TAG_PHYSICAL_ID) == null) {
-                    binaryObjectsToStore.put(binaryObject.get(SedaConstants.PREFIX_ID).asText(),
+                    String id = binaryObject.get(SedaConstants.PREFIX_ID).asText();
+                    mapOfObjects.binaryObjectsToStore.put(id,
                         binaryObject.get(SedaConstants.TAG_URI).asText());
+                    for (final JsonNode version2 : originalVersions) {
+                        for (final JsonNode binaryObject2 : version) {
+                            if (binaryObject.get(SedaConstants.TAG_PHYSICAL_ID) == null
+                                && binaryObject.get(SedaConstants.PREFIX_ID).asText().equals(id)) {
+                                mapOfObjects.objectJsonMap.put(id, binaryObject2);
+                            }
+                        }
+                    }
                 }
             }
         }
-
-        return binaryObjectsToStore;
+        return mapOfObjects;
     }
 
     @Override

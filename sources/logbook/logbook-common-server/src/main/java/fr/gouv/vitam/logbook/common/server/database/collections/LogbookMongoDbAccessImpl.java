@@ -66,6 +66,9 @@ import com.mongodb.client.ListIndexesIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoIterable;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.FindOneAndUpdateOptions;
+import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
@@ -91,7 +94,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.logbook.common.parameters.LogbookEvDetDataType;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -721,15 +723,16 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             // Remove _id and events fields
             document.remove(LogbookDocument.EVENTS);
             document.remove(LogbookDocument.ID);
-            final UpdateResult result = collection.getCollection().updateOne(
+            final VitamDocument<?> result = (VitamDocument<?>) collection.getCollection().findOneAndUpdate(
                 eq(LogbookDocument.ID, mainLogbookDocumentId),
-                Updates.push(LogbookDocument.EVENTS, document));
-            if (result.getModifiedCount() != 1) {
+                Updates.push(LogbookDocument.EVENTS, document),
+                new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER));
+            if (result == null) {
                 throw new LogbookNotFoundException(UPDATE_NOT_FOUND_ITEM + mainLogbookDocumentId);
             }
             // FIXME : to be refactor when other collection are indexed in ES
             if (LogbookCollections.OPERATION.equals(collection)) {
-                updateIntoElasticsearch(collection, mainLogbookDocumentId);
+                updateIntoElasticsearch(collection, result);
             }
 
         } catch (final MongoException e) {
@@ -942,28 +945,29 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         firstEvent.remove(LogbookDocument.EVENTS);
         firstEvent.remove(LogbookDocument.ID);
         events.add(firstEvent);
-
+        List<Bson> listMaster = new ArrayList<>();
         for (int i = 1; i < items.length; i++) {
             // Remove _id and events fields
             final VitamDocument currentEvent = getDocument(items[i]);
             currentEvent.remove(LogbookDocument.EVENTS);
             currentEvent.remove(LogbookDocument.ID);
 
-            checkCopyToMaster(collection, items[i]);
+            listMaster.addAll(checkCopyToMaster(collection, items[i]));
 
             events.add(currentEvent);
         }
-
+        listMaster.add(Updates.pushEach(LogbookDocument.EVENTS, events));
         try {
-            final UpdateResult result = collection.getCollection().updateOne(
+            final VitamDocument<?> result = (VitamDocument<?>) collection.getCollection().findOneAndUpdate(
                 eq(LogbookDocument.ID, mainLogbookDocumentId),
-                Updates.pushEach(LogbookDocument.EVENTS, events));
-            if (result.getModifiedCount() != 1) {
+                Updates.combine(listMaster),
+                new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER));
+            if (result == null) {
                 throw new LogbookNotFoundException(UPDATE_NOT_FOUND_ITEM + mainLogbookDocumentId);
             }
             // FIXME : to be refactor when other collection are indexed in ES
             if (LogbookCollections.OPERATION.equals(collection)) {
-                updateIntoElasticsearch(collection, mainLogbookDocumentId);
+                updateIntoElasticsearch(collection, result);
             }
         } catch (final MongoException e) {
             switch (getErrorCategory(e)) {
@@ -1002,7 +1006,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     @Override
     public void deleteCollection(LogbookCollections collection) throws DatabaseException {
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-        final long count = collection.getCollection().count();
+        final long count = collection.getCollection().count(Filters.eq(VitamDocument.TENANT_ID, tenantId));
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(collection.getName() + " count before: " + count);
         }
@@ -1373,20 +1377,15 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      * Update a document in ES by loading its value in mongodb and saving it in it's corresponding ES index.
      * 
      * @param collection the collection
-     * @param id the id of the document to update
+     * @param existingDocument the document to update
      * @throws LogbookExecutionException if the ES update was in error
      * @throws LogbookNotFoundException if the document was not found in mongodb
      */
-    private void updateIntoElasticsearch(LogbookCollections collection, String id)
+    private void updateIntoElasticsearch(LogbookCollections collection, VitamDocument<?> existingDocument)
         throws LogbookExecutionException, LogbookNotFoundException {
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         LOGGER.debug("updateIntoElasticsearch");
-        VitamDocument existingDocument =
-            (VitamDocument) collection.getCollection().find(eq(VitamDocument.ID, id)).first();
-        if (existingDocument == null) {
-            throw new LogbookNotFoundException("Logbook item not found");
-        }
-        existingDocument.remove(VitamDocument.ID);
+        String id = (String) existingDocument.remove(VitamDocument.ID);
         tranformEvDetDataForElastic(existingDocument);
         final String mongoJson = existingDocument.toJson(new JsonWriterSettings(JsonMode.STRICT));
         existingDocument.clear();
@@ -1402,10 +1401,10 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      * 
      * @param vitamDocument logbook vitam document
      */
-    private void tranformEvDetDataForElastic(VitamDocument vitamDocument) {
+    private void tranformEvDetDataForElastic(VitamDocument<?> vitamDocument) {
         if (vitamDocument.get(LogbookMongoDbName.eventDetailData.getDbname()) != null) {
             String evDetDataString = (String) vitamDocument.get(LogbookMongoDbName.eventDetailData.getDbname());
-            LOGGER.info(evDetDataString);
+            LOGGER.debug(evDetDataString);
             try {
                 JsonNode evDetData = JsonHandler.getFromString(evDetDataString);
                 vitamDocument.remove(LogbookMongoDbName.eventDetailData.getDbname());
@@ -1431,78 +1430,58 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     }
 
-    private boolean shouldCopyToMaster(JsonNode evDetDataJson) {
-        if (evDetDataJson.get("evDetDataType") != null) {
-            String evDetDataType = evDetDataJson.get("evDetDataType").asText();
-            return LogbookEvDetDataType.MASTER.equals(LogbookEvDetDataType.valueOf(evDetDataType));
-        }
-        return false;
-    }
-
-    private void checkCopyToMaster(LogbookCollections collection, LogbookParameters item)
+    private List<Bson> checkCopyToMaster(LogbookCollections collection, LogbookParameters item)
         throws LogbookNotFoundException {
-        String evDetData = item.getParameterValue(LogbookParameterName.eventDetailData);
-        boolean copyToMaster = false;
-        if (ParametersChecker.isNotEmpty(evDetData)) {
-            try {
-                copyToMaster = shouldCopyToMaster(JsonHandler.getFromString(evDetData));
-            } catch (InvalidParseOperationException e) {
-                // Do not throw this error
-                LOGGER.warn("evDetData is not parsable as a json. Analyse cancelled: " + evDetData);
-            }
-        }
         final String mainLogbookDocumentId = getDocumentForUpdate(item).getId();
-
+        Document oldValue = (Document) collection.getCollection().
+            find(eq(LogbookDocument.ID, mainLogbookDocumentId)).first();
         String masterData = item.getParameterValue(LogbookParameterName.masterData);
-
-        try {
-            JsonNode master = JsonHandler.getFromString(masterData);
-            Iterator<String> fieldNames = master.fieldNames();
-            List<Bson> updates = new ArrayList<Bson>();
-            while (fieldNames.hasNext()) {
-                String fieldName = fieldNames.next();
-                String fieldValue = master.get(fieldName).asText();
-                String mongoDbName =
-                    LogbookMongoDbName.getLogbookMongoDbName(LogbookParameterName.valueOf(fieldName)).getDbname();
-                ObjectNode oldVal = null;
-                if (mongoDbName.equals(LogbookMongoDbName.eventDetailData.getDbname())) {
-                    Document oldValue = (Document) collection.getCollection()
-                        .find(eq(LogbookDocument.ID, mainLogbookDocumentId)).first();
-                    if (oldValue.get(mongoDbName) != null) {
-                        String old = oldValue.get(mongoDbName).toString();
-                        oldVal = (ObjectNode) JsonHandler.getFromString(old);
-                    } else {
-                        oldVal = (ObjectNode) JsonHandler.getFromString("{}");
+        List<Bson> updates = new ArrayList<Bson>();
+        if (ParametersChecker.isNotEmpty(masterData)) {
+            try {
+                JsonNode master = JsonHandler.getFromString(masterData);
+                ObjectNode oldEvDetData = (ObjectNode) JsonHandler.getFromString("{}");
+                Object evdevObj = oldValue.get(LogbookMongoDbName.eventDetailData.getDbname());
+                if (evdevObj != null) {
+                    String old = JsonHandler.unprettyPrint(evdevObj);
+                    try {
+                        JsonNode node = JsonHandler.getFromString(old);
+                        if (node instanceof ObjectNode) {
+                            oldEvDetData = (ObjectNode) node;
+                        } else {
+                            LOGGER.warn("Bad evDevData : {}", old);
+                        }
+                    } catch (InvalidParseOperationException e) {
+                        LOGGER.warn("Bad evDevData : {}", old, e);
                     }
-                    ObjectNode newNode = JsonHandler.createObjectNode();
-                    newNode.setAll(oldVal);
-                    newNode.setAll((ObjectNode) master.get(fieldName));
-                    fieldValue = JsonHandler.writeAsString(newNode);
                 }
-                updates.add(Updates.set(mongoDbName, fieldValue));
+                boolean updateEvDevData = false;
+                Iterator<String> fieldNames = master.fieldNames();
+                while (fieldNames.hasNext()){
+                    String fieldName = fieldNames.next();
+                    String fieldValue = master.get(fieldName).asText();
+                    String mongoDbName = LogbookMongoDbName.getLogbookMongoDbName(LogbookParameterName.valueOf(fieldName)).getDbname();
+                    ObjectNode oldVal = null;
+                    if (mongoDbName == LogbookMongoDbName.eventDetailData.getDbname()) {
+                        JsonNode masterNode = ((ObjectNode) master).get(fieldName);
+                        if (masterNode != null) {
+                            String masterField = masterNode.asText();
+                            oldEvDetData.setAll((ObjectNode) JsonHandler.getFromString(masterField));
+                            updateEvDevData = true;
+                        }
+                    } else {
+                        updates.add(Updates.set(mongoDbName, fieldValue));
+                    }
+                }
+                if (updateEvDevData) {
+                    String fieldValue = JsonHandler.writeAsString(updateEvDevData);
+                    updates.add(Updates.set(LogbookMongoDbName.eventDetailData.getDbname(), fieldValue));
+                }
+            } catch (InvalidParseOperationException e) {
+                LOGGER.warn("masterData is not parsable as a json. Analyse cancelled: " + masterData, e);
             }
-            if (!updates.isEmpty()) {
-                collection.getCollection().updateOne(
-                    eq(LogbookDocument.ID, mainLogbookDocumentId), Updates.combine(updates));
-            }
-        } catch (InvalidParseOperationException e) {
-            LOGGER.warn("masterData is not parsable as a json. Analyse cancelled: " + masterData);
         }
-
-
-        if (copyToMaster) {
-            LOGGER.debug("Copy evDetData to master: " + evDetData);
-            final UpdateResult updateResult = collection.getCollection().updateOne(
-                eq(LogbookDocument.ID, mainLogbookDocumentId),
-                Updates.set(LogbookDocument.EVENT_DETAILS, evDetData));
-
-            if (updateResult.getModifiedCount() != 1) {
-                LOGGER.error("Error while update document " + mainLogbookDocumentId + " With values [" +
-                    LogbookDocument.EVENT_DETAILS + ", " + evDetData + "]");
-                throw new LogbookNotFoundException(UPDATE_NOT_FOUND_ITEM + mainLogbookDocumentId);
-            }
-        }
-
+        return updates;
     }
 
 }

@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.database.builder.query.action;
 
 import java.util.Date;
+import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -162,6 +163,26 @@ public class Action {
         }
         currentObject = ((ObjectNode) currentObject).putObject(action.exactToken());
         ((ObjectNode) currentObject).put(variableName.trim(), value);
+    }
+
+    protected final void createActionVariableValue(final UPDATEACTION action,
+        final String variableName, final List<?> value)
+        throws InvalidCreateOperationException {
+        if (variableName == null || variableName.trim().isEmpty()) {
+            throw new InvalidCreateOperationException(
+                ACTION2 + action + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
+        }
+        try {
+            GlobalDatas.sanityParameterCheck(variableName);
+            GlobalDatas.sanityValueCheck(value);
+        } catch (final InvalidParseOperationException e) {
+            throw new InvalidCreateOperationException(e);
+        }
+        currentObject = ((ObjectNode) currentObject).putObject(action.exactToken());
+        
+        ArrayNode array = JsonHandler.createArrayNode();
+        GlobalDatas.setArrayValueFromList(array, value);
+        ((ObjectNode) currentObject).set(variableName.trim(), array);
     }
 
     protected final void createActionVariableValue(final UPDATEACTION action,

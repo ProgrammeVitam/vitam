@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.security.DigestInputStream;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -228,7 +229,7 @@ public class StorageDistributionImpl implements StorageDistribution {
                 //  e.printStackTrace();
             }
             // TODO P1 Handle Status result if different for offers
-            return buildStoreDataResponse(objectId, category, datas.getGlobalOfferResult());
+            return buildStoreDataResponse(objectId, category, strategyId, datas.getGlobalOfferResult());
         }
         throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
     }
@@ -561,7 +562,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         }
     }
 
-    private StoredInfoResult buildStoreDataResponse(String objectId, DataCategory category,
+    private StoredInfoResult buildStoreDataResponse(String objectId, DataCategory category, String strategy,
         Map<String, Status> offerResults) throws StorageTechnicalException, StorageAlreadyExistsException {
 
         final String offerIds = String.join(", ", offerResults.keySet());
@@ -627,6 +628,10 @@ public class StorageDistributionImpl implements StorageDistribution {
         result.setLastAccessTime(LocalDateUtil.getString(now));
         result.setLastCheckedTime(LocalDateUtil.getString(now));
         result.setLastModifiedTime(LocalDateUtil.getString(now));
+        result.setNbCopy(offerResults.size());
+        result.setStrategy(strategy);
+        result.setOfferIds(Arrays.asList(offerResults.keySet().toArray(new String[0])));
+        LOGGER.warn("DEBUG result: {}", result);
         return result;
     }
 

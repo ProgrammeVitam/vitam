@@ -35,7 +35,6 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -63,6 +62,9 @@ public class MongoDbInMemory {
 
     private JsonNode updatedDocument;
 
+    /**
+     * @param originalDocument
+     */
     public MongoDbInMemory(JsonNode originalDocument) {
         this.originalDocument = originalDocument;
         updatedDocument = originalDocument.deepCopy();
@@ -184,7 +186,7 @@ public class MongoDbInMemory {
         final Iterator<Map.Entry<String, JsonNode>> iterator = content.fields();
         while (iterator.hasNext()) {
             final Map.Entry<String, JsonNode> element = iterator.next();
-            JsonHandler.setNodeInPath((ObjectNode) updatedDocument, element.getKey(), element.getValue(), false);
+            JsonHandler.setNodeInPath((ObjectNode) updatedDocument, element.getKey(), element.getValue(), true);
         }
     }
 

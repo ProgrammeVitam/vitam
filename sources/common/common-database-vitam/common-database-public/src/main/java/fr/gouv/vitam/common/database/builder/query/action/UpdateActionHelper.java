@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.database.builder.query.action;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -407,6 +408,18 @@ public class UpdateActionHelper {
      * @throws InvalidCreateOperationException when query is invalid
      */
     public static final SetAction set(final String variableName, final String value)
+        throws InvalidCreateOperationException {
+        return new SetAction(variableName, value);
+    }
+
+    /**
+     *
+     * @param variableName key name
+     * @param value key value as List of values
+     * @return a SetAction
+     * @throws InvalidCreateOperationException when query is invalid
+     */
+    public static final SetAction set(final String variableName, final List<?> value)
         throws InvalidCreateOperationException {
         return new SetAction(variableName, value);
     }

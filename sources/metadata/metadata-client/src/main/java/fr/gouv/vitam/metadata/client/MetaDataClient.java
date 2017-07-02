@@ -29,9 +29,10 @@ package fr.gouv.vitam.metadata.client;
 
 import java.util.List;
 
+import javax.ws.rs.PathParam;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
@@ -145,9 +146,35 @@ public interface MetaDataClient extends BasicClient {
         MetaDataNotFoundException, MetaDataAlreadyExistException, MetaDataDocumentSizeException,
         MetaDataClientServerException;
 
+    /**
+     * Update ObjectGroup 
+     * @param updateQuery
+     * @param objectGroupId
+     * @throws InvalidParseOperationException
+     * @throws MetaDataNotFoundException
+     * @throws MetaDataAlreadyExistException
+     * @throws MetaDataDocumentSizeException
+     * @throws MetaDataClientServerException
+     * @throws MetaDataExecutionException 
+     */
+    void updateObjectGroupById(JsonNode updateQuery, @PathParam("id_og") String objectGroupId) 
+        throws InvalidParseOperationException, MetaDataClientServerException, MetaDataExecutionException;
+    
+    /**
+     * 
+     * @param operationId
+     * @return the list of UnitsPerOriginatingAgency
+     * @throws MetaDataClientServerException
+     */
     List<UnitPerOriginatingAgency> selectAccessionRegisterOnUnitByOperationId(String operationId)
         throws MetaDataClientServerException;
 
+    /**
+     * 
+     * @param operationId
+     * @return the list of ObjectGroupPerOriginatingAgency
+     * @throws MetaDataClientServerException
+     */
     List<ObjectGroupPerOriginatingAgency> selectAccessionRegisterOnObjectByOperationId(String operationId)
         throws MetaDataClientServerException;
 }

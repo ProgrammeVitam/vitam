@@ -52,6 +52,8 @@ import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -260,6 +262,40 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         } finally {
             consumeAnyEntityAndClose(response);
         }
+    }
+
+
+    @Override
+    public void updateObjectGroupById(JsonNode queryUpdate, String objectGroupId)
+        throws InvalidParseOperationException, MetaDataClientServerException, MetaDataExecutionException {
+        try {
+            ParametersChecker.checkParameter(ErrorMessage.UPDATE_UNITS_QUERY_NULL.getMessage(), queryUpdate, objectGroupId);
+        } catch (final IllegalArgumentException e) {
+            throw new InvalidParseOperationException(e);
+        }
+        if (Strings.isNullOrEmpty(objectGroupId)) {
+            throw new InvalidParseOperationException("unitId may not be empty");
+        }
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.PUT, "/objectgroups/" + objectGroupId, null, queryUpdate,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+                throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
+            } else if (response.getStatus() == Response.Status.EXPECTATION_FAILED.getStatusCode()) {
+                throw new MetaDataExecutionException(Status.EXPECTATION_FAILED.getReasonPhrase());
+            } else if (response.getStatus() == Response.Status.BAD_REQUEST.getStatusCode()) {
+                throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
+            } else if (response.getStatus() != Status.CREATED.getStatusCode()) {
+                throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
+            }
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR, e);
+            throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+
     }
 
     @Override

@@ -26,9 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.builder.request.configuration;
 
+import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -111,6 +114,19 @@ public class GlobalDatas {
     public static final void sanityValueCheck(String arg)
         throws InvalidParseOperationException {
         sanityCheck(arg, limitValue);
+    }
+
+    /**
+     * Check the List of arguments if conforms to sanity check
+     *
+     * @param arg argument as List
+     * @throws InvalidParseOperationException if the sanity check is in error
+     */
+    public static final void sanityValueCheck(List<?> arg)
+        throws InvalidParseOperationException {
+        for (Object value : arg) {
+            sanityCheck(value.toString(), limitValue);
+        }
     }
 
     /**
@@ -226,5 +242,36 @@ public class GlobalDatas {
      */
     public static void setLimitParameter(int limitParameter) {
         GlobalDatas.limitParameter = limitParameter;
+    }
+
+    /**
+     * Helper to set Value from a List into an ArrayNode
+     * @param array
+     * @param list
+     */
+    public static void setArrayValueFromList(ArrayNode array, List<?> list) {
+        for (Object object : list) {
+            if (object instanceof String) {
+                array.add((String) object);
+            } else if (object instanceof Long) {
+                array.add((Long) object);
+            } else if (object instanceof Float) {
+                array.add((Float) object);
+            } else if (object instanceof Double) {
+                array.add((Double) object);
+            } else if (object instanceof Long) {
+                array.add((Long) object);
+            } else if (object instanceof Boolean) {
+                array.add((Boolean) object);
+            } else if (object instanceof Integer) {
+                array.add((Integer) object);
+            } else if (object instanceof BigDecimal) {
+                array.add((BigDecimal) object);
+            } else if (object instanceof Date) {
+                array.add(JsonHandler.createObjectNode().put(Query.DATE, ((Date) object).toInstant().toString()));
+            } else {
+                array.add(object.toString());
+            }
+        }
     }
 }
