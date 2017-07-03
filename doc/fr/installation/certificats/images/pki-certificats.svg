@@ -16,7 +16,7 @@
    version="1.1"
    inkscape:version="0.91 r13725"
    sodipodi:docname="pki-certificats.svg"
-   inkscape:export-filename="/Users/kw/VITAM/git/vitam/doc/fr/installation/rpm/images/pki-certificats.png"
+   inkscape:export-filename="/Users/kw/VITAM/git/vitam/doc/fr/installation/certificats/images/pki-certificats.png"
    inkscape:export-xdpi="200"
    inkscape:export-ydpi="200">
   <defs
@@ -90,7 +90,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.4"
-     inkscape:cx="269.79161"
+     inkscape:cx="315.86304"
      inkscape:cy="112.09448"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
@@ -102,8 +102,8 @@
      inkscape:snap-nodes="true"
      inkscape:window-width="1638"
      inkscape:window-height="1006"
-     inkscape:window-x="1784"
-     inkscape:window-y="38"
+     inkscape:window-x="46"
+     inkscape:window-y="0"
      inkscape:window-maximized="0"
      fit-margin-top="0"
      fit-margin-left="0"
@@ -176,7 +176,7 @@
            x="120"
            sodipodi:role="line"
            id="tspan4367-8-9"
-           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Sans;-inkscape-font-specification:'Sans Bold'">PKI externe (partenaire)</tspan></text>
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Sans;-inkscape-font-specification:'Sans Bold'">PKI pour tests (VITAM)</tspan></text>
     </g>
     <g
        id="g4151-4-6-7"
@@ -244,7 +244,7 @@
            height="100"
            x="180"
            y="212.3622" /></flowRegion><flowPara
-         id="flowPara4283"></flowPara></flowRoot>    <g
+         id="flowPara4283" /></flowRoot>    <g
        id="g4151-4-6"
        transform="translate(150,130.00001)">
       <rect
@@ -286,7 +286,7 @@
          sodipodi:role="line"
          id="tspan4365"
          x="313.18359"
-         y="262.36221"> </tspan></text>
+         y="262.36221" /></text>
     <path
        style="fill:#e5e5e5;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="m 485,182.3622 0,-29.99999 10,-10.00001 20,0 0,40 z"

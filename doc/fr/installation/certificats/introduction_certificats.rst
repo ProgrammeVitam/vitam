@@ -14,7 +14,7 @@ Il est possible de consulter les ciphers supportés par Vitam dans deux fichiers
 
 .. warning:: Les 2 balises concernant les ciphers sur le fichier jetty-config.xml.j2 sont complémentaires car elles comportent des wildcards (*) ; en cas de conflit, l'exclusion est prioritaire.
 
-.. seealso:: Le DAT (chapitre sécurité) comporte des indications sur les ciphers autorisés.
+.. seealso:: Ces fichiers correspondent à la configuration recommandée ; celle-ci est décrite plus en détail dans le DAT (chapitre sécurité).
 
 Vue d'ensemble de la gestion des certificats
 --------------------------------------------
