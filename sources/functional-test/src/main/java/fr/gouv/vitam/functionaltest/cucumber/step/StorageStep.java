@@ -28,6 +28,7 @@ package fr.gouv.vitam.functionaltest.cucumber.step;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
+
 import cucumber.api.DataTable;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
@@ -52,9 +53,11 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import javax.ws.rs.core.Response;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -206,9 +209,7 @@ public class StorageStep {
         throws StorageServerClientException, StorageNotFoundClientException, StorageAlreadyExistsClientException,
         ContentAddressableStorageServerException, ContentAddressableStorageAlreadyExistException,
         ContentAddressableStorageNotFoundException, IOException {
-        try (
-            InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)
-        ) {
+        try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
             WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
             workspaceClient.createContainer(guid);
             workspaceClient.putObject(guid, uri, inputStream);
@@ -225,8 +226,7 @@ public class StorageStep {
     private void store_from_workSpace(String uri, ObjectDescription description, String strategy)
         throws StorageNotFoundClientException, StorageServerClientException, StorageAlreadyExistsClientException {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-            info = storageClient.storeFileFromWorkspace(strategy,
-                StorageCollectionType.OBJECTS, uri, description);
+            info = storageClient.storeFileFromWorkspace(strategy, StorageCollectionType.OBJECTS, uri, description);
         }
     }
 }

@@ -74,7 +74,7 @@ public abstract class RequestResponse<T> {
      * @return this
      */
     @JsonSetter("httpCode")
-    public RequestResponse setHttpCode(int httpCode) {
+    public RequestResponse<T> setHttpCode(int httpCode) {
         this.httpCode = httpCode;
         return this;
     }
