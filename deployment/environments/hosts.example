@@ -268,8 +268,3 @@ vitam_tenant_ids=[0,1,2]
 # Pour les Tests de Non-Regression (en git LFS), si URL et branche définies, récupération des jeux de tests
 vitam_swift_uid=
 
-# Git LFS for TNR
-vitam_tests_gitrepo_protocol=https
-vitam_tests_gitrepo_baseurl=dev.programmevitam.fr
-vitam_tests_gitrepo_url={{vitam_tests_gitrepo_protocol}}://{{vitam_tests_gitrepo_baseurl}}/gitlab/vitam/vitam-itests.git
-vitam_tests_branch=master
