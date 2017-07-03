@@ -46,6 +46,7 @@ angular.module('archive.unit')
     'DESCIPTION_FIELD':'Description',
     'ID_KEY': '_id',
     'MGT_KEY': '_mgt',
+    'STORAGE_KEY': '#storage',
     'NBC_KEY': '_nbc',
     'TECH_KEY': '_',
     'ID_LABEL': 'ID',
@@ -428,7 +429,7 @@ angular.module('archive.unit')
           return true;
       }
       return false;
-    }
+    };
     $scope.title = {};
     $scope.displayRule = {};
     $scope.toggleDetail = function($index, rule) {
@@ -591,6 +592,7 @@ angular.module('archive.unit')
           self.ruleDisplay[translateKey]['displayArray'] = displayArray;
         }
         delete self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.MGT_KEY];
+        delete self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.STORAGE_KEY];
 
         if(idField !== self.archiveId){
           self.refreshArchiveDetails();
