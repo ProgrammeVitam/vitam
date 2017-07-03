@@ -39,6 +39,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+
+import fr.gouv.vitam.logbook.common.parameters.LogbookEvDetDataType;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
@@ -94,12 +102,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.request.LogbookVarNameAdapter;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
@@ -1429,13 +1431,30 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         vitamDocument.put(LogbookDocument.EVENTS, eventDocuments);
 
     }
-
+    private boolean shouldCopyToMaster(JsonNode evDetDataJson) {
+        if (evDetDataJson.get("evDetDataType") != null) {
+            String evDetDataType = evDetDataJson.get("evDetDataType").asText();
+            return LogbookEvDetDataType.MASTER.equals(LogbookEvDetDataType.valueOf(evDetDataType));
+        }
+        return false;
+    }
     private List<Bson> checkCopyToMaster(LogbookCollections collection, LogbookParameters item)
         throws LogbookNotFoundException {
         final String mainLogbookDocumentId = getDocumentForUpdate(item).getId();
         Document oldValue = (Document) collection.getCollection().
             find(eq(LogbookDocument.ID, mainLogbookDocumentId)).first();
         String masterData = item.getParameterValue(LogbookParameterName.masterData);
+        String evDetData = item.getParameterValue(LogbookParameterName.eventDetailData);
+        boolean copyToMaster = false;
+        if (ParametersChecker.isNotEmpty(evDetData)) {
+            try {
+                copyToMaster = shouldCopyToMaster(JsonHandler.getFromString(evDetData));
+            } catch (InvalidParseOperationException e) {
+                // Do not throw this error
+                LOGGER.warn("evDetData is not parsable as a json. Analyse cancelled: " + evDetData);
+            }
+        }
+
         List<Bson> updates = new ArrayList<Bson>();
         if (ParametersChecker.isNotEmpty(masterData)) {
             try {
@@ -1462,7 +1481,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                     String fieldValue = master.get(fieldName).asText();
                     String mongoDbName = LogbookMongoDbName.getLogbookMongoDbName(LogbookParameterName.valueOf(fieldName)).getDbname();
                     ObjectNode oldVal = null;
-                    if (mongoDbName == LogbookMongoDbName.eventDetailData.getDbname()) {
+                    if (mongoDbName.equals( LogbookMongoDbName.eventDetailData.getDbname())) {
                         JsonNode masterNode = ((ObjectNode) master).get(fieldName);
                         if (masterNode != null) {
                             String masterField = masterNode.asText();
@@ -1475,7 +1494,18 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                 }
                 if (updateEvDevData) {
                     String fieldValue = JsonHandler.writeAsString(updateEvDevData);
-                    updates.add(Updates.set(LogbookMongoDbName.eventDetailData.getDbname(), fieldValue));
+                    updates.add(Updates.set(LogbookDocument.EVENT_DETAILS, fieldValue));
+                }
+                if (copyToMaster) {
+                    LOGGER.debug("Copy evDetData to master: " + evDetData);
+                    final UpdateResult updateResult = collection.getCollection().updateOne(
+                        eq(LogbookDocument.ID, mainLogbookDocumentId),
+                        Updates.set(LogbookDocument.EVENT_DETAILS, evDetData));
+                    if (updateResult.getModifiedCount() != 1) {
+                        LOGGER.error("Error while update document " + mainLogbookDocumentId + " With values [" +
+                            LogbookDocument.EVENT_DETAILS + ", " + evDetData + "]");
+                        throw new LogbookNotFoundException(UPDATE_NOT_FOUND_ITEM + mainLogbookDocumentId);
+                    }
                 }
             } catch (InvalidParseOperationException e) {
                 LOGGER.warn("masterData is not parsable as a json. Analyse cancelled: " + masterData, e);
