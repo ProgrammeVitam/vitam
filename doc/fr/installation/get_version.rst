@@ -3,7 +3,7 @@ Récupération de la version
 
 Cas particulier des partenaires
 =================================
-Se connecter sur l'URL `support <https://support.programmevitam.fr/releases/>`_ et récupérer :
+Se connecter sur l'URL de support partenaires et récupérer :
 
 * le package de livraison
 * la release notes

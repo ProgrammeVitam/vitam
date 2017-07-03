@@ -21,7 +21,6 @@
    validation_deploiement
    troubleshooting
    extras
-   contacts
 
 .. only:: latex
 
