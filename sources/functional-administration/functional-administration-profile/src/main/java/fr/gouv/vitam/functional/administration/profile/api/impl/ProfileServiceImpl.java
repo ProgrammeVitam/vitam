@@ -18,21 +18,38 @@
 
 package fr.gouv.vitam.functional.administration.profile.api.impl;
 
+import static fr.gouv.vitam.common.LocalDateUtil.now;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.core.Response;
+
+import org.apache.commons.io.IOUtils;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
-import com.mongodb.client.MongoCursor;
+
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
-import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
+import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -73,22 +90,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.apache.commons.io.IOUtils;
-
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.core.Response;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static fr.gouv.vitam.common.LocalDateUtil.now;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 
 /**
  * The implementation of the profile servie This implementation manage creation, update, ... profiles with any given
@@ -103,11 +104,11 @@ public class ProfileServiceImpl implements ProfileService {
     private static final String PROFILES_FILE_IMPORT_EVENT = "STP_IMPORT_PROFILE_FILE";
     private static final String OP_PROFILE_STORAGE = "OP_PROFILE_STORAGE";
     private final MongoDbAccessAdminImpl mongoAccess;
-    private LogbookOperationsClient logBookclient;
+    private final LogbookOperationsClient logBookclient;
     private final WorkspaceClientFactory workspaceClientFactory;
     private static final String DEFAULT_STORAGE_STRATEGY = "default";
     private final VitamCounterService vitamCounterService;
-    private ProfileManager manager;
+    private final ProfileManager manager;
 
     /**
      * Constructor
@@ -120,8 +121,8 @@ public class ProfileServiceImpl implements ProfileService {
         this.mongoAccess = mongoAccess;
         this.workspaceClientFactory = workspaceClientFactory;
         this.vitamCounterService = vitamCounterService;
-        this.logBookclient = LogbookOperationsClientFactory.getInstance().getClient();
-        this.manager = new ProfileManager(logBookclient);
+        logBookclient = LogbookOperationsClientFactory.getInstance().getClient();
+        manager = new ProfileManager(logBookclient);
     }
 
 
@@ -180,7 +181,7 @@ public class ProfileServiceImpl implements ProfileService {
             if (null != error.getErrors() && !error.getErrors().isEmpty()) {
                 // log book + application log
                 // stop
-                String errorsDetails =
+                final String errorsDetails =
                     error.getErrors().stream().map(c -> c.getMessage()).collect(Collectors.joining(","));
                 manager.logValidationError(PROFILES_IMPORT_EVENT, null, errorsDetails);
                 return error;
@@ -200,9 +201,9 @@ public class ProfileServiceImpl implements ProfileService {
             // profilesToPersist.values().stream().map();
             // TODO: 3/28/17 create insertDocuments method that accepts VitamDocument instead of ArrayNode, so we can
             // use Profile at this point
-            mongoAccess.insertDocuments(profilesToPersist, FunctionalAdminCollections.PROFILE);
-        } catch (Exception exp) {
-            String err = new StringBuilder("Import profiles error : ").append(exp.getMessage()).toString();
+            mongoAccess.insertDocuments(profilesToPersist, FunctionalAdminCollections.PROFILE).close();
+        } catch (final Exception exp) {
+            final String err = new StringBuilder("Import profiles error : ").append(exp.getMessage()).toString();
             manager.logFatalError(PROFILES_IMPORT_EVENT, null, err);
             return getVitamError(VitamCode.PROFILE_FILE_IMPORT_ERROR.getItem(), err).setHttpCode(
                 Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
@@ -255,7 +256,7 @@ public class ProfileServiceImpl implements ProfileService {
             boolean isValide = manager.validateProfileFile(profileMetadata, profileFileCopy, vitamError);
 
             if (!isValide) {
-                String errorsDetails =
+                final String errorsDetails =
                     vitamError.getErrors().stream().map(c -> c.getMessage()).collect(Collectors.joining(","));
                 manager.logValidationError(PROFILES_FILE_IMPORT_EVENT, profileIdentifier,
                     "Profile file validate error : " + errorsDetails);
@@ -265,15 +266,16 @@ public class ProfileServiceImpl implements ProfileService {
             profileFile = new ByteArrayInputStream(byteArray);
 
             byteArray = null;
-        } catch (IOException e) {
+        } catch (final IOException e) {
             cannotCopy = true;
         }
 
 
 
         String extention = "xsd";
-        if (profileMetadata.getFormat().equals(ProfileFormat.RNG))
+        if (profileMetadata.getFormat().equals(ProfileFormat.RNG)) {
             extention = "rng";
+        }
 
         Integer tenantId = ParameterHelper.getTenantParameter();
         final String containerName = String.format("%d_profiles_%s_%s", tenantId, profileMetadata.getIdentifier(), now().format(
@@ -304,7 +306,7 @@ public class ProfileServiceImpl implements ProfileService {
                 boolean isValide = manager.validateProfileFile(profileMetadata, fileFromWorkSpace, vitamError);
 
                 if (!isValide) {
-                    String errorsDetails =
+                    final String errorsDetails =
                         vitamError.getErrors().stream().map(c -> c.getMessage()).collect(Collectors.joining(","));
                     manager.logValidationError(PROFILES_FILE_IMPORT_EVENT, profileIdentifier,
                         "Profile file validate error : " + errorsDetails);
@@ -331,22 +333,23 @@ public class ProfileServiceImpl implements ProfileService {
                 profileMetadata.setPath(fileName);
 
 
-                final UpdateParserSingle updateParserActive = new UpdateParserSingle(new VarNameAdapter());
+                final UpdateParserSingle updateParserActive = new UpdateParserSingle(new SingleVarNameAdapter());
                 Update update = new Update();
                 update.setQuery(eq("Identifier", profileMetadata.getIdentifier()));
                 update.addActions(
                     UpdateActionHelper.set("Path", fileName),
                     UpdateActionHelper.set("LastUpdate", LocalDateUtil.now().toString()));
                 updateParserActive.parse(update.getFinalUpdate());
-                JsonNode queryDsl = updateParserActive.getRequest().getFinalUpdate();
-                this.updateProfiles(queryDsl);
+                final JsonNode queryDsl = updateParserActive.getRequest().getFinalUpdate();
+                updateProfiles(queryDsl);
 
 
 
             } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
                 InvalidCreateOperationException |
                 StorageServerClientException | ContentAddressableStorageNotFoundException e) {
-                String err = new StringBuilder("Import profiles storage error : ").append(e.getMessage()).toString();
+                final String err =
+                    new StringBuilder("Import profiles storage error : ").append(e.getMessage()).toString();
                 LOGGER.error(err, e);
                 manager.logFatalError(OP_PROFILE_STORAGE, profileIdentifier, err);
                 return getVitamError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem(), err).setHttpCode(
@@ -363,12 +366,13 @@ public class ProfileServiceImpl implements ProfileService {
                 Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
         } finally {
-            if (null != profileFile)
+            if (null != profileFile) {
                 try {
                     profileFile.close();
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     LOGGER.error("Error while closing the profile file stream!");
                 }
+            }
         }
 
         String wellFormedJson = null;
@@ -421,10 +425,10 @@ public class ProfileServiceImpl implements ProfileService {
                 .header("Content-Disposition", "filename=" + profileMetadata.getPath())
                 .header("Content-Type", "application/octet-stream"));
 
-        } catch (StorageServerClientException e) {
+        } catch (final StorageServerClientException e) {
             LOGGER.error(e.getMessage(), e);
             throw new ReferentialException(e);
-        } catch (StorageNotFoundException e) {
+        } catch (final StorageNotFoundException e) {
             LOGGER.error(e.getMessage(), e);
             throw new ProfileNotFoundException(e);
         }
@@ -433,9 +437,9 @@ public class ProfileServiceImpl implements ProfileService {
     @Override
     public RequestResponse<ProfileModel> updateProfiles(JsonNode jsonNode) throws VitamException {
         try {
-            mongoAccess.updateData(jsonNode, FunctionalAdminCollections.PROFILE);
-        } catch (ReferentialException e) {
-            String err = new StringBuilder("Update profile error : ").append(e.getMessage()).toString();
+            mongoAccess.updateData(jsonNode, FunctionalAdminCollections.PROFILE).close();
+        } catch (final ReferentialException e) {
+            final String err = new StringBuilder("Update profile error : ").append(e.getMessage()).toString();
             return getVitamError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem(), err);
         }
 
@@ -445,44 +449,32 @@ public class ProfileServiceImpl implements ProfileService {
     @Override
     public ProfileModel findByIdentifier(String identifier)
         throws ReferentialException, InvalidParseOperationException {
-        final SelectParserSingle parser = new SelectParserSingle(new VarNameAdapter());
+        SanityChecker.checkParameter(identifier);
+        final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
         parser.parse(new Select().getFinalSelect());
         try {
             parser.addCondition(eq(Profile.IDENTIFIER, identifier));
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             throw new ReferentialException(e);
         }
 
-        MongoCursor<VitamDocument<?>> cursor =
-            mongoAccess.findDocuments(parser.getRequest().getFinalSelect(), FunctionalAdminCollections.PROFILE);
-        if (null == cursor)
-            return null;
-
-        while (cursor.hasNext()) {
-            final Profile profile = (Profile) cursor.next();
-            return JsonHandler.getFromString(profile.toJson(), ProfileModel.class);
+        try (DbRequestResult result =
+            mongoAccess.findDocuments(parser.getRequest().getFinalSelect(), FunctionalAdminCollections.PROFILE)) {
+            final List<ProfileModel> list = result.getDocuments(Profile.class, ProfileModel.class);
+            if (list.isEmpty()) {
+                return null;
+            }
+            return list.get(0);
         }
-
-        return null;
     }
 
     @Override
-    public List<ProfileModel> findProfiles(JsonNode queryDsl)
+    public RequestResponseOK<ProfileModel> findProfiles(JsonNode queryDsl)
         throws ReferentialException, InvalidParseOperationException {
-        final List<ProfileModel> profileModelCollection = new ArrayList<>();
-        MongoCursor<VitamDocument<?>> cursor =
-            mongoAccess.findDocuments(queryDsl, FunctionalAdminCollections.PROFILE);
-
-        if (null == cursor)
-            return profileModelCollection;
-
-        while (cursor.hasNext()) {
-            final Profile profile = (Profile) cursor.next();
-            profileModelCollection.add(JsonHandler.getFromString(profile.toJson(),
-                ProfileModel.class));
+        try (DbRequestResult result =
+            mongoAccess.findDocuments(queryDsl, FunctionalAdminCollections.PROFILE)) {
+            return result.getRequestResponseOK(Profile.class, ProfileModel.class).setQuery(queryDsl);
         }
-
-        return profileModelCollection;
     }
 
 
@@ -493,7 +485,8 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     public void close() {
-        if (null != logBookclient)
+        if (null != logBookclient) {
             logBookclient.close();
+        }
     }
 }

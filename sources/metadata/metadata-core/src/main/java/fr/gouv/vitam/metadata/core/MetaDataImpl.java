@@ -27,8 +27,6 @@
 package fr.gouv.vitam.metadata.core;
 
 
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ID;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OPS;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ORIGINATING_AGENCIES;
@@ -44,26 +42,21 @@ import java.util.Map;
 import java.util.Set;
 
 import org.bson.Document;
-import org.bson.conversions.Bson;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import com.mongodb.MongoWriteException;
 import com.mongodb.client.AggregateIterable;
-import com.mongodb.client.result.UpdateResult;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.parser.request.multiple.InsertParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
@@ -81,10 +74,8 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
-import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbVarNameAdapter;
-import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.core.utils.MetadataJsonResponseUtils;
@@ -97,6 +88,7 @@ public class MetaDataImpl implements MetaData {
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(MetaDataImpl.class);
     private static final String REQUEST_IS_NULL = "Request select is null or is empty";
+    private static final MongoDbVarNameAdapter DEFAULT_VARNAME_ADAPTER = new MongoDbVarNameAdapter();
     private final MongoDbAccessMetadataImpl mongoDbAccess;
 
     /**
@@ -143,7 +135,7 @@ public class MetaDataImpl implements MetaData {
         MetaDataAlreadyExistException, MetaDataNotFoundException {
         Result result = null;
         try {
-            final InsertParserMultiple insertParser = new InsertParserMultiple(new MongoDbVarNameAdapter());
+            final InsertParserMultiple insertParser = new InsertParserMultiple(DEFAULT_VARNAME_ADAPTER);
             insertParser.parse(insertRequest);
             result = DbRequestFactoryImpl.getInstance().create().execRequest(insertParser, result);
         } catch (InstantiationException | IllegalAccessException e) {
@@ -164,7 +156,7 @@ public class MetaDataImpl implements MetaData {
         Result result = null;
 
         try {
-            final InsertParserMultiple insertParser = new InsertParserMultiple(new MongoDbVarNameAdapter());
+            final InsertParserMultiple insertParser = new InsertParserMultiple(DEFAULT_VARNAME_ADAPTER);
             insertParser.parse(objectGroupRequest);
             insertParser.getRequest().addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
             result = DbRequestFactoryImpl.getInstance().create().execRequest(insertParser, result);
@@ -204,7 +196,7 @@ public class MetaDataImpl implements MetaData {
                     .append("listGOT", new Document("$addToSet", "$_id"))),
                 new Document("$project", new Document("_id", 1).append("totalSize", 1).append("totalObject", 1)
                     .append("totalGOT", new Document("$size", "$listGOT")))
-            ), Document.class);
+                ), Document.class);
         return Lists.newArrayList(aggregate.iterator());
     }
 
@@ -213,7 +205,7 @@ public class MetaDataImpl implements MetaData {
         throws MetaDataExecutionException, InvalidParseOperationException,
         MetaDataDocumentSizeException, MetaDataNotFoundException {
         LOGGER.debug("SelectUnitsByQuery/ selectQuery: " + selectQuery);
-        return selectMetadataObject(selectQuery, null, null);
+        return selectMetadataObject(selectQuery, null, Collections.singletonList(BuilderToken.FILTERARGS.UNITS));
 
     }
 
@@ -222,7 +214,7 @@ public class MetaDataImpl implements MetaData {
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataDocumentSizeException, MetaDataNotFoundException {
         LOGGER.debug("SelectUnitsById/ selectQuery: " + selectQuery);
-        return selectMetadataObject(selectQuery, unitId, null);
+        return selectMetadataObject(selectQuery, unitId, Collections.singletonList(BuilderToken.FILTERARGS.UNITS));
     }
 
     @Override
@@ -247,7 +239,7 @@ public class MetaDataImpl implements MetaData {
         }
         try {
             // parse Select request
-            final RequestParserMultiple selectRequest = new SelectParserMultiple(new MongoDbVarNameAdapter());
+            final RequestParserMultiple selectRequest = new SelectParserMultiple(DEFAULT_VARNAME_ADAPTER);
             selectRequest.parse(selectQuery);
             // Reset $roots (add or override id on roots)
             if (unitOrObjectGroupId != null && !unitOrObjectGroupId.isEmpty()) {
@@ -277,7 +269,7 @@ public class MetaDataImpl implements MetaData {
             result = DbRequestFactoryImpl.getInstance().create().execRequest(selectRequest, result);
             arrayNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, selectRequest);
 
-            // Compute Rule for unit(only with search by Id) 
+            // Compute Rule for unit(only with search by Id)
             if (shouldComputeUnitRule && result.hasFinalResult()) {
                 computeRuleForUnit(arrayNodeResponse);
             }
@@ -338,7 +330,7 @@ public class MetaDataImpl implements MetaData {
         }
         try {
             // parse Update request
-            final RequestParserMultiple updateRequest = new UpdateParserMultiple(new MongoDbVarNameAdapter());
+            final RequestParserMultiple updateRequest = new UpdateParserMultiple(DEFAULT_VARNAME_ADAPTER);
             updateRequest.parse(updateQuery);
             // Reset $roots (add or override unit_id on roots)
             if (unitId != null && !unitId.isEmpty()) {
@@ -387,6 +379,7 @@ public class MetaDataImpl implements MetaData {
         newSelectQuery.addProjection(
             JsonHandler.createObjectNode().set(PROJECTION.FIELDS.exactToken(),
                 JsonHandler.createObjectNode()
+                    .put(PROJECTIONARGS.ID.exactToken(), 1)
                     .put(PROJECTIONARGS.UNITUPS.exactToken(), 1)
                     .put(PROJECTIONARGS.MANAGEMENT.exactToken(), 1)));
         return newSelectQuery;
@@ -395,7 +388,7 @@ public class MetaDataImpl implements MetaData {
     private void computeRuleForUnit(ArrayNode arrayNodeResponse)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataDocumentSizeException,
         MetaDataNotFoundException {
-        Map<String, UnitNode> allUnitNode = new HashMap<String, UnitNode>();
+        Map<String, UnitNode> allUnitNode = new HashMap<>();
         Set<String> rootList = new HashSet<>();
         List<String> unitParentIdList = new ArrayList<>();
         String unitId = "";
@@ -408,7 +401,8 @@ public class MetaDataImpl implements MetaData {
             unitParentIdList.add(unitId);
         }
         SelectMultiQuery newSelectQuery = createSearchParentSelect(unitParentIdList);
-        ArrayNode unitParents = selectMetadataObject(newSelectQuery.getFinalSelect(), null, null);
+        ArrayNode unitParents = selectMetadataObject(newSelectQuery.getFinalSelect(), null, 
+            Collections.singletonList(BuilderToken.FILTERARGS.UNITS));
         Map<String, UnitSimplified> unitMap = UnitSimplified.getUnitIdMap(unitParents);
         UnitRuleCompute unitNode = new UnitRuleCompute(unitMap.get(unitId));
         unitNode.buildAncestors(unitMap, allUnitNode, rootList);

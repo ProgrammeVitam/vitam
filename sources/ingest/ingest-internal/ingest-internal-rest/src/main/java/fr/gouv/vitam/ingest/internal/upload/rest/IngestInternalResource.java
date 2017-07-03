@@ -77,6 +77,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.ingest.internal.common.exception.ContextNotFoundException;
@@ -729,7 +730,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
 
                         // Successful initialization
                         AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                            Response.status(Status.ACCEPTED).build());
+                            Response.status(Status.ACCEPTED).build(), uploadedInputStream);
                     }
                 } else {
 
@@ -1104,6 +1105,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
             if (workspaceClientMock == null && workspaceClient != null) {
                 workspaceClient.close();
             }
+            StreamUtils.closeSilently(uploadedInputStream);
         }
 
         LOGGER.debug(" -> push stream to workspace finished");

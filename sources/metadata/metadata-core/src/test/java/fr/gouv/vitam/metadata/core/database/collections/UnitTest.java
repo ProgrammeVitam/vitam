@@ -35,7 +35,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.bson.Document;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -58,10 +57,10 @@ public class UnitTest {
         final Unit unit2 = new Unit(s1);
         final Unit unit3 = new Unit(json);
         assertTrue(unit.isEmpty());
-        assertEquals("Document{{}}", unit.toStringDirect());
+        assertEquals("Unit: Document{{}}", unit.toStringDirect());
         assertEquals("Unit: null", unit.toStringDebug());
-        assertEquals("Unit: Document{{_id=id1, title=title1, _v=0}}", unit2.toString());
-        assertEquals("Unit: Document{{_id=id1, title=title1, _v=0}}", unit3.toString());
+        assertEquals("Unit: Document{{_id=id1, title=title1, _v=0, _tenant=0}}", unit2.toString());
+        assertEquals("Unit: Document{{_id=id1, title=title1, _v=0, _tenant=0}}", unit3.toString());
     }
 
     @Test
@@ -84,26 +83,26 @@ public class UnitTest {
     @Test
     public void testloadDocument() {
         final Unit unit = new Unit(s1);
-        unit.load("{\"_tenant\":\"dom1\"}");
+        unit.load("{\"_tenant\": 2}");
         final String s = unit.toString();
-        assertEquals("Unit: Document{{_id=id1, title=title1, _v=0, _tenant=dom1}}", s);
+        assertEquals("Unit: Document{{_id=id1, title=title1, _v=0, _tenant=2}}", s);
     }
 
     @Test
     public void testSubDepth() {
         final Unit unit = new Unit(s1);
-        assertEquals("[{ \"id1\" : 1}]", unit.getSubDepth().toString());
+        assertEquals("{ \"id1\" : 1}", unit.getSubDepth().toString());
 
-        final List<Document> list = new ArrayList<>();
-        list.add(Document.parse("{\"UUID2\" : 3}"));
-        list.add(Document.parse("{\"UUID1\" : 4}"));
+        final Map<String, Integer> map = new HashMap<>();
+        map.put("UUID2", 3);
+        map.put("UUID1", 4);
 
         final Map<String, Object> map2 = new HashMap<>();
-        map2.put("_uds", list);
+        map2.put("_uds", map);
         unit.putAll(map2);
-        assertEquals("Unit: Document{{_id=id1, title=title1, _v=0, _uds=[Document{{UUID2=3}}, Document{{UUID1=4}}]}}",
+        assertEquals("Unit: Document{{_id=id1, title=title1, _v=0, _tenant=0, _uds={UUID2=3, UUID1=4}}}",
             unit.toString());
-        assertEquals("[{ \"UUID2\" : 4}, { \"UUID1\" : 5}, { \"id1\" : 1}]", unit.getSubDepth().toString());
+        assertEquals("{ \"UUID2\" : 4 , \"UUID1\" : 5 , \"id1\" : 1}", unit.getSubDepth().toString());
     }
 
     @Test

@@ -247,6 +247,11 @@ public abstract class BuilderToken {
          */
         MATCH("match"),
         /**
+         * Selects where field named 'name' matches all words<br>
+         * $match_all : { name : words, $max_expansions : n }
+         */
+        MATCH_ALL("match_all"),
+        /**
          * Selects where field named 'name' matches a phrase (somewhere)<br>
          * $match_phrase : { name : phrase, $max_expansions : n }
          */

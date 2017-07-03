@@ -59,6 +59,7 @@ import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -127,11 +128,11 @@ public class ReferentialAccessionRegisterImplTest {
     @RunWithCustomExecutor
     public void testcreateAccessionRegister() throws Exception {
 
-    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         register = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(FILE_TO_TEST_OK),
-                AccessionRegisterDetail.class);
-            ReferentialAccessionRegisterImpl.resetIndexAfterImport();
-            
+            AccessionRegisterDetail.class);
+        ReferentialAccessionRegisterImpl.resetIndexAfterImport();
+
         accessionRegisterImpl.createOrUpdateAccessionRegister(register);
         final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
         assertEquals(1, collection.count());
@@ -142,7 +143,7 @@ public class ReferentialAccessionRegisterImplTest {
         register.setOriginatingAgency("newOriginalAgency");
         accessionRegisterImpl.createOrUpdateAccessionRegister(register);
         assertEquals(2, collection.count());
-        
+
         VitamThreadUtils.getVitamSession().setTenantId(1);
         accessionRegisterImpl.createOrUpdateAccessionRegister(register);
         assertEquals(3, collection.count());
@@ -153,43 +154,47 @@ public class ReferentialAccessionRegisterImplTest {
     @Test
     @RunWithCustomExecutor
     public void testFindAccessionRegisterDetail()
-        throws ReferentialException, InvalidParseOperationException, InvalidCreateOperationException, FileNotFoundException {
+        throws ReferentialException, InvalidParseOperationException, InvalidCreateOperationException,
+        FileNotFoundException {
 
-    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         register = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(FILE_TO_TEST_OK),
             AccessionRegisterDetail.class);
         ReferentialAccessionRegisterImpl.resetIndexAfterImport();
-        
+
         accessionRegisterImpl.createOrUpdateAccessionRegister(register);
         final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
         assertEquals(1, collection.count());
 
         final Select select = new Select();
         select.setQuery(eq("OriginatingAgency", "OriginatingAgency"));
-        final List<AccessionRegisterDetail> detail = accessionRegisterImpl.findDetail(select.getFinalSelect());
-        assertEquals(2, detail.size());
-        final AccessionRegisterDetail item = detail.get(0);
+        final RequestResponseOK<AccessionRegisterDetail> detail =
+            accessionRegisterImpl.findDetail(select.getFinalSelect());
+        assertEquals(2, detail.getResults().size());
+        final AccessionRegisterDetail item = detail.getResults().get(0);
         assertEquals("OriginatingAgency", item.getOriginatingAgency());
     }
 
     @Test
     @RunWithCustomExecutor
     public void testFindAccessionRegisterSummary()
-        throws ReferentialException, InvalidParseOperationException, InvalidCreateOperationException, FileNotFoundException {
+        throws ReferentialException, InvalidParseOperationException, InvalidCreateOperationException,
+        FileNotFoundException {
 
-    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         register = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(FILE_TO_TEST_OK),
             AccessionRegisterDetail.class);
         ReferentialAccessionRegisterImpl.resetIndexAfterImport();
-        
+
         accessionRegisterImpl.createOrUpdateAccessionRegister(register);
         final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
         assertEquals(1, collection.count());
         final Select select = new Select();
         select.setQuery(eq("OriginatingAgency", "OriginatingAgency"));
-        final List<AccessionRegisterSummary> summary = accessionRegisterImpl.findDocuments(select.getFinalSelect());
-        assertEquals(1, summary.size());
-        final AccessionRegisterSummary item = summary.get(0);
+        final RequestResponseOK<AccessionRegisterSummary> summary =
+            accessionRegisterImpl.findDocuments(select.getFinalSelect());
+        assertEquals(1, summary.getResults().size());
+        final AccessionRegisterSummary item = summary.getResults().get(0);
         assertEquals("OriginatingAgency", item.getOriginatingAgency());
         assertEquals(1, item.getTotalObjects().getRemained());
         assertEquals(1, item.getTotalObjects().getTotal());

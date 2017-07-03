@@ -160,8 +160,6 @@ public class IngestExternalResource extends ApplicationStatusResource {
                     .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.FATAL)
                     .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exc.getLocalizedMessage()))
                     .build(), uploadedInputStream);
-        } finally {
-            StreamUtils.closeSilently(uploadedInputStream);
         }
     }
 

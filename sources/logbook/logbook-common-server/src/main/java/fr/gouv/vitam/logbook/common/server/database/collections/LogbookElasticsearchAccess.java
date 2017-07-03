@@ -51,6 +51,7 @@ import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchUtil;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
 
 /**
@@ -190,7 +191,7 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
      * @param offset the offset
      * @param limit the limit
      * @return a structure as SearchResponse
-     * @throws LogbookException thrown of an error occured while executing the request
+     * @throws LogbookException thrown of an error occurred while executing the request
      */
     public final SearchResponse search(final LogbookCollections collection, final Integer tenantId,
         final QueryBuilder query,
@@ -212,12 +213,11 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
             request.setQuery(query);
         }
         try {
-            // TODO add a test to check wether is_debug_enabled
             LOGGER.debug(request.toString());
             return request.get();
         } catch (final Exception e) {
             LOGGER.error(e.getMessage(), e);
-            throw new LogbookException(e);
+            throw new LogbookDatabaseException(e);
         }
     }
 

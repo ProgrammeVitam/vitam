@@ -138,11 +138,13 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         LOGGER.debug(EXECUTION_OF_DSL_VITAM_FROM_ACCESS_ONGOING);
         Status status;
         ObjectNode result = null;
+        LOGGER.debug("DEBUG: start selectUnits {}", queryDsl);
 
         try {
             SanityChecker.checkJsonAll(queryDsl);
             checkEmptyQuery(queryDsl);
             result = (ObjectNode) accessModule.selectUnit(addProdServicesToQuery(queryDsl));
+            LOGGER.debug("DEBUG {}", result);
             resetQuery(result, queryDsl);
         } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);

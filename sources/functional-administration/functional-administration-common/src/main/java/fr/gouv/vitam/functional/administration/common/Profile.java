@@ -1,30 +1,23 @@
 /*
- *  Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- *  <p>
- *  contact.vitam@culture.gouv.fr
- *  <p>
- *  This software is a computer program whose purpose is to implement a digital archiving back-office system managing
- *  high volumetry securely and efficiently.
- *  <p>
- *  This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
- *  software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- *  circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- *  <p>
- *  As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
- *  users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
- *  successive licensors have only limited liability.
- *  <p>
- *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
- *  developing or reproducing the software by the user in light of its specific status of free software, that may mean
- *  that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
- *  experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
- *  software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
- *  to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- *  <p>
- *  The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
- *  accept its terms.
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019) <p> contact.vitam@culture.gouv.fr <p>
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently. <p> This software is governed by the CeCILL 2.1 license under French law and
+ * abiding by the rules of distribution of free software. You can use, modify and/ or redistribute the software under
+ * the terms of the CeCILL 2.1 license as circulated by CEA, CNRS and INRIA at the following URL
+ * "http://www.cecill.info". <p> As a counterpart to the access to the source code and rights to copy, modify and
+ * redistribute granted by the license, users are provided only with a limited warranty and the software's author, the
+ * holder of the economic rights, and the successive licensors have only limited liability. <p> In this respect, the
+ * user's attention is drawn to the risks associated with loading, using, modifying and/or developing or reproducing the
+ * software by the user in light of its specific status of free software, that may mean that it is complicated to
+ * manipulate, and that also therefore means that it is reserved for developers and experienced professionals having
+ * in-depth computer knowledge. Users are therefore encouraged to load and test the software's suitability as regards
+ * their requirements in conditions enabling the security of their systems and/or data to be ensured and, more
+ * generally, to use and operate it in the same conditions as regards security. <p> The fact that you are presently
+ * reading this means that you have had knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
 package fr.gouv.vitam.functional.administration.common;
+
+import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -33,13 +26,16 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.functional.administration.common.embed.ProfileFormat;
 import fr.gouv.vitam.functional.administration.common.embed.ProfileStatus;
 
-import org.bson.Document;
-
 /**
  * Defines a Profile collection. </BR>
  *
  */
 public class Profile extends VitamDocument<Profile> {
+
+    /**
+     *
+     */
+    private static final long serialVersionUID = 6725199861835099339L;
 
     /**
      * the profile id
@@ -86,11 +82,6 @@ public class Profile extends VitamDocument<Profile> {
      */
     public static final String DEACTIVATIONDATE = "DeactivationDate";
 
-
-    /**
-     * ES Mapping
-     */
-    public static final String TYPEUNIQUE = "typeunique";
 
     /**
      * Empty Constructor
@@ -151,6 +142,7 @@ public class Profile extends VitamDocument<Profile> {
 
     /**
      * The profile id
+     * 
      * @return the id of the profile
      */
     public String getIdentifier() {
@@ -159,6 +151,7 @@ public class Profile extends VitamDocument<Profile> {
 
     /**
      * Set or change the profile id, the identifier must be unique by tenant
+     * 
      * @param identifier
      * @return this
      */
@@ -169,6 +162,7 @@ public class Profile extends VitamDocument<Profile> {
 
     /**
      * Name of the profile
+     * 
      * @return name of profile
      */
     public String getName() {
@@ -177,7 +171,8 @@ public class Profile extends VitamDocument<Profile> {
 
     /**
      * Set or change the profile name
-     * @param name to set 
+     * 
+     * @param name to set
      * @return this
      */
     public Profile setName(String name) {
@@ -187,6 +182,7 @@ public class Profile extends VitamDocument<Profile> {
 
     /**
      * Get the profile description
+     * 
      * @return this
      */
     public String getDescription() {
@@ -195,6 +191,7 @@ public class Profile extends VitamDocument<Profile> {
 
     /**
      * Set or change the profile description
+     * 
      * @param description to set to contact
      * @return this
      */
@@ -205,8 +202,8 @@ public class Profile extends VitamDocument<Profile> {
 
 
     /**
-     * Get the profile status
-     * If toJson called without MongoClient configuration this will thow codec exception
+     * Get the profile status If toJson called without MongoClient configuration this will thow codec exception
+     * 
      * @return status of ingest contact
      */
     public ProfileStatus getStatus() {
@@ -215,7 +212,8 @@ public class Profile extends VitamDocument<Profile> {
 
     /**
      * Set or change the profile status
-     * @param status to set 
+     * 
+     * @param status to set
      * @return this
      */
     public Profile setStatus(ProfileStatus status) {
@@ -226,6 +224,7 @@ public class Profile extends VitamDocument<Profile> {
 
     /**
      * Set or change the profile format (xsd, rng, ...)
+     * 
      * @param format
      * @return this
      */
@@ -236,6 +235,7 @@ public class Profile extends VitamDocument<Profile> {
 
     /**
      * The profile file path in storage
+     * 
      * @return the profile path
      */
     public String getPath() {
@@ -246,6 +246,7 @@ public class Profile extends VitamDocument<Profile> {
 
     /**
      * Set or change the profile path
+     * 
      * @param path
      * @return this
      */
@@ -255,8 +256,8 @@ public class Profile extends VitamDocument<Profile> {
     }
 
     /**
-     * The profile file format
-     * If toJson called without MongoClient configuration this will thow codec exception
+     * The profile file format If toJson called without MongoClient configuration this will thow codec exception
+     * 
      * @return the profile format
      */
     public ProfileFormat getFormat() {
@@ -289,7 +290,7 @@ public class Profile extends VitamDocument<Profile> {
     }
 
     /**
-     * @param lastupdate to set 
+     * @param lastupdate to set
      * @return this
      */
     public Profile setLastupdate(String lastupdate) {

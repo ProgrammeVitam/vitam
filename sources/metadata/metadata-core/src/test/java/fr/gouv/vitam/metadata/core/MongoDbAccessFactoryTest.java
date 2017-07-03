@@ -77,7 +77,16 @@ public class MongoDbAccessFactoryTest {
     private static int port;
     private static ElasticsearchTestConfiguration config = null;
     static final int tenantId = 0;
-    static final List tenantList =  new ArrayList(){{add(tenantId);}};
+    static final List tenantList = new ArrayList() {
+        /**
+        * 
+        */
+        private static final long serialVersionUID = 2226897691699344963L;
+
+        {
+            add(tenantId);
+        }
+    };
 
     @BeforeClass
     public static void setup() throws IOException {
@@ -124,7 +133,7 @@ public class MongoDbAccessFactoryTest {
         final MetaDataConfiguration config =
             new MetaDataConfiguration(mongo_nodes, "vitam-test", CLUSTER_NAME, nodes);
         config.setTenants(tenantList);
-        
+
         mongoDbAccess = MongoDbAccessMetadataFactory
             .create(config);
         assertNotNull(mongoDbAccess);

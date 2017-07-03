@@ -39,8 +39,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import difflib.DiffUtils;
 import difflib.Patch;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
+import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
 /**
  * Vitam Document MongoDb abstract
@@ -49,6 +54,8 @@ import fr.gouv.vitam.common.json.JsonHandler;
  */
 public abstract class VitamDocument<E> extends Document {
     private static final long serialVersionUID = 4051636259488359930L;
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(VitamDocument.class);
     /**
      * ID of each line: different for each sub type
      */
@@ -61,6 +68,10 @@ public abstract class VitamDocument<E> extends Document {
      * TenantId
      */
     public static final String TENANT_ID = "_tenant";
+    /**
+     * Score
+     */
+    public static final String SCORE = "_score";
 
     /**
      * Empty constructor
@@ -107,7 +118,7 @@ public abstract class VitamDocument<E> extends Document {
 
     /**
      * Make a new instance of the document with the given json
-     * 
+     *
      * @param content document structure as json
      * @return new document with the json as content
      */
@@ -119,18 +130,69 @@ public abstract class VitamDocument<E> extends Document {
      * @return this
      * @throws IllegalArgumentException if Id is not a GUID
      */
-    public VitamDocument<E> checkId() {
+    protected VitamDocument<E> checkId() {
         String id = getId();
         if (id == null) {
             id = getString(ID);
         }
+        append(ID, id);
         try {
-            final int tenantId = GUIDReader.getGUID(id).getTenantId();
-            append(TENANT_ID, tenantId).append(ID, id);
+            GUIDReader.getGUID(id);
         } catch (final InvalidGuidOperationException e) {
             throw new IllegalArgumentException("ID is not a GUID: " + id, e);
         }
+        if (isMultTenant()) {
+            final int tenantId = getTenantFixJunit();
+            append(TENANT_ID, tenantId);
+        }
         return this;
+    }
+
+
+    /**
+     * Method to be compatible with bad JUnit
+     * 
+     * @return the TENANT
+     */
+    public int getTenantFixJunit() {
+        if (get(TENANT_ID) != null) {
+            final int tenant = getInteger(TENANT_ID);
+            try {
+                final int currentTenant = VitamThreadUtils.getVitamSession().getTenantId();
+                if (currentTenant != tenant) {
+                    LOGGER.warn("Current Tenant {} is not the same as the Entity {}", currentTenant, tenant);
+                }
+            } catch (final VitamThreadAccessException | NullPointerException e) {
+                // Junit only !!!
+                LOGGER.error("JUNIT ONLY!!! Let TENANT to current value {}", tenant, e);
+            }
+            return tenant;
+        }
+        try {
+            return ParameterHelper.getTenantParameter();
+        } catch (final IllegalArgumentException | VitamThreadAccessException e) {
+            // Junit only !!!
+            LOGGER.error("JUNIT ONLY!!! Set TENANT to GUID value or 0 since not in VitamThreads!");
+        }
+        final String id = getId();
+        if (id != null) {
+            try {
+                return GUIDReader.getGUID(id).getTenantId();
+            } catch (final InvalidGuidOperationException e1) {
+                LOGGER.debug(e1);
+            }
+        }
+        return 0;
+    }
+
+
+    /**
+     * Is this kind of data Multi-Tenant
+     * 
+     * @return True if multitenant
+     */
+    protected boolean isMultTenant() {
+        return true;
     }
 
     /**
@@ -181,7 +243,7 @@ public abstract class VitamDocument<E> extends Document {
     public String toString() {
         return this.getClass().getSimpleName() + ": " + super.toString();
     }
-    
+
 
     /**
      * Get unified diff

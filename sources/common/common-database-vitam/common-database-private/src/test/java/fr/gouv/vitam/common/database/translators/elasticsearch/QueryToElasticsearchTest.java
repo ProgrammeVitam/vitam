@@ -40,18 +40,21 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.mongodb.DBObject;
-import com.mongodb.util.JSON;
 
 import fr.gouv.vitam.common.database.builder.query.PathQuery;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 public class QueryToElasticsearchTest {
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(QueryToElasticsearchTest.class);
 
     private static final String exampleElasticsearch = "{ $roots : [ 'id0' ], $query : [ " +
         "{ $and : [ " + "{$exists : 'mavar1'}, " + "{$missing : 'mavar2'}, " + "{$isNull : 'mavar3'}, " +
@@ -93,12 +96,12 @@ public class QueryToElasticsearchTest {
     @AfterClass
     public static void tearDownAfterClass() throws Exception {}
 
-    private SelectMultiQuery createSelect() {
+    private SelectParserMultiple createSelect() {
         try {
             final SelectParserMultiple request1 = new SelectParserMultiple();
             request1.parse(example);
             assertNotNull(request1);
-            return request1.getRequest();
+            return request1;
         } catch (final Exception e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -109,11 +112,14 @@ public class QueryToElasticsearchTest {
     @Test
     public void testGetCommands() {
         try {
-            final SelectMultiQuery select = createSelect();
+            VitamCollection.setMatch(false);
+            final SelectParserMultiple parser = createSelect();
+            final SelectMultiQuery select = parser.getRequest();
             final QueryBuilder queryBuilderRoot = QueryToElasticsearch.getRoots("_up", select.getRoots());
-            final List<SortBuilder> sortBuilders = QueryToElasticsearch
-                .getSorts(Document.parse(JsonHandler.unprettyPrint(select.getFilter().get("$orderby"))));
-            assertEquals(3, sortBuilders.size());
+            final List<SortBuilder> sortBuilders = QueryToElasticsearch.getSorts(parser,
+                parser.hasFullTextQuery() || VitamCollection.containMatch(), true);
+            VitamCollection.setMatch(false);
+            assertEquals(4, sortBuilders.size());
 
             final List<Query> list = select.getQueries();
             for (int i = 0; i < list.size(); i++) {
@@ -129,7 +135,7 @@ public class QueryToElasticsearchTest {
         }
     }
 
-    @Test()
+    @Test
     public void shouldNotRaiseException_whenPathAllowed()
         throws InvalidParseOperationException, InvalidCreateOperationException {
         final Query query = new PathQuery("id0");

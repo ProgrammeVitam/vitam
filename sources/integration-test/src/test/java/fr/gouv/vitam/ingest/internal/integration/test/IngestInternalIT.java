@@ -60,6 +60,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.AccessContractModel;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -82,7 +83,9 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookApplication;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
@@ -446,8 +449,8 @@ public class IngestInternalIT {
     @RunWithCustomExecutor
     @Test
     public void testIngestInternal() throws Exception {
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         try {
-            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             // ProcessDataAccessImpl processData = ProcessDataAccessImpl.getInstance();
@@ -548,6 +551,17 @@ public class IngestInternalIT {
 
         } catch (final Exception e) {
             LOGGER.error(e);
+            SearchResponse elasticSearchResponse =
+                esClient.search(LogbookCollections.OPERATION, tenantId, null, null, null, 0, 25);
+            LOGGER.error("Total:" + (elasticSearchResponse.getHits().getTotalHits()));
+            try (LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
+                fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
+                    new fr.gouv.vitam.common.database.builder.request.single.Select();
+                selectQuery.setQuery(QueryHelper.eq("evIdProc", operationGuid.getId()));
+                JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
+                LOGGER.error(JsonHandler.prettyPrint(logbookResult));
+            }
+
             fail("should not raized an exception");
         }
     }
@@ -556,8 +570,8 @@ public class IngestInternalIT {
     @RunWithCustomExecutor
     @Test
     public void testPhysicalArchiveIngestInternal() throws Exception {
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         try {
-            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             tryImportFile();
@@ -620,7 +634,14 @@ public class IngestInternalIT {
             LOGGER.warn("read: " + objectId);
 
         } catch (final Exception e) {
-            e.printStackTrace();
+            LOGGER.error(e);
+            try (LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
+                fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
+                    new fr.gouv.vitam.common.database.builder.request.single.Select();
+                selectQuery.setQuery(QueryHelper.eq("evIdProc", operationGuid.getId()));
+                JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
+                LOGGER.error(JsonHandler.prettyPrint(logbookResult));
+            }
             fail("should not raized an exception");
         }
     }
@@ -1315,8 +1336,8 @@ public class IngestInternalIT {
     @RunWithCustomExecutor
     @Test
     public void testProdServicesOK() throws Exception {
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         try {
-            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             tryImportFile();
@@ -1356,14 +1377,16 @@ public class IngestInternalIT {
             assertEquals(StatusCode.OK, processWorkflow.getStatus());
 
             SelectMultiQuery select = new SelectMultiQuery();
-            select.addQueries(QueryHelper.eq("Title", "Sensibilisation API"));
+            select.addQueries(QueryHelper.match("Title", "Sensibilisation API"));
             // Get AU
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
             RequestResponse<JsonNode> response = accessClient.selectUnits(select.getFinalSelect());
             assertTrue(response.isOk());
 
             // Get GOT
+            LOGGER.warn(response.toString());
             final JsonNode node = response.toJsonNode().get("$results").get(0);
+            LOGGER.warn(node.toString());
             final String unitId = node.get("#object").asText();
 
 
@@ -1418,6 +1441,13 @@ public class IngestInternalIT {
             assertEquals(responseTree.toJsonNode().get("$hits").get("total").asInt(), 1);
         } catch (final Exception e) {
             LOGGER.error(e);
+            try (LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
+                fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
+                    new fr.gouv.vitam.common.database.builder.request.single.Select();
+                selectQuery.setQuery(QueryHelper.eq("evIdProc", operationGuid.getId()));
+                JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
+                LOGGER.error(JsonHandler.prettyPrint(logbookResult));
+            }
             fail("should not raized an exception");
         }
     }

@@ -204,6 +204,23 @@ public class VitamConfiguration {
 
     public static final int DISTRIBUTEUR_BATCH_SIZE = 10;
 
+    /**
+     * Default LANG
+     */
+    public static final String DEFAULT_LANG = Locale.FRENCH.toString();
+    /**
+     * Max Elasticsearch Bulk
+     */
+    public static final int MAX_ELASTICSEARCH_BULK = 1000;
+    /**
+     * Max Thread for ES and MongoDB
+     */
+    public static final int NUMBER_DB_CLIENT_THREAD = 200;
+    /**
+     * Max queue in ES
+     */
+    public static final int NUMBER_ES_QUEUE = 5000;
+    
     private String config;
     private String log;
     private String data;
@@ -215,10 +232,6 @@ public class VitamConfiguration {
     public static final boolean ENABLE_JAXB_PARSER = true;
     public static final boolean ENABLE_DISTRIBUTOR_V2 = true;
 
-    /**
-     * Default LANG
-     */
-    public static final String DEFAULT_LANG = Locale.FRENCH.toString();
 
     static {
         getConfiguration().setDefault();

@@ -30,6 +30,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Test;
 
@@ -43,8 +44,11 @@ import fr.gouv.vitam.metadata.core.database.collections.ResultDefault;
 public class MetadataJsonResponseUtilsTest {
 
     private static Result buildResult(int nbrResult) {
+        final List<String> list = new ArrayList<>(nbrResult);
+        for (int i = 0; i < nbrResult; i++) {
+            list.add(Integer.toString(i));
+        }
         final Result result = new ResultDefault(FILTERARGS.UNITS, new ArrayList<String>());
-        result.setNbResult(nbrResult);
         return result;
     }
 
@@ -57,6 +61,7 @@ public class MetadataJsonResponseUtilsTest {
 
     @Test
     public void given_resultwith_nbreresult_2_thenthrow_InvalidParseOperationException() throws Exception {
-        assertEquals(MetadataJsonResponseUtils.populateJSONObjectResponse(buildResult(2), new SelectParserMultiple()).size(), 0);
+        assertEquals(
+            MetadataJsonResponseUtils.populateJSONObjectResponse(buildResult(2), new SelectParserMultiple()).size(), 0);
     }
 }

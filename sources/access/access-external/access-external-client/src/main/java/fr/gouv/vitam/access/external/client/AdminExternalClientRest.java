@@ -122,7 +122,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
                 MediaType.APPLICATION_JSON_TYPE, false);
 
             RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
-            if (!requestResponse.isOk()) {
+            if (requestResponse.isOk()) {
                 return requestResponse;
             } else {
                 final VitamError vitamError =
@@ -166,7 +166,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
                 MediaType.APPLICATION_JSON_TYPE);
 
             RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
-            if (!requestResponse.isOk()) {
+            if (requestResponse.isOk()) {
                 return requestResponse;
             } else {
                 final VitamError vitamError = new VitamError(VitamCode.ADMIN_EXTERNAL_FIND_DOCUMENT_BY_ID_ERROR.getItem())
@@ -214,7 +214,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
                     query, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
                 RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
-                if (!requestResponse.isOk()) {
+                if (requestResponse.isOk()) {
                     return requestResponse;
                 } else {
                     final VitamError vitamError = new VitamError(VitamCode.ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_DETAIL_ERROR.getItem())

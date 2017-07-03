@@ -511,15 +511,15 @@ public class ProcessingIT {
     @RunWithCustomExecutor
     @Test
     public void testWorkflow() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
+        final String containerName = objectGuid.getId();
         try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
             LogbookLifeCyclesClient logbookLFCClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
             AdminManagementClient functionalClient = AdminManagementClientFactory.getInstance().getClient()) {
-            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             tryImportFile();
             final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-            final String containerName = objectGuid.getId();
             createLogbookOperation(operationGuid, objectGuid);
 
             // workspace client dezip SIP in workspace
@@ -602,7 +602,7 @@ public class ProcessingIT {
                 "bug2721_2racines_meme_rattachement");
             assertEquals(logbookResult.get("$results").get(0).get("agIdOrig").asText(), "producteur1");
         } catch (final Exception e) {
-            e.printStackTrace();
+            LOGGER.error(e);
             fail("should not raized an exception");
         }
     }

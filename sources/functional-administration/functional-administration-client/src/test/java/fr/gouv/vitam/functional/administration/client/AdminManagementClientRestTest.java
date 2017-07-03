@@ -279,7 +279,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         }
 
         @POST
-        @Path("/contracts")
+        @Path("/entrycontracts")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response importContracts(ArrayNode contractsToImport, @Context UriInfo uri) {
@@ -287,7 +287,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         }
 
         @GET
-        @Path("/contracts")
+        @Path("/entrycontracts")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response findContracts(@Context UriInfo uri) {

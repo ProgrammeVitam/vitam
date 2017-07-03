@@ -232,7 +232,7 @@ public class IngestStep {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
 
             ArrayNode actual = (ArrayNode) requestResponseOK.getResults().get(0).get("events");
-            List<JsonNode> list = JsonHandler.toArrayList(actual);
+            List<JsonNode> list = (List<JsonNode>) JsonHandler.toArrayList(actual);
             try (AutoCloseableSoftAssertions softly = new AutoCloseableSoftAssertions()) {
                 for (String eventName : eventNames) {
                     List<JsonNode> events =

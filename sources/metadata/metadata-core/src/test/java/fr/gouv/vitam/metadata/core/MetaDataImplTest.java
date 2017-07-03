@@ -28,11 +28,13 @@ package fr.gouv.vitam.metadata.core;
 
 import static fr.gouv.vitam.common.json.JsonHandler.toArrayList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.List;
+import java.util.Iterator;
+import java.util.Map.Entry;
 
 import org.bson.BsonDocument;
 import org.junit.Before;
@@ -49,8 +51,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
 import com.mongodb.MongoWriteException;
 import com.mongodb.ServerAddress;
 import com.mongodb.WriteError;
@@ -82,7 +82,7 @@ import fr.gouv.vitam.metadata.core.database.collections.Unit;
 @PowerMockIgnore("javax.net.ssl.*")
 @PrepareForTest({DbRequestFactoryImpl.class, MongoDbAccessMetadataFactory.class})
 public class MetaDataImplTest {
-    
+
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
@@ -281,7 +281,7 @@ public class MetaDataImplTest {
             GlobalDatasParser.limitRequest = oldValue;
         }
     }
-    
+
     @RunWithCustomExecutor
     @Test(expected = InvalidParseOperationException.class)
     public void given_selectUnitquery_When_search_units_Then_Throw_InvalidParseOperationException() throws Exception {
@@ -442,14 +442,30 @@ public class MetaDataImplTest {
     public void testSelectObjectGroupById() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         final Result result = new ResultDefault(FILTERARGS.OBJECTGROUPS);
-        result.addId("ogId");
-        result.setNbResult(1);
+        result.addId("ogId", (float) 1);
         result.addFinal(new ObjectGroup(sampleObjectGroup));
         when(request.execRequest(anyObject(), anyObject())).thenReturn(result);
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
         final ArrayNode jsonNode = metaDataImpl.selectObjectGroupById(JsonHandler.getFromString(QUERY), "ogId");
         final ObjectNode objectGroupDocument = (ObjectNode) jsonNode.get(0);
-        assertEquals(sampleObjectGroupFiltered, objectGroupDocument);
+        boolean different = false;
+        Iterator<Entry<String, JsonNode>> fields = objectGroupDocument.fields();
+        while (fields.hasNext()) {
+            Entry<String, JsonNode> entry = fields.next();
+            if (!sampleObjectGroupFiltered.has(entry.getKey()) || !sampleObjectGroupFiltered.get(entry.getKey()).asText().equals(entry.getValue().asText())) {
+                System.err.println("D: " + entry.getKey() + " : " + entry.getValue() + " " + entry.getValue().getNodeType());
+                different = true;
+            }
+        }
+        fields = sampleObjectGroupFiltered.fields();
+        while (fields.hasNext()) {
+            Entry<String, JsonNode> entry = fields.next();
+            if (!objectGroupDocument.has(entry.getKey()) || !objectGroupDocument.get(entry.getKey()).asText().equals(entry.getValue().asText())) {
+                System.err.println("S: " + entry.getKey() + " : " + entry.getValue() + " " + entry.getValue().getNodeType());
+                different = true;
+            }
+        }
+        assertFalse(different);
     }
 
     @RunWithCustomExecutor
@@ -463,12 +479,10 @@ public class MetaDataImplTest {
             "title : MODIFIED title\\n+  description : MODIFIED description\"";
 
         final Result updateResult = new ResultDefault(FILTERARGS.UNITS);
-        updateResult.addId("unitId");
-        updateResult.setNbResult(1);
+        updateResult.addId("unitId", (float) 1);
 
         final Result firstSelectResult = new ResultDefault(FILTERARGS.UNITS);
-        firstSelectResult.addId("unitId");
-        firstSelectResult.setNbResult(1);
+        firstSelectResult.addId("unitId", (float) 1);
         final Unit unit = new Unit();
         unit.put("_id", "unitId");
         unit.put("title", "title");
@@ -476,8 +490,7 @@ public class MetaDataImplTest {
         firstSelectResult.addFinal(unit);
 
         final Result secondSelectResult = new ResultDefault(FILTERARGS.UNITS);
-        secondSelectResult.addId("unitId");
-        secondSelectResult.setNbResult(1);
+        secondSelectResult.addId("unitId", (float) 1);
         final Unit secondUnit = new Unit();
         secondUnit.put("_id", "unitId");
         secondUnit.put("title", "MODIFIED title");

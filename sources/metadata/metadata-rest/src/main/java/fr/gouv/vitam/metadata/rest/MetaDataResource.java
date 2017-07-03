@@ -43,6 +43,7 @@ import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.json.JsonHandler;
 import org.bson.Document;
+import org.elasticsearch.ElasticsearchParseException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -343,12 +344,18 @@ public class MetaDataResource extends ApplicationStatusResource {
         Status status;
         LOGGER.error(e);
         status = Status.INTERNAL_SERVER_ERROR;
+        Throwable e2 = e.getCause();
+        if (e2 !=null && e2 instanceof IllegalArgumentException || e2 instanceof ElasticsearchParseException) {
+            status = Status.PRECONDITION_FAILED;
+        } else {
+            e2 = e;
+        }
         return Response.status(status)
             .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                 .setContext(ACCESS)
                 .setState(CODE_VITAM)
                 .setMessage(status.getReasonPhrase())
-                .setDescription(status.getReasonPhrase()))
+                .setDescription(e2.getMessage()))
             .build();
     }
 
