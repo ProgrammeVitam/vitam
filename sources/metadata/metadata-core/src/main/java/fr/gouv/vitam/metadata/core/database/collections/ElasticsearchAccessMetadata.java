@@ -318,7 +318,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             throw new MetaDataExecutionException("No result to insert");
         }
         BulkRequestBuilder bulkRequest = client.prepareBulk();
-        int max = VitamConfiguration.MAX_ELASTICSEARCH_BULK;
+        int max = VitamConfiguration.getMaxElasticsearchBulk();
         while (cursor.hasNext()) {
             max--;
             final Unit unit = getFiltered(cursor.next());
@@ -338,7 +338,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
                 .prepareIndex(getIndexName(MetadataCollections.C_UNIT, tenantId), VitamCollection.getTypeunique(), id)
                 .setSource(toInsert));
             if (max == 0) {
-                max = VitamConfiguration.MAX_ELASTICSEARCH_BULK;
+                max = VitamConfiguration.getMaxElasticsearchBulk();
                 final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
                 // thread
                 if (bulkResponse.hasFailures()) {
@@ -387,7 +387,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             throw new MetaDataExecutionException("No result to update");
         }
         BulkRequestBuilder bulkRequest = client.prepareBulk();
-        int max = VitamConfiguration.MAX_ELASTICSEARCH_BULK;
+        int max = VitamConfiguration.getMaxElasticsearchBulk();
         while (cursor.hasNext()) {
             max --;
             final Unit unit = getFiltered(cursor.next());
@@ -407,7 +407,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
                 .add(client.prepareUpdate(getIndexName(MetadataCollections.C_UNIT, tenantId), VitamCollection.getTypeunique(), id)
                     .setDoc(toUpdate));
             if (max == 0) {
-                max = VitamConfiguration.MAX_ELASTICSEARCH_BULK;
+                max = VitamConfiguration.getMaxElasticsearchBulk();
                 final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
                 // thread
                 if (bulkResponse.hasFailures()) {
@@ -562,7 +562,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             throw new MetaDataExecutionException("No result to insert");
         }
         BulkRequestBuilder bulkRequest = client.prepareBulk();
-        int max = VitamConfiguration.MAX_ELASTICSEARCH_BULK;
+        int max = VitamConfiguration.getMaxElasticsearchBulk();
         while (cursor.hasNext()) {
             max--;
             final ObjectGroup og = cursor.next();
@@ -582,7 +582,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
                 .prepareIndex(getIndexName(MetadataCollections.C_OBJECTGROUP, tenantId), VitamCollection.getTypeunique(), id)
                 .setSource(toInsert));
             if (max == 0) {
-                max = VitamConfiguration.MAX_ELASTICSEARCH_BULK;
+                max = VitamConfiguration.getMaxElasticsearchBulk();
                 final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
                 // thread
                 if (bulkResponse.hasFailures()) {
@@ -631,7 +631,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             throw new MetaDataExecutionException("No result to update");
         }
         BulkRequestBuilder bulkRequest = client.prepareBulk();
-        int max = VitamConfiguration.MAX_ELASTICSEARCH_BULK;
+        int max = VitamConfiguration.getMaxElasticsearchBulk();
         while (cursor.hasNext()) {
             max--;
             final ObjectGroup og = cursor.next();
@@ -650,7 +650,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             bulkRequest.add(client.prepareUpdate(getIndexName(MetadataCollections.C_OBJECTGROUP, tenantId),
                 VitamCollection.getTypeunique(), id).setDoc(toUpdate));
             if (max == 0) {
-                max = VitamConfiguration.MAX_ELASTICSEARCH_BULK;
+                max = VitamConfiguration.getMaxElasticsearchBulk();
                 final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
                 // thread
                 if (bulkResponse.hasFailures()) {
@@ -708,13 +708,13 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             throw new MetaDataExecutionException("No result to delete");
         }
         BulkRequestBuilder bulkRequest = client.prepareBulk();
-        int max = VitamConfiguration.MAX_ELASTICSEARCH_BULK;
+        int max = VitamConfiguration.getMaxElasticsearchBulk();
         for (String id : ids) {
             max--;
             bulkRequest.add(client.prepareDelete(getIndexName(MetadataCollections.C_OBJECTGROUP, tenantId),
                 VitamCollection.getTypeunique(), id));
             if (max == 0) {
-                max = VitamConfiguration.MAX_ELASTICSEARCH_BULK;
+                max = VitamConfiguration.getMaxElasticsearchBulk();
                 final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
                 // thread
                 if (bulkResponse.hasFailures()) {
@@ -752,13 +752,13 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             throw new MetaDataExecutionException("No result to delete");
         }
         BulkRequestBuilder bulkRequest = client.prepareBulk();
-        int max = VitamConfiguration.MAX_ELASTICSEARCH_BULK;
+        int max = VitamConfiguration.getMaxElasticsearchBulk();
         for (String id : ids) {
             max--;
             bulkRequest
                 .add(client.prepareDelete(getIndexName(MetadataCollections.C_UNIT, tenantId), VitamCollection.getTypeunique(), id));
             if (max == 0) {
-                max = VitamConfiguration.MAX_ELASTICSEARCH_BULK;
+                max = VitamConfiguration.getMaxElasticsearchBulk();
                 final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
                 // thread
                 if (bulkResponse.hasFailures()) {

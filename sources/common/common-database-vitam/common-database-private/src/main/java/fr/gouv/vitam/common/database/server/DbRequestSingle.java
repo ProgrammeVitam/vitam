@@ -252,7 +252,7 @@ public class DbRequestSingle {
             return;
         }
         Map<String, String> mapIdJson = new HashMap<>();
-        int max = VitamConfiguration.MAX_ELASTICSEARCH_BULK;
+        int max = VitamConfiguration.getMaxElasticsearchBulk();
         for (VitamDocument<?> document : vitamDocumentList) {
             max--;
             String id = document.getString(VitamDocument.ID);
@@ -263,7 +263,7 @@ public class DbRequestSingle {
             final String esJson = ((DBObject) com.mongodb.util.JSON.parse(mongoJson)).toString();
             mapIdJson.put(id, esJson);
             if (max == 0) {
-                max = VitamConfiguration.MAX_ELASTICSEARCH_BULK;
+                max = VitamConfiguration.getMaxElasticsearchBulk();
                 final BulkResponse bulkResponse = addEntryIndexes(mapIdJson);
                 if (bulkResponse.hasFailures()) {
                     LOGGER.error("Insert Documents Exception");
@@ -621,7 +621,7 @@ public class DbRequestSingle {
         }
         final Client client = vitamCollection.getEsClient().getClient();
         BulkRequestBuilder bulkRequest = client.prepareBulk();
-        int max = VitamConfiguration.MAX_ELASTICSEARCH_BULK;
+        int max = VitamConfiguration.getMaxElasticsearchBulk();
         int count = 0;
         for (final String id : list) {
             max--;
@@ -629,7 +629,7 @@ public class DbRequestSingle {
                 .add(
                 client.prepareDelete(vitamCollection.getName().toLowerCase(), VitamCollection.getTypeunique(), id));
             if (max == 0) {
-                max = VitamConfiguration.MAX_ELASTICSEARCH_BULK;
+                max = VitamConfiguration.getMaxElasticsearchBulk();
                 final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
                 // thread
                 if (bulkResponse.hasFailures()) {

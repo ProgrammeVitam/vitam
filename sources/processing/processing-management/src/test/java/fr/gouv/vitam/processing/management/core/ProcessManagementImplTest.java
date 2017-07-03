@@ -107,7 +107,7 @@ public class ProcessManagementImplTest {
         processDataManagement = PowerMockito.mock(WorkspaceProcessDataManagement.class);
         PowerMockito.when(WorkspaceProcessDataManagement.getInstance()).thenReturn(processDataManagement);
 
-        if (VitamConfiguration.ENABLE_DISTRIBUTOR_V2) {
+        if (VitamConfiguration.isEnableDistributorV2()) {
             workerManager = new fr.gouv.vitam.processing.distributor.v2.WorkerManager();
             processDistributor= new fr.gouv.vitam.processing.distributor.v2.ProcessDistributorImpl(workerManager);
         } else {

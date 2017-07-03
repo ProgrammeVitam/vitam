@@ -27,8 +27,6 @@
 
 package fr.gouv.vitam.worker.core.extractseda;
 
-import static fr.gouv.vitam.common.VitamConfiguration.DEFAULT_LANG;
-
 import java.io.IOException;
 import java.util.Objects;
 
@@ -39,6 +37,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.worker.core.model.TextByLang;
 
 /**
@@ -73,7 +72,7 @@ public class TextByLangSerializer extends StdSerializer<TextByLang> {
         throws IOException {
         jgen.writeStartObject();
         for (TextType textType : textByLang.getTextTypes()) {
-            String lang = Strings.isNullOrEmpty(textType.getLang()) ? DEFAULT_LANG : textType.getLang();
+            String lang = Strings.isNullOrEmpty(textType.getLang()) ? VitamConfiguration.getDefaultLang() : textType.getLang();
             jgen.writeStringField(lang, textType.getValue());
         }
         jgen.writeEndObject();

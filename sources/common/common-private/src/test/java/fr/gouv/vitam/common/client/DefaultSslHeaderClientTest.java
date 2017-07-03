@@ -46,6 +46,7 @@ import javax.servlet.DispatcherType;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.MultivaluedHashMap;
 
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.auth.web.filter.X509AuthenticationFilter;
 import fr.gouv.vitam.common.client.configuration.SSLConfiguration;
 import fr.gouv.vitam.common.client.configuration.SSLKey;
@@ -110,8 +111,10 @@ public class DefaultSslHeaderClientTest {
         }
 
         @Override
-        protected void platformSecretConfiguration() {
+        protected void configureVitamParameters() {
             // Nothing
+            VitamConfiguration.setSecret("vitamsecret");
+            VitamConfiguration.setFilterActivation(false);
         }
 
         @Override

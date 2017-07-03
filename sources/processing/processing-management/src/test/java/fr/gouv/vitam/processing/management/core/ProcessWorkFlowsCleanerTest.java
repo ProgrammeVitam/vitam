@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+import fr.gouv.vitam.common.VitamConfiguration;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.model.ProcessState;
@@ -57,10 +58,8 @@ public class ProcessWorkFlowsCleanerTest {
         map.get(1).put("id1_tenant_1",  new ProcessWorkflow());
         map.get(1).put("id2_tenant_1",  new ProcessWorkflow());
         map.get(1).put("id3_tenant_1",  new ProcessWorkflow());
-
         ProcessManagementImpl  processManagement = mock(ProcessManagementImpl.class);
         ServerConfiguration serverConfiguration = mock(ServerConfiguration.class);
-
         //WHEN
 
         map.get(0).get("id3_tenant_0").setState(ProcessState.COMPLETED);
@@ -76,7 +75,8 @@ public class ProcessWorkFlowsCleanerTest {
         when(serverConfiguration.getProcessingCleanerPeriod()).thenReturn(2);
         when(processManagement.getConfiguration()).thenReturn(serverConfiguration);
         when(processManagement.getWorkFlowList()).thenReturn(map);
-       // THEN
+
+        // THEN
         ProcessWorkFlowsCleaner processWorkFlowsCleaner = new ProcessWorkFlowsCleaner(processManagement, TimeUnit.HOURS);
         processWorkFlowsCleaner.run();
 

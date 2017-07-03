@@ -244,7 +244,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
         int offset = 0;
         int sizeList = objectsList.size();
-        if (sizeList >  VitamConfiguration.DISTRIBUTEUR_BATCH_SIZE) {
+        if (sizeList >  VitamConfiguration.getDistributeurBatchSize()) {
             try {
                 DistributorIndex index = processDataManagement.getDistributorIndex(container, DISTRIBUTOR_INDEX);
                 if (null != index) {
@@ -257,8 +257,8 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             }
         }
         while (offset < sizeList) {
-            int size = sizeList > offset + VitamConfiguration.DISTRIBUTEUR_BATCH_SIZE ?
-                offset + VitamConfiguration.DISTRIBUTEUR_BATCH_SIZE : sizeList;
+            int size = sizeList > offset + VitamConfiguration.getDistributeurBatchSize() ?
+                offset + VitamConfiguration.getDistributeurBatchSize() : sizeList;
 
             List<String> subList = objectsList.subList(offset, size);
 
@@ -284,7 +284,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 // store information
                 final ItemStatus itemStatus = reduce.get();
                 offset = offset + size;
-                if (sizeList > VitamConfiguration.DISTRIBUTEUR_BATCH_SIZE) {
+                if (sizeList > VitamConfiguration.getDistributeurBatchSize() ) {
                     DistributorIndex distributorIndex = new DistributorIndex(offset, itemStatus, requestId, uniqueStepId);
                     try {
                         processDataManagement.persistDistributorIndex(container, DISTRIBUTOR_INDEX, distributorIndex);

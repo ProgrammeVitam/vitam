@@ -95,12 +95,13 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
     private VitamServer vitamServer;
     private ThreadManager threadManager;
     private final String role = ServerIdentity.getInstance().getRole();
-    private boolean enableGzip = VitamConfiguration.ALLOW_GZIP_ENCODING;
+    private boolean enableGzip = VitamConfiguration.isAllowGzipEncoding();
     private AtomicBoolean isShuttingDown = new AtomicBoolean(false);
 
     public boolean getServerStatus() {
         return isShuttingDown.get();
     }
+
 
     /**
      * Protected constructor assigning application and configuration types </br>
@@ -171,11 +172,13 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
     /**
      * To allow override on non Vitam platform such as IHM
      */
-    protected void platformSecretConfiguration() {
+    protected void configureVitamParameters() {
         // Load Platform secret from vitam.conf file
+
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(VITAM_CONF_FILE_NAME)) {
             final VitamConfigurationParameters vitamConfigurationParameters =
                 PropertiesUtils.readYaml(yamlIS, VitamConfigurationParameters.class);
+            VitamConfiguration.importConfigurationParameters(vitamConfigurationParameters);
 
             VitamConfiguration.setSecret(vitamConfigurationParameters.getSecret());
             VitamConfiguration.setFilterActivation(vitamConfigurationParameters.isFilterActivation());
@@ -195,7 +198,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
      */
     private final void configure(C configuration) {
         try {
-            platformSecretConfiguration();
+            configureVitamParameters();
             setConfiguration(configuration);
             applicationHandlers = new ContextHandlerCollection();
             /*

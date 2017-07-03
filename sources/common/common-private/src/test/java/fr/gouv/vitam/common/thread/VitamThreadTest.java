@@ -43,7 +43,7 @@ public class VitamThreadTest {
         final VitamThreadPoolExecutor executorService =
             (VitamThreadPoolExecutor) vitamThreadPoolExecutorProvider.getExecutorService();
         assertNotNull(executorService);
-        assertTrue(vitamThreadPoolExecutorProvider.getCorePoolSize() == VitamConfiguration.MINIMUM_THREAD_POOL_SIZE);
+        assertTrue(vitamThreadPoolExecutorProvider.getCorePoolSize() == VitamConfiguration.getMinimumThreadPoolSize());
         assertTrue(vitamThreadPoolExecutorProvider.getKeepAliveTime() > 0);
         assertTrue(vitamThreadPoolExecutorProvider.getMaximumPoolSize() > 0);
         assertNotNull(vitamThreadPoolExecutorProvider.getWorkQueue());

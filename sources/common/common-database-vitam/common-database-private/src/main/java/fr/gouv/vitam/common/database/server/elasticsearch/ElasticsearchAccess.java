@@ -123,11 +123,11 @@ public class ElasticsearchAccess implements DatabaseConnection {
             .put("transport.tcp.connect_timeout", "1s")
             .put("transport.profiles.client.connect_timeout", "1s")
             .put("transport.profiles.tcp.connect_timeout", "1s")
-            .put("threadpool.refresh.size", VitamConfiguration.NUMBER_DB_CLIENT_THREAD)
-            .put("threadpool.search.size", VitamConfiguration.NUMBER_DB_CLIENT_THREAD)
-            .put("threadpool.search.queue_size", VitamConfiguration.NUMBER_ES_QUEUE)
-            .put("threadpool.bulk.size", VitamConfiguration.NUMBER_DB_CLIENT_THREAD)
-            .put("threadpool.bulk.queue_size", VitamConfiguration.NUMBER_ES_QUEUE)
+            .put("threadpool.refresh.size", VitamConfiguration.getNumberDbClientThread())
+            .put("threadpool.search.size", VitamConfiguration.getNumberDbClientThread())
+            .put("threadpool.search.queue_size", VitamConfiguration.getNumberEsQueue())
+            .put("threadpool.bulk.size", VitamConfiguration.getNumberDbClientThread())
+            .put("threadpool.bulk.queue_size", VitamConfiguration.getNumberEsQueue())
             .put("watcher.http.default_read_timeout", VitamConfiguration.getReadTimeout() / TOSECOND + "s")
             .build();
     }

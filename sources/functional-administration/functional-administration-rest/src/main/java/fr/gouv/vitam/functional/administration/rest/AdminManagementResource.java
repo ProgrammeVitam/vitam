@@ -249,7 +249,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             }
 
             CacheControl cacheControl = new CacheControl();
-            cacheControl.setMaxAge(VitamConfiguration.CACHE_CONTROL_DELAY);
+            cacheControl.setMaxAge(VitamConfiguration.getCacheControlDelay());
             cacheControl.setPrivate(false);
 
             EntityTag etag = new EntityTag(Integer.toString(fileFormat.hashCode()));
@@ -420,7 +420,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             }
 
             CacheControl cacheControl = new CacheControl();
-            cacheControl.setMaxAge(VitamConfiguration.CACHE_CONTROL_DELAY);
+            cacheControl.setMaxAge(VitamConfiguration.getCacheControlDelay());
             cacheControl.setPrivate(false);
 
             EntityTag etag = new EntityTag(Integer.toString(fileRules.hashCode()));

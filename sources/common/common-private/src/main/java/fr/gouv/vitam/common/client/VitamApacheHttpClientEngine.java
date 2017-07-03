@@ -171,7 +171,7 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
         final HttpClientBuilder clientBuilder;
         if (VitamRestEasyConfiguration.CACHE_ENABLED.isTrue(config)) {
             CacheConfig cacheConfig = CacheConfig.custom()
-                .setMaxCacheEntries(VitamConfiguration.MAX_CACHE_ENTRIES)
+                .setMaxCacheEntries(VitamConfiguration.getMaxCacheEntries())
                 .setMaxObjectSize(8192)
                 .setSharedCache(true)
                 .build();

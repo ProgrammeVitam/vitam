@@ -71,7 +71,7 @@ public class MultipleInputStreamHandler implements VitamAutoCloseable {
      * Global Pool of chunks
      */
     private static final BlockingQueue<StreamBuffer> POOL_CHUNK = new LinkedBlockingQueue<>(
-        VitamConfiguration.BUFFER_NUMBER * VitamConfiguration.MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER);
+        VitamConfiguration.getBufferNumber() * VitamConfiguration.getMaxConcurrentMultipleInputstreamHandler());
     /**
      * ERROR when no more buffer is available
      */
@@ -90,7 +90,7 @@ public class MultipleInputStreamHandler implements VitamAutoCloseable {
 
     // Initialize the global static context
     static {
-        for (int i = 0; i < VitamConfiguration.BUFFER_NUMBER * VitamConfiguration.MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER; i++) {
+        for (int i = 0; i < VitamConfiguration.getBufferNumber() * VitamConfiguration.getMaxConcurrentMultipleInputstreamHandler(); i++) {
             final StreamBuffer buffer = new StreamBuffer();
             POOL_CHUNK.add(buffer);
         }
@@ -159,8 +159,8 @@ public class MultipleInputStreamHandler implements VitamAutoCloseable {
         activeSubStreams = new CountDownLatch(nbCopy);
         subInputStreams = new StreamBufferInputStream[nbCopy];
         // Fill first buffers up to BUFFER_NUMBER
-        availableBuffers = new LinkedBlockingQueue<>(VitamConfiguration.BUFFER_NUMBER);
-        allocatedBuffers = new ArrayList<>(VitamConfiguration.BUFFER_NUMBER);
+        availableBuffers = new LinkedBlockingQueue<>(VitamConfiguration.getBufferNumber());
+        allocatedBuffers = new ArrayList<>(VitamConfiguration.getBufferNumber());
         if (!SERVICE_AVAILABLE.get()) {
             throw new IllegalArgumentException(GLOBAL_SERVICE_OF_MULTIPLE_INPUT_STREAM_HANDLER_IS_DOWN);
         }
@@ -180,10 +180,10 @@ public class MultipleInputStreamHandler implements VitamAutoCloseable {
      */
     private void allocateBuffers() {
         LOGGER.debug("Available Buffers Before {}", POOL_CHUNK.size());
-        for (int j = 0; j < VitamConfiguration.BUFFER_NUMBER; j++) {
+        for (int j = 0; j < VitamConfiguration.getBufferNumber(); j++) {
             try {
                 StreamBuffer streamBuffer =
-                    POOL_CHUNK.poll(VitamConfiguration.DELAY_MULTIPLE_INPUTSTREAM, TimeUnit.MILLISECONDS);
+                    POOL_CHUNK.poll(VitamConfiguration.getDelayMultipleInputstream(), TimeUnit.MILLISECONDS);
                 if (streamBuffer != null) {
                     availableBuffers.add(streamBuffer);
                     allocatedBuffers.add(streamBuffer);
@@ -254,7 +254,7 @@ public class MultipleInputStreamHandler implements VitamAutoCloseable {
             }
             threadReaderStatus = EXECUTOR_THREADREADER.submit(threadReader);
             try {
-                if (!threadReader.started.await(VitamConfiguration.DELAY_MULTIPLE_SUBINPUTSTREAM,
+                if (!threadReader.started.await(VitamConfiguration.getDelayMultipleSubinputstream(),
                     TimeUnit.MILLISECONDS)) {
                     close();
                     throw new IllegalArgumentException("Cannot start the thread reader");
@@ -353,7 +353,7 @@ public class MultipleInputStreamHandler implements VitamAutoCloseable {
                 while (!mish.endOfReadSource.get()) {
                     // Get a buffer from the available ones
                     LOGGER.debug("Status 1: {}", this);
-                    buffer = mish.availableBuffers.poll(VitamConfiguration.DELAY_MULTIPLE_SUBINPUTSTREAM,
+                    buffer = mish.availableBuffers.poll(VitamConfiguration.getDelayMultipleSubinputstream(),
                         TimeUnit.MILLISECONDS);
                     if (buffer == null) {
                         // Timeout occurs
@@ -487,7 +487,7 @@ public class MultipleInputStreamHandler implements VitamAutoCloseable {
 
         private StreamBufferInputStream(MultipleInputStreamHandler mish, int rank) {
             this.mish = mish;
-            streamBuffers = new LinkedBlockingQueue<>(VitamConfiguration.BUFFER_NUMBER);
+            streamBuffers = new LinkedBlockingQueue<>(VitamConfiguration.getBufferNumber());
             this.rank = rank;
         }
 
@@ -552,7 +552,7 @@ public class MultipleInputStreamHandler implements VitamAutoCloseable {
                         return 0;
                     }
                     current =
-                        streamBuffers.poll(VitamConfiguration.DELAY_MULTIPLE_SUBINPUTSTREAM, TimeUnit.MILLISECONDS);
+                        streamBuffers.poll(VitamConfiguration.getDelayMultipleSubinputstream(), TimeUnit.MILLISECONDS);
                     if (current == null) {
                         LOGGER.debug("Status: {}", this);
                         if (mish.endOfReadSource.get()) {

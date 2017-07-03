@@ -136,9 +136,9 @@ public class VitamRequestIteratorSslTest {
         }
 
         @Override
-        protected void platformSecretConfiguration() {
+        protected void configureVitamParameters() {
             VitamConfiguration.setFilterActivation(false);
-
+            VitamConfiguration.setSecret("vitamsecret");
             // Nothing
         }
 
