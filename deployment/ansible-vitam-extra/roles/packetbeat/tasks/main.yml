@@ -31,7 +31,7 @@
     flat: yes
 
 - name: create packetbeat index
-  when: "{{ (groups['hosts-kibana'] | length) > 0}}"
+  when: "{{ (groups['hosts-kibana-log'] | length) > 0}}"
   uri:
     url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/_template/packetbeat'
     method: PUT
@@ -45,7 +45,7 @@
    state: absent
 
 - name: load kibana dashboards to .kibana elasticsearch index
-  when: "{{ (groups['hosts-kibana'] | length) > 0}}"
+  when: "{{ (groups['hosts-kibana-log'] | length) > 0}}"
   uri:
     url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/.kibana/{{item.split(".")[0] }}'
     method: PUT
@@ -53,15 +53,6 @@
     body_format: json
     status_code: 200, 201
   with_lines: find {{role_path}}/files/ -name '*.json' -type f | awk -F '/' '{print $(NF-1)"/"$NF}'
-
-- name: restart Kibana
-  when: "{{ (groups['hosts-kibana'] | length) > 0}}"
-  service:
-    name: kibana
-    state: restarted
-    enabled: true
-  delegate_to: "{{groups['hosts-kibana'][0]}}"
-  run_once: true
 
 - name: add Packetbeat autostart at boot
   service:

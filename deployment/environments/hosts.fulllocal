@@ -137,6 +137,7 @@ localhost rs_member_id=0 shard_id=0
 
 [zone-admin:children]
 hosts-consul-server
+hosts-kibana-data
 log-servers
 hosts-elasticsearch-log
 hosts-mongoclient
@@ -144,14 +145,17 @@ hosts-mongoclient
 [hosts-consul-server]
 localhost
 
+[hosts-kibana-data]
+# Nothing here ; kibana-data & kibana-log cannot be deployed on the same server.
+
 [log-servers:children]
-hosts-kibana
+hosts-kibana-log
 hosts-logstash
 
-[hosts-logstash]
+[hosts-kibana-log]
 localhost
 
-[hosts-kibana]
+[hosts-logstash]
 localhost
 
 [hosts-elasticsearch-log]

@@ -101,6 +101,7 @@ elasticsearch_log_host: "elasticsearch-log.service.{{consul_domain}}"
 elasticsearch_log_http_port: "9201"
 elasticsearch_log_tcp_port: "9301"
 
+elasticsearch_data_host: "elasticsearch-data.service.{{consul_domain}}"
 elasticsearch_data_http_port: "9200"
 elasticsearch_data_tcp_port: "9300"
 
@@ -119,9 +120,11 @@ vitam_mongodb_port: "{{mongos_port}}"
 vitam_logstash_host: "{{ groups['hosts-logstash'][0] }}"
 vitam_logstash_port: 10514
 
-# Normally no need for the host ?
-vitam_kibana_host: "kibana.service.{{consul_domain}}"
-vitam_kibana_port: 5601
+# FIXME : changing port doesn't work, yet (not taken into account in kibana configuration)
+kibana_log_port: 5601
+
+# KWA FIXME : changing port doesn't work, yet (not taken into account in kibana configuration)
+kibana_data_port: 5601
 
 vitam_curator_host: "{{ (groups['hosts-log-server'] | length > 0) | ternary(groups['hosts-log-server'][0], '') }}"
 

@@ -4,7 +4,7 @@
     name: "{{consul_service}}"
     state: latest
   notify:
-      - restart consul
+    - restart consul
 
 - name: Enable consul service
   service:
@@ -31,8 +31,8 @@
     - data
     - tmp
   notify:
-      - restart consul
-
+    - restart consul
+  
 - name: Deploy consul common configuration files
   template:
     src: "{{item}}.j2"

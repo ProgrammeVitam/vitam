@@ -43,9 +43,11 @@
   roles:
     - role: logstash
 
-- hosts: hosts-kibana
+- hosts: hosts-kibana-log
   roles:
-    - role: kibana
+    - {role: kibana, groupe: log, elasticsearch_host: "{{elasticsearch_log_host}}", elasticsearch_port: "{{elasticsearch_log_http_port}}", kibana_port: "{{kibana_log_port}}"}
+    - role: kibana_log_dashboards
+
 
 ### RSYSLOG INSTALLATION ###
 # Vitam solution deployment
@@ -62,6 +64,13 @@
 - hosts: hosts-cerebro
   roles:
     - role: cerebro
+
+### KIBANA DATA INSTALLATION ###
+
+- hosts: hosts-kibana-data
+  roles:
+    - {role: kibana, groupe: data, elasticsearch_host: "{{elasticsearch_data_host}}", elasticsearch_port: "{{elasticsearch_data_http_port}}", kibana_port: "{{kibana_data_port}}"}
+
 ### MONGO DB INSTALLATION ###
 
 # mongodb commons (yum install, etc...)

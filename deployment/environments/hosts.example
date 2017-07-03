@@ -177,6 +177,7 @@ mongod
 # Group definition ; DO NOT MODIFY
 [zone-admin:children]
 hosts-consul-server
+hosts-kibana-data
 log-servers
 hosts-elasticsearch-log
 hosts-mongoclient
@@ -184,16 +185,18 @@ hosts-mongoclient
 [hosts-consul-server]
 # TODO: Put here servers where this service will be deployed : consul
 
+[hosts-kibana-data]
+# TODO: Put here servers where this service will be deployed : kibana (for data cluster)
 
 [log-servers:children]
-hosts-kibana
+hosts-kibana-log
 hosts-logstash
 
 [hosts-logstash]
 # TODO: Put here servers where this service will be deployed : logstash
 
-[hosts-kibana]
-# TODO: Put here servers where this service will be deployed : kibana
+[hosts-kibana-log]
+# TODO: Put here servers where this service will be deployed : kibana (for log cluster)
 
 [hosts-elasticsearch-log]
 # TODO: Put here servers where this service will be deployed : elasticsearch-log cluster

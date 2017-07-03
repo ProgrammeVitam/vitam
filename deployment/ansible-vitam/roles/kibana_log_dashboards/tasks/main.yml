@@ -1,0 +1,65 @@
+---
+# tasks file for kibana_log_dashboards
+
+#### Kibana dashboards configuration ####
+
+# We have a specific task for index pattern to add the "*" at the end of the url
+- name: load index patterns into Elasticsearch log .kibana index
+  when: "{{ (groups['hosts-kibana-log'] | length) > 0 }}"
+  run_once: true
+  uri:
+    url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/.kibana/{{ item.split(".")[0] }}*'
+    method: PUT
+    body: "{{ lookup('file', '{{role_path}}/files/kibana-metrics-configuration/{{item}}') }}"
+    body_format: json
+    status_code: 200, 201
+  with_lines: find {{ index_pattern_dir }} -name '*.json' -type f | awk -F '/' '{print $(NF-1)"/"$NF}'
+  vars:
+    index_pattern_dir: "{{role_path}}/files/kibana-metrics-configuration/index-pattern"
+
+- name: load dasboards into Elasticsearch log .kibana index
+  when: "{{ (groups['hosts-kibana-log'] | length) > 0 }}"
+  run_once: true
+  uri:
+    url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/.kibana/{{ item.split(".")[0] }}'
+    method: PUT
+    body: "{{ lookup('file', '{{role_path}}/files/kibana-metrics-configuration/{{item}}') }}"
+    body_format: json
+    status_code: 200, 201
+  with_lines: find {{ search_dir }} {{ dashboard_dir }} {{ visualization_dir }} -name '*.json' -type f | awk -F '/' '{print $(NF-1)"/"$NF}'
+  vars:
+    search_dir: "{{role_path}}/files/kibana-metrics-configuration/search"
+    dashboard_dir: "{{role_path}}/files/kibana-metrics-configuration/dashboard"
+    visualization_dir: "{{role_path}}/files/kibana-metrics-configuration/visualization"
+
+### elasticsearch log configuration and kibana configuration ###
+- name: load vitam metrics template in Elasticsearch Log
+  when: "{{ (groups['hosts-kibana-log'] | length) > 0}}"
+  run_once: true
+  uri:
+    url: "http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/_template/metrics_template"
+    method: PUT
+    body: "{{ lookup('file', '{{role_path}}/files/kibana-metrics-configuration/metrics.template.json') }}"
+    body_format: json
+    status_code: 200,201
+
+# TODO Get Kibana version dynamically and put it in the URL
+- name: set logstash-vitam* as kibana default index pattern
+  when: "{{ (groups['hosts-kibana-log'] | length) > 0}}"
+  run_once: true
+  uri:
+    url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/.kibana/config/4.6.1'
+    method: PUT
+    body: '{"defaultIndex": "logstash-vitam*", "buildNum": 10229}'
+    body_format: json
+    status_code: 200, 201
+
+- name: Ensure consul service is started
+  service:
+    name: "vitam-consul"
+    state: started
+
+- name: Ensure kibana service is started
+  service:
+    name: "kibana"
+    state: started
