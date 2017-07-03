@@ -1,28 +1,19 @@
 /*
- *  Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- *  <p>
- *  contact.vitam@culture.gouv.fr
- *  <p>
- *  This software is a computer program whose purpose is to implement a digital archiving back-office system managing
- *  high volumetry securely and efficiently.
- *  <p>
- *  This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
- *  software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- *  circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- *  <p>
- *  As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
- *  users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
- *  successive licensors have only limited liability.
- *  <p>
- *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
- *  developing or reproducing the software by the user in light of its specific status of free software, that may mean
- *  that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
- *  experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
- *  software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
- *  to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- *  <p>
- *  The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
- *  accept its terms.
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019) <p> contact.vitam@culture.gouv.fr <p>
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently. <p> This software is governed by the CeCILL 2.1 license under French law and
+ * abiding by the rules of distribution of free software. You can use, modify and/ or redistribute the software under
+ * the terms of the CeCILL 2.1 license as circulated by CEA, CNRS and INRIA at the following URL
+ * "http://www.cecill.info". <p> As a counterpart to the access to the source code and rights to copy, modify and
+ * redistribute granted by the license, users are provided only with a limited warranty and the software's author, the
+ * holder of the economic rights, and the successive licensors have only limited liability. <p> In this respect, the
+ * user's attention is drawn to the risks associated with loading, using, modifying and/or developing or reproducing the
+ * software by the user in light of its specific status of free software, that may mean that it is complicated to
+ * manipulate, and that also therefore means that it is reserved for developers and experienced professionals having
+ * in-depth computer knowledge. Users are therefore encouraged to load and test the software's suitability as regards
+ * their requirements in conditions enabling the security of their systems and/or data to be ensured and, more
+ * generally, to use and operate it in the same conditions as regards security. <p> The fact that you are presently
+ * reading this means that you have had knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
 package fr.gouv.vitam.functional.administration.rest;
 
@@ -191,7 +182,7 @@ public class ProfileResourceTest {
         RestAssured.port = serverPort;
         RestAssured.basePath = RESOURCE_URI;
 
-         workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        workspaceClientFactory = mock(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
         dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
         List tenants = new ArrayList<>();
@@ -205,7 +196,8 @@ public class ProfileResourceTest {
                     final AdminManagementResource resource = new AdminManagementResource(getConfiguration());
 
                     final MongoDbAccessAdminImpl mongoDbAccess = resource.getLogbookDbAccess();
-                    final ProfileResource profileResource = new ProfileResource(workspaceClientFactory, mongoDbAccess,vitamCounterService);
+                    final ProfileResource profileResource =
+                        new ProfileResource(workspaceClientFactory, mongoDbAccess, vitamCounterService);
                     resourceConfig
                         .register(profileResource);
                 }
@@ -299,7 +291,6 @@ public class ProfileResourceTest {
 
 
 
-
     @Test
     @RunWithCustomExecutor
     public void givenTestImportSXDProfileFile() throws Exception {
@@ -317,14 +308,14 @@ public class ProfileResourceTest {
             .when().get(ProfileResource.PROFILE_URI)
             .then().statusCode(Status.OK.getStatusCode()).extract().body().jsonPath();
 
-        List<String> identifiers =result.get("$results.Identifier");
+        List<String> identifiers = result.get("$results.Identifier");
         assertThat(identifiers).hasSize(2);
         assertThat(identifiers.get(0)).contains("PR-0000");
         assertThat(identifiers.get(1)).contains("PR-0000");
 
-        List<String> ids =result.get("$results._id");
+        List<String> ids = result.get("$results._id");
 
-        String idProfile = ids.iterator().next();
+        String identifierProfile = identifiers.iterator().next();
 
 
 
@@ -334,12 +325,13 @@ public class ProfileResourceTest {
 
 
         doAnswer(invocation -> null).when(workspaceClient).createContainer(anyString());
-        doAnswer(invocation -> xsdProfile).when(workspaceClient).putObject(anyString(), anyString(), any(InputStream.class));
+        doAnswer(invocation -> xsdProfile).when(workspaceClient).putObject(anyString(), anyString(),
+            any(InputStream.class));
 
         // transform to json
         given().contentType(ContentType.BINARY).body(xsdProfile)
             .header(GlobalDataRest.X_TENANT_ID, 0)
-            .when().put(ProfileResource.PROFILE_URI + "/" +idProfile)
+            .when().put(ProfileResource.PROFILE_URI + "/" + identifierProfile)
             .then().statusCode(Status.CREATED.getStatusCode());
     }
 
@@ -362,13 +354,13 @@ public class ProfileResourceTest {
             .when().get(ProfileResource.PROFILE_URI)
             .then().statusCode(Status.OK.getStatusCode()).extract().body().jsonPath();
 
-        List<String> identifiers =result.get("$results.Identifier");
+        List<String> identifiers = result.get("$results.Identifier");
         assertThat(identifiers).hasSize(2);
         assertThat(identifiers.get(0)).contains("PR-0000");
         assertThat(identifiers.get(1)).contains("PR-0000");
-        List<String> ids =result.get("$results._id");
+        List<String> ids = result.get("$results._id");
 
-        String idProfile = ids.get(1);
+        String identifierProfile = identifiers.get(1);
 
 
 
@@ -378,12 +370,13 @@ public class ProfileResourceTest {
 
 
         doAnswer(invocation -> null).when(workspaceClient).createContainer(anyString());
-        doAnswer(invocation -> xsdProfile).when(workspaceClient).putObject(anyString(), anyString(), any(InputStream.class));
+        doAnswer(invocation -> xsdProfile).when(workspaceClient).putObject(anyString(), anyString(),
+            any(InputStream.class));
 
         // transform to json
         given().contentType(ContentType.BINARY).body(xsdProfile)
             .header(GlobalDataRest.X_TENANT_ID, 0)
-            .when().put(ProfileResource.PROFILE_URI + "/" +idProfile)
+            .when().put(ProfileResource.PROFILE_URI + "/" + identifierProfile)
             .then().statusCode(Status.CREATED.getStatusCode());
 
     }

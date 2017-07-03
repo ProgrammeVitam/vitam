@@ -212,7 +212,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
         final SelectParserSingle parser = new SelectParserSingle(new VarNameAdapter());
         parser.parse(new Select().getFinalSelect());
         try {
-            parser.addCondition(QueryHelper.eq("#id", id));
+            parser.addCondition(QueryHelper.eq("Identifier", id));
         } catch (InvalidCreateOperationException e) {
             throw new ReferentialException(e);
         }
@@ -610,7 +610,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
 
             return error;
         }
-        manager.logUpdateSuccess(id, updateDiffs.get(id));
+        manager.logUpdateSuccess(id, updateDiffs.get(accContractModel.getId()));
         return new RequestResponseOK<AccessContractModel>();
     }
 
