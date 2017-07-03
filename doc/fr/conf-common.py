@@ -16,8 +16,9 @@ version = ET.parse("../../pom.xml").getroot().find("{http://maven.apache.org/POM
 release = version
 
 # Configure epilog to allow the inclusion of configuration variables into the sphinx document
-rst_epilog = '\n.. |doc_title| replace:: %s' % project
-
+rst_epilog = """
+.. |doc_title| replace:: %s
+""" % (project)
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -35,6 +36,9 @@ rst_epilog = '\n.. |doc_title| replace:: %s' % project
 extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.ifconfig',
+     # Cf. https://stackoverflow.com/questions/1227037/substitutions-inside-links-in-rest-sphinx
+     # or http://www.sphinx-doc.org/en/stable/ext/extlinks.html
+    'sphinx.ext.extlinks'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
