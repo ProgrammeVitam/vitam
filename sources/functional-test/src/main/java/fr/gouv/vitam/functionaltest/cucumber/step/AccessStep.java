@@ -261,13 +261,9 @@ public class AccessStep {
     public void the_status_of_the_select_result(String status) throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(query);
         String s = null;
-        try{
-            RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnits(queryJSON,
+        RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnits(queryJSON,
             world.getTenantId(), world.getContractId());
-        } catch (AccessUnauthorizedException e){
-            s = Status.UNAUTHORIZED.toString();
-        }
-        assertThat(status).isEqualTo(s);
+        assertThat(status).isEqualTo(Status.fromStatusCode(requestResponse.getHttpCode()).toString());
     }
     
     /**
@@ -280,15 +276,12 @@ public class AccessStep {
     public void the_status_of_the_update_result(String status) throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(query);
         String s = null;
+        RequestResponse<JsonNode> requestResponse;
         // get id of last result
         String unitId = getValueFromResult("#id", 0);
-        try{
-            RequestResponse<JsonNode> requestResponse = world.getAccessClient().updateUnitbyId(queryJSON, unitId,
+        requestResponse = world.getAccessClient().updateUnitbyId(queryJSON, unitId,
             world.getTenantId(), world.getContractId());
-        } catch (AccessUnauthorizedException e){
-            s = Status.UNAUTHORIZED.toString();
-        }
-        assertThat(status).isEqualTo(s);
+        assertThat(status).isEqualTo(Status.fromStatusCode(requestResponse.getHttpCode()).toString());
     }
 
     /**

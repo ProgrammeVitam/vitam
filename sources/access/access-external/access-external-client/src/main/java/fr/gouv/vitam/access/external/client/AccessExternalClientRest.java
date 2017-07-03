@@ -80,7 +80,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 selectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
-            if (!requestResponse.isOk()) {
+            if (requestResponse.isOk()) {
                 return requestResponse;
             } else {
                 final VitamError vitamError =  new VitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNITS_ERROR.getItem())
@@ -136,7 +136,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 selectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
-            if (!requestResponse.isOk()) {
+            if (requestResponse.isOk()) {
                 return requestResponse;
             } else {
                 final VitamError vitamError =  new VitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR.getItem())
@@ -189,7 +189,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 updateQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
-            if (!requestResponse.isOk()) {
+            if (requestResponse.isOk()) {
                 return requestResponse;
             } else {
                 final VitamError vitamError =  new VitamError(VitamCode.ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR.getItem())
@@ -250,7 +250,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             final Status status = Status.fromStatusCode(response.getStatus());
 
             RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
-            if (!requestResponse.isOk()) {
+            if (requestResponse.isOk()) {
                 return requestResponse;
             } else {
                 final VitamError vitamError = new VitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR.getItem())
@@ -399,7 +399,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 select, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
-            if (!requestResponse.isOk()) {
+            if (requestResponse.isOk()) {
                 return requestResponse;
             } else {
                 final VitamError vitamError = new VitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_ERROR.getItem())
@@ -448,7 +448,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 MediaType.APPLICATION_JSON_TYPE, false);
 
             RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
-            if (!requestResponse.isOk()) {
+            if (requestResponse.isOk()) {
                 return requestResponse;
             } else {
                 final VitamError vitamError = new VitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR.getItem())
@@ -498,7 +498,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                     MediaType.APPLICATION_JSON_TYPE, false);
 
             RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
-            if (!requestResponse.isOk()) {
+            if (requestResponse.isOk()) {
                 return requestResponse;
             } else {
                 final VitamError vitamError = new VitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR.getItem())
@@ -548,7 +548,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
-            if (!requestResponse.isOk()) {
+            if (requestResponse.isOk()) {
                 return requestResponse;
             } else {
                 final VitamError vitamError = new VitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_ERROR.getItem())
@@ -598,7 +598,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 MediaType.APPLICATION_JSON_TYPE, false);
 
             RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
-            if (!requestResponse.isOk()) {
+            if (requestResponse.isOk()) {
                 return requestResponse;
             } else {
                 final VitamError vitamError = new VitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR.getItem())
@@ -650,7 +650,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 query, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
-            if (!requestResponse.isOk()) {
+            if (requestResponse.isOk()) {
                 return requestResponse;
             } else {
                 final VitamError vitamError = new VitamError(VitamCode.ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_SUMMARY_ERROR.getItem())
@@ -702,7 +702,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 query, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
-            if (!requestResponse.isOk()) {
+            if (requestResponse.isOk()) {
                 return requestResponse;
             } else {
                 final VitamError vitamError = new VitamError(VitamCode.ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_DETAIL_ERROR.getItem())
