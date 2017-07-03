@@ -235,9 +235,7 @@ angular.module('workflows')
     var getWorkflowsDefinition = function() {
       ihmDemoFactory.getWorkflowsDefinition().then(
         function onSuccess(result) {
-          console.log('result: ', result.data$results);
-          // FIXME Request return $results.$results.$results.<someResults>
-          initWorkflowCategories(result.data.$results);
+          initWorkflowCategories(result.data.$results[0]);
           $scope.updateSelectableSteps($scope.search.form.categories);
         }
       );
