@@ -26,6 +26,16 @@
  */
 package fr.gouv.vitam.worker.core.plugin;
 
+import java.util.List;
+
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -37,6 +47,8 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientE
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
+import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 
 /**
@@ -57,29 +69,65 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
      *
      * @param description the object description
      * @param itemStatus item status
+     * @return StoredInfoResult
      * @throws ProcessingException when error in execution
      */
-    protected void storeObject(ObjectDescription description,
+    protected StoredInfoResult storeObject(ObjectDescription description,
         ItemStatus itemStatus) throws ProcessingException {
 
         try (final StorageClient storageClient = storageClientFactory.getClient()) {
             // store binary data object
-            storageClient.storeFileFromWorkspace(DEFAULT_STRATEGY, description.getType(),
+            return storageClient.storeFileFromWorkspace(DEFAULT_STRATEGY, description.getType(),
                 description.getObjectName(),
                 description);
+
         } catch (StorageAlreadyExistsClientException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.KO);
         } catch (StorageNotFoundClientException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
-
         } catch (StorageServerClientException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
         }
-
+        return null;
     }
 
-
+    /**
+     * Helper to set _storage on node after storing it
+     * 
+     * @param node
+     * @param result
+     * @param update True will return an UpdateMultiQuery, else null
+     * 
+     * @throws InvalidCreateOperationException 
+     */
+    protected UpdateMultiQuery storeStorageInfo(ObjectNode node, StoredInfoResult result, boolean update) throws InvalidCreateOperationException {
+        LOGGER.debug("DEBUG result: {}", result);
+        int nbc = result.getNbCopy();
+        String strategy = result.getStrategy();
+        List<String> offers = result.getOfferIds();
+        ObjectNode storage = JsonHandler.createObjectNode();
+        storage.put(SedaConstants.TAG_NB, nbc);
+        ArrayNode offersId = JsonHandler.createArrayNode();
+        if (offers != null) {
+            for (String id : offers) {
+                offersId.add(id);
+            }
+        }
+        storage.set(SedaConstants.OFFER_IDS, offersId);
+        storage.put(SedaConstants.STRATEGY_ID, strategy);
+        node.set(SedaConstants.STORAGE, storage);
+        LOGGER.debug("DEBUG node: {}", node);
+        if (update) {
+            UpdateMultiQuery query = new UpdateMultiQuery();
+            query.addActions(UpdateActionHelper.set(VitamFieldsHelper.storage() + "." + SedaConstants.TAG_NB, nbc)
+                .add(VitamFieldsHelper.storage() + "." + SedaConstants.STRATEGY_ID, strategy)
+                .add(VitamFieldsHelper.storage() + "." + SedaConstants.OFFER_IDS, offers));
+            LOGGER.debug("DEBUG query: {}", query);
+            return query;
+        }
+        return null;
+    }
 }

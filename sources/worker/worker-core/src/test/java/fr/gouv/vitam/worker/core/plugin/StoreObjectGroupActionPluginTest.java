@@ -33,6 +33,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.Arrays;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -47,6 +48,7 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -196,6 +198,13 @@ public class StoreObjectGroupActionPluginTest {
         final StoredInfoResult storedInfoResult = new StoredInfoResult();
         storedInfoResult.setInfo("Info");
         storedInfoResult.setId("obj");
+        storedInfoResult.setCreationTime(LocalDateUtil.getString(LocalDateUtil.now()));
+        storedInfoResult.setLastAccessTime(LocalDateUtil.getString(LocalDateUtil.now()));
+        storedInfoResult.setLastCheckedTime(LocalDateUtil.getString(LocalDateUtil.now()));
+        storedInfoResult.setLastModifiedTime(LocalDateUtil.getString(LocalDateUtil.now()));
+        storedInfoResult.setNbCopy(1);
+        storedInfoResult.setStrategy("default");
+        storedInfoResult.setOfferIds(Arrays.asList("idoffer1"));
         return storedInfoResult;
     }
 

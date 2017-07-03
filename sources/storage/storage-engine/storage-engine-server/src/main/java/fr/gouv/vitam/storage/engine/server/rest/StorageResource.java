@@ -52,8 +52,6 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.apache.commons.compress.archivers.ArchiveException;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
 
@@ -66,7 +64,6 @@ import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -336,7 +333,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     }
 
     /**
-     * Get an object data Note : this is NOT to be handled in item #72.
+     * Get an object data
      *
      * @param headers http header
      * @param objectId the id of the object

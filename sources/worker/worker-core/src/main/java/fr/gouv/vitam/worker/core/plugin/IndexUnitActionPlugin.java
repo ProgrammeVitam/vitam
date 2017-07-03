@@ -58,7 +58,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.InputStream;
-import java.util.Iterator;
 
 /**
  * IndexUnitAction Plugin
@@ -69,7 +68,6 @@ public class IndexUnitActionPlugin extends ActionHandler {
 
     private static final String ARCHIVE_UNIT = "ArchiveUnit";
     private static final String TAG_WORK = "_work";
-    private static final String TAG_CONTENT = "Content";
     private static final String TAG_MANAGEMENT = "Management";
     private static final int SEDA_PARAMETERS_RANK = 1;
 

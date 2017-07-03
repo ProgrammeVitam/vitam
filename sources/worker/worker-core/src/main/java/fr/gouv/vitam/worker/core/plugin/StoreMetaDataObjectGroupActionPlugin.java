@@ -30,7 +30,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.StringUtils;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -47,6 +50,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
@@ -76,17 +80,35 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreObjectActionHandl
         checkMandatoryParameters(params);
         handlerIO = actionDefinition;
         final ItemStatus itemStatus = new ItemStatus(OG_METADATA_STORAGE);
-        try {
+        try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
             checkMandatoryIOParameter(actionDefinition);
             final String objectName = params.getObjectName();
             // create metadata file in workspace
-            createMetadataFileInWorkspace(params);
+            JsonNode og = createMetadataFileInWorkspace(params, metaDataClient);
+            final String objectNameFinal = StringUtils.substringBeforeLast(params.getObjectName(), ".");
 
             final ObjectDescription description =
                 new ObjectDescription(StorageCollectionType.OBJECTGROUPS, params.getContainerName(), objectName);
             // transfer json to workspace
-            storeObject(description, itemStatus);
-            // TODO update indexed MetaData
+            StoredInfoResult result = storeObject(description, itemStatus);
+            // Update OG with store information
+            if (result != null) {
+                try {
+                    UpdateMultiQuery query = storeStorageInfo((ObjectNode) og, result, true);
+                    query.addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
+                    LOGGER.info("Final OG: {}", og);
+                    metaDataClient.updateObjectGroupById(query.getFinalUpdate(), objectNameFinal);
+                    try {
+                        handlerIO.transferJsonToWorkspace(StorageCollectionType.OBJECTGROUPS.getCollectionName(), objectName,
+                            og, true);
+                    } catch (ProcessingException e) {
+                        LOGGER.error(params.getObjectName(), e);
+                        throw new WorkspaceClientServerException(e);
+                    }
+                } catch (InvalidCreateOperationException e) {
+                    LOGGER.error(e);
+                }
+            }
 
             itemStatus.increment(StatusCode.OK);
         } catch (ProcessingException e) {
@@ -104,12 +126,11 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreObjectActionHandl
 
     }
 
-    private void createMetadataFileInWorkspace(WorkerParameters params) throws VitamException {
+    private JsonNode createMetadataFileInWorkspace(WorkerParameters params, MetaDataClient metaDataClient) throws VitamException {
         JsonNode jsonNode;
-        final String objectName = StringUtils.substringBeforeLast(params.getObjectName(),
-            ".");
+        final String objectName = StringUtils.substringBeforeLast(params.getObjectName(), ".");
         // select ObjectGroup
-        try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
+        try {
             SelectMultiQuery query = new SelectMultiQuery();
             ObjectNode constructQuery = query.getFinalSelect();
             jsonNode =
@@ -122,7 +143,7 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreObjectActionHandl
             if (jsonNode.size() == 0) {
                 throw new ProcessingException(OBJECT_GROUP_NOT_FOUND_EXCEPTION);
             }
-
+            jsonNode = jsonNode.get(0);
         } catch (MetadataInvalidSelectException | MetaDataDocumentSizeException | MetaDataExecutionException |
             InvalidParseOperationException |
             MetaDataClientServerException e) {
@@ -134,6 +155,7 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreObjectActionHandl
             handlerIO.transferJsonToWorkspace(StorageCollectionType.OBJECTGROUPS.getCollectionName(),
                 params.getObjectName(),
                 jsonNode, true);
+            return jsonNode;
         } catch (ProcessingException e) {
             LOGGER.error(params.getObjectName(), e);
             throw new WorkspaceClientServerException(e);

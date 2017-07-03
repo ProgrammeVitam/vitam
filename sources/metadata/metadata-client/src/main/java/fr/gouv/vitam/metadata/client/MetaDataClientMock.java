@@ -92,4 +92,9 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
         return new ArrayList<>();
     }
 
+    @Override
+    public void updateObjectGroupById(JsonNode objectGroup, String objectGroupId) {
+        // Empty
+    }
+
 }

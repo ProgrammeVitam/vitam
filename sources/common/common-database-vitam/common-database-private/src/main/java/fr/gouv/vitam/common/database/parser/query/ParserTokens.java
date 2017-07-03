@@ -179,7 +179,8 @@ public class ParserTokens extends BuilderToken {
          */
         public static final boolean isValid(String token) {
             // Exception for getObject sliced projection
-            return token.startsWith("_qualifiers.") || token.equals("mgt") || token.startsWith("_mgt.");
+            return token.startsWith("_qualifiers.") || token.equals("mgt") || token.startsWith("_mgt.")
+                || token.startsWith("_storage.");
         }
 
         /**
@@ -237,8 +238,10 @@ public class ParserTokens extends BuilderToken {
                         case ORIGINATING_AGENCY:
                         case ORIGINATING_AGENCIES:
                         case VERSION:
-                        case STORAGE:    
                             return true;
+                        case STORAGE:
+                            // FIXME should consider more security on this one!
+                            return false;
                         default:
                     }
                 } catch (final Exception e) {

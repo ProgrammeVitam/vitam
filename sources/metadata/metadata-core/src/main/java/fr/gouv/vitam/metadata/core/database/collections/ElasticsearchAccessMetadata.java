@@ -46,6 +46,7 @@ import org.elasticsearch.action.index.IndexRequest.OpType;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
+import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.IdsQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -56,6 +57,7 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.sort.SortBuilder;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.DBObject;
 import com.mongodb.client.MongoCursor;
 
@@ -762,6 +764,20 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
         }
         return true;
+    }
+    
+    /**
+     * Update one element fully
+     * @param collection
+     * @param tenantId
+     * @param id
+     * @param object full object
+     * @return True if updated
+     */
+    public boolean updateFullOneDocument(MetadataCollections collection, Integer tenantId, String id, ObjectNode object) {
+        UpdateResponse response = client.prepareUpdate(getIndexName(collection, tenantId), ObjectGroup.TYPEUNIQUE, id)
+            .setDoc(object).setRefresh(true).execute().actionGet();
+        return response.getId().equals(id);
     }
 
     /**

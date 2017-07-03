@@ -28,6 +28,7 @@ package fr.gouv.vitam.storage.engine.client;
 
 import java.nio.charset.Charset;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
@@ -139,6 +140,9 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
         result.setInfo("Stockage de l'objet réalisé avec succès");
         result.setCreationTime(LocalDateUtil.getString(LocalDateTime.now()));
         result.setLastModifiedTime(LocalDateUtil.getString(LocalDateTime.now()));
+        result.setNbCopy(1);
+        result.setStrategy("default-fake");
+        result.setOfferIds(Arrays.asList("fakeOfferId"));
         return result;
     }
 

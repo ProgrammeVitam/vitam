@@ -245,6 +245,21 @@
 			"_us": {
 				"type": "string",
 				"index": "not_analyzed"
+			},
+			"_storage": {
+				"properties": {
+					"_nbc": {
+						"type": "long"
+					},
+					"offerIds": {
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"strategyId": {
+						"type": "string",
+						"index": "not_analyzed"
+					}
+				}
 			}
 		}
 	}
