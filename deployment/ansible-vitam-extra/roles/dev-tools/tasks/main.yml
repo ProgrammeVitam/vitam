@@ -86,7 +86,7 @@
     state: "directory"
 
 # KWA : add root folders for data / conf / ... directories here ?
-# KWA : configure docker login for repo docker.programmevitam.fr ?
+# KWA : configure docker login for repo
 
 - name: Add http proxy conf for docker
   template:

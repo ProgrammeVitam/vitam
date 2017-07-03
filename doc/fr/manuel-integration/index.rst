@@ -5,10 +5,11 @@
 .. toctree::
    :maxdepth: 2
 
-   Vitam.rst
-   API.rst
-   standard.rst
-   DSL.rst
-   dsl-introduction.rst
-   Exemples.rst
-   exemple-dsl.rst
+   Vitam
+   API
+   standard
+   DSL
+   dsl-introduction
+   Exemples
+   exemple-dsl
+   client-usage

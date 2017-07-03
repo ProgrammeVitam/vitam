@@ -130,7 +130,7 @@ API Java et documentation
 
 Documentation :
 
- * http://www.programmevitam.fr/ressources/Doc0.20.1/raml/externe/introduction.html
+ * :doclink:`raml/externe/introduction.html`
 
 API java :
 

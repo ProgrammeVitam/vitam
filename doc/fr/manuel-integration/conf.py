@@ -5,3 +5,8 @@ project = u'VITAM - Manuel Intégraption Applicative'
 doc_id = 'vitam-manuel-integration'
 
 execfile("../conf-common.py")
+
+extlinks = {
+   'doclink': ('http://www.programmevitam.fr/ressources/Doc' + version + '/%s', 'Ressource documentaire : ')
+}
+
