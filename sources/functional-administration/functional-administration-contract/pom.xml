@@ -52,7 +52,7 @@
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>functional-administration-counter</artifactId>
-			<version>0.20.0-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
 
