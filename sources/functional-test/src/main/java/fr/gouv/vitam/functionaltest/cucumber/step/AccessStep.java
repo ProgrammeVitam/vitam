@@ -46,6 +46,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.assertj.core.api.AutoCloseableSoftAssertions;
@@ -60,7 +61,10 @@ import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
+import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
+import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.FileUtil;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
@@ -72,6 +76,8 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.functional.administration.client.model.ContextModel;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
 /**
@@ -106,6 +112,8 @@ public class AccessStep {
     private World world;
 
     private String query;
+    
+    private StatusCode statusCode;
 
     public AccessStep(World world) {
         this.world = world;
@@ -580,6 +588,58 @@ public class AccessStep {
                     .isEqualTo(eventStatus);
             }
         }
+    }
+    
+    
+    @When("^je télécharge le fichier binaire de l'unité archivistique nommé \"([^\"]*)\" à l'usage \"([^\"]*)\" version (\\d+)$")
+    public void je_télécharge_le_fichier_binaire_à_l_usage_version(String title, String usage, int version) throws Throwable {
+        final fr.gouv.vitam.common.database.builder.request.single.Select select =
+            new fr.gouv.vitam.common.database.builder.request.single.Select();
+        JsonNode queryDsl = select.getFinalSelect();
+        try {
+            Response response = world.getAccessClient().getObject(queryDsl, replaceTitleByGUID(title), usage, version, 
+                world.getTenantId(), world.getContractId());
+            statusCode = StatusCode.parseFromHttpStatus(response.getStatus());
+        } catch (AccessExternalClientServerException | AccessExternalClientNotFoundException |
+            AccessUnauthorizedException | InvalidParseOperationException e) {
+            statusCode = StatusCode.parseFromHttpStatus(
+                Response.status(Status.UNAUTHORIZED).build().getStatus());
+        }
+    }
+
+    @Then("^le status de la réponse est (.*)$")
+    public void checkStatut(String status) throws Throwable {
+        if (status.equals("UNAUTHORIZED")) {
+            assertThat(Response.Status.UNAUTHORIZED.getStatusCode() == statusCode.getEquivalentHttpStatus().getStatusCode());
+        } else if (status.equals("OK")) {
+            assertThat(Response.Status.OK.getStatusCode() == statusCode.getEquivalentHttpStatus().getStatusCode());
+        }
+        
+    }
+
+    @When("^je modifie le contrat d'accès (.*) avec le fichier de requête suivant (.*)$")
+    public void je_modifie_le_contrat_d_accès(String name ,String queryFilename) throws Throwable {
+        Path queryFile = Paths.get(world.getBaseDirectory(), queryFilename);
+        this.query = FileUtil.readFile(queryFile.toFile());
+        if (world.getOperationId() != null) {
+            this.query = this.query.replace(OPERATION_ID, world.getOperationId());
+        }
+        
+        JsonNode queryDsl = JsonHandler.getFromString(query);
+        world.getAdminClient().updateAccessContract(get_contract_id_by_name(name),
+            queryDsl, world.getTenantId());
+    }
+    
+    private String get_contract_id_by_name(String name) 
+        throws AccessExternalClientNotFoundException, AccessExternalClientException, InvalidParseOperationException{
+        
+        String QUERY = "{\"$query\":{\"$and\":[{\"$eq\":{\"Name\":\"" + name +
+            "\"}}]},\"$filter\":{},\"$projection\":{}}";
+        JsonNode queryDsl =JsonHandler.getFromString(QUERY);        
+        
+        RequestResponse<ContextModel> requestResponse = 
+            world.getAdminClient().findDocuments(AdminCollections.ACCESS_CONTRACTS, queryDsl, world.getTenantId());
+        return requestResponse.toJsonNode().findValue("_id").asText();
     }
 
 }
