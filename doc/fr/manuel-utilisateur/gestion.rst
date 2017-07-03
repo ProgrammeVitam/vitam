@@ -1,16 +1,21 @@
 Gestion des archives existantes
-#########################
+################################
 
 Cette partie décrit les fonctionnalités de gestion et modification des archives dans Vitam.
 
 NB : Cette partie est disponible via l'IHM de démonstration.
 
-Modifcation des métadonnées
+Modification des métadonnées
 ============================
 
-L'écran de détail d'une Unité Archovistique permet de moidfier les métadonnées, excepté l'Identifiant.
+La modification des métadonnées d'une unité archivistique s'effectue depuis son écran de détail.
 
-Sur la droite se trouvent deux boutons "Modifier" et "Enregistrer".
-Un clic sur le bouton "Modifier" permet de faire apparaître des icônes "stylo" à gauche des champs modifiables. Un clic sur le pictogramme rend la métadonnée modifiable. Une fois la ou les modifications effectuées, un clic sur le bouton "Sauvegarder" enregistrera les modifications.
+.. image:: images/GESTION_modif_boutons.png
 
-Pour annuler l'action de modification, un simple clic sur le bouton "Annuler" fera revenir l'écran à l'état initial.
+Un clic sur le bouton "Modifier" situé dans la partie droite de l'écran permet de faire apparaître des pictogrammes de stylos à gauche des champs modifiables, le bouton devient un bouton "Annuler" afin de pouvoir annuler l'opération et revenir à l'état initial, sans prendre en compte aucune modification.
+
+.. image:: images/GESTION_modif_boutons_annuler.png
+
+Un clic sur le "stylo" permet de modifier la métadonnée correspondante. Une fois toutes les modifications effectuées, un clic sur le bouton "Sauvegarder" va enregistrer les modifications.
+
+.. image:: images/GESTION_modif_champ.png

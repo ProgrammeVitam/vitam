@@ -33,6 +33,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,6 +49,7 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -113,30 +115,31 @@ public class CheckObjectsNumberActionHandlerTest {
         PowerMockito.when(SedaUtilsFactory.create(handlerIO)).thenReturn(sedaUtils);
 
         // URI LIST MANIFEST
-        uriDuplicatedListManifestKO.add(new URI("content/file1.pdf"));
-        uriDuplicatedListManifestKO.add(new URI("content/file1.pdf"));
+        uriDuplicatedListManifestKO.add(new URI(URLEncoder.encode("content/file1.pdf", CharsetUtils.UTF_8)));
+        uriDuplicatedListManifestKO.add(new URI(URLEncoder.encode("content/file1.pdf", CharsetUtils.UTF_8)));
 
-        uriListManifestOK.add(new URI("content/file1.pdf"));
-        uriListManifestOK.add(new URI("content/file2.pdf"));
+        uriListManifestOK.add(new URI(URLEncoder.encode("content/file1.pdf", CharsetUtils.UTF_8)));
+        uriListManifestOK.add(new URI(URLEncoder.encode("content/file2.pdf", CharsetUtils.UTF_8)));
 
-        uriOutNumberListManifestKO.add(new URI("content/file1.pdf"));
-        uriOutNumberListManifestKO.add(new URI("content/file2.pdf"));
-        uriOutNumberListManifestKO.add(new URI("content/file3.pdf"));
+
+        uriOutNumberListManifestKO.add(new URI(URLEncoder.encode("content/file1.pdf", CharsetUtils.UTF_8)));
+        uriOutNumberListManifestKO.add(new URI(URLEncoder.encode("content/file2.pdf", CharsetUtils.UTF_8)));
+        uriOutNumberListManifestKO.add(new URI(URLEncoder.encode("content/file3.pdf", CharsetUtils.UTF_8)));
 
         // URI LIST WORKSPACE
 
-        uriListWorkspaceOK.add(new URI("content/file1.pdf"));
-        uriListWorkspaceOK.add(new URI("content/file2.pdf"));
+        uriListWorkspaceOK.add(new URI(URLEncoder.encode("content/file1.pdf", CharsetUtils.UTF_8)));
+        uriListWorkspaceOK.add(new URI(URLEncoder.encode("content/file2.pdf", CharsetUtils.UTF_8)));
         // FIXME P1: ugly hack to be compatible with actual implementation
         // remove this add when the object count is fixed
-        uriListWorkspaceOK.add(new URI("manifest.xml"));
+        uriListWorkspaceOK.add(new URI(URLEncoder.encode("manifest.xml", CharsetUtils.UTF_8)));
 
-        uriOutNumberListWorkspaceKO.add(new URI("content/file1.pdf"));
-        uriOutNumberListWorkspaceKO.add(new URI("content/file2.pdf"));
-        uriOutNumberListWorkspaceKO.add(new URI("content/file3.pdf"));
+        uriOutNumberListWorkspaceKO.add(new URI(URLEncoder.encode("content/file1.pdf", CharsetUtils.UTF_8)));
+        uriOutNumberListWorkspaceKO.add(new URI(URLEncoder.encode("content/file2.pdf", CharsetUtils.UTF_8)));
+        uriOutNumberListWorkspaceKO.add(new URI(URLEncoder.encode("content/file3.pdf", CharsetUtils.UTF_8)));
         // FIXME P1: ugly hack to be compatible with actual implementation
         // remove this add when the object count is fixed
-        uriOutNumberListWorkspaceKO.add(new URI("manifest.xml"));
+        uriOutNumberListWorkspaceKO.add(new URI(URLEncoder.encode("manifest.xml", CharsetUtils.UTF_8)));
 
         extractUriResponseOK = new ExtractUriResponse();
         extractUriResponseOK.setUriListManifest(uriListManifestOK);
@@ -158,7 +161,7 @@ public class CheckObjectsNumberActionHandlerTest {
     @Test
     public void givenWorkspaceExistWhenExecuteThenRaiseXMLStreamExceptionAndReturnResponseFATAL()
         throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException {
-        Mockito.doThrow(new ProcessingException("")).when(sedaUtils).getAllDigitalObjectUriFromManifest(anyObject());
+        Mockito.doThrow(new ProcessingException("")).when(sedaUtils).getAllDigitalObjectUriFromManifest();
 
         checkObjectsNumberActionHandler =
             new CheckObjectsNumberActionHandler();
@@ -172,7 +175,7 @@ public class CheckObjectsNumberActionHandlerTest {
     public void givenWorkspaceNotExistWhenExecuteThenRaiseProcessingExceptionReturnResponseFATAL()
         throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException {
 
-        Mockito.doThrow(new ProcessingException("")).when(sedaUtils).getAllDigitalObjectUriFromManifest(anyObject());
+        Mockito.doThrow(new ProcessingException("")).when(sedaUtils).getAllDigitalObjectUriFromManifest();
 
         checkObjectsNumberActionHandler =
             new CheckObjectsNumberActionHandler();
@@ -191,7 +194,7 @@ public class CheckObjectsNumberActionHandlerTest {
         checkObjectsNumberActionHandler =
             new CheckObjectsNumberActionHandler();
 
-        when(sedaUtils.getAllDigitalObjectUriFromManifest(anyObject())).thenReturn(extractUriResponseOK);
+        when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractUriResponseOK);
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
             .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOK));
 
@@ -212,7 +215,7 @@ public class CheckObjectsNumberActionHandlerTest {
         checkObjectsNumberActionHandler =
             new CheckObjectsNumberActionHandler();
 
-        when(sedaUtils.getAllDigitalObjectUriFromManifest(anyObject())).thenReturn(extractDuplicatedUriResponseKO);
+        when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractDuplicatedUriResponseKO);
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
             .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOK));
 
@@ -233,7 +236,7 @@ public class CheckObjectsNumberActionHandlerTest {
         checkObjectsNumberActionHandler =
             new CheckObjectsNumberActionHandler();
 
-        when(sedaUtils.getAllDigitalObjectUriFromManifest(anyObject())).thenReturn(extractOutNumberUriResponseKO);
+        when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractOutNumberUriResponseKO);
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
             .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOK));
 
@@ -256,7 +259,7 @@ public class CheckObjectsNumberActionHandlerTest {
         checkObjectsNumberActionHandler =
             new CheckObjectsNumberActionHandler();
 
-        when(sedaUtils.getAllDigitalObjectUriFromManifest(anyObject())).thenReturn(extractUriResponseOK);
+        when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractUriResponseOK);
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
             .thenReturn(new RequestResponseOK().addResult(uriOutNumberListWorkspaceKO));
 
@@ -278,7 +281,7 @@ public class CheckObjectsNumberActionHandlerTest {
         checkObjectsNumberActionHandler =
             new CheckObjectsNumberActionHandler();
 
-        when(sedaUtils.getAllDigitalObjectUriFromManifest(anyObject())).thenReturn(extractUriResponseOK);
+        when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractUriResponseOK);
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
             .thenReturn(new RequestResponseOK().addResult(uriOutNumberListWorkspaceKO));
 

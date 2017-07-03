@@ -15,7 +15,9 @@ output
                 #workers => 20
                 template => "/vitam/conf/logstash/extra/elasticsearch-template.json"
                 index => "logstash-vitam-%{+YYYY.MM.dd}"
-                hosts => ["{{ groups['hosts-elasticsearch-log']|join(':' + elasticsearch_log_http_port + '", "') }}:{{elasticsearch_log_http_port}}"]
+                {% for host in groups['hosts-elasticsearch-log'] %}
+                 hosts =>  ["{{ hostvars[host]['ip_admin'] }}:{{elasticsearch_log_http_port}}"]
+                {% endfor %}
             }
         }
         else if [vitam_component] =~ "elasticsearch-log" or [vitam_component] =~ "logstash" or [logger] =~ "curator"

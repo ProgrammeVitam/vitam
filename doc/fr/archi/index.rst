@@ -6,12 +6,12 @@
    :numbered:
    :maxdepth: 5
 
-   introduction.rst
-   fonctionnelle-archivistes/_toc.rst
-   fonctionnelle-exploitation/_toc.rst
-   technique/_toc.rst
-   securite/_toc.rst
-   include/_toc.rst
+   introduction
+   overview/_toc
+   archi-applicative/_toc
+   archi-exploit-infra/_toc
+   securite/_toc
+   include/_toc
 
 .. only:: latex
 

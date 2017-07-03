@@ -32,11 +32,18 @@ import java.io.InputStream;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.client.OperationManagementClient;
+import fr.gouv.vitam.common.exception.InternalServerException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientNotFoundException;
+import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 
 /**
@@ -53,7 +60,6 @@ public interface IngestInternalClient extends OperationManagementClient {
      * @param inputStream SIP
      * @param contextId context Identifier
      * @throws VitamException if stream is null
-     * @return Response {@link Response}
      *
      */
     void upload(InputStream inputStream, MediaType archiveType, String contextId) throws VitamException;
@@ -80,14 +86,16 @@ public interface IngestInternalClient extends OperationManagementClient {
 
     /**
      * Download object stored by ingest operation
-     * 
      * @param objectId
      * @param type
      * @return object as stream
-     * @throws VitamClientException
+     * @throws InvalidParseOperationException
+     * @throws IngestInternalClientServerException
+     * @throws IngestInternalClientNotFoundException
      */
     Response downloadObjectAsync(String objectId, IngestCollection type)
-        throws VitamClientException;
+        throws InvalidParseOperationException, IngestInternalClientServerException,
+        IngestInternalClientNotFoundException;
 
     /**
      * Store ATR in storage
@@ -98,6 +106,5 @@ public interface IngestInternalClient extends OperationManagementClient {
      */
     void storeATR(GUID guid, InputStream input)
         throws VitamClientException;
-
 
 }

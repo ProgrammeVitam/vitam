@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common.server;
 
+import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -78,6 +79,16 @@ public interface MongoDbAccessReferential {
     VitamDocument<?> getDocumentById(String id, FunctionalAdminCollections collection)
         throws ReferentialException;
 
+	/**
+	 * @param id functional id value
+	 * @param collection Mongo collection
+	 * @param field unique field in collection as functional id
+	 * @return
+	 * @throws ReferentialException
+	 */
+	VitamDocument<?> getDocumentByUniqueId(String id,
+			FunctionalAdminCollections collection, String field)
+			throws ReferentialException;
     /**
      * @param map Map of key-value
      * @param object
@@ -94,10 +105,11 @@ public interface MongoDbAccessReferential {
      * 
      * @param update JsonNode to update
      * @param collection collection of Mongo Type for update
+     * @return map of modified data
      * @throws ReferentialException when error occurs;
      */
-    void updateData(JsonNode update, FunctionalAdminCollections collection)
-        throws ReferentialException;;
+    Map<String, List<String>> updateData(JsonNode update, FunctionalAdminCollections collection)
+        throws ReferentialException;
 
     /**
      * @param select filter

@@ -1,13 +1,22 @@
 package fr.gouv.vitam.access.external.client;
 
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.access.external.api.AccessCollections;
+
+import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
@@ -15,17 +24,11 @@ import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 
 /**
  * Rest client implementation for Access External
@@ -51,7 +54,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     private static final String LOGBOOK_OPERATIONS_URL = "/operations";
     private static final String LOGBOOK_UNIT_LIFECYCLE_URL = "/unitlifecycles";
     private static final String LOGBOOK_OBJECT_LIFECYCLE_URL = "/objectgrouplifecycles";
-    private static final String LOGBOOK_CHECK = "/traceability/check";
+    private static final String LOGBOOK_CHECK = AccessExtAPI.TRACEABILITY_API + "/check";
     private static final Select emptySelectQuery = new Select();
 
     AccessExternalClientRest(AccessExternalClientFactory factory) {
@@ -76,14 +79,33 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             response = performRequest(HttpMethod.GET, "/units", headers,
                 selectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
-            if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                throw new AccessUnauthorizedException(UNAUTHORIZED);
-            } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                throw new AccessExternalClientNotFoundException(NOT_FOUND_EXCEPTION);
-            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
+            RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
+            if (!requestResponse.isOk()) {
+                return requestResponse;
+            } else {
+                final VitamError vitamError =  new VitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNITS_ERROR.getItem())
+                    .setMessage(VitamCode.ACCESS_EXTERNAL_SELECT_UNITS_ERROR.getMessage())
+                    .setState(StatusCode.KO.name())
+                    .setContext("AccessExternalModule")
+                    .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_UNITS_ERROR.getMessage());
+
+                if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                    return  vitamError.setHttpCode(Status.UNAUTHORIZED.getStatusCode())
+                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_UNITS_ERROR.getMessage() + " Cause : " +
+                            Status.UNAUTHORIZED.getReasonPhrase());
+                } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                    return  vitamError.setHttpCode(Status.NOT_FOUND.getStatusCode())
+                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_UNITS_ERROR.getMessage() + " Cause : " +
+                            Status.NOT_FOUND.getReasonPhrase());
+                } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
+                    return  vitamError.setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
+                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_UNITS_ERROR.getMessage() + " Cause : " +
+                            Status.PRECONDITION_FAILED.getReasonPhrase());
+                } else {
+                    return requestResponse;
+                }
+
             }
-            return RequestResponse.parseFromResponse(response);
 
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
@@ -113,15 +135,33 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             response = performRequest(HttpMethod.POST, UNITS + unitId, headers,
                 selectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
-            if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                throw new AccessUnauthorizedException(UNAUTHORIZED);
-            } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                throw new AccessExternalClientNotFoundException(NOT_FOUND_EXCEPTION);
-            } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
-                throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
+            RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
+            if (!requestResponse.isOk()) {
+                return requestResponse;
+            } else {
+                final VitamError vitamError =  new VitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR.getItem())
+                    .setMessage(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR.getMessage())
+                    .setState(StatusCode.KO.name())
+                    .setContext("AccessExternalModule")
+                    .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR.getMessage());
+
+                if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                    return  vitamError.setHttpCode(Status.UNAUTHORIZED.getStatusCode())
+                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR.getMessage() + " Cause : " +
+                            Status.UNAUTHORIZED.getReasonPhrase());
+                } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                    return  vitamError.setHttpCode(Status.NOT_FOUND.getStatusCode())
+                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR.getMessage() + " Cause : " +
+                            Status.NOT_FOUND.getReasonPhrase());
+                } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
+                    return  vitamError.setHttpCode(Status.BAD_REQUEST.getStatusCode())
+                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR.getMessage() + " Cause : " +
+                            Status.BAD_REQUEST.getReasonPhrase());
+                } else {
+                    return requestResponse;
+                }
             }
 
-            return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
@@ -148,17 +188,36 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             response = performRequest(HttpMethod.PUT, UNITS + unitId, headers,
                 updateQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
-            if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                throw new AccessUnauthorizedException(UNAUTHORIZED);
-            } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                throw new AccessExternalClientNotFoundException(NOT_FOUND_EXCEPTION);
-            } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
-                throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
-            } else if (response.getStatus() == Status.METHOD_NOT_ALLOWED.getStatusCode()) {
-                throw new NoWritingPermissionException(NO_WRITING_PERMISSION);
-            }
+            RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
+            if (!requestResponse.isOk()) {
+                return requestResponse;
+            } else {
+                final VitamError vitamError =  new VitamError(VitamCode.ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR.getItem())
+                    .setMessage(VitamCode.ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR.getMessage())
+                    .setState(StatusCode.KO.name())
+                    .setContext("AccessExternalModule")
+                    .setDescription(VitamCode.ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR.getMessage());
 
-            return RequestResponse.parseFromResponse(response);
+                if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                    return  vitamError.setHttpCode(Status.UNAUTHORIZED.getStatusCode())
+                        .setDescription(VitamCode.ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR.getMessage() + " Cause : " +
+                            Status.UNAUTHORIZED.getReasonPhrase());
+                } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                    return  vitamError.setHttpCode(Status.NOT_FOUND.getStatusCode())
+                        .setDescription(VitamCode.ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR.getMessage() + " Cause : " +
+                            Status.NOT_FOUND.getReasonPhrase());
+                } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
+                    return  vitamError.setHttpCode(Status.BAD_REQUEST.getStatusCode())
+                        .setDescription(VitamCode.ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR.getMessage() + " Cause : " +
+                            Status.BAD_REQUEST.getReasonPhrase());
+                } else if (response.getStatus() == Status.METHOD_NOT_ALLOWED.getStatusCode()) {
+                    return  vitamError.setHttpCode(Status.METHOD_NOT_ALLOWED.getStatusCode())
+                        .setDescription(VitamCode.ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR.getMessage() + " Cause : " +
+                            Status.METHOD_NOT_ALLOWED.getReasonPhrase());
+                } else {
+                    return requestResponse;
+                }
+            }
 
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
@@ -170,7 +229,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse selectObjectById(JsonNode selectObjectQuery, String objectId, Integer tenantId,
+    public RequestResponse selectObjectById(JsonNode selectObjectQuery, String unitId, Integer tenantId,
         String contractName)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException, AccessUnauthorizedException {
@@ -178,20 +237,85 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         if (selectObjectQuery == null || selectObjectQuery.size() == 0) {
             throw new IllegalArgumentException(BLANK_DSL);
         }
-        ParametersChecker.checkParameter(BLANK_OBJECT_ID, objectId);
+        ParametersChecker.checkParameter(BLANK_OBJECT_ID, unitId);
 
         Response response = null;
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
         try {
-            response = performRequest(HttpMethod.GET, "/objects/" + objectId, headers,
+            response = performRequest(HttpMethod.GET, "/units/" + unitId + "/object", headers,
                 selectObjectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             final Status status = Status.fromStatusCode(response.getStatus());
-            if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+
+            RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
+            if (!requestResponse.isOk()) {
+                return requestResponse;
+            } else {
+                final VitamError vitamError = new VitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR.getItem())
+                    .setMessage(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR.getMessage())
+                    .setState(StatusCode.KO.name())
+                    .setContext("AccessExternalModule")
+                    .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR.getMessage());
+
+                if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                    LOGGER.error("Internal Server Error" + " : " + status.getReasonPhrase());
+                    return  vitamError.setHttpCode(Status.UNAUTHORIZED.getStatusCode())
+                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR.getMessage() + " Cause : " +
+                            Status.UNAUTHORIZED.getReasonPhrase());
+                } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                    return  vitamError.setHttpCode(Status.NOT_FOUND.getStatusCode())
+                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR.getMessage() + " Cause : " +
+                            Status.NOT_FOUND.getReasonPhrase());
+                } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
+                    return  vitamError.setHttpCode(Status.BAD_REQUEST.getStatusCode())
+                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR.getMessage() + " Cause : " +
+                            Status.BAD_REQUEST.getReasonPhrase());
+                } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
+                    return  vitamError.setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
+                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR.getMessage() + " Cause : " +
+                            Status.PRECONDITION_FAILED.getReasonPhrase());
+                } else {
+                    return requestResponse;
+                }
+            }
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+
+    @Override
+    public Response getUnitObject(JsonNode selectObjectQuery, String unitId, String usage, int version,
+        Integer tenantId, String contractName)
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException {
+        SanityChecker.checkJsonAll(selectObjectQuery);
+        if (selectObjectQuery == null || selectObjectQuery.size() == 0) {
+            throw new IllegalArgumentException(BLANK_DSL);
+        }
+        ParametersChecker.checkParameter(BLANK_OBJECT_ID, unitId);
+        ParametersChecker.checkParameter(BLANK_USAGE, usage);
+        ParametersChecker.checkParameter(BLANK_VERSION, version);
+
+        Response response = null;
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
+        headers.add(GlobalDataRest.X_QUALIFIER, usage);
+        headers.add(GlobalDataRest.X_VERSION, version);
+        try {
+            response = performRequest(HttpMethod.GET, "/units/" + unitId + "/object", headers,
+                selectObjectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE, false);
+
+            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+            if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 LOGGER.error("Internal Server Error" + " : " + status.getReasonPhrase());
-                throw new AccessUnauthorizedException(UNAUTHORIZED);
+                throw new AccessExternalClientServerException("Internal Server Error");
             } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 throw new AccessExternalClientNotFoundException(status.getReasonPhrase());
             } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
@@ -199,12 +323,15 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
                 throw new AccessExternalClientServerException(response.getStatusInfo().getReasonPhrase());
             }
-            return RequestResponse.parseFromResponse(response);
+
+            return response;
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {
-            consumeAnyEntityAndClose(response);
+            if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
+                consumeAnyEntityAndClose(response);
+            }
         }
     }
 
@@ -271,17 +398,35 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             response = performRequest(HttpMethod.GET, LOGBOOK_OPERATIONS_URL, headers,
                 select, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
-            if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
-                throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
-            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                LOGGER.error("Illegal Entry Parameter");
-                throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
-            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                throw new AccessUnauthorizedException(response.getStatusInfo().getReasonPhrase());
+            RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
+            if (!requestResponse.isOk()) {
+                return requestResponse;
+            } else {
+                final VitamError vitamError = new VitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_ERROR.getItem())
+                    .setMessage(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_ERROR.getMessage())
+                    .setState(StatusCode.KO.name())
+                    .setContext("AccessExternalModule")
+                    .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_ERROR.getMessage());
+
+                if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                    LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                    return  vitamError.setHttpCode(Status.NOT_FOUND.getStatusCode())
+                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_ERROR.getMessage() + " Cause : " +
+                            Status.NOT_FOUND.getReasonPhrase());
+                } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
+                    LOGGER.error("Illegal Entry Parameter");
+                    return  vitamError.setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
+                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_ERROR.getMessage() + " Cause : " +
+                            Status.PRECONDITION_FAILED.getReasonPhrase());
+                } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                    return  vitamError.setHttpCode(Status.UNAUTHORIZED.getStatusCode())
+                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_ERROR.getMessage() + " Cause : " +
+                            Status.UNAUTHORIZED.getReasonPhrase());
+                } else {
+                    return requestResponse;
+                }
             }
 
-            return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
@@ -302,17 +447,35 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 emptySelectQuery, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE, false);
 
-            if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
-                throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
-            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                LOGGER.error("Illegal Entry Parameter");
-                throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
-            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                throw new AccessUnauthorizedException(response.getStatusInfo().getReasonPhrase());
+            RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
+            if (!requestResponse.isOk()) {
+                return requestResponse;
+            } else {
+                final VitamError vitamError = new VitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR.getItem())
+                    .setMessage(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR.getMessage())
+                    .setState(StatusCode.KO.name())
+                    .setContext("AccessExternalModule")
+                    .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR.getMessage());
+
+                if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                    LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                    return  vitamError.setHttpCode(Status.NOT_FOUND.getStatusCode())
+                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR.getMessage() + " Cause : " +
+                            Status.NOT_FOUND.getReasonPhrase());
+                } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
+                    LOGGER.error("Illegal Entry Parameter");
+                    return  vitamError.setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
+                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR.getMessage() + " Cause : " +
+                            Status.PRECONDITION_FAILED.getReasonPhrase());
+                } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                    return  vitamError.setHttpCode(Status.UNAUTHORIZED.getStatusCode())
+                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR.getMessage() + " Cause : " +
+                            Status.UNAUTHORIZED.getReasonPhrase());
+                } else {
+                    return requestResponse;
+                }
             }
 
-            return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
@@ -334,17 +497,35 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                     emptySelectQuery, MediaType.APPLICATION_JSON_TYPE,
                     MediaType.APPLICATION_JSON_TYPE, false);
 
-            if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
-                LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
-                throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
-            } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
-                LOGGER.error("Illegal Entry Parameter");
-                throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
-            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                throw new AccessUnauthorizedException(response.getStatusInfo().getReasonPhrase());
+            RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
+            if (!requestResponse.isOk()) {
+                return requestResponse;
+            } else {
+                final VitamError vitamError = new VitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR.getItem())
+                    .setMessage(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR.getMessage())
+                    .setState(StatusCode.KO.name())
+                    .setContext("AccessExternalModule")
+                    .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR.getMessage());
+
+                if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
+                    LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                    return  vitamError.setHttpCode(Status.NOT_FOUND.getStatusCode())
+                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR.getMessage() + " Cause : " +
+                            Status.NOT_FOUND.getReasonPhrase());
+                } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
+                    LOGGER.error("Illegal Entry Parameter");
+                    return  vitamError.setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
+                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR.getMessage() + " Cause : " +
+                            Status.PRECONDITION_FAILED.getReasonPhrase());
+                } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                    return  vitamError.setHttpCode(Status.UNAUTHORIZED.getStatusCode())
+                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR.getMessage() + " Cause : " +
+                            Status.UNAUTHORIZED.getReasonPhrase());
+                } else {
+                    return requestResponse;
+                }
             }
 
-            return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
@@ -366,17 +547,35 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             response = performRequest(HttpMethod.GET, LOGBOOK_UNIT_LIFECYCLE_URL, headers, queryDsl,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
-            if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
-                LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
-                throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
-            } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
-                LOGGER.error("Illegal Entry Parameter");
-                throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
-            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                throw new AccessUnauthorizedException(response.getStatusInfo().getReasonPhrase());
+            RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
+            if (!requestResponse.isOk()) {
+                return requestResponse;
+            } else {
+                final VitamError vitamError = new VitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_ERROR.getItem())
+                    .setMessage(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_ERROR.getMessage())
+                    .setState(StatusCode.KO.name())
+                    .setContext("AccessExternalModule")
+                    .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_ERROR.getMessage());
+
+                if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
+                    LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                    return  vitamError.setHttpCode(Status.NOT_FOUND.getStatusCode())
+                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_ERROR.getMessage() + " Cause : " +
+                            Status.NOT_FOUND.getReasonPhrase());
+                } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
+                    LOGGER.error("Illegal Entry Parameter");
+                    return  vitamError.setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
+                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_ERROR.getMessage() + " Cause : " +
+                            Status.PRECONDITION_FAILED.getReasonPhrase());
+                } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                    return  vitamError.setHttpCode(Status.UNAUTHORIZED.getStatusCode())
+                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_ERROR.getMessage() + " Cause : " +
+                            Status.UNAUTHORIZED.getReasonPhrase());
+                } else {
+                    return requestResponse;
+                }
             }
 
-            return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
@@ -398,17 +597,35 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 emptySelectQuery, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE, false);
 
-            if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
-                LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
-                throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
-            } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
-                LOGGER.error("Illegal Entry Parameter");
-                throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
-            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                throw new AccessUnauthorizedException(response.getStatusInfo().getReasonPhrase());
+            RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
+            if (!requestResponse.isOk()) {
+                return requestResponse;
+            } else {
+                final VitamError vitamError = new VitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR.getItem())
+                    .setMessage(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR.getMessage())
+                    .setState(StatusCode.KO.name())
+                    .setContext("AccessExternalModule")
+                    .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR.getMessage());
+
+                if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
+                    LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                    return  vitamError.setHttpCode(Status.NOT_FOUND.getStatusCode())
+                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR.getMessage() + " Cause : " +
+                            Status.NOT_FOUND.getReasonPhrase());
+                } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
+                    LOGGER.error("Illegal Entry Parameter");
+                    return  vitamError.setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
+                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR.getMessage() + " Cause : " +
+                            Status.PRECONDITION_FAILED.getReasonPhrase());
+                } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                    return  vitamError.setHttpCode(Status.UNAUTHORIZED.getStatusCode())
+                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR.getMessage() + " Cause : " +
+                            Status.UNAUTHORIZED.getReasonPhrase());
+                } else {
+                    return requestResponse;
+                }
             }
 
-            return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
@@ -429,17 +646,35 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
 
         try {
-            response = performRequest(HttpMethod.POST, AccessCollections.ACCESSION_REGISTER.getName(), headers,
+            response = performRequest(HttpMethod.POST, AccessExtAPI.ACCESSION_REGISTERS_API, headers,
                 query, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
-            if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                throw new AccessUnauthorizedException(response.getStatusInfo().getReasonPhrase());
-            } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                throw new AccessExternalClientNotFoundException(NOT_FOUND_EXCEPTION);
-            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
+            RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
+            if (!requestResponse.isOk()) {
+                return requestResponse;
+            } else {
+                final VitamError vitamError = new VitamError(VitamCode.ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_SUMMARY_ERROR.getItem())
+                    .setMessage(VitamCode.ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_SUMMARY_ERROR.getMessage())
+                    .setState(StatusCode.KO.name())
+                    .setContext("AccessExternalModule")
+                    .setDescription(VitamCode.ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_SUMMARY_ERROR.getMessage());
+
+                if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                    return  vitamError.setHttpCode(Status.UNAUTHORIZED.getStatusCode())
+                        .setDescription(VitamCode.ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_SUMMARY_ERROR.getMessage() + " Cause : " +
+                            Status.UNAUTHORIZED.getReasonPhrase());
+                } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                    return  vitamError.setHttpCode(Status.NOT_FOUND.getStatusCode())
+                        .setDescription(VitamCode.ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_SUMMARY_ERROR.getMessage() + " Cause : " +
+                            Status.NOT_FOUND.getReasonPhrase());
+                } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
+                    return  vitamError.setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
+                        .setDescription(VitamCode.ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_SUMMARY_ERROR.getMessage() + " Cause : " +
+                            Status.PRECONDITION_FAILED.getReasonPhrase());
+                } else {
+                    return requestResponse;
+                }
             }
-            return RequestResponse.parseFromResponse(response);
 
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
@@ -461,19 +696,37 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
         try {
             response = performRequest(HttpMethod.POST,
-                AccessCollections.ACCESSION_REGISTER.getName() + "/" + id + "/" +
-                    AccessCollections.ACCESSION_REGISTER_DETAIL.getName(),
+                AccessExtAPI.ACCESSION_REGISTERS_API + "/" + id + "/" +
+                    AccessExtAPI.ACCESSION_REGISTERS_DETAIL,
                 headers,
                 query, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
-            if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                throw new AccessUnauthorizedException(response.getStatusInfo().getReasonPhrase());
-            } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                throw new AccessExternalClientNotFoundException(NOT_FOUND_EXCEPTION);
-            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
+            RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
+            if (!requestResponse.isOk()) {
+                return requestResponse;
+            } else {
+                final VitamError vitamError = new VitamError(VitamCode.ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_DETAIL_ERROR.getItem())
+                    .setMessage(VitamCode.ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_DETAIL_ERROR.getMessage())
+                    .setState(StatusCode.KO.name())
+                    .setContext("AccessExternalModule")
+                    .setDescription(VitamCode.ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_DETAIL_ERROR.getMessage());
+
+                if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                    return  vitamError.setHttpCode(Status.UNAUTHORIZED.getStatusCode())
+                        .setDescription(VitamCode.ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_DETAIL_ERROR.getMessage() + " Cause : " +
+                            Status.UNAUTHORIZED.getReasonPhrase());
+                } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                    return  vitamError.setHttpCode(Status.NOT_FOUND.getStatusCode())
+                        .setDescription(VitamCode.ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_DETAIL_ERROR.getMessage() + " Cause : " +
+                            Status.NOT_FOUND.getReasonPhrase());
+                } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
+                    return  vitamError.setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
+                        .setDescription(VitamCode.ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_DETAIL_ERROR.getMessage() + " Cause : " +
+                            Status.PRECONDITION_FAILED.getReasonPhrase());
+                } else {
+                    return requestResponse;
+                }
             }
-            return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
@@ -494,14 +747,29 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             response = performRequest(HttpMethod.POST, LOGBOOK_CHECK, headers, query, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case OK:
-                    return RequestResponse.parseFromResponse(response);
-                case UNAUTHORIZED:
-                    throw new AccessUnauthorizedException(status.getReasonPhrase());
-                default:
-                    LOGGER.error("checks operation tracebility is " + status.name() + ":" + status.getReasonPhrase());
-                    throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+
+            RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
+            if (requestResponse.isOk()) {
+                return requestResponse;
+            } else {
+                final VitamError vitamError = new VitamError(VitamCode.ACCESS_EXTERNAL_CHECK_TRACEABILITY_OPERATION_ERROR.getItem())
+                    .setMessage(VitamCode.ACCESS_EXTERNAL_CHECK_TRACEABILITY_OPERATION_ERROR.getMessage())
+                    .setContext("AccessExternalModule")
+                    .setDescription(VitamCode.ACCESS_EXTERNAL_CHECK_TRACEABILITY_OPERATION_ERROR.getMessage() + " Cause : " +
+                        ((VitamError) requestResponse).getDescription());
+
+                switch (status) {
+                    case OK:
+                        return requestResponse;
+                    case UNAUTHORIZED:
+                        return  vitamError.setHttpCode(Status.UNAUTHORIZED.getStatusCode())
+                            .setDescription(VitamCode.ACCESS_EXTERNAL_CHECK_TRACEABILITY_OPERATION_ERROR.getMessage() + " Cause : " +
+                                Status.UNAUTHORIZED.getReasonPhrase());
+                    default:
+                        LOGGER
+                            .error("checks operation tracebility is " + status.name() + ":" + vitamError.getDescription());
+                        return vitamError.setHttpCode(status.getStatusCode());
+                }
             }
 
         } catch (VitamClientInternalException e) {
@@ -521,7 +789,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
             headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
 
-            response = performRequest(HttpMethod.GET, "traceability/" + operationId + "/content", headers, null,
+            response = performRequest(HttpMethod.GET, AccessExtAPI.TRACEABILITY_API + "/" + operationId, headers, null,
                 null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
             final Status status = Status.fromStatusCode(response.getStatus());

@@ -86,6 +86,7 @@ public class UnitsRulesComputePluginTest {
     private static final String ARCHIVE_UNIT_RULE_MGT_ONLY =
         "unitsRulesComputePlugin/AU_COMPUTE_ENDDATE_SAMPLE_MANAGEMENT_ONLY.json";
     private static final String ARBO_MD_RG_COMPLEXE_ROOT = "unitsRulesComputePlugin/ARBO_MD_RG_COMPLEXE_ROOT.json";
+    private static final String ARBO_MD_NON_EXISTING_RULE = "unitsRulesComputePlugin/ARBO_MD_NON_EXISTING_RULE.json";
     private static final String AU_SIP_MGT_MD_OK1 = "unitsRulesComputePlugin/AU_SIP_MGT_MD_OK1.json";
     private final static String FAKE_URL = "http://localhost:1111";
     private InputStream archiveUnit;
@@ -234,6 +235,25 @@ public class UnitsRulesComputePluginTest {
     }
 
     @Test
+    public void givenNonExistingRuleWhenExecuteThenReturnResponseKO() throws Exception {
+        reset(adminManagementClient);
+        reset(workspaceClient);
+
+        when(workspaceClient.getObject(anyObject(), eq("Units/objectName")))
+            .thenReturn(Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream(ARBO_MD_NON_EXISTING_RULE))
+                .build());
+        when(adminManagementClient.getRules(anyObject())).thenReturn(getRulesInReferentialForNonExistingRule());
+
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL)
+                .setUrlMetadata("http://localhost:8083")
+                .setObjectName("objectName").setCurrentStep("currentStep").setContainerName("containerName");
+
+        final ItemStatus response = plugin.execute(params, action);
+        assertEquals(response.getGlobalStatus(), StatusCode.KO);
+    }
+
+    @Test
     public void givenArchiveUnitMgtMdOk1WhenExecuteThenReturnResponseOK() throws Exception {
         reset(adminManagementClient);
         reset(workspaceClient);
@@ -290,6 +310,16 @@ public class UnitsRulesComputePluginTest {
         root.add(createRule("R1", "StorageRule", "1", RuleMeasurementEnum.YEAR.getType()));
         root.add(createRule("R6", "StorageRule", "6", RuleMeasurementEnum.YEAR.getType()));
         root.add(createRule("ACC-00035", "AccessRule", "100", RuleMeasurementEnum.YEAR.getType()));
+
+        final ObjectNode rule = JsonHandler.createObjectNode();
+        rule.set("$results", root);
+        return rule;
+    }
+
+    private JsonNode getRulesInReferentialForNonExistingRule() {
+
+        final ArrayNode root = JsonHandler.createArrayNode();
+        root.add(createRule("R1", "StorageRule", "1", RuleMeasurementEnum.YEAR.getType()));
 
         final ObjectNode rule = JsonHandler.createObjectNode();
         rule.set("$results", root);

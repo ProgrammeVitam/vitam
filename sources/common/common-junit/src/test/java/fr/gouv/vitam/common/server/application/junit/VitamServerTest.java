@@ -43,11 +43,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.glassfish.jersey.client.ClientConfig;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
+import fr.gouv.vitam.common.client.VitamRestEasyConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
@@ -151,12 +151,12 @@ public class VitamServerTest {
                 }
 
                 @Override
-                public ClientConfig getDefaultConfigCient() {
+                public Map<VitamRestEasyConfiguration, Object> getDefaultConfigCient() {
                     return null;
                 }
 
                 @Override
-                public ClientConfig getDefaultConfigCient(boolean chunkedMode) {
+                public Map<VitamRestEasyConfiguration, Object> getDefaultConfigCient(boolean chunkedMode) {
                     return null;
                 }
 

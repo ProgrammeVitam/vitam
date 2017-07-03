@@ -28,6 +28,18 @@
 package fr.gouv.vitam.storage.logbook;
 
 import static fr.gouv.vitam.common.LocalDateUtil.getString;
+import static fr.gouv.vitam.common.LocalDateUtil.now;
+
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+import org.apache.commons.compress.archivers.ArchiveException;
+
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.digest.Digest;
@@ -35,12 +47,10 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import static fr.gouv.vitam.common.json.JsonHandler.unprettyPrint;
+import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
-import static fr.gouv.vitam.common.model.StatusCode.FATAL;
-import static fr.gouv.vitam.common.model.StatusCode.STARTED;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -50,8 +60,8 @@ import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import static fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory.newLogbookOperationParameters;
-import static fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess.STORAGE_LOGBOOK;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -68,34 +78,26 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.apache.commons.compress.archivers.ArchiveException;
-
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.LocalDateTime;
 
 /**
  * Business class for Logbook Administration (traceability)
  */
 public class StorageLogbookAdministration {
 
+    //TODO : could be usefull to create a Junit for this
+    
+    private static final String STORAGE_LOGBOOK = "storage_logbook";
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageLogbookAdministration.class);
 
-    private static final String STP_SECURISATION = "STORAGE_LOG_OP_SECURISATION";
-    private static final String OP_SECURISATION_STORAGE_LOGBOOK = "OP_SECURISATION_STORAGE_LOGBOOK";
     private static final String STP_OP_SECURISATION = "STP_OP_SECURISATION";
-    private static final String STP_BEGIN_MESSAGE = "Sécurisation des journaux";
-    private static final String STP_BEGIN_MESSAGE_PROCESS = "Début de la sécurisation des journaux";
-    private static final String STP_FAIL_MESSAGE_PROCESS = "Echec de la sécurisation des journaux";
 
 
     private static final String STRATEGY_ID = "default";
-    public static final String STORAGE_LOGBOOK_OPERATION_ZIP = "Storage_LogbookOperation";
+    public static final String STORAGE_LOGBOOK_OPERATION_ZIP = "StorageLogbookOperation";
     final StorageLogbookService storageLogbookService;
     private final File tmpFolder;
+    private final DateTimeFormatter formatter;
 
 
 
@@ -104,6 +106,8 @@ public class StorageLogbookAdministration {
         this.storageLogbookService = storageLogbookService;
         this.tmpFolder = new File(tmpFolder);
         this.tmpFolder.mkdir();
+        formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+
     }
 
 
@@ -112,27 +116,32 @@ public class StorageLogbookAdministration {
      * secure the logbook operation since last securisation.
      *
      * @return the GUID of the operation
-     * @throws TraceabilityException           if error on generating secure logbook
-     * @throws LogbookNotFoundException        if not found on selecting logbook operation
-     * @throws InvalidParseOperationException  if json data is not well-formed
-     * @throws LogbookDatabaseException        if error on query logbook collection
+     * @throws TraceabilityException if error on generating secure logbook
+     * @throws IOException if an IOException is thrown while generating the secure storage
+     * @throws StorageLogException if a LogZipFile cannot be generated
+     * @throws LogbookClientBadRequestException if a bad request is encountered
+     * @throws LogbookClientAlreadyExistsException if the logbook already exists
+     * @throws LogbookClientServerException if there's a problem connecting to the logbook functionnality
+     * @throws LogbookNotFoundException if not found on selecting logbook operation
+     * @throws InvalidParseOperationException if json data is not well-formed
+     * @throws LogbookDatabaseException if error on query logbook collection
      * @throws InvalidCreateOperationException if error on creating query
      */
-    // TODO: use a distributed lock to launch this function only on one server (cf consul)
     public synchronized GUID generateSecureStorageLogbook()
-        throws TraceabilityException, IOException, ArchiveException, StorageLogException,
+        throws TraceabilityException, IOException, StorageLogException,
         LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
+        // TODO: use a distributed lock to launch this function only on one server (cf consul)
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         try {
 
-            final String fileName = String.format("%d_"+STORAGE_LOGBOOK_OPERATION_ZIP+"_%s.zip", tenantId, eip.toString());
-            createLogbookOperationStructure(helper, eip, tenantId);
+            final String fileName =
+                String.format("%d_" + STORAGE_LOGBOOK_OPERATION_ZIP + "_%s_%s.zip", tenantId,now().format(formatter), eip.toString());
+            createLogbookOperationStarted(helper, eip);
 
             final File zipFile = new File(tmpFolder, fileName);
-            final String uri = String.format("%s/%s", "storgae_logbook", fileName);
-            LogInformationEvent event = null;
+            final String uri = String.format("%s/%s", STORAGE_LOGBOOK, fileName);
             LogInformation info = storageLogbookService.generateSecureStorage(tenantId);
             try (LogZipFile logZipFile = new LogZipFile(zipFile)) {
                 logZipFile.initStoreLog();
@@ -146,12 +155,12 @@ public class StorageLogbookAdministration {
                 logZipFile.close();
                 try {
                     info.getPath().toFile().delete();
-                }catch (Exception e ){
+                } catch (Exception e) {
                     LOGGER.error("unable to delete log fiel ", e);
                 }
             } catch (IOException |
                 ArchiveException e) {
-                createLogbookOperationEvent(helper, eip, tenantId, STP_OP_SECURISATION, FATAL, null,STP_FAIL_MESSAGE_PROCESS);
+                createLogbookOperationEvent(helper, eip, STP_OP_SECURISATION, StatusCode.FATAL);
                 zipFile.delete();
                 throw new StorageLogException(e);
             }
@@ -174,18 +183,18 @@ public class StorageLogbookAdministration {
                 try (final StorageClient storageClient = storageClientFactory.getClient()) {
                     storageClient.storeFileFromWorkspace(
                         STRATEGY_ID, StorageCollectionType.STORAGELOG, fileName, description);
-                    workspaceClient.deleteObject(fileName, uri);
-
+                    workspaceClient.deleteContainer(fileName, true);
                 } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
                     StorageServerClientException | ContentAddressableStorageNotFoundException e) {
-                    createLogbookOperationEvent(helper, eip, tenantId, OP_SECURISATION_STORAGE_LOGBOOK, FATAL, null,STP_FAIL_MESSAGE_PROCESS);
+                    createLogbookOperationEvent(helper, eip, STP_OP_SECURISATION,
+                        StatusCode.FATAL);
                     LOGGER.error("unable to store zip file", e);
                     throw new StorageLogException(e);
                 }
             } catch (ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException |
                 IOException e) {
                 LOGGER.error("unable to create container", e);
-                createLogbookOperationEvent(helper, eip, tenantId, OP_SECURISATION_STORAGE_LOGBOOK, FATAL, null,STP_FAIL_MESSAGE_PROCESS);
+                createLogbookOperationEvent(helper, eip, STP_OP_SECURISATION, StatusCode.FATAL);
                 throw new StorageLogException(e);
 
 
@@ -193,7 +202,7 @@ public class StorageLogbookAdministration {
             } finally {
                 zipFile.delete();
             }
-            createLogbookOperationEvent(helper, eip, tenantId, STP_OP_SECURISATION, StatusCode.OK, event, STP_BEGIN_MESSAGE);
+            createLogbookOperationEvent(helper, eip, STP_OP_SECURISATION, StatusCode.OK);
         } catch (LogbookClientNotFoundException | LogbookClientAlreadyExistsException e) {
             throw new StorageLogException(e);
         } finally {
@@ -203,27 +212,30 @@ public class StorageLogbookAdministration {
         return eip;
     }
 
-    private void createLogbookOperationStructure(LogbookOperationsClientHelper helper, GUID eip, Integer tenantId)
-        throws LogbookClientNotFoundException, LogbookClientAlreadyExistsException {
-        final LogbookOperationParameters logbookParameters =
-            newLogbookOperationParameters(eip, STP_SECURISATION, eip, STORAGE_LOGBOOK, STARTED, STP_BEGIN_MESSAGE, eip);
-        LogbookOperationsClientHelper.checkLogbookParameters(logbookParameters);
-        helper.createDelegate(logbookParameters);
-        createLogbookOperationEvent(helper, eip, tenantId, STP_OP_SECURISATION, STARTED, null,STP_BEGIN_MESSAGE_PROCESS);
+    private void createLogbookOperationStarted(LogbookOperationsClientHelper helper, GUID eip)
+        throws LogbookClientNotFoundException, LogbookClientAlreadyExistsException {        
+        final LogbookOperationParameters logbookOperationParameters = LogbookParametersFactory
+            .newLogbookOperationParameters(eip, STP_OP_SECURISATION, eip, LogbookTypeProcess.STORAGE_LOGBOOK,
+                StatusCode.STARTED,
+                VitamLogbookMessages.getCodeOp(STP_OP_SECURISATION, StatusCode.STARTED), eip);
+        logbookOperationParameters.putParameterValue(LogbookParameterName.outcomeDetail, STP_OP_SECURISATION +
+            "." + StatusCode.STARTED);
+
+        LogbookOperationsClientHelper.checkLogbookParameters(logbookOperationParameters);
+        helper.createDelegate(logbookOperationParameters);
     }
 
-    private void createLogbookOperationEvent(LogbookOperationsClientHelper helper, GUID parentEventId, Integer tenantId,
-        String eventType,
-        StatusCode statusCode, LogInformationEvent data,String message) throws LogbookClientNotFoundException {
-        final GUID eventId = GUIDFactory.newEventGUID(tenantId);
-        final LogbookOperationParameters logbookOperationParameters =
-            newLogbookOperationParameters(eventId, eventType, parentEventId, STORAGE_LOGBOOK, statusCode, message,
-                parentEventId);
+    private void createLogbookOperationEvent(LogbookOperationsClientHelper helper, GUID parentEventId, String eventType,
+        StatusCode statusCode) throws LogbookClientNotFoundException {
+
+        final LogbookOperationParameters logbookOperationParameters = LogbookParametersFactory
+            .newLogbookOperationParameters(parentEventId, eventType, parentEventId, LogbookTypeProcess.STORAGE_LOGBOOK,
+                statusCode,
+                VitamLogbookMessages.getCodeOp(eventType, statusCode), parentEventId);
+        logbookOperationParameters.putParameterValue(LogbookParameterName.outcomeDetail, eventType +
+            "." + statusCode);
+
         LogbookOperationsClientHelper.checkLogbookParameters(logbookOperationParameters);
-        if (data != null) {
-            logbookOperationParameters
-                .putParameterValue(LogbookParameterName.eventDetailData, unprettyPrint(data));
-        }
         helper.updateDelegate(logbookOperationParameters);
     }
 

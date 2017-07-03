@@ -46,6 +46,7 @@ import org.elasticsearch.action.index.IndexRequest.OpType;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
+import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.IdsQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -56,6 +57,7 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.sort.SortBuilder;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.DBObject;
 import com.mongodb.client.MongoCursor;
 
@@ -168,7 +170,8 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
     final boolean addEntryIndex(final MetadataCollections collection, final Integer tenantId, final String id,
         final String json) {
         final String type = collection == MetadataCollections.C_UNIT ? Unit.TYPEUNIQUE : ObjectGroup.TYPEUNIQUE;
-        return client.prepareIndex(getIndexName(collection, tenantId), type, id).setSource(json).setOpType(OpType.INDEX)
+        return client.prepareIndex(getIndexName(collection, tenantId), type, id).setSource(json)
+            .setOpType(OpType.INDEX)
             .get().getVersion() > 0;
     }
 
@@ -325,7 +328,8 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
                 LOGGER.error("ES insert in error since result to insert is empty");
                 throw new MetaDataExecutionException("Result to insert is empty");
             }
-            bulkRequest.add(client.prepareIndex(getIndexName(MetadataCollections.C_UNIT, tenantId), Unit.TYPEUNIQUE, id)
+            bulkRequest.add(client
+                .prepareIndex(getIndexName(MetadataCollections.C_UNIT, tenantId), Unit.TYPEUNIQUE, id)
                 .setSource(toInsert));
         }
         final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
@@ -466,10 +470,10 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * Build the filter for depth = 0
      *
      * @param collection the working collection
+     * @param tenantId the tenant for opeation
      * @param currentNodes current parent nodes
      * @param condition the query
      * @param filterCond the filter query
-     * @param tenantId the tenant for opeation
      * @return the Result associated with this request. Note that the exact depth is not checked, so it must be checked
      *         after (using MongoDb)
      * @throws MetaDataExecutionException if query operation exception occurred
@@ -510,7 +514,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
          * filter where _id in (currentNodes as list of ids)
          */
         QueryBuilder domdepths = null;
-        final IdsQueryBuilder filter = QueryBuilders.idsQuery((String[]) currentNodes.toArray());
+        IdsQueryBuilder filter = QueryBuilders.idsQuery((String[]) currentNodes.toArray(new String[currentNodes.size()]));
         if (filterCond != null) {
             domdepths = QueryBuilders.boolQuery().must(filter).must(filterCond);
         } else {
@@ -566,13 +570,12 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
 
     /**
      * @param collection
+     * @param tenantId
      * @param type
      * @param query as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }" "{ "ids" : { "
      *        values" : [list of id] } }"
      * @param filter the filter
      * @param sorts the list of sort
-     * @param offset the offset
-     * @param limit the limit
      * @return a structure as ResultInterface
      * @throws MetaDataExecutionException
      */
@@ -761,6 +764,20 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
         }
         return true;
+    }
+    
+    /**
+     * Update one element fully
+     * @param collection
+     * @param tenantId
+     * @param id
+     * @param object full object
+     * @return True if updated
+     */
+    public boolean updateFullOneDocument(MetadataCollections collection, Integer tenantId, String id, ObjectNode object) {
+        UpdateResponse response = client.prepareUpdate(getIndexName(collection, tenantId), ObjectGroup.TYPEUNIQUE, id)
+            .setDoc(object).setRefresh(true).execute().actionGet();
+        return response.getId().equals(id);
     }
 
     /**

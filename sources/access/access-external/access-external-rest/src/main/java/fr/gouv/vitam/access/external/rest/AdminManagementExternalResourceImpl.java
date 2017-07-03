@@ -26,37 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.external.rest;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.access.external.api.AdminCollections;
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
-import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
-import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
-import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
-import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
-import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
-import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
-import fr.gouv.vitam.functional.administration.common.exception.FileRulesNotFoundException;
-import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -74,9 +46,40 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+
+import fr.gouv.vitam.access.external.api.AdminCollections;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.AccessContractModel;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
+import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.client.model.ContextModel;
+import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
+import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
+import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
+import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
+import fr.gouv.vitam.functional.administration.common.exception.FileRulesNotFoundException;
+import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 
 /**
  * Admin Management External Resource Implement
@@ -87,9 +90,6 @@ public class AdminManagementExternalResourceImpl {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementExternalResourceImpl.class);
     private static final String ACCESS_EXTERNAL_MODULE = "ADMIN_EXTERNAL";
     private static final String CODE_VITAM = "code_vitam";
-    private static final String CONTRACT_JSON_IS_MANDATORY_PATAMETER = "Contracts input file is mandatory";
-    private static final String UPDATE_ACCESS_CONTRACT = "/accesscontract";
-    private static final String UPDATE_INGEST_CONTRACT = "/contract";
 
     /**
      * Constructor
@@ -112,7 +112,6 @@ public class AdminManagementExternalResourceImpl {
     public Response checkDocument(@PathParam("collection") String collection, InputStream document) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-
         try {
             ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", document);
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
@@ -166,8 +165,7 @@ public class AdminManagementExternalResourceImpl {
                 if (AdminCollections.RULES.compareTo(collection)) {
                     status = client.importRulesFile(document);
                 }
-
-                if (AdminCollections.CONTRACTS.compareTo(collection)) {
+                if (AdminCollections.ENTRY_CONTRACTS.compareTo(collection)) {
                     JsonNode json = JsonHandler.getFromInputStream(document);
                     SanityChecker.checkJsonAll(json);
                     status =
@@ -180,7 +178,21 @@ public class AdminManagementExternalResourceImpl {
                     status = client.importAccessContracts(JsonHandler.getFromStringAsTypeRefence(json.toString(),
                         new TypeReference<List<AccessContractModel>>() {}));
                 }
-
+                if (AdminCollections.CONTEXTS.compareTo(collection)) {
+                    JsonNode json = JsonHandler.getFromInputStream(document);
+                    SanityChecker.checkJsonAll(json);
+                    status = client.importContexts(JsonHandler.getFromStringAsTypeRefence(json.toString(),
+                        new TypeReference<List<ContextModel>>() {}));
+                }
+                if (AdminCollections.PROFILE.compareTo(collection)) {
+                    JsonNode json = JsonHandler.getFromInputStream(document);
+                    SanityChecker.checkJsonAll(json);
+                    RequestResponse requestResponse =
+                        client.createProfiles(JsonHandler.getFromStringAsTypeRefence(json.toString(),
+                            new TypeReference<List<ProfileModel>>() {}));
+                    return Response.status(requestResponse.getStatus())
+                        .entity(requestResponse).build();
+                }
                 // Send the http response with no entity and the status got from internalService;
                 ResponseBuilder ResponseBuilder = Response.status(status);
                 return ResponseBuilder.build();
@@ -203,9 +215,7 @@ public class AdminManagementExternalResourceImpl {
         } finally {
             StreamUtils.closeSilently(document);
         }
-
     }
-
 
     /**
      * Import a Profile file document (xsd or rng, ...)
@@ -219,15 +229,15 @@ public class AdminManagementExternalResourceImpl {
     @PUT
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response importProfileFile(@Context UriInfo uriInfo, @PathParam("collection") String collection, @PathParam("id") String profileMetadataId,
+    public Response importProfileFile(@Context UriInfo uriInfo, @PathParam("collection") String collection,
+        @PathParam("id") String profileMetadataId,
         InputStream profileFile) {
-
         if (!AdminCollections.PROFILE.compareTo(collection)) {
             LOGGER.error("Endpoint accept only profiles");
             final Status status = Status.BAD_REQUEST;
-            return Response.status(status).entity(getErrorEntity(status, "Endpoint accept only profiles", null)).build();
+            return Response.status(status).entity(getErrorEntity(status, "Endpoint accept only profiles", null))
+                .build();
         }
-
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         try {
@@ -235,7 +245,6 @@ public class AdminManagementExternalResourceImpl {
             ParametersChecker.checkParameter(profileMetadataId, "The profile id is mandatory");
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 RequestResponse requestResponse = client.importProfileFile(profileMetadataId, profileFile);
-
                 ResponseBuilder ResponseBuilder = Response.status(requestResponse.getStatus())
                     .entity(requestResponse);
                 return ResponseBuilder.build();
@@ -255,57 +264,62 @@ public class AdminManagementExternalResourceImpl {
         } finally {
             StreamUtils.closeSilently(profileFile);
         }
-
     }
 
-
     /**
-     * Download the file
+     * Download the file (profile file or traceability file)<br/>
+     * <br/>
+     * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
+     * 
      * @param collection
-     * @param profileMetadataId
+     * @param fileId
      * @param asyncResponse
      */
     @GET
     @Path("/{collection}/{id}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public void downloadProfileFile(@PathParam("collection") String collection, @PathParam("id") String profileMetadataId,
+    public void downloadProfileFileOrTraceabilityFile(@PathParam("collection") String collection,
+        @PathParam("id") String fileId,
         @Suspended final AsyncResponse asyncResponse) {
 
-        if (!AdminCollections.PROFILE.compareTo(collection)) {
+        if (AdminCollections.PROFILE.compareTo(collection)) {
+            ParametersChecker.checkParameter("Profile id should be filled", fileId);
+            Integer tenantId = ParameterHelper.getTenantParameter();
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+            VitamThreadPoolExecutor.getDefaultExecutor()
+                .execute(() -> asyncDownloadProfileFile(fileId, asyncResponse));
+
+        } else {
             LOGGER.error("Endpoint accept only profiles");
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, "Endpoint accept only profiles", null)).build());
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.NOT_IMPLEMENTED)
+                .entity(getErrorEntity(Status.NOT_IMPLEMENTED, "Endpoint accept only profiles", null)).build());
         }
-
-        ParametersChecker.checkParameter("Profile id should be filled", profileMetadataId);
-
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-
-        VitamThreadPoolExecutor.getDefaultExecutor()
-            .execute(() -> asyncDownloadProfileFile(profileMetadataId, asyncResponse));
     }
+
     private void asyncDownloadProfileFile(String profileMetadataId, final AsyncResponse asyncResponse) {
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-
             final Response response = client.downloadProfileFile(profileMetadataId);
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
-
             final ResponseBuilder responseBuilder =
                 Response.status(Status.OK)
                     .header("Content-Disposition", response.getHeaderString("Content-Disposition"))
                     .type(response.getMediaType());
             helper.writeResponse(responseBuilder);
-        }  catch (final ProfileNotFoundException exc) {
+        } catch (final ProfileNotFoundException exc) {
             LOGGER.error(exc.getMessage(), exc);
             AsyncInputStreamHelper
-                .asyncResponseResume(asyncResponse,
-                    Response.status(Status.NOT_FOUND).entity(getErrorEntity(Status.NOT_FOUND, exc.getMessage(), null).toString()).build());
-        }  catch (final AdminManagementClientServerException exc) {
+                .asyncResponseResume(
+                    asyncResponse,
+                    Response.status(Status.NOT_FOUND)
+                        .entity(getErrorEntity(Status.NOT_FOUND, exc.getMessage(), null).toString()).build());
+        } catch (final AdminManagementClientServerException exc) {
             LOGGER.error(exc.getMessage(), exc);
             AsyncInputStreamHelper
-                .asyncResponseResume(asyncResponse,
-                    Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exc.getMessage(), null).toString()).build());
+                .asyncResponseResume(
+                    asyncResponse,
+                    Response.status(Status.INTERNAL_SERVER_ERROR)
+                        .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exc.getMessage(), null).toString())
+                        .build());
         }
     }
 
@@ -321,14 +335,10 @@ public class AdminManagementExternalResourceImpl {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response findDocuments(@PathParam("collection") String collection, JsonNode select) {
-
-
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-
         try {
             ParametersChecker.checkParameter(collection, "The collection is mandatory");
-
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 if (AdminCollections.FORMATS.compareTo(collection)) {
                     final RequestResponse<FileFormatModel> result = client.getFormats(select);
@@ -338,22 +348,27 @@ public class AdminManagementExternalResourceImpl {
                     final JsonNode result = client.getRules(select);
                     return Response.status(Status.OK).entity(result).build();
                 }
-                if (AdminCollections.CONTRACTS.compareTo(collection)) {
+                if (AdminCollections.ENTRY_CONTRACTS.compareTo(collection)) {
                     RequestResponse<IngestContractModel> contracts = client.findIngestContracts(select);
                     return Response.status(Status.OK).entity(contracts.toJsonNode()).build();
                 }
-
                 if (AdminCollections.ACCESS_CONTRACTS.compareTo(collection)) {
                     RequestResponse result = client.findAccessContracts(select);
                     return Response.status(Status.OK).entity(result).build();
                 }
-
                 if (AdminCollections.PROFILE.compareTo(collection)) {
                     RequestResponse result = client.findProfiles(select);
                     return Response.status(Status.OK).entity(result).build();
                 }
+                if (AdminCollections.CONTEXTS.compareTo(collection)) {
+                    RequestResponse result = client.findContexts(select);
+                    return Response.status(Status.OK).entity(result).build();
+                }
 
-
+                if (AdminCollections.ACCESSION_REGISTERS.compareTo(collection)) {
+                    final RequestResponse result = client.getAccessionRegister(select);
+                    return Response.status(Status.OK).entity(result).build();
+                }
                 final Status status = Status.NOT_FOUND;
                 return Response.status(status).entity(getErrorEntity(status, null, null)).build();
             } catch (ReferentialNotFoundException | FileRulesNotFoundException e) {
@@ -367,6 +382,10 @@ public class AdminManagementExternalResourceImpl {
                 LOGGER.error(e);
                 final Status status = Status.BAD_REQUEST;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            } catch (final AccessUnauthorizedException e) {
+                LOGGER.error("Access contract does not allow ", e);
+                final Status status = Status.UNAUTHORIZED;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             }
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
@@ -374,6 +393,7 @@ public class AdminManagementExternalResourceImpl {
             return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
         }
     }
+
     /**
      * findDocuments using post method, or handle classical post for creation
      *
@@ -385,23 +405,19 @@ public class AdminManagementExternalResourceImpl {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createOrfindDocuments(@PathParam("collection") String collection, JsonNode select, @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
-
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-
+    public Response createOrfindDocuments(@PathParam("collection") String collection, JsonNode select,
+        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
         if (xhttpOverride != null && "GET".equalsIgnoreCase(xhttpOverride)) {
             return findDocuments(collection, select);
         } else {
+            Integer tenantId = ParameterHelper.getTenantParameter();
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
             ParametersChecker.checkParameter("Json select is a mandatory parameter", select);
             ParametersChecker.checkParameter(collection, "The collection is mandatory");
-
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 Object respEntity = null;
                 Status status = Status.CREATED;
-
-
-                if (AdminCollections.CONTRACTS.compareTo(collection)) {
+                if (AdminCollections.ENTRY_CONTRACTS.compareTo(collection)) {
                     SanityChecker.checkJsonAll(select);
                     status =
                         client.importIngestContracts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
@@ -411,19 +427,20 @@ public class AdminManagementExternalResourceImpl {
                     SanityChecker.checkJsonAll(select);
                     status = client.importAccessContracts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
                         new TypeReference<List<AccessContractModel>>() {}));
-
                 }
-
                 if (AdminCollections.PROFILE.compareTo(collection)) {
                     SanityChecker.checkJsonAll(select);
-                    RequestResponse requestResponse = client.createProfiles(JsonHandler.getFromStringAsTypeRefence(select.toString(),
-                        new TypeReference<List<ProfileModel>>() {}));
-
-                    return  Response.status(requestResponse.getStatus())
+                    RequestResponse requestResponse =
+                        client.createProfiles(JsonHandler.getFromStringAsTypeRefence(select.toString(),
+                            new TypeReference<List<ProfileModel>>() {}));
+                    return Response.status(requestResponse.getStatus())
                         .entity(requestResponse).build();
-
                 }
-
+                if (AdminCollections.CONTEXTS.compareTo(collection)) {
+                    SanityChecker.checkJsonAll(select);
+                    status = client.importContexts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
+                        new TypeReference<List<ContextModel>>() {}));
+                }
                 // Send the http response with the entity and the status got from internalService;
                 ResponseBuilder ResponseBuilder = Response.status(status)
                     .entity(respEntity != null ? respEntity : "Successfully imported");
@@ -441,23 +458,25 @@ public class AdminManagementExternalResourceImpl {
 
     /**
      * With Document By Id
+     * 
      * @param collection
      * @param documentId
      * @param xhttpOverride
-     * @return
+     * @return Response
      */
-    @Path("/{collection}/{id_document}")
+    @Path("/{collection}/{id_document:.+}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    public Response findDocumentByID(@PathParam("collection") String collection, @PathParam("id_document") String documentId, @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
-
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-
+    public Response findDocumentByID(@PathParam("collection") String collection,
+        @PathParam("id_document") String documentId,
+        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
         if (xhttpOverride != null && "GET".equalsIgnoreCase(xhttpOverride)) {
             return findDocumentByID(collection, documentId);
         } else {
-            return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST, "Method not yet implemented", null)).build();
+            Integer tenantId = ParameterHelper.getTenantParameter();
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+            return Response.status(Status.BAD_REQUEST)
+                .entity(getErrorEntity(Status.BAD_REQUEST, "Method not yet implemented", null)).build();
         }
     }
 
@@ -468,14 +487,13 @@ public class AdminManagementExternalResourceImpl {
      * @param documentId the document id to find
      * @return Response
      */
-    @Path("/{collection}/{id_document}")
+    @Path("/{collection}/{id_document:.+}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response findDocumentByID(@PathParam("collection") String collection,
         @PathParam("id_document") String documentId) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-
         try {
             ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
@@ -487,21 +505,22 @@ public class AdminManagementExternalResourceImpl {
                     final JsonNode result = client.getRuleByID(documentId);
                     return Response.status(Status.OK).entity(result).build();
                 }
-                if (AdminCollections.CONTRACTS.compareTo(collection)) {
+                if (AdminCollections.ENTRY_CONTRACTS.compareTo(collection)) {
                     RequestResponse<IngestContractModel> requestResponse = client.findIngestContractsByID(documentId);
                     return Response.status(Status.OK).entity(requestResponse).build();
                 }
-
                 if (AdminCollections.ACCESS_CONTRACTS.compareTo(collection)) {
                     RequestResponse<AccessContractModel> requestResponse = client.findAccessContractsByID(documentId);
                     return Response.status(Status.OK).entity(requestResponse).build();
                 }
-
                 if (AdminCollections.PROFILE.compareTo(collection)) {
                     RequestResponse<ProfileModel> requestResponse = client.findProfilesByID(documentId);
                     return Response.status(Status.OK).entity(requestResponse).build();
                 }
-
+                if (AdminCollections.CONTEXTS.compareTo(collection)) {
+                    RequestResponse<ContextModel> requestResponse = client.findContextById(documentId);
+                    return Response.status(Status.OK).entity(requestResponse).build();
+                }
                 final Status status = Status.NOT_FOUND;
                 return Response.status(status).entity(getErrorEntity(status, null, null)).build();
             } catch (ReferentialNotFoundException e) {
@@ -525,62 +544,46 @@ public class AdminManagementExternalResourceImpl {
     }
 
     /**
-     * Update access contract
-     *
+     * Update document
+     * 
+     * @param collection
+     * @param id
      * @param queryDsl
-     * @return
+     * @return Response
      * @throws AdminManagementClientServerException
      * @throws InvalidParseOperationException
      */
-    @Path(UPDATE_ACCESS_CONTRACT)
+    @Path("/{collection}/{id}")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response updateAccessContract(JsonNode queryDsl)
+    public Response updateDocument(@PathParam("collection") String collection,
+        @PathParam("id") String id, JsonNode queryDsl)
         throws AdminManagementClientServerException, InvalidParseOperationException {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         try {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-                RequestResponse response = client.updateAccessContract(queryDsl);
-                if (response.isOk()) {
-                    return Response.status(Status.OK).entity(response).build();
-                } else {
-                    final VitamError error = (VitamError)response;
-                    return Response.status(error.getHttpCode()).entity(response).build();
+                RequestResponse response = null;
+                if (AdminCollections.CONTEXTS.compareTo(collection)) {
+                    response = client.updateContext(id, queryDsl);
                 }
-            }
-        } catch (IllegalArgumentException e) {
-            LOGGER.error(e);
-            return Response.status(Status.PRECONDITION_FAILED)
-                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
-        }
-    }
-
-    /**
-     * Update ingest contract
-     *
-     * @param queryDsl the given query dsl
-     * @return
-     * @throws AdminManagementClientServerException
-     * @throws InvalidParseOperationException
-     */
-    @Path(UPDATE_INGEST_CONTRACT)
-    @PUT
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response updateIngestContract(JsonNode queryDsl)
-        throws AdminManagementClientServerException, InvalidParseOperationException {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        try {
-            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-                RequestResponse response = client.updateIngestContract(queryDsl);
-                if (response.isOk()) {
+                if (AdminCollections.ACCESS_CONTRACTS.compareTo(collection)) {
+                    response = client.updateAccessContract(id, queryDsl);
+                }
+                if (AdminCollections.ENTRY_CONTRACTS.compareTo(collection)) {
+                    response = client.updateIngestContract(id, queryDsl);
+                }
+                if (response != null && response.isOk()) {
                     return Response.status(Status.OK).entity(response).build();
                 } else {
-                    final VitamError error = (VitamError)response;
-                    return Response.status(error.getHttpCode()).entity(response).build();
+                    final VitamError error = (VitamError) response;
+                    if (error != null) {
+                        return Response.status(error.getHttpCode()).entity(response).build();
+                    } else {
+                        return Response.status(Status.INTERNAL_SERVER_ERROR)
+                            .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, null, null).toString()).build();
+                    }
                 }
             }
         } catch (IllegalArgumentException e) {
@@ -606,5 +609,4 @@ public class AdminManagementExternalResourceImpl {
         return new VitamError(aCode).setHttpCode(status.getStatusCode()).setContext(ACCESS_EXTERNAL_MODULE)
             .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
-
 }

@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
@@ -71,6 +72,7 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
     public static final String MAPPING_ACCESSCONTRACT_FILE = "/accesscontract-es-mapping.json";
 
     public static final String MAPPING_PROFILE_FILE = "/profile-es-mapping.json";
+    public static final String MAPPING_CONTEXT_FILE = "/context-es-mapping.json";
 
     /**
      * @param clusterName
@@ -190,7 +192,6 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
     /**
      *
      * @param collection
-     * @param query
      * @param query as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }" "{ "ids" : { "
      *        values" : [list of id] } }"
      * @param filter
@@ -227,6 +228,8 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
             return ElasticsearchUtil.transferJsonToMapping(FileRules.class.getResourceAsStream(MAPPING_ACCESSCONTRACT_FILE));
         } else if (collection.equals(FunctionalAdminCollections.PROFILE)) {
             return ElasticsearchUtil.transferJsonToMapping(FileRules.class.getResourceAsStream(MAPPING_PROFILE_FILE));
+        } else if (collection.equals(FunctionalAdminCollections.CONTEXT)) {
+            return ElasticsearchUtil.transferJsonToMapping(FileRules.class.getResourceAsStream(MAPPING_CONTEXT_FILE));
         }
         return "";
     }
@@ -242,8 +245,9 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
             return AccessContract.TYPEUNIQUE;
         } else if (collection.equals(FunctionalAdminCollections.PROFILE)) {
             return Profile.TYPEUNIQUE;
+        } else if (collection.equals(FunctionalAdminCollections.CONTEXT)) {
+            return Context.TYPEUNIQUE;
         }
-
         return "";
     }
 }

@@ -50,7 +50,8 @@ angular.module('core')
   'OG_LIFECYCLE_TYPE': 'objectgroup',
   'CHECK_OPERATION_STATUS': 'check',
   'CLEAR_OPERATION_STATUS_HISTORY': 'clear',
-  'WORKFLOWS_LIST': '/operations'
+  'WORKFLOWS_LIST': '/operations'  ,
+  'WORKFLOWS': '/workflows'
 })
 
 /*ihmDemoCLient create a configured http client*/
@@ -98,7 +99,6 @@ angular.module('core')
   dataFactory.getObjectAsInputStreamUrl = function(ogId, options){
 	  return IHM_URLS.IHM_BASE_URL + IHM_URLS.ARCHIVE_OBJECT_GROUP_DOWNLOAD_URL + ogId +
       '?usage=' + encodeURIComponent(options.usage) +
-      '&version=' + encodeURIComponent(options.version) +
       '&filename=' + encodeURIComponent(options.filename) +
       '&tenantId=' + (authVitamService.cookieValue(authVitamService.COOKIE_TENANT_ID) || 0) +
       '&contractId=' + (authVitamService.cookieValue('X-Access-Contract-Id') || '');
@@ -135,9 +135,14 @@ angular.module('core')
   };
 
   // Get Workflows List
-  dataFactory.getWorkflows = function(){
-    return ihmDemoCLient.getClient(IHM_URLS.WORKFLOWS_LIST).one('').get();
+  dataFactory.getWorkflows = function(criteria){
+    return ihmDemoCLient.getClient(IHM_URLS.WORKFLOWS_LIST).all('').post(criteria);
   };
+
+  // Get Workflows Definition
+  dataFactory.getWorkflowsDefinition = function() {
+    return ihmDemoCLient.getClient(IHM_URLS.WORKFLOWS).one('').get();
+  }
 
   // Execute an action
   dataFactory.executeAction = function(operationId, action){
@@ -321,6 +326,8 @@ angular.module('core')
           delete unit["#max"];
           unit._mgt = unit["#management"];
           delete unit["#management"];
+          unit._v = unit['#version'];
+          delete unit["#version"];
         });
         return Result;
       }

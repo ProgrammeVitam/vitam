@@ -494,9 +494,7 @@ public class MetaDataImplTest {
         final ArrayNode ret = metaDataImpl.updateUnitbyId(updateRequest, "unitId");
         assertEquals(wanted, ret.toString());
 
-        final RequestResponseOK response = new RequestResponseOK()
-            .setHits(ret.size(), 0, 1)
-            .setQuery(updateRequest)
+        final RequestResponseOK response = new RequestResponseOK(updateRequest)
             .addAllResults(toArrayList(ret));
         assertEquals(wantedDiff, getDiffMessageFor(response.toJsonNode(), "unitId"));
     }

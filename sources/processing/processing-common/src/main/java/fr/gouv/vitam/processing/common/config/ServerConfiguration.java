@@ -38,6 +38,9 @@ public class ServerConfiguration extends DefaultVitamApplicationConfiguration {
     private String urlMetadata;
     private String urlWorkspace;
 
+
+    private Integer processingCleanerPeriod;
+
     /**
      * @return the urlMetadata
      */
@@ -78,4 +81,20 @@ public class ServerConfiguration extends DefaultVitamApplicationConfiguration {
         return this;
     }
 
+    /**
+     * getter  for processing cleaner period
+     * @return
+     */
+    public Integer getProcessingCleanerPeriod() {
+        return processingCleanerPeriod;
+    }
+
+    /**
+     * setter  for processing cleaner period
+
+     * @param processingCleanerPeriod
+     */
+    public void setProcessingCleanerPeriod(Integer processingCleanerPeriod) {
+        this.processingCleanerPeriod = processingCleanerPeriod;
+    }
 }

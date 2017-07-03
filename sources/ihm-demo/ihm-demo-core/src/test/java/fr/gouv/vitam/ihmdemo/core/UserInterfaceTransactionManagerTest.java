@@ -27,8 +27,11 @@
 package fr.gouv.vitam.ihmdemo.core;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.when;
+
+import java.io.InputStream;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
@@ -49,7 +52,9 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.AbstractMockClient;
+import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -103,7 +108,7 @@ public class UserInterfaceTransactionManagerTest {
 
     private static AccessExternalClientFactory accessClientFactory;
     private static AccessExternalClient accessClient;
-    
+
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
@@ -141,8 +146,9 @@ public class UserInterfaceTransactionManagerTest {
     public void testSuccessGetArchiveUnitDetails()
         throws Exception {
         VitamThreadUtils.getVitamSession().setContractId(CONTRACT_NAME);
-        when(accessClient.selectUnitbyId(JsonHandler.getFromString(SELECT_ID_DSL_QUERY), ID_UNIT, TENANT_ID, CONTRACT_NAME))
-            .thenReturn(unitDetails);
+        when(accessClient.selectUnitbyId(JsonHandler.getFromString(SELECT_ID_DSL_QUERY), ID_UNIT, TENANT_ID,
+            CONTRACT_NAME))
+                .thenReturn(unitDetails);
         // Test method
         final RequestResponseOK<JsonNode> archiveDetails =
             (RequestResponseOK) UserInterfaceTransactionManager
@@ -171,8 +177,9 @@ public class UserInterfaceTransactionManagerTest {
                 "{$hits: {'total':'1'}, $results:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}],$context :" +
                     SEARCH_UNIT_DSL_QUERY + "}",
                 RequestResponseOK.class, JsonNode.class);
-        when(accessClient.selectObjectById(JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP, TENANT_ID, CONTRACT_NAME))
-            .thenReturn(result);
+        when(accessClient.selectObjectById(JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP, TENANT_ID,
+            CONTRACT_NAME))
+                .thenReturn(result);
         // Test method
         final RequestResponseOK<JsonNode> objectGroup =
             (RequestResponseOK) UserInterfaceTransactionManager
@@ -191,7 +198,8 @@ public class UserInterfaceTransactionManagerTest {
                 .thenReturn(new AbstractMockClient.FakeInboundResponse(Status.OK, IOUtils.toInputStream("Vitam Test"),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
         assertTrue(UserInterfaceTransactionManager.getObjectAsInputStream(asynResponse,
-            JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP, "usage", 1, "vitam_test", TENANT_ID, CONTRACT_NAME));
+            JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP, "usage", 1, "vitam_test", TENANT_ID,
+            CONTRACT_NAME));
     }
 
     @Test
@@ -215,4 +223,27 @@ public class UserInterfaceTransactionManagerTest {
         assertTrue(oneRoot.get(UiConstants.ID.getResultCriteria()).asText().equals("ID025") ||
             oneRoot.get(UiConstants.ID.getResultCriteria()).asText().equals("ID026"));
     }
+
+
+    @Test
+    public void testExtractInformationFromTimestamp() throws Exception {
+        final InputStream tokenFile =
+            PropertiesUtils.getResourceAsStream("token.tsp");
+        String encodedTimeStampToken = IOUtils.toString(tokenFile, "UTF-8");
+
+        final JsonNode timeStampInfo =
+            UserInterfaceTransactionManager.extractInformationFromTimestamp(encodedTimeStampToken);
+        assertTrue(!timeStampInfo.isNull());
+        assertTrue("2017-05-26T17:25:26".equals(timeStampInfo.get("genTime").asText()));
+        assertTrue("C=FR,ST=idf,L=paris,O=Vitam.,CN=CA_timestamping".equals(timeStampInfo.get("signerCertIssuer").asText()));
+        
+        try {
+            UserInterfaceTransactionManager.extractInformationFromTimestamp("FakeTimeStamp");
+            fail("Should raized an exception");
+        } catch (BadRequestException e){
+            //do nothing
+        }
+
+    }
+
 }

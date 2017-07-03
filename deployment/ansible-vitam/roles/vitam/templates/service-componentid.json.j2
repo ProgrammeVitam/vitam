@@ -1,6 +1,7 @@
 {
   "service": {
     "name": "{{ vitam_component }}",
+    "address": "{{ip_service}}",
 {% if tls_active==true %}
     "port": {{ port_https }},
 {% else %}
@@ -12,18 +13,18 @@
 {% if tls_active==true %}
         "id": "https tcp check",
         "notes": "HTTPS port opened",
-        "tcp": "localhost:{{ port_https }}",
+        "tcp": "{{ip_service}}:{{ port_https }}",
 {% else %}
         "id": "http tcp check",
         "notes": "HTTP port opened",
-        "tcp": "localhost:{{ port_http }}",
+        "tcp": "{{ip_service}}:{{ port_http }}",
 {% endif %}
         "interval": "1s"
       },
       {
         "id": "admin status",
         "notes": "Status admin : /admin/v1/status",
-        "http": "http://localhost:{{ port_http_admin }}/admin/v1/status",
+        "http": "http://{{ip_admin}}:{{ port_http_admin }}/admin/v1/status",
         "interval": "1s"
       }
 {% if vitam_component == 'worker'  %}

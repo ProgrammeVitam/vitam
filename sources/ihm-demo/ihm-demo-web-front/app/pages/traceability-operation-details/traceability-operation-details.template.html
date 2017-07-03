@@ -23,6 +23,8 @@
               <th>Algorithme de hashage</th>
               <th>Nom du fichier</th>
               <th>Taille du fichier</th>
+              <th>Date du tampon d'horodatage</th>
+              <th>CA signataire</th>
             </tr>
             <tr>
               <td>{{startDate}}</td>
@@ -31,18 +33,14 @@
               <td>{{digestAlgorithm}}</td>
               <td>{{fileName}}</td>
               <td>{{fileSize | filterSize}}</td>
+              <td>{{genTime}}</td>
+              <td>{{signerCertIssuer}}</td>
             </tr>
           </table>
 
           <table class="table">
             <tr>
               <td><b>Hash de l'arbre de Merkle : </b> {{hash}}</td>
-            </tr>
-          </table>
-
-          <table class="table">
-            <tr>
-              <td><b>Timestamp Token : </b> {{timeStampToken}}</td>
             </tr>
           </table>
         </div>

@@ -92,7 +92,7 @@ public class ExtractObjectNumSedaTest {
         final HandlerIO handlerIO = mock(HandlerIO.class);
         when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(seda);
         utils = SedaUtilsFactory.create(handlerIO);
-        final ExtractUriResponse extractUriResponse = utils.getAllDigitalObjectUriFromManifest(params);
+        final ExtractUriResponse extractUriResponse = utils.getAllDigitalObjectUriFromManifest();
 
         assertThat(extractUriResponse.getUriListManifest()).isNotNull().isNotEmpty();
     }

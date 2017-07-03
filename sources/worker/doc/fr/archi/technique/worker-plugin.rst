@@ -1,5 +1,5 @@
 Plugin Worker
-############
+##############
 
 But de cette documentation
 **************************
@@ -18,7 +18,7 @@ En sortie, il retourne les status des traitements et chaque status contient un c
 
 D'une façon synthétique, le plugin worker est décrit de cette façon :
 
-.. figure:: images/plugin.jpg
+.. figure:: images/plugin.png
   :align: center
   :height: 25 cm
 
@@ -30,16 +30,17 @@ Les référentiels de plugin sont déclaré dans un fichier de configuration :
 
 .. code-block:: json
 
-{
-  "NOM_DE_PLUGIN_1": {
-    "className": "package.plugin.class_1",
-    "propertyFile": "le_fichier_de_properties_1"
-  },
-  "NOM_DE_PLUGIN_2": {
-    "className": "package.plugin.class_2",
-    "propertyFile": "le_fichier_de_properties_2"
+  {
+     "NOM_DE_PLUGIN_1": {
+       "className": "package.plugin.class_1",
+       "propertyFile": "le_fichier_de_properties_1"
+    },
+    "NOM_DE_PLUGIN_2": {
+      "className": "package.plugin.class_2",
+      "propertyFile": "le_fichier_de_properties_2"
+    }
   }
-}
+
 
 Au démarrage de chaque worker, la liste des plugins va être analysé. Puis le serveur va tenter d'instancier chaque plugin de la liste.
 Si un des plugins ne se lance pas pour une raison quelconque (nom de classe incorrect, impossible d'instancier la classe, ...), alors le serveur ne démarrera pas.
@@ -51,6 +52,7 @@ Les plugins ne sont pas pour l'instant thread safe dans Vitam, ce qui signifie q
 Après ses traitements, Plugin doit retourner au Worker un ItemStatus. Quand le Worker reçoit le résultat : 
 
 - Il doit le traduire en utilisant par défaut le fichier de properties VITAM (vitam-logbook-messages_fr.properties) 
+
 si les clés ne sont pas définies dans ce fichier alors il va chercher la valeur du label dans le fichier properties 
 du plug-in puis envoit à Engine pour écrire dans les journaux des opération. 
 
@@ -69,15 +71,16 @@ Le résultat retourné du plugin contiendra
 
 .. code-block:: json
 
-{
+  {
 	«globalStatus » : OK ,
 	« itemsStatus » : [ {« CALC_CHECK » :  { «globalStatus » : OK  }}] 
-}
+  }
 
 Alors le Worker va écrire ces événements ci-dessous dans LFC :
 
 .. code-block:: json
-{
+
+   {
        {
             "evType" : "LFC.CHECK_DIGEST ",
             "outcome" : "STARTED",
@@ -93,7 +96,7 @@ Alors le Worker va écrire ces événements ci-dessous dans LFC :
             "outcome" : "OK",
             "outDetail" : "LFC.CHECK_DIGEST..OK",
         }
-}
+   }
 
 L’écriture des journaux des opérations garde son implémentation.
 
@@ -104,9 +107,9 @@ c'est un service pour charger les définitions du code dans le fichier de proper
 
 Cela définit comment Worker appelle les plugins.
 
-java -cp "/vitam/lib/${unix.name}/*" fr.gouv.vitam.worker.server.rest.WorkerApplication
+``java -cp "/vitam/lib/${unix.name}/*" fr.gouv.vitam.worker.server.rest.WorkerApplication``
 au lieu de 
-java -jar "/vitam/lib/${unix.name}/${project.build.finalName}.jar"
+``java -jar "/vitam/lib/${unix.name}/${project.build.finalName}.jar"``
 
 Donc les JAR du plugin doit être placé dans /vitam/lib/worker/
 

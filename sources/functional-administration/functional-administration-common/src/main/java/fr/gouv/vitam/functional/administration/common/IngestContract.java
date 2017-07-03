@@ -31,6 +31,7 @@ import org.bson.Document;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.model.ContractStatus;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 
 import java.util.Set;
@@ -47,6 +48,10 @@ public class IngestContract extends VitamDocument<IngestContract> {
      * the serial version uid
      */
     private static final long serialVersionUID = -3547871388720359674L;
+    /**
+     * the contract id
+     */
+    public static final String IDENTIFIER = "Identifier";
     /**
      * the contract name
      */
@@ -136,6 +141,11 @@ public class IngestContract extends VitamDocument<IngestContract> {
         return this;
     }
 
+    @Override
+    public VitamDocument<IngestContract> newInstance(JsonNode content) {
+        return new IngestContract(content);
+    }
+
     /**
      * Name of the contract
      * @return name of contract
@@ -211,7 +221,7 @@ public class IngestContract extends VitamDocument<IngestContract> {
     /**
      * Set the collection of archive profiles
      * @param archiveProfiles
-     * @return
+     * @return this
      */
     public IngestContract setArchiveProfiles(Set<String> archiveProfiles) {
         append(ARCHIVEPROFILES, archiveProfiles);

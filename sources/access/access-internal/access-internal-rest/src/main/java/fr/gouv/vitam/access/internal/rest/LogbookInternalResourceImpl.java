@@ -41,6 +41,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -66,6 +67,7 @@ import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -129,6 +131,9 @@ public class LogbookInternalResourceImpl {
     // TODO Add Enumeration of all possible WORKFLOWS
     private static final String DEFAULT_CHECK_TRACEABILITY_WORKFLOW = "DefaultCheckTraceability";
     private static final String DEFAULT_STORAGE_STRATEGY = "default";
+
+    private static final long SLEEP_TIME = 1000l;
+    private static final long NB_TRY = 600; // equivalent to 10 minutes
 
     /**
      * Default Constructor
@@ -195,6 +200,7 @@ public class LogbookInternalResourceImpl {
             final JsonNode result = client.selectOperation(query);
             return Response.status(Status.OK).entity(result).build();
         } catch (final LogbookClientNotFoundException e) {
+            LOGGER.error(e);
             return Response.status(Status.OK).entity(new RequestResponseOK().toJsonNode()).build();
         } catch (final LogbookClientException e) {
             LOGGER.error(e);
@@ -332,16 +338,17 @@ public class LogbookInternalResourceImpl {
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         Response response = null;
         GUID checkOperationGUID = null;
+        LOGGER.debug("Start Check in Resource");
         try (LogbookOperationsClient logbookOperationsClient =
             LogbookOperationsClientFactory.getInstance().getClient();
-            ProcessingManagementClient processManagementClient =
+            ProcessingManagementClient processingClient =
                 ProcessingManagementClientFactory.getInstance().getClient()) {
 
             LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
 
             // Initialize a new process
             checkOperationGUID = GUIDFactory.newOperationLogbookGUID(tenantId);
-            processManagementClient.initVitamProcess(LogbookTypeProcess.CHECK.toString(), checkOperationGUID.getId(),
+            processingClient.initVitamProcess(LogbookTypeProcess.CHECK.toString(), checkOperationGUID.getId(),
                 DEFAULT_CHECK_TRACEABILITY_WORKFLOW);            
 
             // Create logbookOperation for check TRACEABILITY process
@@ -349,23 +356,46 @@ public class LogbookInternalResourceImpl {
             logbookOperationsClient.bulkCreate(checkOperationGUID.getId(),
                 helper.removeCreateDelegate(checkOperationGUID.getId()));
 
+            LOGGER.debug("Started Check in Resource");
             // Run the WORKFLOW
             response =
-                processManagementClient.executeCheckTraceabilityWorkFlow(checkOperationGUID.getId(), query,
+                processingClient.executeCheckTraceabilityWorkFlow(checkOperationGUID.getId(), query,
                     DEFAULT_CHECK_TRACEABILITY_WORKFLOW, LogbookTypeProcess.CHECK.toString(),
                     ProcessAction.RESUME.getValue());
-            
-            // Add final event to logbookOperation
-            createOrUpdateLogbookOperation(helper, false, checkOperationGUID,
-                StatusCode.parseFromHttpStatus(response.getStatus()));
-            logbookOperationsClient.bulkUpdate(checkOperationGUID.getId(),
-                helper.removeUpdateDelegate(checkOperationGUID.getId()));
+            LOGGER.debug("Check in Resource launched");
 
-            // Get the created logbookOperation and return the response
-            final JsonNode result = logbookOperationsClient.selectOperationById(checkOperationGUID.getId(), null);
-            cleanWorkspace(checkOperationGUID.getId());
-            return Response.ok().entity(RequestResponseOK.getFromJsonNode(result)).build();            
+
+            int nbTry = 0;
+            boolean done = processingClient.isOperationCompleted(checkOperationGUID.getId());
             
+            while (! done) {
+                try {
+                    Thread.sleep(SLEEP_TIME);
+                } catch (InterruptedException e) {
+                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                }
+                if (nbTry == NB_TRY)
+                    break;
+                nbTry++;
+                done = processingClient.isOperationCompleted(checkOperationGUID.getId());
+            }
+            LOGGER.debug("End of Check in Resource: {} nbTry {}", done, nbTry);
+            if (done) {
+                // Get the created logbookOperation and return the response
+                final JsonNode result = logbookOperationsClient.selectOperationById(checkOperationGUID.getId(), null);
+                cleanWorkspace(checkOperationGUID.getId());
+                return Response.ok().entity(RequestResponseOK.getFromJsonNode(result)).build();            
+            } else {
+                ItemStatus itemStatus = processingClient.getOperationProcessStatus(checkOperationGUID.getId());
+                Status status = Status.EXPECTATION_FAILED;
+                if (itemStatus == null) {
+                    itemStatus = new ItemStatus(checkOperationGUID.getId()).setMessage("Unknown status of the workflow");
+                    status = Status.INTERNAL_SERVER_ERROR;
+                }
+                return Response.status(status).entity(new VitamError(status.name())
+                    .setDescription(JsonHandler.unprettyPrint(itemStatus)).setHttpCode(status.getStatusCode())
+                    .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())).build();
+            }
         } catch (BadRequestException | LogbookClientBadRequestException e) {            
             LOGGER.error(e);
             final Status status = Status.BAD_REQUEST;

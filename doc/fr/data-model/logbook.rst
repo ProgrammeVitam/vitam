@@ -1,10 +1,10 @@
-Base Logbooks
-#############
+Base Logbook
+############
 
 Collections contenues dans la base
 ===================================
 
-Il s'agit des collections relatives aux journaux d'opérations et de cycles de vie des archives et des objets numériques.
+La base Logbook contient les collections relatives aux journaux d'opérations et de cycles de vie des unités archivistiques et des objets numériques de la solution logicielle Vitam.
 
 Collection LogbookOperation
 ===========================
@@ -16,295 +16,298 @@ La collection LogbookOperation comporte toutes les informations de traitement li
 
 Ces opérations sont :
 
-- Entrée (implémenté dans la release en cours)
-- Mise à jour (implémenté dans la release en cours)
-- Données de référence (implémenté dans la release en cours)
-- Audit (développé post-bêta)
-- Elimination (développé post-bêta)
-- Préservation (développé post-bêta)
-- Vérification (implémenté dans la release en cours)
-- Sécurisation (implémenté dans la release en cours)
+- Entrée (implémentée dans la release en cours)
+- Mise à jour (implémentée dans la release en cours)
+- Données de référence (implémentée dans la release en cours)
+- Audit (non implémentée dans la release en cours)
+- Elimination (non implémentée dans la release en cours)
+- Préservation (non implémentée dans la release en cours)
+- Vérification (implémentée dans la release en cours)
+- Sécurisation (implémentée dans la release en cours)
+  
+Les valeurs correspondant à ces opérations dans les journaux sont détaillées dans l'annexe 5.3.
 
-Exemple de JSON stocké en base
-------------------------------
+Exemple de JSON stocké dans la collection
+------------------------------------------
 
 Extrait d'un JSON correspondant à une opération d'entrée terminée avec succès.
 
 ::
-
-  {
-    "_id": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
-    "evId": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+           
+ {
+    "_id": "aedqaaaaachhz4i4abx24ak46muxxkaaaaaq",
+    "evId": "aedqaaaaachhz4i4abx24ak46muxxkaaaaaq",
     "evType": "PROCESS_SIP_UNITARY",
-    "evDateTime": "2017-04-06T23:12:09.233",
-    "evDetData": "{\"evDetDataType\":\"MASTER\",\"EvDetailReq\":\"Jeu de test avec arborescence complexe\",\"EvDateTimeReq\":\"2016-11-22T13:50:57\",\"ArchivalAgreement\":\"ArchivalAgreement0\",\"AgIfTrans\":\"Identifier5\"}",
-    "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+    "evDateTime": "2017-06-29T09:23:21.142",
+    "evDetData": "{\"evDetDataType\":\"MASTER\",\"EvDetailReq\":\"Jeu de test avec arborescence complexe\",\"EvDateTimeReq\":\"2016-11-22T13:50:57\",\"ArchivalAgreement\":\"ArchivalAgreement0\",\"AgIdTrans\":\"Identifier5\"}",
+    "evIdProc": "aedqaaaaachhz4i4abx24ak46muxxkaaaaaq",
     "evTypeProc": "INGEST",
     "outcome": "STARTED",
-    "outDetail": null,
-    "outMessg": "Début du processus d'entrée du SIP : aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
-    "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1045329142,\"SiteId\":1,\"GlobalPlatformId\":240022774}",
+    "outDetail": "PROCESS_SIP_UNITARY.STARTED",
+    "outMessg": "Début du processus d'entrée du SIP : aedqaaaaachhz4i4abx24ak46muxxkaaaaaq",
+    "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1048375580,\"SiteId\":1,\"GlobalPlatformId\":243069212}",
     "agIdApp": null,
     "agIdAppSession": null,
-    "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+    "evIdReq": "aedqaaaaachhz4i4abx24ak46muxxkaaaaaq",
     "agIdSubm": null,
     "agIdOrig": null,
-    "obId": null,
+    "obId": "aedqaaaaachhz4i4abx24ak46muxxkaaaaaq",
     "obIdReq": null,
-    "obIdIn": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+    "obIdIn": "aedqaaaaachhz4i4abx24ak46muxxkaaaaaq",
     "events": [
         {
-            "evId": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
-            "evType": "STP_SANITY_CHECK_SIP",
-            "evDateTime": "2017-04-06T23:12:09.234",
+            "evId": "aedqaaaaachhz4i4abx24ak46muxxkaaaaaq",
+            "evType": "PROCESS_SIP_UNITARY",
+            "evDateTime": "2017-06-29T09:23:21.142",
             "evDetData": null,
-            "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+            "evIdProc": "aedqaaaaachhz4i4abx24ak46muxxkaaaaaq",
             "evTypeProc": "INGEST",
             "outcome": "STARTED",
-            "outDetail": null,
+            "outDetail": "PROCESS_SIP_UNITARY.STARTED",
             "outMessg": "Début du processus des contrôles préalables à l'entrée",
-            "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1045329142,\"SiteId\":1,\"GlobalPlatformId\":240022774}",
-            "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
-            "obId": null,
+            "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1048375580,\"SiteId\":1,\"GlobalPlatformId\":243069212}",
+            "evIdReq": "aedqaaaaachhz4i4abx24ak46muxxkaaaaaq",
+            "obId": "aedqaaaaachhz4i4abx24ak46muxxkaaaaaq",
             "obIdReq": null,
             "obIdIn": null
         },
         {
-            "evId": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+            "evId": "aedqaaaaachhz4i4abx24ak46muxxkaaaaaq",
             "evType": "SANITY_CHECK_SIP",
-            "evDateTime": "2017-04-06T23:12:09.980",
+            "evDateTime": "2017-06-29T09:23:21.206",
             "evDetData": null,
-            "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+            "evIdProc": "aedqaaaaachhz4i4abx24ak46muxxkaaaaaq",
             "evTypeProc": "INGEST",
             "outcome": "STARTED",
-            "outDetail": null,
+            "outDetail": "SANITY_CHECK_SIP.STARTED",
             "outMessg": "Début du contrôle sanitaire",
-            "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1045329142,\"SiteId\":1,\"GlobalPlatformId\":240022774}",
-            "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
-            "obId": null,
+            "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1048375580,\"SiteId\":1,\"GlobalPlatformId\":243069212}",
+            "evIdReq": "aedqaaaaachhz4i4abx24ak46muxxkaaaaaq",
+            "obId": "aedqaaaaachhz4i4abx24ak46muxxkaaaaaq",
             "obIdReq": null,
             "obIdIn": null
         },
         {
-            
             [...]
         }
     ],
     "_tenant": 0
   }
 
-Détail des champs du JSON stocké en base
------------------------------------------
+Détail des champs du JSON stocké dans la collection
+----------------------------------------------------
 
 Chaque entrée de cette collection est composée d'une structure auto-imbriquée : la structure possède une première instanciation "incluante", et contient un tableau de N structures identiques, dont seules les valeurs contenues dans les champs changent.
 
 La structure est décrite ci-dessous.
 Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'une structure incluse dans celle-ci.
 
-
-"_id" : Identifiant unique donné par le système lors de l'initialisation de l'opération
-    Il est constitué d'une chaîne de 36 caractères.
+"_id" (identifier): Identifiant unique donné par le système lors de l'initialisation de l'opération
+    Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
     Cet identifiant constitue la clé primaire de l'opération dans la collection.
 
     *Ce champ existe uniquement pour la structure incluante.*
 
-"evId" (event Identifier) : identifiant de l'événement constitué d'une chaîne de 36 caractères.
-     Il identifie l'entrée / le versement de manière unique dans la base.
-     Cet identifiant doit être l'identifiant d'un événement dans le cadre de l'opération (evIdProc) et doit donc être différent par pair (début/fin).
-
-     *Ce champ existe pour les structures incluantes et incluses*
-
-"evType" (event Type) : nom de la tâche,
-    Issu de la définition du workflow en json (fichier default-workflow.json).
-    La liste des valeurs possibles pour ce champ se trouve en annexe. Seul le code doit être stocké dans ce champ, la traduction doit se faire via le fichier properties (vitam-logbook-message-fr.properties)
+"evId" (event Identifier): identifiant de l'événement 
+    Il s'agit d'une chaîne de 36 caractères.
+    Il identifie l'opération de manière unique dans la collection.
+    Cet identifiant doit être l'identifiant d'un événement dans le cadre de l'opération (evIdProc) et doit donc être différent par paire (début/fin).
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evDateTime" (event DateTime) : date de l'événement
-    Positionné par le client LogBook.
-    Date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes]
+"evType" (event Type): nom de l'événement
+    Issu de la définition du workflow en JSON (fichier default-workflow.json).
+    La liste des valeurs possibles pour ce champ se trouve en annexe. Seul le code est stocké dans ce champ, la traduction se faisant via un fichier properties (vitam-logbook-message-fr.properties).
+
+    *Ce champ existe pour les structures incluantes et incluses*
+
+"evDateTime" (event DateTime): date de l'événement
+    Il s'agit d'une date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes]
+    Positionnée par le client LogBook.
     ``Exemple : "2016-08-17T08:26:04.227"``
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evDetData" (event Detail Data) : détails des données de l'évènement.
-    Donne plus de détail sur l'évènement.
-    Par exemple, pour l'étape ATR_NOTIFICATION, ce champ détaille le nom de l'ATR, son empreinte et l'algorithme utilisé pour calculer l'empreinte.
+"evDetData" (event Detail Data): détails de l'événement.
+    Donne plus de détail sur l'événement ou son résultat.
+    Par exemple, pour l'étape ATR_NOTIFICATION, ce champ détaille le nom de l'ArchiveTransferReply, son empreinte et l'algorithme utilisé pour calculer l'empreinte.
     Sur la structure incluante du journal d'opérations d'entrée, il contient un JSON composé des champs suivants :
-    * evDetDataType : Indique la structure impactée. Doit correspondre à une valeur de l'énumération LogbookEvDetDataType
-    * EvDetailReq : chaîne de caractères reprenant le champ "comment" du bordereau
-    * EvDateTimeReq : Date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes. Date de l'événement inscrit dans le champs evDetData.
-    * ArchivalAgreement : chaîne de caractères reprenant le nom du contrat utilisé pour réaliser l'entrée,  indiqué dans le champs  ArchivalAgreement du bordereau
-    * AgIfTrans : chaîne de caractères contenant le nom de l'agence ayant réalisé le transfert du SIP
-    * ServiceLevel : chaîne de caractères reprenant le champ "ServiceLevel" du bordereau
+    
+    * evDetDataType : structure impactée. Chaîne de caractères. Doit correspondre à une valeur de l'énumération LogbookEvDetDataType
+    * EvDetailReq : précisions sur la demande de transfert. Chaîne de caractères. Reprend le champ "Comment" du message ArchiveTransfer. 
+    * EvDateTimeReq : date de la demande de transfert inscrit dans le champs evDetData. Date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes].
+    * ArchivalAgreement : contrat d'entrée. chaîne de caractères. Reprend le nom du contrat utilisé pour réaliser l'entrée, indiqué dans le champ ArchivalAgreement du message ArchiveTransfer
+    * AgIfTrans : Service versant. chaîne de caractères. Contient le nom de l'entité ayant réalisé le transfert du SIP. Reprend le contenu du champ TransferringAgency du message ArchiveTransfer
+    * ServiceLevel : niveau de service. Chaîne de caractères. Reprend le champ ServiceLevel du message ArchiveTransfer
+    
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evIdProc" (event Identifier Process) : identifiant du processus. Il s'agit d'une chaîne de 36 caractères.
+"evIdProc" (event Identifier Process): identifiant du processus. 
+    Il s'agit d'une chaîne de 36 caractères.
     Toutes les mêmes entrées du journal des opérations partagent la même valeur, qui est celle du champ "_id"
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evTypeProc" (event Type Process) : type de processus.
-    Nom du processus qui effectue l'action, parmi une liste de processus possibles fixée. Cette liste est disponible en annexe.
+"evTypeProc" (event Type Process): type de processus.
+    Il s'agit d'une chaîne de caractères.
+    Nom du processus qui effectue l'action, parmi une liste de processus possibles fixée. Cette liste est disponible en annexe 5.3.
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"outcome" : Statut de l'évènement.
-    Parmi une liste de valeurs fixée :
+"outcome": Statut de l'événement.
+    Il s'agit d'une chaîne de caractères devant correspondre à une valeur de la liste suivante :
 
-    - STARTED (début de l'évènement)
-    - OK (Succès de l'évènement)
-    - KO (Echec de l'évènement)
-    - WARNING (Succès de l'évènement comportant des alertes)
+    - STARTED (début de l'événement)
+    - OK (Succès de l'événement)
+    - KO (Echec de l'événement)
+    - WARNING (Succès de l'événement comportant des alertes)
     - FATAL (Erreur technique)
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"outDetail" (outcome Detail) : code correspondant à l'erreur
-    *Ce champ existe pour les structures incluantes et incluses*
-    Il contient le code fin de l'événement, incluant le statut. La liste des valeurs possibles pour ce champ se trouve en annexe. Seul le code doit être stocké dans ce champ, la traduction doit se faire via le fichier properties (vitam-logbook-message-fr.properties)
+"outDetail" (outcome Detail): code correspondant au résultat de l'événement.
+    Il s'agit d'une chaîne de caractères.
+    Il contient le code correspondant au résultat de l'événement, incluant le statut. La liste des valeurs possibles pour ce champ se trouve en annexe. Seul le code doit être stocké dans ce champ, la traduction doit se faire via un fichier properties (vitam-logbook-message-fr.properties)
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"outMessg" (outcomeDetailMessage) : détail de l'événement.
+"outMessg" (outcomeDetailMessage): détail de l'événement.
+    Il s'agit d'une chaîne de caractères.
     C'est un message intelligible destiné à être lu par un être humain en tant que détail de l'événement.
-    La liste des valeurs possibles pour ce champ se trouve en annexe. Il est directement lié au code présent dans outDetail.
+    Traduction du code présent dans outDetail issue du fichier vitam-logbook-message-fr.properties.
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"agId" (agent Identifier) : identifiant de l'agent interne réalisant l'action.
+"agId" (agent Identifier): identifiant de l'agent interne réalisant l'action.
     Il s'agit de plusieurs chaînes de caractères indiquant le nom, le rôle et le PID de l'agent. Ce champ est calculé par le journal à partir de ServerIdentifier.
     ``Exemple : {\"name\":\"ingest-internal_1\",\"role\":\"ingest-internal\",\"pid\":425367}``
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"agIdApp" (agent Identifier Application) : identifiant de l’application externe qui appelle Vitam pour effectuer l'opération
-
+"agIdApp" (agent Identifier Application): identifiant de l’application externe qui appelle la solution logicielle Vitam pour effectuer l'opération
     *Actuellement, la valeur est toujours 'null' mais sera renseignée une fois le mécanisme d'authentification mis en place. Ce champ existe uniquement pour la structure incluante.*
 
-"agIdAppSession" (agent Identifier Application Session) : identifiant donnée par l’application utilisatrice externe
-    qui appelle Vitam à la session utilisée pour lancer l’opération
+"agIdAppSession" (agent Identifier Application Session): identifiant donnée par l’application utilisatrice externe qui appelle la solution logicielle Vitam lors de la session utilisée pour lancer l’opération. 
     L’application externe est responsable de la gestion de cet identifiant. Il correspond à un identifiant pour une session donnée côté application externe.
 
     *Actuellement, la valeur est toujours 'null' mais sera renseignée une fois le mécanisme d'authentification mis en place. Ce champ existe pour les structures incluantes et incluses*
 
-"evIdReq" (event Identifier Request) : identifiant de la requête déclenchant l’opération
+"evIdReq" (event Identifier Request): identifiant de la requête déclenchant l’opération.
+    Il s'agit d'une chaîne de 36 caractères.
     Une requestId est créée pour chaque nouvelle requête http venant de l’extérieur.
     Dans le cas du processus d'entrée, il devrait s'agir du numéro de l'opération (EvIdProc).
 
     *Ce champ existe pour les structures incluantes et incluses*. Il s'agit du X-Application-Id.
 
-"agIdSubm" (agent Identifier Submission) : identifiant du service versant.
-    Il s'agit du <SubmissionAgencyIdentifier> dans le SEDA. Mis en place avant le développement du registre des fonds.
+"agIdSubm" (agent Identifier Submission): identifiant du service versant.
+    Il s'agit d'une chaîne de caractères.
+    Reprend le contenu du champ SubmissionAgencyIdentifier du message ArchiveTransfer.
+    Non rempli pour l'instant.
 
     *Ce champ existe uniquement pour la structure incluante.*
 
-"agIdOrig" (agent Identifier Originating) : identifiant du service producteur.
-    Il s'agit du <OriginatingAgencyIdentifier> dans le SEDA. Mis en place avant le développement du registre des fonds.
+"agIdOrig" (agent Identifier Originating): identifiant du service producteur.
+    Il s'agit d'une chaîne de caractères.
+    Reprend le contenu du champ OriginatingAgencyIdentifier du message ArchiveTransfer.
 
     *Ce champ existe uniquement pour la structure incluante.*
 
-"obId" (object Identifier) : identifiant Vitam du lot d’objets auquel s’applique l’opération (lot correspondant à une liste).
-     Dans le cas d’une opération d'entrée, il s’agit du GUID de l’entrée (evIdProc). Dans le cas d’une opération ‘Audit’, il s’agit par exemple du nom d’un lot d’archives prédéfini
+"obId" (object Identifier): identifiant Vitam du lot d’objets auquel s’applique l’opération (lot correspondant à une liste).
+    Il s'agit d'une chaîne de 36 caractères.
+    Dans le cas d’une opération d'entrée, il s’agit du GUID de l’entrée (evIdProc). Dans le cas d’une opération ‘Audit’, il s’agit par exemple du nom d’un lot d’archives prédéfini
 
-     *Ce champ existe pour les structures incluantes et incluses*
+    *Ce champ existe pour les structures incluantes et incluses*
 
-"obIdReq" (object Identifier Request) : Identifiant de la requête caractérisant un lot d’objets auquel s’applique l’opération.
-      Ne concerne que les lots d’objets dynamiques, c’est-à-dire obtenus par la présente requête. Ne concerne pas les lots ayant un identifiant défini.
+"obIdReq" (object Identifier Request): Identifiant Vitam de la requête caractérisant un lot d’objets auquel s’applique l’opération.
+    Ne concerne que les lots d’objets dynamiques, c’est-à-dire obtenus par la présente requête. Ne concerne pas les lots ayant un identifiant défini.
 
-      *Actuellement, la valeur est toujours 'null'. Ce champ existe pour les structures incluantes et incluses*
+    *Actuellement, la valeur est toujours 'null'. Ce champ existe pour les structures incluantes et incluses*
 
-"obIdIn" (ObjectIdentifierIncome) : Identifiant externe du lot d’objets auquel s’applique l’opération.
-      Chaîne de caractère intelligible pour un humain qui permet de comprendre à quel SIP ou quel lot d'archives se reporte l'événement.
-      Il s'agit le plus souvent soit du nom du SIP lui-même, soit du <MessageIdentifier> présent dans le manifeste.
+"obIdIn" (ObjectIdentifierIncome): Identifiant externe du lot d’objets auquel s’applique l’opération.
+      Chaîne de caractère intelligible pour un humain qui permet de comprendre à quel SIP ou quel lot d'archives se raporte l'événement.
+      Reprend le contenu du champ MessageIdentifier du message ArchiveTransfer.
 
       *Ce champ existe pour les structures incluantes et incluses*
+      *Non utilisé à ce jour*
 
-"events": tableau de structure
+"events": tableau de structure.
       Pour la structure incluante, le tableau contient N structures incluses dans l'ordre des événements (date)
 
       *Ce champ existe uniquement pour la structure incluante.*
 
-"_tenant": identifiant du tenant
+"_tenant": identifiant du tenant.
+      Il s'agit d'un entier.
       *Ce champ existe uniquement pour la structure incluante.*
 
-Détail des champs du JSON stocké en base spécifiques à une opération de Sécurisation
+Détail des champs du JSON stocké en base spécifiques à une opération de sécurisation
 ------------------------------------------------------------------------------------
 
 Exemple de données stockées :
 
 ::
 
-  "evDetData":
-  "{
-  \"LogType\": \"operation\",
-  \"StartDate\": \"2017-02-27T00:00:00.000\",
-  \"EndDate\": \"2017-02-27T14:11:36.168\",
-  \"PreviousLogbookTraceabilityDate\": \"2017-02-26T00:00:00.000\",
-  \"MinusOneMonthLogbookTraceabilityDate\": \"2017-01-28T00:00:00.000\",
-  \"MinusOneYearLogbookTraceabilityDate\": \"2016-02-28T00:00:00.000\",
-  \"Hash\": \"cmKHRqv1HHB+Fd0JErOpztcdcV3BGlgcA0VAYxFjxjdEJO0+lOhhxNeK43mbrmgra6phNSuKBfVIXOE5i48
-  77Q==\",
-  \"TimeStampToken\": \"MIIEezAVAgEAMBAMDk9wZXJhdGlvbiBPa2F5MIIEYAYJKoZIhvcNAQcCoIIEUTCCBE0CAQMxDzANBglghkg
-  BZQMEAgMFADCBgAYLKoZIhvcNAQkQAQSgcQRvMG0CAQEGASkwUTANBglghkgBZQMEAgMFAARAiTJZ9fQyplZfb
-  RHe7j34JFw1iQlJMmwEn5\/oa9hha3oeJ7b7A+I0MOiz8n3lhajK5GWDMptybTI\/qyydRxRwqAIBARgPMjAxNzAxMjcxNDExMzdaMYIDsjCCA64CAQEwYzBdMQswCQYDVQQGEwJGUjEMMAoGA1U
-  ECBMDaWRmMQ4wDAYDVQQHEwVwYXJpczEPMA0GA1UEChMGVml0YW0uMR8wHQYDVQQDFBZDQV9zZXJ2ZXJfaW50Z
-  XJtZWRpYXRlAgIAsDANBglghkgBZQMEAgMFAKCCASAwGgYJKoZIhvcNAQkDMQ0GCyqGSIb3DQEJEAEEMBwGCSq
-  GSIb3DQEJBTEPFw0xNzAxMjcxNDExMzdaMC0GCSqGSIb3DQEJNDEgMB4wDQYJYIZIAWUDBAIDBQChDQYJKoZIh
-  vcNAQENBQAwTwYJKoZIhvcNAQkEMUIEQMa0fzRWvY0qJjOO4lO5aSfN3iW9xWwhSv24QSExqpp081WszJ0NIEP
-  4gFOzAQIrE35Bz\/jgACNxVS8XXRda7\/AwZAYLKoZIhvcNAQkQAi8xVTBTMFEwTzALBglghkgBZQMEAgMEQAkVA\/7GPyjlbJC2NJJK+1ZY6k2vvEQls\/YcVrP9SV81nRL7fmrSw0mmia0Dj+kuu+qAun5hB6X9pzy4lbATsfEwDQYJKoZIhvcNAQENBQAEggIAgMAyr
-  R6uTJYHxKqofV+HnPV+9fiykPb4DwNTWYKGEBOlu44yVfzep1P2GofDVBBguYQZHF0zCQ0vjktfGuVflh4GtiH
-  sbhqKm6TMqeH+pdRv0MQvEYA3VK0ydA+\/36xb+tbOy8RBqUe3uXGpaafuqcrmlx0EYK4ey4I4sinvZKoB9c9kNCujlvpLxwPnL8teDe6\/jE4sWqvCHCSxorjXCXDN6aJTGvbFHepqa987eHRckDS5pdTiZ1a7V1IRjsX+bubA+ZYhWM5sA9L202msa8s\/zF5Nn+mmcApzpjiAkHu5u8QGuIe17jgHV0o73Zkv3Oranskz3Q3F3xXdNT8wblevU4mWFGQkW5wWhyyTf
-  EKE97+z7+HTa5P4eLCEZkAgevkZPMo21PyEvNBUeXM3QIzfOKExX+wYpuL9k2\/5kg3ZmX3dMT1jxhZAr75puxp5pxOryuR+j0JFmeA8JI8a+XYsYZm75lV4uzSYl4QytMwNaSyxDwC4PBm
-  Z9IGbPwRP8ttC8LSjeB+zwQug063kT0ZKmkCHzbZvVWHJlr3Iaew2UXjOabrWNIEijg6b6DBtze7sC9T8LXGHO
-  lcAFFsW0kYfHb7MziVv22CCuUw4JyI5882I\/huPztjJqn+4bwzmAuWc8X\/OiyAbe2Iag23oaVJ36UU3QxzDLPhCg0TvNZg=\",
-  \"NumberOfElement\": 366,
-  \"Size\": 2554545,
-  \"FileName\": \"0_LogbookOperation_20170127_141136.zip\"
-  }"
+	"evDetData":
+	{
+	\"LogType\":\"OPERATION\",
+	\"StartDate\":\"2017-06-29T09:22:23.227\",
+	\"EndDate\":\"2017-06-29T09:39:08.690\",
+	\"Hash\":\"HYnFf07gFkar3lO+U2FQ9qkhi9eUMFN5hcH7oU7vrAAL3FAlMm8aJP7+VxkVWhLzmmFolwUEcq6fbS7Km2is5g==\",
+	\"TimeStampToken\":\"MIIEljAVAgEAMBAMDk9wZXJhdGlvbiBPa2F5MIIEewYJKoZIhvcNAQcCoIIEbDCCBGgCAQMxDzANBglghkgBZQMEAgMFADCBgAYLKoZIhvcNAQkQAQSgcQRvMG0CAQEGASkwUTANBglghkgBZQMEAgMFAARAvp71IU4GqUJ/rIVKZ74J09qdSDeHw24HHsjw0tAnHjD6ZfUJHjDp8yQSdB6Lf2a6ORPF5JCgsh86CctQ9h93mwIBARgPMjAxNzA2MjkwOTM5MDdaMYIDzTCCA8kCAQEwfjB4MQswCQYDVQQGEwJmcjEMMAoGA1UECAwDaWRmMQ4wDAYDVQQHDAVwYXJpczEOMAwGA1UECgwFdml0YW0xFDASBgNVBAsMC2F1dGhvcml0aWVzMSUwIwYDVQQDDBxjYV9pbnRlcm1lZGlhdGVfdGltZXN0YW1waW5nAgIAtzANBglghkgBZQMEAgMFAKCCASAwGgYJKoZIhvcNAQkDMQ0GCyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0xNzA2MjkwOTM5MDdaMC0GCSqGSIb3DQEJNDEgMB4wDQYJYIZIAWUDBAIDBQChDQYJKoZIhvcNAQENBQAwTwYJKoZIhvcNAQkEMUIEQN8TGGTXtmpAztB16UGznFwW2xZMKRuX3zMnF9bTZFybM9tCGJtJd/IdBglcs69fsH05yuXOEYuwPhN1yQijSGEwZAYLKoZIhvcNAQkQAi8xVTBTMFEwTzALBglghkgBZQMEAgMEQGlkJQTJOiVJrGpFe2GsjJ0Ekug0n9Opel3//wOcpCmpqIET8w2yUcP1yqQJXYc87YeY1/OWhZiWFqbWXVV9HS4wDQYJKoZIhvcNAQENBQAEggIAV/rdnxIAyhvoGDprIahKAK3TPcriTggh1+gtDjEiD7kGB0KtXwAmPn2gb/2YtOmvIU7/a5KBFlfBR+foIRrc6z52cEdalhSpyHpYgpFuF7SjMFO6Mfso1dwjI9KpZTv6OI6Kplbg6zwK939GpDbPgKaMrXw0EDafk184RQz6NNFFYG8JuQxhlba1SYkEMg0+oOkcz814H1ET7zUbt2yq75zdffduUDB81dxjsvpKbx/LbBEOUswGgnfnYGOlo1XbQaI2sM2+YiXHGD/qnl/uAteBayFeaHKXel+gkp8D1ykBFOrE46n6fCI5i0OhKHcPAxvxTg8p03M38PrZIwnqSUI1rxfJhk9Hu0JVcQi1EYLBMmyL4IbhXNFz2ZmSHgC6/BGTMZmuEksrA4vJr1WEFMUocEFQnL9pOJ+iI8U0SusJEDYvjde+yvfnxC8ZOGXOsaP9aUsuITOMT/wFdrH4RFe8q8Wjxzu5p4lSvJI9P+soSfBbLyzGUjmF2lAi/HdyzjunhmRr/kxHK8P9Bo2CSz77xgN566k2r44ER/lyHFvHme5ITq25CRhJf39kfbPh1Jjku3ulwiquykhnjXX7YGx5bDRNv+z29l4tq+AkZqq8O+0XY5fLGgauptsKhpj+CsfYs0uNJCywZtIOHzdL0NBeF7AF97nwTV841ZN/rKg=\",
+	\"NumberOfElement\":379,
+	\"FileName\":\"0_LogbookOperation_20170629_093907.zip\",
+	\"Size\":3975227,
+	\"DigestAlgorithm\":\"SHA512\"}"
 
-Dans le cas d'un évènement final d'une opération de sécurisation du LogbookOperation, le champ **"evDetData"** est composé des champs suivants :
+Dans le cas de l'événement final d'une opération de sécurisation du LogbookOperation, le champ **"evDetData"** est composé des champs suivants :
 
 "LogType": type de logbook sécurisé.
-      Type de la collection logbook sécurisée (LogbookOperation)
+      Collection faisant l'objet de l'opération de sécurisation (LogbookOperation)
       ``Exemple : "operation"``
 
-"StartDate": date de début.
-      Date de début de la période de couverture de l'opération de sécurisation au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes] (correspond à la date de la dernière opération sécurisée par la précédente sécurisation)
+"StartDate": Date de début de la période de couverture de l'opération de sécurisation.
+      Il s'agit d'une date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes] (correspond à la date de la dernière opération sécurisée par la précédente sécurisation)
       ``Exemple : "2016-08-17T08:26:04.227"``
 
-"EndDate": date de fin.
-      Date de fin de la période de couverture de l'opération de sécurisation  au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes] (correspond à la date de la dernière opération sécurisée)
+"EndDate": date de fin de la période de couverture de l'opération de sécurisation.
+      Il s'agit d'une date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes] (correspond à la date de la dernière opération sécurisée par la précédente sécurisation)
       ``Exemple : "2016-08-17T08:26:04.227"``
 
-"PreviousLogbookTraceabilityDate": date de la précédente sécurisation.
-      Date de début de la précédente sécurisation du même type au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes] (correspond à la date de début de la sécurisation précédente)
+"PreviousLogbookTraceabilityDate": date de la précédente opération de sécurisation.
+      Il s'agit  de la date de début de la précédente opération de sécurisation du même type au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes] (correspond à la date de début de la sécurisation précédente)
       ``Exemple : "2016-08-17T08:26:04.227"``
 
-"MinusOneMonthLogbookTraceabilityDate": date de la sécurisation passée d'un mois.
-      Date de début de la sécurisation un mois avant au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes] (correspond à la date de début de la sécurisation passée d'un mois : logbook start 1 mois avant - logbookDate.mois(-1).suivant().sartDate)
+"MinusOneMonthLogbookTraceabilityDate": date de l'opération de sécurisation passée d'un mois.
+      Il s'agit  de la date de début de la précédente opération de sécurisation du même type réalisée un mois avant au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes] 
       ``Exemple : "2016-08-17T08:26:04.227"``
 
-"MinusOneMonthLogbookTraceabilityDate": date de la sécurisation passée d'un an.
-     Date de début de la sécurisation un an avant au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes] (correspond à la date de début de la sécurisation passée d'un an : logbook start 1 an avant - logbookDate.an(-1).suivant().sartDate)
+"MinusOneYeargbookTraceabilityDate": date de l'opération de sécurisation passée d'un an.
+     Il s'agit  de la date de début de la précédente opération de sécurisation du même type réalisée un an avant au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes] 
      ``Exemple : "2016-08-17T08:26:04.227"``
 
 "Hash": Empreinte racine.
+      Il s'agit d'une chaîne de caractères.
       Empreinte de la racine de l'arbre de Merkle.
 
 "TimeStampToken": Tampon d’horodatage.
+      Il s'agit d'une chaîne de caractères.
       Tampon d’horodatage sûr du journal sécurisé.
 
-"NumberOfElement": Nombre d'élèments.
+"NumberOfElement": Nombre d'éléments.
+      Il s'agit d'un entier.
       Nombre d'opérations sécurisées.
 
 "Size": Taille du fichier.
+      Il s'agit d'un entier.
       Taille du fichier sécurisé (en bytes).
 
 "FileName": Identifiant du fichier.
+      Il s'agit d'une chaîne de caractères.
       Nom du fichier sécurisé dans le stockage au format {tenant}_LogbookOperation_{AAAAMMJJ_HHMMSS}.zip.
       ``Exemple : "0_LogbookOperation_20170127_141136.zip"``
 
+"DigestAlgorithm": algorithme de hachage.
+      Il s'agit d'une chaîne de caractères.
+      Il s'agit du nom de l'algorithme de hachage utilisé pour réaliser le tampon d'horodatage.
 
 Collection LogbookLifeCycleUnit
 ===============================
@@ -312,12 +315,12 @@ Collection LogbookLifeCycleUnit
 Utilisation de la collection LogbookLifeCycleUnit
 -------------------------------------------------
 
-Le journal du cycle de vie d'une unité archivistique (ArchiveUnit) trace tous les événements qui impactent celle-ci dès sa prise en charge dans le système. Il doit être conservé aussi longtemps qu'elle est gérée par le système.
+Le journal du cycle de vie d'une unité archivistique (ArchiveUnit) trace tous les événements qui impactent celle-ci dès sa prise en charge dans le système. Il doit être conservé aussi longtemps que l'ArchiveUnit est gérée par le système.
 
-- dès la réception de l'entrée, on trace les opérations effectuées sur les ArchiveUnit qui sont dans le SIP
-- les journaux du cycle de vie sont "committés" une fois le stockage des objets OK et l'indexation des métadonnées OK, avant notification au service versant
+- dès la réception d'une ArchiveUnit, on trace les opérations effectuées sur elles
+- les journaux du cycle de vie sont "committés" une fois le stockage des objets effectué sans échec et l'indexation des métadonnées effectuée sans échec, avant notification au service versant
 
-Chaque unité archivistique possède une et une seule entrée dans sa collection LogbookLifeCycleUnit.
+Chaque unité archivistique possède une et une seule entrée dans la collection LogbookLifeCycleUnit.
 
 Exemple de JSON stocké en base
 ------------------------------
@@ -373,135 +376,87 @@ Extrait d'un JSON correspondant à un journal de cycle de vie d'une unité archi
         
         }
     ],
-    "_tenant": 1
+    "_tenant": 1,
+    "_v": 0
   }
-
-Extrait d'un exemple avec une mise à jour de métadonnées
-
-::
-
- {
-   "_id": "aeaqaaaaaahbl62nabqkwak3k7wik7iaaaaq",
-   "evId": "aedqaaaaachbl62nabqkwak3k7wik7iaaaba",
-   "evType": "LFC.LFC_CREATION",
-   "evDateTime": "2017-04-10T12:52:50.173",
-   "evIdProc": "aedqaaaaache45hwabliwak3k7wim4qaaaaq",
-   "evTypeProc": "INGEST",
-   "outcome": "STARTED",
-   "outDetail": "LFC.LFC_CREATION.STARTED",
-   "outMessg": "!LFC.LFC_CREATION.STARTED!",
-   "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1041627981,\"SiteId\":1,\"GlobalPlatformId\":236321613}",
-   "obId": "aeaqaaaaaahbl62nabqkwak3k7wik7iaaaaq",
-   "evDetData": null,
-   "events": [
-       {
-           "evId": "aedqaaaaachbl62nabqkwak3k7wik7iaaaba",
-           "evType": "LFC.CHECK_MANIFEST",
-           "evDateTime": "2017-04-10T12:52:50.205",
-           "evIdProc": "aedqaaaaache45hwabliwak3k7wim4qaaaaq",
-           "evTypeProc": "INGEST",
-           "outcome": "STARTED",
-           "outDetail": "LFC.CHECK_MANIFEST.STARTED",
-           "outMessg": "Début de la vérification de la cohérence du bordereau",
-           "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1041627981,\"SiteId\":1,\"GlobalPlatformId\":236321613}",
-           "obId": "aeaqaaaaaahbl62nabqkwak3k7wik7iaaaaq",
-           "evDetData": null,
-           "_tenant": 0
-       },
-       {
-           "evId": "aedqaaaaachbl62nabqkwak3k7wik7iaaaba",
-           "evType": "LFC.CHECK_MANIFEST.LFC_CREATION",
-           "evDateTime": "2017-04-10T12:52:50.205",
-           "evIdProc": "aedqaaaaache45hwabliwak3k7wim4qaaaaq",
-           "evTypeProc": "INGEST",
-           "outcome": "OK",
-           "outDetail": "LFC.CHECK_MANIFEST.LFC_CREATION.OK",
-           "outMessg": "Succès de la création du journal du cycle de vie",
-           "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1041627981,\"SiteId\":1,\"GlobalPlatformId\":236321613}",
-           "obId": "aeaqaaaaaahbl62nabqkwak3k7wik7iaaaaq",
-           "evDetData": null,
-           "_tenant": 0
-       },
-       {
-           
-           [...]
-
-       }
-   ],
-   "_tenant": 0
-}
 
 Détail des champs du JSON stocké en base
 -----------------------------------------
 
-"_id" : Identifiant unique donné par le système lors de l'initialisation du journal du cycle de vie.
-    Il est constitué d'une chaîne de 36 caractères.
-    Cet identifiant constitue la clé primaire du journal du cycle de vie de l'unité archivistique.
+"_id": Identifiant donné par le système lors de l'initialisation du journal du cycle de vie.
+    Il est constitué d'une chaîne de 36 caractères correspondant à un GUID.
+    Cet identifiant constitue la clé primaire du journal du cycle de vie de l'unité archivistique. Il reprend la valeur du champ _id de la collection Unit.
 
     *Ce champ existe uniquement pour la structure incluante.*
 
-"evId" (event Identifier) : identifiant de l'événement constitué d'une chaîne de 36 caractères.
-    Il s'agit du GUID de l'évènement. Il identifie l'évènement de manière unique dans la base.
+"evId" (event Identifier): identifiant de l'événement.
+    Il est constitué d'une chaîne de 36 caractères correspondant à un GUID. 
+    Il identifie l'événement de manière unique dans la base.
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evType" (event Type) : nom de la tâche,
-    La liste des valeurs possibles pour ce champ se trouve en annexe. Seul le code doit être stocké dans ce champ, la traduction doit se faire via le fichier properties (vitam-logbook-message-fr.properties)
+"evType" (event Type): nom de l'événement.
+    Il s'agit d'une chaîne de caractères.
+    La liste des valeurs possibles pour ce champ se trouve en annexe. Seul le code est stocké dans ce champ, la traduction se fait via un fichier properties (vitam-logbook-message-fr.properties)
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evDateTime" (event DateTime) : date de l'événement
-    Positionné par le client LogBook.
-    Date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes]
+"evDateTime" (event DateTime) : date de l'événement.
+    Il s'agit d'une date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes]
     ``Exemple : "2016-08-17T08:26:04.227"``
+    Ce champ est positionné par le client LogBook.
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evIdProc" (event Identifier Process) : identifiant du processus. Il s'agit d'une chaîne de 36 caractères.
+"evIdProc" (event Identifier Process): identifiant du processus. 
+    Il s'agit d'une chaîne de 36 caractères.
     Toutes les mêmes entrées du journal du cycle de vie partagent la même valeur, qui est celle du champ "_id"
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evTypeProc" (event Type Process) : type de processus.
-    Nom du processus qui effectue l'action, parmi une liste de processus possible fixée. Cette liste est disponible en annexe.
+"evTypeProc" (event Type Process): type de processus.
+    Il s'agit d'une chaîne de caractères.
+    Nom du processus qui effectue l'action, parmi une liste de processus possibles fixée. Cette liste est disponible en annexe.
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"outcome" : Statut de l'évènement.
-    Parmi une liste de valeurs fixée :
+"outcome": statut de l'événement.
+    Il s'agit d'une chaîne de caractères devant correspondre à une valeur de la liste suivante :
 
-    - STARTED (début de l'évènement)
-    - OK (Succès de l'évènement)
-    - KO (Echec de l'évènement)
-    - WARNING (Succès de l'évènement comportant des alertes)
+    - STARTED (début de l'événement)
+    - OK (Succès de l'événement)
+    - KO (Echec de l'événement)
+    - WARNING (Succès de l'événement comportant des alertes)
     - FATAL (Erreur technique)
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"outDetail" (outcome Detail) : code correspondant à l'erreur
-    *Ce champ existe pour les structures incluantes et incluses*
-    Il contient le code fin de l'événement, incluant le statut. La liste des valeurs possibles pour ce champ se trouve en annexe. Seul le code doit être stocké dans ce champ, la traduction doit se faire via le fichier properties (vitam-logbook-message-fr.properties)
+"outDetail" (outcome Detail): code correspondant à l'erreur.
+    Il s'agit d'une chaîne de caractères.
+    Il contient le code fin de l'événement, incluant le statut. La liste des valeurs possibles pour ce champ se trouve en annexe. Seul le code est stocké dans ce champ, la traduction se fait via le fichier properties (vitam-logbook-message-fr.properties)
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"outMessg" (outcomeDetailMessage) : détail de l'événement.
+"outMessg" (outcomeDetailMessage): détail de l'événement.
+    Il s'agit d'une chaîne de caractères.
     C'est un message intelligible destiné à être lu par un être humain en tant que détail de l'événement.
-    La liste des valeurs possibles pour ce champ se trouve en annexe. Il est directement lié au code présent dans outDetail.
+    Traduction du code présent dans outDetail issue du fichier vitam-logbook-message-fr.properties.
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"agId" (agent Identifier) : identifiant de l'agent réalisant l'action.
+"agId" (agent Identifier): identifiant de l'agent réalisant l'action.
     Il s'agit de plusieurs chaînes de caractères indiquant le nom, le rôle et le PID de l'agent. Ce champ est calculé par le journal à partir de ServerIdentifier.
     ``Exemple : {\"name\":\"ingest-internal_1\",\"role\":\"ingest-internal\",\"pid\":425367}``
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"obId" (object Identifier) : identifiant Vitam du lot d’objets auquel s’applique l’opération (lot correspondant à une liste).
-
+"obId" (object Identifier): identifiant Vitam de l'objet ou du lot d’objets auquel s’applique l’opération (lot correspondant à une liste).
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evDetData" (event Detail Data) : détails des données de l'évènement.
-    Donne plus de détail sur l'évènement. Par exemple, l'historisation lors d'une modification de métadonnés se fait dans ce champ.
+"evDetData" (event Detail Data): détails des données de l'événement.
+    Donne plus de détail sur l'événement. Par exemple, l'historisation de métadonnées lors d'une modification se fait dans ce champ. Dans la structure incluse correspondant à cet événement, il contient un JSON composé du champ suivant :
+
+    - diff: contient la différence entre les métadonnées d'origine et les métadonnées modifiées. Chaîne de caractères.
 
     *Ce champ existe pour les structures incluantes et incluses*
 
@@ -511,9 +466,13 @@ Détail des champs du JSON stocké en base
     *Ce champ existe uniquement pour la structure incluante*
 
 "_tenant": identifiant du tenant
+    Il s'agit d'un entier.
     *Ce champ existe pour les structures incluantes et incluses*
 
+"_v": version de l'objet décrit
+	Il s'agit d'un entier.
 
+    *Ce champ existe uniquement pour la structure incluante.*
 
 Détail des champs du JSON stocké en base spécifiques à une mise à jour
 -----------------------------------------------------------------------
@@ -525,7 +484,7 @@ Exemple de données stockées :
    "evDetData": "{\"diff\":\"-  Title : Recommandation de 2012 du CCSDS for Space Data System Practices - Reference Model for an Open Archival Information System (OAIS)\\n+  Title : Recommandation de 2012 du CCSDS for Space Data System Practices - Reference Model for an Open Archival Information System (OAIS) 222\\n-  #operations : [ aedqaaaaacaam7mxabxecakz3jbfwpaaaaaq \\n+  #operations : [ aedqaaaaacaam7mxabxecakz3jbfwpaaaaaq, aecaaaaaacaam7mxabjssak2dzsjniyaaaaq \"}"
 
 
-Dans le cas d'une mise à jour de métadonnées d'une unité archivistique (ArchiveUnit), le champ **"evDetData"** de l'évènement final est composé des champs suivants :
+Dans le cas d'une mise à jour de métadonnées d'une unité archivistique (ArchiveUnit), le champ **"evDetData"** de l'événement final est composé des champs suivants :
 
 "diff": historisation des modifications de métadonnées.
     Son contenu doit respecter la forme suivante : les anciennes valeurs sont précédées d'un "-" (``-champ1: valeur1``) et les nouvelles valeurs sont précédées d'un "+" (``+champ1: valeur2``)
@@ -540,10 +499,10 @@ Collection LogbookLifeCycleObjectGroup
 Utilisation de la collection LogbookLifeCycleObjectGroup
 ---------------------------------------------------------
 
-Le journal du cycle de vie du groupe d'objets (ObjectGroup) trace tous les événements qui impactent le groupe d'objets (et les objets associés) dès sa prise en charge dans le système et doit être conservé aussi longtemps que les objets sont gérés dans le système.
+Le journal du cycle de vie du groupe d'objets (ObjectGroup) trace tous les événements qui impactent le groupe d'objets (et les objets associés) dès sa prise en charge dans le système. Il doit être conservé aussi longtemps que les objets sont gérés dans le système.
 
-- dès la réception de l'entrée, on trace les opérations effectuées sur les groupes d'objets et objets qui sont dans le SIP
-- les journaux du cycle de vie sont "committés" une fois le stockage des objets OK et l'indexation des MD OK, avant notification au service versant
+- dès la réception des objets, on trace les opérations effectuées sur les groupes d'objets et objets qui sont dans le SIP
+- les journaux du cycle de vie sont "committés" une fois le stockage des objets effectué sans échec et l'indexation des métadonnées effectuée sans échec, avant notification au service versant
 
 Chaque groupe d'objets possède une et une seule entrée dans sa collection LogbookLifeCycleObjectGroup.
 
@@ -602,90 +561,106 @@ Exemple de JSON stocké en base
             
         }
     ],
-    "_tenant": 0
+    "_tenant": 0,
+    "_v": 0
     }
 
 
 Détail des champs du JSON stocké en base
 -----------------------------------------
 
-"_id" : Identifiant unique donné par le système lors de l'initialisation du journal du cycle de vie.
-    Il est constitué d'une chaîne de 36 caractères.
+"_id": Identifiant donné par le système lors de l'initialisation du journal du cycle de vie.
+    Il est constitué d'une chaîne de 36 caractères correspondant à un GUID. Il reprend la valeur du champ _id de la collection ObjectGroup.
     Cet identifiant constitue la clé primaire du journal du cycle de vie du groupe d'objet.
 
     *Ce champ existe uniquement pour la structure incluante.*
 
-"evId" (event Identifier) : identifiant de l'événement constitué d'une chaîne de 36 caractères.
-    Il s'agit du GUID de l'évènement. Il identifie l'évènement de manière unique dans la base.
+"evId" (event Identifier): identifiant de l'événement.
+    Il est constitué d'une chaîne de 36 caractères correspondant à un GUID.
+    Il identifie l'événement de manière unique dans la base.
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evType" (event Type) : nom de la tâche,
-    La liste des valeurs possibles pour ce champ se trouve en annexe. Seul le code doit être stocké dans ce champ, la traduction doit se faire via le fichier properties (vitam-logbook-message-fr.properties)
+"evType" (event Type): nom de l'événement.
+    Il s'agit d'une chaîne de caractères.
+    La liste des valeurs possibles pour ce champ se trouve en annexe. Seul le code doit être stocké dans ce champ, la traduction doit se faire via le fichier properties (vitam-logbook-message-fr.properties).
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evDateTime" (event DateTime) : date de l'événement
-    Positionné par le client LogBook.
-    Date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes]
-    ``Exemple : "2016-08-17T08:26:04.227"``
+"evDateTime" (event DateTime): date de l'événement.
+    Il s'agit d'une date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes]
+    ``Exemple : "2016-08-17T08:26:04.227"``.
+    Ce champ est positionné par le client LogBook.
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evIdProc" (event Identifier Process) : identifiant du processus. Il s'agit d'une chaîne de 36 caractères.
-    Toutes les mêmes entrées du journal du cycle de vie partagent la même valeur, qui est celle du champ "_id"
+"evIdProc" (event Identifier Process): identifiant du processus. 
+    Il s'agit d'une chaîne de 36 caractères.
+    Toutes les mêmes entrées du journal du cycle de vie partagent la même valeur, qui est celle du champ "_id".
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evTypeProc" (event Type Process) : type de processus.
+"evTypeProc" (event Type Process): type de processus.
+    Il s'agit d'une chaîne de caractères.
     Nom du processus qui effectue l'action, parmi une liste de processus possibles fixée. Cette liste est disponible en annexe.
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"outcome" : Statut de l'évènement.
-    Parmi une liste de valeurs fixée :
+"outcome": statut de l'événement.
+    Il s'agit d'une chaîne de caractères devant correspondre une valeur de la liste suivante :
 
-    - STARTED (début de l'évènement)
-    - OK (Succès de l'évènement)
-    - KO (Echec de l'évènement)
-    - WARNING (Succès de l'évènement comportant des alertes)
+    - STARTED (Début de l'événement)
+    - OK (Succès de l'événement)
+    - KO (Echec de l'événement)
+    - WARNING (Succès de l'événement comportant des alertes)
     - FATAL (Erreur technique)
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"outDetail" (outcome Detail) : code correspondant à l'erreur
-    *Ce champ existe pour les structures incluantes et incluses*
-    Il contient le code fin de l'événement, incluant le statut. La liste des valeurs possibles pour ce champ se trouve en annexe. Seul le code doit être stocké dans ce champ, la traduction doit se faire via le fichier properties (vitam-logbook-message-fr.properties)
+"outDetail" (outcome Detail): code correspondant à l'erreur
+    Il s'agit d'une chaîne de caractères.
+    Il contient le code fin de l'événement, incluant le statut. La liste des valeurs possibles pour ce champ se trouve en annexe. Seul le code est stocké dans ce champ, la traduction doit se faire via le fichier properties (vitam-logbook-message-fr.properties)
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"outMessg" (outcomeDetailMessage) : détail de l'événement.
+"outMessg" (outcomeDetailMessage): détail de l'événement.
+    Il s'agit d'une chaîne de caractères.
     C'est un message intelligible destiné à être lu par un être humain en tant que détail de l'événement.
-    La liste des valeurs possibles pour ce champ se trouve en annexe. Il est directement lié au code présent dans outDetail.
+    Traduction du code présent dans outDetail issue du fichier vitam-logbook-message-fr.properties du code présent dans outDetail.
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"agId" (agent Identifier) : identifiant de l'agent réalisant l'action.
+"agId" (agent Identifier): identifiant de l'agent réalisant l'action.
     Il s'agit de plusieurs chaînes de caractères indiquant le nom, le rôle et le PID de l'agent. Ce champ est calculé par le journal à partir de ServerIdentifier.
     ``Exemple : {\"name\":\"ingest-internal_1\",\"role\":\"ingest-internal\",\"pid\":425367}``
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"obId" (object Identifier) : identifiant Vitam du lot d’objets auquel s’applique l’opération (lot correspondant à une liste).
+"obId" (object Identifier): identifiant Vitam du lot d’objets auquel s’applique l’opération (lot correspondant à une liste).
+    *Ce champ existe pour les structures incluantes et incluses*
+
+"evDetData" (event Detail Data): détails des données de l'événement.
+    Donne plus de détails sur l'événement.
+    Par exemple, pour l'événement LFC.CHECK_DIGEST, lorsque l'empreinte d'un objet inscrite dans le bordereau n'est pas calculée en SHA512, ce champ précise l'empreinte d'origine et celle réalisée ensuite par la solution logicielle Vitam. Dans la structure incluse correspondant à cet événement, il contient un JSON composé des champs suivants :
+
+    - MessageDigest : empreinte de l'objet dans le bordereau. Chaîne de caractères. Reprends le champ "MessageDigest" du message ArchiveTransfer.
+    - Algorithm : algorithme de hachage utilisé dans le bordereau. Chaîne de caractères. Reprends l'attribut de champ "MessageDigest" du message ArchiveTransfer.
+    - SystemMessageDigest : empreinte de l'objet réalisé par la solution logicielle Vitam. Chaîne de caractères.
+    - SystemAlgorithm : algorithme de hachage utilisé par la solution logicielle Vitam. Chaîne de caractères.
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evDetData" (event Detail Data) : détails des données de l'évènement.
-    Donne plus de détail sur l'évènement.
-
-    *Ce champ existe pour les structures incluantes et incluses*
-
-"events": tableau de structure
+"events": tableau de structure.
     Pour la structure incluante, le tableau contient N structures incluses dans l'ordre des événements (date)
 
     *Ce champ existe uniquement pour la structure incluante.*
 
-"_tenant": identifiant du tenant
+"_tenant": identifiant du tenant.
+    Il s'agit d'un entier.
+
     *Ce champ existe pour les structures incluantes et incluses*
 
+"_v": version de l'objet décrit.
+    Il s'agit d'un entier.
 
+    *Ce champ existe uniquement pour la structure incluante.*

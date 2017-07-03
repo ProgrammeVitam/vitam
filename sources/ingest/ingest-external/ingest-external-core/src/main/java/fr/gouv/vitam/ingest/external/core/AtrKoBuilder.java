@@ -26,11 +26,8 @@
  */
 package fr.gouv.vitam.ingest.external.core;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 
-import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -93,6 +90,6 @@ public class AtrKoBuilder {
                 .replace(COMMENT, detail)
                 .replace(EVENT_TYPE_CODE, eventType).replace(EVENT_TYPE, event)
                 .replaceAll(OUTCOME, code.name())
-                .replace(OUTCOME_DETAIL, eventType + code.name()).replace(OUTCOME_DETAIL_MESSAGE, detail);
+                .replace(OUTCOME_DETAIL, eventType +"."+ code.name()).replace(OUTCOME_DETAIL_MESSAGE, detail);
     }
 }

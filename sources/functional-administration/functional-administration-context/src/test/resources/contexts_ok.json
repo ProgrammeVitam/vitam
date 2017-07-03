@@ -1,0 +1,34 @@
+[
+  {
+    "Name": "My_Context_1",
+    "Status": true,
+    "Permissions": [
+      {
+        "_tenant": 0,
+        "AccessContracts": ["AC-000001"],
+        "IngestContracts": ["IC-000001"]
+      },
+      {
+        "_tenant": 1,
+        "AccessContracts": [],
+        "IngestContracts": []
+      }
+    ]
+  },
+  {
+    "Name": "My_Context_2",
+    "Status": false,
+    "Permissions": [
+      {
+        "_tenant": 0,
+        "AccessContracts": [],
+        "IngestContracts": []
+      },
+      {
+        "_tenant": 1,
+        "AccessContracts": [],
+        "IngestContracts": []
+      }
+    ]
+  }
+]

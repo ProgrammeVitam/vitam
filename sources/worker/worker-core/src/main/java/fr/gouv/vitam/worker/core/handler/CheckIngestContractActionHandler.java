@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ContractStatus;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -43,7 +44,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
-import fr.gouv.vitam.functional.administration.common.ContractStatus;
+import fr.gouv.vitam.functional.administration.common.IngestContract;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -53,7 +54,6 @@ import fr.gouv.vitam.worker.common.HandlerIO;
  * Handler class used to check the ingest contract of SIP. </br>
  *
  */
-
 public class CheckIngestContractActionHandler extends ActionHandler {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckIngestContractActionHandler.class);
@@ -62,7 +62,6 @@ public class CheckIngestContractActionHandler extends ActionHandler {
     private static final int SEDA_PARAMETERS_RANK = 0;
 
     private static final String HANDLER_ID = "CHECK_CONTRACT_INGEST";
-    private static final String CONTRACT_NAME = "Name";
 
     private HandlerIO handlerIO;
     final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
@@ -120,7 +119,7 @@ public class CheckIngestContractActionHandler extends ActionHandler {
         try (final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
 
             Select select = new Select();
-            select.setQuery(QueryHelper.eq(CONTRACT_NAME, contractName));
+            select.setQuery(QueryHelper.eq(IngestContract.NAME, contractName));
             JsonNode queryDsl = select.getFinalSelect();
             RequestResponse<IngestContractModel> referenceContracts = client.findIngestContracts(queryDsl);
             if (referenceContracts.isOk()) {

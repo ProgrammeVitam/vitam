@@ -36,12 +36,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -136,7 +136,7 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
             itemStatus.increment(StatusCode.FATAL);
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
-            itemStatus.increment(StatusCode.FATAL);
+            itemStatus.increment(StatusCode.FATAL);            
         }
 
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);

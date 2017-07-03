@@ -48,7 +48,8 @@ config(['$locationProvider' ,'$routeProvider',
 
     }).
     when('/archiveGestion', {
-      templateUrl: "views/in-progress.html"
+      templateUrl: "views/in-progress.html",
+      permission: 'ingest:create'
     }).
     when('/uploadSIP', {
       templateUrl: "views/upload-sip.html",
@@ -138,6 +139,11 @@ config(['$locationProvider' ,'$routeProvider',
         title: 'Import des profils',
         permission: 'profiles:create'
     }).
+    when('/admin/importContexts', {
+        templateUrl: "views/import-contexts.html",
+        title: 'Import des contexts',
+        permission: 'contexts:create'
+    }).
     when('/admin/journalOperations', {
       template: '<all-logbook-operation></all-logbook-operation>',
       title: 'Journal des Opérations',
@@ -182,25 +188,25 @@ config(['$locationProvider' ,'$routeProvider',
        templateUrl: 'pages/entry-contract-search/entry-contract.template.html',
        controller: 'entryContractsController',
        title: 'Contrats d\'entrée',
-       permission: 'operations:read'
+       permission: 'contracts:read'
      }).
     when('/admin/entryContracts/:id', {
       templateUrl: 'pages/entry-contract-details/entry-contract-details.template.html',
       controller: 'entryContractsDetailsController',
       title: 'Détail d\'un contrat d\'entrée',
-      permission: 'operations:read'
+      permission: 'contracts:read'
     }).
     when('/admin/accessContracts', {
       templateUrl: 'pages/access-contract-search/access-contract.template.html',
       controller: 'accessContractsController',
       title: 'Contrats d\'accès',
-      permission: 'operations:read'
+      permission: 'accesscontracts:read'
     }).
     when('/admin/accessContracts/:id', {
       templateUrl: 'pages/access-contract-details/access-contract-details.template.html',
       controller: 'accessContractsDetailsController',
       title: 'Détail d\'un contrat d\'accès',
-      permission: 'operations:read'
+      permission: 'accesscontracts:read'
 
       }).
     when('/admin/traceabilityOperationSearch', {

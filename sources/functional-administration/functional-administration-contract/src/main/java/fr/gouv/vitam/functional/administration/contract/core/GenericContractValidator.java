@@ -26,7 +26,7 @@
  */
 package fr.gouv.vitam.functional.administration.contract.core;
 
-import fr.gouv.vitam.functional.administration.client.model.AbstractContractModel;
+import fr.gouv.vitam.common.model.AbstractContractModel;
 
 import java.util.Optional;
 
@@ -94,7 +94,7 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
          * If id exists, it should be an update instead of create
          *
          * @param contractName
-         * @return
+         * @return GenericRejectionCause
          */
         public static GenericRejectionCause rejectIdNotAllowedInCreate(String contractName){
             return new GenericRejectionCause(String.format(ERR_ID_NOT_ALLOWED_IN_CREATE , contractName));
@@ -105,7 +105,7 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
          * The contract name must be unique
          *
          * @param contractName
-         * @return
+         * @return GenericRejectionCause
          */
         public static GenericRejectionCause rejectDuplicatedEntry(String contractName){
             return new GenericRejectionCause(String.format(ERR_DUPLICATE_CONTRACT_ENTRY , contractName));
@@ -115,7 +115,7 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
          * Reject if the id of the AU is not in filing schema
          *
          * @param filingParentId
-         * @return
+         * @return GenericRejectionCause
          */
         public static GenericRejectionCause rejectWrongFilingParentId(String filingParentId){
             return new GenericRejectionCause(String.format(ERR_WRONG_FILING_PARENT_ID , filingParentId));
@@ -125,7 +125,7 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
          * Verify for each contract if already exists one in database that have the same name.
          * The database my manage this kind of constraint (by creating an unique index on the field or column)
          * @param contractName
-         * @return
+         * @return GenericRejectionCause
          */
         public static GenericRejectionCause rejectDuplicatedInDatabase(String contractName){
             return new GenericRejectionCause(String.format(ERR_DUPLICATE_CONTRACT , contractName));
@@ -134,7 +134,7 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
         /**
          * Verify for each contract that all archive profiles exists in database
          * @param contractName
-         * @return
+         * @return GenericRejectionCause
          */
         public static GenericRejectionCause rejectArchiveProfileNotFoundInDatabase(String contractName){
             return new GenericRejectionCause(String.format(ERR_ARCHIVEPROFILE_NOT_FOUND_CONTRACT , contractName));
@@ -143,7 +143,7 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
         /**
          * Reject if one of multiple mandatory parameter are null
          * @param fieldName
-         * @return
+         * @return GenericRejectionCause
          */
         public static GenericRejectionCause rejectMandatoryMissing(String fieldName){
             return new GenericRejectionCause(String.format(ERR_MANDATORY_FIELD , fieldName));

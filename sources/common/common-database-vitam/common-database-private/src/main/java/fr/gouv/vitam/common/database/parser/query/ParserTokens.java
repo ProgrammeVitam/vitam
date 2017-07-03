@@ -134,7 +134,25 @@ public class ParserTokens extends BuilderToken {
         /**
          * Unit or GOT's list of participating operations
          */
-        OPERATIONS("operations");
+        OPERATIONS("operations"),
+        /**
+         * originating agency
+         */
+        ORIGINATING_AGENCY("originating_agency"),
+        /**
+         * originating agencies
+         */
+        ORIGINATING_AGENCIES("originating_agencies"),
+        /**
+         * Storage in OG
+         */
+        STORAGE("storage"),
+        /**
+         * Document's version (number of update on document)
+         */
+        VERSION("version");
+
+
 
         private static final String NOT_FOUND = "Not found";
         private final String exactToken;
@@ -161,7 +179,8 @@ public class ParserTokens extends BuilderToken {
          */
         public static final boolean isValid(String token) {
             // Exception for getObject sliced projection
-            return token.startsWith("_qualifiers.") || token.equals("mgt") || token.startsWith("_mgt.");
+            return token.startsWith("_qualifiers.") || token.equals("mgt") || token.startsWith("_mgt.")
+                || token.startsWith("_storage.");
         }
 
         /**
@@ -216,7 +235,13 @@ public class ParserTokens extends BuilderToken {
                         case MIN:
                         case MAX:
                         case UNITTYPE:
+                        case ORIGINATING_AGENCY:
+                        case ORIGINATING_AGENCIES:
+                        case VERSION:
                             return true;
+                        case STORAGE:
+                            // FIXME should consider more security on this one!
+                            return false;
                         default:
                     }
                 } catch (final Exception e) {

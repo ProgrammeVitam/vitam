@@ -193,7 +193,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             if (DefaultOfferServiceImpl.getInstance().hasNext(buildContainerName(type, xTenantId), cursorId)) {
                 try {
                     List<JsonNode> list = DefaultOfferServiceImpl.getInstance().next(buildContainerName(type, xTenantId), cursorId);
-                    responseOK.addAllResults(list).setHits(list.size(), 0, list.size());
+                    responseOK.addAllResults(list);
                     LOGGER.debug("Result {}", responseOK);
                     final Response.ResponseBuilder builder = Response
                             .status(DefaultOfferServiceImpl.getInstance().hasNext(buildContainerName(type, xTenantId), cursorId)

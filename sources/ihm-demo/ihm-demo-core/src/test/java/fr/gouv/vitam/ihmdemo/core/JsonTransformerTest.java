@@ -101,7 +101,7 @@ public class JsonTransformerTest {
             JsonHandler.getFromFile(PropertiesUtils.findFile("sample_objectGroup_document.json"));
         assertNotNull(JsonTransformer.transformResultObjects(sampleObjectGroup));
     }
-    
+
     @Test
     public void testTransformerObjectGroupPhysicalSuccess() throws Exception {
         final JsonNode sampleObjectGroup =

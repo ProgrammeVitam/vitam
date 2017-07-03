@@ -29,7 +29,9 @@
  */
 package fr.gouv.vitam.common.database.parser.request;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -116,7 +118,7 @@ public class GlobalDatasParser extends GlobalDatas {
      */
     public static final Object getValue(final JsonNode value)
         throws InvalidParseOperationException {
-        if (value == null || value.isArray()) {
+        if (value == null) {
             throw new InvalidParseOperationException("Not correctly parsed");
         }
         if (value.isBoolean()) {
@@ -131,6 +133,12 @@ public class GlobalDatasParser extends GlobalDatas {
             return value.asLong();
         } else if (value.has(Query.DATE)) {
             return LocalDateUtil.getDate(value.get(Query.DATE).asText());
+        } else if (value.isArray()) {
+            List<Object> list = new ArrayList<>();
+            for (JsonNode item : (ArrayNode) value) {
+                list.add(getValue(item));
+            }
+            return list;
         } else {
             return value.asText();
         }

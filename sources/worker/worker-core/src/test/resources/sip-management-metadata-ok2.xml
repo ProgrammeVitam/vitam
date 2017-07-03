@@ -134,21 +134,26 @@
                         <Title>Test sous fonds 1</Title>
                         <TransactedDate>2015-06-15</TransactedDate>
                     </Content>
+                    <ArchiveUnit id="ID124">
+                        <Content>
+                            <DescriptionLevel>Subfonds</DescriptionLevel>
+                            <Title>Test sous fonds 1</Title>
+                            <TransactedDate>2015-06-15</TransactedDate>
+                        </Content>
+                    </ArchiveUnit>
                 </ArchiveUnit>
                 <ArchiveUnit id="ID029">
-                        <Content>
-                            <DescriptionLevel>File</DescriptionLevel>
-                            <Title>Test file 1</Title>
-                        </Content>
-                        <DataObjectReference>
-                            <DataObjectGroupReferenceId/>
-                        </DataObjectReference>
-                    </ArchiveUnit>
-                        <DataObjectReference>
-                            <DataObjectGroupReferenceId>ID006</DataObjectGroupReferenceId> <!-- referencement du GO -->
-                        </DataObjectReference>
-                    </ArchiveUnit>
+                    <Content>
+                        <DescriptionLevel>File</DescriptionLevel>
+                        <Title>Test file 1</Title>
+                    </Content>
+                    <DataObjectReference>
+                        <DataObjectGroupReferenceId>ID006</DataObjectGroupReferenceId>
+                    </DataObjectReference>
                 </ArchiveUnit>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID006</DataObjectGroupReferenceId> <!-- referencement du GO -->
+                </DataObjectReference>
             </ArchiveUnit>
         </DescriptiveMetadata>
         <ManagementMetadata xml:id="ID030">

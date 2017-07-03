@@ -53,6 +53,7 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.collect.Lists;
+import com.google.common.io.ByteStreams;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -64,6 +65,10 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * JSON handler using Json format
  *
  *
+ *
+ */
+/**
+ * @author lubla
  *
  */
 public final class JsonHandler {
@@ -184,7 +189,7 @@ public final class JsonHandler {
         throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter("InputStream", stream);
-            return OBJECT_MAPPER.readTree(stream);
+            return OBJECT_MAPPER.readTree(ByteStreams.toByteArray(stream));
         } catch (final IOException | IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
         }
@@ -468,6 +473,7 @@ public final class JsonHandler {
         try {
             ParametersChecker.checkParameter("object or file", object, outputStream);
             OBJECT_MAPPER.writeValue(outputStream, object);
+            outputStream.flush();
         } catch (final IOException | IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
         }
@@ -633,13 +639,15 @@ public final class JsonHandler {
         ParametersChecker.checkParameter("InputStream", inputStream);
         Map<String, Object> info = null;
         try {
-            info = OBJECT_MAPPER.readValue(inputStream,
+            info = OBJECT_MAPPER.readValue(ByteStreams.toByteArray(inputStream),
                 new TypeReference<Map<String, Object>>() {});
         } catch (final IOException e) {
             throw new InvalidParseOperationException(e);
         } finally {
             try {
-                inputStream.close();
+                if (inputStream != null) {
+                    inputStream.close();
+                }
             } catch (final IOException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
@@ -664,12 +672,14 @@ public final class JsonHandler {
         Map<String, T> info ;
         try {
             JavaType type = OBJECT_MAPPER.getTypeFactory().constructParametricType(Map.class, String.class, parameterClazz);
-            info = OBJECT_MAPPER.readValue(inputStream, type);
+            info = OBJECT_MAPPER.readValue(ByteStreams.toByteArray(inputStream), type);
         } catch (final IOException e) {
             throw new InvalidParseOperationException(e);
         } finally {
             try {
-                inputStream.close();
+                if (inputStream != null) {
+                    inputStream.close();
+                }
             } catch (final IOException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
@@ -692,12 +702,14 @@ public final class JsonHandler {
         throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter("InputStream or class", inputStream, clasz);
-            return OBJECT_MAPPER.readValue(inputStream, clasz);
+            return OBJECT_MAPPER.readValue(ByteStreams.toByteArray(inputStream), clasz);
         } catch (final IOException | IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
         } finally {
             try {
-                inputStream.close();
+                if (inputStream != null) {
+                    inputStream.close();
+                }
             } catch (final IOException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
@@ -727,6 +739,81 @@ public final class JsonHandler {
 
         return subResult;
     }
+
+    /**
+     * Find a node with the given path
+     *
+     * @param node the parent Node within the search must be performed
+     * @param fieldPath the field to find in the root. use '.' to get sub-node (ex: parent.child.subNodeName)
+     * @param deepCopy if true, the returned node is a copy of the matching node, else return the original one
+     * @return the find node or null if not found.
+     */
+    public static JsonNode getNodeByPath(JsonNode node, String fieldPath, boolean deepCopy) {
+        String[] fieldNamePath = fieldPath.split("[.]");
+        String lastNodeName = fieldNamePath[fieldNamePath.length-1];
+        JsonNode parentNode = getParentNodeByPath(node, fieldPath, deepCopy);
+        JsonNode lastNode = parentNode.get(lastNodeName);
+        if (lastNode == null) {
+            return null;
+        }
+        return deepCopy? lastNode.deepCopy(): lastNode;
+    }
+
+    /**
+     * Find a parent of the node with the given path
+     *
+     * @param node the root Node within the search must be performed
+     * @param fieldPath the field to find in the root. use '.' to get sub-node (ex: ["parent","child","subNodeName"])
+     * @param deepCopy if true, the returned node is a copy of the matching node, else return the original one
+     * @return the parent of the node defined by the given path (in the findPath example, return 'child' node)
+     */
+    public static JsonNode getParentNodeByPath(JsonNode node, String fieldPath, boolean deepCopy) {
+
+        String[] fieldNamePath = fieldPath.split("[.]");
+        JsonNode currentLevelNode = deepCopy? node.deepCopy(): node;
+        for (int i=0, len=fieldNamePath.length-1; i<len; i++) {
+            JsonNode nextLevel = currentLevelNode.get(fieldNamePath[i]);
+            if (nextLevel == null) {
+                return null;
+            }
+            currentLevelNode = deepCopy? nextLevel.deepCopy(): nextLevel;
+        }
+
+        return currentLevelNode;
+    }
+
+	/**
+	 * Set a value in a node defined by the given path. Create path nodes if needed
+	 *
+	 * @param node the rootNode
+	 * @param nodePath the path of the node that must be updated/created
+	 * @param value The new value of the node
+	 * @param canCreate true if missing nodes muse be created. Else an error  was thrown for missing nodes
+	 * @throws InvalidParseOperationException
+	 */
+    public static void setNodeInPath(ObjectNode node, String nodePath, JsonNode value, boolean canCreate)
+        throws InvalidParseOperationException {
+        String[] fieldNamePath = nodePath.split("[.]");
+        String lastNodeName = fieldNamePath[fieldNamePath.length-1];
+	    ObjectNode currentLevelNode = node;
+        for (int i=0, len=fieldNamePath.length-1; i<len; i++) {
+            JsonNode childNode = currentLevelNode.get(fieldNamePath[i]);
+            if (childNode != null && !childNode.isObject()) {
+                throw new InvalidParseOperationException("The node  '" + fieldNamePath[i] + "' is not an object ");
+            }
+            ObjectNode nextLevel = (ObjectNode) childNode;
+            if (nextLevel == null) {
+                if (canCreate) {
+                    currentLevelNode.set(fieldNamePath[i], createObjectNode());
+                    nextLevel = (ObjectNode) currentLevelNode.get(fieldNamePath[i]);
+                } else {
+                    throw new InvalidParseOperationException("can not find node '" + fieldNamePath[i] + "' in " + nodePath);
+                }
+            }
+            currentLevelNode = nextLevel;
+        }
+        currentLevelNode.set(lastNodeName, value);
+	}
 
     /**
      * transform an {@link ArrayNode} (JSON Array) to an {@link java.util.ArrayList}

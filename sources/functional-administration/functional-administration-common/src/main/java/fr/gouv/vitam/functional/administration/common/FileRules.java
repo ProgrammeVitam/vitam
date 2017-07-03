@@ -118,6 +118,11 @@ public class FileRules extends VitamDocument<FileRules> {
         append(TENANT, tenantId);
     }
 
+    @Override
+    public VitamDocument<FileRules> newInstance(JsonNode content) {
+        return new FileRules(content);
+    }
+
     /**
      * setRuleId
      *

@@ -134,7 +134,6 @@ public class BenchmarkResourceManual {
                 Thread.sleep(10000);
             } catch (final InterruptedException e) {}
             final long available = Runtime.getRuntime().freeMemory();
-            BenchmarkClientFactory.getInstance().mode(mode);
             LOGGER.warn("START " + mode.name());
             testBenchmark(globalTests, testList);
             final long availableEnd = Runtime.getRuntime().freeMemory();
@@ -170,14 +169,10 @@ public class BenchmarkResourceManual {
                 try {
                     Thread.sleep(SLEEP_INTERMEDIARY);
                 } catch (final InterruptedException e) {}
-                if (BenchmarkClientFactory.getInstance().getMode() != BenchmarkConnectorProvider.STANDARD) {
-                    checkSizeLimit(client, HttpMethod.GET, size, list);
-                    try {
-                        Thread.sleep(SLEEP_INTERMEDIARY);
-                    } catch (final InterruptedException e) {}
-                } else {
-                    list.add(-1L);
-                }
+                checkSizeLimit(client, HttpMethod.GET, size, list);
+                try {
+                    Thread.sleep(SLEEP_INTERMEDIARY);
+                } catch (final InterruptedException e) {}
                 checkSizeLimit(client, HttpMethod.DELETE, size, list);
                 try {
                     Thread.sleep(SLEEP_INTERMEDIARY);
@@ -208,7 +203,6 @@ public class BenchmarkResourceManual {
             } catch (final InterruptedException e) {}
             final ExecutorService executorService = Executors.newCachedThreadPool();
             final long available = Runtime.getRuntime().freeMemory();
-            BenchmarkClientFactory.getInstance().mode(mode);
             LOGGER.warn("START " + mode.name());
             final long start = System.nanoTime();
             for (int i = 0; i < FACTOR_STEP; i++) {

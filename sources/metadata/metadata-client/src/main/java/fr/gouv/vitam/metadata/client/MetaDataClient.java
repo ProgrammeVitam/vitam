@@ -27,6 +27,10 @@
 
 package fr.gouv.vitam.metadata.client;
 
+import java.util.List;
+
+import javax.ws.rs.PathParam;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.client.BasicClient;
@@ -37,7 +41,9 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
-    
+import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
+import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
+
 /**
  * Metadata client interface
  */
@@ -139,4 +145,36 @@ public interface MetaDataClient extends BasicClient {
     JsonNode insertObjectGroup(JsonNode insertQuery) throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataNotFoundException, MetaDataAlreadyExistException, MetaDataDocumentSizeException,
         MetaDataClientServerException;
+
+    /**
+     * Update ObjectGroup 
+     * @param updateQuery
+     * @param objectGroupId
+     * @throws InvalidParseOperationException
+     * @throws MetaDataNotFoundException
+     * @throws MetaDataAlreadyExistException
+     * @throws MetaDataDocumentSizeException
+     * @throws MetaDataClientServerException
+     * @throws MetaDataExecutionException 
+     */
+    void updateObjectGroupById(JsonNode updateQuery, @PathParam("id_og") String objectGroupId) 
+        throws InvalidParseOperationException, MetaDataClientServerException, MetaDataExecutionException;
+    
+    /**
+     * 
+     * @param operationId
+     * @return the list of UnitsPerOriginatingAgency
+     * @throws MetaDataClientServerException
+     */
+    List<UnitPerOriginatingAgency> selectAccessionRegisterOnUnitByOperationId(String operationId)
+        throws MetaDataClientServerException;
+
+    /**
+     * 
+     * @param operationId
+     * @return the list of ObjectGroupPerOriginatingAgency
+     * @throws MetaDataClientServerException
+     */
+    List<ObjectGroupPerOriginatingAgency> selectAccessionRegisterOnObjectByOperationId(String operationId)
+        throws MetaDataClientServerException;
 }

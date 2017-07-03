@@ -151,7 +151,7 @@ public class TransferThread implements Callable<ThreadResponseData> {
                 // TODO: if already exist then cancel and replace. Need rollback
                 // feature (which need remove feature)
                 // TODO with US #1997
-                response = new ThreadResponseData(null, Response.Status.OK, request.getGuid());
+                response = new ThreadResponseData(null, Response.Status.FORBIDDEN, request.getGuid());
             }
         }
         return response;

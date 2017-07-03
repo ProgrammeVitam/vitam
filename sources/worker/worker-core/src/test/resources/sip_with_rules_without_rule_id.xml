@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ArchiveTransfer
+        xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 seda-2.0-main.xsd" xml:id="ID002">
+    <Date>2016-06-23T09:45:51.0</Date>
+    <MessageIdentifier>Entrée_avec_groupe_d_objet</MessageIdentifier>
+    <ArchivalAgreement>ArchivalAgreement0</ArchivalAgreement>
+    <CodeListVersions xml:id="ID005">
+        <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
+        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0
+        </MessageDigestAlgorithmCodeListVersion>
+        <MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
+        <EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion>
+        <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
+        <CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
+        <DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
+        <StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
+        <AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
+        <AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
+        <DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
+        <ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
+        <ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
+        <AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
+        <RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
+    </CodeListVersions>
+
+    <DataObjectPackage xml:id="ID007">
+        <PhysicalDataObject id="ID009">
+            <DataObjectGroupReferenceId>ID006</DataObjectGroupReferenceId>
+            <DataObjectVersion>PhysicalMaster</DataObjectVersion>
+            <PhysicalId>1500W03</PhysicalId>
+            <PhysicalDimensions>
+                <NumberOfPage>23</NumberOfPage>
+            </PhysicalDimensions>
+        </PhysicalDataObject>
+
+        <BinaryDataObject id="ID011">
+            <DataObjectGroupId>ID006</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>
+                content/e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804.odp
+            </Uri>
+            <MessageDigest algorithm="SHA-512">
+                e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804
+            </MessageDigest>
+            <Size>100646</Size>
+            <FormatIdentification>
+                <FormatLitteral>OpenDocument Presentation</FormatLitteral>
+                <MimeType>application/vnd.oasis.opendocument.presentation</MimeType>
+                <FormatId>fmt/293</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>Vitam-Sensibilisation-API-V1.0.odp</Filename>
+                <CreatingApplicationName>LibreOffice/Impress</CreatingApplicationName>
+                <CreatingApplicationVersion>5.0.5.2</CreatingApplicationVersion>
+                <CreatingOs>Windows_X86_64</CreatingOs>
+                <CreatingOsVersion>10</CreatingOsVersion>
+                <LastModified>2016-05-05T20:45:20</LastModified>
+            </FileInfo>
+            <Metadata>
+                <Document><!--  --></Document>
+            </Metadata>
+            <OtherMetadata><!--  --></OtherMetadata>
+        </BinaryDataObject>
+        <DescriptiveMetadata>
+            <ArchiveUnit id="ID015">
+                <ArchiveUnitProfile>PresentationType</ArchiveUnitProfile>
+                <Management>
+                    <StorageRule>
+                        <Rule>ID017</Rule>
+                        <Rule>ID025</Rule>
+                        <FinalAction>RestrictAccess</FinalAction>
+                    </StorageRule>
+                    <AppraisalRule>
+                        <Rule>ID018</Rule>
+                        <FinalAction>Keep</FinalAction>
+                    </AppraisalRule>
+                    <AccessRule>
+                        <Rule>ID019</Rule>
+                    </AccessRule>
+                    <DisseminationRule>
+                        <Rule>ID020</Rule>
+                    </DisseminationRule>
+                    <ReuseRule>
+                        <Rule>ID022</Rule>
+                    </ReuseRule>
+                    <ClassificationRule>
+                        <PreventInheritance>true</PreventInheritance>
+                    </ClassificationRule>
+                    <NeedAuthorization>false</NeedAuthorization>
+                </Management>
+                <Content xml:id="ID026">
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Sensibilisation API</Title>
+                    <FilePlanPosition>FilePlanPosition0</FilePlanPosition>
+                    <OriginatingSystemId>OriginatingSystemId0</OriginatingSystemId>
+                    <ArchivalAgencyArchiveUnitIdentifier>ArchivalAgencyArchiveUnitIdentifier0
+                    </ArchivalAgencyArchiveUnitIdentifier>
+                    <OriginatingAgencyArchiveUnitIdentifier>OriginatingAgencyArchiveUnitIdentifier0
+                    </OriginatingAgencyArchiveUnitIdentifier>
+                    <TransferringAgencyArchiveUnitIdentifier>TransferringAgencyArchiveUnitIdentifier0
+                    </TransferringAgencyArchiveUnitIdentifier>
+                    <Description>Sensibilisation au Technical Design
+                    </Description>
+                    <Language>fr-FR</Language>
+                    <OriginatingAgency>
+                        <Identifier>Identifier0</Identifier>
+                    </OriginatingAgency>
+                    <SubmissionAgency>
+                        <Identifier>Identifier1</Identifier>
+                    </SubmissionAgency>
+                    <Writer>
+                        <FirstName>FirstName0</FirstName>
+                        <BirthName>BirthName0</BirthName>
+                    </Writer>
+                    <CreatedDate>2016-05-05T20:45:20</CreatedDate>
+                    <TransactedDate>2016-05-05</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID006</DataObjectGroupReferenceId> <!-- referencement du GO -->
+                </DataObjectReference>
+            </ArchiveUnit>
+        </DescriptiveMetadata>
+        <ManagementMetadata xml:id="ID030">
+            <ArchivalProfile>ArchivalProfile0</ArchivalProfile>
+            <ServiceLevel>ServiceLevel0</ServiceLevel>
+            <StorageRule>
+                <Rule>ID420</Rule>
+                <StartDate>2016-01-10</StartDate>
+                <FinalAction>Copy</FinalAction>
+                <PreventInheritance>false</PreventInheritance>
+                <RefNonRuleId>ID100</RefNonRuleId>
+            </StorageRule>
+            <StorageRule>
+                <Rule>ID017</Rule>
+                <StartDate>2016-01-10</StartDate>
+                <FinalAction>RestrictAccess</FinalAction>
+                <PreventInheritance>true</PreventInheritance>
+                <RefNonRuleId>ID110</RefNonRuleId>
+            </StorageRule>
+            <AppraisalRule>
+                <Rule>ID018</Rule>
+                <StartDate>2016-01-10</StartDate>
+                <FinalAction>Destroy</FinalAction>
+                <PreventInheritance>false</PreventInheritance>
+                <RefNonRuleId>ID100</RefNonRuleId>
+            </AppraisalRule>
+            <AccessRule>
+                <Rule>ID019</Rule>
+                <StartDate>2016-01-10</StartDate>
+                <RefNonRuleId>ID100</RefNonRuleId>
+                <PreventInheritance>false</PreventInheritance>
+            </AccessRule>
+            <DisseminationRule>
+                <Rule>ID450</Rule>
+                <StartDate>2016-01-10</StartDate>
+                <RefNonRuleId>ID100</RefNonRuleId>
+                <PreventInheritance>false</PreventInheritance>
+            </DisseminationRule>
+            <ReuseRule>
+                <Rule>ID460</Rule>
+                <StartDate>2016-01-10</StartDate>
+                <RefNonRuleId>ID100</RefNonRuleId>
+                <PreventInheritance>false</PreventInheritance>
+            </ReuseRule>
+            <ClassificationRule>
+                <Rule>ID470</Rule>
+                <StartDate>2016-01-10</StartDate>
+                <RefNonRuleId>ID100</RefNonRuleId>
+                <PreventInheritance>false</PreventInheritance>
+                <ClassificationLevel>1</ClassificationLevel>
+                <ClassificationOwner>2</ClassificationOwner>
+                <ClassificationReassessingDate>2016-01-10</ClassificationReassessingDate>
+                <NeedReassessingAuthorization>false</NeedReassessingAuthorization>
+            </ClassificationRule>
+            <OriginatingAgencyIdentifier>FRAN_NP_005568</OriginatingAgencyIdentifier>
+            <SubmissionAgencyIdentifier>FRAN_NP_005061</SubmissionAgencyIdentifier>
+        </ManagementMetadata>
+    </DataObjectPackage>
+
+    <ArchivalAgency xml:id="ID031">
+        <Identifier>ArchivalAgency1</Identifier>
+    </ArchivalAgency>
+    <TransferringAgency xml:id="ID032">
+        <Identifier>TransferringAgency1</Identifier>
+    </TransferringAgency>
+</ArchiveTransfer>

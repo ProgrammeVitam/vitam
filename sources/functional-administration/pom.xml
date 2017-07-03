@@ -5,13 +5,14 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>parent</artifactId>
-		<version>0.19.0-SNAPSHOT</version>
+		<version>0.20.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>functional-administration</artifactId>
 	<name>Functional Administration</name>
 	<packaging>pom</packaging>
 
 	<modules>
+		<module>functional-administration-counter</module>
 		<module>functional-administration-common</module>
 		<module>functional-administration-format</module>
 		<module>functional-administration-rest</module>
@@ -20,5 +21,6 @@
 		<module>functional-administration-accession-register</module>
 		<module>functional-administration-contract</module>
         <module>functional-administration-profile</module>
+        <module>functional-administration-context</module>
     </modules>
 </project>

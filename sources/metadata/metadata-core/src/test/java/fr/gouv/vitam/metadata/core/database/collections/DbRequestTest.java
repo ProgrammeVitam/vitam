@@ -58,14 +58,25 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.search.SearchType;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -93,6 +104,7 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.builder.query.PathQuery;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
+import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.DeleteMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
@@ -104,6 +116,7 @@ import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserHelper
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -114,6 +127,7 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.objectgroup.QualifiersJson;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -141,6 +155,7 @@ public class DbRequestTest {
     private static ElasticsearchTestConfiguration config = null;
 
     private static ElasticsearchAccessMetadata esClient;
+    private static ElasticsearchAccess esClientWithoutVitambBehavior;
 
     private static final String DATABASE_HOST = "localhost";
     private static final boolean CREATE = false;
@@ -191,16 +206,16 @@ public class DbRequestTest {
             "] } }";
     private static final String REQUEST_INSERT_TEST_ES =
         "{ \"#id\": \"aebaaaaaaaaaaaabaahbcakzu2stfryaaaaq\", " +
-        "\"#tenant\": 0, " +
-        "\"Title\": \"title vitam\", " +
-        "\"Description\": \"description est OK\"," +
-        "\"_mgt\" : {\"ClassificationRule\" : {\"Rule\" : \"RuleId\"}} }";
+            "\"#tenant\": 0, " +
+            "\"Title\": \"title vitam\", " +
+            "\"Description\": \"description est OK\"," +
+            "\"_mgt\" : {\"ClassificationRule\" : {\"Rule\" : \"RuleId\"}} }";
     private static final String REQUEST_INSERT_TEST_ES_2 =
         "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaar\", \"#tenant\": 0, \"Title\": \"title vitam\", \"Description\": \"description est OK\" }";
     private static final String REQUEST_INSERT_TEST_ES_3 =
         "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaat\", \"#tenant\": 0, \"Title\": \"title vitam\", \"Description\": \"description est OK\" }";
     private static final String REQUEST_INSERT_TEST_ES_4 =
-        "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaas\", \"#tenant\": 0, \"Title\": \"title sociales test_underscore othervalue france.pdf\", \"Description\": \"description est OK\" }";
+        "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaas\", \"#tenant\": 0, \"Title\": \"title sociales test_abcd_underscore othervalue france.pdf\", \"Description\": \"description est OK\" }";
     private static final String REQUEST_UPDATE_INDEX_TEST_ELASTIC =
         "{$query: { $eq : [ { $term : { 'Title' : 'vitam' , '$max_expansions' : 1  } }] } }";
     private static final String REQUEST_UPDATE_INDEX_TEST =
@@ -208,9 +223,17 @@ public class DbRequestTest {
     private static final String REQUEST_SELECT_TEST_ES_UPDATE =
         "{$query: { $match : { '#id' : 'aeaqaaaaaaaaaaabab4roakztdjqziaaaaaq' , '$max_expansions' : 1  } }}";
     private static final String REQUEST_INSERT_TEST_ES_UPDATE =
-        "{ \"#id\": \"aeaqaaaaaaaaaaabab4roakztdjqziaaaaaq\", \"#tenant\": 0, \"title\": \"Archive3\" }";
+        "{ \"#id\": \"aeaqaaaaaaaaaaabab4roakztdjqziaaaaaq\", \"#tenant\": 0, \"Title\": \"Archive3\", " +
+        "\"_mgt\": {\"StorageRule\": [{\"Rule\": \"STR001\",\"StartDate\": \"2012-11-15T14:30:23\",\"RefNonRuleId\": [],\"FinalAction\": \"Copy\"}]}," +
+        " \"DescriptionLevel\": \"Item\" }";
 
-
+    private static final String REQUEST_INSERT_TEST_ES_UPDATE_KO =
+        "{ \"#id\": \"aeaqaaaaaagbcaacabg44ak45e54criaaaaq\", \"#tenant\": 0, \"Title\": \"Archive3\", " +
+        "\"_mgt\": {\"OriginatingAgency\": \"XXXXXXX\"}," +
+        " \"DescriptionLevel\": \"toto\" }";
+    private static final String REQUEST_UPDATE_INDEX_TEST_KO =
+        "{$roots:['aeaqaaaaaagbcaacabg44ak45e54criaaaaq'],$query:[],$filter:{},$action:[{$set:{'date':'09/09/2015'}},{$set:{'title':'Archive2'}}]}";
+    
     /**
      * @throws java.lang.Exception
      */
@@ -228,7 +251,7 @@ public class DbRequestTest {
         nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
 
         esClient = new ElasticsearchAccessMetadata(CLUSTER_NAME, nodes);
-
+        esClientWithoutVitambBehavior = new ElasticsearchAccess(CLUSTER_NAME, nodes);
         final MongodStarter starter = MongodStarter.getDefaultInstance();
 
         port = junitHelper.findAvailablePort();
@@ -355,16 +378,16 @@ public class DbRequestTest {
             LOGGER.debug("DeleteParser: " + deleteParser.toString());
             // Now execute the request
             executeRequest(dbRequest, deleteParser);
-        } catch (MetaDataAlreadyExistException e1) {
-            e1.printStackTrace();
-            fail(e1.getMessage());
-        } catch (MetaDataNotFoundException e1) {
-            e1.printStackTrace();
-            fail(e1.getMessage());
         } catch (InstantiationException e1) {
             e1.printStackTrace();
             fail(e1.getMessage());
         } catch (IllegalAccessException e1) {
+            e1.printStackTrace();
+            fail(e1.getMessage());
+        } catch (MetaDataAlreadyExistException e1) {
+            e1.printStackTrace();
+            fail(e1.getMessage());
+        } catch (MetaDataNotFoundException e1) {
             e1.printStackTrace();
             fail(e1.getMessage());
         } catch (InvalidParseOperationException e1) {
@@ -459,16 +482,16 @@ public class DbRequestTest {
             LOGGER.debug("DeleteParser: " + requestParser.toString());
 
             executeRequest(dbRequest, requestParser);
-        } catch (MetaDataAlreadyExistException e1) {
-            e1.printStackTrace();
-            fail(e1.getMessage());
-        } catch (MetaDataNotFoundException e1) {
-            e1.printStackTrace();
-            fail(e1.getMessage());
         } catch (InstantiationException e1) {
             e1.printStackTrace();
             fail(e1.getMessage());
         } catch (IllegalAccessException e1) {
+            e1.printStackTrace();
+            fail(e1.getMessage());
+        } catch (MetaDataAlreadyExistException e1) {
+            e1.printStackTrace();
+            fail(e1.getMessage());
+        } catch (MetaDataNotFoundException e1) {
             e1.printStackTrace();
             fail(e1.getMessage());
         } catch (InvalidParseOperationException e1) {
@@ -487,8 +510,6 @@ public class DbRequestTest {
      * .
      * 
      * @throws InvalidParseOperationException
-     * @throws IllegalAccessException
-     * @throws InstantiationException
      * @throws MetaDataNotFoundException
      * @throws MetaDataAlreadyExistException
      * @throws MetaDataExecutionException
@@ -497,7 +518,7 @@ public class DbRequestTest {
     @RunWithCustomExecutor
     public void testExecRequestThroughAllCommands()
         throws MetaDataExecutionException, MetaDataAlreadyExistException, MetaDataNotFoundException,
-        InstantiationException, IllegalAccessException, InvalidParseOperationException {
+        InvalidParseOperationException, InstantiationException, IllegalAccessException {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         // input data
         final GUID uuid = GUIDFactory.newUnitGUID(tenantId);
@@ -836,6 +857,38 @@ public class DbRequestTest {
         assertEquals(2, MetadataCollections.C_UNIT.getCollection().count());
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void ShouldIndexElasticSearchWithGoodUnitSchema() throws Exception {
+        final GUID uuid = GUIDFactory.newUnitGUID(tenantId);
+        final GUID uuid2 = GUIDFactory.newUnitGUID(tenantId);
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        final DbRequest dbRequest = new DbRequest();
+
+        RequestParserMultiple requestParser = null;
+        requestParser = RequestParserHelper.getParser(createInsertRequestWithUUID(uuid), mongoDbVarNameAdapter);
+        executeRequest(dbRequest, requestParser);
+        requestParser =
+            RequestParserHelper.getParser(createInsertChild2ParentRequest(uuid2, uuid), mongoDbVarNameAdapter);
+        executeRequest(dbRequest, requestParser);
+
+        QueryBuilder qb1 = QueryBuilders.matchPhrasePrefixQuery("_id", uuid);
+        QueryBuilder qb2 = QueryBuilders.matchPhrasePrefixQuery("_id", uuid2);
+
+        SearchRequestBuilder request =
+            esClientWithoutVitambBehavior.getClient()
+                .prepareSearch(getIndexName(MetadataCollections.C_UNIT, tenantId))
+                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setTypes(Unit.TYPEUNIQUE).setExplain(false)
+                .setSize(GlobalDatas.LIMIT_LOAD);
+        SearchResponse response;
+        request.setQuery(qb1);
+        response = request.get();
+        assertEquals(1, response.getHits().totalHits());
+        request.setQuery(qb2);
+        response = request.get();
+        assertEquals(1, response.getHits().totalHits());
+    }
+
     /**
      * @param dbRequest
      * @param requestParser
@@ -845,10 +898,14 @@ public class DbRequestTest {
      * @throws MetaDataNotFoundException
      * @throws MetaDataAlreadyExistException
      * @throws MetaDataExecutionException
+     * @throws SecurityException
+     * @throws NoSuchMethodException
+     * @throws InvocationTargetException
+     * @throws IllegalArgumentException
      */
     private void executeRequest(DbRequest dbRequest, RequestParserMultiple requestParser)
         throws MetaDataExecutionException, MetaDataAlreadyExistException, MetaDataNotFoundException,
-        InstantiationException, IllegalAccessException, InvalidParseOperationException {
+        InvalidParseOperationException, InstantiationException, IllegalAccessException {
 
         final Result result = dbRequest.execRequest(requestParser, null);
         LOGGER.debug("XXXXXXXX " + requestParser.getClass().getSimpleName() + " Result XXXXXXXX: " + result);
@@ -1110,8 +1167,13 @@ public class DbRequestTest {
         final InsertMultiQuery insert = new InsertMultiQuery();
         insert.resetFilter();
         insert.addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
-        final JsonNode json = JsonHandler.getFromString("{\"#id\":\"" + uuid +
-            "\", \"#qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description\" : \"Test\"}}, \"title\":\"title1\"}");
+        final JsonNode json =
+            JsonHandler
+                .getFromString("{\"#id\":\"" +
+                    uuid +
+                    "\", \"OriginatingAgency\": \"FRAN_NP_050056\",  \"FileInfo\": { \"Filename\": \"Filename0\"}, \"_qualifiers\": [{ \"qualifier\": \"BinaryMaster\"}]}");
+        System.out.println(json.get("_qualifiers"));
+        // "OriginatingAgency": "FRAN_NP_050056"
         insert.addData((ObjectNode) json);
         insert.addRoots(uuidParent.getId());
         final ObjectNode insertRequest = insert.getFinalInsert();
@@ -1139,6 +1201,81 @@ public class DbRequestTest {
         executeRequest(dbRequest, requestParser);
         result = checkExistence(dbRequest, uuid2, true);
         assertFalse(result.isError());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testOGElasticsearchIndex() throws Exception {
+        final GUID uuid = GUIDFactory.newUnitGUID(tenantId);
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        final DbRequest dbRequest = new DbRequest();
+        RequestParserMultiple requestParser = null;
+
+        requestParser = RequestParserHelper.getParser(createInsertRequestWithUUID(uuid), mongoDbVarNameAdapter);
+        executeRequest(dbRequest, requestParser);
+        Result result = checkExistence(dbRequest, uuid, false);
+        assertFalse(result.isError());
+        final GUID uuid2 = GUIDFactory.newObjectGroupGUID(tenantId);
+        requestParser = new InsertParserMultiple(mongoDbVarNameAdapter);
+        requestParser.parse(createInsertRequestGO(uuid2, uuid));
+
+        executeRequest(dbRequest, requestParser);
+        result = checkExistence(dbRequest, uuid2, true);
+        assertFalse(result.isError());
+
+        QueryBuilder qb = QueryBuilders.matchPhrasePrefixQuery("_id", uuid2);
+
+        // Use new esClient for have full elastic index and not just the id in the response.
+        SearchRequestBuilder request =
+            esClientWithoutVitambBehavior.getClient()
+                .prepareSearch(getIndexName(MetadataCollections.C_OBJECTGROUP, tenantId))
+                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setTypes(ObjectGroup.TYPEUNIQUE).setExplain(false)
+                .setSize(GlobalDatas.LIMIT_LOAD);
+        request.setQuery(qb);
+        SearchResponse response = request.get();
+        assertTrue(response != null);
+        checkElasticResponseField(response, uuid.getId());
+        JsonNode jsonNode = JsonHandler.getFromString(response.toString());
+        SearchHits hits = response.getHits();
+        assertEquals(1, hits.getTotalHits());
+
+        LOGGER.debug("Elasticsearch Index for objectGroup ", response);
+    }
+
+    /**
+     * Check elastic Search Response field
+     * 
+     * @param response ElasticSearch response
+     * @param parentUuid the parentUuid
+     */
+    private void checkElasticResponseField(SearchResponse response, String parentUuid) {
+        Iterator<SearchHit> iterator = response.getHits().iterator();
+        while (iterator.hasNext()) {
+            SearchHit searchHit = (SearchHit) iterator.next();
+            Map<String, Object> source = searchHit.getSource();
+            for (String key : source.keySet()) {
+                if ("_qualifiers".equals(key)) {
+                    List<Map<String, Object>> qualifiers = (List<Map<String, Object>>) source.get(key);
+                    for (Map qualifier : qualifiers) {
+                        assertEquals("BinaryMaster", qualifier.get("qualifier"));
+                    }
+                } else if ("OriginatingAgency".equals(key)) {
+                    assertEquals("FRAN_NP_050056", (String) source.get(key));
+                } else if ("FileInfo".equals(key)) {
+                    Map<String, Object> fileInfo = (Map<String, Object>) source.get(key);
+                    assertEquals("Filename0", fileInfo.get("Filename"));
+                } else if ("_up".equals(key)) {
+                    List<String> ups = (List<String>) source.get(key);
+                    assertEquals(parentUuid, ups.get(0));
+                }
+            }
+
+        }
+    }
+
+
+    private String getIndexName(final MetadataCollections collection, Integer tenantId) {
+        return collection.getName().toLowerCase() + "_" + tenantId.toString();
     }
 
     private Result checkExistence(DbRequest dbRequest, GUID uuid, boolean isOG)
@@ -1177,8 +1314,11 @@ public class DbRequestTest {
         insert.resetFilter();
         insert.addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
         insert.addRoots(uuidUnit.getId());
-        final ObjectNode json = (ObjectNode) JsonHandler.getFromString("{\"#id\":\"" + uuid +
-            "\", \"#qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description\" : \"Test\"}}, \"title\":\"title1\"}");
+        final ObjectNode json =
+            (ObjectNode) JsonHandler
+                .getFromString("{\"#id\":\"" +
+                    uuid +
+                    "\", \"#qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description\" : \"Test\"}}, \"title\":\"title1\"}");
 
         insert.addData(json);
         final ObjectNode insertNode = insert.getFinalInsert();
@@ -1228,10 +1368,16 @@ public class DbRequestTest {
         final InsertMultiQuery insert = new InsertMultiQuery();
         insert.addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
 
-        final ObjectNode json = (ObjectNode) JsonHandler.getFromString("{\"#id\":\"" + uuid1 +
-            "\", \"#qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description\" : \"Test\"}}, \"title\":\"title1\"}");
-        final ObjectNode json1 = (ObjectNode) JsonHandler.getFromString("{\"#id\":\"" + uuid2 +
-            "\", \"#qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description1\" : \"Test\"}}, \"title\":\"title1\"}");
+        final ObjectNode json =
+            (ObjectNode) JsonHandler
+                .getFromString("{\"#id\":\"" +
+                    uuid1 +
+                    "\", \"#qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description\" : \"Test\"}}, \"title\":\"title1\"}");
+        final ObjectNode json1 =
+            (ObjectNode) JsonHandler
+                .getFromString("{\"#id\":\"" +
+                    uuid2 +
+                    "\", \"#qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description1\" : \"Test\"}}, \"title\":\"title1\"}");
         insert.addData(json).addRoots(uuid01.getId());
         ObjectNode insertRequestString = insert.getFinalInsert();
         requestParser = new InsertParserMultiple(mongoDbVarNameAdapter);
@@ -1439,8 +1585,8 @@ public class DbRequestTest {
 
         // Check for "name_with_underscore"
         select = new SelectMultiQuery();
-        select.addRoots("aebaaaaaaaaaaaabaahbcakzu2stfryaaaaq")
-            .addQueries(match("Title", "underscore").setDepthLimit(1));
+        select
+            .addQueries(match("Title", "abcd").setDepthLimit(1));
         selectParser1.parse(select.getFinalSelect());
         LOGGER.debug("SelectParser: {}", selectParser1.getRequest());
         final Result resultSelectRel8 = dbRequest.execRequest(selectParser1, null);
@@ -1521,6 +1667,28 @@ public class DbRequestTest {
             resultSelectRel5.getCurrentIds().iterator().next().toString());
     }
 
+    
+    @Test(expected = MetaDataExecutionException.class)
+    @RunWithCustomExecutor
+    public void testUpdateKOSchemaUnitResultThrowsException() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
+        // insert title ARchive 3
+        final DbRequest dbRequest = new DbRequest();
+        final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
+        final InsertMultiQuery insert = new InsertMultiQuery();
+        insert.parseData(REQUEST_INSERT_TEST_ES_UPDATE_KO).addRoots("aeaqaaaaaagbcaacabg44ak45e54criaaaaq");
+        insertParser.parse(insert.getFinalInsert());
+        LOGGER.debug("InsertParser: {}", insertParser);
+        dbRequest.execRequest(insertParser, null);
+        esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_0);
+
+        final JsonNode updateRequest = JsonHandler.getFromString(REQUEST_UPDATE_INDEX_TEST_KO);
+        final UpdateParserMultiple updateParser = new UpdateParserMultiple();
+        updateParser.parse(updateRequest);
+        LOGGER.debug("UpdateParser: {}", updateParser.getRequest());
+        dbRequest.execRequest(updateParser, null);        
+    }
+    
     private static final JsonNode buildQueryJsonWithOptions(String query, String data)
         throws Exception {
         return JsonHandler.getFromString(new StringBuilder()

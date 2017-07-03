@@ -136,8 +136,8 @@ public abstract class RequestResponse<T> {
     }
 
     @JsonIgnore
-    public RequestResponse parseHeadersFromResponse(Response response) {
-        if (null != response && null != response.getHeaders()) {
+    public RequestResponse<T> parseHeadersFromResponse(Response response) {
+        if (response != null && response.getHeaders() != null) {
             for (final String key : response.getHeaders().keySet()) {
                 // Copy Vitam Header starts with X-in the response
                 if (key.startsWith("X-") || key.startsWith("x-")) {
@@ -145,7 +145,7 @@ public abstract class RequestResponse<T> {
                 }
             }
         }
-        if (null != response) {
+        if (response != null) {
             this.setHttpCode(response.getStatus());
         }
         return this;
@@ -162,12 +162,26 @@ public abstract class RequestResponse<T> {
      * @throws IllegalStateException if the response cannot be parsed to one of the two model
      */
     @JsonIgnore
-    public static RequestResponse parseFromResponse(Response response) throws IllegalStateException {
+    public static RequestResponse<JsonNode> parseFromResponse(Response response) throws IllegalStateException {
+        return parseFromResponse(response, JsonNode.class);
+    }
+    /**
+     * Parser the response for a RequestResponse object.<br/>
+     * <br/>
+     * Might return an empty VitamError in case response is empty with only the HttpCode set and the Code set to empty
+     * String.
+     *
+     * @param response to parse in RequestResponse
+     * @return The associate RequestResponseOk or VitamError
+     * @throws IllegalStateException if the response cannot be parsed to one of the two model
+     */
+    @JsonIgnore
+    public static <T> RequestResponse<T> parseFromResponse(Response response, Class clazz) throws IllegalStateException {
         final String result = response.readEntity(String.class);
         if (result != null && !result.isEmpty()) {
             if (result.contains("$hits")) {
                 try {
-                    final RequestResponseOK ret = JsonHandler.getFromString(result, RequestResponseOK.class, JsonNode.class);
+                    final RequestResponseOK ret = JsonHandler.getFromString(result, RequestResponseOK.class, clazz);
                     return ret.parseHeadersFromResponse(response);
                 } catch (final InvalidParseOperationException e) {
                     // Issue, trying VitamError model

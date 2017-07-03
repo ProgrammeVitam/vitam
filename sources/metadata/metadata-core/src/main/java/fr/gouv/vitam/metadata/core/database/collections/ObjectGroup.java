@@ -73,6 +73,11 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
      */
     public static final String USAGES = "_qualifiers";
     /**
+     * Storage Id
+     */
+    public static final String STORAGE = "_storage";
+    
+    /**
      * Unit Id, Vitam fields Only projection (no usage)
      */
     public static final BasicDBObject OBJECTGROUP_VITAM_PROJECTION =
@@ -82,11 +87,16 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
      * Versions
      */
     // FIXME P2 WRONG
-    public static final String VERSIONS = USAGES + ".*." + "versions";    
+    public static final String VERSIONS = USAGES + ".*." + "versions";
     /**
      * DataObjectVersion
      */
     public static final String DATAOBJECTVERSION = VERSIONS + "." + "DataObjectVersion";
+
+    /**
+     * storage to objectGroup
+     */
+    public static final String VERSIONS_STORAGE = VERSIONS + "." + "storage";
     /**
      * Version
      */
@@ -119,10 +129,7 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
      * Copies
      */
     public static final String COPIES = VERSIONS + "." + "_copies";
-    /**
-     * Storage Id
-     */
-    public static final String STORAGE = COPIES + "." + "sid";
+   
 
     private static final BasicDBObject[] indexes = {
         new BasicDBObject(VitamLinks.UNIT_TO_OBJECTGROUP.field2to1, 1),
@@ -135,7 +142,8 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
         new BasicDBObject(OBJECTFORMAT, 1),
         new BasicDBObject(OBJECTDIGEST_VALUE, 1).append(OBJECTDIGEST_TYPE, 1),
         new BasicDBObject(STORAGE, 1),
-        new BasicDBObject(DATAOBJECTVERSION, 1).append(VERSION, 1)};
+        new BasicDBObject(DATAOBJECTVERSION, 1).append(VERSION, 1),
+        new BasicDBObject(VERSIONS_STORAGE, 1)};
 
     /**
      * Total number of copies
@@ -166,7 +174,7 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
     /**
      * Constructor from Json
      *
-     * @param content the objectgroup of JsonNode format 
+     * @param content the objectgroup of JsonNode format
      */
     public ObjectGroup(JsonNode content) {
         super(content);
@@ -207,6 +215,11 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
     @Override
     protected MongoCollection<ObjectGroup> getCollection() {
         return MetadataCollections.C_OBJECTGROUP.getCollection();
+    }
+
+    @Override
+    public MetadataDocument<ObjectGroup> newInstance(JsonNode content) {
+        return new ObjectGroup(content);
     }
 
     /**

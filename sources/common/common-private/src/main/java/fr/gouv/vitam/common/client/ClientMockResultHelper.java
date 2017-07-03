@@ -72,7 +72,7 @@ public class ClientMockResultHelper {
                     "\"outcome\": \"STARTED\"," +
                     "\"outDetail\": null," +
                     "\"outMessg\": \"SIP entry : SIP.zip\"," +
-                    "\"agId\": {\"name\":\"ingest_1\",\"role\":\"ingest\",\"pid\":425367}," +
+                    "\"agId\": \"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"ingest-external\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\"," +
                     "\"agIdApp\": null," +
                     "\"agIdAppSession\": null," +
                     "\"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
@@ -92,7 +92,7 @@ public class ClientMockResultHelper {
                     "\"outcome\": \"STARTED\"," +
                     "\"outDetail\": null," +
                     "\"outMessg\": \"SIP entry : SIP.zip\"," +
-                    "\"agId\": {\"name\":\"ingest_1\",\"role\":\"ingest\",\"pid\":425367}," +
+                    "\"agId\": \"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"ingest-external\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\"," +
                     "\"agIdApp\": null," +
                     "\"agIdAppSession\": null," +
                     "\"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
@@ -131,7 +131,8 @@ public class ClientMockResultHelper {
             "\"Name\":\"Un contrat\", " +
             "\"Description\":\"DESCRIPTION D'UN CONTRAT\", " +
             "\"Status\":\"ACTIVE\", " +
-            "\"OriginatingAgencies\": [\"FR_ORG_AGEC\"], " +
+            "\"OriginatingAgencies\": [\"FR_ORG_AGEC\", \"OriginatingAgency\"], " +
+            "\"EveryDataObjectVersion\": false, " +
             "\"CreationDate\":\"2016-11-02\", " +
             "\"LastUpdate\":\"2016-11-02\", " +
             "\"ActivationDate\":\"2016-11-02\", " +
@@ -148,6 +149,14 @@ public class ClientMockResultHelper {
         "\"LastUpdate\":\"2016-11-02\", " +
         "\"ActivationDate\":\"2016-11-02\", " +
         "\"DeactivationDate\":\"2016-11-02\"}";
+    
+    public static final String CONTEXTS = "{\"Name\": \"My_Context_1\", " +
+        "\"Status\": true," + 
+        "\"Permissions\": [{" +
+            "\"_tenant\": 0," +
+            "\"AccessContracts\": []," +
+            "\"IngestContracts\": []" +
+        "}]}";
 
     private static final String FORMAT = "{\"_id\":\"aeaaaaaaaaaaaaabaa44qakyetenaeyaaawq\", " +
             "\"CreatedDate\":\"2016-01-21T10:36:46\", " +
@@ -235,7 +244,7 @@ public class ClientMockResultHelper {
             "\"outcome\": \"STARTED\"," +
             "\"outDetail\": null," +
             "\"outMessg\": \"SIP entry : SIP.zip\"," +
-            "\"agId\": {\"name\":\"traceability_1\",\"role\":\"traceability\",\"pid\":425367}," +
+            "\"agId\": \"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"storage\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\"," +
             "\"agIdApp\": null," +
             "\"agIdAppSession\": null," +
             "\"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
@@ -305,8 +314,7 @@ public class ClientMockResultHelper {
     
     public static JsonNode getMetaDataResult(){
         return new RequestResponseOK()
-        .setHits(1, 0, 1)
-        .setQuery(null).toJsonNode();        
+        .setHits(1, 0, 1).toJsonNode();
     }
 
     /**
@@ -325,8 +333,6 @@ public class ClientMockResultHelper {
      */
     public static RequestResponse createReponse(Object s) throws InvalidParseOperationException {
         return new RequestResponseOK()
-                .setHits(1, 0, 1)
-                .setQuery(null)
                 .addResult(s);
     }
 
@@ -336,9 +342,7 @@ public class ClientMockResultHelper {
      * @throws InvalidParseOperationException
      */
     public static RequestResponse createReponse(String s) throws InvalidParseOperationException {
-        RequestResponseOK responseOK =  new RequestResponseOK()
-                .setHits(1, 0, 1)
-                .setQuery(null);
+        RequestResponseOK responseOK =  new RequestResponseOK();
         if (null != s)
             responseOK.addResult(JsonHandler.getFromString(s));
         return responseOK.setHttpCode(Status.OK.getStatusCode());
@@ -351,9 +355,7 @@ public class ClientMockResultHelper {
      * @throws InvalidParseOperationException
      */
     public static RequestResponse createReponse(String s, int statuscode) throws InvalidParseOperationException {
-        RequestResponseOK responseOK =  new RequestResponseOK()
-            .setHits(1, 0, 1)
-            .setQuery(null);
+        RequestResponseOK responseOK =  new RequestResponseOK();
         if (null != s)
             responseOK.addResult(JsonHandler.getFromString(s));
         return responseOK.setHttpCode(statuscode);
@@ -413,7 +415,13 @@ public class ClientMockResultHelper {
     }
 
 
-
+    /**
+     * @return context json
+     * @throws InvalidParseOperationException
+     */
+    public static RequestResponse getContexts(int statusCode) throws InvalidParseOperationException{
+        return createReponse(CONTEXTS, statusCode);
+    }
 
     public static RequestResponse getProfiles(int statusCode)throws InvalidParseOperationException {
         return createReponse(PROFILES, statusCode);

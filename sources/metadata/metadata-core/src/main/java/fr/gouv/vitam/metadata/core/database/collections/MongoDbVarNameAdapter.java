@@ -51,7 +51,7 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
     /**
      * @see ParserTokens.PROJECTIONARGS
      * @param name as String
-     * @return the new name or null if the same 
+     * @return the new name or null if the same
      * @throws InvalidParseOperationException when parsing error
      */
     @Override
@@ -121,17 +121,30 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                         return Unit.UNITUPS;
                     case UNITTYPE:
                         // Valid for Unit
-                        return Unit.UNIT_TYPE;    
+                        return Unit.UNIT_TYPE;
                     case MANAGEMENT:
                         // Valid for Unit
                         return Unit.MANAGEMENT + extension;
                     case OPERATIONS:
                         // Valid for Unit and OG
                         return MetadataDocument.OPS;
+                    case ORIGINATING_AGENCY:
+                        // Valid for Unit and OG
+                        return MetadataDocument.ORIGINATING_AGENCY;
+                    case ORIGINATING_AGENCIES:
+                        // Valid for Unit and OG
+                        return MetadataDocument.ORIGINATING_AGENCIES;
+                    case VERSION:
+                        // Valid for Unit and OG (And for VitamDocument items)
+                        return MetadataDocument.VERSION;
+                    case STORAGE:
+                        // Valid for OG an Unit
+                        return ObjectGroup.STORAGE + extension;
                     case ALL:
                     default:
                         break;
                 }
+
             } catch (final IllegalArgumentException e) {
                 throw new InvalidParseOperationException(e);
             }

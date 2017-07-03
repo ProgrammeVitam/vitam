@@ -53,6 +53,10 @@ module('ihm.demo').
         template: '<functional-test></functional-test>',
         title: 'Tests fonctionnels'
       }).
+      when('/dslQueryTest', {
+        template: '<dsl-query-test></dsl-query-test>',
+        title: 'Tests requêtes DSL'
+      }).
       when('/applicativeTest/:reportName', {
         templateUrl: 'pages/functional-test/functional-tests-details.template.html',
         controller: 'FunctionalTestDetailsController',

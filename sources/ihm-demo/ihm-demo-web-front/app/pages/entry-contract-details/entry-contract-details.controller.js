@@ -28,8 +28,9 @@
 'use strict';
 
 angular.module('entryContracts')
-.controller('entryContractsDetailsController', function ($scope, $routeParams, entryContractResource, $mdDialog) {
+.controller('entryContractsDetailsController', function ($scope, $routeParams, entryContractResource, $mdDialog, authVitamService) {
     var id = $routeParams.id;
+    var ENTRY_CONTRACTS_UPDATE_PERMISSION = 'contracts:update';
     $scope.tmpVars = {
         isActive: true,
         oldStatus: ''
@@ -37,14 +38,17 @@ angular.module('entryContracts')
     $scope.updateStatus = function() {
         $scope.contract.Status = $scope.tmpVars.isActive? 'ACTIVE': 'INACTIVE';
     };
-    entryContractResource.getDetails(id, function (response) {
-        if (response.data.length !== 0) {
-            $scope.contract = response.data.$results[0];
-            $scope.tmpVars.oldStatus = $scope.contract.Status;
-            $scope.tmpVars.isActive = $scope.contract.Status === 'ACTIVE';
-        }
-    });
-
+    
+    var getDetails = function (id) {
+        entryContractResource.getDetails(id, function (response) {
+            if (response.data.length !== 0) {
+                $scope.contract = response.data.$results[0];
+                $scope.tmpVars.oldStatus = $scope.contract.Status;
+                $scope.tmpVars.isActive = $scope.contract.Status === 'ACTIVE';
+            }
+        });
+    };
+    
     var displayMessage = function(message, closeMessage) {
         if (!closeMessage) {
             closeMessage = 'Fermer';
@@ -74,8 +78,15 @@ angular.module('entryContracts')
         entryContractResource.update(id, updateData).then(function() {
             displayMessage('La modification a bien été enregistrée');
             $scope.tmpVars.oldStatus = $scope.contract.Status;
+            getDetails(id);
         }, function() {
             displayMessage('Aucune modification effectuée');
         });
     };
+    
+    getDetails(id);
+
+    $scope.checkPermission = function() {
+      return !authVitamService.hasPermission(ENTRY_CONTRACTS_UPDATE_PERMISSION);
+    }
 });

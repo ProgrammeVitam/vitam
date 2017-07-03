@@ -29,7 +29,10 @@ package fr.gouv.vitam.processing.data.core.management;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLEncoder;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -38,12 +41,13 @@ import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
+import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ProcessExecutionStatus;
+import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
@@ -83,7 +87,11 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
         try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
             client.createContainer(PROCESS_CONTAINER);
             return true;
-        } catch (ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException exc) {
+        } catch (ContentAddressableStorageAlreadyExistException e){
+            LOGGER.info(e);
+            return true;
+        } catch (ContentAddressableStorageServerException exc) {
+            LOGGER.error(exc);
             throw new ProcessingStorageWorkspaceException(exc);
         }
     }
@@ -135,7 +143,7 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
     @Override
     public void persistProcessWorkflow(String folderName, String asyncId, ProcessWorkflow processWorkflow)
         throws ProcessingStorageWorkspaceException, InvalidParseOperationException {
-        LOGGER.debug("[PERSIST] workflow process with execution status : <{}>", processWorkflow.getExecutionStatus());
+        LOGGER.debug("[PERSIST] workflow process with execution status : <{}>", processWorkflow.getState());
         try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
             // XXX: ugly way to do this (bytearray) ?
             client.putObject(PROCESS_CONTAINER, getPathToObjectFromFolder(folderName, asyncId),
@@ -153,7 +161,7 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
         // Not using try with resources because in this case, response.close() throw an exception :
         // MultiException stack 1 of 1
         // java.lang.IllegalStateException: ServiceLocatorImpl(__HK2_Generated_30,31,1929030508) has been shut down
-        
+
         try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
             response = client.getObject(PROCESS_CONTAINER, getPathToObjectFromFolder(folderName, asyncId));
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
@@ -173,6 +181,7 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
 
     }
 
+
     @Override
     public void removeProcessWorkflow(String folderName, String asyncId) throws ProcessingStorageWorkspaceException {
         try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
@@ -188,20 +197,24 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
         Map<String, ProcessWorkflow> result = new ConcurrentHashMap<>();
         try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
             List<URI> uris =
-                JsonHandler.getFromStringAsTypeRefence(client.getListUriDigitalObjectFromFolder(PROCESS_CONTAINER, folderName)
-                    .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {});
+                JsonHandler
+                    .getFromStringAsTypeRefence(client.getListUriDigitalObjectFromFolder(PROCESS_CONTAINER, folderName)
+                        .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {});
             for (URI uri : uris) {
                 try {
-                    // TODO: review this ugly split
-                    ProcessWorkflow processWorkflow = getProcessWorkflow(folderName, uri.getPath().split("\\.")[0]);
-                    if (!ProcessExecutionStatus.PAUSE.equals(processWorkflow.getExecutionStatus())) {
-                        processWorkflow.setExecutionStatus(ProcessExecutionStatus.CANCELLED);
-                        processWorkflow.setGlobalStatusCode(StatusCode.UNKNOWN);
+                    String processId = uri.getPath().substring(0,
+                        uri.getPath().lastIndexOf(URLEncoder.encode(".", CharsetUtils.UTF_8)));
+                    ProcessWorkflow processWorkflow = getProcessWorkflow(folderName, processId);
+                    if (ProcessState.RUNNING.equals(processWorkflow.getState())) {
+                        processWorkflow.setState(ProcessState.COMPLETED);
+                        processWorkflow.setProcessCompletedDate(LocalDateTime.now());
+                        processWorkflow.setStatus(StatusCode.UNKNOWN);
                     }
+
                     if (tenantId == null || processWorkflow.getTenantId().equals(tenantId)) {
                         result.put(processWorkflow.getOperationId(), processWorkflow);
                     }
-                } catch (InvalidParseOperationException e) {
+                } catch (InvalidParseOperationException | UnsupportedEncodingException e) {
                     // TODO: is blocking ?
                     LOGGER.error("Error on loading old workflow {} -> cannot be resume", uri.getPath(), e);
                 }

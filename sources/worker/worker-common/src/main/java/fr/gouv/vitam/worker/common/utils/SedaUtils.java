@@ -30,8 +30,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -53,14 +55,18 @@ import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -182,8 +188,12 @@ public class SedaUtils {
             final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
             final QName messageObjectName = new QName(NAMESPACE_URI, SedaConstants.TAG_MESSAGE_IDENTIFIER);
             final QName originatingAgencyName = new QName(NAMESPACE_URI, SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
+            final QName submissionAgencyName = new QName(NAMESPACE_URI, SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER);
             final QName contractName = new QName(NAMESPACE_URI, SedaConstants.TAG_ARCHIVAL_AGREEMENT);
+            final QName commentName = new QName(NAMESPACE_URI, SedaConstants.TAG_COMMENT);
+            final QName profilName = new QName(NAMESPACE_URI, SedaConstants.TAG_ARCHIVE_PROFILE);
 
+            StringBuffer sedaComment = new StringBuffer();
             reader = xmlInputFactory.createXMLEventReader(xmlFile);
             while (true) {
                 final XMLEvent event = reader.nextEvent();
@@ -195,15 +205,36 @@ public class SedaUtils {
                     if (element.getName().equals(messageObjectName)) {
                         madatoryValueMap.put(SedaConstants.TAG_MESSAGE_IDENTIFIER, reader.getElementText());
                     }
+
+                    if (element.getName().equals(profilName)) {
+                        madatoryValueMap.put(SedaConstants.TAG_ARCHIVE_PROFILE, reader.getElementText());
+                    }
+                    
+                    if (element.getName().equals(submissionAgencyName)) {
+                        madatoryValueMap.put(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER, reader.getElementText());
+                    }
+
+                    if (element.getName().equals(commentName)) {
+                        if (!"".equals(sedaComment.toString())) {
+                            sedaComment.append("_" + reader.getElementText());
+                        } else {
+                            sedaComment.append(reader.getElementText());
+                        }
+
+                    }
                     if (element.getName().equals(originatingAgencyName)) {
                         madatoryValueMap.put(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER, reader.getElementText());
-                        break;
                     }
                 }
                 if (event.isEndDocument()) {
                     break;
                 }
             }
+
+            if (sedaComment.length() > 0) {
+                madatoryValueMap.put(SedaConstants.TAG_COMMENT, sedaComment.toString());
+            }
+
         } catch (final XMLStreamException e) {
             LOGGER.error(CANNOT_READ_SEDA, e);
             throw new ProcessingException(e);
@@ -227,7 +258,7 @@ public class SedaUtils {
      * @param params worker parameter
      * @return a status representing the validation of the file
      */
-    public CheckSedaValidationStatus checkSedaValidation(WorkerParameters params) {
+    public CheckSedaValidationStatus checkSedaValidation(WorkerParameters params, ItemStatus itemStatus) {
         ParameterHelper.checkNullOrEmptyParameters(params);
         final InputStream input;
         try {
@@ -238,7 +269,7 @@ public class SedaUtils {
             if (!checkFolderContentNumber()) {
                 return CheckSedaValidationStatus.MORE_THAN_ONE_FOLDER_CONTENT;
             }
-            new ValidationXsdUtils().checkWithXSD(input, SEDA_VALIDATION_FILE);
+            ValidationXsdUtils.checkWithXSD(input, SEDA_VALIDATION_FILE);
             return CheckSedaValidationStatus.VALID;
         } catch (ProcessingException | IOException e) {
             LOGGER.error("Manifest.xml not found", e);
@@ -250,6 +281,8 @@ public class SedaUtils {
             // if the cause is null, that means the file is an xml, but it does not validate the XSD
             if (e.getCause() == null) {
                 LOGGER.error("Manifest.xml is not valid with the XSD", e);
+                JsonNode errorNode = JsonHandler.createObjectNode().put(SedaConstants.EV_DET_TECH_DATA, e.getMessage());
+                itemStatus.setData(LogbookParameterName.eventDetailData.name(), errorNode.toString());
                 return CheckSedaValidationStatus.NOT_XSD_VALID;
             }
             LOGGER.error("Manifest.xml is not a correct xml file", e);
@@ -305,14 +338,17 @@ public class SedaUtils {
 
     /**
      * check if there are many folder content in the SIP
+     * 
+     * @throws ProcessingException
+     * @throws UnsupportedEncodingException
      */
-    private boolean checkFolderContentNumber() throws ProcessingException {
+    private boolean checkFolderContentNumber() throws ProcessingException, UnsupportedEncodingException {
         List<URI> list = handlerIO.getUriList(handlerIO.getContainerName(), IngestWorkflowConstants.SEDA_FOLDER);
         String contentName = null;
         for (int i = 0; i < list.size(); i++) {
             String s = list.get(i).toString();
-            if (s.contains("/")) {
-                String directory = s.split("/")[0];
+            if (s.contains(URLEncoder.encode("/", CharsetUtils.UTF_8))) {
+                String directory = s.split(URLEncoder.encode("/", CharsetUtils.UTF_8))[0];
                 if (directory.equalsIgnoreCase("content")) {
                     if (contentName == null) {
                         contentName = directory;
@@ -333,12 +369,16 @@ public class SedaUtils {
 
     /**
      * check if there are many file manifest.xml another in the SIP root
+     * 
+     * @throws ProcessingException
+     * @throws UnsupportedEncodingException
      */
-    private boolean checkMultiManifest() throws ProcessingException {
+    private boolean checkMultiManifest() throws ProcessingException, UnsupportedEncodingException {
         List<URI> listURI = handlerIO.getUriList(handlerIO.getContainerName(), IngestWorkflowConstants.SEDA_FOLDER);
+
         int countManifest = 0;
         for (int i = 0; i < listURI.size(); i++) {
-            if (!listURI.get(i).toString().contains("/")) {
+            if (!listURI.get(i).toString().contains(URLEncoder.encode("/", CharsetUtils.UTF_8))) {
                 countManifest++;
                 if (countManifest > 1) {
                     return true;
@@ -350,11 +390,10 @@ public class SedaUtils {
 
     /**
      *
-     * @param params - parameters of workspace server
      * @return ExtractUriResponse - Object ExtractUriResponse contains listURI, listMessages and value boolean(error).
      * @throws ProcessingException - throw when error in execution.
      */
-    public ExtractUriResponse getAllDigitalObjectUriFromManifest(WorkerParameters params)
+    public ExtractUriResponse getAllDigitalObjectUriFromManifest()
         throws ProcessingException {
         return parsingUriSEDAWithWorkspaceClient();
     }
@@ -419,7 +458,7 @@ public class SedaUtils {
             }
             LOGGER.debug("End of extracting  Uri from manifest");
 
-        } catch (XMLStreamException | URISyntaxException e) {
+        } catch (XMLStreamException | URISyntaxException | UnsupportedEncodingException e) {
             LOGGER.error(e);
             throw new ProcessingException(e);
         } finally {
@@ -437,7 +476,7 @@ public class SedaUtils {
     }
 
     private void getUri(ExtractUriResponse extractUriResponse, XMLEventReader evenReader)
-        throws XMLStreamException, URISyntaxException {
+        throws XMLStreamException, URISyntaxException, UnsupportedEncodingException {
 
         while (evenReader.hasNext()) {
             XMLEvent event = evenReader.nextEvent();
@@ -451,7 +490,7 @@ public class SedaUtils {
                     final String uri = event.asCharacters().getData();
                     // Check element is duplicate
                     checkDuplicatedUri(extractUriResponse, uri);
-                    extractUriResponse.getUriListManifest().add(new URI(uri));
+                    extractUriResponse.getUriListManifest().add(new URI(URLEncoder.encode(uri, CharsetUtils.UTF_8)));
                     break;
                 }
             }

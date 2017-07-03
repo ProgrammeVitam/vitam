@@ -13,12 +13,13 @@ Services
 ========
 
 De manière générale, pour le Storage, les méthodes utilisées sont les suivantes :
- - GET : pour l'équivalent du "Select".
- - POST : **sans** X-Http-Method-Override: GET dans le Header, pour faire un insert.
- - POST : **avec** X-Http-Method-Override: GET dans le Header, pour faire un select (avec Body).
- - PUT : pour les mises à jour de Units et ObjectGroups.
- - DELETE : pour effacer des métadonnées, des objects, des units, des journaux ou bien des containers.
- - HEAD : pour les tests d'existence.
+
+- GET : pour l'équivalent du "Select".
+- POST : **sans** X-Http-Method-Override: GET dans le Header, pour faire un insert.
+- POST : **avec** X-Http-Method-Override: GET dans le Header, pour faire un select (avec Body).
+- PUT : pour les mises à jour de Units et ObjectGroups.
+- DELETE : pour effacer des métadonnées, des objects, des units, des journaux ou bien des containers.
+- HEAD : pour les tests d'existence.
 
 Rest API
 --------
@@ -30,16 +31,18 @@ URI d'appel
 Headers
 ^^^^^^^
 Plusieurs informations sont nécessaires dans la partie header :
- - X-Strategy-Id : Stratégie pour Offres de stockage et Copies (conservation).
- - X-Tenant-Id (obligatoire pour toute requête) : id du tenant. Cette information sera utilisée dans toutes les requêtes pour déterminer sur quel tenant se baser.
- - X-Request-Id : l'identifiant unique de la requête.
- - Accept : Permet de spécifier si un résultat doit contenir uniquement des métadonnées ('application/json'), un DIP complet (un ZIP contenant les métadonnées et les objets) ou seulement des Objects avec un contenu binaire ('application/octet-stream').
- - X-ObjectGroup-Id : Id de l'ObjectGroup
- - X-Units : Ids des Units parents
- - X-Caller-Id : Id du service demandeur
+
+- X-Strategy-Id : Stratégie pour Offres de stockage et Copies (conservation).
+- X-Tenant-Id (obligatoire pour toute requête) : id du tenant. Cette information sera utilisée dans toutes les requêtes pour déterminer sur quel tenant se baser.
+- X-Request-Id : l'identifiant unique de la requête.
+- Accept : Permet de spécifier si un résultat doit contenir uniquement des métadonnées ('application/json'), un DIP complet (un ZIP contenant les métadonnées et les objets) ou seulement des Objects avec un contenu binaire ('application/octet-stream').
+- X-ObjectGroup-Id : Id de l'ObjectGroup
+- X-Units : Ids des Units parents
+- X-Caller-Id : Id du service demandeur
 
 Méthodes
 ^^^^^^^^
+
 | HEAD /  -> **Permet d'accéder aux informations d'un container.**
 | POST / -> avec header X-Http-Method-Override: GET **Permet d'accéder aux informations d'un container.**
 | POST / -> **Permet de créer un nouveau container (nouveau tenant).**
@@ -88,15 +91,12 @@ Distribution
 
 Le distributeur (module distribution) est en charge de décider selon la stratégie de stockage dans quelles offres doit être stocké un objet binaire.
 
-Avant tout, le moteur de stockage récupère le binaire sur le workspace et le démultplie via un tee autant de fois que
- de copies à réaliser.
+Avant tout, le moteur de stockage récupère le binaire sur le workspace et le démultplie via un tee autant de fois que de copies à réaliser.
 Pour chaque offre de stockage contenue dans la stratégie le distributeur demande au SPI DriverManager le driver associé.
 Le distributeur instancie alors pour chaque offre un nouveau thread qui va se charger du transfert vers chacune des
 offres. Dans chaque thread le driver associé à l'offre est utilisé pour le transfert.
 
-Les thread font un retour OK ou KO. Pour chaque offre en KO, une nouvelle tentative de transfert est faite, jusqu'à
-trois tentatives. Si encore une offre est en KO après trois tentatives (retry), les binaires déposés sur les offres OK
-sont supprimés (rollback).
+Les thread font un retour OK ou KO. Pour chaque offre en KO, une nouvelle tentative de transfert est faite, jusqu'à trois tentatives. Si encore une offre est en KO après trois tentatives (retry), les binaires déposés sur les offres OK sont supprimés (rollback).
 
 Le distributeur gère la mise à jour du journal des écritures du storage liée à l'opération de stockage d'un objet binaire dans une offre.
 Toutes les tentatives y sont répertoriées pour chaque offre.
@@ -110,17 +110,18 @@ D'un point de vue séquentiel :
  3. Regarde uniquement la partie "offres chaudes"
  4. Récupère le fichier sur le workspace
  5. Pour chaque offre chaude :
+
     1. Récupération du Driver associé s'il existe (sinon remontée d'une exception technique)
     2. Instancie un thread et dans ce trhead :
        1. Récupération des paramètres de l'offre : url du service, paramètres additionels
        2. Tentative de connection à l'offre et d'upload de l'objet
-       3. Comparaison du digest hash renvoyé par l'offre avec le digest calculé à la volée lors de l'envoi du stream à
-     l'offre
+       3. Comparaison du digest hash renvoyé par l'offre avec le digest calculé à la volée lors de l'envoi du stream à l'offre
        4. Retour vers le distributeur du résultat (OK ou KO)
     3. Stockage du résultat de l'upload dans une map temporaire contenant le résultat de l'upload sur chaque offre
+
  6. Pour chaque offre KO, un nouvelle tentative est faite (jusqu'à trois)
- 7. Si tout est OK, génération d'une réponse sérialisable, en mode 'succès' si **tous** les drivers ont correctement
- stocker l'objet.
+ 7. Si tout est OK, génération d'une réponse sérialisable, en mode 'succès' si **tous** les drivers ont correctement stocker l'objet.
+
     Si une offre au moins est KO, suppression des binaires sur les offres en succès et renvoie une exception
 
 DriverManager : SPI
@@ -130,24 +131,18 @@ DriverManager : SPI
 | Le driver (son interface) est défini dans `storage-driver <storage-driver.html>`_.
 
 Les différents drivers sont chargés via le ServiceLoader de la JDK puis leurs instances sont stockées dans une liste.
-Cela permet ensuite de configurer les offres sur les différentes instances de driver en passant par une MAP dont la
-clef est l'identifant de l'offre, la valeur est le driver instancié dans la liste (une référence à ce driver donc,
-retrouvé par son nom (getName())).
+Cela permet ensuite de configurer les offres sur les différentes instances de driver en passant par une MAP dont la clef est l'identifant de l'offre, la valeur est le driver instancié dans la liste (une référence à ce driver donc, retrouvé par son nom (getName())).
 
-Le distributeur va alors demander au DriverManager le driver correspondant à l'offre définie dans la stratégie afin
-de réaliser les opérations de stockage.
+Le distributeur va alors demander au DriverManager le driver correspondant à l'offre définie dans la stratégie afin de réaliser les opérations de stockage.
 
 Principe
 --------
 
-Le driver à ajouter doit implémenter l'interface définie. Dans son jar, il faut donc retrouver l'implémentation du
-driver ainsi que le fichier permettant au ServiceLoader de fonctionner. Ce fichier **DOIT** se trouver dans les
-resources, sous META-INF/services (principe du ServiceLoader de la JDK).
-Son nom est l'interface implémentée par le driver précédé de son package.
+Le driver à ajouter doit implémenter l'interface définie. Dans son jar, il faut donc retrouver l'implémentation du driver ainsi que le fichier permettant au ServiceLoader de fonctionner. Ce fichier **DOIT** se trouver dans les resources, sous META-INF/services (principe du ServiceLoader de la JDK). Son nom est l'interface implémentée par le driver précédé de son package.
 
 Exemple::
 
-    fr.gouv.vitam.storage.driver.Driver
+    samples/fr.gouv.vitam.storage.driver.Driver
 
 Où VitamDriver est l'interface implémentée.
 
@@ -159,7 +154,7 @@ Exemple::
 
 Où VitamDriverImpl est l'implémentation du driver.
 
-Voici le fichier : :download:`fr.gouv.vitam.storage.driver.Driver <samples/fr.gouv.vitam.storage.driver.Driver>`
+Voici le fichier : :download:`fr.gouv.vitam.storage.driver.Driver <samples/fr.gouv.vitam.storage.driver.VitamDriver>`
 
 | Le jar sera déposé via une interface graphique dans un répertoire défini dans le fichier de configuration driver-location.conf avec la clef **driverLocation**. Actuellement il faut le déposer manuellement.
 | Le paramétrage des offres se fera également via une interface graphique.
@@ -188,8 +183,4 @@ du SPI.
         void removeOffersTo(List<String> offersIdsToRemove, String driverName) throws StorageException;
     }
 
-Dans un premier temps, l'implémentation du mapper se fera en passant par un fichier. Dans son implémentation
-actuelle, le DriverMapper a besoin d'un fichier de configuration, driver-mapping.conf. Ici, il permet de définir
-l'emplacement où seront enregistrés les fichiers permettant la persistance via la clef **driverMappingPath**. Une autre clef est
-nécessaire afin de définir le délimiteur dans ce fichier via la clef **delimiter**, le principe étant de mettre en place un
-fichier par driver comme un fichier CSV, les offres étant séparées par ce délimiteur.
+Dans un premier temps, l'implémentation du mapper se fera en passant par un fichier. Dans son implémentation actuelle, le DriverMapper a besoin d'un fichier de configuration, driver-mapping.conf. Ici, il permet de définir l'emplacement où seront enregistrés les fichiers permettant la persistance via la clef **driverMappingPath**. Une autre clef est nécessaire afin de définir le délimiteur dans ce fichier via la clef **delimiter**, le principe étant de mettre en place un fichier par driver comme un fichier CSV, les offres étant séparées par ce délimiteur.

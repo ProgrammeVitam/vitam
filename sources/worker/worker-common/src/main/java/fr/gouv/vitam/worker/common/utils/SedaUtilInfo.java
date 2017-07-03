@@ -46,7 +46,7 @@ public final class SedaUtilInfo {
     /**
      * Add dataObjectInfo to the Map
      *
-     * @param dataObjectInfo info of a data object
+     * @param binaryObjectInfo info of a data object
      */
     public void setDataObjectMap(DataObjectInfo binaryObjectInfo) {
         dataObjectMap.put(binaryObjectInfo.getId(), binaryObjectInfo);

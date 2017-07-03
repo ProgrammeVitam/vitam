@@ -28,15 +28,11 @@ package fr.gouv.vitam.processing.data.core;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
-import fr.gouv.vitam.common.model.ProcessAction;
-import fr.gouv.vitam.common.model.ProcessExecutionStatus;
-import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.exception.StepsNotFoundException;
-import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.common.model.WorkFlow;
 
@@ -50,25 +46,11 @@ public interface ProcessDataAccess {
      * 
      * @param workflow the workflow to init
      * @param containerName : null not allowed , the name of the container to be processed
-     * @param executionMode {@link ProcessAction}
      * @param logbookTypeProcess {@link LogbookTypeProcess}
      * @param tenantId the working tenant
      * @return {@link LogbookTypeProcess}
      */
-    ProcessWorkflow initProcessWorkflow(WorkFlow workflow, String containerName, ProcessAction executionMode,
-        LogbookTypeProcess logbookTypeProcess, Integer tenantId);
-
-    /**
-     * Updates a step status in a workflow, knowing its unique id
-     *
-     * @param processId the id of the process to be updated
-     * @param uniqueId the step with unique Id
-     * @param status the Code of the status
-     * @param tenantId the working tenant
-     * @throws ProcessingException if the step does not exist
-     */
-    void updateStepStatus(String processId, String uniqueId, StatusCode status, Integer tenantId)
-        throws ProcessingException;
+    ProcessWorkflow initProcessWorkflow(WorkFlow workflow, String containerName, LogbookTypeProcess logbookTypeProcess, Integer tenantId);
 
     /**
      * Update a step in a workflow, knowing its unique id
@@ -84,88 +66,6 @@ public interface ProcessDataAccess {
         Integer tenantId)
         throws ProcessingException;
 
-
-
-    /**
-     * Gets process steps by processId
-     * 
-     * @param processId is operation id
-     * @param tenantId the working tenant
-     * @return map of process step
-     * @throws StepsNotFoundException will be thrown when steps not found
-     * @throws WorkflowNotFoundException if the worklow is not found
-     */
-    Map<String, ProcessStep> getWorkflowProcessSteps(String processId, Integer tenantId)
-        throws StepsNotFoundException, WorkflowNotFoundException;
-
-    /**
-     * Returns true if at least one of the step status is KO or FATAL.
-     *
-     * @param operationId the id of the workflow
-     * @param tenantId the working tenant
-     * @return true if at least one of the step status is KO or FATAL, else false
-     * @throws ProcessingException if the process does not exist
-     */
-    StatusCode getFinalWorkflowStatus(String operationId, Integer tenantId) throws ProcessingException;
-
-    /**
-     * Cancels Process Workflow by operation identifier
-     * 
-     * @param operationId the id of the process to delete
-     * @param tenantId the working tenant
-     * @return {@link ProcessWorkflow}
-     * @throws WorkflowNotFoundException thrown when process workflow not found
-     * @throws ProcessingException thrown when process workflow not found
-     */
-    ProcessWorkflow cancelProcessWorkflow(String operationId, Integer tenantId)
-        throws WorkflowNotFoundException, ProcessingException;
-
-    /**
-     * clears map of Process Workflows by status and number of object will be cleared
-     * 
-     * @param statusCode
-     * @param number of the objects will be cleared
-     * @param tenantId the working tenant
-     */
-    void clear(StatusCode statusCode, int number, Integer tenantId);
-
-
-    /**
-     * 
-     * Returns workflow id (workflow identifier)
-     * 
-     * @param operationId is a container name in workparams (and operation id)
-     * @param tenantId the working tenant
-     * @return workflow id
-     * @throws WorkflowNotFoundException thrown when process workflow not found
-     */
-    String getWorkflowIdByProcessId(String operationId, Integer tenantId) throws WorkflowNotFoundException;
-
-
-    /**
-     * Gets nextStep will be executed in process engine (after check workflow execution status) <br>
-     * if the process workflow is finished or is failed then will return null
-     * 
-     * @param operationId
-     * @param tenantId the working tenant
-     * @return Process step or null if workflow finished, paused, failed or canceled {@link ProcessExecutionStatus}
-     * @throws StepsNotFoundException
-     * @throws WorkflowNotFoundException thrown when process workflow not found
-     */
-    ProcessStep nextStep(String operationId, Integer tenantId)
-        throws StepsNotFoundException, WorkflowNotFoundException;
-
-    /**
-     * Updates Process workflow by Process id
-     * 
-     * @param operationId is an operation or a containerName parameter
-     * @param executionStatus
-     * @param tenantId the working tenant
-     * @throws WorkflowNotFoundException thrown when process workflow not found
-     */
-    void updateProcessExecutionStatus(String operationId, ProcessExecutionStatus executionStatus, Integer tenantId)
-        throws WorkflowNotFoundException;
-
     /**
      * Gets Process Workflow by ID
      * @param processId the process id
@@ -174,33 +74,7 @@ public interface ProcessDataAccess {
      * @throws WorkflowNotFoundException thrown when process workflow not found
      */
 
-    ProcessWorkflow getProcessWorkflow(String processId, Integer tenantId) throws WorkflowNotFoundException;
-
-    /**
-     * Returns finally step
-     * 
-     * @param operationId : the process identifier
-     * @param tenantId the working tenant
-     * @return {@link ProcessStep}
-     * @throws WorkflowNotFoundException thrown when process workflow not found
-     * @throws StepsNotFoundException
-     */
-
-    ProcessStep getFinallyStep(String operationId, Integer tenantId)
-        throws StepsNotFoundException, WorkflowNotFoundException;
-
-
-    /**
-     * Gets current Process Workflow execution status by operation Id
-     * 
-     * @param operationId : the process identifier <br>
-     *        null not allowed
-     * @param tenantId the working tenant
-     * @return {@link ProcessExecutionStatus} :
-     * @throws WorkflowNotFoundException thrown when process workflow not found
-     */
-    ProcessExecutionStatus getProcessExecutionStatus(String operationId, Integer tenantId)
-        throws WorkflowNotFoundException;
+    ProcessWorkflow findOneProcessWorkflow(String processId, Integer tenantId) throws WorkflowNotFoundException;
 
     /**
      * Retrieves All the workflow process for monitoring purpose The final business scope of this feature is likely to
@@ -209,37 +83,7 @@ public interface ProcessDataAccess {
      * 
      * @return All the workflow process details
      */
-    List<ProcessWorkflow> getAllWorkflowProcess(Integer tenantId);
-
-    /**
-     * Prepares process workflow will be launching
-     * 
-     * @param operationId
-     * @param executionMode
-     * @param tenantId the working tenant
-     * @throws ProcessingException
-     */
-    void prepareToRelaunch(String operationId, ProcessAction executionMode, Integer tenantId)
-        throws ProcessingException;
-
-    /**
-     * updates message identifier by operation id
-     * 
-     * @param operationId the operation id
-     * @param messageIdentifier
-     * @param tenantId the working tenant
-     */
-    void updateMessageIdentifier(String operationId, String messageIdentifier, Integer tenantId);
-
-
-    /**
-     * Returns messageIdentifier by operation id
-     * 
-     * @param operationId he operation id
-     * @param tenantId the working tenant
-     * @return messageIdentifier
-     */
-    String getMessageIdentifierByOperationId(String operationId, Integer tenantId);
+    List<ProcessWorkflow> findAllProcessWorkflow(Integer tenantId);
 
     /**
      * Add process to Workflow<br />
@@ -250,21 +94,9 @@ public interface ProcessDataAccess {
     void addToWorkflowList(ProcessWorkflow processWorkflow);
 
     /**
-     * updates productor service
-     * 
-     * @param operationId the operation id
-     * @param prodService
-     * @param tenantId the working tenant
+     *getter of WorkflowList
+     *
+     * @return
      */
-    void updateProdService(String operationId, String prodService, Integer tenantId);
-
-    /**
-     * Returns prodService by operation id
-     * 
-     * @param operationId he operation id
-     * @param tenantId the working tenant
-     * @return prodService
-     */
-    String getProdServiceByOperationId(String operationId, Integer tenantId);
-
+    Map<Integer,Map<String,ProcessWorkflow>> getWorkFlowList();
 }

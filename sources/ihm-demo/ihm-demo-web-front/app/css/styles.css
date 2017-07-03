@@ -212,7 +212,8 @@ md-dialog {
   font-weight: 100;
 }
 .navbar-brand .logo {
-  max-height: 30px;
+  max-height: 45px;
+  margin-top: -8px;
   margin-right: 10px;
 }
 /**

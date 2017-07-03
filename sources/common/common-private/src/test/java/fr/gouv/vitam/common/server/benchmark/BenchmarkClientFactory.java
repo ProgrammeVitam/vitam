@@ -40,15 +40,10 @@ public final class BenchmarkClientFactory extends AbstractBenchmarkClientFactory
      * Default client operation type
      */
     private static final BenchmarkClientFactory BENCHMARK_CLIENT_FACTORY =
-        new BenchmarkClientFactory(RESOURCE_PATH, false);
-    /**
-     * Default client operation type
-     */
-    private static final BenchmarkClientFactory BENCHMARK_CLIENT_MULTIPART_FACTORY =
-        new BenchmarkClientFactory(RESOURCE_PATH, true);
+        new BenchmarkClientFactory(RESOURCE_PATH);
 
-    private BenchmarkClientFactory(String resourcePath, boolean allowMultipart) {
-        super(VitamServerFactory.getDefaultPort(), resourcePath, allowMultipart);
+    private BenchmarkClientFactory(String resourcePath) {
+        super(VitamServerFactory.getDefaultPort(), resourcePath);
     }
 
     /**
@@ -60,7 +55,6 @@ public final class BenchmarkClientFactory extends AbstractBenchmarkClientFactory
     public static final void setConfiguration(int port) {
         ParametersChecker.checkValue("port", port, 1);
         getInstance().changeServerPort(port);
-        getInstanceMultipart().changeServerPort(port);
     }
 
     /**
@@ -70,15 +64,6 @@ public final class BenchmarkClientFactory extends AbstractBenchmarkClientFactory
      */
     public static final BenchmarkClientFactory getInstance() {
         return BENCHMARK_CLIENT_FACTORY;
-    }
-
-    /**
-     * Get the LogbookClientFactory instance
-     *
-     * @return the instance
-     */
-    public static final BenchmarkClientFactory getInstanceMultipart() {
-        return BENCHMARK_CLIENT_MULTIPART_FACTORY;
     }
 
     @Override

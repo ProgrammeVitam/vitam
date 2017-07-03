@@ -112,7 +112,7 @@ documentation:
         X-Http-Method-Override:
           required: true
 
-/accession-register:
+/accession-registers:
   displayName: AccessionRegisters
   description: |
    API qui définit les requêtes pour accéder au Registre des Fonds.
@@ -177,7 +177,7 @@ documentation:
       X-Http-Method-Override:
         required: false
 
-/contracts:
+/entrycontracts:
   displayName: Ingest contracts
   description: |
      API qui définit les requêtes pour accéder au contracts d'entrée
@@ -193,6 +193,28 @@ documentation:
     headers:
       X-Http-Method-Override:
         required: false
+
+/accesscontract/{id}:
+  displayName: Access contract
+  description: |
+   API qui permet de mettre à jour les contrats d'accès via une requête de mise à jour
+  put:
+    description: Update the given access contract
+    is: [RegisterTraits.RegisterUpload]
+    headers:
+      X-Http-Method-Override:
+        required: false
+
+/contract/{id}:
+  displayName: Ingest contract
+  description: |
+    API qui permet de mettre à jour les contrats d'entrées via une requête de mise à jour
+  put:
+     description: Update the given ingest contract
+     is: [RegisterTraits.RegisterUpload]
+     headers:
+       X-Http-Method-Override:
+         required: false
 
 /status:
   get:

@@ -40,6 +40,7 @@ import java.util.List;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.functional.administration.common.exception.*;
 import org.assertj.core.api.Assertions;
@@ -163,7 +164,7 @@ public class AdminManagementClientMockTest {
     @Test
     public void getFundRegisterTest()
         throws InvalidParseOperationException, ReferentialException, JsonGenerationException, JsonMappingException,
-        IOException {
+        AccessUnauthorizedException, IOException {
         AdminManagementClientFactory.changeMode(null);
         final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
         final Select select = new Select();
@@ -177,7 +178,7 @@ public class AdminManagementClientMockTest {
         AdminManagementClientFactory.changeMode(null);
         final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
         final Select select = new Select();
-        final RequestResponse detailResponse = client.getAccessionRegisterDetail(select.getFinalSelect());
+        final RequestResponse detailResponse = client.getAccessionRegisterDetail("aedqaaaaacaam7mxabsakakygeje2uyaaaaq", select.getFinalSelect());
 
         if (detailResponse.isOk()) {
             RequestResponseOK<AccessionRegisterDetailModel> responseOK =
@@ -298,6 +299,14 @@ public class AdminManagementClientMockTest {
     public void givenMockExistsWhenDownloadProfileFileThenReturnOK() throws Exception {
         final Response response = client.downloadProfileFile("FameProfileId");
         assertNotNull(response);
+    }
+    
+    @Test
+    @RunWithCustomExecutor
+    public void givenClientMockWhenImportContexts() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        Status resp = client.importContexts(new ArrayList<>());
+        assertEquals(resp, Status.OK);
     }
 
 }

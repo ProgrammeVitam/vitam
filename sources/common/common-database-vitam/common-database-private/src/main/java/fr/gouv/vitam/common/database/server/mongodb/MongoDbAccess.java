@@ -39,7 +39,6 @@ import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoDatabase;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.configuration.DatabaseConnection;
@@ -180,4 +179,5 @@ public abstract class MongoDbAccess implements DatabaseConnection {
         mongoDatabase = mongoClient.getDatabase(dbname);
         this.dbname = dbname;
     }
+
 }

@@ -1,4 +1,10 @@
 ---
+
+### HOSTS NETWORK VARS CHECK ###
+- hosts: hosts
+  roles:
+    - check_networks
+
 - hosts: hosts-ihm-recette
   roles:
     - {role: vitam, vitam_component: ihm-recette,java_args: /vitam/conf/ihm-recette/ihm-recette.conf, port_http: "{{vitam_ihm_recette_port}}", port_http_admin: "{{vitam_ihm_recette_port_admin}}", secret_platform: "false", cluster_name: elasticsearch-data, vitam_certificate_client_type: "external" }

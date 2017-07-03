@@ -46,6 +46,7 @@ import java.util.stream.Collectors;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
+
 import org.bson.BSONObject;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -73,8 +74,9 @@ import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
  * Unit class:<br>
  *
  * @formatter:off { MD content, _id: UUID, _tenant: tenant, _profil: documentType,, _min: depthmin, _max: depthmax,
- *                _mgt. Management structure, _uds: { UUID1 : depth1, UUID2 : depth2, ... }, // not indexed and not to
- *                be in ES! _us: [ UUID1, UUID2, ... }, // indexed and equivalent to _uds _up: [ UUID1, UUID2, ... ], //
+ *                _mgt. Management structure, _uds: { UUID1 : depth1, UUID2 : depth2, ... }, // not
+ *                indexed and not to be in ES!
+ *                _us: [ UUID1, UUID2, ... }, // indexed and equivalent to _uds _up: [ UUID1, UUID2, ... ], //
  *                limited to immediate parent _og: UUID, _nbc : immediateChildNb }
  * @formatter:on
  */
@@ -110,15 +112,19 @@ public class Unit extends MetadataDocument<Unit> {
      */
     public static final String MANAGEMENT = "_mgt";
     /**
-     * UnitType : nomal or holding scheme
+     * UnitType : normal or holding scheme
      */
     public static final String UNIT_TYPE = "_unitType";
-
 
     /**
      * ES Mapping
      */
     public static final String TYPEUNIQUE = "typeunique";
+
+    @Override
+    public MetadataDocument<Unit> newInstance(JsonNode content) {
+        return new Unit(content);
+    }
 
     // TODO P1 add Nested objects or Parent/child relationships
 
@@ -126,27 +132,27 @@ public class Unit extends MetadataDocument<Unit> {
      * Quick projection for ID and ObjectGroup Only
      */
     public static final BasicDBObject UNIT_OBJECTGROUP_PROJECTION =
-        new BasicDBObject(MetadataDocument.ID, 1).append(MetadataDocument.OG, 1).append(TENANT_ID, 1);
+            new BasicDBObject(MetadataDocument.ID, 1).append(MetadataDocument.OG, 1).append(TENANT_ID, 1);
 
     /**
      * Es projection (no UPS)
      */
-    public static final BasicDBObject UNIT_ES_PROJECTION =
-        new BasicDBObject(UNITDEPTHS, 0);
+    public static final BasicDBObject UNIT_ES_PROJECTION = new BasicDBObject(UNITDEPTHS, 0);
 
     /**
      * Unit Id, Vitam fields Only projection (no content nor management)
      */
     public static final BasicDBObject UNIT_VITAM_PROJECTION =
-        new BasicDBObject(NBCHILD, 1).append(TYPE, 1).append(UNITUPS, 1).append(UNITDEPTHS, 1)
-            .append(MINDEPTH, 1).append(MAXDEPTH, 1)
-            .append(TENANT_ID, 1).append(MetadataDocument.UP, 1).append(MetadataDocument.ID, 1);
+            new BasicDBObject(NBCHILD, 1).append(TYPE, 1).append(UNITUPS, 1).append(UNITDEPTHS, 1)
+                    .append(MINDEPTH, 1).append(MAXDEPTH, 1)
+                    .append(TENANT_ID, 1).append(MetadataDocument.UP, 1).append(MetadataDocument.ID, 1)
+                    .append(ORIGINATING_AGENCIES, 1).append(MetadataDocument.OG, 1);
     /**
      * Unit Id, Vitam and Management fields Only projection (no content)
      */
     public static final BasicDBObject UNIT_VITAM_MANAGEMENT_PROJECTION =
-        new BasicDBObject(UNIT_VITAM_PROJECTION)
-            .append(MANAGEMENT + ".$", 1);
+            new BasicDBObject(UNIT_VITAM_PROJECTION)
+                    .append(MANAGEMENT + ".$", 1);
     /**
      * Storage Rule
      */
@@ -181,6 +187,7 @@ public class Unit extends MetadataDocument<Unit> {
      */
     public static final String END = ".Rules._end";
 
+
     @SuppressWarnings("javadoc")
     public static final String STORAGERULES = STORAGERULE + RULE;
     @SuppressWarnings("javadoc")
@@ -207,26 +214,26 @@ public class Unit extends MetadataDocument<Unit> {
     public static final String CLASSIFICATIONEND = CLASSIFICATIONRULE + END;
 
     private static final BasicDBObject[] indexes = {
-        new BasicDBObject(VitamLinks.UNIT_TO_UNIT.field2to1, 1),
-        new BasicDBObject(VitamLinks.UNIT_TO_OBJECTGROUP.field1to2, 1),
-        new BasicDBObject(TENANT_ID, 1),
-        new BasicDBObject(UNITUPS, 1),
-        new BasicDBObject(MINDEPTH, 1),
-        new BasicDBObject(MAXDEPTH, 1),
-        new BasicDBObject(OPS, 1),
-        new BasicDBObject(STORAGERULES, 1),
-        new BasicDBObject(STORAGEEND, 1),
-        new BasicDBObject(APPRAISALRULES, 1),
-        new BasicDBObject(APPRAISALEND, 1),
-        new BasicDBObject(ACCESSRULES, 1),
-        new BasicDBObject(ACCESSEND, 1),
-        new BasicDBObject(DISSEMINATIONRULES, 1),
-        new BasicDBObject(DISSEMINATIONEND, 1),
-        new BasicDBObject(REUSERULES, 1),
-        new BasicDBObject(REUSERULE, 1),
-        new BasicDBObject(CLASSIFICATIONRULES, 1),
-        new BasicDBObject(CLASSIFICATIONEND, 1),
-        new BasicDBObject(TYPE, 1)};
+            new BasicDBObject(VitamLinks.UNIT_TO_UNIT.field2to1, 1),
+            new BasicDBObject(VitamLinks.UNIT_TO_OBJECTGROUP.field1to2, 1),
+            new BasicDBObject(TENANT_ID, 1),
+            new BasicDBObject(UNITUPS, 1),
+            new BasicDBObject(MINDEPTH, 1),
+            new BasicDBObject(MAXDEPTH, 1),
+            new BasicDBObject(OPS, 1),
+            new BasicDBObject(STORAGERULES, 1),
+            new BasicDBObject(STORAGEEND, 1),
+            new BasicDBObject(APPRAISALRULES, 1),
+            new BasicDBObject(APPRAISALEND, 1),
+            new BasicDBObject(ACCESSRULES, 1),
+            new BasicDBObject(ACCESSEND, 1),
+            new BasicDBObject(DISSEMINATIONRULES, 1),
+            new BasicDBObject(DISSEMINATIONEND, 1),
+            new BasicDBObject(REUSERULES, 1),
+            new BasicDBObject(REUSERULE, 1),
+            new BasicDBObject(CLASSIFICATIONRULES, 1),
+            new BasicDBObject(CLASSIFICATIONEND, 1),
+            new BasicDBObject(TYPE, 1)};
 
     /**
      * Number of Immediate child (Unit)
@@ -243,7 +250,7 @@ public class Unit extends MetadataDocument<Unit> {
     /**
      * Constructor from Json
      *
-     * @param content of type JsonNode for building Unit 
+     * @param content of type JsonNode for building Unit
      */
     public Unit(JsonNode content) {
         super(content);
@@ -252,7 +259,7 @@ public class Unit extends MetadataDocument<Unit> {
     /**
      * Constructor from Document
      *
-     * @param content of type Document for building Unit 
+     * @param content of type Document for building Unit
      */
     public Unit(Document content) {
         super(content);
@@ -268,7 +275,6 @@ public class Unit extends MetadataDocument<Unit> {
     }
 
     /**
-     *
      * @return the associated GUIDObjectType
      */
     public static final int getGUIDObjectTypeId() {
@@ -320,7 +326,7 @@ public class Unit extends MetadataDocument<Unit> {
              * Only parent link, not child link
              */
             BasicDBObject upd =
-                MongoDbMetadataHelper.updateLinkset(this, vt, VitamLinks.UNIT_TO_UNIT, false);
+                    MongoDbMetadataHelper.updateLinkset(this, vt, VitamLinks.UNIT_TO_UNIT, false);
             if (upd != null) {
                 listAddToSet.add(upd);
             }
@@ -329,12 +335,11 @@ public class Unit extends MetadataDocument<Unit> {
                 listset.add(upd);
             }
             // UNITDEPTHS
-            @SuppressWarnings("unchecked")
-            final HashMap<String, Integer> vtDepths =
-                (HashMap<String, Integer>) vt.remove(UNITDEPTHS);
+            @SuppressWarnings("unchecked") final HashMap<String, Integer> vtDepths =
+                    (HashMap<String, Integer>) vt.remove(UNITDEPTHS);
             @SuppressWarnings("unchecked")
             HashMap<String, Integer> depthLevels =
-                (HashMap<String, Integer>) get(UNITDEPTHS);
+                    (HashMap<String, Integer>) get(UNITDEPTHS);
             if (depthLevels == null) {
                 depthLevels = new HashMap<>();
             }
@@ -381,8 +386,7 @@ public class Unit extends MetadataDocument<Unit> {
                 listset.add(upd);
             }
             // Compute UNITUPS
-            @SuppressWarnings("unchecked")
-            final List<String> vtUps = (List<String>) vt.remove(UNITUPS);
+            @SuppressWarnings("unchecked") final List<String> vtUps = (List<String>) vt.remove(UNITUPS);
             @SuppressWarnings("unchecked")
             List<String> ups = (List<String>) get(UNITUPS);
             if (ups == null) {
@@ -394,7 +398,7 @@ public class Unit extends MetadataDocument<Unit> {
             }
             if (!ups.isEmpty()) {
                 final BasicDBObject vtDepthsBson = new BasicDBObject(UNITUPS,
-                    new BasicDBObject(UPDATEACTIONARGS.EACH.exactToken(), ups));
+                        new BasicDBObject(UPDATEACTIONARGS.EACH.exactToken(), ups));
                 listAddToSet.add(vtDepthsBson);
             }
             try {
@@ -414,7 +418,7 @@ public class Unit extends MetadataDocument<Unit> {
                     update = update.append(UPDATEACTION.SET.exactToken(), upd);
                 }
                 update = update.append(UPDATEACTION.INC.exactToken(),
-                    new BasicDBObject(NBCHILD, nb));
+                        new BasicDBObject(NBCHILD, nb));
                 nb = 0;
                 update(update);
             } catch (final MongoException e) {
@@ -463,9 +467,8 @@ public class Unit extends MetadataDocument<Unit> {
         final String id = getId();
 
         // addAll to temporary ArrayList
-        @SuppressWarnings("unchecked")
-        final ArrayList<Document> vtDomaineLevels =
-            (ArrayList<Document>) get(UNITDEPTHS);
+        @SuppressWarnings("unchecked") final ArrayList<Document> vtDomaineLevels =
+                (ArrayList<Document>) get(UNITDEPTHS);
         final int size = vtDomaineLevels != null ? vtDomaineLevels.size() + 1 : 1;
 
         // must compute depth from parent
@@ -474,8 +477,8 @@ public class Unit extends MetadataDocument<Unit> {
             for (int i = 0; i < vtDomaineLevels.size(); i++) {
                 final Document currentParent = vtDomaineLevels.get(i);
                 sublist.addAll(currentParent
-                    .entrySet().stream().map(entry -> new BasicDBObject(entry.getKey(), (Integer) entry.getValue() + 1))
-                    .collect(Collectors.toList()));
+                        .entrySet().stream().map(entry -> new BasicDBObject(entry.getKey(), (Integer) entry.getValue() + 1))
+                        .collect(Collectors.toList()));
             }
         }
         sublist.add(new BasicDBObject(id, 1));
@@ -488,8 +491,7 @@ public class Unit extends MetadataDocument<Unit> {
      * @return the new UNITUPS
      */
     public List<String> getSubUnitUps() {
-        @SuppressWarnings("unchecked")
-        final List<String> subids = (List<String>) get(UNITUPS);
+        @SuppressWarnings("unchecked") final List<String> subids = (List<String>) get(UNITUPS);
         List<String> subids2;
         if (subids != null) {
             subids2 = new ArrayList<>(subids.size() + 1);
@@ -502,7 +504,6 @@ public class Unit extends MetadataDocument<Unit> {
     }
 
     /**
-     *
      * @return the map of parent units with depth
      */
     @SuppressWarnings("unchecked")
@@ -515,7 +516,6 @@ public class Unit extends MetadataDocument<Unit> {
     }
 
     /**
-     *
      * @return the max depth of this node from existing parents
      */
     public int getMaxDepth() {
@@ -534,7 +534,6 @@ public class Unit extends MetadataDocument<Unit> {
     }
 
     /**
-     *
      * @return the min depth of this node from existing parents
      */
     public int getMinDepth() {
@@ -556,8 +555,8 @@ public class Unit extends MetadataDocument<Unit> {
 
     private void updateAfterAddingSubUnit() throws MetaDataExecutionException {
         final BasicDBObject update = new BasicDBObject()
-            .append(UPDATEACTION.INC.exactToken(),
-                new BasicDBObject(NBCHILD, nb));
+                .append(UPDATEACTION.INC.exactToken(),
+                        new BasicDBObject(NBCHILD, nb));
         nb = 0;
         update(update);
     }
@@ -565,7 +564,7 @@ public class Unit extends MetadataDocument<Unit> {
     /**
      * Add the link (N)-N between this Unit and sub Unit (update only subUnit)
      *
-     * @param unit for adding the link 
+     * @param unit for adding the link
      * @return Unit with link added
      * @throws MetaDataExecutionException when adding exception occurred
      */
@@ -574,7 +573,7 @@ public class Unit extends MetadataDocument<Unit> {
         final List<String> ids = new ArrayList<>();
         LOGGER.debug(this + "->" + unit);
         final BasicDBObject update2 =
-            MongoDbMetadataHelper.addLink(this, VitamLinks.UNIT_TO_UNIT, unit);
+                MongoDbMetadataHelper.addLink(this, VitamLinks.UNIT_TO_UNIT, unit);
         if (update2 != null) {
             ids.add(unit.getId());
             update = update2;
@@ -601,12 +600,18 @@ public class Unit extends MetadataDocument<Unit> {
             if (max > unit.getInteger(MAXDEPTH)) {
                 update = combine(update, set(MAXDEPTH, max));
             }
+
+            List<String> sps = (List<String>) get(ORIGINATING_AGENCIES);
+            if (sps != null) {
+                update = combine(update, addEachToSet(ORIGINATING_AGENCIES, sps));
+            }
+
             LOGGER.debug(this + "->" + unit + "\n" +
-                "\t" + MongoDbHelper.bsonToString(update, false) + "\n\t" + min + ":" + max);
+                    "\t" + MongoDbHelper.bsonToString(update, false) + "\n\t" + min + ":" + max);
             try {
                 final long nbc = getCollection().updateOne(eq(ID, ids.get(0)),
-                    update,
-                    new UpdateOptions().upsert(false)).getMatchedCount();
+                        update,
+                        new UpdateOptions().upsert(false)).getMatchedCount();
                 nb += nbc;
                 sublist.clear();
                 subids.clear();
@@ -631,8 +636,7 @@ public class Unit extends MetadataDocument<Unit> {
         Bson update = null;
         final List<String> ids = new ArrayList<>();
         for (final Unit unit : units) {
-            final BasicDBObject update2 =
-                MongoDbMetadataHelper.addLink(this, VitamLinks.UNIT_TO_UNIT, unit);
+            final BasicDBObject update2 = MongoDbMetadataHelper.addLink(this, VitamLinks.UNIT_TO_UNIT, unit);
             if (update2 != null) {
                 ids.add(unit.getId());
                 update = update2;
@@ -656,19 +660,19 @@ public class Unit extends MetadataDocument<Unit> {
             }
             try {
                 final long nbc = getCollection().updateMany(in(ID, ids),
-                    update,
-                    new UpdateOptions().upsert(false)).getMatchedCount();
+                        update,
+                        new UpdateOptions().upsert(false)).getMatchedCount();
                 nb += nbc;
                 sublist.clear();
                 subids.clear();
                 getCollection().updateMany(
-                    and(in(ID, ids), lt(MAXDEPTH, max)),
-                    new BasicDBObject(MAXDEPTH, max),
-                    new UpdateOptions().upsert(false));
+                        and(in(ID, ids), lt(MAXDEPTH, max)),
+                        new BasicDBObject(MAXDEPTH, max),
+                        new UpdateOptions().upsert(false));
                 getCollection().updateMany(
-                    and(in(ID, ids), gt(MINDEPTH, min)),
-                    new BasicDBObject(MINDEPTH, min),
-                    new UpdateOptions().upsert(false));
+                        and(in(ID, ids), gt(MINDEPTH, min)),
+                        new BasicDBObject(MINDEPTH, min),
+                        new UpdateOptions().upsert(false));
                 updateAfterAddingSubUnit();
             } catch (final MongoException e) {
                 LOGGER.error(EXCEPTION_FOR + update, e);
@@ -680,15 +684,13 @@ public class Unit extends MetadataDocument<Unit> {
     }
 
     /**
-     *
      * @return the list of UUID of children (database access)
      */
     public List<String> getChildrenUnitIdsFromParent() {
         final BasicDBObject condition = new BasicDBObject(
-            VitamLinks.UNIT_TO_UNIT.field2to1, getId());
-        @SuppressWarnings("unchecked")
-        final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper
-            .select(getMetadataCollections(), condition, MongoDbMetadataHelper.ID_PROJECTION);
+                VitamLinks.UNIT_TO_UNIT.field2to1, getId());
+        @SuppressWarnings("unchecked") final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper
+                .select(getMetadataCollections(), condition, MongoDbMetadataHelper.ID_PROJECTION);
         final List<String> ids = new ArrayList<>();
         try (final MongoCursor<Unit> iterator = iterable.iterator()) {
             while (iterator.hasNext()) {
@@ -700,7 +702,6 @@ public class Unit extends MetadataDocument<Unit> {
     }
 
     /**
-     *
      * @param remove if remove the link between units
      * @return the list of UUID of Unit parents (immediate)
      */
@@ -726,7 +727,7 @@ public class Unit extends MetadataDocument<Unit> {
      * @throws MetaDataExecutionException when adding exception occurred
      */
     public Unit addObjectGroup(final ObjectGroup data)
-        throws MetaDataExecutionException {
+            throws MetaDataExecutionException {
         final String old = getObjectGroupId(false);
         final String newGOT = data.getId();
         // TODO P1 when update is ready: change Junit to reflect this case
@@ -734,7 +735,7 @@ public class Unit extends MetadataDocument<Unit> {
             throw new MetaDataExecutionException("Cannot change ObjectGroup of Unit without removing it first");
         }
         final BasicDBObject update =
-            MongoDbMetadataHelper.addLink(this, VitamLinks.UNIT_TO_OBJECTGROUP, data);
+                MongoDbMetadataHelper.addLink(this, VitamLinks.UNIT_TO_OBJECTGROUP, data);
         if (update != null) {
             data.update(update);
             updated();
@@ -743,8 +744,7 @@ public class Unit extends MetadataDocument<Unit> {
     }
 
     /**
-     *
-     * @param remove if remove the link 
+     * @param remove if remove the link
      * @return the ObjectGroup UUID (may return null)
      */
     public String getObjectGroupId(final boolean remove) {

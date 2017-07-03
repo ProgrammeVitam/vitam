@@ -37,7 +37,7 @@ angular.module('traceability.operation.details')
   }})
   .controller('traceabilityOperationDetailsController', function($scope, $routeParams, traceabilityOperationDetailsService,
     traceabilityOperationResource, responseValidator, downloadTraceabilityOperationService, authVitamService) {
-
+	  	  
       // Traceability operation to check
       $scope.traceabilityOperationId = $routeParams.operationId;
 
@@ -58,6 +58,10 @@ angular.module('traceability.operation.details')
           $scope.fileSize = details.Size;
           $scope.hash = details.Hash;
           $scope.timeStampToken = details.TimeStampToken;
+          
+          //extraction of information from the timestamp
+          traceabilityOperationDetailsService.extractTimeStampInformation($scope.timeStampToken, successExtractCallback, errorExtractCallback);
+          
         }
       };
 
@@ -66,6 +70,16 @@ angular.module('traceability.operation.details')
         console.log(error);
       };
 
+      
+      var successExtractCallback = function(response) {
+    	  $scope.genTime = response.data.genTime;
+    	  $scope.signerCertIssuer = response.data.signerCertIssuer;
+      }
+      
+      var errorExtractCallback = function(error) {
+          // TODO : update error management
+          console.log(error);
+        };
 
       // ************ Verification process ****************** //
       $scope.showCheckReport = false;

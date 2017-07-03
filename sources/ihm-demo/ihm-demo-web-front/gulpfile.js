@@ -97,19 +97,23 @@ gulp.task('default', ['serve']);
 
 function serve() {
   var target = 'http://localhost:8082';
+  var port = 9001;
 
-  try {
+    try {
     var customConf = require('./local.json');
     if(!!customConf && !!customConf.target) {
       target = customConf.target;
     }
+    if(!!customConf && !!customConf.port) {
+          port = customConf.port;
+      }
   } catch (e) {
     // File not present / Just dont override conf
   }
 
   connect.server({
     root: ['dist/'],
-    port: 9000,
+    port: 9001,
     livereload: true,
     middleware: function (connect, opt) {
       return [

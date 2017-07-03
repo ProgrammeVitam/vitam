@@ -20,8 +20,8 @@ traits:
     body:
       application/json:
         description: Body containing a Query in DSL Vitam to filter the Ingest operations
-        schema: DslTypes.DslQuery
-        example: !include examples/dslQuery.json
+        schema: IngestTypes.ProcessQuery
+        example: !include examples/processQuery.json
     responses:
       200:
         description: Returns the list of selected ingest operations
@@ -29,14 +29,29 @@ traits:
           application/json:
             description: Selected Ingest operations
             schema: DslTypes.DslResponse
-            example: !include examples/dslResponse.json
+            example: !include examples/dslOperationsResponse.json
       206:
         description: Returns the list of selected ingest operations using Cursor
         body:
           application/json:
             description: Selected Ingest operations
             schema: DslTypes.DslResponse
-            example: !include examples/dslResponse.json
+            example: !include examples/dslOperationsResponse.json
+
+  IngestWorkflowsResponse:
+    description: |
+      Response model for Workflows definitions
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AsynchronousHeader,
+      StandardTraits.StandardHeader200,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    responses:
+      200:
+        description: Returns the list of workflow definitions
+        body:
+          application/json:
+            description: Select Workflows
+            schema: DslTypes.DslResponse
+            example: !include examples/dslWorkflowsResponse.json
 
   IngestCreationResponse:
     description: Request for an Ingest creation

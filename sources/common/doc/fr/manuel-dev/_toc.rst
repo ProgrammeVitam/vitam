@@ -13,4 +13,6 @@ Common
    graph.rst
    VitamCode.rst
    format-identifier.rst
+   stockage.rst
+   vitam-metrics.rst
    private/_toc.rst

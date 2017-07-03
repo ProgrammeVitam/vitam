@@ -27,10 +27,7 @@
 
 package fr.gouv.vitam.functional.administration.profile.core;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.gson.JsonObject;
-import com.google.json.JsonSanitizer;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.error.VitamCode;
@@ -58,10 +55,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.bson.conversions.Bson;
 import org.w3c.dom.Document;
-import org.w3c.dom.TypeInfo;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -72,7 +67,6 @@ import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
@@ -129,7 +123,7 @@ public class ProfileManager {
      * @param profileModel
      * @param inputStream
      * @param error
-     * @return
+     * @return boolean true/false
      */
     public boolean validateProfileFile(ProfileModel profileModel, InputStream inputStream, VitamError error) {
 
@@ -154,7 +148,7 @@ public class ProfileManager {
      * Juste check if inputStream is xml valide
      * @param inputStream
      * @param error
-     * @return
+     * @return boolean true/false
      */
     public boolean validateXSD(InputStream inputStream, VitamError error) {
 
@@ -190,7 +184,7 @@ public class ProfileManager {
      *
      * @param inputStream
      * @param error
-     * @return
+     * @return boolean true/false
      */
     public boolean validateRNG(InputStream inputStream, VitamError error) {
 
@@ -333,9 +327,6 @@ public class ProfileManager {
     private static ProfileValidator createMandatoryParamsValidator() {
         return (profile) -> {
             RejectionCause rejection = null;
-            if (profile.getIdentifier() == null || profile.getIdentifier().trim().isEmpty()) {
-                rejection = RejectionCause.rejectMandatoryMissing(Profile.IDENTIFIER);
-            }
 
             if (profile.getFormat() == null || (!profile.getFormat().equals(ProfileFormat.RNG) && !profile.getFormat().equals(ProfileFormat.XSD))) {
                 rejection = RejectionCause.rejectMandatoryMissing(Profile.FORMAT);

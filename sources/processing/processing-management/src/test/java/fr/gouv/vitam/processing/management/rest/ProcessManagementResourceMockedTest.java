@@ -28,8 +28,9 @@
 package fr.gouv.vitam.processing.management.rest;
 
 import static com.jayway.restassured.RestAssured.given;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
@@ -38,6 +39,10 @@ import java.util.Arrays;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.common.exception.StateNotAllowedException;
+import fr.gouv.vitam.common.model.ProcessState;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -56,7 +61,6 @@ import com.jayway.restassured.RestAssured;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
@@ -64,7 +68,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
-import fr.gouv.vitam.common.model.ProcessExecutionStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.BasicVitamServer;
 import fr.gouv.vitam.common.server.HeaderIdContainerFilter;
@@ -75,8 +78,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
-import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.management.api.ProcessManagement;
 
@@ -93,10 +94,10 @@ public class ProcessManagementResourceMockedTest {
     private static final String CONTEXT_ID = "contextId";
     final GUID processId = GUIDFactory.newGUID();
 
-  @Rule
-  public RunWithCustomExecutorRule runInThread =
-      new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-    
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         junitHelper = JunitHelper.getInstance();
@@ -116,13 +117,15 @@ public class ProcessManagementResourceMockedTest {
         }
     }
 
-    private static VitamServer buildTestServer() throws VitamApplicationServerException {
+    private static VitamServer buildTestServer()
+        throws VitamApplicationServerException, StateNotAllowedException, ProcessingException {
         final VitamServer vitamServer = VitamServerFactory.newVitamServer(port);
 
 
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonFeature.class);
         mock = Mockito.mock(ProcessManagement.class);
+
 
         final ServerConfiguration serverConfiguration = new ServerConfiguration();
         serverConfiguration.setUrlWorkspace("http://localhost:8083");
@@ -154,33 +157,10 @@ public class ProcessManagementResourceMockedTest {
     }
 
     @Test
-    public void executeVitamProcessNotFound() throws Exception {
-        reset(mock);
-        when(mock.submitWorkflow(anyObject(), anyString(), anyObject(), anyObject(), anyObject()))
-            .thenThrow(new WorkflowNotFoundException(""));
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
-            .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.RESUME.getValue(),
-                GlobalDataRest.X_REQUEST_ID, processId, GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(new ProcessingEntry("fake", "fake")).when().post("operations").then()
-            .statusCode(Response.Status.NOT_FOUND
-                .getStatusCode());
-
-        reset(mock);
-        when(mock.submitWorkflow(anyObject(), anyString(), anyObject(), anyObject(), anyObject()))
-            .thenThrow(new HandlerNotFoundException(""));
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
-            .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.RESUME.getValue(),
-                GlobalDataRest.X_REQUEST_ID, processId, GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(new ProcessingEntry("fake", "fake")).when().post("operations").then()
-            .statusCode(Response.Status.UNAUTHORIZED
-                .getStatusCode());
-    }
-
-    @Test
     public void executeVitamProcessPreconditionFailed() throws Exception {
         reset(mock);
-        when(mock.submitWorkflow(anyObject(), anyString(), anyObject(), anyObject(), anyObject()))
-            .thenThrow(new IllegalArgumentException());
+        when(mock.resume(anyObject(), anyInt()))
+            .thenThrow(new ProcessingException(""));
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.RESUME.getValue(),
                 GlobalDataRest.X_REQUEST_ID, processId, GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -193,8 +173,8 @@ public class ProcessManagementResourceMockedTest {
     @Test
     public void executeVitamProcessUnauthorize() throws Exception {
         reset(mock);
-        when(mock.submitWorkflow(anyObject(), anyString(), anyObject(), anyObject(), anyObject()))
-            .thenThrow(new ProcessingException(""));
+        when(mock.resume(anyObject(), anyInt()))
+            .thenThrow(new StateNotAllowedException(""));
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.RESUME.getValue(),
                 GlobalDataRest.X_REQUEST_ID, processId, GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -206,9 +186,9 @@ public class ProcessManagementResourceMockedTest {
     @Test
     public void executeVitamProcessInternalServerError() throws Exception {
         reset(mock);
-        final ItemStatus response = new ItemStatus("WokflowID");
-        response.increment(StatusCode.FATAL);
-        when(mock.submitWorkflow(anyObject(), anyString(), anyObject(), anyObject(), anyObject())).thenReturn(response);
+        when(mock.resume(anyObject(), anyInt()))
+            .thenThrow(new RuntimeException(""));
+
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.RESUME.getValue(),
                 GlobalDataRest.X_REQUEST_ID, processId, GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -218,57 +198,58 @@ public class ProcessManagementResourceMockedTest {
     }
 
     @Test
-    public void executeVitamProcessBadRequest() throws Exception {
+    public void executeVitamProcessAccepted() throws Exception {
         reset(mock);
-        final ItemStatus response = new ItemStatus("WokflowID");
-        response.increment(StatusCode.KO);
+        when(mock.resume(any(), anyInt())).thenReturn(
+            new ItemStatus().setGlobalState(ProcessState.RUNNING).increment(StatusCode.OK).setLogbookTypeProcess("fake"));
 
-        when(mock.submitWorkflow(anyObject(), anyString(), anyObject(), anyObject(), anyObject())).thenReturn(response);
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
             .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.RESUME.getValue(),
                 GlobalDataRest.X_REQUEST_ID, processId, GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(new ProcessingEntry("fake", "fake")).when().post("operations").then()
-            .statusCode(Response.Status.BAD_REQUEST
-                .getStatusCode());
+            .body(new ProcessingEntry("fake", "fake"))
+            .when()
+            .post("operations")
+            .then().statusCode(Response.Status.ACCEPTED.getStatusCode());
     }
 
     @Test
-    public void executeVitamProcessOK() throws Exception {
+    public void executeVitamProcessAcceptedWarning() throws Exception {
         reset(mock);
-        final ItemStatus response = new ItemStatus("WokflowID");
-        response.increment(StatusCode.OK);
-        when(mock.submitWorkflow(anyObject(), anyString(), anyObject(), anyObject(), anyObject())).thenReturn(response);
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+
+        when(mock.resume(any(), anyInt())).thenReturn(
+            new ItemStatus().setGlobalState(ProcessState.RUNNING).increment(StatusCode.WARNING).setLogbookTypeProcess("fake"));
+
+
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
             .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.RESUME.getValue(),
                 GlobalDataRest.X_REQUEST_ID, processId, GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(new ProcessingEntry("fake", "fake")).when().post("operations").then().statusCode(Response.Status.OK
-                .getStatusCode());
+            .body(new ProcessingEntry("fake", "fake"))
+            .when()
+            .post("operations")
+            .then().statusCode(Response.Status.ACCEPTED.getStatusCode());
     }
 
     @Test
-    public void executeVitamProcessOKWarning() throws Exception {
+    public void executeVitamProcessAcceptedSubmitted() throws Exception {
         reset(mock);
-        final ItemStatus response = new ItemStatus("WokflowID");
-        response.increment(StatusCode.WARNING);
-        when(mock.submitWorkflow(anyObject(), anyString(), anyObject(), anyObject(), anyObject())).thenReturn(response);
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
-            .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.RESUME.getValue(),
-                GlobalDataRest.X_REQUEST_ID, processId, GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(new ProcessingEntry("fake", "fake")).when().post("operations").then().statusCode(Response.Status.OK
-                .getStatusCode());
-    }
 
-    @Test
-    public void executeVitamProcessOKSubmitted() throws Exception {
-        reset(mock);
-        final ItemStatus response = new ItemStatus("WokflowID");
-        response.increment(StatusCode.STARTED);
-        when(mock.submitWorkflow(anyObject(), anyString(), anyObject(), anyObject(), anyObject())).thenReturn(response);
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+        when(mock.resume(any(), anyInt())).thenReturn(
+            new ItemStatus().setGlobalState(ProcessState.RUNNING).increment(StatusCode.OK).setLogbookTypeProcess("fake"));
+
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
             .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.RESUME.getValue(),
                 GlobalDataRest.X_REQUEST_ID, processId, GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(new ProcessingEntry("fake", "fake")).when().post("operations").then().statusCode(Response.Status.OK
-                .getStatusCode());
+            .body(new ProcessingEntry("fake", "fake"))
+            .when()
+            .post("operations")
+            .then().statusCode(Response.Status.ACCEPTED.getStatusCode());
     }
 
     @Test
@@ -277,14 +258,16 @@ public class ProcessManagementResourceMockedTest {
 
         reset(mock);
         ProcessWorkflow processWorkflow1 = new ProcessWorkflow();
-        processWorkflow1.setExecutionMode(ProcessAction.INIT);
-        processWorkflow1.setExecutionStatus(ProcessExecutionStatus.CANCELLED);
+        processWorkflow1.setState(ProcessState.COMPLETED);
         ProcessWorkflow processWorkflow2 = new ProcessWorkflow();
-        processWorkflow2.setExecutionMode(ProcessAction.PAUSE);
-        processWorkflow2.setExecutionStatus(ProcessExecutionStatus.CANCELLED);
-        when(mock.getAllWorkflowProcess(anyObject())).thenReturn(Arrays.asList(processWorkflow1, processWorkflow2));
-        given().accept(MediaType.APPLICATION_JSON).header(GlobalDataRest.X_TENANT_ID, TENANT_ID).when().get("operations").then().statusCode(Response.Status.OK
-            .getStatusCode());
+        processWorkflow2.setState(ProcessState.COMPLETED);
+        when(mock.findAllProcessWorkflow(anyObject())).thenReturn(Arrays.asList(processWorkflow1, processWorkflow2));
+
+        given()
+            .accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get("operations")
+            .then().statusCode(Response.Status.OK.getStatusCode());
 
     }
 

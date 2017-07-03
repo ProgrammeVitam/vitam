@@ -14,7 +14,7 @@
 
 - name: Connection to ihm-demo before uploading
   uri:
-    url: http://localhost:{{vitam_ihm_demo_port}}/ihm-demo/v1/api/login
+    url: "http://{{ip_service}}:{{vitam_ihm_demo_port}}/ihm-demo/v1/api/login"
     method: POST
     body: '{"token":{"principal":"{{vitam_users[0].login}}","credentials": "{{vitam_users[0].password}}" }}' # First account is used
     body_format: json
@@ -24,21 +24,21 @@
       accept: "application/json, text/plain, */*"
       Connection: "keep-alive"
       body_format: json
-      Host: "{{ inventory_hostname }}"
+      Host: "{{ ip_service }}"
   run_once: true # only 1st account is used
   no_log: true
   register: connected
 
 - name: upload PRONOM
   uri:
-    url: http://localhost:{{vitam_ihm_demo_port}}/ihm-demo/v1/api/format/upload
+    url: "http://{{ip_service}}:{{vitam_ihm_demo_port}}/ihm-demo/v1/api/format/upload"
     method: POST
     headers:
       Connection: "keep-alive"
       X-Tenant-Id: "{{item}}"
       Content-Type: "application/octet-stream"
       Cookie: "{{connected.set_cookie}}"
-      Host: "{{ inventory_hostname }}"
+      Host: "{{ip_service}}"
     body: "{{ lookup('file', 'DROID_SignatureFile_{{pronom_version}}.xml') }}"
   ignore_errors: true
   run_once: true # Limit as this upload is not related to tenants
@@ -64,16 +64,16 @@
 #   with_items:
 #     - "{{vitam_tenant_ids}}"
 
-- name: copy contracts
-  copy:
-    src: referential_contracts_ok.json
-    dest: /vitam/tmp/ihm-demo/referential_contracts_ok.json
-    owner: root
-    mode: "{{vitam_conf_permission}}"
-
-- name: upload contracts
-  command: "curl -v -X POST --data @/vitam/tmp/ihm-demo/referential_contracts_ok.json -H 'Host: {{ inventory_hostname }}' -H 'Cookie: {{connected.set_cookie}}' -H 'X-Tenant-Id: {{item}}' -H 'Content-Type: application/octet-stream' http://localhost:{{vitam_ihm_demo_port}}/ihm-demo/v1/api/contracts"
-  when: connected.set_cookie != ''
-  ignore_errors: true
-  with_items:
-    - "{{vitam_tenant_ids}}"
+# - name: copy contracts
+#   copy:
+#     src: referential_contracts_ok.json
+#     dest: /vitam/tmp/ihm-demo/referential_contracts_ok.json
+#     owner: root
+#     mode: "{{vitam_conf_permission}}"
+#
+# - name: upload contracts
+#   command: "curl -v -X POST --data @/vitam/tmp/ihm-demo/referential_contracts_ok.json -H 'Host: {{ inventory_hostname }}' -H 'Cookie: {{connected.set_cookie}}' -H 'X-Tenant-Id: {{item}}' -H 'Content-Type: application/octet-stream' http://localhost:{{vitam_ihm_demo_port}}/ihm-demo/v1/api/contracts"
+#   when: connected.set_cookie != ''
+#   ignore_errors: true
+#   with_items:
+#     - "{{vitam_tenant_ids}}"

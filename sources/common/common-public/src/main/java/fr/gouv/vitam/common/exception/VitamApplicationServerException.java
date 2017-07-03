@@ -28,7 +28,7 @@
 package fr.gouv.vitam.common.exception;
 
 /**
- * This exception must be used when an error occured while creating, configuring or starting a {@link VitamServer}
+// * This exception must be used when an error occured while creating, configuring or starting a {@link fr.gouv.vitam.common.server.VitamServer}
  */
 public class VitamApplicationServerException extends VitamException {
     private static final long serialVersionUID = -5149603175155853974L;

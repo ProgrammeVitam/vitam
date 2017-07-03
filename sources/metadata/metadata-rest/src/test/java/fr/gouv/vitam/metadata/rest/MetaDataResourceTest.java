@@ -29,16 +29,22 @@ package fr.gouv.vitam.metadata.rest;
 import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.with;
+import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 import javax.xml.bind.MarshalException;
 
+import org.bson.Document;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
 import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -76,6 +82,7 @@ import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 
 public class MetaDataResourceTest {
     private static final String DATA =
@@ -113,9 +120,11 @@ public class MetaDataResourceTest {
     private static MetaDataApplication application;
     private static ElasticsearchTestConfiguration config = null;
     static final int tenantId = 0;
-    static final List tenantList =  new ArrayList(){{add(tenantId);}};
+    static final List tenantList = new ArrayList() {{
+        add(tenantId);
+    }};
     private static final Integer TENANT_ID = 0;
-    
+
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -272,7 +281,7 @@ public class MetaDataResourceTest {
             .statusCode(Status.CREATED.getStatusCode());
 
         given()
-            .contentType(ContentType.JSON)            
+            .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions(QUERY_EXISTS, DATA2)).when()
             .post("/units").then()
@@ -283,13 +292,13 @@ public class MetaDataResourceTest {
     public void givenInsertUnitWithQueryWhenParentFoundThenReturnCreated() throws Exception {
         with()
             .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)            
-            .body(buildDSLWithOptions("", DATA)).when()            
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(buildDSLWithOptions("", DATA)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         given()
-            .contentType(ContentType.JSON)            
+            .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions(QUERY_TEST, DATA2)).when()
             .post("/units").then()
@@ -337,7 +346,7 @@ public class MetaDataResourceTest {
             .body(buildDSLWithOptions("", DATA)).when()
             .post("/units").then()
             .body(equalTo(
-                new RequestResponseOK().setHits(1, 0, 1).setQuery(buildDSLWithOptions("", DATA)).toString()))
+                new RequestResponseOK(buildDSLWithOptions("", DATA)).setHits(1, 0, 1).toString()))
             .statusCode(Status.CREATED.getStatusCode());
     }
 
@@ -386,7 +395,6 @@ public class MetaDataResourceTest {
             .statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
-
     @Test
     public void shouldReturnErrorRequestBadRequestWhenInsertGOIfDocumentIsTooLarge() throws Exception {
         final int limitRequest = GlobalDatasParser.limitRequest;
@@ -399,5 +407,34 @@ public class MetaDataResourceTest {
             .statusCode(Status.BAD_REQUEST.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
     }
+
+    @Test
+    public void should_find_accession_register_on_unit() throws Exception {
+        String operationId = "1234";
+        MetadataCollections.C_UNIT.getCollection().insertOne(
+            new Document("_id", "1").append("_ops", singletonList(operationId))
+                .append("_sps", Arrays.asList("sp1", "sp2")));
+        given()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .get("/accession-registers/units/" + operationId).then()
+            .body("$results.size()", equalTo(2))
+            .statusCode(Status.OK.getStatusCode());
+
+    }
+
+    @Test
+    public void should_find_accession_register_on_object_group() throws Exception {
+        String operationId = "aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq";
+        MetadataCollections.C_OBJECTGROUP.getCollection().insertOne(new ObjectGroup(JsonHandler.getFromInputStream(getClass().getResourceAsStream(
+            "/object_sp1_1.json"))));
+        given()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .get("/accession-registers/objects/" + operationId).then()
+            .body("$results.size()", equalTo(1))
+            .statusCode(Status.OK.getStatusCode());
+    }
+
 
 }

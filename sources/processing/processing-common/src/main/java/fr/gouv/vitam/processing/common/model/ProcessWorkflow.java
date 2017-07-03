@@ -26,15 +26,16 @@
  */
 package fr.gouv.vitam.processing.common.model;
 
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.model.ProcessAction;
-import fr.gouv.vitam.common.model.ProcessExecutionStatus;
+import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Proccess Workflow contains a different operations and status attribute
@@ -44,48 +45,90 @@ public class ProcessWorkflow {
 
     private static final String MANDATORY_PARAMETER = "Mandatory parameter";
 
+
+    private String workflowId;
+
     private String operationId;
 
     private String messageIdentifier;
-    
+
     private String prodService;
 
-    private StatusCode globalStatusCode = StatusCode.UNKNOWN;
 
-    private Map<String, ProcessStep> orderedProcessStep = new LinkedHashMap<>();
+    private List<ProcessStep> steps = new ArrayList<>();
 
     private Date processDate = new Date();
 
-    private ProcessAction executionMode;
+    private LocalDateTime processCompletedDate;
 
-    private ProcessExecutionStatus executionStatus = ProcessExecutionStatus.PAUSE;
 
     private LogbookTypeProcess logbookTypeProcess;
 
     private Integer tenantId;
 
+    private StatusCode status = StatusCode.UNKNOWN;
+    private ProcessState state = ProcessState.PAUSE;
+    private boolean stepByStep = false;
     /**
-     * @return the globalStatusCode
+     * Set the state of the workflow process
+     * @return ProcessState
      */
-    public StatusCode getGlobalStatusCode() {
-        return globalStatusCode;
+    public ProcessState getState() {
+        return state;
     }
 
     /**
-     * @param StatusCode the StatusCode to set
-     *
+     * Get the state of the workflow process
+     * @param state
+     */
+    public ProcessWorkflow setState(ProcessState state) {
+        if (state != null) {
+            this.state = state;
+        }
+        return this;
+    }
+
+
+    public List<ProcessStep> getSteps() {
+        return steps;
+    }
+
+    public ProcessWorkflow setSteps(List<ProcessStep> steps) {
+        this.steps = steps;
+        return this;
+    }
+
+    /**
+     * get the status of the processWorkflow
+     * @return StatusCode
+     */
+    public StatusCode getStatus() {
+        return status;
+    }
+
+    /**
+     * set the status of the workflow
+     * @param status
      * @return this
      */
-    public ProcessWorkflow setGlobalStatusCode(StatusCode StatusCode) {
-        ParametersChecker.checkParameter(MANDATORY_PARAMETER, globalStatusCode);
+    public ProcessWorkflow setStatus(StatusCode status) {
+        ParametersChecker.checkParameter(MANDATORY_PARAMETER, status);
         // TODO FATAL or KO ---> OK or warning (after replay worklow 's action)
         // update globalStatus
-        this.globalStatusCode = globalStatusCode.compareTo(StatusCode) > 0
-            ? globalStatusCode : StatusCode;
+        this.status = this.status.compareTo(status) > 0
+            ? this.status : status;
 
         return this;
     }
 
+    public boolean isStepByStep() {
+        return stepByStep;
+    }
+
+    public ProcessWorkflow setStepByStep(boolean stepByStep) {
+        this.stepByStep = stepByStep;
+        return this;
+    }
 
     /**
      * @return the processDate
@@ -122,60 +165,6 @@ public class ProcessWorkflow {
         this.operationId = operationId;
         return this;
     }
-
-    /**
-     * @return the orderedProcessStep
-     */
-    public Map<String, ProcessStep> getOrderedProcessStep() {
-        return orderedProcessStep;
-    }
-
-    /**
-     * @param orderedProcessStep the orderedProcessStep to set
-     *
-     * @return this
-     */
-    public ProcessWorkflow setOrderedProcessStep(Map<String, ProcessStep> orderedProcessStep) {
-        this.orderedProcessStep = orderedProcessStep;
-        return this;
-    }
-
-    /**
-     * @return the executionMode
-     */
-    public ProcessAction getExecutionMode() {
-        return executionMode;
-    }
-
-    /**
-     * @param executionMode the executionMode to set
-     *
-     * @return this
-     */
-    public ProcessWorkflow setExecutionMode(ProcessAction executionMode) {
-        this.executionMode = executionMode;
-        return this;
-    }
-
-    /**
-     * @return the executionStatus
-     */
-    public ProcessExecutionStatus getExecutionStatus() {
-        return executionStatus;
-    }
-
-    /**
-     * @param executionStatus the executionStatus to set
-     *
-     * @return this
-     */
-    public ProcessWorkflow setExecutionStatus(ProcessExecutionStatus executionStatus) {
-        if (executionStatus != null) {
-            this.executionStatus = executionStatus;
-        }
-        return this;
-    }
-    
 
     /**
      * @return the messageIdentifier
@@ -244,4 +233,35 @@ public class ProcessWorkflow {
         this.tenantId = tenantId;
         return this;
     }
+
+    /**
+     * @return the workflow ID
+     */
+    public String getWorkflowId() {
+        return workflowId;
+    }
+
+    /**
+     * @param workflowId the workflow ID
+     * @return current instance
+     */
+    public ProcessWorkflow setWorkflowId(String workflowId) {
+        this.workflowId = workflowId;
+        return this;
+    }
+
+    /*
+     * Complete date
+     * @return
+     */
+    public LocalDateTime getProcessCompletedDate() {
+        return processCompletedDate;
+    }
+
+    public ProcessWorkflow setProcessCompletedDate(LocalDateTime processCompletedDate) {
+        this.processCompletedDate = processCompletedDate;
+        return this;
+
+    }
+
 }

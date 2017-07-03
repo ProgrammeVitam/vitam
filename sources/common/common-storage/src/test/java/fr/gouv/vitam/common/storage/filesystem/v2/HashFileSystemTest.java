@@ -44,5 +44,4 @@ public class HashFileSystemTest extends ContentAddressableStorageTestAbstract {
         storage = new HashFileSystem(configuration);
     }
 
-
 }

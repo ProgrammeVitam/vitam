@@ -27,7 +27,12 @@
 package fr.gouv.vitam.metadata.core;
 
 
-import static difflib.DiffUtils.generateUnifiedDiff;
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ID;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OPS;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ORIGINATING_AGENCIES;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.QUALIFIERS;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,20 +43,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.bson.Document;
+import org.bson.conversions.Bson;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Lists;
 import com.mongodb.MongoWriteException;
+import com.mongodb.client.AggregateIterable;
+import com.mongodb.client.result.UpdateResult;
 
-import difflib.DiffUtils;
-import difflib.Patch;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.parser.request.multiple.InsertParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
@@ -61,15 +73,20 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.metadata.api.MetaData;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbVarNameAdapter;
+import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
+import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.core.utils.MetadataJsonResponseUtils;
 
 /**
@@ -93,6 +110,14 @@ public class MetaDataImpl implements MetaData {
     }
 
     /**
+     * 
+     * @param mongoDbAccess
+     */
+    public MetaDataImpl(MongoDbAccessMetadataImpl mongoDbAccess) {
+        this.mongoDbAccess = mongoDbAccess;
+    }
+
+    /**
      * @return the MongoDbAccessMetadataImpl
      */
     public MongoDbAccessMetadataImpl getMongoDbAccess() {
@@ -103,7 +128,7 @@ public class MetaDataImpl implements MetaData {
      * Get a new MetaDataImpl instance
      *
      * @param configuration of mongoDB access
-     * @param mongoDbAccessFactory factory creating MongoDbAccessMetadata 
+     * @param mongoDbAccessFactory factory creating MongoDbAccessMetadata
      * @return a new instance of MetaDataImpl
      */
     public static MetaData newMetadata(MetaDataConfiguration configuration,
@@ -152,6 +177,35 @@ public class MetaDataImpl implements MetaData {
         if (result.isError()) {
             throw new MetaDataNotFoundException("Parents not found");
         }
+    }
+
+    @Override
+    public List<Document> selectAccessionRegisterOnUnitByOperationId(String operationId) {
+        AggregateIterable<Document> aggregate = MetadataCollections.C_UNIT.getCollection().aggregate(Arrays.asList(
+            new Document("$match", new Document("$and", Arrays.asList(new Document(OPS, operationId), new Document(Unit.UNIT_TYPE, new Document("$ne", UnitType.HOLDING_UNIT.name()))))),
+            new Document("$unwind", "$" + ORIGINATING_AGENCIES),
+            new Document("$group",
+                new Document(ID, "$" + ORIGINATING_AGENCIES).append("count", new Document("$sum", 1)))
+        ), Document.class);
+        return Lists.newArrayList(aggregate.iterator());
+    }
+
+    @Override
+    public List<Document> selectAccessionRegisterOnObjectGroupByOperationId(String operationId) {
+        AggregateIterable<Document> aggregate =
+            MetadataCollections.C_OBJECTGROUP.getCollection().aggregate(Arrays.asList(
+                new Document("$match", new Document(OPS, operationId)),
+                new Document("$unwind", "$" + QUALIFIERS),
+                new Document("$unwind", "$" + QUALIFIERS + ".versions"),
+                new Document("$unwind", "$" + ORIGINATING_AGENCIES),
+                new Document("$group", new Document(ID, "$" + ORIGINATING_AGENCIES)
+                    .append("totalSize", new Document("$sum", "$" + QUALIFIERS + ".versions.Size"))
+                    .append("totalObject", new Document("$sum", 1))
+                    .append("listGOT", new Document("$addToSet", "$_id"))),
+                new Document("$project", new Document("_id", 1).append("totalSize", 1).append("totalObject", 1)
+                    .append("totalGOT", new Document("$size", "$listGOT")))
+            ), Document.class);
+        return Lists.newArrayList(aggregate.iterator());
     }
 
     @Override
@@ -212,9 +266,10 @@ public class MetaDataImpl implements MetaData {
                     LOGGER.debug("Adding given $hint filters: " + Arrays.toString(hints));
                     request.addHintFilter(hints);
                 }
-            }            
+            }
             boolean shouldComputeUnitRule = false;
-            ObjectNode fieldsProjection = (ObjectNode) selectRequest.getRequest().getProjection().get(PROJECTION.FIELDS.exactToken());
+            ObjectNode fieldsProjection =
+                (ObjectNode) selectRequest.getRequest().getProjection().get(PROJECTION.FIELDS.exactToken());
             if (fieldsProjection != null && fieldsProjection.get(GLOBAL.RULES.exactToken()) != null) {
                 shouldComputeUnitRule = true;
                 fieldsProjection.removeAll();
@@ -228,12 +283,48 @@ public class MetaDataImpl implements MetaData {
             }
 
 
-        } catch (final InstantiationException | IllegalAccessException | MetaDataAlreadyExistException |
-            MetaDataNotFoundException e) {
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new MetaDataExecutionException(e);
+        } catch (final MetaDataAlreadyExistException | MetaDataNotFoundException e) {
             LOGGER.error(e);
             throw new MetaDataExecutionException(e);
         }
         return arrayNodeResponse;
+    }
+    
+    // TODO : handle version
+    @Override
+    public void updateObjectGroupId(JsonNode updateQuery, String objectId)
+        throws InvalidParseOperationException, MetaDataExecutionException {
+        Result result = null;
+        if (updateQuery.isNull()) {
+            throw new InvalidParseOperationException(REQUEST_IS_NULL);
+        }
+        try {
+            final RequestParserMultiple updateRequest = new UpdateParserMultiple(new MongoDbVarNameAdapter());
+            updateRequest.parse(updateQuery);
+            // Reset $roots (add or override unit_id on roots)
+            if (objectId != null && !objectId.isEmpty()) {
+                final RequestMultiple request = updateRequest.getRequest();
+                if (request != null) {
+                    LOGGER.debug("Reset $roots objectId by :" + objectId);
+                    request.resetRoots().addRoots(objectId);
+                    LOGGER.debug("DEBUG: {}", request);
+                }
+            }
+
+            // Execute DSL request
+            result = DbRequestFactoryImpl.getInstance().create().execRequest(updateRequest, result);
+            if (result.getNbResult() == 0) {
+                throw new MetaDataNotFoundException("ObjectGroup not found: " + objectId);
+            }
+        } catch (final MetaDataExecutionException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            throw e;
+        } catch (final InstantiationException | MetaDataAlreadyExistException | MetaDataNotFoundException | IllegalAccessException e) {
+            LOGGER.error(e);
+            throw new MetaDataExecutionException(e);
+        }
     }
 
     // TODO : in order to deal with selection (update from the root) in the query, the code should be modified
@@ -267,14 +358,14 @@ public class MetaDataImpl implements MetaData {
             final String unitAfterUpdate = JsonHandler.prettyPrint(getUnitById(unitId));
 
             final Map<String, List<String>> diffs = new HashMap<>();
-            diffs.put(unitId, VitamDocument.getConcernedDiffLines(VitamDocument.getUnifiedDiff(unitBeforeUpdate, unitAfterUpdate)));
+            diffs.put(unitId,
+                VitamDocument.getConcernedDiffLines(VitamDocument.getUnifiedDiff(unitBeforeUpdate, unitAfterUpdate)));
 
             arrayNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, updateRequest, diffs);
         } catch (final MetaDataExecutionException | InvalidParseOperationException e) {
             LOGGER.error(e);
             throw e;
-        } catch (final InstantiationException | MetaDataAlreadyExistException | MetaDataNotFoundException |
-            IllegalAccessException e) {
+        } catch (final InstantiationException | MetaDataAlreadyExistException | MetaDataNotFoundException | IllegalAccessException e) {
             LOGGER.error(e);
             throw new MetaDataExecutionException(e);
         }
@@ -287,28 +378,30 @@ public class MetaDataImpl implements MetaData {
         final SelectMultiQuery select = new SelectMultiQuery();
         return selectUnitsById(select.getFinalSelect(), id);
     }
-    
+
     private SelectMultiQuery createSearchParentSelect(List<String> unitList) throws InvalidParseOperationException {
         SelectMultiQuery newSelectQuery = new SelectMultiQuery();
         String[] rootList = new String[unitList.size()];
         rootList = unitList.toArray(rootList);
         newSelectQuery.addRoots(rootList);
         newSelectQuery.addProjection(
-            JsonHandler.createObjectNode().set(PROJECTION.FIELDS.exactToken(), 
+            JsonHandler.createObjectNode().set(PROJECTION.FIELDS.exactToken(),
                 JsonHandler.createObjectNode()
-                .put(PROJECTIONARGS.UNITUPS.exactToken(), 1)
-                .put(PROJECTIONARGS.MANAGEMENT.exactToken(), 1)));
+                    .put(PROJECTIONARGS.UNITUPS.exactToken(), 1)
+                    .put(PROJECTIONARGS.MANAGEMENT.exactToken(), 1)));
         return newSelectQuery;
     }
-    
-    private void computeRuleForUnit(ArrayNode arrayNodeResponse) throws InvalidParseOperationException, MetaDataExecutionException, MetaDataDocumentSizeException, MetaDataNotFoundException {
+
+    private void computeRuleForUnit(ArrayNode arrayNodeResponse)
+        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataDocumentSizeException,
+        MetaDataNotFoundException {
         Map<String, UnitNode> allUnitNode = new HashMap<String, UnitNode>();
         Set<String> rootList = new HashSet<>();
         List<String> unitParentIdList = new ArrayList<>();
         String unitId = "";
         for (JsonNode unitNode : arrayNodeResponse) {
             ArrayNode unitParentId = (ArrayNode) unitNode.get(PROJECTIONARGS.ALLUNITUPS.exactToken());
-            for (JsonNode parentIdNode :unitParentId) {
+            for (JsonNode parentIdNode : unitParentId) {
                 unitParentIdList.add(parentIdNode.asText());
             }
             unitId = unitNode.get(PROJECTIONARGS.ID.exactToken()).asText();
@@ -321,6 +414,6 @@ public class MetaDataImpl implements MetaData {
         unitNode.buildAncestors(unitMap, allUnitNode, rootList);
         unitNode.computeRule();
         JsonNode rule = JsonHandler.toJsonNode(unitNode.getHeritedRules().getInheritedRule());
-        ((ObjectNode)arrayNodeResponse.get(0)).set(UnitInheritedRule.INHERITED_RULE, rule);
+        ((ObjectNode) arrayNodeResponse.get(0)).set(UnitInheritedRule.INHERITED_RULE, rule);
     }
 }

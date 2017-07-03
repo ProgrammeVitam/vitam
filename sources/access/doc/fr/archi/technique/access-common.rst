@@ -8,8 +8,8 @@ Présentation
 |  *Proposition de package :* **fr.gouv.vitam.access.common**
 
 Module utilisé pour les objets communs : 
-   - modeles reponse
-   - exceptions
-   - params
-   - configuration
-   - autres...
+- modeles reponse
+- exceptions
+- params
+- configuration
+- autres...

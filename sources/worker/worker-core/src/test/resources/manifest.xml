@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ArchiveTransfer xmlns:xlink="http://www.w3.org/1999/xlink"
- xmlns:pr="info:lc/xmlns/premis-v2"
- xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0"
- xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
- xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 file:/C:/Users/mehdi.afnai/Documents/SEDA_Vitam/seda-2.0-main.xsd">
+                 xmlns:pr="info:lc/xmlns/premis-v2"
+                 xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0"
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 file:/C:/Users/mehdi.afnai/Documents/SEDA_Vitam/seda-2.0-main.xsd">
     <Date>2006-05-04T18:13:51.0</Date>
     <MessageIdentifier>Entrée SIP ok arborescence complexe</MessageIdentifier>
     <!-- SIP avezc arboresecnce complexe n'ayant qu'une seule racine et ArchiveUnit ayant deux parents -->
@@ -12,7 +12,8 @@
     <ArchivalAgreement>ArchivalAgreement0</ArchivalAgreement>
     <CodeListVersions>
         <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
-        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion>
+        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0
+        </MessageDigestAlgorithmCodeListVersion>
         <MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
         <EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion>
         <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
@@ -31,8 +32,12 @@
         <BinaryDataObject id="ID009">
             <DataObjectGroupId>ID019</DataObjectGroupId>
             <DataObjectVersion>BinaryMaster</DataObjectVersion>
-            <Uri>Content/e3e02a356a2e903a03c6b8b6c7a36e6ad4b50d29c6a5360c79a60719812c54cd5433caa227de9856ee80d95ff9f84f416090a62ee52f681e0a29b9b07d75d51a.pdf</Uri>
-            <MessageDigest algorithm="SHA-512">e3e02a356a2e903a03c6b8b6c7a36e6ad4b50d29c6a5360c79a60719812c54cd5433caa227de9856ee80d95ff9f84f416090a62ee52f681e0a29b9b07d75d51a</MessageDigest>
+            <Uri>
+                Content/e3e02a356a2e903a03c6b8b6c7a36e6ad4b50d29c6a5360c79a60719812c54cd5433caa227de9856ee80d95ff9f84f416090a62ee52f681e0a29b9b07d75d51a.pdf
+            </Uri>
+            <MessageDigest algorithm="SHA-512">
+                e3e02a356a2e903a03c6b8b6c7a36e6ad4b50d29c6a5360c79a60719812c54cd5433caa227de9856ee80d95ff9f84f416090a62ee52f681e0a29b9b07d75d51a
+            </MessageDigest>
             <Size>226224</Size>
             <FormatIdentification>
                 <FormatLitteral>FormatLitteral0</FormatLitteral>
@@ -63,7 +68,6 @@
                     <Title>Test fonds 1</Title>
                     <TransactedDate>2015-06-15</TransactedDate>
                 </Content>
-           
                 <ArchiveUnit id="ID028">
                     <Content>
                         <DescriptionLevel>Subfonds</DescriptionLevel>
@@ -80,23 +84,23 @@
                         </DataObjectReference>
                     </ArchiveUnit>
                 </ArchiveUnit>
-              <ArchiveUnit id="ID030">
-                  <Content>
-                      <DescriptionLevel>Subfonds</DescriptionLevel>
-                      <Title>Test sous fonds 2</Title>
-                      <TransactedDate>2015-06-15</TransactedDate>
-                  </Content>
-                  <ArchiveUnit id="ID032">
-                      <ArchiveUnitRefId>ID029</ArchiveUnitRefId>
-                  </ArchiveUnit>
-              </ArchiveUnit>
-                   <ArchiveUnit id="ID031">
-                       <Content>
-                           <DescriptionLevel>File</DescriptionLevel>
-                           <Title>Test File 2</Title>
-                       </Content>
-                   </ArchiveUnit>
-              </ArchiveUnit>  
+                <ArchiveUnit id="ID030">
+                    <Content>
+                        <DescriptionLevel>Subfonds</DescriptionLevel>
+                        <Title>Test sous fonds 2</Title>
+                        <TransactedDate>2015-06-15</TransactedDate>
+                    </Content>
+                    <ArchiveUnit id="ID032">
+                        <ArchiveUnitRefId>ID029</ArchiveUnitRefId>
+                    </ArchiveUnit>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID031">
+                    <Content>
+                        <DescriptionLevel>File</DescriptionLevel>
+                        <Title>Test File 2</Title>
+                    </Content>
+                </ArchiveUnit>
+            </ArchiveUnit>
         </DescriptiveMetadata>
         <ManagementMetadata>
             <ArchivalProfile>ArchivalProfile0</ArchivalProfile>
@@ -138,7 +142,7 @@
                 <NeedReassessingAuthorization>false</NeedReassessingAuthorization>
             </ClassificationRule>
             <NeedAuthorization>false</NeedAuthorization>
-	    <OriginatingAgencyIdentifier>FRAN_NP_005568</OriginatingAgencyIdentifier>
+            <OriginatingAgencyIdentifier>FRAN_NP_005568</OriginatingAgencyIdentifier>
             <SubmissionAgencyIdentifier>FRAN_NP_005061</SubmissionAgencyIdentifier>
         </ManagementMetadata>
     </DataObjectPackage>

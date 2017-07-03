@@ -50,6 +50,7 @@ import fr.gouv.vitam.functional.administration.common.ReferentialFile;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatNotFoundException;
+import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
@@ -97,8 +98,8 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
                     VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, StatusCode.STARTED), eip);
             try {
                 client.create(logbookParametersStart);
-            } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException
-                | LogbookClientServerException e) {
+            } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
+                LogbookClientServerException e) {
                 LOGGER.error(e);
                 throw new ReferentialException(e);
             }
@@ -111,15 +112,14 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
                     final LogbookOperationParameters logbookParametersEnd = LogbookParametersFactory
                         .newLogbookOperationParameters(eip1, STP_REFERENTIAL_FORMAT_IMPORT, eip,
                             LogbookTypeProcess.MASTERDATA, StatusCode.OK,
-                            VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, StatusCode.OK)
-                            + VERSION + pronomList.get(0).get("VersionPronom").textValue()
-                            + FILE_PRONOM,
+                            VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, StatusCode.OK) + VERSION +
+                                pronomList.get(0).get("VersionPronom").textValue() + FILE_PRONOM,
                             eip1);
 
                     try {
                         client.update(logbookParametersEnd);
-                    } catch (LogbookClientBadRequestException | LogbookClientNotFoundException
-                        | LogbookClientServerException e) {
+                    } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
+                        LogbookClientServerException e) {
                         LOGGER.error(e);
                         throw new ReferentialException(e);
                     }
@@ -130,8 +130,8 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
                             VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, StatusCode.KO), eip1);
                     try {
                         client.update(logbookParametersEnd);
-                    } catch (LogbookClientBadRequestException | LogbookClientNotFoundException
-                        | LogbookClientServerException e) {
+                    } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
+                        LogbookClientServerException e) {
                         LOGGER.error(e);
                         throw new ReferentialException(e);
                     }
@@ -146,8 +146,8 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
                         VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, StatusCode.KO), eip1);
                 try {
                     client.update(logbookParametersEnd);
-                } catch (LogbookClientBadRequestException | LogbookClientNotFoundException
-                    | LogbookClientServerException e1) {
+                } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
+                    LogbookClientServerException e1) {
                     LOGGER.error(e1);
                     throw new ReferentialException(e1);
                 }
@@ -159,7 +159,10 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
     @Override
     public ArrayNode checkFile(InputStream xmlPronom) throws ReferentialException {
         ParametersChecker.checkParameter("Pronom file is a mandatory parameter", xmlPronom);
-        /* Deserialize as json arrayNode, this operation will will ensure the format is valid first, else Exception is thrown*/ 
+        /*
+         * Deserialize as json arrayNode, this operation will will ensure the format is valid first, else Exception is
+         * thrown
+         */
         ArrayNode deserializeFormatsAsJson = PronomParser.getPronom(xmlPronom);
         StreamUtils.closeSilently(xmlPronom);
         return deserializeFormatsAsJson;
@@ -168,7 +171,11 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
     @Override
     public FileFormat findDocumentById(String id) throws ReferentialException {
         try {
-            return (FileFormat) mongoAccess.getDocumentById(id, FunctionalAdminCollections.FORMATS);
+        	FileFormat fileFormat = (FileFormat) mongoAccess.getDocumentByUniqueId(id, FunctionalAdminCollections.FORMATS, FileFormat.PUID);
+            if (fileFormat == null) {
+                throw new FileFormatException("FileFormat Not Found");
+            }
+            return fileFormat;
         } catch (final ReferentialException e) {
             LOGGER.error(e.getMessage());
             throw new FileFormatException(e);
@@ -176,7 +183,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
     }
 
     @Override
-    public List<FileFormat> findDocuments(JsonNode select) throws ReferentialException {
+    public List<FileFormat> findDocuments(JsonNode select) throws FileFormatNotFoundException, ReferentialException {
         try (final MongoCursor<VitamDocument<?>> formats = mongoAccess.findDocuments(select,
             FunctionalAdminCollections.FORMATS)) {
 
@@ -190,6 +197,8 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
             }
 
             return result;
+        } catch (final FileFormatNotFoundException e) {
+            throw e;
         } catch (final ReferentialException e) {
             LOGGER.error(e.getMessage());
             throw new FileFormatException(e);

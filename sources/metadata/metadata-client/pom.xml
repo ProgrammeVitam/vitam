@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>metadata</artifactId>
-		<version>0.19.0-SNAPSHOT</version>
+		<version>0.20.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>metadata-client</artifactId>
 	<name>metadata Client</name>
@@ -13,10 +13,6 @@
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>metadata-api</artifactId>
 			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.glassfish.jersey.core</groupId>
-			<artifactId>jersey-client</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.glassfish.jersey.media</groupId>
@@ -51,6 +47,12 @@
 			<artifactId>jersey-test-framework-provider-jetty</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
+			<scope>test</scope>
+		</dependency>
+
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>common-junit</artifactId>

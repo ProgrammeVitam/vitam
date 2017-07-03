@@ -1,105 +1,124 @@
 Déploiement de VITAM
 ====================
 
-Déploiement docker
-------------------
-Le fichier d'inventaire est différent selon l'environnement :
+Déploiement complet rpm/deb
+---------------------------
 
-* hosts.local : pour le déploiement sur un poste de développement
-* hosts.int : pour le déploiement sur l'environnement pic d'intégration
-* hosts.rec : pour le déploiement sur l'environnement pic de recette
+Procédure de déploiement de Vitam:
 
-
-Pour tester le déploiement de VITAM : ``ansible-playbook ansible-vitam/vitam.yml -i environments/<fichier d'inventaire> --check``
-
-Pour le déployer : ``ansible-playbook ansible-vitam/vitam.yml -i environments/<fichier d'inventaire>``
-
-Pour une remise à zéro (encore en cours de développement) : ``ansible-playbook ansible-vitam/vitam-raz.yml  -i environments/<fichier d'inventaire>``
-
-Pour tester en local, ne pas oublier qu'il y a un mappage utilisateur de l'hôte (la machine qui lance les docker) et le containeur docker (utilisateur vitam avec uid : 2000). Vérfier ce point en cas de souci de droits d'écriture !
-
-Pour ouvrir et éditer le fichier de secrets : ``ansible-vault edit <filename>``
+Tips: pours tous les cas d'appel de ansible-playbook, il est possible de remplacer l'argument "--vault-password-file vault_pass.txt" par "--ask-vault-pass" si vous ne voulez pas stocker le mot de passe de chiffrement des vault ansible dans un fichier
 
 
-Déploiement rpm
-----------------
-
-Pour tester le déploiement de VITAM :
-``ansible-playbook ansible-vitam/vitam.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt --check``
-
-.. note:: ce mode n'est pas recommandé
-
-Pour le déployer :
-
-1. générer les certificats nécessaire en lançant le script :
-``pki/scripts/generate_ca.sh``, si pas de CA fournie
-``pki/scripts/generate_certs.sh <fichier environnement>``, si pas de certificats fournis
-``./generate_stores.sh``
+1.  Créer un fichier d'inventaire des repositories des composants VITAM en se basant sur le fichier d'exemple:
+    ``environments/group_vars/all/example_bootstrap_repo_centos.yml`` pour un environnement CentOS
+    ``environments/group_vars/all/example_bootstrap_repo_debian.yml`` pour un environnement Debian
 
 
-2. Si gestion par VITAM des dépots de binaires:
-Editer le fichier ``environments/group_vars/all/example_repo.yml`` (sert de modèle)
-Puis lancer :
-``ansible-playbook ansible-vitam-extra/bootstrap.yml -i environments/<fichier d'inventaire>  --ask-vault-pass``
+2.  Générer les autorités de certification des certificats (si vous n'avez pas vos propres autorités de certification et que vous ne souhaitez pas vous en occuper)
+    ``pki/scripts/generate_ca.sh``
 
 
-2. Lancer le playbook d'ansible :
-``ansible-playbook ansible-vitam/vitam.yml -i environments/<fichier d'inventaire>  --ask-vault-pass``
-(et renseigner le mot de passe demandé)
-ou
-``ansible-playbook ansible-vitam/vitam.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt``
+3.  Certificats
+    A.  Si vous ne les avez pas déjà généré vous même, lancer la génération avec le script generate_certs.sh
+        a.  Configurer le vault référençant les mots de passe de chiffrement des clés privées des certificats
+            ``ansible-vault edit environments/certs/vault-certs.yml --vault-password-file vault_pass.txt``
+        b.  Générer les certificats
+            ``pki/scripts/generate_certs.sh``
+    B.  Si vous avez vos propres certificats & CA, les déposer dans la bonne arborescence (se servir des certificats par défaut fournis comme exemple pour les nommages):
+        - environments
+            - cert
+                - client-external
+                    - ca: CA(s) des certificats clients external
+                    - clients
+                        - external: Certificats des SIAs
+                        - ihm-demo: Certificat de ihm-demo
+                        - ihm-recette: Certificat de ihm-recette
+                        - reverse: Certificat du reverse
+                - client-storage
+                    - ca: CA(s) des certificats clients storage
+                    - clients
+                        - storage-engine: Certificat de storage-engine
+                - server
+                    - ca: CA(s) des certificats côté serveurs
+                    - hosts
+                        - [nom_serveur]: certificats des composants installés sur le serveur donné, [nom_serveur] doit être identique à ce qui est référencé dans le fichier d'inventaire
+                - timestamping
+                    - ca: CA (intermediate & root) des certificats de timestamping
+                    - vitam: Certificats de timestamping
+                        - logbook.key
+                        - logbook.crt
+                        - worker.key
+                        - worker.crt
 
 
-3. Pour déployer les extra seulement nécessaire pour le projet :
-
-a. extra complet
-``ansible-playbook ansible-vitam-extra/extra.yml -i environments/<fichier d'inventaire>  --ask-vault-pass``
-(et renseigner le mot de passe demandé)
-ou
-``ansible-playbook ansible-vitam-extra/extra.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt``
+4.  Générer les keystores
+    a.  Configurer le vault référençant les mots de passe des keystores
+        ``ansible-vault edit environments/group_vars/all/vault-keystores.yml --vault-password-file vault_pass.txt``
+    a.  Générer les keystores
+        ``./generate_stores.sh``
 
 
-b. ihm-recette seulement
+5.  Facultatif: ajouter les repositories des packages rpm/deb sur les machines cibles
+    a.  Configurer les repositories en se basant sur les fichiers d'exemple dans environment/group_vars/all/example_boostrap_repo_*.yml
+    b.  Lancer le boostrap pour ajouter les repositories sur les machines cibles
+        ``ansible-playbook ansible-vitam-extra/bootstrap.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt``
 
-``ansible-playbook ansible-vitam-extra/ihm-recette.yml -i environments/<fichier d'inventaire>  --ask-vault-pass``
-(et renseigner le mot de passe demandé)
-ou
-``ansible-playbook ansible-vitam-extra/ihm-recette.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt``
-
-
-4. Pour redéployer les rpm VITAM sans modification de configuration
-
-``ansible-playbook ansible-vitam/vitam.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt --tags update_package_vitam``
-et
-``ansible-playbook ansible-vitam-extra/extra.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt --tags update_package_vitam``
+6. Générer les host_vars "réseau"
+    ``ansible-playbook ansible-vitam/generate_network_vars.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt``
+   A l'issue, vérifier les fichiers sous ``environments/host_vars`` et les adapter au besoin.
 
 
-5. Pour redéployer les keystores / truststores / grantedstores uniquement
-
-``ansible-playbook ansible-vitam/vitam.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt --tags update_vitam_certificates``
-et
-``ansible-playbook ansible-vitam-extra/extra.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt --tags update_vitam_certificates``
+7.  Déployer Vitam
+    ``ansible-playbook ansible-vitam/vitam.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt``
 
 
-6. Pour modifier uniquement la configuration JVM des composants VITAM
+8.  Déployer les extras de Vitam
+    a.  Extras complets
+        ``ansible-playbook ansible-vitam-extra/extra.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt``
+    b.  Ihm-recette seulement
+        ``ansible-playbook ansible-vitam-extra/ihm-recette.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt``
+
+
+Mettre à jour uniquement les packages rpm/deb des composants Vitam
+------------------------------------------------------------------
+
+Pour les composants Vitam standards
+    ``ansible-playbook ansible-vitam/vitam.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt --tags update_package_vitam``
+Pour les composants de recette / documentation
+    ``ansible-playbook ansible-vitam-extra/extra.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt --tags update_package_vitam``
+
+
+Redéployer uniquement les keystores / trsutstores / grantedstores
+-----------------------------------------------------------------
+
+Pour les composants Vitam standards
+    ``ansible-playbook ansible-vitam/vitam.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt --tags update_vitam_certificates``
+Pour les composants de recette / documentation
+    ``ansible-playbook ansible-vitam-extra/extra.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt --tags update_vitam_certificates``
+
+
+Modifier uniquement la configuration JVM des composants VITAM
+-------------------------------------------------------------
 
 Modifier dans environments/<fichier d'inventaire> la directive memory_opts
-Exemple:
-memory_opts="-Xms384m -Xmx384m"
-``ansible-playbook ansible-vitam/vitam.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt --tags update_jvmoptions_vitam``
-et
-``ansible-playbook ansible-vitam-extra/extra.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt --tags update_jvmoptions_vitam``
+Exemple: memory_opts="-Xms384m -Xmx384m"
+Puis lancer le playbook ansible
+Pour les composants Vitam standards
+    ``ansible-playbook ansible-vitam/vitam.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt --tags update_jvmoptions_vitam``
+Pour les composants de recette / documentation
+    ``ansible-playbook ansible-vitam-extra/extra.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt --tags update_jvmoptions_vitam``
 
-7. Automatisation du chargement de PRONOM
 
-``ansible-playbook ansible-vitam-extra/init_pronom.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt``
+Automatisation du chargement de PRONOM
+--------------------------------------
 
+Lancer le playbook suivant pour charger le référentiel pronom par ligne de commande plutôt que par l'IHM
+    ``ansible-playbook ansible-vitam-extra/init_pronom.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt``
 .. caution:: le playbook ne se termine pas correctement (code HTTP 403) si un référentiel PRONOM a déjà été chargé.
 
-8. Tests TNR automatisés
 
-``ansible-playbook -i environments/hosts.local ansible-vitam-extra/load_tnr.yml --ask-vault-pass``
+Tests TNR automatisés
+---------------------
 
-ou
-
-``ansible-playbook -i environments/hosts.local ansible-vitam-extra/load_tnr.yml --vault-password-file vault_pass.txt``
+Lancer les tests de non régression
+    ``ansible-playbook -i environments/hosts.local ansible-vitam-extra/load_tnr.yml --vault-password-file vault_pass.txt``

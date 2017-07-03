@@ -64,7 +64,7 @@ public class DatabaseCursor {
         this.total = total;
         this.offset = offset;
         this.limit = limit;
-        size = total;
+        this.size = total;
     }
 
     /**

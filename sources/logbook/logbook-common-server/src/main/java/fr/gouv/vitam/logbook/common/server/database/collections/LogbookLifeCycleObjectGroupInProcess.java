@@ -30,6 +30,7 @@ import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 
@@ -81,6 +82,12 @@ public class LogbookLifeCycleObjectGroupInProcess extends LogbookLifeCycle<Logbo
      */
     public LogbookLifeCycleObjectGroupInProcess(JsonNode content) {
         super(content);
+    }
+
+    @Override
+    public VitamDocument<LogbookLifeCycle<LogbookLifeCycleObjectGroupParameters>> newInstance(
+    		JsonNode content) {
+    	return new LogbookLifeCycleObjectGroupInProcess(content);
     }
 
     @Override

@@ -47,6 +47,7 @@ import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundE
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.profile.api.ProfileService;
 import fr.gouv.vitam.functional.administration.profile.api.impl.ProfileServiceImpl;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -88,13 +89,16 @@ public class ProfileResource {
 
     private final MongoDbAccessAdminImpl mongoAccess;
     private final WorkspaceClientFactory workspaceClientFactory;
+    private final VitamCounterService vitamCounterService;
 
     /**
      * @param configuration
      * @param mongoAccess
+     * @param vitamCounterService
      */
-    public ProfileResource(AdminManagementConfiguration configuration, MongoDbAccessAdminImpl mongoAccess) {
+    public ProfileResource(AdminManagementConfiguration configuration, MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService) {
         this.mongoAccess = mongoAccess;
+        this.vitamCounterService = vitamCounterService;
         this.workspaceClientFactory = WorkspaceClientFactory.getInstance();
         WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl());
         LOGGER.debug("init Admin Management Resource server");
@@ -102,11 +106,15 @@ public class ProfileResource {
 
 
     @VisibleForTesting
-    public ProfileResource(WorkspaceClientFactory workspaceClientFactory, MongoDbAccessAdminImpl mongoAccess) {
+    public ProfileResource(WorkspaceClientFactory workspaceClientFactory, MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService) {
         this.mongoAccess = mongoAccess;
         this.workspaceClientFactory = workspaceClientFactory;
+        this.vitamCounterService = vitamCounterService;
+
         LOGGER.debug("init Admin Management Resource server");
     }
+
+
 
 
     /**
@@ -132,7 +140,7 @@ public class ProfileResource {
     public Response createProfiles(List<ProfileModel> profileModelList, @Context UriInfo uri) {
         ParametersChecker.checkParameter(PROFILE_JSON_IS_MANDATORY_PATAMETER, profileModelList);
 
-        try (ProfileService profileService = new ProfileServiceImpl(mongoAccess, workspaceClientFactory)) {
+        try (ProfileService profileService = new ProfileServiceImpl(mongoAccess, workspaceClientFactory, vitamCounterService)) {
             RequestResponse requestResponse = profileService.createProfiles(profileModelList);
 
             if (!requestResponse.isOk()) {
@@ -171,7 +179,7 @@ public class ProfileResource {
         ParametersChecker.checkParameter(PROFILE_FILE_IS_MANDATORY_PATAMETER, profileFile);
         ParametersChecker.checkParameter(PROFILE_ID_IS_MANDATORY_PATAMETER, profileMetadataId);
 
-        try (ProfileService profileService = new ProfileServiceImpl(mongoAccess, workspaceClientFactory)) {
+        try (ProfileService profileService = new ProfileServiceImpl(mongoAccess, workspaceClientFactory, vitamCounterService)) {
             RequestResponse requestResponse = profileService.importProfileFile(profileMetadataId, profileFile);
 
             if (!requestResponse.isOk()) {
@@ -208,7 +216,7 @@ public class ProfileResource {
 
         VitamThreadPoolExecutor.getDefaultExecutor()
             .execute(() -> {
-                try (ProfileService profileService = new ProfileServiceImpl(mongoAccess, workspaceClientFactory)) {
+                try (ProfileService profileService = new ProfileServiceImpl(mongoAccess, workspaceClientFactory, vitamCounterService)) {
 
                     profileService.downloadProfileFile(profileMetadataId, asyncResponse);
 
@@ -234,7 +242,7 @@ public class ProfileResource {
      * Find profiles by queryDsl
      *
      * @param queryDsl
-     * @return
+     * @return Response
      */
     @GET
     @Path(PROFILE_URI)
@@ -242,13 +250,13 @@ public class ProfileResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response findProfiles(JsonNode queryDsl) {
 
-        try (ProfileService profileService = new ProfileServiceImpl(mongoAccess, workspaceClientFactory)) {
+        try (ProfileService profileService = new ProfileServiceImpl(mongoAccess, workspaceClientFactory, vitamCounterService)) {
 
             final List<ProfileModel> profileModelList = profileService.findProfiles(queryDsl);
 
             return Response.status(Status.OK)
                 .entity(
-                    new RequestResponseOK().addAllResults(profileModelList))
+                    new RequestResponseOK<ProfileModel>(queryDsl).addAllResults(profileModelList))
                 .build();
 
         } catch (ReferentialException e) {

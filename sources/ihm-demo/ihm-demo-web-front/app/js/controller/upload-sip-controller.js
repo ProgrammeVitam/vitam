@@ -38,7 +38,9 @@ angular.module('ihm.demo')
     "BLANK_TEST_ALERT": "Cette opération réalise un test à blanc de versement pour contrôle du SIP, aucune donnée ne sera conservée."
   })
   .controller('uploadController', function($scope, FileUploader, $mdDialog, $route, $cookies, $location, UPLOAD_CONSTANTS,
-    $interval, ihmDemoFactory, authVitamService) {
+    $interval, ihmDemoFactory, authVitamService, Upload, $timeout) {
+
+    const BYTES_PER_CHUNK = 1024 * 1024; // 1MB chunk sizes.
 
     $scope.tenantId = authVitamService.cookieValue(authVitamService.COOKIE_TENANT_ID);
     $scope.tenantKey = 'X-Tenant-Id';
@@ -200,6 +202,19 @@ angular.module('ihm.demo')
      $scope.stopCheck();
     });
 
+    $scope.resetUpload = function() {
+      $scope.fileItem = {};
+      $scope.uploadedSize = 0;
+      if ($scope.file) {
+        if($scope.file.name.indexOf('.zip') < 0 && $scope.file.name.indexOf('.tar') < 0) {
+          $scope.showAlert(this,
+          'Erreur:' + $scope.file.name,
+          'Format du SIP incorrect. Sélectionner un fichier au format .zip, .tar, .tar.gz ou .tar.bz2'
+          );
+          $scope.file = {};
+        }
+      }
+    };
 
     //************************************************************************************************ //
     $scope.fileItem = {};
@@ -209,15 +224,13 @@ angular.module('ihm.demo')
     $scope.fileItem.isWarning = false;
     $scope.fileItem.isFatalError = false;
 
-    $scope.startUpload = function(params){
-      // Start pooling after receiving the first operationId
-      var operationIdServerAppLevel = params['x-request-id'];
+    $scope.startUpload = function(requestId){
       $scope.fileItem.isProcessing = true;
       $scope.fileItem.isSuccess = false;
       $scope.fileItem.isError = false;
       $scope.fileItem.isWarning = false;
       $scope.fileItem.isFatalError = false;
-        $scope.check($scope.fileItem, operationIdServerAppLevel);
+        $scope.check($scope.fileItem, requestId);
     };
 
 
@@ -257,5 +270,71 @@ angular.module('ihm.demo')
           });
       }
     };
+    $scope.submit = function() {
+      $scope.fileItem.isProcessing = true;
+      var blob = $scope.file;
+      const SIZE = blob.size;
+
+      var start = 0;
+      var end = BYTES_PER_CHUNK;
+
+      var xhr = new XMLHttpRequest();
+      var requestId = '';
+      $scope.uploadedSize = end;
+      xhr.open('POST', '/ihm-demo/v1/api/ingest/upload', true);
+      xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+      xhr.setRequestHeader('X-Chunk-Offset', start);
+      xhr.setRequestHeader('X-Size-Total', SIZE);
+      xhr.setRequestHeader($scope.contextIdKey, $scope.contextId);
+      xhr.setRequestHeader($scope.actionKey, $scope.action);
+      xhr.setRequestHeader($scope.tenantKey, $scope.tenantId);
+      xhr.onreadystatechange = function() {
+        if(xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
+          requestId = xhr.getResponseHeader('X-REQUEST-ID');
+          start = end;
+          end = start + BYTES_PER_CHUNK;
+          $scope.uploadedSize = end;
+          var chunkNumber = 0;
+          while (start < SIZE) {
+            $scope.upload(blob.slice(start, end), requestId, start, SIZE);
+            start = end;
+            end = start + BYTES_PER_CHUNK;
+          }
+          $scope.startUpload(requestId);
+        }
+      };
+
+      xhr.send(blob.slice(start, end));
+
+    };
+
+    // upload on file select or drop
+    $scope.upload = function (file, requestId, chunkOffset, size) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', '/ihm-demo/v1/api/ingest/upload', true);
+      xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+      xhr.setRequestHeader('X-REQUEST-ID', requestId);
+      xhr.setRequestHeader('X-Chunk-Offset', chunkOffset);
+      xhr.setRequestHeader('X-Size-Total', size);
+      xhr.setRequestHeader($scope.contextIdKey, $scope.contextId);
+      xhr.setRequestHeader($scope.actionKey, $scope.action);
+      xhr.setRequestHeader($scope.tenantKey, $scope.tenantId);
+      xhr.onreadystatechange = function() {
+        if(xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
+          var totalSize = chunkOffset + BYTES_PER_CHUNK;
+          if (totalSize >= $scope.uploadedSize) {
+            $scope.uploadedSize = totalSize;
+            $scope.$apply();
+          }
+        }
+      };
+      return xhr.send(file);
+    };
+
+    $scope.getUploadedSize = function() {
+      if ($scope.uploadedSize && $scope.file) {
+        return $scope.uploadedSize*100/$scope.file.size + '%';
+      }
+    }
 
   });

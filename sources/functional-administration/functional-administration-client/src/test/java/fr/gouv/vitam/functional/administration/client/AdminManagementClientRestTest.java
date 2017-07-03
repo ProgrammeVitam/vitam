@@ -53,11 +53,12 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.junit.FakeInputStream;
-import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
 import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
+
 import org.assertj.core.api.Assertions;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Assert;
@@ -73,6 +74,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.AccessContractModel;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
@@ -83,6 +85,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
+import fr.gouv.vitam.functional.administration.client.model.ContextModel;
 import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
@@ -268,7 +271,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         }
 
         @POST
-        @Path("/accession-register/detail")
+        @Path("/accession-register/detail/{id}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response getAccessionRegisterDetail() {
@@ -341,6 +344,14 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         public Response downloadTraceabilityOperationFile(@PathParam("id") String id)
             throws InvalidParseOperationException {
             return expectedResponse.get();
+        }
+        
+        @POST
+        @Path("/contexts")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response importContexts(List<ContextModel> ContextModelList) {
+            return expectedResponse.post();
         }
 
     }
@@ -516,21 +527,21 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     public void getAccessionRegisterDetail()
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).entity("{}").build());
-        client.getAccessionRegisterDetail(JsonHandler.getFromString(QUERY));
+        client.getAccessionRegisterDetail("id", JsonHandler.getFromString(QUERY));
     }
 
     @Test(expected = ReferentialException.class)
     public void getAccessionRegisterDetailError()
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.getAccessionRegisterDetail(JsonHandler.getFromString(QUERY));
+        client.getAccessionRegisterDetail("id", JsonHandler.getFromString(QUERY));
     }
 
     @Test(expected = AccessionRegisterException.class)
     public void getAccessionRegisterDetailUnknownError()
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        client.getAccessionRegisterDetail(JsonHandler.getFromString(QUERY));
+        client.getAccessionRegisterDetail("id", JsonHandler.getFromString(QUERY));
     }
 
     /**
@@ -799,5 +810,20 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     private List<ProfileModel> getProfiles() throws FileNotFoundException, InvalidParseOperationException {
         File fileProfiles = PropertiesUtils.getResourceFile("profile_ok.json");
         return JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>(){});
+    }
+    
+    @Test
+    @RunWithCustomExecutor
+    public void importContextsWithCorrectJsonReturnCreated() throws ReferentialException, FileNotFoundException, InvalidParseOperationException{
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(new RequestResponseOK<ContextModel>().addAllResults(getContexts())).build());
+        Status resp = client.importContexts(new ArrayList<>());
+        assertEquals(resp, Status.CREATED);
+    }
+    
+    private List<ContextModel> getContexts() throws FileNotFoundException, InvalidParseOperationException{
+        File fileContexts = PropertiesUtils.getResourceFile("contexts_ok.json");
+        return JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>(){});
     }
 }

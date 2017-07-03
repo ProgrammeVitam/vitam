@@ -9,6 +9,11 @@ java_args: ""
 package_name: "vitam-{{ vitam_component }}"
 port_http: 8082
 port_http_admin: 28082
+# Configuration par défaut du connecteur de service
+port_http: 8082 # KWA: is it really OK to set a default here ?
+tls_active: false
+# Configuration par défaut du connecteur admin
+port_http_admin: 28082 # KWA: is it really OK to set a default here ?
 tls_active: false
 days_to_delete_local: 30
 days_to_delete_access_local: 7
@@ -24,3 +29,6 @@ vitam_site_id: 1
 
 # Trust X-SSL-CLIENT-CERT header for external api auth ? (true | false)
 vitam_ssl_user_header: false
+
+# Testing parameter to check wether tls is enabled or disabled on offers
+test_tls_offer_enabled: true

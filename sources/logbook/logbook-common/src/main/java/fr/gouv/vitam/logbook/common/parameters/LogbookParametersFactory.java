@@ -34,6 +34,7 @@ import java.util.Set;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.model.StatusCode;
+import static fr.gouv.vitam.common.i18n.VitamLogbookMessages.getOutcomeDetail;
 
 /**
  *
@@ -67,6 +68,7 @@ public class LogbookParametersFactory {
     private static final String NO_PARAMETER_CAN_BE_NULL_OR_EMPTY = "No parameter can be null or empty";
     private static final Set<LogbookParameterName> genericMandatoryOperation = new HashSet<>();
     private static final Set<LogbookParameterName> genericMandatoryLifeCycle = new HashSet<>();
+
 
     static {
         genericMandatoryOperation.add(LogbookParameterName.eventIdentifier);
@@ -183,13 +185,15 @@ public class LogbookParametersFactory {
         ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventType, outcomeDetailMessage);
         final LogbookOperationParameters parameters = newLogbookOperationParameters();
         return (LogbookOperationParameters) parameters
-            .putParameterValue(LogbookParameterName.eventIdentifier, eventIdentifier.getId())
-            .putParameterValue(LogbookParameterName.eventType, eventType)
-            .putParameterValue(LogbookParameterName.eventIdentifierProcess, eventIdentifierProcess.getId())
-            .setTypeProcess(eventTypeProcess)
-            .setStatus(outcome)
-            .putParameterValue(LogbookParameterName.outcomeDetailMessage, outcomeDetailMessage)
-            .putParameterValue(LogbookParameterName.eventIdentifierRequest, eventIdentifierRequest.getId());
+                .putParameterValue(LogbookParameterName.eventIdentifier, eventIdentifier.getId())
+                .putParameterValue(LogbookParameterName.eventType, eventType)
+                .putParameterValue(LogbookParameterName.eventIdentifierProcess, eventIdentifierProcess.getId())
+                .setTypeProcess(eventTypeProcess)
+                .setStatus(outcome)
+                .putParameterValue(LogbookParameterName.outcomeDetailMessage, outcomeDetailMessage)
+                .putParameterValue(LogbookParameterName.eventIdentifierRequest, eventIdentifierRequest.getId())
+                .putParameterValue(LogbookParameterName.outcomeDetail, getOutcomeDetail(eventType, outcome))
+                .putParameterValue(LogbookParameterName.objectIdentifier, eventIdentifierProcess.getId());
     }
 
     /**

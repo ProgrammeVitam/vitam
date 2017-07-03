@@ -120,7 +120,7 @@ public class ConnectionImpl extends AbstractConnection {
         try {
             response = performRequest(HttpMethod.HEAD, OBJECTS_PATH + "/" + DataCategory.OBJECT,
                 getDefaultHeaders(tenantId, null, null, null),
-                MediaType.APPLICATION_JSON_TYPE, false);
+                MediaType.APPLICATION_JSON_TYPE);
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
 
             switch (status) {
@@ -173,7 +173,7 @@ public class ConnectionImpl extends AbstractConnection {
         try {
             response = performRequest(HttpMethod.GET, OBJECTS_PATH + "/" + request.getType() + COUNT_PATH,
                 getDefaultHeaders(request.getTenantId(), null, null, null),
-                MediaType.APPLICATION_JSON_TYPE, false);
+                MediaType.APPLICATION_JSON_TYPE);
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
 
             switch (status) {
@@ -291,7 +291,7 @@ public class ConnectionImpl extends AbstractConnection {
                 OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid(),
                 getDefaultHeaders(request.getTenantId(), null, request.getDigestHashBase16(),
                     request.getDigestAlgorithm().getName()),
-                MediaType.APPLICATION_JSON_TYPE, false);
+                MediaType.APPLICATION_JSON_TYPE);
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {
@@ -329,8 +329,7 @@ public class ConnectionImpl extends AbstractConnection {
         try {
             response = performRequest(HttpMethod.HEAD,
                 OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid(),
-                getDefaultHeaders(request.getTenantId(), null, null, null), MediaType.APPLICATION_OCTET_STREAM_TYPE,
-                false);
+                getDefaultHeaders(request.getTenantId(), null, null, null), MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {
@@ -467,7 +466,7 @@ public class ConnectionImpl extends AbstractConnection {
                     OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid(),
                     getDefaultHeaders(request.getTenantId(), null,
                         request.getDigestHashBase16(), request.getDigestAlgorithm().getName()),
-                    MediaType.APPLICATION_OCTET_STREAM_TYPE, false);
+                    MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {
@@ -508,7 +507,7 @@ public class ConnectionImpl extends AbstractConnection {
         try {
             response = performRequest(HttpMethod.GET,
                 OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid() + METADATAS,
-                getDefaultHeaders(request.getTenantId(), null, null, null), MediaType.APPLICATION_JSON_TYPE, false);
+                getDefaultHeaders(request.getTenantId(), null, null, null), MediaType.APPLICATION_JSON_TYPE);
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:

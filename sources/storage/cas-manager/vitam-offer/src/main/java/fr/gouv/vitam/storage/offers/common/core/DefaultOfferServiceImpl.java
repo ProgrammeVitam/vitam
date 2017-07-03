@@ -71,6 +71,8 @@ import fr.gouv.vitam.common.storage.ContainerInformation;
  */
 public class DefaultOfferServiceImpl implements DefaultOfferService {
 
+    private static final String CONTAINER_ALREADY_EXISTS = "Container already exists";
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultOfferServiceImpl.class);
 
     private static final DefaultOfferService INSTANCE = new DefaultOfferServiceImpl();
@@ -128,7 +130,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         try {
             defaultStorage.createContainer(containerName);
         } catch (ContentAddressableStorageAlreadyExistException ex) {
-            LOGGER.debug("Container already exists");
+            LOGGER.debug(CONTAINER_ALREADY_EXISTS, ex);
         }
         objectInit.setId(objectGUID);
         objectTypeFor.put(objectGUID, objectInit.getType().getFolder());
@@ -152,7 +154,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             try {
                 defaultStorage.createContainer(containerName);
             } catch (ContentAddressableStorageAlreadyExistException e) {
-                LOGGER.info("Container already exists");
+                LOGGER.debug(CONTAINER_ALREADY_EXISTS, e);
             }
             return putObject(containerName, objectId, objectPart, type);
         } catch (final ContentAddressableStorageException exc) {
@@ -193,7 +195,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             try {
                 defaultStorage.createContainer(containerName);
             } catch (ContentAddressableStorageAlreadyExistException e) {
-                LOGGER.info("Container already exists");
+                LOGGER.debug(CONTAINER_ALREADY_EXISTS, e);
             }
             containerInformation = defaultStorage.getContainerInformation(containerName);
         }
@@ -260,7 +262,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         try {
             defaultStorage.createContainer(containerName);
         } catch (ContentAddressableStorageAlreadyExistException ex) {
-            LOGGER.debug("Container already exists");
+            LOGGER.debug(CONTAINER_ALREADY_EXISTS, ex);
         }
         String cursorId = GUIDFactory.newGUID().toString();
         mapXCusor.put(getKeyMap(containerName, cursorId), null);

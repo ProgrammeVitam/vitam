@@ -20,10 +20,10 @@ Par convention, la permission est nommée en fonction de l'URI est du verbe HTTP
 Si une l'URL possède une sous collection, par exemple `/logbook/operations`, alors le nom de la permission pour lire les informations est : `logbook:operation:read`.
 
 La correspondance entre les verbes HTTP et les permissions est la suivante :
- - GET : read
- - POST : update
- - PUT : create
- - DELETE : delete
+- GET : read
+- POST : update
+- PUT : create
+- DELETE : delete
 
 Par contre, dans le cas ou on utilise un POST pour de la lecture (cas typique du DSL), on nommera quand même la permission avec `read`.
 

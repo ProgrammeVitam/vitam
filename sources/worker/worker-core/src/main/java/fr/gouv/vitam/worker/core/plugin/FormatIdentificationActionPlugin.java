@@ -91,7 +91,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
     /**
      * File format treatment
      */
-    private static final String FILE_FORMAT = "FILE_FORMAT";
+    public static final String FILE_FORMAT = "FILE_FORMAT";
 
     /**
      * Error list for file format treatment
@@ -109,6 +109,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
     private FormatIdentifier formatIdentifier;
 
     private boolean metadatasUpdated = false;
+    String eventDetailData;
 
     /**
      * Empty constructor
@@ -201,6 +202,10 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                 } catch (final IOException e) {
                     throw new ProcessingException("Issue while reading/writing the ObjectGroup", e);
                 }
+
+                if (eventDetailData!=null){
+                    itemStatus.setEvDetailData(eventDetailData);
+                }
             }
 
         } catch (final ProcessingException e) {
@@ -266,6 +271,8 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                     checkAndUpdateFormatIdentification(objectId, formatIdentification,
                         objectCheckFormatResult, refFormat,
                         version);
+                eventDetailData = "{\"diff\": {\"-\":" + formatIdentification + "," +
+                    "\"+\": " + newFormatIdentification + "}}";
                 // Reassign new format
                 ((ObjectNode) version).set(SedaConstants.TAG_FORMAT_IDENTIFICATION, newFormatIdentification);
             }
@@ -306,7 +313,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
 
         final String puid = refFormat.getPuid();
         final StringBuilder diff = new StringBuilder();
-        JsonNode newFormatIdentification = formatIdentification;
+        JsonNode newFormatIdentification = formatIdentification.deepCopy();
         if ((newFormatIdentification == null || !newFormatIdentification.isObject()) && puid != null) {
             newFormatIdentification = JsonHandler.createObjectNode();
             ((ObjectNode) version).set(SedaConstants.TAG_FORMAT_IDENTIFICATION, newFormatIdentification);
@@ -367,6 +374,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
         if (StatusCode.WARNING.equals(objectCheckFormatResult.getStatus())) {
             objectCheckFormatResult.setSubStatus(FILE_FORMAT_UPDATED_FORMAT);
         }
+        
         return newFormatIdentification;
     }
 

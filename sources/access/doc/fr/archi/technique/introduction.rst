@@ -1,5 +1,5 @@
 Introduction
-*******************
+##############
 
 Présentation
 ------------
@@ -21,7 +21,9 @@ Itération 4
 
 Modules - packages
 ------------------
- access
+
+access
+
 |     /access-common
 |        fr.gouv.vitam.access.common.exception
 |        fr.gouv.vitam.access.common.model

@@ -1,13 +1,18 @@
 ---
 
+### HOSTS NETWORK VARS CHECK ###
+- hosts: hosts
+  roles:
+    - check_networks
+
 # Vitam solution deployment
 - hosts: vitam
   roles:
     - topbeat
 
-- hosts: vitam
-  roles:
-    - {role: packetbeat, when: "inventory_hostname != 'localhost'"}
+#- hosts: vitam
+#  roles:
+#    - {role: packetbeat, when: "inventory_hostname != 'localhost'"}
 
 - hosts: hosts-elasticsearch-log
   roles:
@@ -17,20 +22,12 @@
   roles:
     - vitam_browser
 
-- hosts: hosts-mongo-express
-  roles:
-    - {role: mongo-express, when: "inventory_hostname != 'localhost'"}
-
-- hosts: elasticsearch
-  roles:
-    - {role: elasticsearch-head}
+- include: dev-tools.yml
 
 - hosts: library
   roles:
-    - {role: vitam, vitam_component: library, java_args: /vitam/conf/library/library.conf, port_http: "{{vitam_library_port}}", secret_platform: "false" }
+    - {role: vitam, vitam_component: library, java_args: /vitam/conf/library/library.conf, port_http: "{{vitam_library_port}}", port_http_admin: "{{vitam_library_port_admin}}", secret_platform: "false" }
 
 - include: ihm-recette.yml
 
-- hosts: reverse
-  roles:
-    - reverse
+- include: reverse.yml

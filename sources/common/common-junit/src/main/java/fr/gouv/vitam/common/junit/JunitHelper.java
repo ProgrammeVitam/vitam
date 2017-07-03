@@ -26,8 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.junit;
 
-import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,13 +33,13 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.elasticsearch.Version;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.http.BindHttpException;
 import org.elasticsearch.node.Node;
 import org.elasticsearch.node.internal.InternalSettingsPreparer;
 import org.elasticsearch.plugin.analysis.icu.AnalysisICUPlugin;
@@ -68,7 +66,7 @@ public class JunitHelper extends ExternalResource {
     private static final int MAX_PORT = 65535;
     private static final int BUFFER_SIZE = 65536;
     private static final String COULD_NOT_FIND_A_FREE_TCP_IP_PORT_TO_START_EMBEDDED_SERVER_ON =
-            "Could not find a free TCP/IP port to start embedded Server on";
+        "Could not find a free TCP/IP port to start embedded Server on";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(JunitHelper.class);
 
     private final Set<Integer> portAlreadyUsed = new HashSet<>();
@@ -77,13 +75,6 @@ public class JunitHelper extends ExternalResource {
      */
     private static final String PARAMETER_JETTY_SERVER_PORT = "jetty.port";
     public static final String PARAMETER_JETTY_SERVER_PORT_ADMIN = "jetty.port.admin";
-    /**
-     * Convention according to the story #938
-     * We prefix PARAMETER_JETTY_SERVER_PORT with number of (1 or 2 or , ...),
-     * As there is already used port number like 18001, this is why we choose the prefix 2
-     * Example: If jetty.port = 8082 then jetty.port.admin = 28082
-     */
-    private static final String PORT_ADMIN_PREFIX = "2";
 
     private static final JunitHelper JUNIT_HELPER = new JunitHelper();
 
@@ -119,7 +110,8 @@ public class JunitHelper extends ExternalResource {
     public final synchronized int findAvailablePort(String environmentVariable) {
         int port = getAvailablePort();
 
-        if (PARAMETER_JETTY_SERVER_PORT.equals(environmentVariable) || PARAMETER_JETTY_SERVER_PORT_ADMIN.equals(environmentVariable)) {
+        if (PARAMETER_JETTY_SERVER_PORT.equals(environmentVariable) ||
+            PARAMETER_JETTY_SERVER_PORT_ADMIN.equals(environmentVariable)) {
             setJettyPortSystemProperty(environmentVariable, port);
         }
         return port;
@@ -134,7 +126,7 @@ public class JunitHelper extends ExternalResource {
      * @throws IllegalStateException if no port available
      */
     public final synchronized StartApplicationResponse<?> findAvailablePortSetToApplication(
-            VitamApplicationTestFactory<?> testFactory) {
+        VitamApplicationTestFactory<?> testFactory) {
         if (testFactory == null) {
             throw new IllegalStateException("Factory must not be null");
         }
@@ -295,12 +287,16 @@ public class JunitHelper extends ExternalResource {
 
     /**
      * Set JettyPort System Property
+     * 
+     * @param environmentVariable
      *
      * @param port set to jetty server
      */
     public static final void setJettyPortSystemProperty(String environmentVariable, int port) {
-        if (!PARAMETER_JETTY_SERVER_PORT.equals(environmentVariable) && !PARAMETER_JETTY_SERVER_PORT_ADMIN.equals(environmentVariable))
-            throw new IllegalArgumentException("JunitHelper setJettyPortSystemProperty method, accept only [jetty.port or jetty.port.admin] params");
+        if (!PARAMETER_JETTY_SERVER_PORT.equals(environmentVariable) &&
+            !PARAMETER_JETTY_SERVER_PORT_ADMIN.equals(environmentVariable))
+            throw new IllegalArgumentException(
+                "JunitHelper setJettyPortSystemProperty method, accept only [jetty.port or jetty.port.admin] params");
 
         SystemPropertyUtil.set(environmentVariable, Integer.toString(port));
     }
@@ -328,7 +324,7 @@ public class JunitHelper extends ExternalResource {
             // finally call the constructor
             c.newInstance();
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException |
-                IllegalArgumentException | InvocationTargetException | UnsupportedOperationException e) {
+            IllegalArgumentException | InvocationTargetException | UnsupportedOperationException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
     }
@@ -376,7 +372,7 @@ public class JunitHelper extends ExternalResource {
     }
 
     private static final void tryStartElasticsearch(ElasticsearchTestConfiguration config, TemporaryFolder tempFolder,
-                                                    String clusterName) {
+        String clusterName) {
         try {
             config.elasticsearchHome = tempFolder.newFolder();
             final Settings settings = Settings.settingsBuilder()
@@ -394,11 +390,12 @@ public class JunitHelper extends ExternalResource {
                 .put("watcher.http.default_read_timeout", VitamConfiguration.getReadTimeout() / 1000 + "s")
                 .build();
 
-            config.node = new NodeWithPlugins(InternalSettingsPreparer.prepareEnvironment(settings, null), Version.CURRENT,
-                Collections.singletonList(AnalysisICUPlugin.class));
-            
+            config.node =
+                new NodeWithPlugins(InternalSettingsPreparer.prepareEnvironment(settings, null), Version.CURRENT,
+                    Collections.singletonList(AnalysisICUPlugin.class));
+
             config.node.start();
-        } catch (BindTransportException | IOException e) {
+        } catch (BindTransportException | BindHttpException | IOException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             config.node = null;
             try {
@@ -414,7 +411,7 @@ public class JunitHelper extends ExternalResource {
 
     /**
      *
-     * Helper to start an Elasticsearch server
+     * Helper to start an Elasticsearch server (unrecommended version)
      *
      * @param tempFolder the TemporaryFolder declared as ClassRule within the Junit class
      * @param clusterName the cluster name
@@ -424,7 +421,7 @@ public class JunitHelper extends ExternalResource {
      * @throws VitamApplicationServerException if the Elasticsearch server cannot be started
      */
     public static final ElasticsearchTestConfiguration startElasticsearchForTest(TemporaryFolder tempFolder,
-                                                                                 String clusterName, int tcpPort, int httpPort) throws VitamApplicationServerException {
+        String clusterName, int tcpPort, int httpPort) throws VitamApplicationServerException {
         final ElasticsearchTestConfiguration config = new ElasticsearchTestConfiguration();
         config.httpPort = httpPort;
         config.tcpPort = tcpPort;
@@ -438,7 +435,7 @@ public class JunitHelper extends ExternalResource {
     }
 
     /**
-     * Helper to start an Elasticsearch server
+     * Helper to start an Elasticsearch server (recommended version)
      *
      * @param tempFolder the TemporaryFolder declared as ClassRule within the Junit class
      * @param clusterName the cluster name
@@ -446,7 +443,7 @@ public class JunitHelper extends ExternalResource {
      * @throws VitamApplicationServerException if the Elasticsearch server cannot be started
      */
     public static final ElasticsearchTestConfiguration startElasticsearchForTest(TemporaryFolder tempFolder,
-                                                                                 String clusterName) throws VitamApplicationServerException {
+        String clusterName) throws VitamApplicationServerException {
         final JunitHelper junitHelper = getInstance();
         final ElasticsearchTestConfiguration config = new ElasticsearchTestConfiguration();
         for (int i = 0; i < VitamConfiguration.getRetryNumber(); i++) {
@@ -480,5 +477,5 @@ public class JunitHelper extends ExternalResource {
             junitHelper.releasePort(config.httpPort);
         }
     }
-    
+
 }

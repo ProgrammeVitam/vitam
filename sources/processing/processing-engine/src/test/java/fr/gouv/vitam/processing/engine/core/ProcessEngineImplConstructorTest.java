@@ -27,6 +27,7 @@
 
 package fr.gouv.vitam.processing.engine.core;
 
+import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -34,6 +35,7 @@ import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 
+// TODO: 5/27/17 ProcessEngine
 /**
  * Ugly coverage JUnit
  */
@@ -41,18 +43,11 @@ public class ProcessEngineImplConstructorTest {
 
     @Test
     public void initWithoutMock() throws WorkflowNotFoundException {
-        new ProcessEngineImplFactory().create(WorkerParametersFactory.newWorkerParameters(), new Object(), null);
+        ProcessEngineFactory.get().create(WorkerParametersFactory.newWorkerParameters());
     }
 
     @Test
     public void initWithMock() throws WorkflowNotFoundException {
-        new ProcessEngineImplFactory().create(Mockito.mock(ProcessDistributor.class));
+        ProcessEngineFactory.get().create(WorkerParametersFactory.newWorkerParameters(), Mockito.mock(ProcessDistributor.class));
     }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void initWithNullProcessDistributor() {
-        new ProcessEngineImplFactory().create(null);
-    }
-
-
 }

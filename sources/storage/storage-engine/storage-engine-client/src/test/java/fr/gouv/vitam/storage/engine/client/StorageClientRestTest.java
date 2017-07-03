@@ -59,6 +59,7 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
@@ -159,6 +160,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
 
         @GET
         @Path("/")
+        @Produces(MediaType.APPLICATION_JSON)
         public Response getContainer() {
             return expectedResponse.get();
         }
@@ -276,7 +278,8 @@ public class StorageClientRestTest extends VitamJerseyTest {
     @Test
     public void getContainerInfos() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        when(mock.head()).thenReturn(Response.status(Response.Status.OK).build());
+        when(mock.get()).thenReturn(Response.status(Response.Status.OK)
+            .entity(JsonHandler.createObjectNode().put("test", "test")).build());
         client.getStorageInformation("idStrategy");
     }
 
@@ -284,14 +287,16 @@ public class StorageClientRestTest extends VitamJerseyTest {
     @Test(expected = IllegalArgumentException.class)
     public void getContainerInfosWithTenantIllegalArgumentException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(null);
-        when(mock.get()).thenReturn(Response.status(Response.Status.OK).build());
+        when(mock.get()).thenReturn(Response.status(Response.Status.OK)
+            .entity(JsonHandler.createObjectNode().put("test", "test")).build());
         client.getStorageInformation("idStrategy");
     }
 
     @RunWithCustomExecutor
     @Test(expected = IllegalArgumentException.class)
     public void getContainerInfosWithStrategyIllegalArgumentException() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Response.Status.OK).build());
+        when(mock.get()).thenReturn(Response.status(Response.Status.OK)
+            .entity(JsonHandler.createObjectNode().put("test", "test")).build());
         client.getStorageInformation(null);
     }
 
@@ -299,7 +304,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
     @Test(expected = StorageNotFoundClientException.class)
     public void getContainerInfosNotFound() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        when(mock.head()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
         client.getStorageInformation("idStrategy");
     }
 

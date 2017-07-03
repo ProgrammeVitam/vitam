@@ -33,28 +33,42 @@ public enum AdminCollections {
     /**
      * Formats Collection
      */
-    FORMATS("formats"),
+    FORMATS(AccessExtAPI.FORMATS),
 
     /**
      * Rules Collection
      */
-    RULES("rules"),
+    RULES(AccessExtAPI.RULES),
     
     /**
      * Ingest contracts collection
      */
-    CONTRACTS("contracts"),
+    ENTRY_CONTRACTS(AccessExtAPI.ENTRY_CONTRACT),
 
     /**
      * Access contracts collection
      */
-    ACCESS_CONTRACTS("accesscontracts"),
+    ACCESS_CONTRACTS(AccessExtAPI.ACCESS_CONTRACT),
 
     /**
      * Profile collection
      */
-    PROFILE("profiles");
+    PROFILE(AccessExtAPI.PROFILES),
+    
+    /**
+     * Context collection
+     */
+    CONTEXTS(AccessExtAPI.CONTEXTS),
 
+    /**
+     * Accession register collection
+     */
+    ACCESSION_REGISTERS(AccessExtAPI.ACCESSION_REGISTERS),
+    
+    /**
+     * Traceability collection
+     */
+    TRACEABILITY(AccessExtAPI.TRACEABILITY);
 
     private String name;
 

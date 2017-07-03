@@ -78,13 +78,18 @@ public class UpdateUnitResourceTest {
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-    
+
     private static final Integer TENANT_ID_0 = new Integer(0);
-    static final List tenantList =  new ArrayList(){{add(TENANT_ID_0);}};
+    static final List tenantList = new ArrayList() {
+        {
+            add(TENANT_ID_0);
+        }
+    };
     private static final String DATA =
         "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", \"#tenant\": \"0\", " + "\"data\": \"data2\" }";
     private static final String DATA2 =
-        "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\", \"#tenant\": \"0\", " + "\"data\": \"data2\" }";
+        "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\", \"#tenant\": \"0\", " + "\"data\": \"data2\", " +
+            "\"Title\": \"Archive3\", \"#management\": {\"OriginatingAgency\": \"XXXXXXX\"}," + " \"DescriptionLevel\": \"Item\" }";
 
     private static final String ID_UNIT = "aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab";
     private static final String DATA_URI = "/metadata/v1";
@@ -104,10 +109,10 @@ public class UpdateUnitResourceTest {
 
     private static final String BODY_TEST =
         "{\"$query\": [], \"$action\": [{\"$set\": {\"data\": \"data3\"}}], \"$filter\": {}}";
-    
+
     private static final String BODY_TEST_BAD_REQUEST =
         "{\"$query\": [{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaa22\"}], \"$action\": [{\"$set\": {\"data\": \"data3\"}}], \"$filter\": {}}";
-    
+
     private static final String REAL_UPDATE_BODY_TEST =
         "{\"$query\": [], \"$action\": [{\"$set\": {\"data\": \"data4\"}}, {\"$push\": {\"#operations\": {\"$each\": [\"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaac\"]}}}], \"$filter\": {}}";
     private static JunitHelper junitHelper;
@@ -210,7 +215,7 @@ public class UpdateUnitResourceTest {
     @Test
     @RunWithCustomExecutor
     public void given_2units_insert_when_UpdateUnitsByID_thenReturn_Found() throws Exception {
-        with()            
+        with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID_0)
             .body(buildDSLWithOptions("", DATA2)).when()

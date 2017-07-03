@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>worker</artifactId>
-		<version>0.19.0-SNAPSHOT</version>
+		<version>0.20.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>worker-common</artifactId>
 	<name>Worker Common</name>
@@ -30,7 +30,14 @@
 			<artifactId>storage-engine-client</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-
+		<dependency>
+			<groupId>com.thaiopensource</groupId>
+			<artifactId>jing</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.thaiopensource</groupId>
+			<artifactId>trang</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-annotations</artifactId>
@@ -46,10 +53,6 @@
 		<dependency>
 			<groupId>xml-resolver</groupId>
 			<artifactId>xml-resolver</artifactId>
-		</dependency>
-		<dependency>
-		    <groupId>com.github.fge</groupId>
-		    <artifactId>json-schema-validator</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
@@ -92,14 +95,18 @@
 				<version>0.13.1</version>
 				<configuration>
 					<catalog>src/main/resources/seda-vitam.cat</catalog>
+					<args>
+                		<arg>-Xinheritance</arg>
+					</args>
+
 					<strict>false</strict>
 					<schemaDirectory>src/main/resources</schemaDirectory>
 					<schemaExcludes>
-				        <exclude>seda-2.0-main.xsd</exclude>
-				    </schemaExcludes>
-				    <schemaIncludes>
-				        <include>seda-vitam-2.0-main.xsd</include>
-				    </schemaIncludes>
+						<exclude>seda-2.0-main.xsd</exclude>
+					</schemaExcludes>
+					<schemaIncludes>
+						<include>seda-vitam-2.0-main.xsd</include>
+					</schemaIncludes>
 					<plugins>
 						<plugin>
 							<groupId>org.jvnet.jaxb2_commons</groupId>
@@ -115,6 +122,13 @@
 						</goals>
 					</execution>
 				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>org.jvnet.jaxb2_commons</groupId>
+						<artifactId>jaxb2-basics</artifactId>
+						<version>0.6.5</version>
+					</dependency>
+				</dependencies>
 			</plugin>
 		</plugins>
 	</build>

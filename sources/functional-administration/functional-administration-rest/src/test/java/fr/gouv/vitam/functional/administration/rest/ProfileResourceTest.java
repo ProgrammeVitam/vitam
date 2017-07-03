@@ -65,6 +65,7 @@ import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminColl
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
+import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.profile.api.ProfileService;
 import fr.gouv.vitam.functional.administration.profile.api.impl.ProfileServiceImpl;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -92,6 +93,7 @@ import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.prefix;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assume.assumeTrue;
 import static org.mockito.Matchers.any;
@@ -140,7 +142,8 @@ public class ProfileResourceTest {
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
-
+    private static VitamCounterService vitamCounterService;
+    private static MongoDbAccessAdminImpl dbImpl;
     private final static String CLUSTER_NAME = "vitam-cluster";
     private static ElasticsearchAccessFunctionalAdmin esClient;
 
@@ -190,6 +193,10 @@ public class ProfileResourceTest {
 
          workspaceClientFactory = mock(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
+        dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
+        List tenants = new ArrayList<>();
+        tenants.add(new Integer(TENANT_ID));
+        vitamCounterService = new VitamCounterService(dbImpl, tenants);
 
         try {
             application = new AdminManagementApplication(adminConfigFile.getAbsolutePath()) {
@@ -198,7 +205,7 @@ public class ProfileResourceTest {
                     final AdminManagementResource resource = new AdminManagementResource(getConfiguration());
 
                     final MongoDbAccessAdminImpl mongoDbAccess = resource.getLogbookDbAccess();
-                    final ProfileResource profileResource = new ProfileResource(workspaceClientFactory, mongoDbAccess);
+                    final ProfileResource profileResource = new ProfileResource(workspaceClientFactory, mongoDbAccess,vitamCounterService);
                     resourceConfig
                         .register(profileResource);
                 }
@@ -252,15 +259,16 @@ public class ProfileResourceTest {
         final Select select =
             new Select();
         final BooleanQuery query = and();
-        query.add(match("Identifier", "aIdentifier2"));
-        select.setQuery(query);                
+        query.add(match("Identifier", "PR-0000"));
+        select.setQuery(query);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         List<String> result = given().contentType(ContentType.JSON).body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, 0)
             .when().get(ProfileResource.PROFILE_URI)
             .then().statusCode(Status.OK.getStatusCode()).extract().body().jsonPath().get("$results.Identifier");
 
-        assertThat(result).hasSize(2).contains("aIdentifier2");
+        assertThat(result).hasSize(0);
+
     }
 
     @Test
@@ -273,7 +281,7 @@ public class ProfileResourceTest {
         given().contentType(ContentType.JSON).body(json)
             .header(GlobalDataRest.X_TENANT_ID, 0)
             .when().post(ProfileResource.PROFILE_URI)
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+            .then().statusCode(Status.CREATED.getStatusCode());
     }
 
     @Test
@@ -289,18 +297,6 @@ public class ProfileResourceTest {
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
-    @Test
-    @RunWithCustomExecutor
-    public void givenProfilesWithDuplicateIdentifier() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        File fileProfiles = PropertiesUtils.getResourceFile("profile_duplicate_identifier.json");
-        JsonNode json = JsonHandler.getFromFile(fileProfiles);
-        // transform to json
-        given().contentType(ContentType.JSON).body(json)
-            .header(GlobalDataRest.X_TENANT_ID, 0)
-            .when().post(ProfileResource.PROFILE_URI)
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
-    }
 
 
 
@@ -322,7 +318,9 @@ public class ProfileResourceTest {
             .then().statusCode(Status.OK.getStatusCode()).extract().body().jsonPath();
 
         List<String> identifiers =result.get("$results.Identifier");
-        assertThat(identifiers).hasSize(2).contains("aIdentifier2");
+        assertThat(identifiers).hasSize(2);
+        assertThat(identifiers.get(0)).contains("PR-0000");
+        assertThat(identifiers.get(1)).contains("PR-0000");
 
         List<String> ids =result.get("$results._id");
 
@@ -365,8 +363,9 @@ public class ProfileResourceTest {
             .then().statusCode(Status.OK.getStatusCode()).extract().body().jsonPath();
 
         List<String> identifiers =result.get("$results.Identifier");
-        assertThat(identifiers).hasSize(2).contains("aIdentifier2");
-
+        assertThat(identifiers).hasSize(2);
+        assertThat(identifiers.get(0)).contains("PR-0000");
+        assertThat(identifiers.get(1)).contains("PR-0000");
         List<String> ids =result.get("$results._id");
 
         String idProfile = ids.get(1);

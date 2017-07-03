@@ -6,7 +6,7 @@
 vitam
 reverse
 library
-hosts-mongo-express
+hosts-dev-tools
 
 
 ########### Tests environments specifics ###########
@@ -22,8 +22,8 @@ hosts-mongo-express
 [library]
 # TODO: Put here servers where this service will be deployed : library
 
-[hosts-mongo-express]
-# TODO: Put here servers where this service will be deployed : mongo-express
+[hosts-dev-tools]
+# TODO: Put here servers where this service will be deployed : mongo-express, elasticsearch-head
 
 [elasticsearch:children] # EXTRA : elasticsearch
 hosts-elasticsearch-data
@@ -46,9 +46,17 @@ zone-admin
 
 [zone-external:children]
 hosts-ihm-demo
+hosts-cerebro
+hosts-ihm-recette
 
 [hosts-ihm-demo]
 # TODO: Put here servers where this service will be deployed : ihm-demo
+
+[hosts-ihm-recette]
+# TODO: Put here servers where this service will be deployed : ihm-recette (extra feature)
+
+[hosts-cerebro]
+# TODO: Put here servers where this service will be deployed : vitam-elasticsearch-cerebro
 
 
 ##### Zone access

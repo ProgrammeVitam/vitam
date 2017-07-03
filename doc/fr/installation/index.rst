@@ -16,11 +16,11 @@
    10-it-services.rst
    fiche_type
    get_version
-   rpm/_toc
+   certificats/_toc
+   packages/_toc
    validation_deploiement
    troubleshooting
    extras
-   contacts
 
 .. only:: latex
 
@@ -32,4 +32,3 @@
 
       \listoffigures
       \listoftables
-

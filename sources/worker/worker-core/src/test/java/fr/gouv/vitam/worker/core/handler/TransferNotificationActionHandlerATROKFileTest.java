@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.core.handler;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 
 import java.io.FileNotFoundException;
@@ -67,6 +68,7 @@ import fr.gouv.vitam.processing.common.model.UriPrefix;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
+import fr.gouv.vitam.worker.common.utils.ValidationXsdUtils;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -76,7 +78,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"javax.net.ssl.*", "org.xml.sax.*", "javax.management.*"})
 @PrepareForTest({WorkspaceClientFactory.class, LogbookLifeCyclesClientFactory.class,
-    LogbookOperationsClientFactory.class})
+    LogbookOperationsClientFactory.class, ValidationXsdUtils.class})
 public class TransferNotificationActionHandlerATROKFileTest {
     private static final String ARCHIVE_ID_TO_GUID_MAP =
         "ARCHIVE_ID_TO_GUID_MAP_obj.json";
@@ -101,7 +103,7 @@ public class TransferNotificationActionHandlerATROKFileTest {
     private WorkerParameters params;
 
     @Before
-    public void setUp() throws URISyntaxException, FileNotFoundException, ProcessingException {
+    public void setUp() throws Exception {
         guid = GUIDFactory.newGUID();
         params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8080")
@@ -115,6 +117,9 @@ public class TransferNotificationActionHandlerATROKFileTest {
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
         action = new HandlerIOImpl(guid.getId(), "workerId");
+
+        PowerMockito.mockStatic(ValidationXsdUtils.class);
+        PowerMockito.when(ValidationXsdUtils.checkWithXSD(anyObject(), anyObject())).thenReturn(true);
 
         in = new ArrayList<>();
         for (int i = 0; i < TransferNotificationActionHandler.HANDLER_IO_PARAMETER_NUMBER; i++) {

@@ -31,6 +31,8 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import fr.gouv.vitam.common.json.JsonHandler;
+
 /**
  * Data structure representing global result from a 'createObject' request
  */
@@ -47,6 +49,54 @@ public class StoredInfoResult {
     private String lastCheckedTime;
     @JsonProperty("last_modified_time")
     private String lastModifiedTime;
+    @JsonProperty("strategy")
+    private String strategy;
+    @JsonProperty("nbCopy")
+    private int nbCopy;
+    @JsonProperty("offerIds")
+    private List<String> offerIds;
+
+    /**
+     * @return the strategy
+     */
+    public String getStrategy() {
+        return strategy;
+    }
+
+    /**
+     * @param strategy the strategy to set
+     */
+    public void setStrategy(String strategy) {
+        this.strategy = strategy;
+    }
+
+    /**
+     * @return the nbCopy
+     */
+    public int getNbCopy() {
+        return nbCopy;
+    }
+
+    /**
+     * @param nbCopy the nbCopy to set
+     */
+    public void setNbCopy(int nbCopy) {
+        this.nbCopy = nbCopy;
+    }
+
+    /**
+     * @return the offerIds
+     */
+    public List<String> getOfferIds() {
+        return offerIds;
+    }
+
+    /**
+     * @param offerIds the offerIds to set
+     */
+    public void setOfferIds(List<String> offerIds) {
+        this.offerIds = offerIds;
+    }
 
     /**
      * @return the id
@@ -158,5 +208,10 @@ public class StoredInfoResult {
      */
     public void setLastModifiedTime(String lastModifiedTime) {
         this.lastModifiedTime = lastModifiedTime;
+    }
+    
+    @Override
+    public String toString() {
+        return JsonHandler.prettyPrint(this);
     }
 }

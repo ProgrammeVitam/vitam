@@ -55,7 +55,7 @@ public class PermissionReader {
      *
      * @param type
      * @param annotation
-     * @return
+     * @return set of String
      */
     public static Set<String> getMethodsAnnotatedWith(final Class<?> type,
         final Class<? extends RequiresPermissions> annotation) {
@@ -82,7 +82,7 @@ public class PermissionReader {
      *
      * @param permissions
      * @param subject
-     * @return
+     * @return list of String
      */
     public static List<String> filterPermission(Collection<String> permissions, Subject subject) {
         ArrayList<String> filteringPermissions = new ArrayList<>();

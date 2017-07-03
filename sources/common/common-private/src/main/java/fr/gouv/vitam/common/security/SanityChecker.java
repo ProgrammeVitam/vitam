@@ -52,6 +52,7 @@ import org.owasp.esapi.errors.ValidationException;
 import org.owasp.esapi.reference.DefaultValidator;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.json.JsonSanitizer;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -63,7 +64,6 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
  * <br>
  * Json : check if json is not exceed the limit size, if json does not contain script tag <br>
  * XML: check if XML file is not exceed the limit size, and it does not contain CDATA, ENTITY or SCRIPT tag
- *
  */
 public class SanityChecker {
     private static final String JSON_IS_NOT_VALID_FROM_SANITIZE_CHECK = "Json is not valid from Sanitize check";
@@ -147,7 +147,7 @@ public class SanityChecker {
      *
      * @param xmlFile as File
      * @throws InvalidParseOperationException when parse file error
-     * @throws IOException when read file error
+     * @throws IOException                    when read file error
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
     public static final void checkXmlAll(File xmlFile) throws InvalidParseOperationException, IOException {
@@ -160,6 +160,7 @@ public class SanityChecker {
 
     /**
      * Sabitize the json
+     *
      * @param json
      * @return sanitized json as String
      * @throws InvalidParseOperationException
@@ -183,7 +184,7 @@ public class SanityChecker {
      * @param json as JsonNode
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
-    public static final void checkJsonAll(JsonNode json) throws InvalidParseOperationException {        
+    public static final void checkJsonAll(JsonNode json) throws InvalidParseOperationException {
         if (json == null) {
             throw new InvalidParseOperationException(JSON_IS_NOT_VALID_FROM_SANITIZE_CHECK);
         }
@@ -249,7 +250,7 @@ public class SanityChecker {
 
     /**
      * Checks sanity of Headers: no javascript/xml tag, neither html tag
-     * 
+     *
      * @param requestHeaders
      * @throws InvalidParseOperationException
      */
@@ -275,7 +276,7 @@ public class SanityChecker {
 
     /**
      * Checks sanity of Headers: no javascript/xml tag, neither html tag
-     * 
+     *
      * @param uriParameters
      * @throws InvalidParseOperationException
      */
@@ -302,7 +303,7 @@ public class SanityChecker {
     /**
      * Find out XSS by ESAPI validator
      *
-     * @param value of string
+     * @param value     of string
      * @param validator name declared in ESAPI.properties
      * @return boolean
      */
@@ -329,7 +330,7 @@ public class SanityChecker {
      * check XML Sanity Tag and Value Size
      *
      * @param xmlFile xml file
-     * @throws IOException when read file error
+     * @throws IOException                    when read file error
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
     protected static final void checkXmlSanityTagValueSize(File xmlFile)
@@ -378,7 +379,7 @@ public class SanityChecker {
      * CheckXMLSanityFileSize : check size of xml file
      *
      * @param xmlFile as File
-     * @throws IOException when read file exception
+     * @throws IOException                    when read file exception
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
     protected static final void checkXmlSanityFileSize(File xmlFile) throws InvalidParseOperationException {
@@ -391,7 +392,7 @@ public class SanityChecker {
      * CheckXMLSanityTags : check invalid tag contains of a xml file
      *
      * @param xmlFile : XML file path as String
-     * @throws IOException when read file error
+     * @throws IOException                    when read file error
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
     protected static final void checkXmlSanityTags(File xmlFile) throws InvalidParseOperationException, IOException {
@@ -420,7 +421,7 @@ public class SanityChecker {
     /**
      * Check for all RULES and Esapi
      *
-     * @param line line to check
+     * @param line  line to check
      * @param limit limit size
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
@@ -432,7 +433,7 @@ public class SanityChecker {
     /**
      * Check using ESAPI from OWASP
      *
-     * @param line line to check
+     * @param line  line to check
      * @param limit limit size
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
@@ -493,14 +494,28 @@ public class SanityChecker {
             final String key = entry.getKey();
             checkSanityTags(key, getLimitFieldSize());
             final JsonNode value = entry.getValue();
-            if (!value.isValueNode()) {
+
+            if (value.isArray()) {
+                ArrayNode nodes = (ArrayNode) value;
+                for (JsonNode jsonNode : nodes) {
+                    if (!jsonNode.isValueNode()) {
+                        checkJsonSanity(jsonNode);
+                    } else {
+                        validateJSONField(value);
+                    }
+                }
+            } else if (!value.isValueNode()) {
                 checkJsonSanity(value);
             } else {
-                final String svalue = JsonHandler.writeAsString(value);
-                checkSanityTags(svalue, getLimitFieldSize());
-                checkHtmlPattern(svalue);
+                validateJSONField(value);
             }
         }
+    }
+
+    private static void validateJSONField(JsonNode value) throws InvalidParseOperationException {
+        final String svalue = JsonHandler.writeAsString(value);
+        checkSanityTags(svalue, getLimitFieldSize());
+        checkHtmlPattern(svalue);
     }
 
     /**

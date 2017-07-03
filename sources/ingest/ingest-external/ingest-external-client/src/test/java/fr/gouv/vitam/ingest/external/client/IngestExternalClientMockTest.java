@@ -26,23 +26,27 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.client;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.io.IOException;
 import java.io.InputStream;
 
-import javax.ws.rs.core.Response;
 import javax.xml.stream.XMLStreamException;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.client.IngestCollection;
-import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
+import com.fasterxml.jackson.databind.JsonNode;
 
-import static org.junit.Assert.*;
+import fr.gouv.vitam.common.client.IngestCollection;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientNotFoundException;
+import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientServerException;
+import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 
 public class IngestExternalClientMockTest {
 
@@ -78,7 +82,9 @@ public class IngestExternalClientMockTest {
     }
 
     @Test
-    public void givenNonEmptyStreamWhenDownloadSuccess() throws IngestExternalException, XMLStreamException {
+    public void givenNonEmptyStreamWhenDownloadSuccess()
+        throws IngestExternalException, XMLStreamException, IngestExternalClientServerException,
+        IngestExternalClientNotFoundException, InvalidParseOperationException {
         IngestExternalClientFactory.changeMode(null);
 
         final IngestExternalClient client =

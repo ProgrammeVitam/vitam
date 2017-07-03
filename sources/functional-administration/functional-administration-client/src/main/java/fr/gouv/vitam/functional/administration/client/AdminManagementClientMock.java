@@ -37,8 +37,8 @@ import javax.ws.rs.core.Response.Status;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
-
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
@@ -46,19 +46,19 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.AccessContractModel;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterSummaryModel;
+import fr.gouv.vitam.functional.administration.client.model.ContextModel;
 import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
 import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
 import fr.gouv.vitam.functional.administration.client.model.RegisterValueDetailModel;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterStatus;
-
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
@@ -66,6 +66,7 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesExcepti
 import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
+
 import org.apache.commons.io.IOUtils;
 
 
@@ -194,7 +195,7 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     }
 
     @Override
-    public RequestResponse getAccessionRegisterDetail(JsonNode query)
+    public RequestResponse getAccessionRegisterDetail(String id, JsonNode query)
         throws InvalidParseOperationException, ReferentialException {
         RegisterValueDetailModel totalObjectsGroups = new RegisterValueDetailModel(1, 0, 1);
         RegisterValueDetailModel totalUnits = new RegisterValueDetailModel(1, 0, 1);
@@ -204,7 +205,7 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
         LOGGER.debug("get document Accession Register request:");
 
         AccessionRegisterDetailModel detailBuider = new AccessionRegisterDetailModel();
-        detailBuider.setId("aedqaaaaacaam7mxabsakakygeje2uyaaaaq")
+        detailBuider.setId(id)
             .setTenant(0)
             .setOriginatingAgency("FRAN_NP_005568")
             .setSubmissionAgency("FRAN_NP_005061")
@@ -309,7 +310,7 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
 
 
     @Override
-    public RequestResponse<AccessContractModel> updateAccessContract(JsonNode queryDsl)
+    public RequestResponse<AccessContractModel> updateAccessContract(String id, JsonNode queryDsl)
         throws InvalidParseOperationException, AdminManagementClientServerException {
         LOGGER.debug("uddate access contract");
         // TODO 2219
@@ -317,10 +318,37 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     }
 
     @Override
-    public RequestResponse<IngestContractModel> updateIngestContract(JsonNode queryDsl)
+    public RequestResponse<IngestContractModel> updateIngestContract(String id, JsonNode queryDsl)
         throws InvalidParseOperationException, AdminManagementClientServerException {
         LOGGER.debug("uddate ingest contract");
         // TODO 2195
         return null;
+    }
+
+    @Override
+    public Status importContexts(List<ContextModel> ContextModelList)
+        throws ReferentialException {
+        LOGGER.debug("import context ");
+        return Status.OK;
+    }
+
+    @Override
+    public RequestResponse<ContextModel> updateContext(String id, JsonNode queryDsl) throws InvalidParseOperationException {        
+        ContextModel model = JsonHandler.getFromString(ClientMockResultHelper.CONTEXTS, ContextModel.class);
+        return ClientMockResultHelper.createReponse(model);
+    }
+
+    @Override
+    public RequestResponse<ContextModel> findContexts(JsonNode queryDsl) throws InvalidParseOperationException {
+        ContextModel model = JsonHandler.getFromString(ClientMockResultHelper.CONTEXTS, ContextModel.class);
+        return ClientMockResultHelper.createReponse(model);
+
+    }
+
+    @Override
+    public RequestResponse<ContextModel> findContextById(String id) throws InvalidParseOperationException {
+        ContextModel model = JsonHandler.getFromString(ClientMockResultHelper.CONTEXTS, ContextModel.class);
+        return ClientMockResultHelper.createReponse(model);
+
     }
 }

@@ -1,5 +1,6 @@
-cp common/fake-storage-drivers/fake_driver/target/fake-driver-0.19.0-SNAPSHOT.jar integration-test/src/test/resources/integration-storage/storage-offer-mock.jar
-cp common/fake-storage-drivers/monDriver/target/mon-driver-0.19.0-SNAPSHOT.jar storage/storage-engine/storage-engine-server/src/test/resources/driver-1.0.0-TEST.jar
-cp common/fake-storage-drivers/theDriver/target/the-driver-0.19.0-SNAPSHOT.jar storage/storage-engine/storage-engine-server/src/test/resources/the-driver-1.0.0-TEST.jar 
-cp storage/cas-manager/cas-manager-drivers/vitam-driver/target/vitam-driver-0.19.0-SNAPSHOT.jar storage-integration-test/src/test/resources/storage-test/vitam-driver-0.19.0-SNAPSHOT.jar
-cp common/fake-storage-drivers/mockDriver/target/mock-driver-0.19.0-SNAPSHOT.jar storage-integration-mock/src/test/resources/storage-mock/vitam-driver-mock-0.19.0-SNAPSHOT.jar
+cp common/fake-storage-drivers/fake_driver/target/fake-driver-0.20.0-SNAPSHOT.jar integration-test/src/test/resources/integration-storage/storage-offer-mock.jar
+cp common/fake-storage-drivers/monDriver/target/mon-driver-0.20.0-SNAPSHOT.jar storage/storage-engine/storage-engine-server/src/test/resources/driver-1.0.0-TEST.jar
+cp common/fake-storage-drivers/theDriver/target/the-driver-0.20.0-SNAPSHOT.jar storage/storage-engine/storage-engine-server/src/test/resources/the-driver-1.0.0-TEST.jar 
+cp storage/cas-manager/cas-manager-drivers/vitam-driver/target/vitam-driver-0.20.0-SNAPSHOT.jar storage-integration-test/src/test/resources/storage-test/vitam-driver-0.20.0-SNAPSHOT.jar
+cp storage/cas-manager/cas-manager-drivers/vitam-driver/target/vitam-driver-0.20.0-SNAPSHOT.jar storage-integration-nossl-test/src/test/resources/storage-test/vitam-driver-0.20.0-SNAPSHOT.jar
+

@@ -131,8 +131,6 @@ public class Messages {
 
     /**
      * Change the Message to the given Locale
-     *
-     * @param locale
      */
     private final ResourceBundle init() {
         if (locale == null) {
@@ -252,5 +250,21 @@ public class Messages {
      */
     public Locale getLocale() {
         return locale;
+    }
+
+    /**
+     * Determines whether the given <code>key</code> is contained in
+     * this <code>ResourceBundle</code> or its parent bundles.
+     *
+     * @param key
+     *        the resource <code>key</code>
+     * @return <code>true</code> if the given <code>key</code> is
+     *        contained in this <code>ResourceBundle</code> or its
+     *        parent bundles; <code>false</code> otherwise.
+     * @exception NullPointerException
+     *         if <code>key</code> is <code>null</code>
+     */
+    public boolean containsKey(String key) {
+        return resourceBundle.containsKey(key);
     }
 }

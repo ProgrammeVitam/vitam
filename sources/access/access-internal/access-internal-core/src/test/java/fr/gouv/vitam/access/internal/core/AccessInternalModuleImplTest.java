@@ -42,10 +42,7 @@ import java.io.InputStream;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.core.Response;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import fr.gouv.vitam.common.server.application.VitamStreamingOutput;
 import org.apache.commons.io.IOUtils;
-import org.glassfish.jersey.message.internal.OutboundJaxrsResponse;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -61,7 +58,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.access.internal.api.AccessBinaryData;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
@@ -69,6 +65,7 @@ import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.server.application.VitamStreamingOutput;
 import fr.gouv.vitam.common.server.application.junit.AsyncResponseJunitTest;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -125,7 +122,24 @@ public class AccessInternalModuleImplTest {
         "{\"$root\": { },\"$queries\": [{ \"$path\": \"aaaaa\" }],\"$filter\": { },\"$action\": {}}";
     // Note: this is an incorrect response since missing Qualifiers but _id is correct but within
     private static final String FAKE_METADATA_RESULT = "{$results:[{'_id':123}]}";
-    private static final String FAKE_METADATA_MULTIPLE_RESULT = "{$results:[{'_id':123}, {'_id':124}]}";
+    private static final String TEST_MODEL_FAKE_METADATA_RESULT = "{$results:[{'_id':123}]}";
+    private static final String FAKE_METADATA_MULTIPLE_RESULT =
+        "{$results:[ {"
+            + "\"qualifier\" : \"BinaryMaster\","
+            + "\"versions\" : [ {"
+            + "  \"_id\" : \"aeaaaaaaaagbcaacabg7sak4p3tku6yaaaaq\","
+            + " \"DataObjectVersion\" : \"BinaryMaster_1\","
+            + " \"FormatIdentification\" : {"
+            + " \"FormatLitteral\" : \"Acrobat PDF 1.4 - Portable Document Format\","
+            + " \"MimeType\" : \"application/pdf\","
+            + " \"FormatId\" : \"fmt/18\""
+            + " },"
+            + "\"FileInfo\" : {"
+            + "\"Filename\" : \"Suivi des op\u00E9rations d\'entr\u00E9es vs. recherche via registre des fonds.pdf\","
+            + "\"LastModified\" : \"2016-08-05T09:28:15.000+02:00\""
+            + "}"
+            + "} ]"
+            + "} ]}";
     private static final String REAL_DATA_RESULT_PATH = "sample_data_results.json";
     private static final String REAL_DATA_RESULT_MULTI_PATH = "sample_data_multi_results.json";
     private static final UpdateMultiQuery updateQuery = new UpdateMultiQuery();
@@ -517,7 +531,7 @@ public class AccessInternalModuleImplTest {
             .thenReturn(new ByteArrayInputStream(FAKE_METADATA_RESULT.getBytes()));
         when(storageClient.getContainerAsync(anyString(), anyString(), anyObject()))
             .thenReturn(responseMock);
-            accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, fromStringToJson(QUERY), "BinaryMaster", 0);
+        accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, fromStringToJson(QUERY), "BinaryMaster", 0);
         assertNotNull(asynResponse.getResponse());
 
         final InputStream stream2 = IOUtils.toInputStream(FAKE_METADATA_RESULT);
@@ -539,7 +553,7 @@ public class AccessInternalModuleImplTest {
             .thenReturn(PropertiesUtils.getResourceAsStream(REAL_DATA_RESULT_PATH));
         when(storageClient.getContainerAsync(anyString(), anyString(), anyObject()))
             .thenReturn(responseMock);
-            accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, fromStringToJson(QUERY), "BinaryMaster", 0);
+        accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, fromStringToJson(QUERY), "BinaryMaster", 0);
 
         assertNotNull(asynResponse.getResponse());
 
@@ -569,7 +583,7 @@ public class AccessInternalModuleImplTest {
             .thenReturn(PropertiesUtils.getResourceAsStream(REAL_DATA_RESULT_MULTI_PATH));
         when(storageClient.getContainerAsync(anyString(), anyString(), anyObject()))
             .thenReturn(responseMock);
-            accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, fromStringToJson(QUERY), "BinaryMaster", 0);
+        accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, fromStringToJson(QUERY), "BinaryMaster", 0);
         assertNotNull(asynResponse.getResponse());
 
         VitamStreamingOutput entity = (VitamStreamingOutput) ((Response) asynResponse.getResponse()).getEntity();
@@ -584,20 +598,44 @@ public class AccessInternalModuleImplTest {
         assertEquals(jsonNode.get("$results").get(0).get("#qualifiers").get("Thumbnail").get("versions").get(0)
             .get("FormatIdentification").get("Filename").asText(), "Wrong name");
 
-       /* assertNotNull(abd);
-        final Response binaryMasterResponse = abd.getOriginalResponse();
-        assertNotNull(binaryMasterResponse);
-        assertEquals("image/png", abd.getMimetype());
-        assertEquals("Wrong name", abd.getFilename());*/
+        /*
+         * assertNotNull(abd); final Response binaryMasterResponse = abd.getOriginalResponse();
+         * assertNotNull(binaryMasterResponse); assertEquals("image/png", abd.getMimetype()); assertEquals("Wrong name",
+         * abd.getFilename());
+         */
     }
 
-    @Test(expected = AccessInternalExecutionException.class)
+    // #2604 - Fix Multiple result for download is not allow for Http 1.0
+    @Test
     @RunWithCustomExecutor
-    public void testGetOneObjectFromObjectGroup_With_Multiple_Result() throws Exception {
+    public void testGetOneObjectFromObjectGroup_With_One_Result() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString()))
+            .thenReturn(fromStringToJson(FAKE_METADATA_RESULT));
+        final Response responseMock = mock(Response.class);
+        when(responseMock.readEntity(InputStream.class))
+            .thenReturn(new ByteArrayInputStream(FAKE_METADATA_RESULT.getBytes()));
+        when(storageClient.getContainerAsync(anyString(), anyString(), anyObject()))
+            .thenReturn(responseMock);
+        accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, fromStringToJson(QUERY), "BinaryMaster", 0);
+        assertNotNull(asynResponse.getResponse());
+        VitamStreamingOutput entity = (VitamStreamingOutput) ((Response) asynResponse.getResponse()).getEntity();
+    }
+    
+    @Test
+    @RunWithCustomExecutor
+    public void testGetOneObjectFromObjectGroup_With_ObjectMapping_Result() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString()))
             .thenReturn(fromStringToJson(FAKE_METADATA_MULTIPLE_RESULT));
+        final Response responseMock = mock(Response.class);
+        when(responseMock.readEntity(InputStream.class))
+            .thenReturn(new ByteArrayInputStream(FAKE_METADATA_MULTIPLE_RESULT.getBytes()));
+        when(storageClient.getContainerAsync(anyString(), anyString(), anyObject()))
+            .thenReturn(responseMock);
         accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, fromStringToJson(QUERY), "BinaryMaster", 0);
+        assertNotNull(asynResponse.getResponse());
+        VitamStreamingOutput entity = (VitamStreamingOutput) ((Response) asynResponse.getResponse()).getEntity();
     }
 
     @Test(expected = AccessInternalExecutionException.class)

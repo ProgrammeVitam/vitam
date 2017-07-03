@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.2" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0" y="0" width="1463" height="975" viewBox="0 0 1463 975">
+<style type="text/css"><![CDATA[
+text { font:12px Dialog; }
+]]></style>
+<rect x="-485" y="-485" width="2433" height="1945" style="fill:rgb(255,255,255);stroke:none" />
+<clipPath id="clip1"><path d="M15,15 L1448,15 L1448,960 L15,960 Z M26,430 C21.5820313,430 18,433.5820313 18,438 L18,491 C18,495.4179688 21.5820313,499 26,499 L139,499 C143.4179688,499 147,495.4179688 147,491 L147,438 C147,433.5820313 143.4179688,430 139,430 Z M26,430 Z M26,430" /></clipPath>
+<path d="M88.2011719,430 L88.2011719,50 L151,50" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip1)" />
+<clipPath id="clip2"><path d="M15,15 L1448,15 L1448,960 L15,960 Z M26,430 C21.5820313,430 18,433.5820313 18,438 L18,491 C18,495.4179688 21.5820313,499 26,499 L139,499 C143.4179688,499 147,495.4179688 147,491 L147,438 C147,433.5820313 143.4179688,430 139,430 Z M26,430 Z M26,430" /></clipPath>
+<path d="M97.71875,430 L97.71875,214 L193,214" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip2)" />
+<clipPath id="clip3"><path d="M15,15 L1448,15 L1448,960 L15,960 Z M26,430 C21.5820313,430 18,433.5820313 18,438 L18,491 C18,495.4179688 21.5820313,499 26,499 L139,499 C143.4179688,499 147,495.4179688 147,491 L147,438 C147,433.5820313 143.4179688,430 139,430 Z M26,430 Z M26,430" /></clipPath>
+<path d="M147,464.25 L147,464.5 L211,464.5" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip3)" />
+<clipPath id="clip4"><path d="M15,15 L1448,15 L1448,960 L15,960 Z M26,430 C21.5820313,430 18,433.5820313 18,438 L18,491 C18,495.4179688 21.5820313,499 26,499 L139,499 C143.4179688,499 147,495.4179688 147,491 L147,438 C147,433.5820313 143.4179688,430 139,430 Z M26,430 Z M26,430" /></clipPath>
+<path d="M96.8808594,499 L96.8808594,732 L194,732" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip4)" />
+<clipPath id="clip5"><path d="M15,15 L1448,15 L1448,960 L15,960 Z M26,430 C21.5820313,430 18,433.5820313 18,438 L18,491 C18,495.4179688 21.5820313,499 26,499 L139,499 C143.4179688,499 147,495.4179688 147,491 L147,438 C147,433.5820313 143.4179688,430 139,430 Z M26,430 Z M26,430" /></clipPath>
+<path d="M87.9257813,499 L87.9257813,900 L151,900" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip5)" />
+<clipPath id="clip6"><path d="M14,426 L152,426 L152,504 L14,504 L14,426 Z" /></clipPath>
+<path d="M26,430 C21.5820313,430 18,433.5820313 18,438 L18,491 C18,495.4179688 21.5820313,499 26,499 L139,499 C143.4179688,499 147,495.4179688 147,491 L147,438 C147,433.5820313 143.4179688,430 139,430 Z M26,430" style="fill:rgb(220,230,242);stroke:none" clip-path="url(#clip6)" />
+<clipPath id="clip7"><path d="M14,426 L152,426 L152,504 L14,504 L14,426 Z" /></clipPath>
+<path d="M26,430 C21.5820313,430 18,433.5820313 18,438 L18,491 C18,495.4179688 21.5820313,499 26,499 L139,499 C143.4179688,499 147,495.4179688 147,491 L147,438 C147,433.5820313 143.4179688,430 139,430 Z M26,430" style="fill:none;stroke:rgb(85,142,213);stroke-width:5" clip-path="url(#clip7)" />
+<text x="53" y="469" style="font:18px Open Sans">certs</text>
+<clipPath id="clip8"><path d="M150,15 L1139,15 L1139,73 L150,73 Z M156,29 C153.2382813,29 151,31.2382813 151,34 L151,66 C151,68.7617188 153.2382813,71 156,71 L295,71 C297.7617188,71 300,68.7617188 300,66 L300,34 C300,31.2382813 297.7617188,29 295,29 Z M156,29 Z M156,29" /></clipPath>
+<path d="M313,50 C315.2226563,50 318.5546875,50 323,50" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip8)" />
+<clipPath id="clip9"><path d="M149,14 L1140,14 L1140,74 L149,74 L149,14 Z" /></clipPath>
+<path d="M300,50 L313,50" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip9)" />
+<clipPath id="clip10"><path d="M149,27 L303,27 L303,74 L149,74 L149,27 Z" /></clipPath>
+<path d="M156,29 C153.2382813,29 151,31.2382813 151,34 L151,66 C151,68.7617188 153.2382813,71 156,71 L295,71 C297.7617188,71 300,68.7617188 300,66 L300,34 C300,31.2382813 297.7617188,29 295,29 Z M156,29" style="fill:rgb(220,230,242);stroke:none" clip-path="url(#clip10)" />
+<clipPath id="clip11"><path d="M149,27 L303,27 L303,74 L149,74 L149,27 Z" /></clipPath>
+<path d="M156,29 C153.2382813,29 151,31.2382813 151,34 L151,66 C151,68.7617188 153.2382813,71 156,71 L295,71 C297.7617188,71 300,68.7617188 300,66 L300,34 C300,31.2382813 297.7617188,29 295,29 Z M156,29" style="fill:none;stroke:rgb(85,142,213);stroke-width:2" clip-path="url(#clip11)" />
+<text x="165" y="53" style="font:13px Open Sans">vault-certs.yml</text>
+<clipPath id="clip12"><path d="M320,19 L590,19 L590,53 L320,53 L320,19 Z" /></clipPath>
+<path d="M323,50 L586,50 Z M323,50" style="fill:none;stroke:rgb(85,142,213);stroke-width:3" clip-path="url(#clip12)" />
+<text x="334" y="38" style="font:10px Open Sans">"&lt;path relatif du .key&gt;": "&lt;password&gt;"</text>
+<clipPath id="clip13"><path d="M588,14 L625,14 L625,58 L588,58 L588,14 Z" /></clipPath>
+<path d="M594,20 L606.5,20 L606.5,52 L594,52 M606.5,36 L619,36" style="fill:none;stroke:rgb(195,214,155);stroke-width:5" clip-path="url(#clip13)" />
+<clipPath id="clip14"><path d="M623,21 L1140,21 L1140,52 L623,52 L623,21 Z" /></clipPath>
+<path d="M629,22 C626.2382813,22 624,24.2382813 624,27 L624,45 C624,47.7617188 626.2382813,50 629,50 L1133,50 C1135.7617188,50 1138,47.7617188 1138,45 L1138,27 C1138,24.2382813 1135.7617188,22 1133,22 Z M629,22" style="fill:rgb(195,214,155);stroke:none" clip-path="url(#clip14)" />
+<text x="634" y="39" style="font:10px Dialog">Vault stockant les mots de passe d'accès à tous les .key du dossier /cert</text>
+<clipPath id="clip15"><path d="M192,103 L1448,103 L1448,315 L192,315 Z M198,193 C195.2382813,193 193,195.2382813 193,198 L193,230 C193,232.7617188 195.2382813,235 198,235 L269,235 C271.7617188,235 274,232.7617188 274,230 L274,198 C274,195.2382813 271.7617188,193 269,193 Z M198,193 Z M198,193" /></clipPath>
+<path d="M287,214 C289.2226563,174 292.5546875,154 297,154" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip15)" />
+<clipPath id="clip16"><path d="M192,103 L1448,103 L1448,315 L192,315 Z M198,193 C195.2382813,193 193,195.2382813 193,198 L193,230 C193,232.7617188 195.2382813,235 198,235 L269,235 C271.7617188,235 274,232.7617188 274,230 L274,198 C274,195.2382813 271.7617188,193 269,193 Z M198,193 Z M198,193" /></clipPath>
+<path d="M287,214 C289.2226563,254.6660156 292.5546875,275 297,275" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip16)" />
+<clipPath id="clip17"><path d="M191,102 L1449,102 L1449,316 L191,316 L191,102 Z" /></clipPath>
+<path d="M274,214 L287,214" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip17)" />
+<clipPath id="clip18"><path d="M191,191 L277,191 L277,238 L191,238 L191,191 Z" /></clipPath>
+<path d="M198,193 C195.2382813,193 193,195.2382813 193,198 L193,230 C193,232.7617188 195.2382813,235 198,235 L269,235 C271.7617188,235 274,232.7617188 274,230 L274,198 C274,195.2382813 271.7617188,193 269,193 Z M198,193" style="fill:rgb(220,230,242);stroke:none" clip-path="url(#clip18)" />
+<clipPath id="clip19"><path d="M191,191 L277,191 L277,238 L191,238 L191,191 Z" /></clipPath>
+<path d="M198,193 C195.2382813,193 193,195.2382813 193,198 L193,230 C193,232.7617188 195.2382813,235 198,235 L269,235 C271.7617188,235 274,232.7617188 274,230 L274,198 C274,195.2382813 271.7617188,193 269,193 Z M198,193" style="fill:none;stroke:rgb(85,142,213);stroke-width:2" clip-path="url(#clip19)" />
+<text x="207" y="217" style="font:13px Open Sans">server</text>
+<clipPath id="clip20"><path d="M295,108 L431,108 L431,173 L295,173 Z M297,126 L297,153 L334,153 L334,126 Z M297,126 Z M297,126" /></clipPath>
+<path d="M347,154 C349.4453125,143.3339844 353.1113281,138 358,138" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip20)" />
+<clipPath id="clip21"><path d="M295,108 L431,108 L431,173 L295,173 Z M297,126 L297,153 L334,153 L334,126 Z M297,126 Z M297,126" /></clipPath>
+<path d="M347,154 C349.4453125,165.3339844 353.1113281,171 358,171" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip21)" />
+<clipPath id="clip22"><path d="M294,107 L432,107 L432,174 L294,174 L294,107 Z" /></clipPath>
+<path d="M334,154 L347,154" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip22)" />
+<clipPath id="clip23"><path d="M294,123 L338,123 L338,157 L294,157 L294,123 Z" /></clipPath>
+<path d="M297,154 L334,154 Z M297,154" style="fill:none;stroke:rgb(85,142,213);stroke-width:3" clip-path="url(#clip23)" />
+<text x="308" y="142" style="font:10px Open Sans">ca</text>
+<clipPath id="clip24"><path d="M355,107 L432,107 L432,141 L355,141 L355,107 Z" /></clipPath>
+<path d="M358,138 L428,138 Z M358,138" style="fill:none;stroke:rgb(85,142,213);stroke-width:3" clip-path="url(#clip24)" />
+<text x="369" y="126" style="font:10px Open Sans">&lt;.*&gt;.crt</text>
+<clipPath id="clip25"><path d="M355,140 L396,140 L396,174 L355,174 L355,140 Z" /></clipPath>
+<path d="M358,171 L392,171 Z M358,171" style="fill:none;stroke:rgb(85,142,213);stroke-width:3" clip-path="url(#clip25)" />
+<text x="369" y="159" style="font:10px Open Sans">...</text>
+<clipPath id="clip26"><path d="M295,174 L1448,174 L1448,315 L295,315 Z M297,247 L297,274 L355,274 L355,247 Z M297,247 Z M297,247" /></clipPath>
+<path d="M368,275 C370.4453125,253 374.1113281,242 379,242" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip26)" />
+<clipPath id="clip27"><path d="M295,174 L1448,174 L1448,315 L295,315 Z M297,247 L297,274 L355,274 L355,247 Z M297,247 Z M297,247" /></clipPath>
+<path d="M368,275 C370.4453125,297 374.1113281,308 379,308" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip27)" />
+<clipPath id="clip28"><path d="M294,173 L1449,173 L1449,316 L294,316 L294,173 Z" /></clipPath>
+<path d="M355,275 L368,275" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip28)" />
+<clipPath id="clip29"><path d="M294,244 L359,244 L359,278 L294,278 L294,244 Z" /></clipPath>
+<path d="M297,275 L355,275 Z M297,275" style="fill:none;stroke:rgb(85,142,213);stroke-width:3" clip-path="url(#clip29)" />
+<text x="308" y="263" style="font:10px Open Sans">hosts</text>
+<clipPath id="clip30"><path d="M377,179 L681,179 L681,277 L377,277 Z M379,214 L379,241 L481,241 L481,214 Z M379,214 Z M379,214" /></clipPath>
+<path d="M494,242 C496.4453125,220 500.1113281,209 505,209" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip30)" />
+<clipPath id="clip31"><path d="M377,179 L681,179 L681,277 L377,277 Z M379,214 L379,241 L481,241 L481,214 Z M379,214 Z M379,214" /></clipPath>
+<path d="M494,242 C496.4453125,242 500.1113281,242 505,242" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip31)" />
+<clipPath id="clip32"><path d="M377,179 L681,179 L681,277 L377,277 Z M379,214 L379,241 L481,241 L481,214 Z M379,214 Z M379,214" /></clipPath>
+<path d="M494,242 C496.4453125,264 500.1113281,275 505,275" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip32)" />
+<clipPath id="clip33"><path d="M376,178 L682,178 L682,278 L376,278 L376,178 Z" /></clipPath>
+<path d="M481,242 L494,242" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip33)" />
+<clipPath id="clip34"><path d="M376,211 L485,211 L485,245 L376,245 L376,211 Z" /></clipPath>
+<path d="M379,242 L481,242 Z M379,242" style="fill:none;stroke:rgb(85,142,213);stroke-width:3" clip-path="url(#clip34)" />
+<text x="390" y="230" style="font:10px Open Sans">&lt;hostname&gt;</text>
+<clipPath id="clip35"><path d="M502,178 L678,178 L678,212 L502,212 L502,178 Z" /></clipPath>
+<path d="M505,209 L674,209 Z M505,209" style="fill:none;stroke:rgb(85,142,213);stroke-width:3" clip-path="url(#clip35)" />
+<text x="516" y="197" style="font:10px Open Sans">&lt;composant vitam&gt;.crt</text>
+<clipPath id="clip36"><path d="M502,211 L682,211 L682,245 L502,245 L502,211 Z" /></clipPath>
+<path d="M505,242 L678,242 Z M505,242" style="fill:none;stroke:rgb(85,142,213);stroke-width:3" clip-path="url(#clip36)" />
+<text x="516" y="230" style="font:10px Open Sans">&lt;composant vitam&gt;.key</text>
+<clipPath id="clip37"><path d="M502,244 L543,244 L543,278 L502,278 L502,244 Z" /></clipPath>
+<path d="M505,275 L539,275 Z M505,275" style="fill:none;stroke:rgb(85,142,213);stroke-width:3" clip-path="url(#clip37)" />
+<text x="516" y="263" style="font:10px Open Sans">...</text>
+<clipPath id="clip38"><path d="M376,277 L417,277 L417,311 L376,311 L376,277 Z" /></clipPath>
+<path d="M379,308 L413,308 Z M379,308" style="fill:none;stroke:rgb(85,142,213);stroke-width:3" clip-path="url(#clip38)" />
+<text x="390" y="296" style="font:10px Open Sans">...</text>
+<clipPath id="clip39"><path d="M680,173 L717,173 L717,316 L680,316 L680,173 Z" /></clipPath>
+<path d="M686,179 L698.5,179 L698.5,310 L686,310 M698.5,244 L711,244" style="fill:none;stroke:rgb(195,214,155);stroke-width:5" clip-path="url(#clip39)" />
+<clipPath id="clip40"><path d="M715,221 L1449,221 L1449,268 L715,268 L715,221 Z" /></clipPath>
+<path d="M721,222 C718.2382813,222 716,224.2382813 716,227 L716,261 C716,263.7617188 718.2382813,266 721,266 L1442,266 C1444.7617188,266 1447,263.7617188 1447,261 L1447,227 C1447,224.2382813 1444.7617188,222 1442,222 Z M721,222" style="fill:rgb(195,214,155);stroke:none" clip-path="url(#clip40)" />
+<text x="726" y="239" style="font:10px Dialog">Certificat &amp; clé privée pour chaque &lt;hostname&gt; déclaré dans le fichier d'environment.</text>
+<text x="726" y="255" style="font:10px Dialog">Les &lt;composants_vitam&gt; nécessitant un certificat serveur sont: ingest-external, access-external, offer.</text>
+<clipPath id="clip41"><path d="M430,102 L467,102 L467,179 L430,179 L430,102 Z" /></clipPath>
+<path d="M436,108 L448.5,108 L448.5,173 L436,173 M448.5,140 L461,140" style="fill:none;stroke:rgb(195,214,155);stroke-width:5" clip-path="url(#clip41)" />
+<clipPath id="clip42"><path d="M465,125 L963,125 L963,156 L465,156 L465,125 Z" /></clipPath>
+<path d="M471,126 C468.2382813,126 466,128.2382813 466,131 L466,149 C466,151.7617188 468.2382813,154 471,154 L956,154 C958.7617188,154 961,151.7617188 961,149 L961,131 C961,128.2382813 958.7617188,126 956,126 Z M471,126" style="fill:rgb(195,214,155);stroke:none" clip-path="url(#clip42)" />
+<text x="476" y="143" style="font:10px Dialog">Clés publiques des CA des serveurs VITAM (root et/ou intermediate)</text>
+<clipPath id="clip43"><path d="M210,345 L1307,345 L1307,623 L210,623 Z M216,443 C213.2382813,443 211,445.2382813 211,448 L211,480 C211,482.7617188 213.2382813,485 216,485 L351,485 C353.7617188,485 356,482.7617188 356,480 L356,448 C356,445.2382813 353.7617188,443 351,443 Z M216,443 Z M216,443" /></clipPath>
+<path d="M369,464.5 C371.2226563,418.8339844 374.5546875,396 379,396" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip43)" />
+<clipPath id="clip44"><path d="M210,345 L1307,345 L1307,623 L210,623 Z M216,443 C213.2382813,443 211,445.2382813 211,448 L211,480 C211,482.7617188 213.2382813,485 216,485 L351,485 C353.7617188,485 356,482.7617188 356,480 L356,448 C356,445.2382813 353.7617188,443 351,443 Z M216,443 Z M216,443" /></clipPath>
+<path d="M369,464.5 C371.2226563,510.1660156 374.5546875,533 379,533" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip44)" />
+<clipPath id="clip45"><path d="M209,344 L1308,344 L1308,624 L209,624 L209,344 Z" /></clipPath>
+<path d="M356,464.5 L369,464.5" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip45)" />
+<clipPath id="clip46"><path d="M209,441 L359,441 L359,488 L209,488 L209,441 Z" /></clipPath>
+<path d="M216,443 C213.2382813,443 211,445.2382813 211,448 L211,480 C211,482.7617188 213.2382813,485 216,485 L351,485 C353.7617188,485 356,482.7617188 356,480 L356,448 C356,445.2382813 353.7617188,443 351,443 Z M216,443" style="fill:rgb(220,230,242);stroke:none" clip-path="url(#clip46)" />
+<clipPath id="clip47"><path d="M209,441 L359,441 L359,488 L209,488 L209,441 Z" /></clipPath>
+<path d="M216,443 C213.2382813,443 211,445.2382813 211,448 L211,480 C211,482.7617188 213.2382813,485 216,485 L351,485 C353.7617188,485 356,482.7617188 356,480 L356,448 C356,445.2382813 353.7617188,443 351,443 Z M216,443" style="fill:none;stroke:rgb(85,142,213);stroke-width:2" clip-path="url(#clip47)" />
+<text x="225" y="467" style="font:13px Open Sans">client-external</text>
+<clipPath id="clip48"><path d="M377,350 L513,350 L513,415 L377,415 Z M379,368 L379,395 L416,395 L416,368 Z M379,368 Z M379,368" /></clipPath>
+<path d="M429,396 C431.4453125,385.3339844 435.1113281,380 440,380" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip48)" />
+<clipPath id="clip49"><path d="M377,350 L513,350 L513,415 L377,415 Z M379,368 L379,395 L416,395 L416,368 Z M379,368 Z M379,368" /></clipPath>
+<path d="M429,396 C431.4453125,407.3339844 435.1113281,413 440,413" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip49)" />
+<clipPath id="clip50"><path d="M376,349 L514,349 L514,416 L376,416 L376,349 Z" /></clipPath>
+<path d="M416,396 L429,396" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip50)" />
+<clipPath id="clip51"><path d="M376,365 L420,365 L420,399 L376,399 L376,365 Z" /></clipPath>
+<path d="M379,396 L416,396 Z M379,396" style="fill:none;stroke:rgb(85,142,213);stroke-width:3" clip-path="url(#clip51)" />
+<text x="390" y="384" style="font:10px Open Sans">ca</text>
+<clipPath id="clip52"><path d="M437,349 L514,349 L514,383 L437,383 L437,349 Z" /></clipPath>
+<path d="M440,380 L510,380 Z M440,380" style="fill:none;stroke:rgb(85,142,213);stroke-width:3" clip-path="url(#clip52)" />
+<text x="451" y="368" style="font:10px Open Sans">&lt;.*&gt;.crt</text>
+<clipPath id="clip53"><path d="M437,382 L478,382 L478,416 L437,416 L437,382 Z" /></clipPath>
+<path d="M440,413 L474,413 Z M440,413" style="fill:none;stroke:rgb(85,142,213);stroke-width:3" clip-path="url(#clip53)" />
+<text x="451" y="401" style="font:10px Open Sans">...</text>
+<clipPath id="clip54"><path d="M377,416 L1307,416 L1307,623 L377,623 Z M379,505 L379,532 L443,532 L443,505 Z M379,505 Z M379,505" /></clipPath>
+<path d="M456,533 C458.4453125,489 462.1113281,467 467,467" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip54)" />
+<clipPath id="clip55"><path d="M377,416 L1307,416 L1307,623 L377,623 Z M379,505 L379,532 L443,532 L443,505 Z M379,505 Z M379,505" /></clipPath>
+<path d="M456,533 C458.4453125,533 462.1113281,533 467,533" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip55)" />
+<clipPath id="clip56"><path d="M377,416 L1307,416 L1307,623 L377,623 Z M379,505 L379,532 L443,532 L443,505 Z M379,505 Z M379,505" /></clipPath>
+<path d="M456,533 C458.4453125,577 462.1113281,599 467,599" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip56)" />
+<clipPath id="clip57"><path d="M376,415 L1308,415 L1308,624 L376,624 L376,415 Z" /></clipPath>
+<path d="M443,533 L456,533" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip57)" />
+<clipPath id="clip58"><path d="M376,502 L447,502 L447,536 L376,536 L376,502 Z" /></clipPath>
+<path d="M379,533 L443,533 Z M379,533" style="fill:none;stroke:rgb(85,142,213);stroke-width:3" clip-path="url(#clip58)" />
+<text x="390" y="520" style="font:10px Open Sans">clients</text>
+<clipPath id="clip59"><path d="M465,421 L639,421 L639,486 L465,486 Z M467,439 L467,466 L542,466 L542,439 Z M467,439 Z M467,439" /></clipPath>
+<path d="M555,467 C557.4453125,456.3339844 561.1113281,451 566,451" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip59)" />
+<clipPath id="clip60"><path d="M465,421 L639,421 L639,486 L465,486 Z M467,439 L467,466 L542,466 L542,439 Z M467,439 Z M467,439" /></clipPath>
+<path d="M555,467 C557.4453125,478.3339844 561.1113281,484 566,484" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip60)" />
+<clipPath id="clip61"><path d="M464,420 L640,420 L640,487 L464,487 L464,420 Z" /></clipPath>
+<path d="M542,467 L555,467" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip61)" />
+<clipPath id="clip62"><path d="M464,436 L546,436 L546,470 L464,470 L464,436 Z" /></clipPath>
+<path d="M467,467 L542,467 Z M467,467" style="fill:none;stroke:rgb(85,142,213);stroke-width:3" clip-path="url(#clip62)" />
+<text x="478" y="455" style="font:10px Open Sans">external</text>
+<clipPath id="clip63"><path d="M563,420 L640,420 L640,454 L563,454 L563,420 Z" /></clipPath>
+<path d="M566,451 L636,451 Z M566,451" style="fill:none;stroke:rgb(85,142,213);stroke-width:3" clip-path="url(#clip63)" />
+<text x="577" y="439" style="font:10px Open Sans">&lt;.*&gt;.crt</text>
+<clipPath id="clip64"><path d="M563,453 L604,453 L604,487 L563,487 L563,453 Z" /></clipPath>
+<path d="M566,484 L600,484 Z M566,484" style="fill:none;stroke:rgb(85,142,213);stroke-width:3" clip-path="url(#clip64)" />
+<text x="577" y="472" style="font:10px Open Sans">...</text>
+<clipPath id="clip65"><path d="M465,487 L657,487 L657,552 L465,552 Z M467,505 L467,532 L556,532 L556,505 Z M467,505 Z M467,505" /></clipPath>
+<path d="M569,533 C571.4453125,522.3339844 575.1113281,517 580,517" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip65)" />
+<clipPath id="clip66"><path d="M465,487 L657,487 L657,552 L465,552 Z M467,505 L467,532 L556,532 L556,505 Z M467,505 Z M467,505" /></clipPath>
+<path d="M569,533 C571.4453125,544.3339844 575.1113281,550 580,550" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip66)" />
+<clipPath id="clip67"><path d="M464,486 L658,486 L658,553 L464,553 L464,486 Z" /></clipPath>
+<path d="M556,533 L569,533" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip67)" />
+<clipPath id="clip68"><path d="M464,502 L560,502 L560,536 L464,536 L464,502 Z" /></clipPath>
+<path d="M467,533 L556,533 Z M467,533" style="fill:none;stroke:rgb(85,142,213);stroke-width:3" clip-path="url(#clip68)" />
+<text x="478" y="520" style="font:10px Open Sans">ihm-demo</text>
+<clipPath id="clip69"><path d="M577,486 L654,486 L654,520 L577,520 L577,486 Z" /></clipPath>
+<path d="M580,517 L650,517 Z M580,517" style="fill:none;stroke:rgb(85,142,213);stroke-width:3" clip-path="url(#clip69)" />
+<text x="591" y="504" style="font:10px Open Sans">&lt;.*&gt;.crt</text>
+<clipPath id="clip70"><path d="M577,519 L658,519 L658,553 L577,553 L577,519 Z" /></clipPath>
+<path d="M580,550 L654,550 Z M580,550" style="fill:none;stroke:rgb(85,142,213);stroke-width:3" clip-path="url(#clip70)" />
+<text x="591" y="537" style="font:10px Open Sans">&lt;.*&gt;.key</text>
+<clipPath id="clip71"><path d="M465,553 L665,553 L665,618 L465,618 Z M467,571 L467,598 L564,598 L564,571 Z M467,571 Z M467,571" /></clipPath>
+<path d="M577,599 C579.4453125,588.3339844 583.1113281,583 588,583" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip71)" />
+<clipPath id="clip72"><path d="M465,553 L665,553 L665,618 L465,618 Z M467,571 L467,598 L564,598 L564,571 Z M467,571 Z M467,571" /></clipPath>
+<path d="M577,599 C579.4453125,610.3339844 583.1113281,616 588,616" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip72)" />
+<clipPath id="clip73"><path d="M464,552 L666,552 L666,619 L464,619 L464,552 Z" /></clipPath>
+<path d="M564,599 L577,599" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip73)" />
+<clipPath id="clip74"><path d="M464,568 L568,568 L568,602 L464,602 L464,568 Z" /></clipPath>
+<path d="M467,599 L564,599 Z M467,599" style="fill:none;stroke:rgb(85,142,213);stroke-width:3" clip-path="url(#clip74)" />
+<text x="478" y="586" style="font:10px Open Sans">ihm-recette</text>
+<clipPath id="clip75"><path d="M585,552 L662,552 L662,586 L585,586 L585,552 Z" /></clipPath>
+<path d="M588,583 L658,583 Z M588,583" style="fill:none;stroke:rgb(85,142,213);stroke-width:3" clip-path="url(#clip75)" />
+<text x="599" y="570" style="font:10px Open Sans">&lt;.*&gt;.crt</text>
+<clipPath id="clip76"><path d="M585,585 L666,585 L666,619 L585,619 L585,585 Z" /></clipPath>
+<path d="M588,616 L662,616 Z M588,616" style="fill:none;stroke:rgb(85,142,213);stroke-width:3" clip-path="url(#clip76)" />
+<text x="599" y="603" style="font:10px Open Sans">&lt;.*&gt;.key</text>
+<clipPath id="clip77"><path d="M664,481 L701,481 L701,624 L664,624 L664,481 Z" /></clipPath>
+<path d="M670,487 L682.5,487 L682.5,618 L670,618 M682.5,552 L695,552" style="fill:none;stroke:rgb(195,214,155);stroke-width:5" clip-path="url(#clip77)" />
+<clipPath id="clip78"><path d="M638,415 L675,415 L675,492 L638,492 L638,415 Z" /></clipPath>
+<path d="M644,421 L656.5,421 L656.5,486 L644,486 M656.5,453 L669,453" style="fill:none;stroke:rgb(195,214,155);stroke-width:5" clip-path="url(#clip78)" />
+<clipPath id="clip79"><path d="M699,513 L971,513 L971,592 L699,592 L699,513 Z" /></clipPath>
+<path d="M705,514 C702.2382813,514 700,516.2382813 700,519 L700,585 C700,587.7617188 702.2382813,590 705,590 L964,590 C966.7617188,590 969,587.7617188 969,585 L969,519 C969,516.2382813 966.7617188,514 964,514 Z M705,514" style="fill:rgb(195,214,155);stroke:none" clip-path="url(#clip79)" />
+<text x="710" y="530" style="font:10px Dialog">Ce sont 2 cas particuliers, car c'est </text>
+<text x="710" y="546" style="font:10px Dialog">vitam qui les déploie ; par </text>
+<text x="710" y="562" style="font:10px Dialog">conséquent, on a besoin de la clé </text>
+<text x="710" y="578" style="font:10px Dialog">privée </text>
+<clipPath id="clip80"><path d="M673,438 L1308,438 L1308,469 L673,469 L673,438 Z" /></clipPath>
+<path d="M679,439 C676.2382813,439 674,441.2382813 674,444 L674,462 C674,464.7617188 676.2382813,467 679,467 L1301,467 C1303.7617188,467 1306,464.7617188 1306,462 L1306,444 C1306,441.2382813 1303.7617188,439 1301,439 Z M679,439" style="fill:rgb(195,214,155);stroke:none" clip-path="url(#clip80)" />
+<text x="684" y="456" style="font:10px Dialog">Pour les clients externes, on a uniquement besoin des certificats (pour l'authentification)</text>
+<clipPath id="clip81"><path d="M512,344 L549,344 L549,421 L512,421 L512,344 Z" /></clipPath>
+<path d="M518,350 L530.5,350 L530.5,415 L518,415 M530.5,382 L543,382" style="fill:none;stroke:rgb(195,214,155);stroke-width:5" clip-path="url(#clip81)" />
+<clipPath id="clip82"><path d="M547,367 L1099,367 L1099,398 L547,398 L547,367 Z" /></clipPath>
+<path d="M553,368 C550.2382813,368 548,370.2382813 548,373 L548,391 C548,393.7617188 550.2382813,396 553,396 L1092,396 C1094.7617188,396 1097,393.7617188 1097,391 L1097,373 C1097,370.2382813 1094.7617188,368 1092,368 Z M553,368" style="fill:rgb(195,214,155);stroke:none" clip-path="url(#clip82)" />
+<text x="558" y="385" style="font:10px Dialog">Clés publiques des CA des clients des API externes (root et/ou intermediate)</text>
+<clipPath id="clip83"><path d="M193,653 L617,653 L617,784 L193,784 Z M199,711 C196.2382813,711 194,713.2382813 194,716 L194,748 C194,750.7617188 196.2382813,753 199,753 L329,753 C331.7617188,753 334,750.7617188 334,748 L334,716 C334,713.2382813 331.7617188,711 329,711 Z M199,711 Z M199,711" /></clipPath>
+<path d="M347,732 C349.2226563,710 352.5546875,699 357,699" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip83)" />
+<clipPath id="clip84"><path d="M193,653 L617,653 L617,784 L193,784 Z M199,711 C196.2382813,711 194,713.2382813 194,716 L194,748 C194,750.7617188 196.2382813,753 199,753 L329,753 C331.7617188,753 334,750.7617188 334,748 L334,716 C334,713.2382813 331.7617188,711 329,711 Z M199,711 Z M199,711" /></clipPath>
+<path d="M347,732 C349.2226563,754 352.5546875,765 357,765" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip84)" />
+<clipPath id="clip85"><path d="M192,652 L618,652 L618,785 L192,785 L192,652 Z" /></clipPath>
+<path d="M334,732 L347,732" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip85)" />
+<clipPath id="clip86"><path d="M192,709 L337,709 L337,756 L192,756 L192,709 Z" /></clipPath>
+<path d="M199,711 C196.2382813,711 194,713.2382813 194,716 L194,748 C194,750.7617188 196.2382813,753 199,753 L329,753 C331.7617188,753 334,750.7617188 334,748 L334,716 C334,713.2382813 331.7617188,711 329,711 Z M199,711" style="fill:rgb(220,230,242);stroke:none" clip-path="url(#clip86)" />
+<clipPath id="clip87"><path d="M192,709 L337,709 L337,756 L192,756 L192,709 Z" /></clipPath>
+<path d="M199,711 C196.2382813,711 194,713.2382813 194,716 L194,748 C194,750.7617188 196.2382813,753 199,753 L329,753 C331.7617188,753 334,750.7617188 334,748 L334,716 C334,713.2382813 331.7617188,711 329,711 Z M199,711" style="fill:none;stroke:rgb(85,142,213);stroke-width:2" clip-path="url(#clip87)" />
+<text x="208" y="734" style="font:13px Open Sans">client-storage</text>
+<clipPath id="clip88"><path d="M355,653 L491,653 L491,718 L355,718 Z M357,671 L357,698 L394,698 L394,671 Z M357,671 Z M357,671" /></clipPath>
+<path d="M407,699 C409.4453125,688.3339844 413.1113281,683 418,683" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip88)" />
+<clipPath id="clip89"><path d="M355,653 L491,653 L491,718 L355,718 Z M357,671 L357,698 L394,698 L394,671 Z M357,671 Z M357,671" /></clipPath>
+<path d="M407,699 C409.4453125,710.3339844 413.1113281,716 418,716" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip89)" />
+<clipPath id="clip90"><path d="M354,652 L492,652 L492,719 L354,719 L354,652 Z" /></clipPath>
+<path d="M394,699 L407,699" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip90)" />
+<clipPath id="clip91"><path d="M354,668 L398,668 L398,702 L354,702 L354,668 Z" /></clipPath>
+<path d="M357,699 L394,699 Z M357,699" style="fill:none;stroke:rgb(85,142,213);stroke-width:3" clip-path="url(#clip91)" />
+<text x="368" y="686" style="font:10px Open Sans">ca</text>
+<clipPath id="clip92"><path d="M415,652 L492,652 L492,686 L415,686 L415,652 Z" /></clipPath>
+<path d="M418,683 L488,683 Z M418,683" style="fill:none;stroke:rgb(85,142,213);stroke-width:3" clip-path="url(#clip92)" />
+<text x="429" y="670" style="font:10px Open Sans">&lt;.*&gt;.crt</text>
+<clipPath id="clip93"><path d="M415,685 L456,685 L456,719 L415,719 L415,685 Z" /></clipPath>
+<path d="M418,716 L452,716 Z M418,716" style="fill:none;stroke:rgb(85,142,213);stroke-width:3" clip-path="url(#clip93)" />
+<text x="429" y="703" style="font:10px Open Sans">...</text>
+<clipPath id="clip94"><path d="M355,719 L617,719 L617,784 L355,784 Z M357,737 L357,764 L421,764 L421,737 Z M357,737 Z M357,737" /></clipPath>
+<path d="M434,765 C436.4453125,765 440.1113281,765 445,765" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip94)" />
+<clipPath id="clip95"><path d="M354,718 L618,718 L618,785 L354,785 L354,718 Z" /></clipPath>
+<path d="M421,765 L434,765" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip95)" />
+<clipPath id="clip96"><path d="M354,734 L425,734 L425,768 L354,768 L354,734 Z" /></clipPath>
+<path d="M357,765 L421,765 Z M357,765" style="fill:none;stroke:rgb(85,142,213);stroke-width:3" clip-path="url(#clip96)" />
+<text x="368" y="752" style="font:10px Open Sans">clients</text>
+<clipPath id="clip97"><path d="M443,719 L617,719 L617,784 L443,784 Z M445,737 L445,764 L516,764 L516,737 Z M445,737 Z M445,737" /></clipPath>
+<path d="M529,765 C531.4453125,754.3339844 535.1113281,749 540,749" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip97)" />
+<clipPath id="clip98"><path d="M443,719 L617,719 L617,784 L443,784 Z M445,737 L445,764 L516,764 L516,737 Z M445,737 Z M445,737" /></clipPath>
+<path d="M529,765 C531.4453125,776.3339844 535.1113281,782 540,782" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip98)" />
+<clipPath id="clip99"><path d="M442,718 L618,718 L618,785 L442,785 L442,718 Z" /></clipPath>
+<path d="M516,765 L529,765" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip99)" />
+<clipPath id="clip100"><path d="M442,734 L520,734 L520,768 L442,768 L442,734 Z" /></clipPath>
+<path d="M445,765 L516,765 Z M445,765" style="fill:none;stroke:rgb(85,142,213);stroke-width:3" clip-path="url(#clip100)" />
+<text x="456" y="752" style="font:10px Open Sans">storage</text>
+<clipPath id="clip101"><path d="M537,718 L614,718 L614,752 L537,752 L537,718 Z" /></clipPath>
+<path d="M540,749 L610,749 Z M540,749" style="fill:none;stroke:rgb(85,142,213);stroke-width:3" clip-path="url(#clip101)" />
+<text x="551" y="736" style="font:10px Open Sans">&lt;.*&gt;.crt</text>
+<clipPath id="clip102"><path d="M537,751 L618,751 L618,785 L537,785 L537,751 Z" /></clipPath>
+<path d="M540,782 L614,782 Z M540,782" style="fill:none;stroke:rgb(85,142,213);stroke-width:3" clip-path="url(#clip102)" />
+<text x="551" y="769" style="font:10px Open Sans">&lt;.*&gt;.key</text>
+<clipPath id="clip103"><path d="M150,814 L1105,814 L1105,960 L150,960 Z M156,879 C153.2382813,879 151,881.2382813 151,884 L151,916 C151,918.7617188 153.2382813,921 156,921 L288,921 C290.7617188,921 293,918.7617188 293,916 L293,884 C293,881.2382813 290.7617188,879 288,879 Z M156,879 Z M156,879" /></clipPath>
+<path d="M306,900 C308.2226563,876.6660156 311.5546875,865 316,865" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip103)" />
+<clipPath id="clip104"><path d="M150,814 L1105,814 L1105,960 L150,960 Z M156,879 C153.2382813,879 151,881.2382813 151,884 L151,916 C151,918.7617188 153.2382813,921 156,921 L288,921 C290.7617188,921 293,918.7617188 293,916 L293,884 C293,881.2382813 290.7617188,879 288,879 Z M156,879 Z M156,879" /></clipPath>
+<path d="M306,900 C308.2226563,924 311.5546875,936 316,936" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip104)" />
+<clipPath id="clip105"><path d="M149,813 L1106,813 L1106,961 L149,961 L149,813 Z" /></clipPath>
+<path d="M293,900 L306,900" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip105)" />
+<clipPath id="clip106"><path d="M149,877 L296,877 L296,924 L149,924 L149,877 Z" /></clipPath>
+<path d="M156,879 C153.2382813,879 151,881.2382813 151,884 L151,916 C151,918.7617188 153.2382813,921 156,921 L288,921 C290.7617188,921 293,918.7617188 293,916 L293,884 C293,881.2382813 290.7617188,879 288,879 Z M156,879" style="fill:rgb(220,230,242);stroke:none" clip-path="url(#clip106)" />
+<clipPath id="clip107"><path d="M149,877 L296,877 L296,924 L149,924 L149,877 Z" /></clipPath>
+<path d="M156,879 C153.2382813,879 151,881.2382813 151,884 L151,916 C151,918.7617188 153.2382813,921 156,921 L288,921 C290.7617188,921 293,918.7617188 293,916 L293,884 C293,881.2382813 290.7617188,879 288,879 Z M156,879" style="fill:none;stroke:rgb(85,142,213);stroke-width:2" clip-path="url(#clip107)" />
+<text x="165" y="902" style="font:13px Open Sans">timestamping</text>
+<clipPath id="clip108"><path d="M314,819 L450,819 L450,884 L314,884 Z M316,837 L316,864 L353,864 L353,837 Z M316,837 Z M316,837" /></clipPath>
+<path d="M366,865 C368.4453125,854.3339844 372.1113281,849 377,849" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip108)" />
+<clipPath id="clip109"><path d="M314,819 L450,819 L450,884 L314,884 Z M316,837 L316,864 L353,864 L353,837 Z M316,837 Z M316,837" /></clipPath>
+<path d="M366,865 C368.4453125,876.3339844 372.1113281,882 377,882" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip109)" />
+<clipPath id="clip110"><path d="M313,818 L451,818 L451,885 L313,885 L313,818 Z" /></clipPath>
+<path d="M353,865 L366,865" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip110)" />
+<clipPath id="clip111"><path d="M313,834 L357,834 L357,868 L313,868 L313,834 Z" /></clipPath>
+<path d="M316,865 L353,865 Z M316,865" style="fill:none;stroke:rgb(85,142,213);stroke-width:3" clip-path="url(#clip111)" />
+<text x="327" y="852" style="font:10px Open Sans">ca</text>
+<clipPath id="clip112"><path d="M374,818 L451,818 L451,852 L374,852 L374,818 Z" /></clipPath>
+<path d="M377,849 L447,849 Z M377,849" style="fill:none;stroke:rgb(85,142,213);stroke-width:3" clip-path="url(#clip112)" />
+<text x="388" y="836" style="font:10px Open Sans">&lt;.*&gt;.crt</text>
+<clipPath id="clip113"><path d="M374,851 L415,851 L415,885 L374,885 L374,851 Z" /></clipPath>
+<path d="M377,882 L411,882 Z M377,882" style="fill:none;stroke:rgb(85,142,213);stroke-width:3" clip-path="url(#clip113)" />
+<text x="388" y="869" style="font:10px Open Sans">...</text>
+<clipPath id="clip114"><path d="M314,885 L1105,885 L1105,960 L314,960 Z M316,908 L316,935 L375,935 L375,908 Z M316,908 Z M316,908" /></clipPath>
+<path d="M388,936 C390.4453125,925.3339844 394.1113281,920 399,920" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip114)" />
+<clipPath id="clip115"><path d="M314,885 L1105,885 L1105,960 L314,960 Z M316,908 L316,935 L375,935 L375,908 Z M316,908 Z M316,908" /></clipPath>
+<path d="M388,936 C390.4453125,947.3339844 394.1113281,953 399,953" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip115)" />
+<clipPath id="clip116"><path d="M313,884 L1106,884 L1106,961 L313,961 L313,884 Z" /></clipPath>
+<path d="M375,936 L388,936" style="fill:none;stroke:rgb(85,142,213)" clip-path="url(#clip116)" />
+<clipPath id="clip117"><path d="M313,905 L379,905 L379,939 L313,939 L313,905 Z" /></clipPath>
+<path d="M316,936 L375,936 Z M316,936" style="fill:none;stroke:rgb(85,142,213);stroke-width:3" clip-path="url(#clip117)" />
+<text x="327" y="923" style="font:10px Open Sans">vitam</text>
+<clipPath id="clip118"><path d="M396,889 L574,889 L574,923 L396,923 L396,889 Z" /></clipPath>
+<path d="M399,920 L570,920 Z M399,920" style="fill:none;stroke:rgb(85,142,213);stroke-width:3" clip-path="url(#clip118)" />
+<text x="410" y="907" style="font:10px Open Sans">&lt;composant_vitam&gt;.crt</text>
+<clipPath id="clip119"><path d="M396,922 L579,922 L579,956 L396,956 L396,922 Z" /></clipPath>
+<path d="M399,953 L575,953 Z M399,953" style="fill:none;stroke:rgb(85,142,213);stroke-width:3" clip-path="url(#clip119)" />
+<text x="410" y="940" style="font:10px Open Sans">&lt;composant_vitam&gt;.key</text>
+<clipPath id="clip120"><path d="M577,884 L614,884 L614,961 L577,961 L577,884 Z" /></clipPath>
+<path d="M583,890 L595.5,890 L595.5,955 L583,955 M595.5,922 L608,922" style="fill:none;stroke:rgb(195,214,155);stroke-width:5" clip-path="url(#clip120)" />
+<clipPath id="clip121"><path d="M612,899 L1106,899 L1106,946 L612,946 L612,899 Z" /></clipPath>
+<path d="M618,900 C615.2382813,900 613,902.2382813 613,905 L613,939 C613,941.7617188 615.2382813,944 618,944 L1099,944 C1101.7617188,944 1104,941.7617188 1104,939 L1104,905 C1104,902.2382813 1101.7617188,900 1099,900 Z M618,900" style="fill:rgb(195,214,155);stroke:none" clip-path="url(#clip121)" />
+<text x="623" y="916" style="font:10px Dialog">Actuellement il y a deux composants devant gérer le timestamping: </text>
+<text x="623" y="932" style="font:10px Dialog">worker et logbook</text>
+<clipPath id="clip122"><path d="M449,813 L486,813 L486,890 L449,890 L449,813 Z" /></clipPath>
+<path d="M455,819 L467.5,819 L467.5,884 L455,884 M467.5,851 L480,851" style="fill:none;stroke:rgb(195,214,155);stroke-width:5" clip-path="url(#clip122)" />
+<clipPath id="clip123"><path d="M484,836 L838,836 L838,867 L484,867 L484,836 Z" /></clipPath>
+<path d="M490,837 C487.2382813,837 485,839.2382813 485,842 L485,860 C485,862.7617188 487.2382813,865 490,865 L831,865 C833.7617188,865 836,862.7617188 836,860 L836,842 C836,839.2382813 833.7617188,837 831,837 Z M490,837" style="fill:rgb(195,214,155);stroke:none" clip-path="url(#clip123)" />
+<text x="495" y="853" style="font:10px Dialog">Clés publiques des CA (root et/ou intermediate)</text>
+</svg>

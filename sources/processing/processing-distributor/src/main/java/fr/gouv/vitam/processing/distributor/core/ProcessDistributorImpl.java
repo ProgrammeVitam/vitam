@@ -45,7 +45,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -64,7 +63,6 @@ import fr.gouv.vitam.processing.data.core.ProcessDataAccess;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.distributor.api.Callbackable;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
-import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.model.WorkerAsyncRequest;
 import fr.gouv.vitam.processing.model.WorkerAsyncResponse;
 import fr.gouv.vitam.worker.common.DescriptionStep;
@@ -118,7 +116,7 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
 
     /**
      * Temporary method for distribution supporting multi-list
-     * 
+     *
      * @param workParams of type {@link WorkerParameters}
      * @param step the execution step 
      * @param operationId the operation id
@@ -132,7 +130,7 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
         ParametersChecker.checkParameter("workflowId is a mandatory parameter", operationId);
 
         final String processId = workParams.getContainerName();
-        final String uniqueStepId = workParams.getStepUniqId();
+        final String uniqueStepId = step.getId();
         final int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
 
         final Set<WorkerAsyncRequest> currentRunningObjectsInStep = ConcurrentHashMap.newKeySet();
@@ -142,7 +140,7 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
         try {
             // update workParams
             workParams.putParameterValue(WorkerParameterName.workflowStatusKo,
-                ProcessMonitoringImpl.getInstance().getProcessWorkflowStatus(operationId, tenantId).name());
+                processDataAccess.findOneProcessWorkflow(operationId, tenantId).getStatus().name());
 
             List<String> objectsList = new ArrayList<>();
             if (step.getDistribution().getKind().equals(DistributionKind.LIST)) {
@@ -155,8 +153,7 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
                             UNITS_LEVEL + "/" + INGEST_LEVEL_STACK);
                         final JsonNode levelFileJson;
                         try {
-                            final InputStream levelFile =
-                                (InputStream) response.getEntity();
+                            final InputStream levelFile = (InputStream) response.getEntity();
                             levelFileJson = JsonHandler.getFromInputStream(levelFile);
                         } finally {
                             workspaceClient.consumeAnyEntityAndClose(response);
@@ -253,15 +250,18 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
             }
         } catch (InterruptedException e) { // NOSONAR ignore since cannot block here
             LOGGER.debug(e);
-        } finally {
-            // Now waiting for all submitted jobs to finish
-            waitEndOfStep(currentRunningObjectsInStep, waitingStepAllAsyncRequest);
+        } catch (ProcessingBadRequestException ex) {
+            LOGGER.error(ex);
+            throw new ProcessingException(ex);
         }
+        // Now waiting for all submitted jobs to finish
+        waitEndOfStep(currentRunningObjectsInStep, waitingStepAllAsyncRequest);
+
     }
 
     /**
      * Submit a new job to step to be executed for one item to WorkerManager
-     * 
+     *
      * @param workParams
      * @param step
      * @param currentRunningObjectsInStep
@@ -309,7 +309,7 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
 
     /**
      * Add response to the current step (use for async)
-     * 
+     *
      * @param workerAsyncResponse the asynchronized response
      */
     @Override
@@ -331,8 +331,8 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
         }
         // Now notify the Distributor if it is waiting on the Running Job set to be empty
         if (workerAsyncResponse.getWorkerAsyncRequest().getCurrentRunningObjectsInStep().isEmpty()) {
-            try {                
-                processDataAccess.updateStep(workParams.getContainerName(), workParams.getStepUniqId(), 0,
+            try {
+                processDataAccess.updateStep(workParams.getContainerName(), step.getId(), 0,
                     true, workerAsyncResponse.getWorkerAsyncRequest().getSession().getTenantId());
             } catch (ProcessingException | RuntimeException e) {
                 if (step.getStepResponses() != null) {
@@ -353,7 +353,7 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
 
     /**
      * Waits the end of the Step (join of all the async worker task)
-     * 
+     *
      * @param currentRunningObjectsInStep
      */
     private void waitEndOfStep(Set<WorkerAsyncRequest> currentRunningObjectsInStep,

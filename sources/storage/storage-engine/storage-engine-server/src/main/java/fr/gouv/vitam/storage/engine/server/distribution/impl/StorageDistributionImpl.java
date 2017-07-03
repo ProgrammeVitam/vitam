@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.security.DigestInputStream;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -118,7 +119,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 // TODO P1: see what to do with RuntimeException (catch it and log it to let the
 public class StorageDistributionImpl implements StorageDistribution {
     private static final String DEFAULT_SIZE_WHEN_UNKNOWN = "1000000";
-    private static final int DEFAULT_MINIMUM_TIMEOUT = 10000;
+    private static final int DEFAULT_MINIMUM_TIMEOUT = 60000;
     private static final String STRATEGY_ID_IS_MANDATORY = "Strategy id is mandatory";
     public static final String CATEGORY_IS_MANDATORY = "Category (object type) is mandatory";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageDistributionImpl.class);
@@ -228,7 +229,7 @@ public class StorageDistributionImpl implements StorageDistribution {
                 //  e.printStackTrace();
             }
             // TODO P1 Handle Status result if different for offers
-            return buildStoreDataResponse(objectId, category, datas.getGlobalOfferResult());
+            return buildStoreDataResponse(objectId, category, strategyId, datas.getGlobalOfferResult());
         }
         throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
     }
@@ -561,7 +562,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         }
     }
 
-    private StoredInfoResult buildStoreDataResponse(String objectId, DataCategory category,
+    private StoredInfoResult buildStoreDataResponse(String objectId, DataCategory category, String strategy,
         Map<String, Status> offerResults) throws StorageTechnicalException, StorageAlreadyExistsException {
 
         final String offerIds = String.join(", ", offerResults.keySet());
@@ -627,6 +628,10 @@ public class StorageDistributionImpl implements StorageDistribution {
         result.setLastAccessTime(LocalDateUtil.getString(now));
         result.setLastCheckedTime(LocalDateUtil.getString(now));
         result.setLastModifiedTime(LocalDateUtil.getString(now));
+        result.setNbCopy(offerResults.size());
+        result.setStrategy(strategy);
+        result.setOfferIds(Arrays.asList(offerResults.keySet().toArray(new String[0])));
+        LOGGER.warn("DEBUG result: {}", result);
         return result;
     }
 
@@ -746,7 +751,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             }
             ArrayNode resultArray = JsonHandler.createArrayNode();
             for (OfferReference offerReference : offerReferences) {
-                resultArray.add(getOfferInformation(offerReference, tenantId));
+                resultArray.add(getOfferInformation(offerReference, tenantId, hotStrategy.getCopy()));
             }
             return JsonHandler.createObjectNode().set("capacities", resultArray);
         }
@@ -754,13 +759,14 @@ public class StorageDistributionImpl implements StorageDistribution {
         throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
     }
 
-    private JsonNode getOfferInformation(OfferReference offerReference, Integer tenantId) throws StorageException {
+    private JsonNode getOfferInformation(OfferReference offerReference, Integer tenantId, int nbCopy) throws StorageException {
         final Driver driver = retrieveDriverInternal(offerReference.getId());
         final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
         try (Connection connection = driver.connect(offer.getId())) {
             final ObjectNode ret = JsonHandler.createObjectNode();
             ret.put("offerId", offerReference.getId());
             ret.put("usableSpace", connection.getStorageCapacity(tenantId).getUsableSpace());
+            ret.put("nbc", nbCopy);
             return ret;
         } catch (StorageDriverException | RuntimeException exc) {
             if (exc instanceof StorageDriverNotFoundException) {

@@ -35,11 +35,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -57,11 +54,11 @@ import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 import com.jayway.restassured.RestAssured;
-
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -70,9 +67,9 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
-import fr.gouv.vitam.common.model.ProcessExecutionStatus;
+import fr.gouv.vitam.common.model.ProcessQuery;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.HeaderIdContainerFilter;
 import fr.gouv.vitam.common.server.VitamServer;
@@ -81,12 +78,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 
@@ -259,16 +252,13 @@ public class IngestInternalResourceTest {
         get(STATUS_URI).then().statusCode(Status.NO_CONTENT.getStatusCode());
     }
 
-
     @Test
     public void givenNoZipWhenUploadSipAsStreamThenReturnKO()
         throws Exception {
         reset(workspaceClient);
         reset(processingClient);
 
-        RestAssured.given()
-            .body(operationList).contentType(MediaType.APPLICATION_JSON)
-            .when().post(INGEST_URL)
+        RestAssured.given().body(operationList).contentType(MediaType.APPLICATION_JSON).when().post(INGEST_URL)
             .then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
     }
 
@@ -307,7 +297,7 @@ public class IngestInternalResourceTest {
                 GlobalDataRest.X_CONTEXT_ID, START_CONTEXT)
             .body(inputStream).contentType(CommonMediaType.ZIP)
             .when().post(INGEST_URL)
-            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            .then().statusCode(Status.SERVICE_UNAVAILABLE.getStatusCode());
 
     }
 
@@ -439,7 +429,7 @@ public class IngestInternalResourceTest {
             .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.RESUME,
                 GlobalDataRest.X_CONTEXT_ID, DEFAULT_CONTEXT)
             .when().head(OPERATION_URL)
-            .then().statusCode(Status.OK.getStatusCode());
+            .then().statusCode(Status.ACCEPTED.getStatusCode());
     }
 
     @Test
@@ -468,6 +458,33 @@ public class IngestInternalResourceTest {
             .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId())
             .when().delete(OPERATION_URL)
             .then().statusCode(Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void givenWorkflowDefinitionsInternalServerExceptionThenReturnInternalServerError()
+        throws Exception {
+        reset(workspaceClient);
+        reset(processingClient);
+        Mockito.when(processingClient.getWorkflowDefinitions()).thenThrow(new VitamClientException(""));
+
+        RestAssured.given()
+            .contentType(MediaType.APPLICATION_JSON).when()
+            .get("workflows").then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    public void givenWorkflowDefinitionsRequestResponseThenReturnOk()
+        throws Exception {
+        reset(workspaceClient);
+        reset(processingClient);
+
+        Mockito.doReturn(
+            new RequestResponseOK().addResult(JsonHandler.createObjectNode()).setHttpCode(Status.OK.getStatusCode()))
+            .when(processingClient)
+            .getWorkflowDefinitions();
+
+        RestAssured.given().contentType(MediaType.APPLICATION_JSON)
+            .when().get("workflows").then().statusCode(Status.OK.getStatusCode());
     }
 
 }

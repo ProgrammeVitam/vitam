@@ -42,6 +42,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -146,5 +147,57 @@ public class BenchmarkResource extends ApplicationStatusResource {
     @Produces(MediaType.WILDCARD)
     public long uploadDelete(InputStream stream) {
         return JunitHelper.consumeInputStream(stream);
+    }
+    
+    /**
+     * download using POST
+     *
+     * @param size 
+     * @return Response
+     */
+    @Path("download" + HttpMethod.POST)
+    @POST
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public InputStream downloadPost(long size) {
+        return new FakeInputStream(size);
+    }
+
+    /**
+     * download using PUT
+     *
+     * @param size 
+     * @return Response
+     */
+    @Path("download" + HttpMethod.PUT)
+    @PUT
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public InputStream downloadPut(long size) {
+        return new FakeInputStream(size);
+    }
+
+    /**
+     * download using GET
+     *
+     * @param size 
+     * @return Response
+     */
+    @Path("download" + HttpMethod.GET)
+    @GET
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public InputStream downloadGet(long size) {
+        return new FakeInputStream(size);
+    }
+
+    /**
+     * download using DELETE
+     *
+     * @param size 
+     * @return Response
+     */
+    @Path("download" + HttpMethod.DELETE)
+    @DELETE
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public InputStream downloadDelete(long size) {
+        return new FakeInputStream(size);
     }
 }

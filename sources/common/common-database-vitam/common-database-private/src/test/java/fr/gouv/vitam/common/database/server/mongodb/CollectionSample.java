@@ -71,4 +71,8 @@ public class CollectionSample extends VitamDocument<CollectionSample> {
         super(content);
     }
 
+    @Override
+    public VitamDocument<CollectionSample> newInstance(JsonNode content) {
+        return new CollectionSample(content);
+    }
 }

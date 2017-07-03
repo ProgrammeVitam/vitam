@@ -159,7 +159,7 @@ public class StorageLogAppender {
      * for exemple when context is destroyed
      *
      * @param tenant
-     * @return
+     * @return Log Information
      * @throws IOException
      */
     public LogInformation secureWithoutCreatingNewLogByTenant(Integer tenant) throws IOException {
@@ -182,7 +182,7 @@ public class StorageLogAppender {
      *
      * @param tenant
      * @param parameters
-     * @return
+     * @return this
      * @throws IOException
      */
     public StorageLogAppender append(Integer tenant, StorageLogbookParameters parameters) throws IOException {

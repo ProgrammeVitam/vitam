@@ -36,6 +36,8 @@
   <script src="vendor/angular-translate/angular-translate.min.js"></script>
   <script src="vendor/angular-translate-loader-static-files/angular-translate-loader-static-files.min.js"></script>
   <script src="vendor/angular-mocks/angular-mocks.js"></script>
+    <script src="vendor/ng-file-upload/ng-file-upload-shim.min.js"></script>
+    <script src="vendor/ng-file-upload/ng-file-upload.min.js"></script>
   <!-- concatenated flow.js + ng-flow libraries -->
   <!-- <script src="bower_components/ng-flow/dist/ng-flow-standalone.js"></script> -->
   <!-- or include the files separately -->
@@ -57,6 +59,7 @@
   <script src="js/controller/import-contracts-controller.js"></script>
   <script src="js/controller/import-access-contracts-controller.js"></script>
   <script src="js/controller/import-profiles-controller.js"></script>
+  <script src="js/controller/import-contexts-controller.js"></script>
   <script src="modules/file-rules/filerules-component.js"></script>
   <script src="modules/file-rules/filerules-controller.js"></script>
   <script src="js/controller/import-rulesfile-controller.js"></script>
@@ -214,7 +217,7 @@
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </button>
-        <a href="#" class="navbar-brand"><img class="logo img-responsive pull-left" src="images/logoIHMBeta.png" alt="Vitam Beta" title="Vitam" />vitam</a>
+        <a href="#" class="navbar-brand"><img class="logo img-responsive pull-left" src="images/logoIHMRelease4.png" alt="Vitam Beta" title="Vitam" />vitam</a>
       </div>
 
       <div id="navbar" class="navbar-collapse collapse" ng-if="session.status=='logged'">
@@ -253,8 +256,8 @@
               <li><a href="#!/admin/profiles" ng-show="hasPermission('profiles:read')">Référentiel des profils</a></li>
               <li><a href="#!/admin/journalOperations" ng-show="hasPermission('logbook:operations:read')">Journal des Opérations</a></li>
               <li><a href="#!/admin/workflows" ng-show="hasPermission('operations:read')">Gestion des opérations</a></li>
-              <li><a href="#!/admin/entryContracts" ng-show="hasPermission('operations:read')">Contrats d'entrée</a></li>
-              <li><a href="#!/admin/accessContracts" ng-show="hasPermission('operations:read')">Contrats d'accès</a></li>
+              <li><a href="#!/admin/entryContracts" ng-show="hasPermission('contracts:read')">Contrats d'entrée</a></li>
+              <li><a href="#!/admin/accessContracts" ng-show="hasPermission('accesscontracts:read')">Contrats d'accès</a></li>
 
               <li><a href="#!/admin/traceabilityOperationSearch" ng-show="hasPermission('logbook:operations:read')">Opérations de sécurisation</a></li>
               <li class="divider" ng-show="hasPermission('rules:create') || hasPermission('format:create') || hasPermission('contracts:create')"></li>
@@ -264,6 +267,7 @@
               <li><a href="#!/admin/importContracts" ng-show="hasPermission('contracts:create')">Import des contrats d'entrée</a></li>
               <li><a href="#!/admin/importAccessContracts" ng-show="hasPermission('contracts:create')">Import des contrats d'accès</a></li>
               <li><a href="#!/admin/importProfiles" ng-show="hasPermission('profiles:create')">Import des profils</a></li>
+              <li><a href="#!/admin/importContexts" ng-show="hasPermission('contexts:create')">Import des contextes</a></li>
             </ul>
           </li>
           <li class="@@mainMenu2">

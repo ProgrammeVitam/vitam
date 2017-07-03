@@ -275,4 +275,25 @@ public class VitamLogbookMessages {
     public static final String getFromFullCodeKey(String completeCodeKey) {
         return VITAM_MESSAGES.messages.getStringNotEmpty(completeCodeKey);
     }
+
+    public static final String getFromFullCodeKey(String completeCodeKey, Object... args) {
+        return VITAM_MESSAGES.messages.getStringNotEmpty(completeCodeKey, args);
+    }
+
+    /**
+     *
+     * @return String
+     */
+    public static final String getSeparator() {
+        return SEPARATOR;
+    }
+
+    /**
+     *
+     * @param key
+     * @return boolean true/false
+     */
+    public static final boolean containsKey(String key) {
+        return VITAM_MESSAGES.messages.containsKey(key);
+    }
 }

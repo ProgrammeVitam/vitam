@@ -40,5 +40,6 @@ angular.module('ihm.demo', [
   'upload.sip.perf',
   'admin.home',
   'operation.traceability',
-  'functional.test'
+  'functional.test',
+  'dsl.query.test'
 ]);

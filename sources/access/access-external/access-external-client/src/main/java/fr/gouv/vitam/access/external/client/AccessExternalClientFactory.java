@@ -51,7 +51,7 @@ public final class AccessExternalClientFactory extends VitamClientFactory<Access
     private static final String RESOURCE_PATH = "/access-external/v1";
 
     private AccessExternalClientFactory() {
-        super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH);
+        super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH, false);
         disableUseAuthorizationFilter();
     }
 

@@ -13,12 +13,14 @@
 	"#tenant" : 0,
 	"#max" : 2,
 	"#min" : 1,
+	"_unitType": "INGEST",
 	"#unitups" : [
 		"GUID_ARCHIVE_UNIT_ANCESTOR"
 	],
 	"#nbunits" : 0,
 	"#allunitups" : [
 		"GUID_ARCHIVE_UNIT_ANCESTOR"
-	]
+	],
+	"#originating_agencies" : ["OriginatingAgencyParent"]
 }
 ],"$context":{"$roots":[],"$query":[],"$filter":{},"$projection":{}}}

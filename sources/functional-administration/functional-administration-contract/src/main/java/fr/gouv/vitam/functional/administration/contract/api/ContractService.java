@@ -29,11 +29,12 @@ package fr.gouv.vitam.functional.administration.contract.api;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.model.AbstractContractModel;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
-import fr.gouv.vitam.functional.administration.client.model.AbstractContractModel;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
 import java.util.List;
@@ -64,20 +65,21 @@ public interface ContractService<T extends AbstractContractModel> extends VitamA
      * <li>- DesactivationDate </li>
      * <li>- LastUpdate </li>
      * <li>- Status</li>
-     * 
-     * 
+     * @param id TODO
      * @param queryDsl the given queryDsl for update
+     * 
+     * 
      * @return RequestResponseOK if success or VitamError
      * @throws VitamException if in error occurs while validating contracts
      */
-    public RequestResponse<T> updateContract(JsonNode queryDsl) throws VitamException;
+    public RequestResponse<T> updateContract(String id, JsonNode queryDsl) throws VitamException;
 
 
     /**
      * Find contract by id
      * 
      * @param id
-     * @return
+     * @return T
      */
     public T findOne(String id) throws ReferentialException, InvalidParseOperationException;
 
@@ -86,7 +88,7 @@ public interface ContractService<T extends AbstractContractModel> extends VitamA
      * find contract by QueryDsl
      * 
      * @param queryDsl
-     * @return
+     * @return list of T
      */
     public List<T> findContracts(JsonNode queryDsl) throws ReferentialException, InvalidParseOperationException;
 

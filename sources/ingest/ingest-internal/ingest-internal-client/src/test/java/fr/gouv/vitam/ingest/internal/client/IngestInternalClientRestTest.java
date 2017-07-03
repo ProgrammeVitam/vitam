@@ -57,8 +57,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.exception.VitamException;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
@@ -72,16 +70,19 @@ import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
+import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientNotFoundException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -228,6 +229,13 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         @Produces(MediaType.APPLICATION_JSON)
         public Response InterruptWorkFlowExecution(@PathParam("id") String id) {
             return expectedResponse.delete();
+        }
+
+        @Path("/workflows")
+        @GET
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getWorkflowDefinitions() {
+            return expectedResponse.get();
         }
     }
 
@@ -411,14 +419,18 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
     @Test
     public void givenInputstreamWhenDownloadObjectThenStoreATR()
         throws Exception {
-
         when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
-
         final InputStream fakeUploadResponseInputStream =
             client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class);
         assertNotNull(fakeUploadResponseInputStream);
         client.storeATR(GUIDFactory.newGUID(), fakeUploadResponseInputStream);
+    }
 
+    @Test(expected = IngestInternalClientNotFoundException.class)
+    public void givenNotFoundWhenDownloadObjectThenReturnKo()
+        throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND.getStatusCode()).build());
+        client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class);
     }
 
     @Test(expected = VitamClientInternalException.class)
@@ -657,6 +669,37 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         client.executeOperationProcess(ID, null, CONTEXTID, ProcessAction.START.getValue());
 
+    }
+
+
+    @Test
+    public void givenOKWhenDefinitionsWorkflowThenReturnMap() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<>()).build());
+        client.getWorkflowDefinitions();
+    }
+
+    @Test(expected = VitamClientException.class)
+    public void givenNotFoundWhenDefinitionsWorkflowThenReturnInternalServerException() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        client.getWorkflowDefinitions();
+    }
+
+    @Test(expected = VitamClientException.class)
+    public void givenPreconditionFailedWhenDefinitionsWorkflowThenReturnIllegalArgumentException() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        client.getWorkflowDefinitions();
+    }
+
+    @Test(expected = VitamClientException.class)
+    public void givenUnauthaurizedWhenDefinitionsWorkflowThenReturnNotAuthorizedException() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
+        client.getWorkflowDefinitions();
+    }
+
+    @Test(expected = VitamClientException.class)
+    public void givenInternalServerErrorWhenDefinitionsWorkflowThenReturnInternalServerException() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        client.getWorkflowDefinitions();
     }
 
 }

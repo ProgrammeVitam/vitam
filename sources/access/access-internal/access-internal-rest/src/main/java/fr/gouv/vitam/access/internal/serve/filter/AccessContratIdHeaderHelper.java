@@ -43,12 +43,12 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.AccessContractModel;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 
@@ -72,33 +72,25 @@ public class AccessContratIdHeaderHelper {
      * Extracts the X_ACCESS_CONTRAT_ID from the headers to save it through the VitamSession
      *
      * @param requestHeaders Complete list of HTTP message headers ; will not be changed.
-     * @param ctx Context, or rather http message type (request or response)
-     * @throws MissingAccessContratIdException 
+     * @throws MissingAccessContratIdException
      */
     public static void manageAccessContratFromHeader(MultivaluedMap<String, String> requestHeaders) throws MissingAccessContratIdException {
         try(final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             String headerAccessContratId = requestHeaders.getFirst(GlobalDataRest.X_ACCESS_CONTRAT_ID);
-            
+
             if (headerAccessContratId== null){
                 throw new MissingAccessContratIdException(headerAccessContratId);
             }
-            
+
             JsonNode queryDsl = getQueryDsl(headerAccessContratId);            
             RequestResponse<AccessContractModel> response = client.findAccessContracts(queryDsl);
-            
+
             if (!response.isOk() || ((RequestResponseOK<AccessContractModel>)response).getResults().size() == 0){
                 throw new MissingAccessContratIdException(headerAccessContratId);
             }
-            
-            List<AccessContractModel> list = ((RequestResponseOK<AccessContractModel>)response).getResults(); 
-            Set<String> dataObjectVersions = list.get(0).getDataObjectVersion();
-            VitamThreadUtils.getVitamSession().setUsages(dataObjectVersions);
-            boolean writingPermission = list.get(0).getWritingPermission();
-            VitamThreadUtils.getVitamSession().setWritingPermission(writingPermission);
-            
-            Set<String> prodServices = list.get(0).getOriginatingAgencies();
-            VitamThreadUtils.getVitamSession().setProdServices(prodServices);
-            
+
+            List<AccessContractModel> contracts = ((RequestResponseOK<AccessContractModel>)response).getResults(); 
+            VitamThreadUtils.getVitamSession().setContract(contracts.get(0));
         } catch (final VitamThreadAccessException | AdminManagementClientServerException |
             InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.warn(

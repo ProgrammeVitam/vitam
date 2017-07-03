@@ -19,6 +19,8 @@ package fr.gouv.vitam.functional.administration.contract.core;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
@@ -41,17 +43,18 @@ import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
 import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
@@ -59,6 +62,7 @@ import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminF
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
 
+import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
 import org.bson.Document;
 import org.junit.*;
 
@@ -72,10 +76,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class IngestContractImplTest {
 
 
-    private static MongoDbAccessAdminImpl dbImpl;
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
-        VitamThreadPoolExecutor.getDefaultExecutor());
+            VitamThreadPoolExecutor.getDefaultExecutor());
 
     private static final Integer TENANT_ID = 1;
 
@@ -86,9 +89,11 @@ public class IngestContractImplTest {
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
     static MongoClient client;
+    static VitamCounterService vitamCounterService;
 
     static ContractService<IngestContractModel> ingestContractService;
     static int mongoPort;
+    private static MongoDbAccessAdminImpl dbImpl;
 
 
     @BeforeClass
@@ -97,17 +102,21 @@ public class IngestContractImplTest {
         junitHelper = JunitHelper.getInstance();
         mongoPort = junitHelper.findAvailablePort();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
-            .version(Version.Main.PRODUCTION)
-            .net(new Net(mongoPort, Network.localhostIsIPv6()))
-            .build());
+                .version(Version.Main.PRODUCTION)
+                .net(new Net(mongoPort, Network.localhostIsIPv6()))
+                .build());
         mongod = mongodExecutable.start();
         client = new MongoClient(new ServerAddress(DATABASE_HOST, mongoPort));
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, mongoPort));
         dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
+        List tenants = new ArrayList<>();
+        tenants.add(new Integer(TENANT_ID));
+        vitamCounterService = new VitamCounterService(dbImpl, tenants);
+
         ingestContractService =
-            new IngestContractImpl(dbImpl);
+                new IngestContractImpl(dbImpl, vitamCounterService);
 
     }
 
@@ -133,12 +142,17 @@ public class IngestContractImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
         List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+                });
         RequestResponse response = ingestContractService.createContracts(IngestContractModelList);
 
         assertThat(response.isOk());
         RequestResponseOK<IngestContractModel> responseCast = (RequestResponseOK<IngestContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
+        assertThat(responseCast.getResults().get(0).getIdentifier()).contains("IC-000");
+        assertThat(responseCast.getResults().get(1).getIdentifier()).contains("IC-000");
+
+
     }
 
     @Test
@@ -147,7 +161,8 @@ public class IngestContractImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_missingName.json");
         List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+                });
         RequestResponse response = ingestContractService.createContracts(IngestContractModelList);
 
         assertThat(!response.isOk());
@@ -160,10 +175,29 @@ public class IngestContractImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_profile_not_indb.json");
         List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+                });
         RequestResponse response = ingestContractService.createContracts(IngestContractModelList);
 
         assertThat(!response.isOk());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testObjectNode() throws InvalidParseOperationException {
+        final ArrayNode object = JsonHandler.createArrayNode();
+        final ObjectNode msg = JsonHandler.createObjectNode();
+        msg.put("Status", "update");
+        msg.put("oldStatus", "INACTIF");
+        msg.put("newStatus", "ACTIF");
+        final ObjectNode msg2 = JsonHandler.createObjectNode();
+        msg2.put("FilingParentId", "update");
+        msg2.put("oldFilingParentId", "lqskdfjh");
+        msg2.put("newFilingParentId", "lqskdfjh");
+        object.add(msg);
+        object.add(msg2);
+        String wellFormedJson = SanityChecker.sanitizeJson(object);
+        System.out.println("YOOOOOOOOOOOOOOOOOOOOOOOOOOO" + wellFormedJson);
     }
 
 
@@ -174,13 +208,15 @@ public class IngestContractImplTest {
         File fileMetadataProfile = PropertiesUtils.getResourceFile("profile_ok.json");
 
         List<ProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ProfileModel>>() {});
+                JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ProfileModel>>() {
+                });
 
         dbImpl.insertDocuments(JsonHandler.createArrayNode().add(JsonHandler.toJsonNode(profileModelList.iterator().next())), FunctionalAdminCollections.PROFILE);
 
         File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_profile_indb.json");
         List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+                });
         RequestResponse response = ingestContractService.createContracts(IngestContractModelList);
 
         assertThat(response.isOk());
@@ -194,7 +230,8 @@ public class IngestContractImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_duplicate.json");
         List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+                });
         RequestResponse response = ingestContractService.createContracts(IngestContractModelList);
 
         assertThat(!response.isOk());
@@ -207,7 +244,8 @@ public class IngestContractImplTest {
         File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
 
         List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+                });
         RequestResponse response = ingestContractService.createContracts(IngestContractModelList);
 
         RequestResponseOK<IngestContractModel> responseCast = (RequestResponseOK<IngestContractModel>) response;
@@ -227,7 +265,8 @@ public class IngestContractImplTest {
         File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
 
         List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+                });
         RequestResponse response = ingestContractService.createContracts(IngestContractModelList);
 
         RequestResponseOK<IngestContractModel> responseCast = (RequestResponseOK<IngestContractModel>) response;
@@ -236,7 +275,8 @@ public class IngestContractImplTest {
 
         // unset ids
         IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+                });
         response = ingestContractService.createContracts(IngestContractModelList);
 
         assertThat(!response.isOk());
@@ -266,7 +306,7 @@ public class IngestContractImplTest {
 
     /**
      * Check that the created ingest conrtact have the tenant owner after persisted to database
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -276,7 +316,8 @@ public class IngestContractImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
         List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+                });
         RequestResponse response = ingestContractService.createContracts(IngestContractModelList);
 
         RequestResponseOK<IngestContractModel> responseCast = (RequestResponseOK<IngestContractModel>) response;
@@ -305,7 +346,7 @@ public class IngestContractImplTest {
     /**
      * Ingest contract of tenant 1, try to get the same contract with id mongo but with tenant 2 This sgould not return
      * the contract as tenant 2 is not the owner of the Ingest contract
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -315,7 +356,8 @@ public class IngestContractImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
         List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+                });
         RequestResponse response = ingestContractService.createContracts(IngestContractModelList);
 
         RequestResponseOK<IngestContractModel> responseCast = (RequestResponseOK<IngestContractModel>) response;
@@ -344,7 +386,8 @@ public class IngestContractImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
         List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+                });
         RequestResponse response = ingestContractService.createContracts(IngestContractModelList);
 
         RequestResponseOK<IngestContractModel> responseCast = (RequestResponseOK<IngestContractModel>) response;
@@ -370,7 +413,7 @@ public class IngestContractImplTest {
     public void givenIngestContractsTestFindAllThenReturnEmpty() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         List<IngestContractModel> IngestContractModelList =
-            ingestContractService.findContracts(JsonHandler.createObjectNode());
+                ingestContractService.findContracts(JsonHandler.createObjectNode());
         assertThat(IngestContractModelList).isEmpty();
     }
 
@@ -380,14 +423,15 @@ public class IngestContractImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
         List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+                });
         RequestResponse response = ingestContractService.createContracts(IngestContractModelList);
 
         RequestResponseOK<IngestContractModel> responseCast = (RequestResponseOK<IngestContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
 
         List<IngestContractModel> IngestContractModelListSearch =
-            ingestContractService.findContracts(JsonHandler.createObjectNode());
+                ingestContractService.findContracts(JsonHandler.createObjectNode());
         assertThat(IngestContractModelListSearch).hasSize(2);
     }
 
@@ -402,7 +446,8 @@ public class IngestContractImplTest {
         File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
 
         List<IngestContractModel> ingestModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+                });
         RequestResponse response = ingestContractService.createContracts(ingestModelList);
 
         RequestResponseOK<IngestContractModel> responseCast = (RequestResponseOK<IngestContractModel>) response;
@@ -431,12 +476,13 @@ public class IngestContractImplTest {
         update.addActions(setActionStatusInactive, setActionDesactivationDateInactive, setActionLastUpdateInactive);
         updateParser.parse(update.getFinalUpdate());
         JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
+
         RequestResponse<IngestContractModel> updateContractStatus =
-            ingestContractService.updateContract(queryDslForUpdate);
+                ingestContractService.updateContract(ingestModelList.get(0).getId(), queryDslForUpdate);
         assertThat(updateContractStatus).isNotExactlyInstanceOf(VitamError.class);
 
         List<IngestContractModel> ingestContractModelListForassert =
-            ingestContractService.findContracts(queryDsl);
+                ingestContractService.findContracts(queryDsl);
         assertThat(ingestContractModelListForassert).isNotEmpty();
         for (IngestContractModel ingestContractModel : ingestContractModelListForassert) {
             assertThat(inactiveStatus.equals(ingestContractModel.getStatus())).isTrue();
@@ -453,16 +499,16 @@ public class IngestContractImplTest {
         Update updateStatusActive = new Update();
         updateStatusActive.setQuery(QueryHelper.eq("Name", documentName));
         updateStatusActive.addActions(setActionStatusActive, setActionDesactivationDateActive,
-            setActionLastUpdateActive);
+                setActionLastUpdateActive);
         updateParserActive.parse(updateStatusActive.getFinalUpdate());
         JsonNode queryDslStatusActive = updateParserActive.getRequest().getFinalUpdate();
-        ingestContractService.updateContract(queryDslStatusActive);
+        ingestContractService.updateContract(ingestModelList.get(0).getId(), queryDslStatusActive);
 
 
         List<IngestContractModel> accessContractModelListForassert2 =
-            ingestContractService.findContracts(queryDsl);
+                ingestContractService.findContracts(queryDsl);
         assertThat(accessContractModelListForassert2).isNotEmpty();
-        for (IngestContractModel ingestContractModel : accessContractModelListForassert2 ) {
+        for (IngestContractModel ingestContractModel : accessContractModelListForassert2) {
             assertThat(inactiveStatus.equals(ingestContractModel.getStatus())).isFalse();
             assertThat(activeStatus.equals(ingestContractModel.getStatus())).isTrue();
             assertThat(ingestContractModel.getActivationdate()).isNotEmpty();
@@ -477,7 +523,8 @@ public class IngestContractImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
         List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+                });
         RequestResponse response = ingestContractService.createContracts(IngestContractModelList);
 
         RequestResponseOK<IngestContractModel> responseCast = (RequestResponseOK<IngestContractModel>) response;

@@ -34,9 +34,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.client.OperationManagementClient;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 
@@ -44,6 +45,14 @@ import fr.gouv.vitam.processing.common.model.WorkerBean;
  * Processing Management Client
  */
 public interface ProcessingManagementClient extends OperationManagementClient {
+
+    /**
+     * Check if process workflow is completed of not TODO Move this method to OperationManagementClient
+     * 
+     * @param operationId
+     * @return boolean true/false
+     */
+    boolean isOperationCompleted(String operationId);
 
     /**
      * Register a new worker knowing its family and with a WorkerBean. If a problem is encountered, an exception is
@@ -74,7 +83,7 @@ public interface ProcessingManagementClient extends OperationManagementClient {
      * @param workflow
      * @param contextId
      * @param actionId
-     * @return
+     * @return Response
      * @throws InternalServerException
      * @throws BadRequestException
      * @throws WorkflowNotFoundException
@@ -83,5 +92,12 @@ public interface ProcessingManagementClient extends OperationManagementClient {
         String workflow, String contextId, String actionId)
         throws InternalServerException, BadRequestException, WorkflowNotFoundException;
 
+    /**
+     * Retrieve all the workflow definitions.
+     * 
+     * @return map of workflow definitions by id
+     * @throws VitamClientException
+     */
+    RequestResponse<JsonNode> getWorkflowDefinitions() throws VitamClientException;
 
 }

@@ -25,7 +25,7 @@
   when: ansible_distribution == "Debian"
 
 - name: Adding {{ vitam_group }}  group to clamav so it can scan {{ vitam_group }}-based files
-  user: 
+  user:
     name: clamav
     groups: "{{ vitam_group }}"
     append: yes
@@ -58,15 +58,23 @@
 #  when: ansible_distribution == "CentOS"
 # notify disabled as there are possibilities "debian" or "centos"
   # notify:
-  #   - restart clamav   
+  #   - restart clamav
 
-- name: ensure clamAV daemon is started at boot
-  service:
-    name: "clamd@scan"
-    enabled: true
+- block:
+
+    - name: ensure clamAV daemon is started at boot
+      systemd:
+        name: "clamd@scan"
+        enabled: yes
+        state: started
+
+    - name: active clamav updates
+      replace:
+        path: "/etc/sysconfig/freshclam"
+        regexp: '^FRESHCLAM_DELAY(.)*'
+        replace: '#FRESHCLAM_DELAY\1'
+
   when: ansible_distribution == "CentOS"
-  notify:
-      - restart clamav
 
 - block:
 # cf. https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=771911
@@ -77,32 +85,36 @@
       owner: root
       group: root
       mode: 0644
-    
-  - name: apply systemD daemon-reload
-    command: systemctl --system daemon-reload
 
-  - name: restart clamav-daemon.socket service
-    command: systemctl restart clamav-daemon.socket
+  - name: stop clamav-freshclam service to force update
+    systemd:
+      name: clamav-freshclam
+      daemon_reload: yes
+      enabled: yes
+      state: stopped
 
-  - name: restart clamav-daemon service
-    command: systemctl restart clamav-daemon.service
-
-  - name: Check if freshclam process is running
-    shell: ps aux | grep freshclam | grep -v grep
-    ignore_errors: yes
-    changed_when: false
-    register: freshclam_status
-
-  - name: download database for clamAV
+  - name: update database for clamAV
     shell: freshclam
     ignore_errors: true
-    when: freshclam_status.stdout == ""
     notify:
       - restart debian_clamav
 
-  - name: force restart clamAV  
-    service:
-      name: "clamav-daemon"
+  - name: restart clamav-freshclam service
+    systemd:
+      name: clamav-freshclam
+      enabled: yes
+      state: started
+
+  - name: restart clamav-daemon service
+    systemd:
+      name: clamav-daemon
+      daemon_reload: yes
+      enabled: yes
       state: restarted
-  
+
+  # - name: restart clamav-daemon.socket service
+  #   systemd:
+  #     name: clamav-daemon
+  #     state: restarted
+
   when: ansible_distribution == "Debian"

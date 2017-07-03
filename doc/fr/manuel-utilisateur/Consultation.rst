@@ -6,15 +6,15 @@ Cette partie décrit les fonctionnalités de recherche et de consultation d'une 
 Recherche d'une unité archivistique
 ===================================
 
-La recherche d'une unité archivistique s'effectue depuis le menu "Recherche d'archives". 
+La recherche d'une unité archivistique s'effectue depuis le menu "Recherche d'archives".
 
 .. image:: images/menu_recherche.jpg
 
-L'accès à deux modes de recherche est proposé sur la page "Recherche d'archives" : 
+L'accès à deux modes de recherche est proposé sur la page "Recherche d'archives" :
 
 - l'un simple, de type recherche libre
-- l'autre, complexe ciblant certains types de métadonnées. 
-  
+- l'autre, complexe ciblant certains types de métadonnées.
+
 Chacun de ces modes est accessible par un onglet spécifique.
 
 Par défaut, le mode recherche simple est affiché.
@@ -28,12 +28,12 @@ En cliquant sur l'onglet "Recherche avancée", la page affiche le formulaire de 
 Recherche simple
 ----------------
 
-Pour effectuer une recherche simple, l'utilisateur saisit un ou plusieurs mots dans le champ de recherche puis presse la touche "Entrée" de son clavier ou clique sur le bouton "Rechercher". 
+Pour effectuer une recherche simple, l'utilisateur saisit un ou plusieurs mots dans le champ de recherche puis presse la touche "Entrée" de son clavier ou clique sur le bouton "Rechercher".
 Le ou les mots saisis vont être recherchés dans les métadonnées "Titre" et "Description" des unités archivistiques. La recherche simple s'effectue sur chacun des mots entrés de manière indépendante et permet de trouver les mots appartenant à l'un, à l'autre, ou aux deux ensembles de métadonnées visés. Il n’est pas possible de la paramétrer.
 
 .. image:: images/search_v1.png
 
-Lorsqu'une recherche libre est effectuée, tous les résultats comprenant la chaîne de caractères demandée seront remontés. Exemple : pour une recheche du mot "acte" sera remonté "acte de naissance" ou "Divers actes de mariage".
+Lorsqu'une recherche libre est effectuée, tous les résultats comprenant la chaîne de caractères demandée seront remontés. Exemple : pour une recherche du mot "acte" sera remonté "acte de naissance" ou "Divers actes de mariage".
 
 Les caractéristiques du mode de recherche sont les suivantes :
 
@@ -94,14 +94,22 @@ Ce détail s'affiche dans un nouvel onglet, afin de préserver la liste des rés
 Détail de l'unité archivistique
 -------------------------------
 
-Cet écran affiche les informations concernant l'unité archivistique et le groupe d'objets associé, informations contenues dans le bordereau SEDA et récupérées lors de l'entrée de l'unité archivitique dans la solution logicielle Vitam.
+Cet écran affiche les informations concernant l'unité archivistique et le groupe d'objets associé, informations contenues dans le bordereau SEDA et récupérées lors de l'entrée de l'unité archivistique dans la solution logicielle Vitam.
+
+Avertissement : Le Title et la Description sont présents deux fois, cette situation est temporaire dans l'attente d'une refonte globale de cet écran. 
 
 En premier, s'affiche la ou les arborescences de l'unité archivistique.
-Il est possible de cliquer sur les noeuds de l'arborescence pour naviguer entre les unités archivistiques pères.
+Il est possible de cliquer sur les nœuds de l'arborescence pour naviguer entre les unités archivistiques pères.
 
 Les blocs "Description" et "Gestion" affichent les métadonnées descriptives et de gestion relatives à l'unité archivistique.
 
-Les métadonnées descriptives, excepté l'ID, peuvent être modifiées en cliquant sur le bouton "Modifier".
+Concernant les services producteurs, il faut différencier :
+
+ - Identiant service producteur, le service producteur de l'unité archivistique, repris du bloc <content> du bordereau
+ - Service producteur de l'entrée, l'information correspondant à la valeur de l'OriginatingAgencyIdentifier déclarée dans le SIP
+ - Services producteurs ayant des droits sur l'entrée, correspondants au service producteur de l'entrée et à ceux des entrées des parents auxquels des unités archivistiques ont été rattachées
+
+La plupart des métadonnées descriptives, peuvent être modifiées en cliquant sur le bouton "Modifier".
 
 .. image:: images/detail_modification.png
 
@@ -110,7 +118,7 @@ Chaque ligne pouvant ainsi être éditée.
 .. image:: images/detail_v1.jpg
 
 Une fois les modifications saisies, en cliquant sur le bouton "Sauvegarder" permet de les sauvegarder celles-ci et met à jour les métadonnées.
-Une fois les modification des métadonnées effectuées, les anciennes valeurs sont enregistrées  à titre informatif dans le Journal du cycle de vie correspondant.
+Une fois les modifications des métadonnées effectuées, les anciennes valeurs sont enregistrées  à titre informatif dans le Journal du cycle de vie correspondant.
 
 .. image:: images/detail_v2.jpg
 
@@ -126,15 +134,15 @@ Si des règles de gestion s'appliquent à l'unité archivistique, alors celles-c
 Ces règles ont les attributs suivants :
 
 - Intitulé : le code affecté à la règle appliquée à cette unité. Par exemple ACC-00010 pour la règle de communicabilité des informations portant atteinte au secret médical (date de décès de l’intéressé)
-- Date de début : date d'application de la règle
-- Date de fin : date d'application de la règle
+- Date de début : date du début d'application de la règle
+- Date de fin : date de fin d'application de la règle
 - Sort final : optionnel, dans le cas où la règle possède un sort final
 
 Le fait qu'une ou plusieurs règles soient bloquées et retirées de l'héritage est affiché au travers deux mentions :
 
 - "Règle désactivée" liste les identifiants des règles, provenant des parents, et qui ne sont plus appliquées à partir de cette unité archivistique.
 
-- "Cette unité archivistique n'hérite d'aucune règle" indique que toutes les règles de cette catégorie (DUA, DUC, Règle de communicabilité, etc) provenant des parents ne sont plus appliquées à partir de cette unité archivistique.
+- "Cette unité archivistique n'hérite d'aucune règle" indique que toutes les règles de cette catégorie (DUA, DUC, Règle de communicabilité, etc.) provenant des parents ne sont plus appliquées à partir de cette unité archivistique.
 
 Chaque règle possède un détail qu'il est possible de consulter en cliquant sur la ligne de la règle en question. Ce détail reprend l'ensemble des valeurs déclarées pour la règle.
 La ligne "hérité de" indique quelle unité archivistique est à l'origine de l'application de la règle sur l'unité consultée. Cet origine est cliquable et mène sur le détail de l'unité mentionnée.
@@ -143,13 +151,21 @@ Si des objets sont disponibles, le bloc "Groupe d'objets" affiche le ou les obje
 
 Chaque objet est listé dans une ligne du tableau, Les colonnes affichent les informations suivantes :
 
-- l'usage de l'objet, correspond aux utilisations de l'objet (consultation, conservation, etc.)
-- la taille de l'objet
-- l'extension du format de l'objet
-- la date de dernière modification
-- une icône téléchargement : une icône, flèche bleue pointant vers le bas, permet de consulter l'objet.
+- Usage, l'usage de l'objet, correspond aux utilisations de l'objet (consultation, conservation, etc.)
+- Taille, la taille de l'objet en bytes
+- Format, l'extension du format de l'objet
+- Date, la date de dernière modification
+- Téléchargement, un clic sur icône de téléchargement permet de consulter l'objet.
 
 .. image:: images/detail_v3.png
+
+En ce qui concerne les objets physiques, les colonnes n'affichent que l'informations suivante :
+
+- Usage
+
+Les unités disponibles sont celles répertoriées par l'UNECE.
+
+.. image:: images/detail_v4.png
 
 
 Journaux du cycle de vie
@@ -165,7 +181,7 @@ Le journal du cycle de vie de l'unité archivistique est disponible depuis son d
 
 .. image:: images/JCV_AU_bouton.jpg
 
-Après avoir cliqué, un nouvel onglet s'ouvre avec le détail du journal du cycle de vie. Le titre de la page est constitué de l'identifiant de l'unité archivistique.
+Après avoir cliqué, un nouvel onglet s'ouvre avec le détail du journal du cycle de vie. Le titre de la page est constitué du titre de l'unité archivistique ainsi que de son identifiant.
 
 Par défaut, l'écran du journal du cycle de vie de l'unité archivistique affiche les informations suivantes :
 
@@ -194,7 +210,7 @@ La liste déroulante contient les champs suivants :
 Journal du cycle de vie du groupe d'objet
 -----------------------------------------
 
-Le journal du cycle de vie du groupe d'objets est disponible depuis le détail de l'unité archivistique, dans la partie groupe dobjets.
+Le journal du cycle de vie du groupe d'objets est disponible depuis le détail de l'unité archivistique, dans la partie groupe d'objets.
 
 .. image:: images/JCV_GO_bouton.jpg
 
@@ -304,12 +320,12 @@ Pour chaque entrée, les informations suivantes sont affichées :
 - Identifiant de l'opération attribué par la solution logicielle Vitam (cet identifiant correspond au contenu du champ MessageIdentifier de la notification d'entrée)
 - Service versant
 - Contrat correspondant au contrat d'entrée appliqué lors du versement du SIP
-- Date d'entrée
+- Dernière opération d'entrée, date de la dernière opération d'entrée
 - Nombre d'unités archivistiques
 
   - Total : Nombre d'unités archivistiques entrées dans la solution logicielle Vitam
   - Supprimé : Nombre d'unités archivistiques supprimées de la solution logicielle Vitam
-  - Restant : Nombre d'unités archivistiques restant dans la solution logicielle Vitam
+  - Restant : Nombre d'unités archivistiques restantes dans la solution logicielle Vitam
 
 - nombre de groupes d'objets
 
@@ -323,8 +339,4 @@ Pour chaque entrée, les informations suivantes sont affichées :
   - Supprimé : Nombre d'objets supprimés de la solution logicielle Vitam
   - Restant : Nombre d'objets restant dans la solution logicielle Vitam
 
-- volumétrie des objets
-
-  - Total : Volume total des objets entrés dans la solution logicielle Vitam
-  - Supprimé : Volume total des objets supprimés de la solution logicielle Vitam
-  - Restant : Volume total des objets restant dans la solution logicielle Vitam
+- statut (En stock et complète, en stock et mise à jour, sortie du stock)

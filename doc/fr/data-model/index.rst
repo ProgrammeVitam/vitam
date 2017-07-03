@@ -6,7 +6,7 @@
    :maxdepth: 2
    :numbered:
 
-   dataModel.rst
+   introduction.rst
    logbook.rst
    metadata.rst
    masterdata.rst

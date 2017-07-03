@@ -454,8 +454,7 @@ public class ConnectionMockImpl extends AbstractMockClient implements Connection
                 list.add(JsonHandler.createObjectNode().put("objectId", filename.replace(prefix, "").substring(1)));
             }
         }
-        responseOK.addAllResults(list).setHits(list.size(), 0, list.size());
-        return responseOK;
+        return responseOK.addAllResults(list);
     }
 
     public void deleteAll() {

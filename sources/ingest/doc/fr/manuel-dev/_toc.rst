@@ -10,3 +10,4 @@ Ingest
    ingest-internal-client.rst
    ingest-external-client.rst
    ingest-external-antivirus.rst
+   ingest.rst

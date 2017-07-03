@@ -39,8 +39,13 @@ angular.module('ihm.demo')
   .constant('LIMIT_NB_PAGES', 5)
   .controller('searchPaginationController', function($scope, LIMIT_NB_PAGES, ITEM_PER_PAGE) {
 
-    if (!$scope.paginationScope.startOffset) {
+    if (!$scope.pageNumber) {
       $scope.paginationScope.startOffset = 0;
+      $scope.pageNumber = 0;
+    }
+
+    if (!$scope.paginationScope.currentPage || $scope.paginationScope.resultPages == 0) {
+      $scope.paginationScope.currentPage = 0;
     }
 
     if (!$scope.paginationScope.limit) {
@@ -72,8 +77,7 @@ angular.module('ihm.demo')
         $scope.searchFunction();
       }
 
-      // Update currentPage
-      $scope.paginationScope.currentPage = pageNumber;
+        $scope.paginationScope.currentPage = pageNumber;
     }
 
   })

@@ -1,6 +1,6 @@
 {
   "id": "DefaultIngestBlankTestWorkflow",
-  "comment": "Default Ingest Workflow V6",
+  "comment": "Default Ingest Blank Test Workflow V6",
   "steps": [
     {
       "workerGroupId": "DefaultWorker",
@@ -14,19 +14,27 @@
         {
           "action": {
             "actionKey": "CHECK_SEDA",
-            "behavior": "BLOCKING",
-            "in": [
-              {
-                "name": "checkContract",
-                "uri": "VALUE:true"
-              }
-            ]
+            "behavior": "BLOCKING"
           }
         },
         {
           "action": {
             "actionKey": "CHECK_HEADER",
-            "behavior": "BLOCKING"
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "checkContract",
+                "uri": "VALUE:true"
+              },
+              {
+                "name": "checkOriginatingAgency",
+                "uri": "VALUE:true"
+              },
+              {
+                "name": "checkProfile",
+                "uri": "VALUE:true"
+              }
+            ]
           }
         },
         {
@@ -37,6 +45,10 @@
               {
                 "name": "checkNoObject",
                 "uri": "VALUE:false"
+              },
+              {
+                "name": "UnitType",
+                "uri": "VALUE:INGEST"
               }
             ],
             "out": [

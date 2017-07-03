@@ -77,7 +77,11 @@ public final class GUIDObjectType {
         /**
          * Store Accession register Symmary type
          */
-        ACCESSION_REGISTER_SUMMARY(ACCESSION_REGISTER_SUMMARY_TYPE), 
+        ACCESSION_REGISTER_SUMMARY(ACCESSION_REGISTER_SUMMARY_TYPE),
+        /**
+         * Store Accession register detail type
+         */
+        ACCESSION_REGISTER_DETAIL(ACCESSION_REGISTER_DETAIL_TYPE),
         
         /**
          * Ingest contract type
@@ -141,7 +145,7 @@ public final class GUIDObjectType {
      */
     public static final int STORAGE_OPERATION_TYPE = 9;
     /**
-     * Accession register
+     * Accession register summary
      */
     public static final int ACCESSION_REGISTER_SUMMARY_TYPE = 10;
 
@@ -155,6 +159,17 @@ public final class GUIDObjectType {
      * Profile
      */
     public static final int PROFILE_TYPE = 12;
+    
+    /**
+     * Context
+     */
+    public static final int CONTEXT_TYPE = 13;
+
+    /**
+     * Accession register detail
+     */
+    public static final int ACCESSION_REGISTER_DETAIL_TYPE = 14;
+
 
     private GUIDObjectType() {
         // empty

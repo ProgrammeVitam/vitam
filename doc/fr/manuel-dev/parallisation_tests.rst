@@ -30,28 +30,28 @@ Séparation des tests TDD et tests d'intégration
    
 .. code-block:: xml
 
-			<build>
-				<pluginManagement>
-					<plugins>
-						<plugin>
-							<!-- Run the Junit unit tests in an isolated classloader and not Parallel. -->
-							<artifactId>maven-surefire-plugin</artifactId>
-							<configuration>
-								<parallel>classes</parallel>
-								<threadCount>1</threadCount>
-								<perCoreThreadCount>false</perCoreThreadCount>
-								<forkCount>1</forkCount>
-								<reuseForks>false</reuseForks>
-								<systemPropertyVariables>
-									<org.owasp.esapi.opsteam>AC001</org.owasp.esapi.opsteam>
-									<org.owasp.esapi.devteam>AC001</org.owasp.esapi.devteam>
-									<org.owasp.esapi.resources>../common/common-private/src/main/resources/esapi</org.owasp.esapi.resources>
-								</systemPropertyVariables>
-							</configuration>
-						</plugin>
-					</plugins>
-				</pluginManagement>
-			</build>	
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<!-- Run the Junit unit tests in an isolated classloader and not Parallel. -->
+					<artifactId>maven-surefire-plugin</artifactId>
+					<configuration>
+						<parallel>classes</parallel>
+						<threadCount>1</threadCount>
+						<perCoreThreadCount>false</perCoreThreadCount>
+						<forkCount>1</forkCount>
+						<reuseForks>false</reuseForks>
+						<systemPropertyVariables>
+							<org.owasp.esapi.opsteam>AC001</org.owasp.esapi.opsteam>
+							<org.owasp.esapi.devteam>AC001</org.owasp.esapi.devteam>
+							<org.owasp.esapi.resources>../common/common-private/src/main/resources/esapi</org.owasp.esapi.resources>
+						</systemPropertyVariables>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>	
 
 ##################################
 Parallélisation de tests unitaires
@@ -61,79 +61,83 @@ Pour cela, nous indiquons dans le pom.xml parent pour la phrase de build
 
 .. code-block:: xml
 
-		<build>
-			<plugins>
-				<plugin>
-					<!-- Run the Junit unit tests in an isolated classloader. -->
-					<artifactId>maven-surefire-plugin</artifactId>
-					<version>2.19.1</version>
-					<configuration>
-						<argLine>-Xmx2048m -Dvitam.tmp.folder=/tmp ${coverageAgent}</argLine>
-						<parallel>classes</parallel>
-						<threadCount>3</threadCount>
-						<perCoreThreadCount>true</perCoreThreadCount>
-						<forkCount>3C</forkCount>
-						<reuseForks>false</reuseForks>
-						<trimStackTrace>false</trimStackTrace>
-					</configuration>
-				</plugin>		
-			</plugins>
- 		</build>
+	<build>
+		<plugins>
+			<plugin>
+				<!-- Run the Junit unit tests in an isolated classloader. -->
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.19.1</version>
+				<configuration>
+					<argLine>-Xmx2048m -Dvitam.tmp.folder=/tmp ${coverageAgent}</argLine>
+					<parallel>classes</parallel>
+					<threadCount>3</threadCount>
+					<perCoreThreadCount>true</perCoreThreadCount>
+					<forkCount>3C</forkCount>
+					<reuseForks>false</reuseForks>
+					<trimStackTrace>false</trimStackTrace>
+				</configuration>
+			</plugin>		
+		</plugins>
+		</build>
  
 
 ################################################
 Configuration de build avec les options de tests
 ################################################
 
-	- mvn install : lancer le build normal avec tous les tests
+- mvn install : lancer le build normal avec tous les tests
  	
-	- mvn clean install -DskipTests : pour ignorer tous les tests:
+- mvn clean install -DskipTests : pour ignorer tous les tests:
 	
-	- mvn clean test ou mvn clean install -DskipITs: pour ignorer les tests d'intégration
-	 Pour cela, nous ajoutons le code suivant dans le pom parent.
+- mvn clean test ou mvn clean install -DskipITs: pour ignorer les tests d'intégration
+
+Pour cela, nous ajoutons le code suivant dans le pom parent.
 
 .. code-block:: xml
 
-				<plugin>
-					<executions>
-						<execution>
-							<id>integration-test</id>
-							<goals>
-								<goal>test</goal>
-							</goals>
-							<phase>integration-test</phase>
-							<configuration>
-								<skip>${skipITs}</skip>
-								<excludes>
-									<exclude>none</exclude>
-								</excludes>
-								<includes>
-									<include>**/*IT.java</include>
-								</includes>
-							</configuration>
-						</execution>
-					</executions>
-				</plugin>
+	<plugin>
+		<executions>
+			<execution>
+				<id>integration-test</id>
+				<goals>
+					<goal>test</goal>
+				</goals>
+				<phase>integration-test</phase>
+				<configuration>
+					<skip>${skipITs}</skip>
+					<excludes>
+						<exclude>none</exclude>
+					</excludes>
+					<includes>
+						<include>**/*IT.java</include>
+					</includes>
+				</configuration>
+			</execution>
+		</executions>
+	</plugin>
 
 
-	- mvn clean test-compile failsafe:integration-test: pour exécuter uniquement les tests d'intégration.
-	 Pour cela, nous ajoutons le code suivant dans le pom parent.  
+- mvn clean test-compile failsafe:integration-test: pour exécuter uniquement les tests d'intégration.
+
+Pour cela, nous ajoutons le code suivant dans le pom parent.
 
 .. code-block:: xml
 
-			<build>
-				<plugin>
-					<!-- Run the Junit integration tests in an isolated classloader. -->
-					<artifactId>maven-failsafe-plugin</artifactId>
-					<version>2.19.1</version>
-					<executions>
-						<execution>
-							<id>integration-test</id>
-							<goals>
-								<goal>integration-test</goal>
-								<goal>verify</goal>
-							</goals>
-						</execution>
-					</executions>
-				</plugin>
-			</build>				
+	<build>
+		<plugin>
+			<!-- Run the Junit integration tests in an isolated classloader. -->
+			<artifactId>maven-failsafe-plugin</artifactId>
+			<version>2.19.1</version>
+			<executions>
+				<execution>
+					<id>integration-test</id>
+					<goals>
+						<goal>integration-test</goal>
+						<goal>verify</goal>
+					</goals>
+				</execution>
+			</executions>
+		</plugin>
+	</build>
+
+				

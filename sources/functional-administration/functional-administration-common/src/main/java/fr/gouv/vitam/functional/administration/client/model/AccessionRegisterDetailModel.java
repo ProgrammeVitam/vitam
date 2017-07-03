@@ -352,7 +352,7 @@ public class AccessionRegisterDetailModel {
     
     /**
      * Add an operationId to the model and return the updated AccessionRegisterDetailModel
-     * @param operationsIds id of linked ingest operations that must be added
+     * @param operationsId id of linked ingest operations that must be added
      * @return this
      */
     public AccessionRegisterDetailModel addOperationsId(String operationsId) {

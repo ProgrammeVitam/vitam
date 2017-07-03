@@ -181,6 +181,11 @@
                     </Writer>
                     <CreatedDate>2016-05-05T20:45:20</CreatedDate>
                     <TransactedDate>2016-05-05</TransactedDate>
+                    <Addressee>
+                        <FirstName>Jean-severin</FirstName>
+                        <BirthName>Lair</BirthName>
+                        <Identifier>jean-severin.lair@culture.gouv.fr</Identifier>
+                    </Addressee>
                 </Content>
                 <DataObjectReference>
                     <DataObjectGroupReferenceId>ID006</DataObjectGroupReferenceId>

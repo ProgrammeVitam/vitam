@@ -1,5 +1,5 @@
 Access-rest
-***********
+############
 
 Présentation
 ************
@@ -15,7 +15,7 @@ fr.gouv.vitam.access.external.model : classes métiers, classes implémentant le
 fr.gouv.vitam.access.external.rest : classes de lancement du serveur d'application et du controlleur REST.
 
 fr.gouv.vitam.access.external.rest
-*************************
+***********************************
 
 Rest API
 --------
@@ -24,9 +24,9 @@ Rest API
 | https://vitam/access-external/v1/units/unit_id
 | https://vitam/access-external/v1/objects
 | https://vitam/access-external/v1/units/unit_id/object
-| https://vitam/access-external/v1/accession-register
-| https://vitam/access-external/v1/accession-register/document_id
-| https://vitam/access-external/v1/accession-register/document_id/accession-register-detail
+| https://vitam/access-external/v1/accession-registers
+| https://vitam/access-external/v1/accession-registers/document_id
+| https://vitam/access-external/v1/accession-registers/document_id/accession-register-detail
 | https://vitam/access-external/v1/operations
 | https://vitam/access-external/v1/operations/operation_id
 | https://vitam/access-external/v1/unitlifecycles/lifecycle_id
@@ -40,58 +40,60 @@ classe de démarrage du serveur d'application.
 
 .. code-block:: java
 
-    // démarrage
-    public static void main(String[] args) {
-        try {
-            startApplication(args);
-            server.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
+  // démarrage
+  public static void main(String[] args) {
+      try {
+          startApplication(args);
+          server.join();
+      } catch (InterruptedException e) {
+          e.printStackTrace();
+      }
+  }
 
-    Dans le startApplication on effectue le start de VitamServer.
-    Le join permet de lancer les tests unitaires et d'arreter le serveur.
-    Dans le fichier de configuration, le paramètre jettyConfig est à
-    paramétrer avec le nom du fichier de configuration de jetty.
+Dans le startApplication on effectue le start de VitamServer.
+Le join permet de lancer les tests unitaires et d'arreter le serveur.
+Dans le fichier de configuration, le paramètre jettyConfig est à
+paramétrer avec le nom du fichier de configuration de jetty.
 
 
 
 -AccessResourceImpl.java
 ########################
-classe controlleur REST
 
-la classe contient actuellement 9 méthodes :
+classe controlleur REST
+La classe contient actuellement 9 méthodes :
 
 1. getUnits()
+
 	 NB : the post X-Http-Method-Override header
- .. code-block:: java
- 	@POST
-    @Path("/units")
-    public Response getUnits(String requestDsl,
-        @HeaderParam("X-Http-Method-Override") String xhttpOverride) {
 
-        ...
+.. code-block:: java
 
-        try {
-            if (xhttpOverride != null && "GET".equalsIgnoreCase(xhttpOverride)) {
-                queryJson = JsonHandler.getFromString(requestDsl);
-                result = accessModule.selectUnit(queryJson.toString());
-
-            } else {
-                throw new AccessExecutionException("There is no 'X-Http-Method-Override:GET' as a header");
-            }
-            ....
+  @POST
+  @Path("/units")
+  public Response getUnits(String requestDsl,
+  @HeaderParam("X-Http-Method-Override") String xhttpOverride) {
+  ...
+  try {
+  if (xhttpOverride != null && "GET".equalsIgnoreCase(xhttpOverride)) {
+      queryJson = JsonHandler.getFromString(requestDsl);
+      result = accessModule.selectUnit(queryJson.toString());
+  } else {
+      throw new AccessExecutionException("There is no 'X-Http-Method-Override:GET' as a header");
+  }
+  ....
 
 2. createOrSelectUnits()
-	récupère la liste des units avec la filtre
-	NB : La méthode HTTP GET n'est pas compatible,
-		 on utilisera une méthode HTTP POST dont l'entête contiendra "X-HTTP-Method-GET"
+
+	Récupère la liste des units avec la filtre
+
+	NB : La méthode HTTP GET n'est pas compatible, on utilisera une méthode HTTP POST dont l'entête contiendra "X-HTTP-Method-GET"
+
 	méthode createOrSelectUnits() va appeler méthode getUnits()
 
-
  .. code-block:: java
- 	@POST
+
+   	@POST
     @Path("/units")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -100,37 +102,45 @@ la classe contient actuellement 9 méthodes :
      ...
 
 3. getUnitById()
+
     récupère un unit avec son id
 	NB : the post X-Http-Method-Override header
- .. code-block:: java
-    @POST
-    @Path("/units/{id_unit}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getUnitById(String queryDsl,
-        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride,
-        @PathParam("id_unit") String id_unit) {
-    ...
+
+.. code-block:: java
+
+  @POST
+  @Path("/units/{id_unit}")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response getUnitById(String queryDsl,
+      @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride,
+      @PathParam("id_unit") String id_unit) {
+  ...
 
 4. createOrSelectUnitById()
-	NB : La méthode HTTP GET n'est pas compatible,
-		 on utilisera une méthode HTTP POST dont l'entête contiendra "X-HTTP-Method-GET"
+
+.. note:: La méthode HTTP GET n'est pas compatible, on utilisera une méthode HTTP POST dont l'entête contiendra "X-HTTP-Method-GET"
+
 	méthode createOrSelectUnitById() va appeler méthode getUnitById()
- .. code-block:: java
+
+.. code-block:: java
+
  	@POST
-    @Path("/units/{idu}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response createOrSelectUnitById(JsonNode queryJson,
-        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride,
-        @PathParam("idu") String idUnit) {
-     ...
+  @Path("/units/{idu}")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response createOrSelectUnitById(JsonNode queryJson,
+      @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride,
+      @PathParam("idu") String idUnit) {
+   ...
 
 5. updateUnitById()
-    mise à jour d'un unit par son id avec une requête json
 
- .. code-block:: java
-    @PUT
+  mise à jour d'un unit par son id avec une requête json
+
+.. code-block:: java
+
+  @PUT
     @Path("/units/{id_unit}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -139,9 +149,13 @@ la classe contient actuellement 9 méthodes :
     ...
 
 6. getObjectGroup()
+
 	récupérer une groupe d'objet avec la filtre
-    NB : the post X-Http-Method-Override header
- .. code-block:: java
+
+.. note:: the post X-Http-Method-Override header
+
+.. code-block:: java
+
  	@GET
     @Path("/objects/{ido}")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -150,10 +164,13 @@ la classe contient actuellement 9 méthodes :
      ...
 
 7. getObjectGroupPost()
-	NB : La méthode HTTP GET n'est pas compatible,
-		 on utilisera une méthode HTTP POST dont l'entête contiendra "X-HTTP-Method-GET"
+
+.. note:: La méthode HTTP GET n'est pas compatible, on utilisera une méthode HTTP POST dont l'entête contiendra "X-HTTP-Method-GET"
+
 	méthode getObjectGroupPost() va appeler méthode getObjectGroup()
- .. code-block:: java
+
+.. code-block:: java
+
  	@POST
     @Path("/objects/{ido}")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -164,9 +181,13 @@ la classe contient actuellement 9 méthodes :
 
 
 8. getObject()
+
 	récupérer le group d'objet par un unit
-	NB : the post X-Http-Method-Override header
- .. code-block:: java
+
+.. note:: the post X-Http-Method-Override header
+
+.. code-block:: java
+
  	@GET
     @Path("/units/{ido}/object")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -177,10 +198,13 @@ la classe contient actuellement 9 méthodes :
 
 
 9. getObjectPost()
-	NB : La méthode HTTP GET n'est pas compatible,
-		 on utilisera une méthode HTTP POST dont l'entête contiendra "X-HTTP-Method-GET"
+
+.. note:: La méthode HTTP GET n'est pas compatible, on utilisera une méthode HTTP POST dont l'entête contiendra "X-HTTP-Method-GET"
+
 	méthode getObjectPost() va appeler méthode getObject()
- .. code-block:: java
+
+.. code-block:: java
+
  	@POST
     @Path("/units/{ido}/object")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -196,10 +220,12 @@ classe controlleur REST
 la classe contient actuellement 6 méthodes :
 
 1. getOperationById()
+
 	récupère l'opération avec son id
 	NB : the post X-Http-Method-Override header
 
- .. code-block:: java
+.. code-block:: java
+
  	@GET
     @Path("/operations/{id_op}")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -208,10 +234,13 @@ la classe contient actuellement 6 méthodes :
      ...
 
 2. selectOperationByPost()
-	NB : La méthode HTTP GET n'est pas compatible,
-		 on utilisera une méthode HTTP POST dont l'entête contiendra "X-HTTP-Method-GET"
+
+.. note:: La méthode HTTP GET n'est pas compatible, on utilisera une méthode HTTP POST dont l'entête contiendra "X-HTTP-Method-GET"
+
 	méthode selectOperationByPost() va appeler méthode getOperationById()
- .. code-block:: java
+
+.. code-block:: java
+
  	@POST
     @Path("/operations/{id_op}")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -221,10 +250,12 @@ la classe contient actuellement 6 méthodes :
      ...
 
 3. selectOperation()
+
      récupérer tous les journaux de l'opéraion
      NB : the post X-Http-Method-Override header
 
- .. code-block:: java
+.. code-block:: java
+
  	@GET
     @Path("/operations")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -233,11 +264,13 @@ la classe contient actuellement 6 méthodes :
      ...
 
 4. selectOperationWithPostOverride()
-	NB : La méthode HTTP GET n'est pas compatible,
-		 on utilisera une méthode HTTP POST dont l'entête contiendra "X-HTTP-Method-GET"
+
+.. note:: La méthode HTTP GET n'est pas compatible, on utilisera une méthode HTTP POST dont l'entête contiendra "X-HTTP-Method-GET"
+
 	méthode selectOperationWithPostOverride() va appeler méthode selectOperation()
 
- .. code-block:: java
+.. code-block:: java
+
  	@POST
     @Path("/operations")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -247,9 +280,11 @@ la classe contient actuellement 6 méthodes :
      ...
 
 5. getUnitLifeCycle()
+
 	récupère le journal sur le cycle de vie d'un unit avec son id
 
- .. code-block:: java
+.. code-block:: java
+
  	@GET
     @Path("/unitlifecycles/{id_lc}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -257,9 +292,11 @@ la classe contient actuellement 6 méthodes :
      ...
 
 6. getObjectGroupLifeCycle()
+
      récupère le journal sur le cycle de vie d'un groupe d'objet avec son id
 
- .. code-block:: java
+.. code-block:: java
+
  	@GET
     @Path("/objectgrouplifecycles/{id_lc}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -272,10 +309,13 @@ la classe contient actuellement 6 méthodes :
 classe controlleur REST
 
 la classe contient actuellement 10 méthodes :
+
 1. checkDocument()
+
 	vérifier le format ou la règle
 
- .. code-block:: java
+.. code-block:: java
+
  	@Path("/{collection}")
     @PUT
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
@@ -284,9 +324,11 @@ la classe contient actuellement 10 méthodes :
      ...
 
 2. importDocument()
-	importer le fichier du format ou de la règle
 
- .. code-block:: java
+	Importer le fichier du format ou de la règle
+
+.. code-block:: java
+
 	@Path("/{collection}")
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
@@ -295,9 +337,11 @@ la classe contient actuellement 10 méthodes :
      ...
 
 3. importProfileFile()
-    Importer un fichier au format xsd ou rng et l'attacher à un profile métadata déjà existant.
 
- .. code-block:: java
+  Importer un fichier au format xsd ou rng et l'attacher à un profile métadata déjà existant.
+
+.. code-block:: java
+
 	@Path("/{collection}/{id}")
     @PUT
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
@@ -306,21 +350,26 @@ la classe contient actuellement 10 méthodes :
         InputStream profileFile) {
      ...
 
-4. downloadProfileFile()
-    Télécharger un fichier d'un profile métadata existant au format xsd ou rng.
+4. downloadProfileFileOrTraceabilityFile()
 
- .. code-block:: java
+  Télécharger un fichier d'un profile métadata existant au format xsd ou rng  Ou
+  télécharger un fichier d'opération de traçabilité
+
+.. code-block:: java
+
 	@GET
     @Path("/{collection}/{id}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public void downloadProfileFile(@PathParam("collection") String collection, @PathParam("id") String profileMetadataId,
+    public void downloadProfileFileOrTraceabilityFile(@PathParam("collection") String collection, @PathParam("id") String profileMetadataId,
         @Suspended final AsyncResponse asyncResponse) {
      ...
 
 5. findDocuments()
-     récupérer le format, la règle, le contrat (entrée ou accès), le profile.
 
- .. code-block:: java
+  Récupérer le format, la règle, le contrat (entrée ou accès), le profile.
+
+.. code-block:: java
+
  	@Path("/{collection}")
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
@@ -329,10 +378,12 @@ la classe contient actuellement 10 méthodes :
      ...
 
 6. createOrfindDocuments()
-    Si la valeur de xhttpOverride est rensigné et égale à GET alors, c'est un find, donc redirection vers la méthode findDocuments ci-dessus.
-    Sinon, c'est créate. Cette méthode est utilisé pour créer des profiles au format json. On peut noter que dans ce cas de figure, ça ressemble à la méthode importDocument, sauf que le Consumes qui change.
 
- .. code-block:: java
+  Si la valeur de xhttpOverride est rensigné et égale à GET alors, c'est un find, donc redirection vers la méthode findDocuments ci-dessus.
+  Sinon, c'est créate. Cette méthode est utilisé pour créer des profiles au format json. On peut noter que dans ce cas de figure, ça ressemble à la méthode importDocument, sauf que le Consumes qui change.
+
+.. code-block:: java
+
  	@Path("/{collection}")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -342,9 +393,11 @@ la classe contient actuellement 10 méthodes :
 
 
 7. findDocumentByID()
-     En utilisant la méthode POST avec un paramètre xhttpOverride, ce méthode permets de récupérer avec un id en entrée, le format, la règle, les contrats (accès, entrée), les profiles.
 
- .. code-block:: java
+  En utilisant la méthode POST avec un paramètre xhttpOverride, ce méthode permets de récupérer avec un id en entrée, le format, la règle, les contrats (accès, entrée), les profiles.
+
+.. code-block:: java
+
  	@Path("/{collection}/{id_document}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -353,9 +406,11 @@ la classe contient actuellement 10 méthodes :
 
 
 8. findDocumentByID()
-     En utilisant la méthode GET, ce méthode permets derécupérer avec un id en entrée, le format, la règle, les contrats (accès, entrée), les profiles.
 
- .. code-block:: java
+  En utilisant la méthode GET, ce méthode permets derécupérer avec un id en entrée, le format, la règle, les contrats (accès, entrée), les profiles.
+
+.. code-block:: java
+
  	@Path("/{collection}/{id_document}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -364,21 +419,28 @@ la classe contient actuellement 10 méthodes :
      ...
 
 9. updateAccessContract()
-   Mise à jour du contrat d'accès
-   .. code-block:: java
-    @PUT
-      @Path("/accesscontract")
-      @Consumes(MediaType.APPLICATION_JSON)
-      @Produces(MediaType.APPLICATION_JSON)
-       public Response updateAccessContract(JsonNode queryDsl) {
-       ...
+
+  Mise à jour du contrat d'accès
+
+.. code-block:: java
+
+  @PUT
+    @Path("/accesscontract")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+     public Response updateAccessContract(JsonNode queryDsl) {
+     ...
 
 10. updateIngestContract()
-     Mise à jour du contrat d'entrée
-     .. code-block:: java
-      @PUT
-        @Path("/contract")
-        @Consumes(MediaType.APPLICATION_JSON)
-        @Produces(MediaType.APPLICATION_JSON)
-         public Response updateIngestContract(JsonNode queryDsl) {
-         ...
+
+  Mise à jour du contrat d'entrée
+
+.. code-block:: java
+
+  @PUT
+    @Path("/contract")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+     public Response updateIngestContract(JsonNode queryDsl) {
+     ...
+

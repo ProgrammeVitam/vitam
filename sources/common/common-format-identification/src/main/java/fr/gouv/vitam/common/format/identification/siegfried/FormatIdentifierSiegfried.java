@@ -37,8 +37,6 @@ import java.util.Map;
 
 import javax.ws.rs.core.MediaType;
 
-import org.apache.commons.lang.BooleanUtils;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
@@ -103,7 +101,7 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
             versionPath = Paths.get(version);
 
             final Boolean createVersionPath = (Boolean) configurationProperties.get("createVersionPath");
-            if (BooleanUtils.isNotFalse(createVersionPath)) {
+            if (createVersionPath == null || createVersionPath) {
                 try {
                     // Create directory already check for file existance and possibility to create the directory.
                     Files.createDirectories(versionPath);

@@ -26,26 +26,35 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
+import static fr.gouv.vitam.worker.common.utils.SedaConstants.DATE_TIME_FORMAT_PATERN;
+
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.SimpleDateFormat;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
@@ -54,12 +63,15 @@ import fr.gouv.vitam.functional.administration.common.AccessionRegisterStatus;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
+import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
+import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
-import fr.gouv.vitam.worker.common.utils.SedaUtils;
-import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 
 /**
@@ -79,10 +91,19 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
     private static final int DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP_RANK = 2;
     private static final int SEDA_PARAMETERS_RANK = 3;
 
+    private MetaDataClientFactory metaDataClientFactory;
+
+    private static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(DATE_TIME_FORMAT_PATERN);
+
     /**
      * Empty Constructor AccessionRegisterActionHandler
      */
     public AccessionRegisterActionHandler() {
+        this(MetaDataClientFactory.getInstance());
+    }
+
+    AccessionRegisterActionHandler(MetaDataClientFactory metaDataClientFactory) {
+        this.metaDataClientFactory = metaDataClientFactory;
         for (int i = 0; i < HANDLER_IO_PARAMETER_NUMBER; i++) {
             handlerInitialIOList.add(File.class);
         }
@@ -96,24 +117,51 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters params, HandlerIO handler) {
+    public ItemStatus execute(WorkerParameters params, HandlerIO handler) throws ProcessingException{
         checkMandatoryParameters(params);
         LOGGER.debug("TransferNotificationActionHandler running ...");
 
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
         handlerIO = handler;
+
+        int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
             checkMandatoryIOParameter(handler);
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Params: " + params);
             }
-            final AccessionRegisterDetailModel register = generateAccessionRegister(params);
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("register ID / Originating Agency: " + register.getId() + " / "
-                    + register.getOriginatingAgency());
+
+            MetaDataClient metaDataClient = metaDataClientFactory.getClient();
+
+            // operation id
+            String operationId = params.getContainerName();
+
+            List<UnitPerOriginatingAgency> agencies =
+                metaDataClient.selectAccessionRegisterOnUnitByOperationId(operationId);
+
+            if (null == agencies || agencies.isEmpty()) {
+                return itemStatus.increment(StatusCode.OK);
             }
-            adminClient.createorUpdateAccessionRegister(register);
+
+            List<ObjectGroupPerOriginatingAgency> objectGroupPerOriginatingAgencies =
+                metaDataClient.selectAccessionRegisterOnObjectByOperationId(operationId);
+
+            ImmutableMap<String, ObjectGroupPerOriginatingAgency> objectGroupPerOriginatingAgencyImmutableMap =
+                Maps.uniqueIndex(objectGroupPerOriginatingAgencies,
+                    ObjectGroupPerOriginatingAgency::getOriginatingAgency);
+
+            for (UnitPerOriginatingAgency agency : agencies) {
+                final AccessionRegisterDetailModel register = generateAccessionRegister(params,
+                    objectGroupPerOriginatingAgencyImmutableMap
+                        .getOrDefault(agency.getId(), new ObjectGroupPerOriginatingAgency()), agency, tenantId);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("register ID / Originating Agency: " + register.getId() + " / "
+                        + register.getOriginatingAgency());
+                }
+                adminClient.createorUpdateAccessionRegister(register);
+            }
+
             itemStatus.increment(StatusCode.OK);
         } catch (ProcessingException | AdminManagementClientServerException e) {
             LOGGER.error("Inputs/outputs are not correct", e);
@@ -121,6 +169,9 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
         } catch (AccessionRegisterException | DatabaseConflictException e) {
             LOGGER.error("Can not create func register", e);
             itemStatus.increment(StatusCode.KO);
+        } catch (MetaDataClientServerException e) {
+            LOGGER.error("unable to call metadata Client", e);
+            itemStatus.increment(StatusCode.FATAL);
         }
 
         LOGGER.debug("TransferNotificationActionHandler response: " + itemStatus.getGlobalStatus());
@@ -134,36 +185,27 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
         }
     }
 
-    private AccessionRegisterDetailModel generateAccessionRegister(WorkerParameters params) throws ProcessingException {
-        AccessionRegisterDetailModel register = new AccessionRegisterDetailModel() ;
-        try (final InputStream archiveUnitMapStream =
-            new FileInputStream((File) handlerIO.getInput(ARCHIVE_UNIT_MAP_RANK));
+    private AccessionRegisterDetailModel generateAccessionRegister(WorkerParameters params,
+        ObjectGroupPerOriginatingAgency objectGroupPerOriginatingAgency, UnitPerOriginatingAgency agency, int tenantId)
+        throws ProcessingException {
+        try (final InputStream archiveUnitMapStream = new FileInputStream(
+            (File) handlerIO.getInput(ARCHIVE_UNIT_MAP_RANK));
             final InputStream objectGoupMapStream =
                 new FileInputStream((File) handlerIO.getInput(OBJECTGOUP_MAP_RANK));
             final InputStream bdoToVersionMapTmpFile =
                 new FileInputStream((File) handlerIO.getInput(DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP_RANK))) {
-            final Map<String, Object> bdoVersionMap = JsonHandler.getMapFromInputStream(bdoToVersionMapTmpFile);
-            final Map<String, Object> archiveUnitMap = JsonHandler.getMapFromInputStream(archiveUnitMapStream);
-            final Map<String, Object> objectGroupMap = JsonHandler.getMapFromInputStream(objectGoupMapStream);
+
             final JsonNode sedaParameters =
                 JsonHandler.getFromFile((File) handlerIO.getInput(SEDA_PARAMETERS_RANK))
                     .get(SedaConstants.TAG_ARCHIVE_TRANSFER);
-            String originalAgency = "OriginatingAgencyUnknown";
+            String originalAgency = agency.getId();
             String submissionAgency = "SubmissionAgencyUnknown";
             String archivalAgreement = "ArchivalAgreementUnknow";
-            int nbAUExisting = 0;
+
             if (sedaParameters != null) {
                 final JsonNode dataObjectNode = sedaParameters.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE);
                 if (dataObjectNode != null) {
-                    if (dataObjectNode.has(SedaUtils.NB_AU_EXISTING)){
-                        nbAUExisting = dataObjectNode.get(SedaUtils.NB_AU_EXISTING).intValue();
-                    }
-                    final JsonNode nodeOrigin = dataObjectNode.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
-                    if (nodeOrigin != null && !Strings.isNullOrEmpty(nodeOrigin.asText())) {
-                        originalAgency = nodeOrigin.asText();
-                    } else {
-                        throw new ProcessingException("No " + SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER + " found");
-                    }
+
                     final JsonNode nodeSubmission = dataObjectNode.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER);
                     if (nodeSubmission != null && !Strings.isNullOrEmpty(nodeSubmission.asText())) {
                         submissionAgency = nodeSubmission.asText();
@@ -176,7 +218,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
 
                 final JsonNode archivalArchivalAgreement = sedaParameters.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT);
                 if (archivalArchivalAgreement != null && !Strings.isNullOrEmpty(archivalArchivalAgreement.asText())) {
-                        archivalAgreement = archivalArchivalAgreement.asText();
+                    archivalAgreement = archivalArchivalAgreement.asText();
                 }
             } else {
                 throw new ProcessingException("No ArchiveTransfer found");
@@ -184,41 +226,41 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
 
             // TODO P0 get size manifest.xml in local
             // TODO P0 extract this information from first parsing
-            final SedaUtils sedaUtils = SedaUtilsFactory.create(handlerIO);
-            register =
-                mapParamsToAccessionRegisterDetailModel(params, bdoVersionMap, archiveUnitMap, objectGroupMap,
-                    originalAgency, submissionAgency, archivalAgreement, sedaUtils, nbAUExisting);
+            return
+                mapParamsToAccessionRegisterDetailModel(params,
+                    originalAgency, submissionAgency, archivalAgreement, agency,
+                    objectGroupPerOriginatingAgency, tenantId);
         } catch (InvalidParseOperationException | IOException e) {
             LOGGER.error("Inputs/outputs are not correct", e);
             throw new ProcessingException(e);
         }
-
-        return register;
     }
 
     private AccessionRegisterDetailModel mapParamsToAccessionRegisterDetailModel(WorkerParameters params,
-        Map<String, Object> bdoVersionMap, Map<String, Object> archiveUnitMap, Map<String, Object> objectGroupMap,
-        String originalAgency, String submissionAgency, String archivalAgreement, SedaUtils sedaUtils, int nbAUExisting) throws ProcessingException {
-
-        SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-
-        final long objectsSizeInSip = sedaUtils.computeTotalSizeOfObjectsInManifest(params);
+        String originalAgency, String submissionAgency, String archivalAgreement, UnitPerOriginatingAgency agency,
+        ObjectGroupPerOriginatingAgency objectGroupPerOriginatingAgency, int tenantId)
+        throws ProcessingException {
 
         RegisterValueDetailModel totalObjectsGroups =
-            new RegisterValueDetailModel(objectGroupMap.size(), 0, objectGroupMap.size());
+            new RegisterValueDetailModel(objectGroupPerOriginatingAgency.getNumberOfGOT(), 0,
+                objectGroupPerOriginatingAgency.getNumberOfGOT());
 
         RegisterValueDetailModel totalUnits =
-            new RegisterValueDetailModel(archiveUnitMap.size()-nbAUExisting, 0, archiveUnitMap.size()-nbAUExisting);
+            new RegisterValueDetailModel(agency.getCount(), 0, agency.getCount());
 
         RegisterValueDetailModel totalObjects =
-            new RegisterValueDetailModel(bdoVersionMap.size(), 0, bdoVersionMap.size());
+            new RegisterValueDetailModel(objectGroupPerOriginatingAgency.getNumberOfObject(), 0,
+                objectGroupPerOriginatingAgency.getNumberOfObject());
 
-        RegisterValueDetailModel objectSize = new RegisterValueDetailModel(objectsSizeInSip, 0, objectsSizeInSip);
+        RegisterValueDetailModel objectSize = new RegisterValueDetailModel(objectGroupPerOriginatingAgency.getSize(), 0,
+            objectGroupPerOriginatingAgency.getSize());
 
-        String updateDate = sdfDate.format(new Date());
+        String updateDate = ZonedDateTime.now().format(DATE_TIME_FORMATTER);
+
+        GUID guid = GUIDFactory.newAccessionRegisterDetailGUID(tenantId);
 
         return new AccessionRegisterDetailModel()
-            .setId(params.getContainerName())
+            .setId(guid.toString())
             .setOriginatingAgency(originalAgency)
             .setSubmissionAgency(submissionAgency)
             .setArchivalAgreement(archivalAgreement)
@@ -237,4 +279,5 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
     public void close() {
         // Empty
     }
+
 }

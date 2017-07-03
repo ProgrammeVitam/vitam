@@ -193,7 +193,7 @@ public class StorageStep {
      * @param sip
      * @param uri
      * @param guid
-     * @return
+     * @return true
      * @throws StorageServerClientException
      * @throws StorageNotFoundClientException
      * @throws StorageAlreadyExistsClientException

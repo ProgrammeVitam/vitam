@@ -62,10 +62,10 @@
 
 					<tbody ng-repeat="log in search.response.data | startFrom:startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage, search.pagination.startOffset) | limitTo:search.pagination.itemsPerPage">
 					<tr>
-						<td ng-click="goToDetails(log._id)">{{log.Name}}</td>
-						<td ng-click="goToDetails(log._id)">{{log._id}}</td>
-						<td ng-click="goToDetails(log._id)">{{log.Description}}</td>
-						<td ng-click="goToDetails(log._id)">{{log.Status | StrReplace }}</td> <!--TODO-->
+						<td ng-click="goToDetails(log.Identifier)">{{log.Name}}</td>
+						<td ng-click="goToDetails(log.Identifier)">{{log.Identifier}}</td>
+						<td ng-click="goToDetails(log.Identifier)">{{log.Description}}</td>
+						<td ng-click="goToDetails(log.Identifier)">{{log.Status | StrReplace }}</td> <!--TODO-->
 						<td ng-show="hasPermission('profiles:read')">
 							<a ng-if="log.Path" href="" ng-click="ctrl.downloadOperation(log._id)">
 								<i class="material-icons">file_download</i>

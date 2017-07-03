@@ -33,6 +33,8 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -55,6 +57,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -108,8 +111,17 @@ public class CheckDataObjectPackageActionHandlerTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
     @Before
-    public void setUp() throws URISyntaxException {
+    public void setUp() throws URISyntaxException, IOException {
+
+        File tempFolder = temporaryFolder.newFolder();
+        System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
+
+        SystemPropertyUtil.refresh();
+
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
@@ -143,6 +155,9 @@ public class CheckDataObjectPackageActionHandlerTest {
         in = new ArrayList<>();
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.VALUE, "true")));
+        in.add(new IOParameter()
+                .setUri(new ProcessingUri(UriPrefix.VALUE, "INGEST")));
+
         uriListWorkspaceOK.add(new URI("content/file1.pdf"));
         uriListWorkspaceOK.add(new URI("content/file2.pdf"));
         uriListWorkspaceOK.add(new URI("manifest.xml"));
@@ -164,7 +179,7 @@ public class CheckDataObjectPackageActionHandlerTest {
             PropertiesUtils.getResourceAsStream(SIP_ARBORESCENCE);        
         PowerMockito.when(SedaUtilsFactory.create(anyObject())).thenReturn(sedaUtils);
 
-        when(sedaUtils.getAllDigitalObjectUriFromManifest(anyObject())).thenReturn(extractUriResponseOK);
+        when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractUriResponseOK);
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(seda_arborescence).build());
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
@@ -177,6 +192,8 @@ public class CheckDataObjectPackageActionHandlerTest {
         in = new ArrayList<>();
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.VALUE, "false")));
+        in.add(new IOParameter()
+                .setUri(new ProcessingUri(UriPrefix.VALUE, "INGEST")));
         action.reset();        
         action.addOutIOParameters(out);
         action.addInIOParameters(in);

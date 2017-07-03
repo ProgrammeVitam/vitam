@@ -57,6 +57,7 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -65,8 +66,11 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.ProcessExecutionStatus;
+import fr.gouv.vitam.common.model.ProcessQuery;
+import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
@@ -78,6 +82,9 @@ import fr.gouv.vitam.ingest.external.core.IngestExternalImpl;
 import fr.gouv.vitam.ingest.external.core.PreUploadResume;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
+import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientNotFoundException;
+import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServerException;
+import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
 
 /**
  * The Ingest External Resource
@@ -86,6 +93,7 @@ import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 @javax.ws.rs.ApplicationPath("webresources")
 public class IngestExternalResource extends ApplicationStatusResource {
 
+    private static final String INGEST_EXTERNAL = "INGEST_EXTERNAL";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalResource.class);
     private final IngestExternalConfiguration ingestExternalConfiguration;
 
@@ -107,13 +115,12 @@ public class IngestExternalResource extends ApplicationStatusResource {
      * @param action in workflow
      * @param uploadedInputStream data input stream
      * @param asyncResponse the asynchronized response
-     * 
-     * 
+     *
+     *
      */
     @Path("ingests")
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    // TODO P2 : add file name
     public void upload(@HeaderParam(GlobalDataRest.X_CONTEXT_ID) String contextId,
         @HeaderParam(GlobalDataRest.X_ACTION) String action, InputStream uploadedInputStream,
         @Suspended final AsyncResponse asyncResponse) {
@@ -127,20 +134,30 @@ public class IngestExternalResource extends ApplicationStatusResource {
 
     private void uploadAsync(InputStream uploadedInputStream, AsyncResponse asyncResponse,
         Integer tenantId, String contextId, String action, GUID guid) {
+
+        final IngestExternalImpl ingestExternal = new IngestExternalImpl(ingestExternalConfiguration);
         try {
-            // TODO ? ParametersChecker.checkParameter("HTTP Request must contains stream", uploadedInputStream);
+            ParametersChecker.checkParameter("HTTP Request must contains stream", uploadedInputStream);
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-            final IngestExternalImpl ingestExtern = new IngestExternalImpl(ingestExternalConfiguration);
-            PreUploadResume preUploadResume =
-                ingestExtern.preUploadAndResume(uploadedInputStream, contextId, action, guid, asyncResponse);
-            Response response = ingestExtern.upload(preUploadResume, guid);
+            PreUploadResume preUploadResume = null;
+            try {
+                preUploadResume =
+                    ingestExternal.preUploadAndResume(uploadedInputStream, contextId, action, guid, asyncResponse);
+            } catch (WorkspaceClientServerException e) {
+                LOGGER.error(e);
+                ingestExternal.createATRFatalWorkspace(contextId, guid, asyncResponse);
+                return;
+            }
+            Response response = ingestExternal.upload(preUploadResume, guid);
             response.close();
         } catch (final Exception exc) {
             LOGGER.error(exc);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR)
                     .header(GlobalDataRest.X_REQUEST_ID, guid.getId())
-                    .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, ProcessExecutionStatus.FAILED)
+                    .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED)
+                    .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.FATAL)
+                    .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exc.getLocalizedMessage()))
                     .build());
         } finally {
             StreamUtils.closeSilently(uploadedInputStream);
@@ -148,14 +165,17 @@ public class IngestExternalResource extends ApplicationStatusResource {
     }
 
     /**
-     * Download object stored by Ingest operation (currently ATR and manifest)
+     * Download object stored by Ingest operation (currently reports and manifests)
      * <p>
-     * Return the object as stream asynchronously
+     * Return the object as stream asynchronously<br/>
+     * <br/>
+     * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
+     *
      *
      * @param objectId the id of object to download
      * @param type of collection
      * @param asyncResponse the asynchronized response
-     * 
+     *
      */
     @GET
     @Path("/ingests/{objectId}/{type}")
@@ -173,14 +193,44 @@ public class IngestExternalResource extends ApplicationStatusResource {
             final Response response = ingestInternalClient.downloadObjectAsync(objectId, collection);
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
             helper.writeResponse(Response.status(response.getStatus()));
+            
+
         } catch (IllegalArgumentException e) {
             LOGGER.error("IllegalArgumentException was thrown : ", e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.BAD_REQUEST).build());
-        } catch (VitamClientException e) {
-            LOGGER.error("VitamClientException was thrown : ", e);
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error("Predicates Failed Exception", e);
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                Response.status(Status.PRECONDITION_FAILED).build());
+        } catch (final IngestInternalClientServerException e) {
+            LOGGER.error("Internal Server Exception ", e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        } catch (final IngestInternalClientNotFoundException e) {
+            LOGGER.error("Request resources does not exits", e);
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                Response.status(Status.NOT_FOUND).build());
+        }
+    }
+
+    /**
+     * @param headers the http header of request
+     * @param query the filter query
+     * @return the list of Operations details
+     */
+    @GET
+    @Path("/operations")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response listOperationsDetails(@Context HttpHeaders headers, ProcessQuery query) {
+        LOGGER.error("ProcessQuery: " + JsonHandler.prettyPrint(query));
+        try (IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient()) {
+            RequestResponse response = client.listOperationsDetails(query);
+            return Response.status(Status.OK).entity(response).build();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
     }
 
@@ -195,15 +245,16 @@ public class IngestExternalResource extends ApplicationStatusResource {
      * @return http response
      * @throws InternalServerException if request resources server exception
      * @throws VitamClientException if the server is unreachable
-     * @throws IngestInternalException if error when request to ingest internal server
      * @throws InvalidGuidOperationException if error when create guid
      * @throws ProcessingException if error in workflow execution
+     * @deprecated use PUT method /operation/id
      */
     @Path("/operations/{id}")
     @POST
     @Consumes({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, CommonMediaType.GZIP, CommonMediaType.TAR,
         CommonMediaType.BZIP2})
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Deprecated
     public Response executeWorkFlow(@Context HttpHeaders headers, @PathParam("id") String id,
         InputStream uploadedInputStream) {
         Status status;
@@ -222,25 +273,25 @@ public class IngestExternalResource extends ApplicationStatusResource {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
-                .entity(getErrorEntity(status))
+                .entity(getErrorEntity(status, e.getLocalizedMessage()))
                 .build();
         } catch (VitamClientException e) {
             LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(getErrorEntity(status))
+                .entity(getErrorEntity(status, e.getLocalizedMessage()))
                 .build();
         } catch (InternalServerException e) {
             LOGGER.error(e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(getErrorEntity(status))
+                .entity(getErrorEntity(status, e.getLocalizedMessage()))
                 .build();
         } catch (BadRequestException e) {
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
             return Response.status(status)
-                .entity(getErrorEntity(status))
+                .entity(getErrorEntity(status, e.getLocalizedMessage()))
                 .build();
         }
 
@@ -248,16 +299,18 @@ public class IngestExternalResource extends ApplicationStatusResource {
 
     }
 
-    private VitamError getErrorEntity(Status status) {
+    private VitamError getErrorEntity(Status status, String message) {
+        String aMessage =
+            (message != null && !message.trim().isEmpty()) ? message
+                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
         return new VitamError(status.name()).setHttpCode(status.getStatusCode())
-            .setContext("ingest")
+            .setContext(INGEST_EXTERNAL)
             .setState("code_vitam")
             .setMessage(status.getReasonPhrase())
-            .setDescription(status.getReasonPhrase());
+            .setDescription(aMessage);
     }
 
     /**
-     * TODO FIXE ME get the operation status
      *
      * @param id operation identifier
      * @return http response
@@ -267,56 +320,36 @@ public class IngestExternalResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getWorkFlowExecutionStatus(@PathParam("id") String id) {
-        Status status = Status.ACCEPTED;
-        ItemStatus pwork = null;
         try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
-            JsonNode body = JsonHandler.createObjectNode();
-            pwork = ingestInternalClient.getOperationProcessExecutionDetails(id, body);
-            if (pwork == null) {
-                return Response.status(Status.ACCEPTED).entity(pwork).header(GlobalDataRest.X_REQUEST_ID, id).build();
+            final ItemStatus itemStatus = ingestInternalClient.getOperationProcessStatus(id);
+
+            Response.ResponseBuilder builder = Response.status(Status.ACCEPTED);
+            if (ProcessState.COMPLETED.equals(itemStatus.getGlobalState())) {
+                builder.status(Status.OK);
+
+            } else {
+                builder.status(Status.ACCEPTED);
             }
-            if (pwork.getGlobalExecutionStatus().equals(ProcessExecutionStatus.COMPLETED) ||
-                pwork.getGlobalExecutionStatus().equals(ProcessExecutionStatus.CANCELLED) ||
-                pwork.getGlobalExecutionStatus().equals(ProcessExecutionStatus.FAILED)) {
-                status = Status.OK;
-            }
+
+            return builder
+                .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, itemStatus.getGlobalState())
+                .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, itemStatus.getGlobalStatus())
+                .header(GlobalDataRest.X_CONTEXT_ID, itemStatus.getLogbookTypeProcess())
+                .build();
 
         } catch (final IllegalArgumentException e) {
-            // if the entry argument if illegal
             LOGGER.error(e);
-            status = Status.PRECONDITION_FAILED;
-            return Response.status(status)
-                .entity(getErrorEntity(status))
-                .build();
-
+            return Response.status(Status.PRECONDITION_FAILED).build();
         } catch (final WorkflowNotFoundException e) {
-            // if the entry argument if illegal
             LOGGER.error(e);
-            status = Status.NO_CONTENT;
-            return Response.status(status)
-                .entity(getErrorEntity(status))
-                .build();
-
-        } catch (VitamClientException e) {
-            LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
-            status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
-                .entity(getErrorEntity(status))
-                .build();
-        } catch (InternalServerException e) {
+            return Response.status(Status.NO_CONTENT).build();
+        } catch (VitamClientException | InternalServerException e) {
             LOGGER.error(e);
-            status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
-                .entity(getErrorEntity(status))
-                .build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         } catch (BadRequestException e) {
             LOGGER.error(e);
-            status = Status.BAD_REQUEST;
-            return Response.status(status)
-                .entity(getErrorEntity(status))
-                .build();
+            return Response.status(Status.BAD_REQUEST).build();
         }
-        return Response.status(status).build();
     }
 
     /**
@@ -330,16 +363,15 @@ public class IngestExternalResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getWorkFlowStatus(@PathParam("id") String id, JsonNode query) {
         Status status;
-        ItemStatus pwork = null;
+        ItemStatus itemStatus = null;
         try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
-            pwork = ingestInternalClient.getOperationProcessExecutionDetails(id, query);
-
+            itemStatus = ingestInternalClient.getOperationProcessExecutionDetails(id, query);
         } catch (final IllegalArgumentException e) {
             // if the entry argument if illegal
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
-                .entity(getErrorEntity(status))
+                .entity(getErrorEntity(status, e.getLocalizedMessage()))
                 .build();
 
         } catch (final WorkflowNotFoundException e) {
@@ -347,30 +379,31 @@ public class IngestExternalResource extends ApplicationStatusResource {
             LOGGER.error(e);
             status = Status.NO_CONTENT;
             return Response.status(status)
-                .entity(getErrorEntity(status))
+                .entity(getErrorEntity(status, e.getLocalizedMessage()))
                 .build();
 
         } catch (VitamClientException e) {
             LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(getErrorEntity(status))
+                .entity(getErrorEntity(status, e.getLocalizedMessage()))
                 .build();
         } catch (InternalServerException e) {
             LOGGER.error(e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(getErrorEntity(status))
+                .entity(getErrorEntity(status, e.getLocalizedMessage()))
                 .build();
         } catch (BadRequestException e) {
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
             return Response.status(status)
-                .entity(getErrorEntity(status))
+                .entity(getErrorEntity(status, e.getLocalizedMessage()))
                 .build();
         }
 
-        return Response.status(Status.OK).entity(pwork).build();
+        // TODO : manage missing itemStatus with 404 http error
+        return Response.status(Status.OK).entity(itemStatus).build();
     }
 
     /**
@@ -400,26 +433,34 @@ public class IngestExternalResource extends ApplicationStatusResource {
 
     private void updateOperationActionProcessAsync(final AsyncResponse asyncResponse, String operationId,
         String action) {
-        Response response = null;
 
         try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
             VitamThreadUtils.getVitamSession().setRequestId(operationId);
-            response = ingestInternalClient.updateOperationActionProcess(action, operationId);
+            RequestResponse<ItemStatus> itemStatusRequestResponse =
+                ingestInternalClient.updateOperationActionProcess(action, operationId);
+            Response response = itemStatusRequestResponse.toResponse();
 
             AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
             helper.writeAsyncResponse(Response.fromResponse(response), Status.fromStatusCode(response.getStatus()));
         } catch (final ProcessingException e) {
             // if there is an unauthorized action
             LOGGER.error(e);
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.UNAUTHORIZED).build());
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, 
+                Response.status(Status.UNAUTHORIZED)
+                .entity(getErrorEntity(Status.UNAUTHORIZED, e.getLocalizedMessage()))
+                .build());
         } catch (InternalServerException | VitamClientException e) {
             LOGGER.error(e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.INTERNAL_SERVER_ERROR).build());
+                Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getLocalizedMessage()))
+                .build());
         } catch (BadRequestException e) {
             LOGGER.error(e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.BAD_REQUEST).build());
+                Response.status(Status.BAD_REQUEST)
+                .entity(getErrorEntity(Status.BAD_REQUEST, e.getLocalizedMessage()))
+                .build());
         }
     }
 
@@ -438,39 +479,39 @@ public class IngestExternalResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter("operationId must not be null", id);
         Status status;
         try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
-            final RequestResponse<JsonNode> response = ingestInternalClient.cancelOperationProcessExecution(id);
-            return Response.status(Status.OK).entity(response).build();
+            final ItemStatus itemStatus = ingestInternalClient.cancelOperationProcessExecution(id);
+            return new RequestResponseOK<ItemStatus>().addResult(itemStatus).toResponse();
         } catch (final IllegalArgumentException e) {
             // if the entry argument if illegal
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
-                .entity(getErrorEntity(status))
+                .entity(getErrorEntity(status, e.getLocalizedMessage()))
                 .build();
         } catch (WorkflowNotFoundException e) {
             LOGGER.error(e);
             status = Status.NOT_FOUND;
             return Response.status(status)
-                .entity(getErrorEntity(status))
+                .entity(getErrorEntity(status, e.getLocalizedMessage()))
                 .build();
 
         } catch (InternalServerException e) {
             LOGGER.error(e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(getErrorEntity(status))
+                .entity(getErrorEntity(status, e.getLocalizedMessage()))
                 .build();
         } catch (BadRequestException e) {
             LOGGER.error(e);
             status = Status.UNAUTHORIZED;
             return Response.status(status)
-                .entity(getErrorEntity(status))
+                .entity(getErrorEntity(status, e.getLocalizedMessage()))
                 .build();
         } catch (VitamClientException e) {
             LOGGER.error(e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(getErrorEntity(status))
+                .entity(getErrorEntity(status, e.getLocalizedMessage()))
                 .build();
         }
     }
@@ -481,18 +522,16 @@ public class IngestExternalResource extends ApplicationStatusResource {
      * @return Response
      */
     @GET
-    @Path("/operations")
+    @Path("/workflows")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response listOperationsDetails(@Context HttpHeaders headers) {
+    public Response getWorkflowDefinitions(@Context HttpHeaders headers) {
         try (IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient()) {
-            RequestResponse<JsonNode> response = client.listOperationsDetails();
+            RequestResponse<JsonNode> response = client.getWorkflowDefinitions();
             return Response.status(Status.OK).entity(response).build();
         } catch (Exception e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
     }
-
-
 
 }

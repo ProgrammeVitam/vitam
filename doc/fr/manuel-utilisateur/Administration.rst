@@ -1,21 +1,29 @@
 Administration
 ##############
 
-Cette partie décrit les fonctionnalités d'administration suivantes proposées à l'utilisateur :
+Cette partie décrit les fonctionnalités d'administration proposées à l'utilisateur, à savoir :
 
 - Consultation du journal des opérations
 - Import et consultation du référentiel des formats
 - Import et consultation du référentiel des règles de gestion
+- Import et consultation du référentiel des contrats d'entrée
+- Import et consultation du référentiel des contrats d'accès
+- Import des contextes
+- Import des profils d'archivage
+- Import de l'arbre de positionnement
+- Gestion des opérations
 
 Journal des opérations
 ======================
 
-Le journal des opérations permet à l'utilisateur d'accéder à toutes les opérations effectuées dans la solution logicielle Vitam, par type d'opération.
+Pour consulter le journal des opérations, l'utilisateur clique sur le menu "Administration", puis sur le sous-menu "Journal des opérations".
+ 
+Il permet à l'utilisateur d'accéder à toutes les opérations effectuées dans la solution logicielle Vitam, par type d'opération.
 
 Ces opérations sont :
 
 - Entrée
-- Mise à jour  des métadonnées de description
+- Mise à jour des métadonnées de description
 - Données de base
 - Sécurisation
 - Audit (non encore développée)
@@ -23,30 +31,29 @@ Ces opérations sont :
 - Préservation (non encore développée)
 - Vérification (non encore développée)
 
-Pour consulter le journal des opérations, l'utilisateur clique sur le menu "Administration", puis sur le sous-menu "Journal des opérations".
 
 .. image:: images/menu_op.png
 
 Formulaire de recherche
 -----------------------
 
-Pour effectuer une recherche précise, on utilise les champs "ID" ou "Type d'opération" :
+Pour effectuer une recherche précise, on utilise les champs "ID" ou "Catégorie d'opération" :
 
-- L'ID est un champ libre, correspondant à l'identifiant de l'opération donné par le système.
-- Les types d'opération sont présentés sous forme de liste, permettant à l'utilisateur de sélectionner un type d'opération en particulier.
+- L'ID est un champ correspondant à l'identifiant de l'opération donné par le système.
+- Les types d'opération sont présentés sous forme de liste, permettant à l'utilisateur de sélectionner une catégorie d'opération en particulier.
 
-NB : Il est impossible d'effectuer une recherche croisée par ID et type d'opération.
+NB : Il est impossible d'effectuer une recherche croisée par ID et catégorie d'opération.
 
 Pour initier la recherche, l'utilisateur saisit son critère de recherche et clique sur le bouton "Rechercher".
 
-.. image:: images/op_recherche.jpg
+.. image:: images/op_recherche.png
 
 La recherche met à jour le tableau, affichant le résultat de la requête, trié par date de fin d'opération, de la plus récente à la plus ancienne.
 Les opérations en cours sont affichées en haut de la liste et sont triées chronologiquement par ordre d'opération, de la plus récente à la plus ancienne.
 
 Si aucun résultat n'est trouvé par la solution logicielle Vitam, alors un message indique à l'utilisateur qu'aucun résultat n'est disponible pour sa recherche.
 
-.. image:: images/op_recherche_KO.jpg
+.. image:: images/op_recherche_KO.png
 
 Affichage des résultats
 -----------------------
@@ -54,33 +61,33 @@ Suite à la recherche, le résultat de la recherche est affiché sous forme de t
 
 - la catégorie de l'opération (actuellement : Entrée ou INGEST, Mise à jour  des métadonnées de description ou  UPDATE, Données de base ou MASTERDATA, Sécurisation ou TRACEABILITY)
 - le type d'opération
-- la date de fin d'opération
-- le statut de l'opération (en cours, échec, succès, avertissement)
+- la date de début d'opération
+- le statut de l'opération (en cours, erreur, succès, avertissement)
 - Le message de l'opération (Identifiant de l'opération)
 
 .. image:: images/op_resultat.png
 
-L'utilisateur a la possibilité d'afficher des colonnes supplémentaires afin de faire apparaître les autres informations contenues dans le journal des opérations. 
+L'utilisateur a la possibilité d'afficher des colonnes supplémentaires afin de faire apparaître les autres informations contenues dans le journal des opérations.
 
-Pour cela il clique sur le bouton "Informations complémentaires" et sélectionne les informations qu'il souhaite afficher. 
+Pour cela il clique sur le bouton "Informations complémentaires" et sélectionne les informations qu'il souhaite afficher.
 
 Celles-ci sont :
 
 - Identifiant de l'évènement
 - Détail des données de l'évènement
 - Identifiant de l'opération
-- Code d'erreur technique
+- Catégorie d'opération
 - Identifiant de l'agent interne
 - Identifiant de l'application externe
 - Identifiant donné par l'application externe
 - Identifiant de la requête
 - Identifiant du service versant
 - Identifiant du service producteur
-- Identifiant interne de l'objet
-- Identifiant externe de l'objet
+- Identifiant interne du lot d'objet
+- Identifiant externe du lot d'objet
 - Identifiant du tenant
 
-L'utilisateur a la possibité d'afficher toutes les colonnes supplémentaires en cliquant sur "Tout  sélectionner". 
+L'utilisateur a la possibilité d'afficher toutes les colonnes supplémentaires en cliquant sur "Tout sélectionner".
 
 .. image:: images/op_tout_selectionner.png
 
@@ -118,7 +125,7 @@ Pour cela, l'utilisateur clique sur le menu "Administration", puis sur le sous-m
 .. image:: images/menu_import_rf.png
 
 L'import du référentiel ne peut être effectué sans le fichier PRONOM.
-Pour cela, l'utilisateur peut récuperer ce fichier dans sa version la plus récente sur le site des Archives nationales britanniques :
+Pour cela, l'utilisateur peut récupérer ce fichier dans sa version la plus récente sur le site des Archives nationales britanniques :
 
 - http://www.nationalarchives.gov.uk/
 - Section "PRONOM" > "DROID signature files"
@@ -134,7 +141,7 @@ Le processus d'import du référentiel se décrit comme ceci :
 
 A l'issue du contrôle de cohérence et d'intégrité du fichier, plusieurs cas sont possibles :
 
-- En cas d'erreur de fichier : La solution logicielle Vitam détecte des erreurs contenues dans le fichier, l'import de ce dernier n'est pas possible, un message d'erreur s'affiche. L'utilisateur doit corriger ces erreurs et soumettre à nouveau le fichier s'il souhaite toujours effectuer son import.
+- En cas d'erreur de fichier : la solution logicielle Vitam détecte des erreurs contenues dans le fichier, l'import de ce dernier n'est pas possible, un message d'erreur s'affiche. L'utilisateur doit corriger ces erreurs et soumettre à nouveau le fichier s'il souhaite toujours effectuer son import.
 
 .. image:: images/import_rf_format_KO.png
 
@@ -164,9 +171,6 @@ Pour initier la recherche, l'utilisateur saisit ses critères de recherche et cl
 
 .. image:: images/rf_format.png
 
-Il est possible de vider le contenu des champs "Nom du format" et "PUID" en cliquant sur la croix située à droite de chacun des champs de recherche.
-
-.. image:: images/FORMATS_champs_recherche.png
 
 Affichage du résultat
 ---------------------
@@ -242,7 +246,7 @@ Un fichier valide est un fichier respectant toutes les conditions suivantes :
 Le processus d'import du référentiel se décrit comme ceci :
 
 - L'utilisateur accède à l'interface d'import du référentiel des règles de gestion et clique sur le bouton "Choisissez un fichier" pour sélectionner un fichier
-- Le fichier à selectionner est le fichier CSV précédemment décrit
+- Le fichier à sélectionner est le fichier CSV précédemment décrit
 - L'utilisateur valide son choix
 - Le système vérifie l'intégrité et la cohérence du fichier
 
@@ -250,7 +254,7 @@ Le processus d'import du référentiel se décrit comme ceci :
 
 A l'issue du contrôle de cohérence et d'intégrité du fichier, deux cas sont possibles :
 
-- En cas d'erreur : La solution logicielle Vitam détecte des erreurs contenues dans le fichier, l'import de ce dernier n'est pas possible. Un message d'erreur est alors affiché. L'utilisateur doit corriger ses erreurs et procéder à nouveau au import du fichier.
+- En cas d'erreur : La solution logicielle Vitam détecte des erreurs contenues dans le fichier, l'import de ce dernier n'est pas possible. Un message d'erreur est alors affiché. L'utilisateur doit corriger ses erreurs et procéder à nouveau à l'import du fichier.
 
 .. image:: images/Import_rf_gestion_KO.jpg
 
@@ -319,110 +323,37 @@ Contrats
 
 Les contrats permettent de gérer les droits donnés aux utilisateurs et applications. Deux types de contrats sont disponibles dans la solution logicielle Vitam :
 
+* Contrats d'acces
 * Contrats d'entrée
-* Contrats d'accès
 
-Accès au menus de gestion des contrats
+Accès au menu de gestion des contrats
 --------------------------------------
 
 Les sous-menus permettant d'accéder aux interfaces de recherche et d’import de contrat sont disponibles dans le menu "Administration".
 
 .. image:: images/CONTRACTS_Menu.png
 
-Contrats d'entrée
------------------
-
-**Importer un contrat d'entrée**
-
-Pour importer un contrat d'entrée, l'utilisateur clique sur le menu "Administration" puis sur le sous-menu "importer des contrats d'entrée".
-
-.. image:: images/CONTRACTS_Menu_import_ingest.png
-
-Les contrats d'entrée sont des fichiers JSON constitués des champs suivants :
-
-* Name : nom du contrat (obligatoire)
-* Description : description du contrat (obligatoire)
-* Status : statut du contrat. ACTIVE ou INACTIVE
-
-Il sélectionne ensuite le fichier à importer en cliquant sur "parcourir", puis clique sur "importer" pour lancer l'opération.
-
-.. image:: images/CONTRACTS_ingest_contract_import.png
-
-Une fenêtre modale indique alors soit :
-
-* Les contrats ont bien été importés
-* Échec de l'import du fichier. Ceci peut être causé par :
-	* le fait que les contrats mentionnés existent déjà pour le tenant
-	* le fait que le fichier JSON est invalide
-
-Cette opération est journalisée et disponible dans le Journal des Opérations.
-
-**Rechercher un contrat d'entrée**
-
-Pour accéder à la recherche de contrats d'entrée, l'utilisateur clique sur le menu "Administration", puis sur le sous-menu "Contrat d'entrée".
-
-La page affiche un formulaire de recherche composé des champs suivants :
-
-* Nom du contrat : permet d'effectuer une recherche approchante sur les noms des contrats d'entrée disponibles dans la solution logicielle Vitam.
-* Identifiant : permet d'effectuer une recherche exacte sur les identifiants des contrats.
-
-Par défaut, la solution logicielle Vitam affiche tous les contrats disponibles dans la liste de résultats et l'affine en fonction de la recherche effectuée. La liste des résultats est composée des colonnes suivantes :
-
-* Nom
-* Identifiant
-* Description
-* Statut
-* Date d'activation
-* Date de désactivation
-* Date de création
-* Date modification
-
-En cliquant sur une ligne, l'utilisateur ouvre le détail du contrat d'entrée dans un nouvel onglet.
-
-.. image:: images/CONTRACTS_ingest_contract_search.png
-
-**Détail d'un contrat d'entrée**
-
-La page "Détail d'un contrat d'entrée" contient les informations suivantes :
-
-* ID
-* Nom
-* Description
-* Date de création
-* Statut
-* Date d'activation
-* Date de mise à jour
-* Date de désactivation
-* Profils d'archivage
-
-.. image:: images/CONTRACTS_ingest_contract_detail.png
 
 Contrats d'accès
------------------
+----------------
 
 **Importer un contrat d'accès**
 
-Pour importer un contrat d'accès, l'utilisateur clique sur le menu "Administration" puis sur le sous-menu "importer des contrats d'accès".
+L'import du contrat est une fonctionnalité réservée à un utilisateur ayant des droits d'administration. La structure et les valeurs des contrats sont décrites dans la documentation du modèle de données.
+Pour importer un contrat d'accès, l'utilisateur clique sur le menu "Administration" puis sur le sous-menu "import des contrats d'accès".
 
 .. image:: images/CONTRACTS_Menu_import_acess.png
 
-Les contrats d'accès sont des fichiers JSON constitués des champs suivants :
-
-* Name : nom du contrat (obligatoire)
-* Description : description du contrat (obligatoire)
-* Status : statut du contrat. ACTIVE ou INACTIVE
-* "OriginatingAgencies": tableau contenant le(s) service(s) producteur(s) pour le(s)quel(s) le détenteur du contrat peut accéder aux unités archivistiques (obligatoire)
-
-Il sélectionne ensuite le fichier à importer en cliquant sur "parcourir", puis clique sur "importer" pour lancer l'opération.
+Il sélectionne ensuite le fichier (.json) à importer en cliquant sur "parcourir", puis clique sur "importer" pour lancer l'opération.
 
 .. image:: images/CONTRACTS_access_contract_import.png
 
-Une fenêtre modale indique alors soit :
+Une fenêtre modale s'ouvre alors pour indiquer soit :
 
-* Les contrats ont bien été importés
-* Échec de l'import du fichier. Ceci peut être causé par :
-	* le fait que les contrats mentionnés existent déjà pour le tenant
-	* le fait que le fichier JSON est invalide
+* Que les contrats ont bien été importés
+* Un échec de l'import du fichier. Ceci peut être causé par :
+	* Le fait que les contrats mentionnés existent déjà pour le tenant
+	* Le fait que le fichier est invalide
 
 Cette opération est journalisée et disponible dans le Journal des Opérations.
 
@@ -435,7 +366,7 @@ La page affiche un formulaire de recherche composé des champs suivants :
 * Nom du contrat : permet d'effectuer une recherche approchante sur les noms des contrats d'accès disponibles dans la solution logicielle Vitam.
 * Identifiant : permet d'effectuer une recherche exacte sur les identifiants des contrats.
 
-Par défaut, la solution logicielle Vitam affiche tous les contrats disponibles dans la liste de résultats et l'affine en fonction de la recherche effectuée. La liste des résultats est composée des colonnes suivantes :
+Par défaut, la solution logicielle Vitam affiche tous les contrats disponibles par ordre alphabétique dans la liste de résultats et l'affine en fonction de la recherche effectuée. La liste des résultats est composée des colonnes suivantes :
 
 * Nom
 * Identifiant
@@ -452,7 +383,7 @@ En cliquant sur une ligne, l'utilisateur ouvre le détail du contrat d'accès da
 
 La page "Détail d'un contrat d'accès" contient les informations suivantes :
 
-* ID
+* Identifiant
 * Nom
 * Description
 * Date de création
@@ -461,8 +392,133 @@ La page "Détail d'un contrat d'accès" contient les informations suivantes :
 * Date d'activation
 * Date de mise à jour
 * Date de désactivation
+* Droit d'écriture
+* Usage
 
 .. image:: images/CONTRACTS_acces_contract_detail.png
+
+** Utilisation des contrats d'accès **
+
+Chaque profil utilisateur peut être relié à un ou plusieurs contrats, qui restreignent totalement, de manière partielle ou autorisent pleinement l'accès et/ou la modification d'une archive.
+
+Sélection d'un contrat
+
+Pour accéder à un contrat spécifique, l'utilisateur peut choisir dans le menu déroulant en haut à droite le contrat concerné.
+Une fois sélectionné, il peut opérer sa recherche d'archive. NB : les contrats du menu déroulant sont les contrats actifs pour l'utilisateur, les contrats inactifs ne sont pas listés.
+
+Autorisation d'écriture au sein d'une archive
+
+L'utilisateur peut écrire et modifier les métadonnées d'une unitié archivistique si le contrat activé l'autorise.
+
+Activation / désactivation d'un contrat
+
+L'administrateur a la possibilité d'activer / désactiver un contrat. Un bouton permet de sélectionner le statut actif ou inactif. Un clic sur ce bouton change la valeur du statut.
+
+Restriction d'accès par service producteur
+
+Un contrat peut interdire l'accès à tous ou certains services producteurs d'objets inclus dans une liste blanche. . Deux options sont disponibles, accès à tous les services producteurs ou accès à la liste blanche des services producteurs.
+
+Restriction d'accès par usage de l'objet
+
+Un contrat peut autoriser l'accès à tous ou certains usages d'objets inclus dans une liste blanche. (ex. : l'utilisateur peut accéder aux usages de diffusion mais pas à la source de l'objet). Deux options sont disponibles, accès à tous les services producteurs ou accès à la liste blanche des services producteurs.
+
+Contrats d'entrée
+-----------------
+
+**Importer un contrat d'entrée**
+
+L'import du contrat est une fonctionnalité réservée à un utilisateur ayant des droits d'administration. La structure et les valeurs des contrats sont décrites dans la documentation du modèle de données.
+Pour importer un contrat d'entrée, l'utilisateur clique sur le menu "Administration" puis sur le sous-menu "import des contrats d'entrée".
+
+.. image:: images/CONTRACTS_Menu_import_ingest_contract.png
+
+Il sélectionne ensuite le fichier (.json) à importer en cliquant sur "parcourir", puis clique sur "importer" pour lancer l'opération.
+
+.. image:: images/CONTRACTS_ingest_contract_import.png
+
+Une fenêtre modale s'ouvre alors pour indiquer soit :
+
+* Que les contrats ont bien été importés
+* Un échec de l'import du fichier. Dont les causes peuvent être :
+	* Le fait que les contrats mentionnés existent déjà pour le tenant
+	* Le fait que le fichier est invalide
+
+Cette opération est journalisée et disponible dans le Journal des Opérations.
+
+**Rechercher un contrat d'entrée**
+
+Pour accéder à la recherche de contrats d'entrées, l'utilisateur clique sur le menu "Administration", puis sur le sous-menu "Contrat d'entrée".
+
+La page affiche un formulaire de recherche composé des champs suivants :
+
+* Nom du contrat : permet d'effectuer une recherche approchante sur les noms des contrats d'entrées disponibles dans la solution logicielle.
+* Identifiant : permet d'effectuer une recherche exacte sur les identifiants des contrats.
+
+Par défaut, la solution logicielle Vitam affiche par ordre alphabétique tous les contrats disponibles dans la liste de résultats et l'affine en fonction de la recherche effectuée. La liste des résultats est composée des colonnes suivantes :
+
+* Nom
+* Identifiant
+* Description
+* Tenant
+* Statut
+* Date de création
+* Date de d'activation
+* Date de désactivation
+* Date de dernière modification
+
+En cliquant sur une ligne, l'utilisateur ouvre le détail du contrat d'entrée dans un nouvel onglet.
+
+.. image:: images/CONTRACTS_ingest_contract_search.png
+
+**Détail d'un contrat d'entrée**
+
+La page "Détail d'un contrat d'accès" contient les informations suivantes :
+
+* Identifiant
+* Nom
+* Description
+* Date de création
+* Statut
+* Date d'activation
+* Date de mise à jour
+* Date de désactivation
+* Profils d'archivages
+
+.. image:: images/CONTRACTS_ingest_contract_detail.png
+
+** Utilisation des contrats d'entrée **
+
+Chaque SIP peut être relié à un contrat d'entrée permettant de définir des conditions de versement entre le service versant et la solution logicielle Vitam.
+
+Activation / désactivation d'un contrat
+
+L'administrateur a la possibilité d'activer / désactiver un contrat. Un bouton permet de sélectionner le statut actif ou inactif. Un clic sur ce bouton change la valeur du statut.
+
+
+Contexte
+========
+
+**Importer un contexte**
+
+L'import du contexte est une fonctionnalité réservée à un utilisateur ayant des droits d'administration. La structure et les valeurs des contextes sont décrites dans la documentation du modèle de données.
+Pour importer un contexte, l'utilisateur clique sur le menu "Administration" puis sur le sous-menu "import des contextes".
+
+.. image:: images/CONTRACTS_Menu_import_context.png
+
+Il sélectionne ensuite le fichier (.json) à importer en cliquant sur "parcourir", puis clique sur "importer" pour lancer l'opération.
+
+.. image:: images/CONTRACTS_context_import.png
+
+Une fenêtre modale s'ouvre alors pour indiquer soit :
+
+* Que les contextes ont bien été importés
+* Un échec de l'import du fichier. Dont les causes peuvent être :
+	* Le fait que le contexte existe déjà dans le système
+	* Le fait que le fichier est invalide (mauvais format)
+  * Le fait que le contexte déclare des contrats d'entrées ou des contrats d'accès qui n'existent pas dans les référentiels des contrats de leurs tenants
+
+Cette opération est journalisée et disponible dans le Journal des Opérations.
+
 
 Profils d'archivage
 ===================
@@ -483,8 +539,12 @@ Les profils d'archivage sont des fichiers JSON constitués des champs suivants :
 
 * Name : nom du profil d'archivage (obligatoire)
 * Description : description du profil d'archivage (obligatoire)
-* Status : statut du profil d'archivage. ACTIVE ou INACTIVE
+* Statut : statut du profil d'archivage. ACTIVE ou INACTIVE
 * Format : format attendu pour le fichier de règle. XSD ou RNG
+* Date de de création
+* Date de d'activation
+* Date de désactivation
+* Date de dernière modification
 
 Pour importer un profil d'archivage, l'utilisateur sélectionne ensuite le fichier à importer en cliquant sur “parcourir”, puis clique sur “importer” pour lancer l’opération.
 
@@ -493,9 +553,9 @@ Pour importer un profil d'archivage, l'utilisateur sélectionne ensuite le fichi
 Une fenêtre modale indique alors soit :
 
 * Les contrats ont bien été importés
-* Échec de l’import du fichier. Ceci peut être causé par :
+* Échec de l’import du fichier. Dont les causes peuvent être :
 	* le fait que le(s) profil(s) d'archivage mentionnés existent déjà pour le tenant
-	* le fait que le fichier JSON est invalide
+	* le fait que le fichier est invalide (mauvais format)
 
 Cette opération est journalisée et disponible dans le Journal des Opérations.
 
@@ -511,15 +571,15 @@ La page affiche un formulaire de recherche composé des champs suivants :
 
 Par défaut, la solution logicielle Vitam affiche tous les profils d'archivage disponibles dans la liste de résultats et l’affine en fonction de la recherche effectuée. La liste des résultats est composée des colonnes suivantes :
 
-* Identifiant
 * Nom
+* Identifiant
 * Description
 * Etat
 * Profil
 
 En cliquant sur une ligne, l’utilisateur ouvre le détail du profil d'archivage dans un nouvel onglet.
 
-Lorsqu'un fichier de règle a été associé au profil, une flèche indiquant la possibilité de le télecharger apparaît. L'utilisateur peut lancer le télechargement en cliquant dessus.
+Lorsqu'un fichier de règle a été associé au profil, une flèche indiquant la possibilité de le télécharger apparaît. L'utilisateur peut lancer le téléchargement en cliquant dessus.
 
 .. image:: images/profil_search.png
 
@@ -528,7 +588,7 @@ Consulter le détail d'un profil d'archivage
 
 La page "Détail d'un profil d'archivage" contient les informations suivantes :
 
-* ID
+* Identifiant
 * Nom
 * Description
 * Fichier
@@ -537,32 +597,33 @@ La page "Détail d'un profil d'archivage" contient les informations suivantes :
 * Statut
 * Date de mise à jour
 * Tenant(s)
+* Date de d'activation
 * Date de désactivation
- 
+
 .. image:: images/profil_detail.png
 
-Assoccier un fichier de règles à un profil d'archivage
+Associer un fichier de règles à un profil d'archivage
 -------------------------------------------------------
 
-Pour importer un fichier de règles à associer à un profil d'archivage, l'utilisateur clique sur le bouton "parcourir" à coté du champ "fichier" puis clique sur "importer". Le format du fichier doit correspondre au format attendu, indiqué dans le champ format.
+Pour importer un fichier de règles à associer à un profil d'archivage, l'utilisateur clique sur le bouton "parcourir" à côté du champ "fichier" puis clique sur "importer". Le format du fichier doit correspondre au format attendu, indiqué dans le champ format.
 
-la fin de l'opération d'import, une fenêtre modale indique un des deux messages suivants :
+A la fin de l'opération d'import, une fenêtre modale indique un des deux messages suivants :
 
 * Le profil a bien été importé
 * Echec de l'import du fichier
 
-L'opération est journalisée et disponible depuis l'écran de consultation des journaux d'opérations. 
+L'opération est journalisée et disponible depuis l'écran de consultation du journal des opérations.
 
 En cas de succès de l'import de fichier de règle, la date de mise à jour du profil est ajustée en conséquence. Si l'utilisateur importe un fichier de règle alors qu'un autre fichier de règles a déjà été importé, alors le nouveau fichier remplace l'ancien.
 
 Import d'un arbre de positionnement
-=================================
+====================================
 
 L'import d'un arbre de positionnement dans Vitam s'effectue depuis l'écran "Import de l'arbre de positionnement", accessible depuis le menu "Administration" puis en cliquant sur le sous-menu du même nom.
 
 .. image:: images/menu_import_arbre.png
 
-Pour débuter l'import, l’utilisateur doit sélectionner l'arbre sous le format demandé. Pour cela, il clique sur le bouton « Parcourir », une nouvelle fenêtre s'ouvre dans laquelle il a la possibilité de sélectionner l'arbre.
+Il sélectionne ensuite le fichier à importer en cliquant sur "parcourir", puis clique sur "importer" pour lancer l'opération.
 
 Une fois celui-ci sélectionné, il apparaît sur l'écran "Import de l'arbre de positionnement". Le nom du fichier s'affiche à droite du bouton "choisissez un fichier" et une nouvelle ligne apparaît en dessous avec le nom du fichier, sa taille ainsi qu'un champ statut pour l'instant vide.
 
@@ -586,14 +647,14 @@ Les informations visibles à l'écran sont :
 
 - Une barre de progression affiche l’avancement du téléchargement de l'arbre dans Vitam (une barre de progression complète signifie que le téléchargement est achevé).
 
-NB : Suite au téléchargement de l'arbre, un temps d'attente est nécessairen correspondant au traitement de l'arbre par le système avant affichage du statut final. Dans ce cas, une roue de chargement est affichée au niveau du statut.
+NB : Suite au téléchargement de l'arbre, un temps d'attente est nécessaire, correspondant au traitement de l'arbre par le système avant affichage du statut final. Dans ce cas, une roue de chargement est affichée au niveau du statut.
 
 .. image:: images/upload_arbre.png
 
 Si l'utilisateur tente d'importer un arbre au format non conforme (s'il ne s'agit pas des formats ZIP, TAR, TAR.GZ, TAR.BZ2) alors le système empêche le téléchargement.
 Une fenêtre pop-up s'ouvre indiquant les formats autorisés.
 
-Toute opération d'entrée (succès, avertissement et échec) fait l'objet d'une écriture dans le journal des opérations et génére une notification qui est proposée en téléchargement à l'utilisateur.
+Toute opération d'entrée (succès, avertissement et échec) fait l'objet d'une écriture dans le journal des opérations et génère une notification qui est proposée en téléchargement à l'utilisateur.
 
 Cette notification ou ArchiveTransferReply (ATR) est au format XML conforme au schéma SEDA 2.0.
 Lors d'une entrée en succès dans VITAM, l'ATR comprend les informations suivantes :
@@ -606,6 +667,8 @@ Lors d'une entrée en succès dans VITAM, l'ATR comprend les informations suivan
 - ReplyCode : statut final de l'entrée
 - GrantDate : date de prise en charge de l'arbre
 - MessageIdentifierRequest : identifiant de la demande de transfert
+- ArchivalAgency
+- TransferingAgency
 
 Lors d'une entrée en avertissement, l'ATR contient les mêmes informations que l'ATR en succès et le ReplyCode est "WARNING". Actuellement, il n'est pas possible de connaître la cause de l'avertissement.
 
@@ -620,35 +683,36 @@ La notification comprend ensuite la liste des erreurs rencontrées (échecs ou a
 Gestion des versements
 ======================
 
-Cette partie décrit les fonctionnalités de la page “Gestion des versements”. Elle permet de suivre l’évolution des
-opérations d’entrée, d’utiliser le mode pas à pas.
+Cette partie décrit les fonctionnalités de la page “Gestion des versements”. Elle permet de suivre l’évolution des opérations d’entrée, d’utiliser le mode pas à pas.
 
-Affichage des versements
+Affichage des opérations
 ------------------------
 
-Pour accéder à la page de “Gestion des versements”, l’utilisateur clique sur le menu “Administration”, puis sur le
-sous-menu “Gestion des versements”.
+Pour accéder à la page de “Gestion des versements”, l’utilisateur clique sur le menu “Administration”, puis sur le sous-menu “Gestion des versements”.
 
-La page affiche la liste de toutes les opérations d’entrée en cours d’éxécution et déjà réalisées.
+La page affiche la liste de toutes les opérations d’entrée en cours d’exécution et déjà réalisées.
 La liste est composée des colonnes suivantes :
 
 * Identifiant de l’opération - identifiant unique de l’opération d’entrée
 * Catégorie de l’opération - indique le type d’opération d’entrée :
-	* INGEST - indique une opération d’entrée normale
-	* INGEST_TEST - indique une opération d’entrée en test à blanc
-* Date de l’entrée - date à laquelle l’entrée à été soumise à la solution logicielle Vitam
-* Mode d’exécution - indique le mode d’exécution choisi. Celui-ci peut-être
+	* INGEST : indique une opération d’entrée normale
+	* INGEST_TEST : indique une opération d’entrée en test à blanc
+* Date de l’entrée : date à laquelle l’entrée a été soumise à la solution logicielle Vitam
+* Mode d’exécution : indique le mode d’exécution choisi. Celui-ci peut-être
 	* Continu
 	* Pas à pas
-* Précédente étape du workflow / étape en cours 
+* Etat : indique l'état actuel de l'opération
+    * Pause
+    * En cours
+    * Terminé
+* Statut : indique le statut actuel de l'opération
+    * OK
+    * KO
+* Précédente étape du workflow / étape en cours
 * Prochaine étape du workflow
-* Statut - indique si l’opération est :
-	* En attente
-	* En cours
-	* Terminée
-* Actions : Contient des boutons d’action permettant d’interagir avec l'entrée réalisée en mode d’exécution pas à pas
+* Actions : Contient des boutons d’action permettant d’interagir avec l'entrée réalisée en mode d’exécution pas à pas.
 
-Les opérations d’entrée sont classées par ordre antéchronologique selon leur date d'entrée.
+Les opérations d’entrée sont classées par ordre antechronologique selon leur date d'entrée.
 
 Seules les opérations en cours de traitement sont affichées sur cet écran.
 
@@ -657,8 +721,7 @@ Seules les opérations en cours de traitement sont affichées sur cet écran.
 Utilisation du mode pas à pas
 -----------------------------
 
-Lorsque l’entrée est ralisée en mode d’éxécution pas à pas, l’utilisateur doit alors utiliser les boutons d’actions dispo-
-nibles afin de faire avancer son traitement.
+Lorsque l’entrée est réalisée en mode d’exécution pas à pas, l’utilisateur doit alors utiliser les boutons d’actions disponibles afin de faire avancer son traitement.
 Les boutons disponibles sont :
 
 * Suivant : permet de passer à l’étape suivante du workflow - lorsqu’une étape est terminée, il faut cliquer sur “suivant” pour continuer l’entrée
@@ -667,13 +730,13 @@ Les boutons disponibles sont :
 * Arrêt : permet d’arrêter complètement une opération d’entrée. Elle passera alors en statut “terminée” et il sera impossible de la redémarrer
 
 Recherche et vérification des opérations de sécurisation
-=======================================================
+=========================================================
 
 La sécurisation des journaux permet de garantir la valeur probante des archives prises en charge dans la solution logicielle VITAM.
 
 Le fichier produit par une opération de sécurisation des journaux est appelé un "journal sécurisé".
 
-Les adminsitrateurs ont la possibilité d'accéder aux fonctionnalités suivantes :
+Les administrateurs ont la possibilité d'accéder aux fonctionnalités suivantes :
 
 * Recherche de journaux sécurisés
 * Consultation du détail d'un journal sécurisé
@@ -682,12 +745,12 @@ Les adminsitrateurs ont la possibilité d'accéder aux fonctionnalités suivante
 Rechercher des journaux sécurisés
 ---------------------------------
 
-L’interface de consultation des journaux sécurisés est accessible par le menu : Menu > Rechercher un journal sécurisé
+Pour accéder à la page de “Opérations de sécurisations”, l’utilisateur clique sur le menu “Administration”, puis sur le sous-menu “Opérations de sécurisations”.
 
 L’interface est constituée de trois éléments :
 
 * Un formulaire
-* Un paginateur
+* Une pagination
 * Une zone d’affichage des résultats
 
 .. image:: images/securisation_consulation_journal_secu.png
@@ -700,6 +763,13 @@ Le formulaire est composé des champs suivants :
 * Dates extrêmes : intervalle de dates permettant de rechercher sur les dates du premier et du dernier journal pris en compte dans l'opération de sécurisation
 * Type de journal sécurisé : liste déroulante permettant de sélectionner le type de journal sécurisé à afficher.
 
+Les types de journaux sont :
+
+- Journal des opérations
+- Cylcle de Vie des Unités Archivistiques
+- Cylcle de Vie des Groupes d'objets
+- Journal des écritures
+
 **Lancer une recherche**
 
 Par défaut, aucun résultat n'est affiché. Il faut lancer une recherche pour faire apparaître des résultats.
@@ -708,14 +778,14 @@ Pour lancer une recherche en prenant en compte un intervalle de dates, cliquer s
 
 Si l'utilisateur clique sur le bouton "Rechercher" sans sélectionner de date, alors tous les journaux disponibles s'affichent.
 
-**Zone de résultats**
+**Affichage des résultats**
 
 La zone de résultats est composée des colonnes suivantes :
 
 * Type de journal sécurisé : affiche le type de journal sécurisé
 * Date de début : indique la date de début de l’opération de sécurisation
 * Date de fin : indique la date de fin de l’opération de sécurisation
-* Télécharger : icône permettant de télécharger l’opération
+* Télécharger : icône permettant de télécharger le journal sécurisé
 
 .. image:: images/securisation_consultation_journal.png
 
@@ -730,18 +800,19 @@ Détail d'un journal sécurisé
 
 En cliquant sur une ligne de la liste de résultats, l'interface de la solution logicielle VITAM affiche le détail du journal concerné dans une nouvelle fenêtre.
 
-Le détail est composé des élements suivants :
+Le détail est composé des éléments suivants :
 
 * Détail sur le journal sécurisé, contient les 6 informations
-	* Date de début - date du premier journal pris en compte dans l'opération de sécurisation
-	* Date de fin - date du dernier journal pris en compte dans l'opération de sécurisation
-	* Nombre d'opérations - il s'agit du nombre de journaux pris en compte dans l'opération de sécurisation
-	* Algorithme de hashage - indique l'algorithme utilisé
-	* Nom du fichier - nom du journal sécurisé
-	* Taille du fichier - taille du journal sécurisé
+	* Date de début : date du premier journal pris en compte dans l'opération de sécurisation
+	* Date de fin : date du dernier journal pris en compte dans l'opération de sécurisation
+	* Nombre d'opérations : il s'agit du nombre de journaux pris en compte dans l'opération de sécurisation
+	* Algorithme de hashage : indique l'algorithme utilisé
+	* Nom du fichier : nom du journal sécurisé
+	* Taille du fichier : taille du journal sécurisé
+    * Date du tampon d'horodatage
+    * CA signataire : l'autorité de certification
 * Hash de l'arbre de Merkle
-* Tampon d'horodatage
-  
+
 .. image:: images/securisation_detail.png
 
 Vérification d'un journal sécurisé
@@ -753,4 +824,4 @@ Une fois l'opération terminée, son détail est affiché. Il est également dis
 
 .. image:: images/securisation_verification_detail.png
 
-Le bouton télecharger permet d'obtenir le journal sécurisé.
+Le bouton télécharger permet d'obtenir le journal sécurisé.

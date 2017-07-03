@@ -1,5 +1,5 @@
 Administration-Management-client
-#######
+#################################
 
 Utilisation
 ###########
@@ -25,8 +25,8 @@ Afin de récupérer le client, une factory a été mise en place.
 
 .. code-block:: java
 
-    // Récupération du client 
-    AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
+  // Récupération du client 
+  AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
 
 
 Le Mock
@@ -36,10 +36,10 @@ Par défaut, le client est en mode Mock. Il est possible de récupérer directem
 
 .. code-block:: java
 
-      // Changer la configuration du Factory
-      AdminManagementClientFactory.setConfiguration(AdminManagementClientFactory.AdminManagementClientType.MOCK_CLIENT, null);
-      // Récupération explicite du client mock
-      AdminManagementClient client = AdminManagementClientFactory.getInstance().getLogbookClient();
+  // Changer la configuration du Factory
+  AdminManagementClientFactory.setConfiguration(AdminManagementClientFactory.AdminManagementClientType.MOCK_CLIENT, null);
+  // Récupération explicite du client mock
+  AdminManagementClient client = AdminManagementClientFactory.getInstance().getLogbookClient();
 
 
 Le client
@@ -50,27 +50,33 @@ Pour instancier son client en mode Production :
 
 .. code-block:: java
 
-      // Ajouter un fichier functional-administration-client.conf dans /vitam/conf
-	  // Récupération explicite du client
-     AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
-     
+  // Ajouter un fichier functional-administration-client.conf dans /vitam/conf
+  // Récupération explicite du client
+  AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
+    
 
-Le client propose actuellement 14 méthodes : 
+Le client propose actuellement 18 méthodes : 
 
 .. code-block:: java
 
-	  Status status();
-     void checkFormat(InputStream stream);
-     void importFormat(InputStream stream);
-     void deleteFormat();
-     JsonNode getFormatByID(String id);
-     JsonNode getFormats(JsonNode query);
-checkRulesFile(InputStream stream);
-importRulesFile(InputStream stream);
-deleteRulesFile();
-JsonNode getRuleByID(String id);
-JsonNode getRule(JsonNode query);
-createorUpdateAccessionRegister(AccessionRegisterDetail register);
-JsonNode getAccessionRegister(JsonNode query);
-JsonNode getAccessionRegisterDetail(JsonNode query);
+  Status status();
+  void checkFormat(InputStream stream);
+  void importFormat(InputStream stream);
+  void deleteFormat();
+  JsonNode getFormatByID(String id);
+  JsonNode getFormats(JsonNode query);
+  checkRulesFile(InputStream stream);
+  importRulesFile(InputStream stream);
+  deleteRulesFile();
+  JsonNode getRuleByID(String id);
+  JsonNode getRule(JsonNode query);
+  createorUpdateAccessionRegister(AccessionRegisterDetail register);
+  JsonNode getAccessionRegister(JsonNode query);
+  JsonNode getAccessionRegisterDetail(JsonNode query);
+  
+  Status importContexts(List<ContextModel> ContextModelList)
+  RequestResponse<ContextModel> updateContext(String id, JsonNode queryDsl)
+  RequestResponse<ContextModel> findContexts(JsonNode queryDsl)
+  RequestResponse<ContextModel> findContextById(String id)
+  
 

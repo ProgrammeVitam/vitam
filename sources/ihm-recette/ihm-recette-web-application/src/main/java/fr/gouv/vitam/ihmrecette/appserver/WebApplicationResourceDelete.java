@@ -89,6 +89,8 @@ public class WebApplicationResourceDelete {
     private static final String STP_DELETE_METADATA_OG = "STP_DELETE_METADATA_OG";
     private static final String STP_DELETE_METADATA_UNIT = "STP_DELETE_METADATA_UNIT";
     private static final String STP_DELETE_MASTERDATA = "STP_DELETE_MASTERDATA";
+    private static final String STP_DELETE_MASTERDATA_INGEST_CONTRACT = "STP_DELETE_MASTERDATA_INGEST_CONTRACT";
+    private static final String STP_DELETE_MASTERDATA_ACCESS_CONTRACT = "STP_DELETE_MASTERDATA_ACCESS_CONTRACT";
 
     private static final String STP_DELETE_ALL = "STP_DELETE_ALL";
     private static final String CANNOT_UPDATE_DELEGATE_LOGBOOK_OPERATION = "Cannot update delegate logbook operation";
@@ -162,6 +164,9 @@ public class WebApplicationResourceDelete {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteFormat() {
+        return deleteFormats();
+    }
+    private  Response deleteFormats() {
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         // FIXME tenantDefault for operation to replace with one from config
         if (tenantId == null) {
@@ -537,7 +542,7 @@ public class WebApplicationResourceDelete {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteMasterdaAccessContract() {
-        return deleteContract(FunctionalAdminCollections.ACCESS_CONTRACT);
+        return deleteMasterDataCollection(FunctionalAdminCollections.ACCESS_CONTRACT);
 
     }
 
@@ -550,13 +555,33 @@ public class WebApplicationResourceDelete {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteMasterdaIngestContract() {
-        return deleteContract(FunctionalAdminCollections.INGEST_CONTRACT);
+        return deleteMasterDataCollection(FunctionalAdminCollections.INGEST_CONTRACT);
 
     }
 
-    private Response deleteContract(FunctionalAdminCollections collection) {
-        if (!(collection.equals(FunctionalAdminCollections.ACCESS_CONTRACT) ||
-            collection.equals(FunctionalAdminCollections.INGEST_CONTRACT))) {
+    /**
+     * Delete the masterdata for ingestContract in database
+     *
+     * @return Response
+     */
+    @Path("masterdata/profile")
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteMasterdaProfile() {
+        return deleteMasterDataCollection(FunctionalAdminCollections.PROFILE);
+
+    }
+
+
+    private Response deleteMasterDataCollection(FunctionalAdminCollections collection) {
+        if (!(
+                collection.equals(FunctionalAdminCollections.ACCESS_CONTRACT)
+                        ||
+                        collection.equals(FunctionalAdminCollections.INGEST_CONTRACT)
+                        ||
+                        collection.equals(FunctionalAdminCollections.PROFILE)
+
+        )) {
             throw new IllegalArgumentException("unsuported collection");
         }
 
@@ -599,9 +624,9 @@ public class WebApplicationResourceDelete {
     public Response purgeDataForTnr() {
         Response response = deleteLogBook();
         response.close();
-        response = deleteContract(FunctionalAdminCollections.INGEST_CONTRACT);
+        response = deleteMasterDataCollection(FunctionalAdminCollections.INGEST_CONTRACT);
         response.close();
-        response = deleteContract(FunctionalAdminCollections.ACCESS_CONTRACT);
+        response = deleteMasterDataCollection(FunctionalAdminCollections.ACCESS_CONTRACT);
         response.close();
         response = deleteLifecycleUnits();
         response.close();
@@ -613,8 +638,15 @@ public class WebApplicationResourceDelete {
         response.close();
         response = deleteAccessionRegister();
         response.close();
+        response = deleteRules();
+        response.close();
+        response = deleteFormats();
+        response.close();
+        response = deleteMasterdaProfile();
+        response.close();
         return Response.status(Status.OK).build();
     }
+
 
     /**
      * Delete all collection in database
@@ -772,6 +804,42 @@ public class WebApplicationResourceDelete {
             }
             LOGGER.error(e);
             collectionKO.add(LogbookCollections.LIFECYCLE_UNIT.name());
+        }
+        parameters.putParameterValue(LogbookParameterName.eventType,
+            VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_INGEST_CONTRACT, StatusCode.STARTED))
+            .setStatus(StatusCode.OK).putParameterValue(LogbookParameterName.outcomeDetailMessage,
+            VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_INGEST_CONTRACT, StatusCode.OK));
+        try {
+            mongoDbAccessAdmin.deleteCollection(FunctionalAdminCollections.INGEST_CONTRACT);
+            helper.updateDelegate(parameters);
+        } catch (final Exception e) {
+            parameters.setStatus(StatusCode.KO).putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_INGEST_CONTRACT, StatusCode.OK));
+            try {
+                helper.updateDelegate(parameters);
+            } catch (final LogbookClientNotFoundException exc) {
+                LOGGER.error("Cannot update delegate logbook operation", exc);
+            }
+            LOGGER.error(e);
+            collectionKO.add(FunctionalAdminCollections.INGEST_CONTRACT.name());
+        }
+        parameters.putParameterValue(LogbookParameterName.eventType,
+            VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_ACCESS_CONTRACT, StatusCode.STARTED))
+            .setStatus(StatusCode.OK).putParameterValue(LogbookParameterName.outcomeDetailMessage,
+            VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_ACCESS_CONTRACT, StatusCode.OK));
+        try {
+            mongoDbAccessAdmin.deleteCollection(FunctionalAdminCollections.ACCESS_CONTRACT);
+            helper.updateDelegate(parameters);
+        } catch (final Exception e) {
+            parameters.setStatus(StatusCode.KO).putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_ACCESS_CONTRACT, StatusCode.OK));
+            try {
+                helper.updateDelegate(parameters);
+            } catch (final LogbookClientNotFoundException exc) {
+                LOGGER.error("Cannot update delegate logbook operation", exc);
+            }
+            LOGGER.error(e);
+            collectionKO.add(FunctionalAdminCollections.ACCESS_CONTRACT.name());
         }
         parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_ALL).setStatus(StatusCode.OK)
             .putParameterValue(LogbookParameterName.outcomeDetailMessage,

@@ -8,7 +8,7 @@ Arborescence
 
 .. image:: images/container.png
 
-- ** détails ** :
+- ** détails ** : TODO
 
 Pour chaque stream SIP
 

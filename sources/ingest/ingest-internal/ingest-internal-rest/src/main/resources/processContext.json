@@ -30,25 +30,25 @@
     { 
         "workFlowId" : "DefaultHoldingSchemeWorkflow", 
         "executionContext" : "resume",
-        "logbookTypeProcess" : "MASTERDATA"
+        "logbookTypeProcess" : "HOLDINGSCHEME"
     },
      "HOLDING_SCHEME_NEXT" : 
     { 
         "workFlowId" : "DefaultHoldingSchemeWorkflow", 
         "executionContext" : "next",
-        "logbookTypeProcess" : "MASTERDATA"
+        "logbookTypeProcess" : "HOLDINGSCHEME"
     },
     
     "FILING_SCHEME_RESUME" : 
     { 
         "workFlowId" : "DefaultFilingSchemeWorkflow", 
         "executionContext" : "resume",
-        "logbookTypeProcess" : "INGEST"
+        "logbookTypeProcess" : "FILINGSCHEME"
     },
      "FILING_SCHEME_NEXT" : 
     { 
         "workFlowId" : "DefaultFilingSchemeWorkflow", 
         "executionContext" : "next",
-        "logbookTypeProcess" : "INGEST"
+        "logbookTypeProcess" : "FILINGSCHEME"
     }
 }

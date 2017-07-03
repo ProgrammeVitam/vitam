@@ -4,7 +4,7 @@ Processing
 .. toctree::
    :maxdepth: 2
    
-   intro.rst
+   introduction.rst
    parametres/parametres.rst
    processing-management.rst
    processing-distributor.rst

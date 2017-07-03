@@ -11,6 +11,11 @@ Common-private
    graph-dat.rst
    parametres.rst
    Uri.rst
+   shiro.rst
    security-filter.rst
    tenant-filter.rst   
+   DefaultVitamApplicationConfiguration.rst
+   Execution-request-dsl.rst
+   mongodb-securite.rst
+   secret-plateforme.rst
 

@@ -151,3 +151,15 @@ traits:
             description: one Logbook object life cycle item
             schema: DslTypes.DslResponse
             example: !include examples/logbookResponseLifeCycle.json
+
+  RegisterFileItemResponse:
+    description: Response model for one <<resourcePathName | !uppercamelcase>> download item
+    is: [ StandardTraits.StandardOptionalHeader,
+      StandardTraits.StandardHeader200,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    responses:
+      200:
+        description: Returns one <<resourcePathName | !uppercamelcase>> file item
+        body:
+          application/octet-stream:
+            description: one <<resourcePathName | !uppercamelcase>> file item

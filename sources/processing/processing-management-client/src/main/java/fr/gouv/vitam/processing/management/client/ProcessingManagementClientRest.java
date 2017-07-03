@@ -27,6 +27,7 @@
 package fr.gouv.vitam.processing.management.client;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.HttpMethod;
@@ -52,13 +53,13 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.ProcessQuery;
+import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
-import fr.gouv.vitam.processing.common.exception.ProcessingUnauthorizeException;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
@@ -77,6 +78,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     private static final String BAD_REQUEST_EXCEPTION = "Bad Request Exception";
 
     private static final String OPERATION_URI = "/operations";
+    private static final String WORKFLOWS_URI = "/workflows";
     private static final String INGESTS_URI = "/ingests";
     private static final String OPERATION_ID_URI = "/id";
     private static final String CONTEXT_ID_MUST_HAVE_A_VALID_VALUE = "Context id must have a valid value";
@@ -157,6 +159,8 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
                 throw new InternalServerException(INTERNAL_SERVER_ERROR2);
             } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
                 throw new BadRequestException(BAD_REQUEST_EXCEPTION);
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new IllegalArgumentException(Status.UNAUTHORIZED.getReasonPhrase());
             }
 
             // XXX: theoretically OK status case
@@ -176,7 +180,8 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     }
 
     @Override
-    public RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId, String actionId)
+    public RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId,
+        String actionId)
         throws InternalServerException, BadRequestException, WorkflowNotFoundException {
 
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, operationId);
@@ -219,7 +224,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
      * Generate the default header map
      *
      * @param contextId the context id
-     * @param actionId the storage action id
+     * @param actionId  the storage action id
      * @return header map
      */
     private MultivaluedHashMap<String, Object> getDefaultHeaders(String contextId, String actionId) {
@@ -230,7 +235,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     }
 
     @Override
-    public Response updateOperationActionProcess(String actionId, String operationId)
+    public RequestResponse<ItemStatus> updateOperationActionProcess(String actionId, String operationId)
         throws InternalServerException, BadRequestException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, operationId);
         ParametersChecker.checkParameter(ACTION_ID_MUST_HAVE_A_VALID_VALUE, actionId);
@@ -247,11 +252,15 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
                 throw new IllegalArgumentException(ILLEGAL_ARGUMENT);
             } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new InternalServerException(INTERNAL_SERVER_ERROR2);
+            }else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new InternalServerException(INTERNAL_SERVER_ERROR2);
             }
 
             // XXX: theoretically OK status case
             // Don't we thrown an exception if it is another status ?
-            return Response.fromResponse(response).build();
+
+            ItemStatus itemStatus = response.readEntity(ItemStatus.class);
+            return new RequestResponseOK<ItemStatus>().addResult(itemStatus).parseHeadersFromResponse(response);
         } catch (final javax.ws.rs.ProcessingException e) {
             LOGGER.error(e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
@@ -280,11 +289,14 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
                 throw new InternalServerException(INTERNAL_SERVER_ERROR2);
             } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
                 throw new BadRequestException(BAD_REQUEST_EXCEPTION);
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new IllegalArgumentException(Status.UNAUTHORIZED.getReasonPhrase());
             }
 
-            // XXX: theoretically OK status case
-            // Don't we thrown an exception if it is another status ?
-            return response.readEntity(ItemStatus.class);
+            return new ItemStatus()
+                .setGlobalState(ProcessState.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATE)))
+                .setLogbookTypeProcess(response.getHeaderString(GlobalDataRest.X_CONTEXT_ID))
+                .increment(StatusCode.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS)));
 
         } catch (final WorkflowNotFoundException e) {
             LOGGER.error(e);
@@ -299,6 +311,44 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             consumeAnyEntityAndClose(response);
         }
     }
+
+    /**
+     * Return false if status accepted Return true otherwise
+     *
+     * @param operationId
+     * @return
+     */
+    @Override
+    public boolean isOperationCompleted(String operationId) {
+        ParametersChecker.checkParameter(BLANK_OPERATION_ID, operationId);
+        Response response = null;
+        try {
+            response =
+                performRequest(HttpMethod.HEAD, OPERATION_URI + "/" + operationId,
+                    null,
+                    MediaType.APPLICATION_JSON_TYPE);
+
+            if (response.getStatus() == Status.ACCEPTED.getStatusCode()) {
+                final ProcessState state =
+                    ProcessState.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATE));
+                final StatusCode status =
+                    StatusCode.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
+
+                if (ProcessState.PAUSE.equals(state) && StatusCode.STARTED.compareTo(status) <= 0) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return true;
+            }
+        } catch (final Exception e) {
+            return true;
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
     // TODO FIXE ME query never user
     @Override
     public ItemStatus getOperationProcessExecutionDetails(String id, JsonNode query)
@@ -308,8 +358,8 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         try {
             response =
                 performRequest(HttpMethod.GET, OPERATION_URI + "/" + id,
-                    null,
-                    MediaType.APPLICATION_JSON_TYPE);
+                    null, query,
+                    MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 throw new WorkflowNotFoundException(WORKFLOW_NOT_FOUND);
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
@@ -318,6 +368,8 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
                 throw new InternalServerException(INTERNAL_SERVER_ERROR2);
             } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
                 throw new BadRequestException(BAD_REQUEST_EXCEPTION);
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new IllegalArgumentException(Status.UNAUTHORIZED.getReasonPhrase());
             }
 
             // XXX: theoretically OK status case
@@ -338,7 +390,8 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     }
 
     @Override
-    public RequestResponse<JsonNode>  cancelOperationProcessExecution(String id) throws InternalServerException, BadRequestException {
+    public ItemStatus cancelOperationProcessExecution(String id)
+        throws InternalServerException, BadRequestException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);
         Response response = null;
         try {
@@ -352,12 +405,12 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new InternalServerException(INTERNAL_SERVER_ERROR2);
             } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                throw new BadRequestException(BAD_REQUEST_EXCEPTION);
+                throw new InternalServerException(INTERNAL_SERVER_ERROR2);
             }
 
             // XXX: theoretically OK status case
             // Don't we thrown an exception if it is another status ?
-            return new RequestResponseOK().addResult(response.readEntity(JsonNode.class)).parseHeadersFromResponse(response);
+            return response.readEntity(ItemStatus.class);
         } catch (final javax.ws.rs.ProcessingException e) {
             LOGGER.error(e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
@@ -456,25 +509,30 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     }
 
     @Override
-    public RequestResponse<JsonNode>  listOperationsDetails() throws VitamClientException {
+    public RequestResponse<JsonNode> listOperationsDetails(ProcessQuery query) throws VitamClientException {
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, "/operations", null, null, null,
-                MediaType.APPLICATION_JSON_TYPE);
+            response =
+                performRequest(HttpMethod.GET, "/operations", null, JsonHandler.toJsonNode(query),
+                    MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
             if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
                 throw new VitamClientException(ILLEGAL_ARGUMENT);
             }
-            return new RequestResponseOK().addResult(response.readEntity(JsonNode.class)).parseHeadersFromResponse(response);
+
+            List<JsonNode> list =
+                JsonHandler.getFromString(response.readEntity(String.class), List.class, JsonNode.class);
+
+            return new RequestResponseOK<JsonNode>().addAllResults(list).parseHeadersFromResponse(response);
         } catch (VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);
             throw new VitamClientException(e);
+        } catch (final InvalidParseOperationException e) {
+            throw new IllegalArgumentException(ILLEGAL_ARGUMENT, e);
         } finally {
             consumeAnyEntityAndClose(response);
         }
     }
-
-
 
     @SuppressWarnings("unchecked")
     @Override
@@ -519,6 +577,37 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         } catch (final VitamClientInternalException e) {
             LOGGER.error(PROCESSING_INTERNAL_SERVER_ERROR, e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> getWorkflowDefinitions() throws VitamClientException {
+
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, WORKFLOWS_URI, null, null, null,
+                MediaType.APPLICATION_JSON_TYPE);
+
+            if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
+                throw new VitamClientException(ILLEGAL_ARGUMENT);
+            } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                throw new VitamClientException(WORKFLOW_NOT_FOUND);
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new VitamClientException(ILLEGAL_ARGUMENT);
+            } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+                throw new VitamClientException(INTERNAL_SERVER_ERROR2);
+            }
+
+            JsonNode workFlow =
+                JsonHandler.getFromString(response.readEntity(String.class), JsonNode.class);
+
+            return new RequestResponseOK<JsonNode>().addResult(workFlow)
+                .parseHeadersFromResponse(response);
+        } catch (VitamClientInternalException | InvalidParseOperationException e) {
+            LOGGER.error("VitamClientInternalException: ", e);
+            throw new VitamClientException(e);
         } finally {
             consumeAnyEntityAndClose(response);
         }

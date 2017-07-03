@@ -196,7 +196,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
             itemStatus.getData().put(LogbookParameterName.eventDetailData.name(), eventDetailData);
             try {
                 // TODO : Works for ATR_OK but not for some ATR_KO - need to be fixed
-                new ValidationXsdUtils().checkWithXSD(new FileInputStream(atrFile), XSD_VERSION);
+                ValidationXsdUtils.checkWithXSD(new FileInputStream(atrFile), XSD_VERSION);
             } catch (SAXException e) {
                 if (e.getCause() == null) {
                     LOGGER.error("ATR File is not valid with the XSD", e);
@@ -406,6 +406,12 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
             writeAttributeValue(xmlsw, SedaConstants.TAG_MESSAGE_REQUEST_IDENTIFIER, messageIdentifier);
 
+            if (infoATR.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE) != null &&
+                infoATR.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE).get(SedaConstants.TAG_ARCHIVE_PROFILE) != null) {
+                final String profilId = infoATR.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE).get(SedaConstants.TAG_ARCHIVE_PROFILE).asText();
+                writeAttributeValue(xmlsw, SedaConstants.TAG_ARCHIVE_PROFILE, profilId);
+            }
+
             if (!isBlankTestWorkflow) {
                 writeAttributeValue(xmlsw, SedaConstants.TAG_GRANT_DATE, sdfDate.format(new Date()));
             }
@@ -497,6 +503,12 @@ public class TransferNotificationActionHandler extends ActionHandler {
                     (infoATR.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT) != null)
                         ? infoATR.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT).textValue() : "");
 
+                if (infoATR.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE) != null &&
+                    infoATR.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE).get(SedaConstants.TAG_ARCHIVE_PROFILE) != null) {
+                    final String profilId = infoATR.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE).get(SedaConstants.TAG_ARCHIVE_PROFILE).asText();
+                    writeAttributeValue(xmlsw, SedaConstants.TAG_ARCHIVE_PROFILE, profilId);
+                }
+                
                 xmlsw.writeStartElement(SedaConstants.TAG_CODE_LIST_VERSIONS);
                 if (infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS) != null) {
                     writeAttributeValue(xmlsw, SedaConstants.TAG_REPLY_CODE_LIST_VERSION,
@@ -840,6 +852,13 @@ public class TransferNotificationActionHandler extends ActionHandler {
             if (event.get(LogbookMongoDbName.outcomeDetailMessage.getDbname()) != null) {
                 writeAttributeValue(xmlsw, SedaConstants.TAG_EVENT_OUTCOME_DETAIL_MESSAGE,
                     event.get(LogbookMongoDbName.outcomeDetailMessage.getDbname()).toString());
+            }
+            if (event.get(LogbookMongoDbName.eventDetailData.getDbname()) != null) {
+                final String detailData = event.get(LogbookMongoDbName.eventDetailData.getDbname()).toString();
+                if (detailData.contains(SedaConstants.EV_DET_TECH_DATA)) {
+                    writeAttributeValue(xmlsw, SedaConstants.TAG_EVENT_DETAIL_DATA,
+                        event.get(LogbookMongoDbName.eventDetailData.getDbname()).toString());
+                }
             }
             xmlsw.writeEndElement(); // END SedaConstants.TAG_EVENT
         }

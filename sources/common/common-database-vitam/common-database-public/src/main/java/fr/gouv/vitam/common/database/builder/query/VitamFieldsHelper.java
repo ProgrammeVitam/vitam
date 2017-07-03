@@ -45,12 +45,16 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.NBUNITS;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.OBJECT;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.OPERATIONS;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCIES;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCY;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.QUALIFIERS;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.SIZE;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.STORAGE;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.TENANT;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.TYPE;
-import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.UNITUPS;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.UNITTYPE;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.UNITUPS;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.VERSION;
 
 
 /**
@@ -164,21 +168,21 @@ public class VitamFieldsHelper {
     }
 
     /**
-     * @return #og
+     * @return #object
      */
     public static final String object() {
         return OBJECT.exactToken();
     }
 
     /**
-     * @return #up
+     * @return #unitups
      */
     public static final String unitups() {
         return UNITUPS.exactToken();
     }
 
     /**
-     * @return #up
+     * @return #allunitups
      */
     public static final String allunitups() {
         return ALLUNITUPS.exactToken();
@@ -212,11 +216,39 @@ public class VitamFieldsHelper {
     public static final String operations() {
         return OPERATIONS.exactToken();
     }
-    
+
     /**
      * @return #unittype
      */
     public static final String unitType() {
         return UNITTYPE.exactToken();
+    }
+
+    /**
+     * @return #originating_agency
+     */
+    public static final String originatingAgency() {
+        return ORIGINATING_AGENCY.exactToken();
+    }
+
+    /**
+     * @return #originating_agencies
+     */
+    public static final String originatingAgencies() {
+        return ORIGINATING_AGENCIES.exactToken();
+    }
+
+    /**
+     * @return #version
+     */
+    public static final String version() {
+        return VERSION.exactToken();
+    }
+
+    /**
+     * @return #storage
+     */
+    public static final String storage() {
+        return STORAGE.exactToken();
     }
 }

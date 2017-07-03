@@ -27,6 +27,7 @@
 package fr.gouv.vitam.access.external.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
@@ -38,6 +39,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+
 import java.io.InputStream;
 
 /**
@@ -125,26 +127,28 @@ public interface AdminExternalClient extends BasicClient {
 
     /**
      * Update the given access contract by query dsl
-     * 
+     * @param id the given id of the access contract
      * @param queryDsl the given dsl query
      * @param tenantId
+     * 
      * @return Response status ok or vitam error
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientException
      */
-    RequestResponse updateAccessContract(JsonNode queryDsl, Integer tenantId)
+    RequestResponse updateAccessContract(String id, JsonNode queryDsl, Integer tenantId)
         throws InvalidParseOperationException, AccessExternalClientException;
 
     /**
      * Update the given ingest contract by query dsl
-     * 
+     * @param id the given id of the ingest contract
      * @param queryDsl the given dsl query
      * @param tenantId
+     * 
      * @return Response status ok or vitam error
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientException
      */
-    RequestResponse updateIngestContract(JsonNode queryDsl, Integer tenantId)
+    RequestResponse updateIngestContract(String id, JsonNode queryDsl, Integer tenantId)
         throws InvalidParseOperationException, AccessExternalClientException;
 
 
@@ -190,7 +194,29 @@ public interface AdminExternalClient extends BasicClient {
      * Download the profile file according to profileMetadataId
      * @param tenantId
      * @param profileMetadataId
-     * @return
+     * @return Response
      */
     Response downloadProfileFile(String profileMetadataId, Integer tenantId) throws AccessExternalClientException, AccessExternalNotFoundException;
+
+    /**
+     * import a set of context
+     * 
+     * @param contexts
+     * @param tenantId
+     * @return Vitam response
+     * @throws InvalidParseOperationException
+     * @throws AccessExternalClientServerException
+     */
+    RequestResponse importContexts(InputStream contexts, Integer tenantId) throws InvalidParseOperationException, AccessExternalClientServerException;
+
+    /**
+     * Update the context by query dsl
+     * 
+     * @param id
+     * @param queryDsl
+     * @return Vitam response
+     * @throws AccessExternalClientException
+     * @throws InvalidParseOperationException 
+     */
+    RequestResponse updateContext(String id, JsonNode queryDsl, Integer tenantId) throws AccessExternalClientException, InvalidParseOperationException;
 }

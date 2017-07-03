@@ -45,18 +45,40 @@ import java.util.Map;
  * default results : is an empty list (immutable)
  */
 public final class RequestResponseOK<T> extends RequestResponse<T> {
-    @JsonProperty("$hits")
-    private DatabaseCursor hits = new DatabaseCursor(0, 0, 0);
-    @JsonProperty("$results")
-    private final List<T> results = new ArrayList<T>();
-    @JsonProperty("$context")
-    private JsonNode query = JsonHandler.createObjectNode();
+    
+    /**
+     * result detail in response
+     */
+    private static final String HITS = "$hits";
+
+    /**
+     * result in response
+     */
+    private static final String RESULTS = "$results";
+
+    /**
+     * context in response
+     */
+    public static final String CONTEXT = "$context";
+    
+    @JsonProperty(HITS)
+    private DatabaseCursor hits;
+    @JsonProperty(RESULTS)
+    private final List<T> results;
+    @JsonProperty(CONTEXT)
+    private JsonNode query;
 
     /**
      * Empty RequestResponseOK constructor
      **/
     public RequestResponseOK() {
-        // Empty
+        this(JsonHandler.createObjectNode());
+    }
+
+    public RequestResponseOK(JsonNode query) {
+        this.query = query;
+        hits = new DatabaseCursor(0, 0, 0);
+        results = new ArrayList<T>();
     }
 
     /**
@@ -68,6 +90,10 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
     public RequestResponseOK<T> addResult(T result) {
         ParametersChecker.checkParameter("Result is a mandatory parameter", result);
         results.add(result);
+        hits.setSize(hits.getSize() + 1);
+        hits.setLimit(hits.getLimit() + 1);
+        // TODO: 6/20/17 total should be the global total not the size of the response
+        hits.setTotal(hits.getSize());
         return this;
     }
 
@@ -77,10 +103,13 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
      * @param resultList the list of results
      * @return RequestResponseOK with mutable results list of String
      */
-    @JsonSetter("$results")
     public RequestResponseOK<T> addAllResults(List<T> resultList) {
         ParametersChecker.checkParameter("Result list is a mandatory parameter", resultList);
         results.addAll(resultList);
+        hits.setSize(hits.getSize() + resultList.size());
+        hits.setLimit(hits.getLimit() + resultList.size());
+        // TODO: 6/20/17 total should be the global total not the size of the response
+        hits.setTotal(hits.getSize());
         return this;
     }
 
@@ -96,8 +125,7 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
      * @param hits as DatabaseCursor object
      * @return RequestReponseOK with the hits are setted
      */
-    @JsonSetter("$hits")
-    public RequestResponseOK setHits(DatabaseCursor hits) {
+    public RequestResponseOK<T> setHits(DatabaseCursor hits) {
         if (hits != null) {
             this.hits = hits;
         }
@@ -110,8 +138,7 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
      * @param limit of unit per response as integer
      * @return the RequestReponseOK with the hits are setted
      */
-    @JsonSetter("$hits")
-    public RequestResponseOK setHits(int total, int offset, int limit) {
+    public RequestResponseOK<T> setHits(int total, int offset, int limit) {
         hits = new DatabaseCursor(total, offset, limit, total);
         return this;
     }
@@ -123,7 +150,6 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
      * @param size of unit per response
      * @return the RequestReponseOK with the hits are setted
      */
-    @JsonSetter("$hits")
     public RequestResponseOK<T> setHits(int total, int offset, int limit, int size) {
         hits = new DatabaseCursor(total, offset, limit, size);
         return this;
@@ -132,7 +158,6 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
     /**
      * @return the result of RequestResponse as a list of String
      */
-    @JsonGetter("$results")
     public List<T> getResults() {
         return results;
     }

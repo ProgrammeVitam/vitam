@@ -33,5 +33,6 @@ else
 fi
 
 echo "Deploying VITAM for environment ${VITAM_ENVIRONMENT}..."
-
-ansible-playbook deployment/ansible-vitam/vitam.yml -i deployment/environments/hosts.${VITAM_ENVIRONMENT} --vault-password-file deployment/vault_pass.txt -v
+pushd /code/deployment
+ansible-playbook ansible-vitam/vitam.yml -i environments/hosts.${VITAM_ENVIRONMENT} --vault-password-file vault_pass.txt -v
+popd

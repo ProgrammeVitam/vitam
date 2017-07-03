@@ -26,12 +26,14 @@
  */
 package fr.gouv.vitam.worker.core.plugin;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.gouv.vitam.common.StringUtils;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -47,6 +49,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
@@ -122,6 +125,7 @@ public class StoreMetaDataUnitActionPlugin extends StoreObjectActionHandler {
                 if (unit.size() == 0) {
                     throw new ProcessingException(ARCHIVE_UNIT_NOT_FOUND);
                 }
+                unit = unit.get(0);
                 // transfer json to workspace
                 try {
                     handlerIO.transferJsonToWorkspace(StorageCollectionType.UNITS.getCollectionName(), fileName,
@@ -134,7 +138,25 @@ public class StoreMetaDataUnitActionPlugin extends StoreObjectActionHandler {
                 final ObjectDescription description =
                     new ObjectDescription(StorageCollectionType.UNITS, params.getContainerName(), fileName);
                 // store metadata object from workspace
-                storeObject(description, itemStatus);
+                StoredInfoResult result = storeObject(description, itemStatus);
+                // Update unit with store information
+                if (result != null) {
+                    try {
+                        UpdateMultiQuery queryUpdate = storeStorageInfo((ObjectNode) unit, result, true);
+                        query.addHintFilter(BuilderToken.FILTERARGS.UNITS.exactToken());
+                        metaDataClient.updateUnitbyId(queryUpdate.getFinalUpdate(), guid);
+                        try {
+                            handlerIO.transferJsonToWorkspace(StorageCollectionType.UNITS.getCollectionName(), fileName,
+                                unit, true);
+                        } catch (ProcessingException e) {
+                            LOGGER.error(params.getObjectName(), e);
+                            throw new WorkspaceClientServerException(e);
+                        }
+                    } catch (InvalidCreateOperationException e) {
+                        LOGGER.error(e);
+                    }
+                }
+                
             } catch (MetaDataExecutionException | MetaDataDocumentSizeException |
                 InvalidParseOperationException | MetaDataClientServerException e) {
                 LOGGER.error(e);

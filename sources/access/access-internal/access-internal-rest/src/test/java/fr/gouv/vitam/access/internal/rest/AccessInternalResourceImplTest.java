@@ -29,6 +29,7 @@ package fr.gouv.vitam.access.internal.rest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
+
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -39,6 +40,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.AccessContractModel;
 import fr.gouv.vitam.common.server.application.junit.ResponseHelper;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -46,6 +48,7 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -55,6 +58,7 @@ import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -102,6 +106,8 @@ public class AccessInternalResourceImplTest {
             " }";
 
     private static final String QUERY_SIMPLE_TEST = "{ \"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ] }";
+
+    private static final String EMPTY_QUERY = "{ \"$query\" : \"\", \"$roots\" : []  }";
 
     private static final String DATA =
         "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", " + "\"data\": \"data1\" }";
@@ -210,6 +216,16 @@ public class AccessInternalResourceImplTest {
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
+    @Test
+    public void givenStartedServer_WhenEmptyQuery_ThenReturnError_Forbidden() throws Exception {
+        given()
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.getFromString(EMPTY_QUERY)).when()
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .get(ACCESS_UNITS_URI).then()
+            .statusCode(Status.FORBIDDEN.getStatusCode());
+    }
+
     /**
      *
      * @param data
@@ -301,8 +317,11 @@ public class AccessInternalResourceImplTest {
     @Test
     @RunWithCustomExecutor
     public void given_getUnits_and_getUnitByID_thenReturn_OK() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+    	AccessContractModel contract = new AccessContractModel();
         Set<String> prodServices = new HashSet<String>(Arrays.asList("a", "b"));
-        VitamThreadUtils.getVitamSession().setProdServices(prodServices);
+    	contract.setOriginatingAgencies(prodServices);
+        VitamThreadUtils.getVitamSession().setContract(contract);
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
@@ -411,7 +430,8 @@ public class AccessInternalResourceImplTest {
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .when().get(OBJECTS_URI +
-            OBJECT_ID).then()
+                OBJECT_ID)
+            .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
@@ -531,7 +551,8 @@ public class AccessInternalResourceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(0);
 
         reset(mock);
-        doThrow(new AccessInternalExecutionException("Wanted exception")).when(mock).getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt());
+        doThrow(new AccessInternalExecutionException("Wanted exception")).when(mock)
+            .getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
@@ -548,18 +569,15 @@ public class AccessInternalResourceImplTest {
         headers.put(GlobalDataRest.X_VERSION, 1);
         return headers;
     }
-    
+
     @Test
     @RunWithCustomExecutor
-    public void testGetObjectStream() throws Exception {
+    public void testGetObjectStreamUnauthorized() throws Exception {
         reset(mock);
-          
-        final Response response =
-            ResponseHelper.getOutboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
-                MediaType.APPLICATION_OCTET_STREAM, null);
 
-
-        doAnswer(invocation -> {return null;}).when(mock)
+        doAnswer(invocation -> {
+            return null;
+        }).when(mock)
             .getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)

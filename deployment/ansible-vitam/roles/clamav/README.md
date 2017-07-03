@@ -3,31 +3,12 @@ Role Name
 
 ClamAV installation.
 
-Requirements
-------------
-
-None.
-
-Role Variables
---------------
-
-None.
-
-Dependencies
-------------
-
-None.
-
-Example Playbook
-----------------
-
-
 License
 -------
 
-CeCill 2
+Cecill 2.1
 
-Author Information
-------------------
+Auteur
+------
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+Projet VITAM

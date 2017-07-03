@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.common.utils;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.storage.engine.common.referential.model.HotStrategy;
 
 /**
  * The class DataObjectInfo is stored all information of the DataObjectInfo
@@ -40,6 +41,8 @@ public final class DataObjectInfo {
     private String messageDigest;
     private Long size;
     private DigestType algo;
+
+
 
     /**
      * @return id of the data object
@@ -160,5 +163,4 @@ public final class DataObjectInfo {
         this.rank = rank;
         return this;
     }
-
 }

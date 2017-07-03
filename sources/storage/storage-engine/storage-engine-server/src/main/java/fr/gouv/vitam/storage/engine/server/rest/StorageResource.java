@@ -52,8 +52,6 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.apache.commons.compress.archivers.ArchiveException;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
 
@@ -187,7 +185,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * @param headers http headers
      * @return Response containing the storage information as json, or an error (404, 500)
      */
-    @HEAD
+    @GET
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getStorageInformation(@Context HttpHeaders headers) {
@@ -335,7 +333,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     }
 
     /**
-     * Get an object data Note : this is NOT to be handled in item #72.
+     * Get an object data
      *
      * @param headers http header
      * @param objectId the id of the object
@@ -1087,11 +1085,10 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             resultAsJson.add(guid.toString());
             return Response.status(Status.OK)
                 .entity(new RequestResponseOK<String>()
-                    .setHits(1, 0, 1)
                     .addAllResults(resultAsJson))
                 .build();
 
-        } catch (LogbookClientServerException | ArchiveException | TraceabilityException | IOException |
+        } catch (LogbookClientServerException | TraceabilityException | IOException |
             StorageLogException | LogbookClientAlreadyExistsException | LogbookClientBadRequestException e) {
             LOGGER.error("unable to generate secure  log", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
@@ -1214,7 +1211,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     /**
      * Getter of Storage service
      * 
-     * @return
+     * @return StorageLogbookService
      */
     public StorageLogbookService getStorageLogbookService() {
         return storageLogbookService;

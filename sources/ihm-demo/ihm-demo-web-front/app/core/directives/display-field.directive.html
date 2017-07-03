@@ -15,7 +15,7 @@
             class="width-100">
   </textarea>
 
-  <div ng-if="editMode && fieldObject.isFieldEdit && isDateField(fieldLabel, fieldObject.fieldName)" class="col-md-5 input-group">
+  <div ng-if="editMode && fieldObject.isFieldEdit && isDateField(fieldLabel, fieldObject.fieldName)" class="col-md-10 input-group">
     <input ng-model="fieldObject.currentFieldValue" date-picker=""  type="text" class="form-control input-sm"
     ng-change="interceptUserChange({fieldSet: fieldObject})" ng-init="fieldObject.fieldValue"/>
     <div class="input-group-addon"><i class="material-icons">date_range</i></div>

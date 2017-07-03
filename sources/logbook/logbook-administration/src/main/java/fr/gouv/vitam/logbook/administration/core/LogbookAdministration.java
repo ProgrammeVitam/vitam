@@ -107,9 +107,10 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  */
 public class LogbookAdministration {
 
+    private static final String LOGBOOK = "logbook";
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookAdministration.class);
 
-    private static final String STP_SECURISATION = "LOGBOOK_OP_SECURISATION";
     private static final String TIMESTAMP = "OP_SECURISATION_TIMESTAMP";
     private static final String OP_SECURISATION_STORAGE = "OP_SECURISATION_STORAGE";
     private static final String STP_OP_SECURISATION = "STP_OP_SECURISATION";
@@ -141,11 +142,12 @@ public class LogbookAdministration {
         tmpFolder.mkdir();
     }
 
-    /** Constructor
+    /**
+     * Constructor
      * 
-     * @param logbookOperations logbook operation 
-     * @param timestampGenerator to generate timestamp 
-     * @param workspaceClientFactory to create workspace client 
+     * @param logbookOperations logbook operation
+     * @param timestampGenerator to generate timestamp
+     * @param workspaceClientFactory to create workspace client
      */
     public LogbookAdministration(LogbookOperations logbookOperations, TimestampGenerator timestampGenerator,
         WorkspaceClientFactory workspaceClientFactory) {
@@ -190,7 +192,7 @@ public class LogbookAdministration {
         createLogbookOperationStructure(eip, tenantId);
 
         final File zipFile = new File(tmpFolder, fileName);
-        final String uri = String.format("%s/%s", "logbook", fileName);
+        final String uri = String.format("%s/%s", LOGBOOK, fileName);
         TraceabilityEvent traceabilityEvent;
 
         try (TraceabilityFile traceabilityFile = new TraceabilityFile(zipFile)) {
@@ -309,7 +311,7 @@ public class LogbookAdministration {
 
                 storageClient.storeFileFromWorkspace(
                     STRATEGY_ID, StorageCollectionType.LOGBOOKS, fileName, description);
-                workspaceClient.deleteObject(fileName, uri);
+                workspaceClient.deleteContainer(fileName, true);
 
                 createLogbookOperationEvent(eip, tenantId, OP_SECURISATION_STORAGE, OK, null);
 
@@ -380,6 +382,7 @@ public class LogbookAdministration {
             digest.update(hash);
             final byte[] hashDigest = digest.digest();
 
+            // TODO maybe nonce could be different than null ? If so, think about changing VerifyTimeStampActionHandler
             final byte[] timeStampToken = timestampGenerator.generateToken(hashDigest, digestType, null);
 
             createLogbookOperationEvent(eip, tenantId, TIMESTAMP, OK, null);
@@ -392,17 +395,17 @@ public class LogbookAdministration {
     }
 
     private void createLogbookOperationStructure(GUID eip, Integer tenantId) throws TraceabilityException {
-        try {
-            final LogbookOperationParameters logbookParameters =
-                newLogbookOperationParameters(eip, STP_SECURISATION, eip, TRACEABILITY, STARTED, null, null, eip);
+        final LogbookOperationParameters logbookParameters =
+            newLogbookOperationParameters(eip, STP_OP_SECURISATION, eip, TRACEABILITY, STARTED, null, null, eip);
 
-            LogbookOperationsClientHelper.checkLogbookParameters(logbookParameters);
+        LogbookOperationsClientHelper.checkLogbookParameters(logbookParameters);
+        try {
             logbookOperations.create(logbookParameters);
-            createLogbookOperationEvent(eip, tenantId, STP_OP_SECURISATION, STARTED, null);
-        } catch (LogbookAlreadyExistsException | LogbookDatabaseException e) {
+        } catch (LogbookDatabaseException | LogbookAlreadyExistsException e) {
             LOGGER.error("unable to create traceability logbook", e);
             throw new TraceabilityException(e);
-        }
+        }        
+        
     }
 
     private void createLogbookOperationEvent(GUID parentEventId, Integer tenantId, String eventType,

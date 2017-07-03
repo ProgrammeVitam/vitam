@@ -28,6 +28,8 @@ package fr.gouv.vitam.metadata.rest;
 
 import static fr.gouv.vitam.common.json.JsonHandler.toArrayList;
 
+import java.util.List;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -39,10 +41,12 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.json.JsonHandler;
+import org.bson.Document;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.google.common.collect.Lists;
-
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -56,6 +60,8 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
+import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
@@ -157,9 +163,8 @@ public class MetaDataResource extends ApplicationStatusResource {
                 .build();
         }
         return Response.status(Status.CREATED)
-            .entity(new RequestResponseOK()
-                .setHits(1, 0, 1)
-                .setQuery(insertRequest))
+            .entity(new RequestResponseOK(insertRequest)
+                .setHits(1, 0, 1))
             .build();
     }
 
@@ -185,6 +190,7 @@ public class MetaDataResource extends ApplicationStatusResource {
      */
     private Response selectUnitsByQuery(JsonNode selectRequest) {
         Status status;
+        final JsonNode copy = selectRequest.deepCopy();
         ArrayNode arrayNodeResults;
         try {
             arrayNodeResults = metaDataImpl.selectUnitsByQuery(selectRequest);
@@ -224,16 +230,13 @@ public class MetaDataResource extends ApplicationStatusResource {
                 .build();
         }
 
-        return Response.status(Status.FOUND).entity(new RequestResponseOK()
-            .setHits(arrayNodeResults.size(), 0, 1)
-            .setQuery(selectRequest)
-            .addAllResults(Lists.newArrayList(arrayNodeResults.iterator()))).build();
+        return Response.status(Status.FOUND).entity(new RequestResponseOK(selectRequest)
+            .addAllResults(JsonHandler.toArrayList(arrayNodeResults)).setQuery(copy)).build();
     }
 
     /**
-     *
      * @param selectRequest the select request in JsonNode format
-     * @param unitId the unit id to get
+     * @param unitId        the unit id to get
      * @return {@link Response} will be contains an json filled by unit result
      * @see entity(java.lang.Object, java.lang.annotation.Annotation[])
      * @see #type(javax.ws.rs.core.MediaType)
@@ -250,7 +253,7 @@ public class MetaDataResource extends ApplicationStatusResource {
      * Update unit by query and path parameter unit_id
      *
      * @param updateRequest the update request
-     * @param unitId the id of unit to be update
+     * @param unitId        the id of unit to be update
      * @return {@link Response} will be contains an json filled by unit result
      * @see entity(java.lang.Object, java.lang.annotation.Annotation[])
      * @see type(javax.ws.rs.core.MediaType)
@@ -287,10 +290,8 @@ public class MetaDataResource extends ApplicationStatusResource {
                     .setDescription(status.getReasonPhrase()))
                 .build();
         }
-        return Response.status(Status.FOUND).entity(new RequestResponseOK()
-            .setHits(arrayNodeResults.size(), 0, 1)
-            .setQuery(updateRequest)
-            .addAllResults(Lists.newArrayList(arrayNodeResults.iterator()))).build();
+        return Response.status(Status.FOUND).entity(new RequestResponseOK(updateRequest)
+            .addAllResults(JsonHandler.toArrayList(arrayNodeResults))).build();
     }
 
     /**
@@ -334,10 +335,8 @@ public class MetaDataResource extends ApplicationStatusResource {
                     .setDescription(status.getReasonPhrase()))
                 .build();
         }
-        return Response.status(Status.FOUND).entity(new RequestResponseOK()
-            .setHits(arrayNodeResults.size(), 0, 1)
-            .setQuery(selectRequest)
-            .addAllResults(Lists.newArrayList(arrayNodeResults.iterator()))).build();
+        return Response.status(Status.FOUND).entity(new RequestResponseOK(selectRequest)
+            .addAllResults(JsonHandler.toArrayList(arrayNodeResults))).build();
     }
 
     private Response metadataExecutionExceptionTrace(final MetaDataExecutionException e) {
@@ -355,12 +354,12 @@ public class MetaDataResource extends ApplicationStatusResource {
 
     // OBJECT GROUP RESOURCE. TODO P1 see to externalize it (one resource for units, one resource for object group) to
     // avoid so much lines and complex maintenance
+
     /**
      * Create unit with json request
      *
      * @param insertRequest the insert query
      * @return the Response
-     *
      * @throws InvalidParseOperationException when json data exception occurred
      */
     @Path("objectgroups")
@@ -424,9 +423,8 @@ public class MetaDataResource extends ApplicationStatusResource {
         }
 
         return Response.status(Status.CREATED)
-            .entity(new RequestResponseOK()
-                .setHits(1, 0, 1)
-                .setQuery(insertRequest))
+            .entity(new RequestResponseOK(insertRequest)
+                .setHits(1, 0, 1))
             .build();
     }
 
@@ -460,10 +458,65 @@ public class MetaDataResource extends ApplicationStatusResource {
     }
 
     /**
+     * Get ObjectGroup
+     *
+     * @param updateRequest the query to update the objectgroup
+     * @param objectGroupId the objectGroup ID to get
+     * @return a response with the select query and the required object group (can be empty)
+     */
+    @Path("objectgroups/{id_og}")
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateObjectGroupById(JsonNode updateRequest, @PathParam("id_og") String objectGroupId) {
+        Status status;
+        try {
+            ParametersChecker.checkParameter("UpdateQuery required", updateRequest);
+            ParametersChecker.checkParameter("ObjectGroupId required", objectGroupId);
+        } catch (final IllegalArgumentException exc) {
+            LOGGER.error(exc);
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(Status.PRECONDITION_FAILED).entity(
+                new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext("METADATA")
+                    .setState(CODE_VITAM)
+                    .setMessage(Status.PRECONDITION_FAILED.getReasonPhrase())
+                    .setDescription(Status.PRECONDITION_FAILED.getReasonPhrase()))
+                .build();
+        }
+        try {
+            metaDataImpl.updateObjectGroupId(updateRequest, objectGroupId);
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext("METADATA")
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase()))
+                .build();
+        } catch (MetaDataExecutionException e) {
+            LOGGER.error(e);
+            status = Status.EXPECTATION_FAILED;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext("METADATA")
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase()))
+                .build();
+        }
+        return Response.status(Status.CREATED).entity(new RequestResponseOK().addResult(objectGroupId)).build();
+
+    }
+
+    /**
      * Selects unit by request and unit id
      */
     private Response selectObjectGroupById(JsonNode selectRequest, String objectGroupId) {
         Status status;
+        final JsonNode copy = selectRequest.deepCopy();
         ArrayNode arrayNodeResults;
         try {
             arrayNodeResults = metaDataImpl.selectObjectGroupById(selectRequest, objectGroupId);
@@ -501,10 +554,46 @@ public class MetaDataResource extends ApplicationStatusResource {
                 .build();
         }
 
-        return Response.status(Status.OK).entity(new RequestResponseOK()
-            .setHits(arrayNodeResults.size(), 0, 1)
-            .setQuery(selectRequest)
-            .addAllResults(toArrayList(arrayNodeResults))).build();
+        return Response.status(Status.OK).entity(new RequestResponseOK(selectRequest)
+            .addAllResults(toArrayList(arrayNodeResults)).setQuery(copy)).build();
+    }
+
+    @Path("accession-registers/units/{operationId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @GET
+    public Response selectAccessionRegisterOnUnitByOperationId(@PathParam("operationId") String operationId) {
+        List<Document> documents = metaDataImpl.selectAccessionRegisterOnUnitByOperationId(operationId);
+
+        RequestResponseOK<UnitPerOriginatingAgency> responseOK = new RequestResponseOK<>();
+        responseOK.setHttpCode(200);
+        for (Document doc : documents) {
+            UnitPerOriginatingAgency upoa = new UnitPerOriginatingAgency();
+            upoa.setId(doc.getString("_id"));
+            upoa.setCount(doc.getInteger("count"));
+            responseOK.addResult(upoa);
+        }
+
+        return responseOK.toResponse();
+    }
+
+    @Path("accession-registers/objects/{operationId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @GET
+    public Response selectAccessionRegisterOnObjectGroupByOperationId(@PathParam("operationId") String operationId) {
+        List<Document> documents = metaDataImpl.selectAccessionRegisterOnObjectGroupByOperationId(operationId);
+
+        RequestResponseOK<ObjectGroupPerOriginatingAgency> responseOK = new RequestResponseOK<>();
+        responseOK.setHttpCode(200);
+        for (Document doc : documents) {
+            ObjectGroupPerOriginatingAgency ogpoa = new ObjectGroupPerOriginatingAgency();
+            ogpoa.setOriginatingAgency(doc.getString("_id"));
+            ogpoa.setNumberOfGOT(doc.getInteger("totalGOT"));
+            ogpoa.setNumberOfObject(doc.getInteger("totalObject"));
+            ogpoa.setSize(doc.getInteger("totalSize"));
+            responseOK.addResult(ogpoa);
+        }
+
+        return responseOK.toResponse();
     }
 
 }

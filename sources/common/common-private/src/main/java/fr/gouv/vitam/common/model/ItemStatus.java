@@ -36,9 +36,13 @@ import java.util.Map.Entry;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 
 /**
  * Composite Item Status
@@ -46,11 +50,14 @@ import fr.gouv.vitam.common.ParametersChecker;
 @JsonIgnoreProperties(ignoreUnknown = false)
 public class ItemStatus {
 
+    private static final String EVENT_DETAIL_DATA = "eventDetailData";
     private static final String MANDATORY_PARAMETER = "Mandatory parameter";
     @JsonProperty("itemsStatus")
     private LinkedHashMap<String, ItemStatus> itemsStatus = new LinkedHashMap<>();
     private LinkedHashMap<String, ItemStatus> subTaskStatus = new LinkedHashMap<>();
 
+    @JsonProperty("masterData")
+    protected Map<String, Object> masterData;
     @JsonProperty("itemId")
     protected String itemId;
     @JsonProperty("message")
@@ -63,9 +70,11 @@ public class ItemStatus {
     protected List<Integer> statusMeter;
     @JsonProperty("data")
     protected Map<String, Object> data;
-    @JsonProperty("globalExecutionStatus")
-    protected ProcessExecutionStatus globalExecutionStatus;
+    @JsonProperty("globalState")
+    protected ProcessState globalState;
 
+    @JsonIgnore
+    private String logbookTypeProcess;
 
     /**
      * Empty Constructor
@@ -78,6 +87,7 @@ public class ItemStatus {
 
         globalStatus = StatusCode.UNKNOWN;
         data = new HashMap<>();
+        masterData = new HashMap<>();
     }
 
     /**
@@ -88,14 +98,14 @@ public class ItemStatus {
      * @param data
      * @param itemsStatus
      * @param evDetailData
-     * @param globalExecutionStatus
+     * @param globalState
      */
     public ItemStatus(@JsonProperty("itemId") String itemId, @JsonProperty("message") String message,
         @JsonProperty("globalStatus") StatusCode globalStatus,
         @JsonProperty("statusMeter") List<Integer> statusMeter, @JsonProperty("data") Map<String, Object> data,
         @JsonProperty("itemsStatus") LinkedHashMap<String, ItemStatus> itemsStatus,
         @JsonProperty("evDetailData") String evDetailData,
-        @JsonProperty("globalExecutionStatus") ProcessExecutionStatus globalExecutionStatus) {
+        @JsonProperty("globalState") ProcessState globalState) {
         this.itemsStatus = itemsStatus;
         this.itemId = itemId;
         this.message = message;
@@ -103,7 +113,7 @@ public class ItemStatus {
         this.statusMeter = statusMeter;
         this.data = data;
         this.evDetailData = evDetailData;
-        this.globalExecutionStatus = globalExecutionStatus;
+        this.globalState = globalState;
     }
 
     /**
@@ -248,6 +258,23 @@ public class ItemStatus {
         data.put(key, value);
         return this;
     }
+    
+    /**
+     * @return masterData
+     */
+    public Map<String, Object> getMasterData() {
+        return masterData;
+    }
+
+    /**
+     * @param key
+     * @param value
+     * @return this
+     */
+    public ItemStatus setMasterData(String key, Object value) {
+        masterData.put(key, value);
+        return this;
+    }
 
     /**
      * @return String message
@@ -297,7 +324,7 @@ public class ItemStatus {
         }
 
         if (statusDetails.getData() != null) {
-            data.putAll(statusDetails.getData());
+            computeEvDetData(statusDetails);
         }
 
         return this;
@@ -318,36 +345,46 @@ public class ItemStatus {
             // update itemStatus
             for (final Entry<String, ItemStatus> itemStatus : compositeItemStatus.getItemsStatus()
                 .entrySet()) {
-                if (itemsStatus.containsKey(itemStatus.getKey())) {
-                    itemsStatus.put(itemStatus.getKey(),
-                        increment(itemsStatus.get(itemStatus.getKey()), itemStatus.getValue()));
+                final String key = itemStatus.getKey();
+                final ItemStatus value = itemStatus.getValue();
+                final ItemStatus is = itemsStatus.get(key);
+
+                if (null != is) {
+                    if (value.getGlobalStatus().isGreaterOrEqualToKo()
+                        && null != value.getData()
+                        && value.getData().size() > 0) {
+                        is.getData().putAll(value.getData());
+                    }
+
+                    itemsStatus.put(key, increment(is, value));
                 } else {
                     itemsStatus.put(itemStatus.getKey(), itemStatus.getValue());
                 }
             }
             // update data Map
             if (compositeItemStatus.getData() != null) {
-                data.putAll(compositeItemStatus.getData());
+                computeEvDetData(compositeItemStatus);
             }
         }
         return this;
     }
 
     /**
-     * @return the globalExecutionStatus
+     * Get the global state
+     * @return globalState as type ProcessState
      */
-    public ProcessExecutionStatus getGlobalExecutionStatus() {
-        return globalExecutionStatus;
+    public ProcessState getGlobalState() {
+        return globalState;
     }
 
     /**
-     * @param cancled the globalExecutionStatus to set
+     * @param globalState the golbal state to set
      *
      * @return this
      */
-    public ItemStatus setGlobalExecutionStatus(ProcessExecutionStatus cancled) {
-        ParametersChecker.checkParameter(MANDATORY_PARAMETER, cancled);
-        this.globalExecutionStatus = cancled;
+    public ItemStatus setGlobalState(ProcessState globalState) {
+        ParametersChecker.checkParameter(MANDATORY_PARAMETER, globalState);
+        this.globalState = globalState;
         return this;
     }
 
@@ -403,4 +440,33 @@ public class ItemStatus {
         return this;
     }
 
+    public String getLogbookTypeProcess() {
+        return logbookTypeProcess;
+    }
+
+    public ItemStatus setLogbookTypeProcess(String logbookTypeProcess) {
+        this.logbookTypeProcess = logbookTypeProcess;
+        return this;
+    }
+
+    private void computeEvDetData(ItemStatus statusDetails) {
+        String detailDataString = "";
+        if (statusDetails.getData().containsKey(EVENT_DETAIL_DATA) &&
+            data.containsKey(EVENT_DETAIL_DATA)) {
+            try {
+                ObjectNode subDetailData = (ObjectNode) JsonHandler.getFromString(
+                    (String) statusDetails.getData().get(EVENT_DETAIL_DATA));
+                ObjectNode detailData = (ObjectNode) JsonHandler.getFromString(
+                    (String) data.get(EVENT_DETAIL_DATA));
+                subDetailData.setAll(detailData);
+                detailDataString = JsonHandler.unprettyPrint(subDetailData);
+            } catch (InvalidParseOperationException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
+        }
+        data.putAll(statusDetails.getData());
+        if (!detailDataString.isEmpty()) {
+            data.put(EVENT_DETAIL_DATA, detailDataString);
+        }
+    }
 }

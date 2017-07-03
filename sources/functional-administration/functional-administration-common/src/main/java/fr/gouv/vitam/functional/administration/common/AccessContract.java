@@ -26,19 +26,25 @@
  */
 package fr.gouv.vitam.functional.administration.common;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
+import java.util.Set;
+
 import org.bson.Document;
 
-import java.util.Set;
+import com.fasterxml.jackson.databind.JsonNode;
+
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.model.ContractStatus;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 
 /**
  * Defines an Access contract model for SIP transfer control. </BR>
  * 
  */
 public class AccessContract extends VitamDocument<AccessContract> {
-
+    /**
+     * the contract id
+     */
+    public static final String IDENTIFIER = "Identifier";
     /**
      * the contract name
      */
@@ -118,6 +124,11 @@ public class AccessContract extends VitamDocument<AccessContract> {
      */
     public AccessContract(Integer tenantId) {
         append(TENANT_ID, tenantId);
+    }
+
+    @Override
+    public VitamDocument<AccessContract> newInstance(JsonNode content) {
+        return new AccessContract(content);
     }
 
     /**
@@ -205,7 +216,7 @@ public class AccessContract extends VitamDocument<AccessContract> {
     /**
      * Set the collection of originating agencies
      * @param originatingAgencies
-     * @return
+     * @return this
      */
     public AccessContract setOriginatingAgencies(Set<String> originatingAgencies) {
         append(ORIGINATINGAGENCIES, originatingAgencies);
@@ -275,6 +286,5 @@ public class AccessContract extends VitamDocument<AccessContract> {
         append(DEACTIVATIONDATE, deactivationdate);
         return this;
     }
-
 
 }

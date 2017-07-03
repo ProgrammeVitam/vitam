@@ -17,8 +17,8 @@
                         <input type="hidden" name="hiddenField"/>
                     </form>
                     <div class="form-group col-md-4">
-                        <label>ID</label>
-                        <span>{{profile._id}}</span>
+                        <label>Identifiant</label>
+                        <span>{{profile.Identifier}}</span>
                     </div>
                     <div class="form-group col-md-2">
                         <label>Format</label>
@@ -39,8 +39,8 @@
                     <div class="form-group col-md-3">
                         <label>Statut</label>
                         <label class="switch">
-                            <input type="checkbox" ng-model="tmpVars.isActive" ng-change="updateStatus()">
-                            <div class="slider round"></div>
+                            <input type="checkbox" ng-model="tmpVars.isActive" ng-change="updateStatus()" ng-disabled="checkPermission()">
+                            <div class="slider round" ng-class="{'disabled': checkPermission()}"></div>
                         </label>
                         <span>{{profile.Status | StrReplace}}</span>
                     </div>
@@ -63,7 +63,7 @@
                         <span>{{profile.DeactivationDate | vitamFormatDate}}</span>
                     </div>
 
-                    <div id="boxEntriesSearchForm" class="panel-body">
+                    <div id="boxEntriesSearchForm" class="panel-body" ng-hide="checkPermission()">
                         <div class="col-md-4">
                             <div class="form-group">
                                 <label for="InputFile">Fichier</label>

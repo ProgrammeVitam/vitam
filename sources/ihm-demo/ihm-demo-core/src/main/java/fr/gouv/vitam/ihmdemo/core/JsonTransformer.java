@@ -189,7 +189,6 @@ public final class JsonTransformer {
      * @throws IOException if error when write output stream
      * @throws Exception if error in others cases
      */
-    @SuppressWarnings("unchecked")
     public static ByteArrayOutputStream buildLogbookStatCsvFile(JsonNode logbookOperation)
         throws VitamException, IOException {
 

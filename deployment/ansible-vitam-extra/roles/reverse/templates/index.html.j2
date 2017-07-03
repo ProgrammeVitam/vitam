@@ -108,14 +108,14 @@
 {% if groups['library']|length >0 %}
 					<p class="row" style="vertical-align: middle">
 						<div class="col-md-3">Documentation</div>
-						<div class="col-md-2"><a href="/doc" class="btn btn-primary btn-xs" target="_blank">Documentation</a></div>
+						<div class="col-md-2"><a href="/doc/index.html" class="btn btn-primary btn-xs" target="_blank">Documentation</a></div>
 					</p>
 {% endif %}
 
 {% if groups['hosts-consul-server']|length >0 %}
 					<p class="row" style="vertical-align: middle">
 						<div class="col-md-3">Consul</div>
-						<div class="col-md-2"><a href="/ui" class="btn btn-primary btn-xs" target="_blank">Portail Consul</a></div>
+						<div class="col-md-2"><a href="/ui" class="btn btn-primary btn-xs" target="_blank">Portail Consul</a>&nbsp;<a href="/v1/health/state/any?pretty" class="btn btn-primary btn-xs" target="_blank">Services health</a></div>
 					</p>
 {% endif %}
 
@@ -126,7 +126,7 @@
 					</p>
 {% endif %}
 
-{% if groups['hosts-mongo-express']|length >0 %}
+{% if groups['hosts-dev-tools']|length >0 %}
 					<p class="row" style="vertical-align: middle">
 						<div class="col-md-3">MongoDB</div>
 						<div class="col-md-2"><a href="/mongo-express" class="btn btn-primary btn-xs" target="_blank">Mongo express</a></div>
@@ -137,8 +137,8 @@
 					<p class="row" style="vertical-align: middle">
 						<div class="col-md-3">Elasticsearch logs</div>
 						<div class="col-md-9">
-							<a href="/_plugin/head" class="btn btn-primary btn-xs" target="_blank">Plugin Head</a>
-							<a href="/_plugin/kopf/?location={{vitam_reverse_external_protocol}}://{{vitam_reverse_external_dns}}/elasticsearch-log" class="btn btn-primary btn-xs" target="_blank">Plugin Kopf</a>
+							<a href="/head" class="btn btn-primary btn-xs" target="_blank">Plugin Head</a>
+							<a href="/cerebro/#/overview?host=http://elasticsearch-log.service.consul:{{elasticsearch_log_http_port}}" class="btn btn-primary btn-xs" target="_blank">cerebro</a>
 							<a href="/elasticsearch-log" class="btn btn-primary btn-xs" target="_blank">API</a>
 							<a href="/elasticsearch-log/_cluster/health?pretty" class="btn btn-primary btn-xs" target="_blank">Santé du cluster</a>
 						</div>
@@ -149,8 +149,8 @@
 					<p class="row" style="vertical-align: middle">
 						<div class="col-md-3">Elasticsearch data</div>
 						<div class="col-md-9">
-							<a href="/_plugin/head" class="btn btn-primary btn-xs" target="_blank">Plugin Head</a>
-							<a href="/_plugin/kopf/?location={{vitam_reverse_external_protocol}}://{{vitam_reverse_external_dns}}/elasticsearch-data" class="btn btn-primary btn-xs" target="_blank">Plugin Kopf</a>
+							<a href="/head" class="btn btn-primary btn-xs" target="_blank">Plugin Head</a>
+							<a href="/cerebro/#/overview?host=http://elasticsearch-data.service.consul:{{elasticsearch_data_http_port}}" class="btn btn-primary btn-xs" target="_blank">cerebro</a>
 							<a href="/elasticsearch-data" class="btn btn-primary btn-xs" target="_blank">API</a>
 							<a href="/elasticsearch-data/_cluster/health?pretty" class="btn btn-primary btn-xs" target="_blank">Santé du cluster</a>
 						</div>

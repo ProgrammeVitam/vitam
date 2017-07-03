@@ -1,5 +1,5 @@
 Architecture technique
-###########
+#########################
 
 .. toctree::
    :maxdepth: 2
@@ -11,3 +11,4 @@ Architecture technique
    metadata-core.rst
    metadata-parser.rst
    metadata-rest.rst
+   rest.rst

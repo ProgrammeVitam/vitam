@@ -130,6 +130,8 @@ documentation:
 /objects:
   displayName: Objects
   description: |
+   **DEPRECATED** : ne sera plus supporté en V1.
+
    API qui définit les requêtes pour accéder aux Objets d'archives.
    La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste d'Objets d'archives selon le DSL Vitam en cas de succès.
   get:
@@ -147,16 +149,22 @@ documentation:
   /{ido}:
     displayName: Object
     description: |
+     **DEPRECATED** : ne sera plus supporté en V1.
+
      API qui définit les requêtes pour accéder aux Objets d'archives à partir d'un Objet d'archives donné (racine).
      La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste d'Objets d'archives selon le DSL Vitam en cas de succès.
 
     get:
       description: |
+        **DEPRECATED** : ne sera plus supporté en V1.
+
         Request that will return results composed of Objects (generally 1) (**UNSUPPORTED**).
         **SUPPORTED** 'Accept' header is 'application/json' or  'application/octet-stream', other values are **UNSUPPORTED**.
       is: [AccessTraits.AccessUniqueObjectQualifierResponse, AccessTraits.AccessObjectResponse]
     post:
       description: |
+        **DEPRECATED** : ne sera plus supporté en V1.
+
         Request that will return results composed of Objects (generally 1) (**UNSUPPORTED**).
         **SUPPORTED** 'Accept' header is 'application/json' or  'application/octet-stream', other values are **UNSUPPORTED**.
         The request is using POST with X-Http-Method-Override: GET.
@@ -166,15 +174,19 @@ documentation:
           required: true
     head:
       description: |
+        **DEPRECATED** : ne sera plus supporté en V1.
+
         **UNSUPPORTED** Test the existence of this Object
       is: [AccessTraits.AccessUniqueObjectQualifierHeadResponse, StandardTraits.StandardHeadHeader,
       StandardTraits.StandardHeader204,
       StandardTraits.StandardHeader417]
 
 
-/accession-register:
+/accession-registers:
   displayName: AccessionRegisters
   description: |
+   **DEPRECATED** : ne sera plus supporté en V1 car déplacé dans functional-administration.
+
    **ALPHA version** API qui définit les requêtes pour accéder au Registre des Fonds.
    La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste de registres selon le DSL Vitam en cas de succès.
   get:
@@ -192,6 +204,8 @@ documentation:
   /{idu}:
     displayName: AccessionRegister
     description: |
+     **DEPRECATED** : ne sera plus supporté en V1 car déplacé dans functional-administration.
+
      **UNSUPPORTED** API qui définit les requêtes pour accéder à 1 Résumé d'un Fond dans le Registre des Fonds.
     get:
       description: |
@@ -208,6 +222,8 @@ documentation:
     /accession-register-detail:
       displayName: AccessionRegisterDetail
       description: |
+       **DEPRECATED** : ne sera plus supporté en V1 car déplacé dans functional-administration.
+
        **ALPHA version** API qui définit les requêtes pour accéder au détail d'un Fond dans le Registre des Fonds.
       get:
         description: Request that will return result composed of 1 AccessionRegisterDetail

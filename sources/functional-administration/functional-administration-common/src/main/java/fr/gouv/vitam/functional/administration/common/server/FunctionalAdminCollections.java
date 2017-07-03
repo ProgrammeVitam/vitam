@@ -73,15 +73,26 @@ public enum FunctionalAdminCollections {
     ACCESS_CONTRACT(AccessContract.class),
 
     /**
+     * Access contract collection
+     *
+     */
+    VITAM_SEQUENCE(VitamSequence.class),
+
+    /**
      * Profile collection
      */
-    PROFILE(Profile.class)
+    PROFILE(Profile.class),
+    
+    /**
+     * Context collection
+     */
+    CONTEXT(Context.class)
     ;
 
     private VitamCollection vitamCollection;
 
     private FunctionalAdminCollections(final Class<?> clasz) {
-        if (clasz.equals(FileFormat.class)) {
+        if (clasz.equals(FileFormat.class) || clasz.equals(Context.class)) {
             vitamCollection = VitamCollectionHelper.getCollectionWithoutTenant(clasz);
         } else {
             vitamCollection = VitamCollectionHelper.getCollectionMultiTenant(clasz);
@@ -101,8 +112,7 @@ public enum FunctionalAdminCollections {
     /**
      * Initialize the collection
      *
-     * @param db database type
-     * @param recreate true is as recreate type
+     * @param esClient
      */
     protected void initialize(final ElasticsearchAccessFunctionalAdmin esClient) {
         vitamCollection.initialize(esClient);
@@ -147,7 +157,7 @@ public enum FunctionalAdminCollections {
     public long getCount() {
         return vitamCollection.getCollection().count();
     }
-    
+
     
     /**
      * get ElasticSearch Client

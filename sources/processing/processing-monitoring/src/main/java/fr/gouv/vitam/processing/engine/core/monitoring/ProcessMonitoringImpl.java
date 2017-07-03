@@ -26,18 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.engine.core.monitoring;
 
-import java.util.List;
-import java.util.Map;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
-import fr.gouv.vitam.common.model.ProcessExecutionStatus;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.exception.StepsNotFoundException;
-import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
+
+import java.util.List;
 
 /**
  * ProcessMonitoringImpl class implementing the ProcessMonitoring
@@ -65,41 +59,16 @@ public class ProcessMonitoringImpl implements ProcessMonitoring {
         return INSTANCE;
     }
 
-    @Override
-    public Map<String, ProcessStep> getProcessSteps(String operationId, Integer tenantId)
-        throws StepsNotFoundException, WorkflowNotFoundException {
-
-        ProcessWorkflow processWorkflow = processDataAccess.getProcessWorkflow(operationId, tenantId);
-        Map<String, ProcessStep> orderedSteps = processWorkflow.getOrderedProcessStep();
-        if (orderedSteps == null || orderedSteps.isEmpty()) {
-            throw new StepsNotFoundException(STEP_DOES_NOT_EXIST);
-        }
-        return orderedSteps;
-    }
-
 
     @Override
-    public StatusCode getProcessWorkflowStatus(String operationId, Integer tenantId) throws ProcessingException {
-        return processDataAccess.getProcessWorkflow(operationId, tenantId).getGlobalStatusCode();
-    }
-
-
-    @Override
-    public ProcessWorkflow getProcessWorkflow(String operationId, Integer tenantId) throws WorkflowNotFoundException {
+    public ProcessWorkflow findOneProcessWorkflow(String operationId, Integer tenantId) throws WorkflowNotFoundException {
         ParametersChecker.checkParameter("operationId cannot be null", operationId);
-        return processDataAccess.getProcessWorkflow(operationId, tenantId);
+        return processDataAccess.findOneProcessWorkflow(operationId, tenantId);
     }
 
 
     @Override
-    public ProcessExecutionStatus getProcessExecutionStatus(String operationId, Integer tenantId)
-        throws WorkflowNotFoundException {
-        return processDataAccess.getProcessExecutionStatus(operationId, tenantId);
-    }
-
-
-    @Override
-    public List<ProcessWorkflow> getAllProcessWorkflow(Integer tenantId) {
-        return processDataAccess.getAllWorkflowProcess(tenantId);
+    public List<ProcessWorkflow> findAllProcessWorkflow(Integer tenantId) {
+        return processDataAccess.findAllProcessWorkflow(tenantId);
     }
 }

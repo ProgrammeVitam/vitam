@@ -4,7 +4,7 @@
 vitam
 reverse
 library
-hosts-mongo-express
+hosts-dev-tools
 
 ########### Tests environments specifics ###########
 
@@ -14,7 +14,7 @@ hosts-mongo-express
 
 [library] # EXTRA : Library server
 
-[hosts-mongo-express]
+[hosts-dev-tools]
 
 [elasticsearch:children] # EXTRA : elasticsearch
 hosts-elasticsearch-data
@@ -38,9 +38,14 @@ localhost
 
 [zone-external:children]
 hosts-ihm-demo
+hosts-cerebro
 
 [hosts-ihm-demo]
 localhost
+
+[hosts-cerebro]
+localhost
+
 
 ##### Zone access
 
@@ -166,7 +171,7 @@ days_to_delete=3
 days_to_close=2
 days_to_delete_topbeat=3
 days_to_delete_local=2
-dns_servers=["10.100.211.222","8.8.8.8"]
+dns_servers=["10.100.211.222", "8.8.8.8"]
 
 memory_opts="-Xms32m -Xmx256m"
 
@@ -192,3 +197,4 @@ vitam_tests_branch=master
 
 # Trust X-SSL-CLIENT-CERT header for external api auth ? (true | false)
 vitam_ssl_user_header=true
+

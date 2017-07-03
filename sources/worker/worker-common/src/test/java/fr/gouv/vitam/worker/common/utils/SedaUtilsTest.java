@@ -38,6 +38,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -62,9 +63,11 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -119,7 +122,7 @@ public class SedaUtilsTest {
         when(workspaceClient.getObject(Matchers.anyObject(), Matchers.anyObject()))
             .thenReturn(Response.status(Status.OK).entity(seda).build());
         when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(seda);
-        assertTrue(CheckSedaValidationStatus.VALID.equals(utils.checkSedaValidation(params)));
+        assertTrue(CheckSedaValidationStatus.VALID.equals(utils.checkSedaValidation(params, new ItemStatus())));
     }
 
     // TODO P1 : WARN sometimes bug on jenkins
@@ -130,7 +133,7 @@ public class SedaUtilsTest {
         when(workspaceClient.getObject(Matchers.anyObject(), Matchers.anyString()))
             .thenReturn(Response.status(Status.OK).entity(is).build());
         when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(is);
-        final CheckSedaValidationStatus status = utils.checkSedaValidation(params);
+        final CheckSedaValidationStatus status = utils.checkSedaValidation(params, new ItemStatus());
         assertTrue(CheckSedaValidationStatus.NOT_XML_FILE.equals(status));
     }
 
@@ -142,7 +145,7 @@ public class SedaUtilsTest {
         when(workspaceClient.getObject(Matchers.anyObject(), Matchers.anyObject()))
             .thenReturn(Response.status(Status.OK).entity(is).build());
         when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(is);
-        final CheckSedaValidationStatus status = utils.checkSedaValidation(params);
+        final CheckSedaValidationStatus status = utils.checkSedaValidation(params, new ItemStatus());
         assertTrue(CheckSedaValidationStatus.NOT_XSD_VALID.equals(status));
     }
 
@@ -152,7 +155,7 @@ public class SedaUtilsTest {
             .thenThrow(new ContentAddressableStorageNotFoundException(""));
         when(handlerIO.getInputStreamFromWorkspace(anyObject()))
             .thenThrow(new ContentAddressableStorageNotFoundException(""));
-        final CheckSedaValidationStatus status = utils.checkSedaValidation(params);
+        final CheckSedaValidationStatus status = utils.checkSedaValidation(params, new ItemStatus());
         assertTrue(CheckSedaValidationStatus.NO_FILE.equals(status));
     }
 
@@ -161,7 +164,7 @@ public class SedaUtilsTest {
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(seda).build());
         when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(seda);
-        assertEquals(2, utils.getMandatoryValues(params).size());
+        assertEquals(3, utils.getMandatoryValues(params).size());
     }
 
     @Test
@@ -255,18 +258,18 @@ public class SedaUtilsTest {
         listUri.add(new URI("manifest.xml"));
         listUri.add(new URI("manifest2.xml"));
         when(handlerIO.getUriList(anyObject(), anyObject())).thenReturn(listUri);
-        final CheckSedaValidationStatus status = utils.checkSedaValidation(params);
+        final CheckSedaValidationStatus status = utils.checkSedaValidation(params, new ItemStatus());
         assertTrue(CheckSedaValidationStatus.MORE_THAN_ONE_MANIFEST.equals(status));
     }
 
     @Test
     public void givenSIPWithTwoFolderThenReturnKOMultiFolderContent() throws Exception {
         List<URI> listUri = new ArrayList<URI>();
-        listUri.add(new URI("content/file.pdf"));
-        listUri.add(new URI("content2/file2.pdf"));
+        listUri.add(new URI(URLEncoder.encode("content/file.pdf", CharsetUtils.UTF_8)));
+        listUri.add(new URI(URLEncoder.encode("content2/file2.pdf", CharsetUtils.UTF_8)));
         listUri.add(new URI("manifest.xml"));
         when(handlerIO.getUriList(anyObject(), anyObject())).thenReturn(listUri);
-        final CheckSedaValidationStatus status = utils.checkSedaValidation(params);
+        final CheckSedaValidationStatus status = utils.checkSedaValidation(params, new ItemStatus());
         assertTrue(CheckSedaValidationStatus.MORE_THAN_ONE_FOLDER_CONTENT.equals(status));
     }
 

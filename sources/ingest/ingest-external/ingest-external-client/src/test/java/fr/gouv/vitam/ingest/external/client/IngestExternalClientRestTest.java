@@ -26,40 +26,51 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.client;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.io.InputStream;
 
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLStreamException;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.common.exception.VitamClientInternalException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.ProcessExecutionStatus;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.client.IngestCollection;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessState;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
+import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientNotFoundException;
+import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientServerException;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 
 @SuppressWarnings("rawtypes")
@@ -144,7 +155,7 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
         @Path("ingests")
         @Consumes(MediaType.APPLICATION_OCTET_STREAM)
         public Response upload(InputStream stream) {
-            Response resp =  expectedResponse.post();
+            Response resp = expectedResponse.post();
             return resp;
         }
 
@@ -160,7 +171,7 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
         @Produces(MediaType.APPLICATION_JSON)
         public Response getWorkFlowStatus(@PathParam("id") String id, JsonNode query) {
             ItemStatus pwok = new ItemStatus();
-            return Response.accepted().entity(pwok.setGlobalExecutionStatus(ProcessExecutionStatus.CANCELLED)).build();
+            return Response.accepted().entity(pwok.setGlobalState(ProcessState.COMPLETED)).build();
         }
 
         @Path("/operations/{id}")
@@ -182,7 +193,8 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
         objectNode.put(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID);
 
 
-        when(mock.post()).thenReturn(Response.accepted().header(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID).build());
+        when(mock.post())
+            .thenReturn(Response.accepted().header(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID).build());
 
 
         final InputStream streamToUpload = IOUtils.toInputStream(MOCK_INPUTSTREAM_CONTENT);
@@ -191,9 +203,18 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
         assertEquals(resp.getHttpCode(), Status.ACCEPTED.getStatusCode());
     }
 
+    @Test(expected = IngestExternalClientNotFoundException.class)
+    public void givenNotFoundWhenDownloadObjectThenReturnKO()
+        throws IngestExternalException, XMLStreamException, IOException, IngestExternalClientServerException,
+        IngestExternalClientNotFoundException, InvalidParseOperationException {
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND.getStatusCode()).build());
+        client.downloadObjectAsync("1", IngestCollection.MANIFESTS, TENANT_ID).readEntity(InputStream.class);
+    }
+
     @Test
     public void givenInputstreamWhenDownloadObjectThenReturnOK()
-        throws IngestExternalException, XMLStreamException, IOException {
+        throws IngestExternalException, XMLStreamException, IOException, IngestExternalClientServerException,
+        IngestExternalClientNotFoundException, InvalidParseOperationException {
 
         when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
 
@@ -214,10 +235,14 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
     public void givenHeadOperationStatusThenOK()
         throws Exception {
 
-        when(mock.head()).thenReturn(Response.status(Status.OK).build());
-        RequestResponse<JsonNode> resp = client.getOperationStatus(ID, 0);
+        when(mock.head()).thenReturn(
+            Response.status(Status.OK)
+                .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED)
+                .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.OK)
+                .header(GlobalDataRest.X_CONTEXT_ID, "Fake").build());
+        ItemStatus resp = client.getOperationProcessStatus(ID, 0);
 
-        assertEquals(resp.getHttpCode(), Status.OK.getStatusCode());
+        assertEquals(resp.getGlobalStatus().getEquivalentHttpStatus(), Status.OK);
 
     }
 

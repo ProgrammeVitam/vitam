@@ -19,7 +19,8 @@ angular.module('archive.unit')
     'Status': 'Etat de l\'objet',
     'Version': 'Version',
     'Tag': 'Mot-clés',
-    'Keyword.KeywordContent': 'Valeur du mot clé',
+    'Keyword.KeywordContent': 'Valeur du mot-clé',
+    'Keyword.KeywordType': 'Type de mot-clé',
     'Coverage.Spatial': 'Couverture geographique',
     'Coverage.Temporal': 'Couverture temporelle',
     'Coverage.Juridictional': 'Couverture administrative',
@@ -39,6 +40,8 @@ angular.module('archive.unit')
     'TransactedDate': 'Date de transaction',
     'AcquiredDate': 'Date de numérisation',
     'SentDate': 'Date d\'envoi',
+    '#originating_agency': 'Service producteur de l\'entrée',
+    '#originating_agencies': 'Service ayant des droits  sur l\'unité',
     'ReceivedDate': 'Date de reception',
     'RegisteredDate': 'Date d\'enregistrement',
     'StartDate': 'Date de début',
@@ -59,7 +62,9 @@ angular.module('archive.unit')
     'ClassificationRule.FinalAction': 'Action finale',
     'ClassificationRule.ClassificationLevel': 'Niveau de classification',
     'ClassificationRule.ClassificationOwner': 'Émetteur de la classification',
-    '#mgt.NeedAuthorization': 'Autorisation requise'
+    '#mgt.NeedAuthorization': 'Autorisation requise',
+    'Titles.default': 'Titre',
+    'Descriptions.default': 'Description'
   })
   .constant('ARCHIVE_UNIT_MODULE_OG_FIELD_LABEL', {
     '_id': 'Identifiant',
@@ -80,5 +85,8 @@ angular.module('archive.unit')
     'FileInfo.CreatingOsVersion': 'Version du système d\'exploitation utilisé pour créer le fichier',
     'FileInfo.LastModified': 'Date de dernière modification',
     'FormatIdentification.Encoding': 'Encodage',
-    'Metadata.Text':'Texte'
+    'Metadata.Text':'Texte',
+    '_storage._nbc': 'Nombre de copies',
+    '_storage.offerIds': 'offre de stockage',
+    '_storage.strategyId': 'Stratégie de stockage'
   });

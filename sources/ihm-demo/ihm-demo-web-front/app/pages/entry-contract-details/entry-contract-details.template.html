@@ -17,8 +17,8 @@
                         <input type="hidden" name="hiddenField"/>
                     </form>
                     <div class="form-group col-md-6">
-                        <label>ID</label>
-                        <span>{{contract._id}}</span>
+                        <label>Identifiant</label>
+                        <span>{{contract.Identifier}}</span>
                     </div>
                     <div class="form-group col-md-3">
                         <label>Date de création</label>
@@ -35,8 +35,8 @@
                     <div class="form-group col-md-6">
                         <label>Statut</label>
                         <label class="switch">
-                            <input type="checkbox" ng-model="tmpVars.isActive" ng-change="updateStatus()">
-                            <div class="slider round"></div>
+                            <input type="checkbox" ng-model="tmpVars.isActive" ng-change="updateStatus()" ng-disabled="checkPermission()">
+                            <div class="slider round" ng-class="{'disabled': checkPermission()}"></div>
                         </label>
                         <span>{{contract.Status | StrReplace}}</span>
                     </div>
@@ -59,7 +59,7 @@
                         <span>{{contract.ArchiveProfiles}}</span>
                     </div>
 
-                    <button class="btn btn-primary center-block" ng-click="saveModifs()">
+                    <button class="btn btn-primary center-block" ng-click="saveModifs()" ng-hide="checkPermission()">
                         <i class="material-icons pull-left">save</i>
                         <span>Enregistrer</span>
                     </button>

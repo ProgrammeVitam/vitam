@@ -9,6 +9,7 @@ ROOT_URL="{{ mongoclient_root_url }}"
 # Port the application will listen on
 # example: PORT='3000'
 PORT="{{ mongoclient_port }}"
+BIND_IP="{{ip_service}}"
 {% if mongoclient_mail_url is defined %}
 
 # SMTP URL for email configuration.

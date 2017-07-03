@@ -27,15 +27,18 @@
 package fr.gouv.vitam.common.database.builder.query.action;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
  * Set Action: $set : { name : value, name : value, ... }
@@ -62,6 +65,21 @@ public class SetAction extends Action {
      * @throws InvalidCreateOperationException when query is invalid
      */
     public SetAction(final String variableName, final String value)
+        throws InvalidCreateOperationException {
+        super();
+        createActionVariableValue(UPDATEACTION.SET, variableName, value);
+        currentUPDATEACTION = UPDATEACTION.SET;
+        setReady(true);
+    }
+    
+    /**
+     * Set Action constructor
+     *
+     * @param variableName key name
+     * @param value key value as a list of values
+     * @throws InvalidCreateOperationException when query is invalid
+     */
+    public SetAction(final String variableName, final List<?> value)
         throws InvalidCreateOperationException {
         super();
         createActionVariableValue(UPDATEACTION.SET, variableName, value);
@@ -303,6 +321,41 @@ public class SetAction extends Action {
             throw new InvalidCreateOperationException(e);
         }
         ((ObjectNode) currentObject).set(variableName, GlobalDatas.getDate(value));
+        return this;
+    }
+    /**
+     * Add other Set sub actions to Set Query
+     *
+     * @param variableName key name
+     * @param values values as list
+     * @return the SetAction
+     * @throws InvalidCreateOperationException when query is invalid
+     */
+    public final SetAction add(final String variableName, final List<?> values)
+        throws InvalidCreateOperationException {
+        if (currentUPDATEACTION != UPDATEACTION.SET) {
+            throw new InvalidCreateOperationException(
+                CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_SET_ACTION + currentUPDATEACTION);
+        }
+        if (variableName == null || variableName.trim().isEmpty()) {
+            throw new InvalidCreateOperationException(
+                ACTION + currentUPDATEACTION + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
+        }
+        if (values == null) {
+            throw new InvalidCreateOperationException(
+                ACTION + currentUPDATEACTION + " cannot update with null list");
+        }
+        try {
+            GlobalDatas.sanityParameterCheck(variableName);
+            if (! values.isEmpty()) {
+                GlobalDatas.sanityValueCheck(values);
+            }
+        } catch (final InvalidParseOperationException e) {
+            throw new InvalidCreateOperationException(e);
+        }
+        ArrayNode array = JsonHandler.createArrayNode();
+        GlobalDatas.setArrayValueFromList(array, values);
+        ((ObjectNode) currentObject).set(variableName.trim(), array);
         return this;
     }
 }

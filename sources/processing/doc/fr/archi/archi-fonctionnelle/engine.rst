@@ -6,14 +6,14 @@ But de cette documentation
 L'objectif de cette documentation est d'expliquer l'architecture fonctionnelle de ce module.
 
 
-Ce service permet de lancer le workflow avec les paramètres d'entrée. Il traite en 
-Le processus réalise par plusieurs étapes, 
+Ce service permet d'exécuter une étape d'un processus. Il est complètement piloté par une machine à état.
 
-Pour chaque étape 
+Il peut faire ce qui suit:
 
-- Il exécute une opération  (unzip d'un document, indexer d'un document, sauvegarde d'un document ...) 
-- Il retourne une réponse qui contient d'un status de traitement (OK, KO, FATAL) avec une message descriptif
-- Si il retourne pas le OK, une exception de traitement sera déclanché 
+- Exécuter une étape d'un processus
 
-
+    - Initialiser le logbbok,
+    - Appeler le distributeur pour exécuter l'étape  (unzip d'un document, indexer d'un document, sauvegarde d'un document ...)
+    - Finaliser le logbook concernant l'étape.
+    - notifier la machine à état sur le résultat de l'exécution de l'étape.
 

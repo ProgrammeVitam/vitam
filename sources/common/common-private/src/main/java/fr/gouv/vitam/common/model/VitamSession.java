@@ -60,9 +60,7 @@ public class VitamSession {
     private String requestId = null;
     private Integer tenantId = null;
     private String contractId = null;
-    private Set<String> usages = new HashSet<>();
-    private Set<String> prodServices = new HashSet<>();
-    private boolean writingPermission;
+    private AccessContractModel contract = null;
 
     /**
      * @param owningThread the owning thread
@@ -82,8 +80,7 @@ public class VitamSession {
         newSession.requestId = origin.getRequestId();
         newSession.tenantId = origin.getTenantId();
         newSession.contractId = origin.getContractId();
-        newSession.usages = origin.getUsages();
-        newSession.prodServices = origin.getProdServices();
+        newSession.contract = origin.getContract();
         return newSession;
     }
 
@@ -165,53 +162,23 @@ public class VitamSession {
         this.contractId = contractId;
     }
     
-    /**
-     * @return usages
-     */
-    public Set<String> getUsages() {
-        return usages;
-    }
+	/**
+	 *
+	 *
+	 * @return AccessContractModel
+	 */
+	public AccessContractModel getContract() {
+		return contract;
+	}
 
-    /**
-     * @return prodSerivces
-     */
-    public Set<String> getProdServices() {
-        return prodServices;
-    }
-    
-    /**
-     * @param usages
-     * @return VitamSession
-     */
-    public VitamSession setUsages(Set<String> usages) {
-        this.usages = usages;
-        return this;
-    }
-    
-    /**
-     * @return writingPermission
-     */
-    public boolean isWritingPermission() {
-        return writingPermission;
-    }
+	/**
+	 * @param contract
+	 */
+	public void setContract(AccessContractModel contract) {
+		this.contract = contract;
+	}
 
-    /**
-     * @param writingPermission
-     */
-    public void setWritingPermission(boolean writingPermission) {
-        this.writingPermission = writingPermission;
-    }
-
-    /**
-     * @param prodSerivces
-     * @return VitamSession
-     */
-    public VitamSession setProdServices(Set<String> prodServices) {
-        this.prodServices = prodServices;
-        return this;
-    }
-    
-    /**
+	/**
      * Get the content of a given VitamSession and copy its internal values to the current instance
      *
      * @param newSession Source session
@@ -224,7 +191,7 @@ public class VitamSession {
         setRequestId(newSession.getRequestId());
         setTenantId(newSession.getTenantId());
         setContractId(newSession.getContractId());
-        setUsages(newSession.getUsages());
+        setContract(newSession.getContract());
     }
 
     /**
@@ -246,7 +213,7 @@ public class VitamSession {
 
     @Override
     public String toString() {
-        return Integer.toHexString(hashCode()) + "{requestId='" + requestId + "', tenantId:'" + tenantId + "'}";
+        return Integer.toHexString(hashCode()) + "{requestId='" + requestId + "', tenantId:'" + tenantId + "', contractId:'" + contractId + "'}";
     }
 
 

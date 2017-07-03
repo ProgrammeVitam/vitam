@@ -31,6 +31,7 @@ import static com.mongodb.client.model.Filters.eq;
 import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.getConcernedDiffLines;
 import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.getUnifiedDiff;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -57,11 +58,15 @@ import org.elasticsearch.search.sort.SortBuilder;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.IntNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.DBObject;
 import com.mongodb.MongoException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.FindOneAndReplaceOptions;
+import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 
@@ -118,6 +123,12 @@ public class DbRequestSingle {
      * @throws InvalidParseOperationException
      * @throws DatabaseException
      * @throws InvalidCreateOperationException
+     * @throws SecurityException 
+     * @throws NoSuchMethodException 
+     * @throws InvocationTargetException 
+     * @throws IllegalArgumentException 
+     * @throws IllegalAccessException 
+     * @throws InstantiationException 
      */
     public DbRequestResult execute(RequestSingle request)
         throws InvalidParseOperationException, DatabaseException, InvalidCreateOperationException {
@@ -146,7 +157,9 @@ public class DbRequestSingle {
         throws InvalidParseOperationException, DatabaseException {
         final List<VitamDocument<?>> vitamDocumentList = new ArrayList<VitamDocument<?>>();
         for (final JsonNode objNode : arrayNode) {
+            // TODO : How to add _v in all VitamDocuments make by JsonHandler ?
             VitamDocument<?> obj = (VitamDocument<?>) JsonHandler.getFromJsonNode(objNode, vitamCollection.getClasz());
+            obj.append(VitamDocument.VERSION, 0);
             vitamDocumentList.add(obj);
         }
         MongoCollection<VitamDocument<?>> collection =
@@ -356,8 +369,7 @@ public class DbRequestSingle {
         throws InvalidParseOperationException, DatabaseException, InvalidCreateOperationException {
         final UpdateParserSingle parser = new UpdateParserSingle(new VarNameAdapter());
         parser.parse(request);
-        final UpdateToMongodb requestToMongodb = new UpdateToMongodb(parser);
-
+        
         Select selectQuery = new Select();
         selectQuery.setQuery(parser.getRequest().getQuery());
         MongoCursor<VitamDocument<?>> searchResult = search(selectQuery.getFinalSelect());
@@ -376,14 +388,34 @@ public class DbRequestSingle {
         List<VitamDocument<?>> listUpdatedDocuments = new ArrayList<VitamDocument<?>>();
         for (VitamDocument<?> document : listDocuments) {
             final String documentId = document.getId();
+            final Integer documentVersion = document.getVersion();
             final String documentBeforeUpdate = JsonHandler.prettyPrint(document);
-            Bson condition = eq(VitamDocument.ID, documentId);
-            UpdateResult updateResult = updateMongoDb(condition, requestToMongodb.getFinalUpdateActions(), false);
-            if (updateResult.getModifiedCount() < 1) {
+
+            VitamDocument<?> updatedDocument = null;
+            int nbTry = 0;
+
+            while(updatedDocument == null && nbTry < 3) {
+                nbTry++;
+                JsonNode jsonDocument = JsonHandler.toJsonNode(document);
+                MongoDbInMemory mongoInMemory = new MongoDbInMemory(jsonDocument);
+                ObjectNode updatedJsonDocument = (ObjectNode)mongoInMemory.getUpdateJson(request, false);
+
+                updatedJsonDocument.set(VitamDocument.VERSION, new IntNode(documentVersion+1));
+
+                MongoCollection collection = vitamCollection.getCollection();
+                Bson condition = and(eq(VitamDocument.ID, documentId), eq(VitamDocument.VERSION, documentVersion));
+
+                FindOneAndReplaceOptions options = new FindOneAndReplaceOptions();
+                options.returnDocument(ReturnDocument.AFTER);
+
+                updatedDocument = (VitamDocument)collection.findOneAndReplace(condition,
+                    document.newInstance(updatedJsonDocument), options);
+            }
+
+            if (updatedDocument == null) {
+                // Throw Error after 3 try
                 throw new DatabaseException("Can not modify Document");
             }
-            VitamDocument<?> updatedDocument =
-                (VitamDocument<?>) vitamCollection.getCollection().find(condition, vitamCollection.getClasz()).first();
             listUpdatedDocuments.add(updatedDocument);
             final String documentAfterUpdate = JsonHandler.prettyPrint(updatedDocument);
             diffs.put(documentId,

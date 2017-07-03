@@ -1,6 +1,7 @@
 package fr.gouv.vitam.access.external.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
@@ -10,11 +11,13 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.stream.StreamUtils;
+
 import org.apache.commons.io.IOUtils;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+
 import java.io.InputStream;
 
 /**
@@ -76,13 +79,13 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     }
 
     @Override
-    public RequestResponse updateAccessContract(JsonNode queryDsl, Integer tenantId)
+    public RequestResponse updateAccessContract(String id, JsonNode queryDsl, Integer tenantId)
         throws InvalidParseOperationException, AccessExternalClientException {
         return ClientMockResultHelper.createReponse(ClientMockResultHelper.getAccessContracts().toJsonNode());
     }
 
     @Override
-    public RequestResponse updateIngestContract(JsonNode queryDsl, Integer tenantId)
+    public RequestResponse updateIngestContract(String id, JsonNode queryDsl, Integer tenantId)
         throws InvalidParseOperationException, AccessExternalClientException {
         return ClientMockResultHelper.createReponse(ClientMockResultHelper.getIngestContracts().toJsonNode());
     }
@@ -103,6 +106,18 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     public Response downloadProfileFile(String profileMetadataId, Integer tenantId) throws AccessExternalClientException {
         return new AbstractMockClient.FakeInboundResponse(Status.OK, IOUtils.toInputStream("Vitam Test"),
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+    }
+
+    @Override
+    public RequestResponse importContexts(InputStream contexts, Integer tenantId) 
+        throws InvalidParseOperationException {
+        return ClientMockResultHelper.createReponse(ClientMockResultHelper.getContexts(Status.CREATED.getStatusCode()).toJsonNode()).setHttpCode(Status.CREATED.getStatusCode());
+    }
+
+    @Override
+    public RequestResponse updateContext(String id, JsonNode queryDsl, Integer tenantId)
+        throws AccessExternalClientException, InvalidParseOperationException {
+        return ClientMockResultHelper.createReponse(ClientMockResultHelper.getContexts(Status.CREATED.getStatusCode()).toJsonNode()).setHttpCode(Status.CREATED.getStatusCode());
     }
 
 }

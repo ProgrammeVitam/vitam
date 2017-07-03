@@ -50,7 +50,7 @@ public class AccessInternalClientFactory extends VitamClientFactory<AccessIntern
     private static final String RESOURCE_PATH = "/access-internal/v1";
 
     private AccessInternalClientFactory() {
-        super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH, true, false, false);
+        super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH, false);
     }
 
     /**

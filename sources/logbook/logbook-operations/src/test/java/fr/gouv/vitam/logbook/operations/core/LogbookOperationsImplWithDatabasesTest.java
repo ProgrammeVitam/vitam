@@ -40,6 +40,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.bson.Document;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -60,6 +61,7 @@ import fr.gouv.vitam.common.database.builder.query.CompareQuery;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -78,6 +80,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
@@ -205,14 +208,14 @@ public class LogbookOperationsImplWithDatabasesTest {
 
         logbookParameters4 = LogbookParametersFactory.newLogbookOperationParameters(
             eip4,
-            "LOGBOOK_OP_SECURISATION", eip4, LogbookTypeProcess.TRACEABILITY,
+            "STP_OP_SECURISATION", eip4, LogbookTypeProcess.TRACEABILITY,
             StatusCode.STARTED, null, null, eip4);
 
         logbookParameters4.putParameterValue(LogbookParameterName.eventDateTime, datestring4);
 
         logbookParameters5 = LogbookParametersFactory.newLogbookOperationParameters(
             eip6,
-            "LOGBOOK_OP_SECURISATION", eip6, LogbookTypeProcess.TRACEABILITY,
+            "STP_OP_SECURISATION", eip6, LogbookTypeProcess.TRACEABILITY,
             StatusCode.STARTED, null, null, eip6);
 
         logbookParameters5.putParameterValue(LogbookParameterName.eventDateTime, datestring6);
@@ -241,6 +244,11 @@ public class LogbookOperationsImplWithDatabasesTest {
         junitHelper.releasePort(port);
     }
 
+    @After
+    public void clean() throws DatabaseException {
+        mongoDbAccess.deleteCollection(LogbookCollections.OPERATION);
+    }
+    
     @Test
     @RunWithCustomExecutor
     public void givenCreateAndUpdate() throws Exception {
@@ -330,7 +338,7 @@ public class LogbookOperationsImplWithDatabasesTest {
         logbookOperationsImpl.create(logbookParameters5);
         logbookOperationsImpl.update(event2);
         MongoCursor<LogbookOperation> curseur;
-        curseur = logbookOperationsImpl.selectAfterDate(LocalDateTime.parse("2017-01-30T12:01:00"));
+        curseur = logbookOperationsImpl.selectAfterDate(LocalDateTime.parse("2021-01-30T12:01:00"));
         assertFalse(curseur.hasNext());
 
 

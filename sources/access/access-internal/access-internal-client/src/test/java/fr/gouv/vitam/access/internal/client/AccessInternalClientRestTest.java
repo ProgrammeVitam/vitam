@@ -61,6 +61,7 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFou
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
+import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -87,6 +88,11 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
 
     final String queryDsql =
         "{ \"$query\" : [ { \"$eq\": { \"title\" : \"test\" } } ], " +
+            " \"$filter\": { \"$orderby\": \"#id\" }, " +
+            " \"$projection\" : { \"$fields\" : { \"#id\": 1, \"title\" : 2, \"transacdate\": 1 } } " +
+            " }";
+    final String emptyQueryDsql =
+        "{ \"$query\" : \"\", " +
             " \"$filter\": { \"$orderby\": \"#id\" }, " +
             " \"$projection\" : { \"$fields\" : { \"#id\": 1, \"title\" : 2, \"transacdate\": 1 } } " +
             " }";
@@ -239,6 +245,15 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         assertThat(client.selectUnits(queryJson)).isNotNull();
+    }
+    
+    @RunWithCustomExecutor
+    @Test(expected = BadRequestException.class)
+    public void givenBadRequestException_whenSelect_ThenRaiseAnExeption() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.FORBIDDEN).build());
+        VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
+        final JsonNode queryJson = JsonHandler.getFromString(emptyQueryDsql);
+        client.selectUnits(queryJson);
     }
 
     @RunWithCustomExecutor
@@ -467,7 +482,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     }
 
     @RunWithCustomExecutor
-    @Test(expected = AccessInternalClientServerException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenRaisePreconditionFailed() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());

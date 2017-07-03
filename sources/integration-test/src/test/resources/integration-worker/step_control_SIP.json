@@ -21,6 +21,14 @@
               {
                 "name": "checkContract",
                 "uri": "VALUE:true"
+              },
+              {
+                "name": "checkOriginatingAgency",
+                "uri": "VALUE:true"
+              },
+              {
+                "name": "checkProfile",
+                "uri": "VALUE:false"
               }
             ]
           }
@@ -33,6 +41,10 @@
               {
                 "name": "checkNoObject",
                 "uri": "VALUE:false"
+              },
+              {
+                "name": "UnitType",
+                "uri": "VALUE:INGEST"
               }
             ],
             "out": [

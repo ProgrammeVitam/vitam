@@ -49,5 +49,15 @@ angular.module('core')
         return error;
       })
     };
+    
+    detailOperationService.extractTimeStampInformation = function (timestamp, successCallbackFunction, errorCallbackFunction) {    	    	
+    	traceabilityOperationResource.extractTimeStampInformation(timestamp).then(function(response) {
+        successCallbackFunction(response);
+        return response;
+      }, function (error) {
+        errorCallbackFunction(error);
+        return error;
+      })
+    };
 
   });

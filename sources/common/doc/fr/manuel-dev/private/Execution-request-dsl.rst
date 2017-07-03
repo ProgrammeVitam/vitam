@@ -24,24 +24,32 @@ Pour construire dynamiquement une requête mono-query, on peut utiliser les buil
    
    
 .. code-block:: java
+
    Select selectQuery = new Select(requestInJson)
    ou
    Select selectQuery = new Select().setQuery(query).setfilter(filter).setData(data); 
    
    
 .. code-block:: java
+
    Update updateQuery = new Update(requestInJson)
    ou
    Update updateQuery = new Update().setQuery(query).setfilter(filter).addActions(data);
    
    
 .. code-block:: java
+
    Insert insertQuery = new Insert(requestInJson)
-   ou
+
+ou
+
+.. code-block:: java
+
    Insert insertQuery = new Insert().setData(data).setfilter(filter); 
    
    
 .. code-block:: java
+
    Delete deleteQuery = new Delete(requestInJson)
    ou
    Delete deleteQuery = new Delete().setQuery(query).setfilter(filter); 
@@ -61,9 +69,10 @@ Le résultat de l'éxécution est un objet DbRequestResult qui contient les info
 - MongoCursor<VitamDocument<?>> cursor : le cursor mongo de l'opération de recherche
   
 .. code-block:: java
+
    DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection());
    Insert insertquery = new Insert();
    insertquery.setData(arrayNode);
    DbRequestResult result = dbrequest.execute(insertquery);
-   
+
 L'implémentation du sort est disponible sur les requêtes MongoDB et ElasticSearch.

@@ -42,6 +42,7 @@ import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.annotations.VisibleForTesting;
 
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -101,14 +102,28 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
      * @param workerId the worker id
      */
     public HandlerIOImpl(String containerName, String workerId) {
+        this(WorkspaceClientFactory.getInstance().getClient(), containerName, workerId);
+    }
+
+    /**
+     * Constructor with workspaceClient, local root path
+     * he is used for test purpose
+     *
+     * @param containerName the container name
+     * @param workerId the worker id
+     */
+    @VisibleForTesting
+    public HandlerIOImpl(WorkspaceClient workspaceClient, String containerName, String workerId) {
         this.containerName = containerName;
         this.workerId = workerId;
         localDirectory = PropertiesUtils.fileFromTmpFolder(containerName + "_" + workerId);
         localDirectory.mkdirs();
-        client = WorkspaceClientFactory.getInstance().getClient();
+        client = workspaceClient;
         lifecyclesClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
         helper = new LogbookLifeCyclesClientHelper();
     }
+
+
 
     @Override
     public LogbookLifeCyclesClient getLifecyclesClient() {
@@ -468,6 +483,7 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
             client.createContainer(container);
             client.uncompressObject(container, folderName, archiveMimeType, uploadedInputStream);
         } else {
+            LOGGER.error(container + "already exist");
             throw new ContentAddressableStorageAlreadyExistException(container + "already exist");
         }
 

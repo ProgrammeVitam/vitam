@@ -14,7 +14,7 @@
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
  *
- *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
@@ -36,8 +36,6 @@ import java.util.List;
 
 import javax.ws.rs.core.Response;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.model.RequestResponse;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -46,6 +44,8 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
@@ -55,20 +55,26 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.CommonMediaType;
-import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
-import fr.gouv.vitam.common.model.ProcessExecutionStatus;
+import fr.gouv.vitam.common.model.ProcessState;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -77,20 +83,27 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
+import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementApplication;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookApplication;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.rest.MetaDataApplication;
+import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
+import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
+import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementApplication;
@@ -106,6 +119,10 @@ public class PausedProcessingIT {
     private final static String CLUSTER_NAME = "vitam-cluster";
     private static final Integer TENANT_ID = 0;
     private static final int DATABASE_PORT = 12346;
+    private static final String UNIT_PLAN_ATTACHEMENT_ID = "aeaqaaaaaagbcaacabht2ak4x66x2baaaaaq";
+
+    private static final long SLEEP_TIME = 100l;
+    private static final long NB_TRY = 4800; // equivalent to 4 minute
 
     private static final String WORFKLOW_NAME = "DefaultIngestWorkflow";
 
@@ -257,7 +274,27 @@ public class PausedProcessingIT {
         }
     }
 
+    private void flush() {
+        ProcessDataAccessImpl.getInstance().clearWorkflow();
+    }
+
+    private void wait(String operationId) {
+        int nbTry = 0;
+        while (!processingClient.isOperationCompleted(operationId)) {
+            try {
+                Thread.sleep(SLEEP_TIME);
+            } catch (InterruptedException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
+            if (nbTry == NB_TRY)
+                break;
+            nbTry++;
+        }
+    }
+
     private void tryImportFile() {
+        flush();
+
         if (!imported) {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 client
@@ -268,10 +305,21 @@ public class PausedProcessingIT {
                 client.importRulesFile(
                     PropertiesUtils.getResourceAsStream("integration-processing/jeu_donnees_OK_regles_CSV_regles.csv"));
 
+                File fileProfiles = PropertiesUtils.getResourceFile("integration-processing/OK_profil.json");
+                List<ProfileModel> profileModelList =
+                    JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {});
+                RequestResponse improrResponse = client.createProfiles(profileModelList);
+
+                RequestResponseOK<ProfileModel> response =
+                    (RequestResponseOK<ProfileModel>) client.findProfiles(new Select().getFinalSelect());
+                client.importProfileFile(response.getResults().get(0).getId(),
+                    PropertiesUtils.getResourceAsStream("integration-processing/Profil20.rng"));
+
                 // import contract
-                File fileContracts = PropertiesUtils.getResourceFile("integration-processing/referential_contracts_ok.json");
+                File fileContracts =
+                    PropertiesUtils.getResourceFile("integration-processing/referential_contracts_ok.json");
                 List<IngestContractModel> IngestContractModelList = JsonHandler
-                    .getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>(){});
+                    .getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
 
                 client.importIngestContracts(IngestContractModelList);
             } catch (final Exception e) {
@@ -315,7 +363,7 @@ public class PausedProcessingIT {
             zipInputStreamSipObject);
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-       processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName,
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName,
             WORFKLOW_NAME);
         // wait a little bit
 
@@ -323,37 +371,95 @@ public class PausedProcessingIT {
             LogbookTypeProcess.INGEST.toString(), ProcessAction.NEXT.getValue());
         // wait a little bit
         assertNotNull(resp);
-        assertEquals(Response.Status.OK.getStatusCode(), resp.getStatus());
-        assertEquals(ProcessExecutionStatus.PAUSE.toString(), resp.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
+
+        assertEquals(Response.Status.ACCEPTED.getStatusCode(), resp.getStatus());
+
+        wait(containerName);
+        ProcessWorkflow processWorkflow =
+            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
+
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.PAUSE, processWorkflow.getState());
+        assertEquals(StatusCode.OK, processWorkflow.getStatus());
         // wait a little bit
 
         // shutdown processing
         processManagementApplication.stop();
         // wait a little bit
-        Thread.sleep(500);
         LOGGER.info("After STOP");
         // restart processing
         SystemPropertyUtil.set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_PROCESSING));
         processManagementApplication = new ProcessManagementApplication(CONFIG_PROCESSING_PATH);
         processManagementApplication.start();
+        SystemPropertyUtil.clear(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT);
+
         // wait a little bit until jetty start
-        Thread.sleep(8000);
+
+        waitServerStart();
+
         LOGGER.info("After RE-START");
 
         // Next on the old paused ans persisted workflow
-        Response ret = processingClient.updateOperationActionProcess(ProcessAction.NEXT.getValue(),
-            containerName);
+        RequestResponse<ItemStatus> ret =
+            processingClient.updateOperationActionProcess(ProcessAction.NEXT.getValue(),
+                containerName);
         assertNotNull(ret);
-        assertEquals(ProcessExecutionStatus.PAUSE.toString(), ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
-        assertEquals(Response.Status.PARTIAL_CONTENT.getStatusCode(), ret.getStatus());
-        // wait a little bit
 
-        ret =  processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(),
+        assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+        wait(containerName);
+        processWorkflow =
+            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
+
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.PAUSE, processWorkflow.getState());
+        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+
+
+        ret = processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(),
             containerName);
         assertNotNull(ret);
-        assertEquals(ProcessExecutionStatus.COMPLETED.toString(), ret.getHeaderString(GlobalDataRest
-            .X_GLOBAL_EXECUTION_STATUS));
-        assertEquals(Response.Status.PARTIAL_CONTENT.getStatusCode(), ret.getStatus());
+
+        assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+        wait(containerName);
+        processWorkflow =
+            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
+
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+    }
+
+
+    private void waitServerStart() {
+        int nbTry = 30;
+        while (!checkStatus()) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
+            nbTry --;
+
+            if (nbTry < 0) {
+                LOGGER.error("CANNOT CONNECT TO SERVER {}", ProcessingManagementClientFactory.getInstance().getServiceUrl());
+                break;
+            }
+        }
+        if (nbTry >= 0) {
+            LOGGER.debug("CONNECTED TO SERVER");
+        }
+    }
+
+    private boolean checkStatus() {
+        try {
+            processingClient.checkStatus();
+            return true;
+        } catch (Exception e) {
+            LOGGER.error("ProcessManagement server is not active.", e);
+            return false;
+        }
     }
 }

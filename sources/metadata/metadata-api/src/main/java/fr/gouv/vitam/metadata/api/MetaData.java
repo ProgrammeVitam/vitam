@@ -26,6 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.api;
 
+import java.util.List;
+
+import org.bson.Document;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
@@ -58,6 +62,12 @@ public interface MetaData {
         throws InvalidParseOperationException, IllegalArgumentException, MetaDataNotFoundException,
         MetaDataAlreadyExistException, MetaDataExecutionException, MetaDataDocumentSizeException;
 
+
+    /**
+     * @param operationId
+     * @return the list of documents
+     */
+    List<Document> selectAccessionRegisterOnObjectGroupByOperationId(String operationId);
 
     /**
      * Search UNITs by Select {@link Select}Query
@@ -155,4 +165,21 @@ public interface MetaData {
     void insertObjectGroup(JsonNode objectRequest) throws InvalidParseOperationException, MetaDataNotFoundException,
         MetaDataAlreadyExistException, MetaDataExecutionException, MetaDataDocumentSizeException;
 
+    /**
+     * find the number of archive unit per originating agency for a operationId
+     * @param operationId operation id
+     * @return the list of documents
+     */
+    List<Document> selectAccessionRegisterOnUnitByOperationId(String operationId);
+
+
+    /**
+     * 
+     * @param updateRequest
+     * @param objectId
+     * @throws InvalidParseOperationException
+     * @throws MetaDataExecutionException 
+     */
+    void updateObjectGroupId(JsonNode updateRequest, String objectId)
+        throws InvalidParseOperationException, MetaDataExecutionException;
 }

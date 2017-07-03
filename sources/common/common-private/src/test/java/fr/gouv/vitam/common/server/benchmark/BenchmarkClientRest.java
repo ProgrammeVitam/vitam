@@ -27,22 +27,13 @@
 
 package fr.gouv.vitam.common.server.benchmark;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.ProcessingException;
+import java.io.InputStream;
+
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
-import org.glassfish.jersey.media.multipart.BodyPart;
-import org.glassfish.jersey.media.multipart.ContentDisposition;
-import org.glassfish.jersey.media.multipart.FormDataBodyPart;
-import org.glassfish.jersey.media.multipart.MultiPart;
-import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
 
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.exception.VitamClientException;
@@ -58,8 +49,8 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 public class BenchmarkClientRest extends DefaultClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BenchmarkClientRest.class);
     private static final String UPLOAD_URL = "/upload";
-    private static final String MULTIPART_URL = "/multipart";
-
+    private static final String DOWNLOAD_URL = "/download";
+    
     BenchmarkClientRest(BenchmarkClientFactory factory) {
         super(factory);
     }
@@ -98,56 +89,38 @@ public class BenchmarkClientRest extends DefaultClient {
     }
 
     /**
-     * Post and Get a stream of size bytes
+     * Download a stream of size bytes
      *
-     * @param filename file name
+     * @param method between GET, POST, PUT, DELETE
      * @param size
-     * @return time in ns
+     * @return size
      */
-    public long multipart(String filename, long size) {
-        try (FakeInputStream fakeInputStream = new FakeInputStream(size)) {
-            final StreamDataBodyPart stream = new StreamDataBodyPart("sip", fakeInputStream, filename);
-            try (MultiPart multiPart = new MultiPart()) {
-                multiPart.bodyPart(new FormDataBodyPart("check", "test"))
-                    .bodyPart(stream).type(MediaType.MULTIPART_FORM_DATA_TYPE);
-                final Response response =
-                    performRequest(HttpMethod.POST, MULTIPART_URL + HttpMethod.POST,
-                        null, multiPart, multiPart.getMediaType(), MediaType.MULTIPART_FORM_DATA_TYPE);
-                try {
-                    final Status status = Status.fromStatusCode(response.getStatus());
-                    switch (status) {
-                        case OK:
-                            long sizeRead = -1;
-                            final MultiPart multiPartResponse = response.readEntity(MultiPart.class);
-                            final List<BodyPart> list = multiPartResponse.getBodyParts();
-                            for (final BodyPart bodyPart : list) {
-                                final ContentDisposition cd = bodyPart.getContentDisposition();
-                                if (cd.getFileName() != null) {
-                                    final InputStream inputStream = bodyPart.getEntityAs(InputStream.class);
-                                    sizeRead = JunitHelper.consumeInputStream(inputStream);
-                                }
-                            }
-                            LOGGER.debug(Response.Status.OK.getReasonPhrase() + " : " + sizeRead);
-                            return sizeRead;
-                        default:
-                            LOGGER.error(status.getReasonPhrase());
-                            return -1;
-                    }
-                } finally {
-                    try {
-                        consumeAnyEntityAndClose(response);
-                    } catch (final ProcessingException e) {
-                        LOGGER.error(e);
+    public long download(String method, long size) {
+        try {
+
+            final Response response =
+                performRequest(method, DOWNLOAD_URL + method,
+                    null, size, MediaType.TEXT_PLAIN_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            try {
+                final Status status = Status.fromStatusCode(response.getStatus());
+                switch (status) {
+                    case OK:
+                        final long sizeRead = JunitHelper.consumeInputStream((InputStream) response.getEntity());
+                        LOGGER.debug(Response.Status.OK.getReasonPhrase() + " : " + sizeRead);
+                        return sizeRead;
+                    default:
+                        LOGGER.error(status.getReasonPhrase());
                         return -1;
-                    }
                 }
-            } catch (final IOException | VitamClientException e) {
-                LOGGER.error(e);
-                return -1;
+            } finally {
+                consumeAnyEntityAndClose(response);
             }
+        } catch (final VitamClientException e) {
+            LOGGER.error(e);
+            return -1;
         }
     }
-
+    
     /**
      * Make protected method available
      */
@@ -169,7 +142,7 @@ public class BenchmarkClientRest extends DefaultClient {
         try {
             response =
                 performRequest(method, STATUS_URL + method,
-                    null, MediaType.WILDCARD_TYPE, false);
+                    null, MediaType.WILDCARD_TYPE);
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             if (status == Status.OK || status == Status.NO_CONTENT) {
                 return true;

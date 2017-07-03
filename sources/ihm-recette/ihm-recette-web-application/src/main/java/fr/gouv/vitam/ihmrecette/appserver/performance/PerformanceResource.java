@@ -75,7 +75,7 @@ public class PerformanceResource implements VitamResource {
 
     /**
      * @param model
-     * @return
+     * @return Response 
      * @throws InterruptedException
      * @throws FileNotFoundException
      */
@@ -122,7 +122,7 @@ public class PerformanceResource implements VitamResource {
     }
 
     /**
-     * @return
+     * @return 202 if test are in progress, 200 if the previous test are done
      */
     @HEAD
     public Response status() {
@@ -135,7 +135,7 @@ public class PerformanceResource implements VitamResource {
     /**
      * return the  list of report
      *
-     * @return
+     * @return Response 200 if get list of report
      * @throws IOException
      */
     @GET
@@ -171,7 +171,7 @@ public class PerformanceResource implements VitamResource {
      * return the report
      *
      * @param fileName report fileName
-     * @return
+     * @return 200 if report is ok, 404 if exception occurs
      * @throws IOException
      */
     @GET

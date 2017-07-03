@@ -36,12 +36,17 @@ angular.module('archive.unit')
     'START_DATE_FIELD':'StartDate',
     'END_DATE_FIELD':'EndDate',
     'DESCRIPTION_LEVEL_FIELD':'DescriptionLevel',
+    'SUBMISSION_AGENCY_FIELD': 'SubmissionAgency',
     'ORIGINATING_AGENCY_FIELD':'OriginatingAgency',
     'ORIGINATING_AGENCY_IDENTIFIER_FIELD':'Identifier',
     'ORIGINATING_AGENCY_DESCRIPTION_FIELD':'OrganizationDescriptiveMetadata',
+     'ORIGINATING_AGENCY_MGT':"#originating_agency",
+     'ORIGINATING_AGENCIES_MGT':"#originating_agencies",
+
     'DESCIPTION_FIELD':'Description',
     'ID_KEY': '_id',
     'MGT_KEY': '_mgt',
+    'NBC_KEY': '_nbc',
     'TECH_KEY': '_',
     'ID_LABEL': 'ID',
     'MGT_LABEL': 'Management',
@@ -49,6 +54,8 @@ angular.module('archive.unit')
     'LIST_ITEM_LABEL': 'Valeur',
     'UNIT_PRENT_LIST': '_up',
     'MGT_WITH_CSHARP_KEY': '#mgt',
+    'ORIGINATING_AGENCIES_WITH_CSHARP_KEY': '#originating_agencies',
+    'ORIGINATING_AGENCY_WITH_CSHARP_KEY': '#originating_agency',
     'RULES_CATEGORY_KEYS': ['AccessRule','AppraisalRule','ClassificationRule','DisseminationRule','ReuseRule','StorageRule']
   })
   .filter('filterSize', function() {
@@ -73,13 +80,19 @@ angular.module('archive.unit')
       }
       var buildedKey = key;
       if (parent !== buildedKey) {
-        buildedKey = parent + '.' + buildedKey;
+        // split(' ')[0] in order to skip ' <nb>' for arrays and get only the 'master' camelCase key (exemple from 'ParentKey 1')
+        buildedKey = parent.split(' ')[0] + '.' + buildedKey;
       }
 
       // Return label value if find, field name else
       var labelValue = constants[buildedKey];
       if (!!labelValue) {
         return labelValue;
+      }
+      // Return label value for multivalued fields if found
+      labelValue = constants[parent + ".default"];
+      if (!!labelValue) {
+        return labelValue + " " + key;
       }
       return $scope.fieldLabel = key;
     };
@@ -185,9 +198,10 @@ angular.module('archive.unit')
           if (angular.isArray(contentField)) {
             key = fieldSet.fieldId;
           }
-
-          if(key !== ARCHIVE_UNIT_MODULE_CONST.MGT_KEY && key !== ARCHIVE_UNIT_MODULE_CONST.ID_KEY &&
-            key.toString().charAt(0)!==ARCHIVE_UNIT_MODULE_CONST.TECH_KEY){
+          if((key !== ARCHIVE_UNIT_MODULE_CONST.MGT_KEY &&
+              key !== ARCHIVE_UNIT_MODULE_CONST.ID_KEY &&
+              key.toString().charAt(0)!==ARCHIVE_UNIT_MODULE_CONST.TECH_KEY) ||
+              key === ARCHIVE_UNIT_MODULE_CONST.NBC_KEY ){
             var fieldSetSecond = buildSingleField(value, key, fieldSet.fieldId, fieldSet.parents, constants, modifAllowed);
             fieldSetSecond.isChild = true;
 
@@ -195,7 +209,6 @@ angular.module('archive.unit')
               fieldSetSecond.fieldName = (fieldSet.fieldName ? fieldSet.fieldName : ARCHIVE_UNIT_MODULE_CONST.LIST_ITEM_LABEL) + ' ' + keyArrayIndex;
               keyArrayIndex = keyArrayIndex + 1;
             }
-
             fieldSet.content.push(fieldSetSecond);
           }
         });
@@ -208,7 +221,6 @@ angular.module('archive.unit')
     self.interceptUserChanges = function interceptUserChanges(fieldSet){
       var fieldStr = !fieldSet.fieldLabel ? fieldSet.fieldName : fieldSet.fieldLabel;
       var isDateField = fieldStr.toUpperCase().indexOf('DATE') > -1;
-
       if(isDateField && (fieldSet.currentFieldValue === '')){
         fieldSet.currentFieldValue = fieldSet.fieldValue;
         self.showAlert(null, "Erreur", "Veuillez saisir une date valide.");
@@ -264,13 +276,13 @@ angular.module('archive.unit')
 
       // Call REST service
       ihmDemoFactory.saveArchiveUnit(self.archiveId, self.modifiedFields)
-        .then(function () {
+        .then(function (response) {
           // SUCCESS
           // Archive unit updated: send new select query to back office
-          // Find archive unit details
+          // Find archive unit details        	
           var displayUpdatedArchiveCallBack = function (data) {
             if(data.$results == null || data.$results == undefined ||
-              data.$hits == null || data.$hits == undefined) {
+              data.$hits == null || data.$hits == undefined || data.httpCode > 200) {
               console.log("Erreur survenue lors de la mise à jour de l'unité archivistique");
               self.showAlert($event, "Erreur", "Erreur survenue lors de la mise à jour de l'unité archivistique");
             } else {
@@ -310,7 +322,14 @@ angular.module('archive.unit')
             console.log(errorMsg);
             self.showAlert($event, "Erreur", "Erreur survenue lors de la mise à jour de l'unité archivistique");
           };
-          archiveDetailsService.findArchiveUnitDetails(self.archiveId, displayUpdatedArchiveCallBack, failureUpdateDisplayCallback);
+          if(response.data.httpCode >= 400) {
+        	  console.log("Erreur survenue lors de la mise à jour de l'unité archivistique");
+        	  self.refreshArchiveDetails();
+              self.showAlert($event, "Erreur", "Erreur survenue lors de la mise à jour de l'unité archivistique");
+          }
+          else {
+        	  archiveDetailsService.findArchiveUnitDetails(self.archiveId, displayUpdatedArchiveCallBack, failureUpdateDisplayCallback);
+          }
 
         }, function (error) {
           console.log('Update Archive unit failed : ' + error.message);
@@ -633,19 +652,25 @@ angular.module('archive.unit')
           var mainFields = [ARCHIVE_UNIT_MODULE_CONST.TITLE_FIELD,
             ARCHIVE_UNIT_MODULE_CONST.DESCIPTION_FIELD,
             ARCHIVE_UNIT_MODULE_CONST.DESCRIPTION_LEVEL_FIELD,
+            ARCHIVE_UNIT_MODULE_CONST.SUBMISSION_AGENCY_FIELD,
             ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCY_FIELD,
             ARCHIVE_UNIT_MODULE_CONST.START_DATE_FIELD,
             ARCHIVE_UNIT_MODULE_CONST.END_DATE_FIELD];
           angular.forEach(self.archiveFields, function(value, key) {
-            if(key !== ARCHIVE_UNIT_MODULE_CONST.MGT_KEY && key !== ARCHIVE_UNIT_MODULE_CONST.ID_KEY &&
+            if(key !== ARCHIVE_UNIT_MODULE_CONST.MGT_KEY &&
+              key !== ARCHIVE_UNIT_MODULE_CONST.ID_KEY &&
               key.toString().charAt(0)!==ARCHIVE_UNIT_MODULE_CONST.TECH_KEY) {
               var addedField = false;
               if (angular.isArray(value)) {
                 var tmpValue = value;
                 self.archiveFields[key] = tmpValue[0];
                 value = tmpValue[0];
-                var fieldSet = buildSingleField(value, key, key, [], null, true);
-
+                  if (key == ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCY_MGT || key == ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCIES_MGT){
+                    fieldSet = buildSingleField(value, key, key, [], null, false);
+                  }
+                  else {
+                    fieldSet = buildSingleField(value, key, key, [], null, true);
+                  }
                 if (mainFields.indexOf(key) >= 0) {
                   self.mainFields[key] = fieldSet;
                 } else {
@@ -656,7 +681,11 @@ angular.module('archive.unit')
                   if (index > 0) {
                     var newKey = self.displayLabel(key, key) + ' ' + index;
                     self.archiveFields[newKey] = objectValue;
-                    fieldSet = buildSingleField(objectValue, newKey, newKey, [], null, true);
+                    if (key == ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCY_MGT || key == ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCIES_MGT){
+                      fieldSet = buildSingleField(objectValue, newKey, newKey, [], null, false);
+                    } else {
+                      fieldSet = buildSingleField(objectValue, newKey, newKey, [], null, true);
+                    }
                     self.archiveArray.push(fieldSet);
                   }
                 });
@@ -667,12 +696,17 @@ angular.module('archive.unit')
                 self.archiveTitle = value;
               }
 
-              self.fieldSet = buildSingleField(value, key, key, [], null, true);
+              if (key == ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCY_MGT || key == ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCIES_MGT){
+                self.fieldSet = buildSingleField(value, key, key, [], null, false);
+              }
+              else {
+                self.fieldSet = buildSingleField(value, key, key, [], null, true);
+              }
               if (!addedField) {
                 if (mainFields.indexOf(key) >= 0 ) {
                   self.mainFields[key] = self.fieldSet;
                 } else {
-                  self.archiveArray.push(self.fieldSet);
+                	self.archiveArray.push(self.fieldSet);
                 }
               }
             }
@@ -681,50 +715,13 @@ angular.module('archive.unit')
           // Handle missing main fields
           angular.forEach(mainFields, function(key) {
             if (!self.mainFields[key]) {
-              self.fieldSet = buildSingleField('', key, key, [], null, true);
+
+              if (key === ARCHIVE_UNIT_MODULE_CONST.SUBMISSION_AGENCY_FIELD || key === ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCY_FIELD) {
+                self.fieldSet = buildSingleField({'Identifier': ''}, key, key, [], null, true);
+              } else {
+                self.fieldSet = buildSingleField('', key, key, [], null, true);
+              }
               self.mainFields[key] = self.fieldSet;
-            }
-
-            if (key === ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCY_FIELD) {
-              var mustBeAdded = [ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCY_IDENTIFIER_FIELD,
-                ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCY_DESCRIPTION_FIELD];
-
-              var essentialFinalContent = [];
-              var extraFinalContent = [];
-
-              // Start by adding the essential fields
-              angular.forEach(mustBeAdded, function(childKey) {
-                var found = false;
-                angular.forEach(self.mainFields[key].content, function(item, index) {
-                  if(!found){
-                    var currentField = item.fieldId;
-                    if (currentField === childKey) {
-                      essentialFinalContent.push(item);
-                      found = true;
-                    }
-                  }
-                });
-
-                if(!found){
-                  // Add mandatory field
-                  self.fieldSet = buildSingleField('', childKey, key, [], null, true);
-                  essentialFinalContent.push(self.fieldSet);
-                }
-              });
-
-              // Add extra fields
-              angular.forEach(self.mainFields[key].content, function(item, index) {
-                var itemIndex = mustBeAdded.indexOf(item.fieldId);
-                if (itemIndex < 0) {
-                  // Extra field
-                  extraFinalContent.push(item);
-                }
-              });
-
-              // Reorder elements
-              self.mainFields[key].content = [];
-              self.mainFields[key].content.push.apply(self.mainFields[key].content, essentialFinalContent);
-              self.mainFields[key].content.push.apply(self.mainFields[key].content, extraFinalContent);
             }
           });
 
@@ -841,10 +838,9 @@ angular.module('archive.unit')
           .hideDelay(3000)
       );
     };
-    $scope.download = function($event, objGId, usage, version, fileName) {
+    $scope.download = function($event, objGId, usage, fileName) {
       var options = {};
       options.usage = usage;
-      options.version = version;
       options.filename = fileName;
       window.open(ihmDemoFactory.getObjectAsInputStreamUrl(objGId, options), '_blank');
     };
@@ -865,6 +861,9 @@ angular.module('archive.unit')
         return version.metadatas.PhysicalId != undefined;
     }
     $scope.getClassVersion = function(version) {
+      if ($scope.userContract.EveryDataObjectVersion == true) {
+        return '';
+      }
       if ($scope.userContract.DataObjectVersion.indexOf(version.split('_')[0]) < 0) {
         return 'grayColor';
       }

@@ -1,5 +1,5 @@
 Introduction
-************
+#############
 
 Présentation
 ------------
@@ -13,10 +13,8 @@ Itération 16
 
 | - storage-driver-api : module décrivant l'interface du driver
 | - storage-engine : module embarquant la partie core du storage (client et server)
-| - cas-manager : module embarquant l'offre Vitam (module vitam-offer) ainsi que l'implémentation du driver pour
-cette offre (cas-manager-drivers) et de son mock pour les tests
-| - cas-container : module embraquant les implémentations spécifiques de l'offre de stockage, actuellement que
-l'implémntation swift.
+| - cas-manager : module embarquant l'offre Vitam (module vitam-offer) ainsi que l'implémentation du driver pour cette offre (cas-manager-drivers) et de son mock pour les tests
+| - cas-container : module embraquant les implémentations spécifiques de l'offre de stockage, actuellement que l'implémntation swift.
 
 
 Modules - packages Storage

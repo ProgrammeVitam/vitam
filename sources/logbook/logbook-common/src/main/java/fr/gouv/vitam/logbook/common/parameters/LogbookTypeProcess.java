@@ -70,6 +70,13 @@ public enum LogbookTypeProcess {
     /**
      * Storage logbook type process
      */
-    STORAGE_LOGBOOK;
-
+    STORAGE_LOGBOOK,
+    /**
+     * Holding scheme type process (tree)
+     */
+    HOLDINGSCHEME,
+    /**
+     * Filing scheme type process (classification plan)
+     */
+    FILINGSCHEME;
 }

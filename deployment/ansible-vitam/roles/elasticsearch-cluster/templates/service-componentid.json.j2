@@ -1,19 +1,32 @@
 {
   "service": {
     "name": "elasticsearch-{{ groupe }}",
+    {% if groupe=='log' %}
+    "address": "{{ip_admin}}",
+    {% else %}
+    "address": "{{ip_service}}",
+    {% endif %}
     "port": {{ port_http }},
     "enableTagOverride": false,
     "checks": [
       {
         "id": "check-elasticsearch-http",
         "notes": "Statut HTTP elasticsearch-{{groupe}}",
-        "http": "http://{{ inventory_hostname }}:{{ port_http }}",
+        {% if groupe=='log' %}
+        "http": "http://{{ ip_admin }}:{{ port_http }}",
+        {% else %}
+        "http": "http://{{ ip_service }}:{{ port_http }}",
+        {% endif %}
         "interval": "2s"
       },
       {
         "id": "check-elasticsearch-tcp",
         "notes": "Statut TCP elasticsearch-{{groupe}}",
-        "tcp": "{{ inventory_hostname }}:{{ port_tcp }}",
+        {% if groupe=='log' %}
+        "tcp": "{{ ip_admin }}:{{ port_tcp }}",
+        {% else %}
+        "tcp": "{{ ip_service }}:{{ port_tcp }}",
+        {% endif %}
         "interval": "2s"
       }
     ]

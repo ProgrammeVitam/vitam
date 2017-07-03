@@ -10,6 +10,7 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.RequestResponse;
 
 
@@ -58,7 +59,7 @@ public interface OperationManagementClient extends MockOrRestClient {
      * @throws InternalServerException
      * @throws BadRequestException
      */
-    RequestResponse<JsonNode> cancelOperationProcessExecution(String id)
+    ItemStatus cancelOperationProcessExecution(String id)
         throws InternalServerException, BadRequestException, VitamClientException;
 
     /**
@@ -72,7 +73,7 @@ public interface OperationManagementClient extends MockOrRestClient {
      * @throws BadRequestException
      * @throws VitamClientException
      */
-    Response updateOperationActionProcess(String actionId, String operationId)
+    RequestResponse<ItemStatus> updateOperationActionProcess(String actionId, String operationId)
         throws InternalServerException, BadRequestException, VitamClientException;
 
 
@@ -89,7 +90,8 @@ public interface OperationManagementClient extends MockOrRestClient {
      * @throws VitamClientException
      * @throws WorkflowNotFoundException
      */
-    RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId, String actionId)
+    RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId,
+        String actionId)
         throws InternalServerException, BadRequestException, VitamClientException, WorkflowNotFoundException;
 
     /**
@@ -97,7 +99,6 @@ public interface OperationManagementClient extends MockOrRestClient {
      * 
      * 
      * @param contextId :define the execution context of workflow
-     * @return Response response containing message and status
      * @throws VitamClientException
      * @throws VitamException
      */
@@ -111,12 +112,13 @@ public interface OperationManagementClient extends MockOrRestClient {
      * @param actionId
      * @param container
      * @param workflow
-     * @return
+     * @return ItemStatus
      * @throws InternalServerException
      * @throws BadRequestException
      * @throws VitamClientException
      */
 
+    @Deprecated // Not used
     ItemStatus updateVitamProcess(String contextId, String actionId, String container, String workflow)
         throws InternalServerException, BadRequestException, VitamClientException;
 
@@ -126,7 +128,6 @@ public interface OperationManagementClient extends MockOrRestClient {
      * @param contextId
      * @param container
      * @param workflow
-     * @return status code
      * @throws InternalServerException
      * @throws VitamClientException
      * @throws BadRequestException
@@ -137,10 +138,20 @@ public interface OperationManagementClient extends MockOrRestClient {
     /**
      * Retrieve all the workflow operations
      * 
+     * @param query Query model
+     * 
      * @return All details of the operations
      * @throws VitamClientException
      */
-    RequestResponse<JsonNode> listOperationsDetails() throws VitamClientException;
+    RequestResponse<JsonNode> listOperationsDetails(ProcessQuery query) throws VitamClientException;
 
+
+    /**
+     * Retrieve all the workflow definitions.
+     * 
+     * @return map of workflow definitions by id
+     * @throws VitamClientException
+     */
+    RequestResponse<JsonNode> getWorkflowDefinitions() throws VitamClientException;
 
 }

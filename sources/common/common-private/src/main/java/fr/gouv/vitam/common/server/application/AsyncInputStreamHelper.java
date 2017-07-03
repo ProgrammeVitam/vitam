@@ -138,7 +138,6 @@ public class AsyncInputStreamHelper {
      * </br>
      * Note that receivedResponse if any is fully read and closed for you there.
      *
-     * @param asyncResponse the AsyncReponse from the Resource API
      * @param errorResponse the fully prepared ErrorResponse
      */
     public void writeErrorResponse(Response errorResponse) {

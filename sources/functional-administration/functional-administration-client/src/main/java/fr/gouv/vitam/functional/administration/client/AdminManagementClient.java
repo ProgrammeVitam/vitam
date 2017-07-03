@@ -39,10 +39,11 @@ import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.model.AccessContractModel;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterSummaryModel;
+import fr.gouv.vitam.functional.administration.client.model.ContextModel;
 import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
 import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
@@ -160,7 +161,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws ReferentialException
      */
     RequestResponse<AccessionRegisterSummaryModel> getAccessionRegister(JsonNode query)
-        throws InvalidParseOperationException, ReferentialException;
+        throws InvalidParseOperationException, ReferentialException, AccessUnauthorizedException;
 
     /**
      * Get the accession register details matching the given query
@@ -170,7 +171,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws InvalidParseOperationException
      * @throws ReferentialException
      */
-    RequestResponse<AccessionRegisterDetailModel> getAccessionRegisterDetail(JsonNode query)
+    RequestResponse<AccessionRegisterDetailModel> getAccessionRegisterDetail(String documentId, JsonNode query)
         throws InvalidParseOperationException, ReferentialException;
 
 
@@ -219,23 +220,26 @@ public interface AdminManagementClient extends MockOrRestClient {
     /**
      * Update AccessContract to mongo
      * 
+     * @param id the given access contract id to update
      * @param queryDsl query to execute
+     * 
      * @return The server response as vitam RequestResponse
      * @throws InvalidParseOperationException
      * @throws AdminManagementClientServerException
      */
-    RequestResponse<AccessContractModel> updateAccessContract(JsonNode queryDsl)
+    RequestResponse<AccessContractModel> updateAccessContract(String id, JsonNode queryDsl)
         throws InvalidParseOperationException, AdminManagementClientServerException;
 
     /**
      * Update IngestContract to mongo
-     * 
+     * @param id the given Ingest contract id to update
      * @param queryDsl query to execute
+     * 
      * @return The server response as vitam RequestResponse
      * @throws InvalidParseOperationException
      * @throws AdminManagementClientServerException
      */
-    RequestResponse<IngestContractModel> updateIngestContract(JsonNode queryDsl)
+    RequestResponse<IngestContractModel> updateIngestContract(String id, JsonNode queryDsl)
         throws InvalidParseOperationException, AdminManagementClientServerException;
 
     /**
@@ -258,7 +262,7 @@ public interface AdminManagementClient extends MockOrRestClient {
     /**
      *
      * @param documentId
-     * @return
+     * @return The server response as vitam RequestResponse
      * @throws InvalidParseOperationException
      * @throws AdminManagementClientServerException
      * @throws ReferentialNotFoundException
@@ -269,7 +273,7 @@ public interface AdminManagementClient extends MockOrRestClient {
     /**
      *
      * @param query
-     * @return
+     * @return The server response as vitam RequestResponse
      * @throws InvalidParseOperationException
      * @throws AdminManagementClientServerException
      */
@@ -279,7 +283,7 @@ public interface AdminManagementClient extends MockOrRestClient {
     /**
      *
      * @param id
-     * @return
+     * @return The server response as vitam RequestResponse
      * @throws InvalidParseOperationException
      * @throws AdminManagementClientServerException
      * @throws ReferentialNotFoundException
@@ -289,9 +293,8 @@ public interface AdminManagementClient extends MockOrRestClient {
 
 
     /**
-     * Import a set of profile
-     * If all the profiles are valid, they will be stored in the collection and indexed
-     * The input is invalid in the following situations : </BR>
+     * Import a set of profile If all the profiles are valid, they will be stored in the collection and indexed The
+     * input is invalid in the following situations : </BR>
      * <ul>
      * <li>The json is invalid</li>
      * <li>The json contains 2 ore many profile having the same name</li>
@@ -316,13 +319,15 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws ReferentialException when import exception occurs
      * @throws DatabaseConflictException conflict exception occurs
      */
-    RequestResponse importProfileFile(String profileMetadataId, InputStream stream) throws ReferentialException, DatabaseConflictException;
+    RequestResponse importProfileFile(String profileMetadataId, InputStream stream)
+        throws ReferentialException, DatabaseConflictException;
 
 
     /**
      * Download the profile file according to profileMetadataId
+     * 
      * @param profileMetadataId
-     * @return
+     * @return Response
      */
     Response downloadProfileFile(String profileMetadataId) throws AdminManagementClientServerException,
         ProfileNotFoundException;
@@ -330,8 +335,9 @@ public interface AdminManagementClient extends MockOrRestClient {
 
     /**
      * Find profiles according to the given query string (we can also use this method to find profile by identifier)
+     * 
      * @param query
-     * @return
+     * @return The server response as vitam RequestResponse
      * @throws InvalidParseOperationException
      * @throws AdminManagementClientServerException
      */
@@ -340,8 +346,9 @@ public interface AdminManagementClient extends MockOrRestClient {
 
     /**
      * Find profile by id (id generated by the database)
+     * 
      * @param id
-     * @return
+     * @return The server response as vitam RequestResponse
      * @throws InvalidParseOperationException
      * @throws AdminManagementClientServerException
      * @throws ReferentialNotFoundException
@@ -349,5 +356,48 @@ public interface AdminManagementClient extends MockOrRestClient {
     RequestResponse<ProfileModel> findProfilesByID(String id)
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException;
 
-
+    
+    /**
+     * Import a set of context
+     * 
+     * @param ContextModelList
+     * @return Status
+     * @throws ReferentialException
+     */
+    Status importContexts(List<ContextModel> ContextModelList) throws ReferentialException;
+    
+    /**
+     * Update context to mongo
+     * 
+     * @param id
+     * @param queryDsl
+     * @return The server response as vitam RequestResponse
+     * @throws InvalidParseOperationException
+     * @throws AdminManagementClientServerException
+     */
+    RequestResponse<ContextModel> updateContext(String id, JsonNode queryDsl) 
+        throws InvalidParseOperationException, AdminManagementClientServerException;
+    
+    /**
+     * Find contexts
+     * 
+     * @param queryDsl
+     * @return The server response as vitam RequestResponse
+     * @throws InvalidParseOperationException
+     * @throws AdminManagementClientServerException
+     */
+    RequestResponse<ContextModel> findContexts(JsonNode queryDsl) 
+        throws InvalidParseOperationException, AdminManagementClientServerException;
+    
+    /**
+     * Find context by id
+     * 
+     * @param id
+     * @return The server response as vitam RequestResponse
+     * @throws InvalidParseOperationException
+     * @throws ReferentialNotFoundException
+     * @throws AdminManagementClientServerException
+     */
+    RequestResponse<ContextModel> findContextById(String id) 
+        throws InvalidParseOperationException, ReferentialNotFoundException, AdminManagementClientServerException;
 }

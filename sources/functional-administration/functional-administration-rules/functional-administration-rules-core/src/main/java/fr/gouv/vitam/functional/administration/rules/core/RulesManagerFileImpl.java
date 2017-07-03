@@ -142,22 +142,20 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
                         StatusCode.STARTED,
                         VitamLogbookMessages.getCodeOp(STP_IMPORT_RULES, StatusCode.STARTED), eip);
                 createLogBookEntry(logbookParametersStart);
-
-                final GUID eip1 = GUIDFactory.newOperationLogbookGUID(getTenant());
                 try {
                     mongoAccess.insertDocuments(validatedRules, FunctionalAdminCollections.RULES);
                     final LogbookOperationParameters logbookParametersEnd = LogbookParametersFactory
-                        .newLogbookOperationParameters(eip1, STP_IMPORT_RULES, eip, LogbookTypeProcess.MASTERDATA,
+                        .newLogbookOperationParameters(eip, STP_IMPORT_RULES, eip, LogbookTypeProcess.MASTERDATA,
                             StatusCode.OK, VitamLogbookMessages.getCodeOp(STP_IMPORT_RULES, StatusCode.OK),
-                            eip1);
+                            eip);
                     updateLogBookEntry(logbookParametersEnd);
 
                 } catch (final FileRulesException e) {
                     LOGGER.error(e.getMessage());
                     final LogbookOperationParameters logbookParametersEnd = LogbookParametersFactory
-                        .newLogbookOperationParameters(eip1, STP_IMPORT_RULES, eip, LogbookTypeProcess.MASTERDATA,
+                        .newLogbookOperationParameters(eip, STP_IMPORT_RULES, eip, LogbookTypeProcess.MASTERDATA,
                             StatusCode.KO, VitamLogbookMessages.getCodeOp(STP_IMPORT_RULES, StatusCode.KO),
-                            eip1);
+                            eip);
                     updateLogBookEntry(logbookParametersEnd);
                     throw new FileRulesException(e);
                 }
@@ -423,9 +421,12 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
 
     @Override
     public FileRules findDocumentById(String id) throws ReferentialException {
-        return (FileRules) mongoAccess.getDocumentById(id, FunctionalAdminCollections.RULES);
+        FileRules fileRule = (FileRules) mongoAccess.getDocumentByUniqueId(id, FunctionalAdminCollections.RULES, FileRules.RULEID);
+        if (fileRule == null) {
+            throw new FileRulesException("FileRules Not Found");
+        }
+        return fileRule;
     }
-
 
     @Override
     public List<FileRules> findDocuments(JsonNode select) throws ReferentialException {

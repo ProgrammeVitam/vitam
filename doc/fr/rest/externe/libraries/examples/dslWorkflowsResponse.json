@@ -1,0 +1,164 @@
+{
+  "$hits": {
+    "total": 3,
+    "size": 3,
+    "offset": 0,
+    "limit": 100,
+    "time_out": false
+  },
+  "$context": {
+    "$query": {
+      "$range": {
+        "start_date": {
+          "$gte": "2014-01-10",
+          "$lte": "2014-03-10"
+        }
+      }
+    },
+    "$filter": {
+      "$limit": 100,
+      "$per_page": 10
+    },
+    "$projection": {
+      "$fields": {
+        "#id": 1,
+        "start_date": 1,
+        "state": 1
+      }
+    }
+  },
+  "$results": [
+    {
+      "SampleWorkflow": {
+        "id": "SampleWorkflow",
+        "comment": "Sample Workflow V1",
+        "steps": [
+          {
+            "id": null,
+            "workerGroupId": "DefaultWorker",
+            "stepName": "STP_PREPARE_CHECK",
+            "behavior": "BLOCKING",
+            "distribution": {
+              "kind": "REF",
+              "element": ""
+            },
+            "actions": [
+              {
+                "action": {
+                  "actionKey": "PREPARE_1_CHECK",
+                  "behavior": "BLOCKING",
+                  "in": null,
+                  "out": null
+                }
+              },
+              {
+                "action": {
+                  "actionKey": "PREPARE_2_CHECK",
+                  "behavior": "BLOCKING",
+                  "in": null,
+                  "out": null
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "DefaultCheckTraceability": {
+        "id": "DefaultCheckTraceability",
+        "comment": "Default Check logbook traceability Workflow V1",
+        "steps": [
+          {
+            "id": null,
+            "workerGroupId": "DefaultWorker",
+            "stepName": "STP_PREPARE_TRACEABILITY_CHECK",
+            "behavior": "BLOCKING",
+            "distribution": {
+              "kind": "REF",
+              "element": ""
+            },
+            "actions": [
+              {
+                "action": {
+                  "actionKey": "PREPARE_TRACEABILITY_CHECK",
+                  "behavior": "BLOCKING",
+                  "in": null,
+                  "out": [
+                    {
+                      "value": null,
+                      "name": "traceabilityevent.file",
+                      "uri": {
+                        "prefix": "WORKSPACE",
+                        "path": "TraceabilityOperationDetails/EVENT_DETAIL_DATA.json"
+                      },
+                      "optional": false
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "id": null,
+            "workerGroupId": "DefaultWorker",
+            "stepName": "STP_MERKLE_TREE",
+            "behavior": "BLOCKING",
+            "distribution": {
+              "kind": "REF",
+              "element": ""
+            },
+            "actions": [
+              {
+                "action": {
+                  "actionKey": "CHECK_MERKLE_TREE",
+                  "behavior": "BLOCKING",
+                  "in": [
+                    {
+                      "value": null,
+                      "name": "traceabilityevent.file",
+                      "uri": {
+                        "prefix": "WORKSPACE",
+                        "path": "TraceabilityOperationDetails/EVENT_DETAIL_DATA.json"
+                      },
+                      "optional": false
+                    }
+                  ],
+                  "out": null
+                }
+              }
+            ]
+          },
+          {
+            "id": null,
+            "workerGroupId": "DefaultWorker",
+            "stepName": "STP_VERIFY_STAMP",
+            "behavior": "BLOCKING",
+            "distribution": {
+              "kind": "REF",
+              "element": ""
+            },
+            "actions": [
+              {
+                "action": {
+                  "actionKey": "VERIFY_TIMESTAMP",
+                  "behavior": "BLOCKING",
+                  "in": [
+                    {
+                      "value": null,
+                      "name": "traceabilityevent.file",
+                      "uri": {
+                        "prefix": "WORKSPACE",
+                        "path": "TraceabilityOperationDetails/EVENT_DETAIL_DATA.json"
+                      },
+                      "optional": false
+                    }
+                  ],
+                  "out": null
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

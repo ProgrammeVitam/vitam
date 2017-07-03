@@ -4,18 +4,76 @@
     <li><a href="#!/admin/workflows">Gestion des opérations</a></li>
   </ol>
 
-  <search-pagination pagination-scope="search.pagination" search-function="getList"></search-pagination>
 
-  <div class="panel panel-default col-md-12">
-    <span class="panel-header no-toggle">
-        <h2>
-          Liste des Opérations
-          <span ng-if="search.response.totalResult == 0 || search.response.totalResult > 0">({{search.response.totalResult}})</span>
-        </h2>
-    </span>
+  <div class="boxSearchWrapper panel panel-default col-md-12">
+    <a class="panel-header" data-toggle="collapse" data-target="#boxEntriesSearchForm">
+      <h2>Gestion des opérations</h2>
+    </a>
+
+    <div id="boxEntriesSearchForm" class="panel-body panel-collapse collapse in">
+      <div class="col-md-12">
+        <div class="form-group col-md-2">
+          <label for="entrypuid">Identifiant</label>
+          <input type="text" class="form-control" ng-model="search.form.id" id="entrypuid"/>
+        </div>
+        <div class="form-group col-md-3">
+          <label for="categories">Catégorie</label>
+          <select multiple class="form-control" name="categories" ng-model="search.form.categories" id="categories"
+                  ng-change="updateSelectableSteps(search.form.categories)" ng-disabled="!!search.form.id"
+                  ng-options="item as item.name for item in workflowCategories track by item.id">
+          </select>
+        </div>
+        <div class="form-group col-md-2">
+          <label for="statuses">Statut</label>
+          <select multiple class="form-control" name="statuses" id="statuses"
+                  ng-disabled="!!search.form.id" ng-model="search.form.statuses"
+                  ng-options="item as item.name for item in statuses track by item.id">
+          </select>
+        </div>
+        <div class="form-group col-md-1">
+          <label for="states">États</label>
+          <select multiple class="form-control" name="states" ng-model="search.form.states" id="states"
+                  ng-disabled="!!search.form.id" ng-model="search.form.states"
+                  ng-options="item as item.name for item in states track by item.id">
+          </select>
+        </div>
+        <div class="form-group col-md-3">
+          <label for="steps">Dernière étape</label>
+            <select multiple class="form-control" name="steps" ng-model="search.form.steps" id="steps"
+                    ng-disabled="!!search.form.id"
+                    ng-options="item as item.name for item in workflowSelectableSteps track by item.name">
+          </select>
+        </div>
+        <div class="clearfix"></div>
+        <div class="form-group col-md-2">
+          <label>Dates Extrêmes</label>
+          <div class="input-group">
+            <input type="text" class="form-control input-sm" ng-disabled="!!search.form.id" date-picker ng-model="search.form.startDateMin" id="startDate"/>
+            <div class="input-group-addon"><i class="material-icons">date_range</i></div>
+          </div>
+        </div>
+        <div class="form-group col-md-2">
+          <label>&nbsp;</label>
+          <div class="input-group">
+            <input type="text" class="form-control input-sm" ng-disabled="!!search.form.id" date-picker ng-model="search.form.startDateMax" id="endDate"/>
+            <div class="input-group-addon"><i class="material-icons">date_range</i></div>
+          </div>
+        </div>
+      </div>
+      <div class="text-right boxSimpleSearchInput">
+        <button class="btn btn-default pull-left" style="background:#C3B9F0" ng-click="reset()"><i
+            class="material-icons pull-left">search</i><span>Effacer</span></button>
+        <button class="btn btn-primary" ng-click="getList()"><i class="material-icons pull-left">search</i><span>Rechercher</span></button>
+      </div>
+    </div>
+    <a class="panel-header" data-toggle="collapse" data-target="#boxWorkflows">
+      <h2>Liste des opérations ({{search.response.data.length}})</h2>
+    </a>
 
     <!-- Get description metadata -->
-    <div class="panel-body" id="boxWorkflows">
+    <div class="panel-body panel-collapse collapse in" id="boxWorkflows">
+      <button class="btn btn-default" style="background-color:#D9FFA9;float:right;margin-top:-5px" ng-click="getList()"><i class="material-icons pull-left">cached</i><span>Rafraichir</span></button>
+      <search-pagination pagination-scope="search.pagination" search-function="getList"></search-pagination>
       <div class="table-responsive">
         <div class="form-group col-md-12">
           <div class="table-responsive">
@@ -50,6 +108,20 @@
                   <span ng-show="orderByField == 'executionMode' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
                 </th>
                 <th>
+                  <a href="" ng-click="oldOrderBy = orderByField; orderByField ='executionMode'; oldOrderBy !== orderByField ? reverseSort = false : reverseSort === false ? reverseSort = true : reverseSort = false">
+                    Etat
+                  </a>
+                  <span ng-show="orderByField == 'executionMode' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+                  <span ng-show="orderByField == 'executionMode' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+                </th>
+                <th>
+                  <a href="" ng-click="oldOrderBy = orderByField; orderByField = 'stepStatus'; oldOrderBy !== orderByField ? reverseSort = false : reverseSort === false ? reverseSort = true : reverseSort = false">
+                    Statut
+                  </a>
+                  <span ng-show="orderByField == 'stepStatus' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+                  <span ng-show="orderByField == 'stepStatus' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+                </th>
+                <th>
                   <a href="" ng-click="oldOrderBy = orderByField; orderByField ='previousStep'; oldOrderBy !== orderByField ? reverseSort = false : reverseSort === false ? reverseSort = true : reverseSort = false">
                     Précédente étape du workflow / étape en cours
                   </a>
@@ -64,13 +136,6 @@
                   <span ng-show="orderByField == 'nextStep' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
                 </th>
                 <th>
-                  <a href="" ng-click="oldOrderBy = orderByField; orderByField = 'stepStatus'; oldOrderBy !== orderByField ? reverseSort = false : reverseSort === false ? reverseSort = true : reverseSort = false">
-                    Statut
-                  </a>
-                  <span ng-show="orderByField == 'stepStatus' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
-                  <span ng-show="orderByField == 'stepStatus' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
-                </th>
-                <th>
                   Actions
                 </th>
               </tr>
@@ -80,11 +145,12 @@
                   <td>{{operation.operation_id}}</td>
                   <td>{{operation.processType}}</td>
                   <td>{{operation.processDate | vitamFormatDate}}</td>
-                  <td>{{getTranslatedText(operation.executionMode)!== undefined ? getTranslatedText(operation.executionMode) : operation.executionMode}}</td>
-                  <td>{{operation.previousStep | translate}}</td>
-                  <td>{{operation.nextStep | translate}}</td>
+                  <td>{{operation.globalState === 'RUNNING'? (operation.stepByStep? 'Pas à pas' : 'En continue'): ''}}</td>
+                  <td>{{getTranslatedText(operation.globalState)!== undefined ? getTranslatedText(operation.globalState) : operation.globalState}}</td>
                   <td ng-if="!operation.inProgress">{{getTranslatedText(operation.stepStatus)!== undefined ? getTranslatedText(operation.stepStatus) : operation.stepStatus}}</td>
                   <td ng-if="operation.inProgress"><img src="images/loading_36.gif"/></td>
+                  <td>{{operation.previousStep | translate}}</td>
+                  <td>{{operation.nextStep | translate}}</td>
                   <td>
                     <button type="button" data-toggle="tooltip" data-placement="top" title="Suivant" class="btn btn-xs" ng-click="executeAction($event, operation.operation_id, 'NEXT', $index)">
                       <i class="material-icons">skip_next</i>
@@ -109,3 +175,39 @@
     </div>
   </div>
 </div>
+<script>
+  /* French initialisation for the jQuery UI date picker plugin. */
+  /* Written by Keith Wood (kbwood{at}iinet.com.au),
+   Stéphane Nahmani (sholby@sholby.net),
+   Stéphane Raimbault <stephane.raimbault@gmail.com> */
+  (function( factory ) {
+    if ( typeof define === "function" && define.amd ) {
+      // AMD. Register as an anonymous module.
+      define([ "../jquery.ui.datepicker" ], factory );
+    } else {
+      // Browser globals
+      factory( jQuery.datepicker );
+    }
+  }(function( datepicker ) {
+    datepicker.regional['fr'] = {
+      closeText: 'Fermer',
+      prevText: '<',
+      nextText: '>',
+      currentText: 'Aujourd\'hui',
+      monthNames: ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+        'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'],
+      monthNamesShort: ['janv.', 'févr.', 'mars', 'avril', 'mai', 'juin',
+        'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'],
+      dayNames: ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'],
+      dayNamesShort: ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'],
+      dayNamesMin: ['D','L','M','M','J','V','S'],
+      weekHeader: 'Sem.',
+      dateFormat: 'dd/mm/yy',
+      firstDay: 1,
+      isRTL: false,
+      showMonthAfterYear: false,
+      yearSuffix: ''};
+    datepicker.setDefaults(datepicker.regional['fr']);
+    return datepicker.regional['fr'];
+  }));
+</script>

@@ -30,6 +30,7 @@
 angular.module('ihm.demo')
     .controller('profilesDetailsController', function ($scope, $routeParams, profileResource, $mdDialog, FileUploader, authVitamService) {
         var id = $routeParams.id;
+        var PROFILES_CREATE_PERMISSION = 'profiles:create';
 
         $scope.tmpVars = {
             isActive: true,
@@ -138,6 +139,10 @@ angular.module('ihm.demo')
     function cancelAction() {
     	console.log('Canceled');
     	$route.reload();
+    }
+
+    $scope.checkPermission = function() {
+      return !authVitamService.hasPermission(PROFILES_CREATE_PERMISSION);
     }
 });
 

@@ -94,17 +94,17 @@
             <div class="form-group col-md-6">
               <div class="row simple-field">
                 <display-field field-size="'11'" intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
-                               field-object="$ctrl.mainFields['OriginatingAgency'].content[0]" edit-mode="$ctrl.isEditMode">
+                               field-object="$ctrl.mainFields['SubmissionAgency'].content[0]" edit-mode="$ctrl.isEditMode">
                 </display-field>
               </div>
             </div>
             <div class="form-group col-md-6">
               <div class="row simple-field">
                 <display-field field-size="'11'" intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
-                               field-object="$ctrl.mainFields['OriginatingAgency'].content[1]" edit-mode="$ctrl.isEditMode">
+                               field-object="$ctrl.mainFields['OriginatingAgency'].content[0]" edit-mode="$ctrl.isEditMode">
                 </display-field>
               </div>
-            </div>
+            </div>            
           </div>
           <div class="col-xs-12">
             <div class="form-group col-md-6">
@@ -262,7 +262,7 @@
               <td ng-class="getClassVersion(version.DataObjectVersion)">{{version.LastModified | vitamFormatDate}}</td>
               <td>
                 <a href=""
-                   ng-click="download($event, archiveObjectGroupsOgId , version.DataObjectVersion, version.Rank, version.FileName)"
+                   ng-click="download($event, archiveObjectGroupsOgId , version.DataObjectVersion, version.FileName)"
                    target="_blank" ng-if="getClassVersion(version.DataObjectVersion) != 'grayColor' && !isPhysicalArchive(version)">
                   <i class="material-icons">file_download</i>
                 </a>

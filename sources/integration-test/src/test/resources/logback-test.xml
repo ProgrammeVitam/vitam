@@ -9,6 +9,9 @@
 		</encoder>
 	</appender>
 	<!-- By default, the level of the root level is set to TRACE -->
+
+	<logger name="fr.gouv.vitam.common.server.HeaderIdHelper" level="ERROR"/>
+
 	<root level="INFO">
 		<appender-ref ref="STDOUT" />
 	</root>

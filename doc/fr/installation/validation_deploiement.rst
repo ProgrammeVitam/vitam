@@ -10,7 +10,7 @@ La procédure de validation est commune aux différentes méthodes d'installatio
 Sécurisation du fichier ``vault_pass.txt``
 ==========================================
 
-Le fichier ``vault_pass.txt`` est très sensible ; il contient le mot de passe du fichier ``environments/group_vars/all/vault.yml`` qui contient les divers mots de passe de la plate-forme. A l'issue de l'installation, il est nécessaire de le sécuriser (suppression du fichier ou application d'un chmod 400).
+Le fichier ``vault_pass.txt`` est très sensible ; il contient le mot de passe du fichier ``environments/group_vars/all/vault.yml`` qui contient les divers mots de passe de la plate-forme. Il est fortement déconseillé de ne pas l'utiliser en production. A l'issue de l'installation, il est nécessaire de le sécuriser (suppression du fichier ou application d'un ``chmod 400``).
 
 .. Validation par ansible
 .. =======================
@@ -24,7 +24,7 @@ Le fichier ``vault_pass.txt`` est très sensible ; il contient le mot de passe d
 Validation manuelle
 ===================
 
-Chaque service VITAM (en dehors de bases de données) expose des URL de statut présente à l'adresse suivante : ``<protocole web https ou https>://<host>:<port>/admin/v1/status``
+Chaque service VITAM (en dehors de bases de données) expose des URL de statut présente à l'adresse suivante : ``<protocole web http ou https>://<host>:<port>/admin/v1/status``
 Cette URL doit retourner une réponse HTTP 204 sur une requête HTTP GET, si OK.
 
 Un playbook d'appel de l'intégralité des autotests est également inclus (``deployment/ansible-vitam-exploitation/status_vitam.yml``). Il est à lancer de la même manière que pour l'installation de vitam (en changeant juste le nom du playbook à exécuter).
@@ -33,7 +33,7 @@ Un playbook d'appel de l'intégralité des autotests est également inclus (``de
 
 Il est également possible de vérifier la version installée de chaque composant par l'URL :
 
-``<protocole web https ou https>://<host>:<port>/admin/v1/version``
+``<protocole web http ou https>://<host>:<port>/admin/v1/version``
 
 Validation via Consul
 ======================
@@ -48,12 +48,13 @@ Si une autre couleur apparaît, cliquer sur le service "KO" et vérifier le test
 
 .. warning:: les composants :term:`VITAM` "ihm" (ihm-demo, ihm-recette) n'intègrent pas /admin/v1/status" et donc sont indiqués "KO" sous Consul ; il ne faut pas en tenir compte, sachant que si l'IHM s'affiche en appel "classique", le composant fonctionne.
 
-Validation via SoapUI
-=====================
+.. deprecated
+.. Validation via SoapUI
+.. =====================
 
-Pour les environnements de recette, il est possible de lancer les tests de validation métier au sein de l'interface du composant IHM-recette (menu > tests SOAP-UI).
+.. Pour les environnements de recette, il est possible de lancer les tests de validation métier au sein de l'interface du .. composant IHM-recette (menu > tests SOAP-UI).
 
-.. note:: cette validation n'est possible que si les :term:`TNR` ont été installés (via git-lfs et connexion webdav).
+.. note Cette validation n'est possible que si les :term:`TNR` ont été installés (via git-lfs et connexion webdav).
 
 .. Validation via IHM technique
 .. ============================
@@ -78,13 +79,6 @@ Un playbook a été créé pour charger le référentiel PRONOM dans une version
 
 Ce playbook n'est à passer que si aucun référentiel PRONOM n'a été chargé, permettant d'accélérer l'utilisation de VITAM.
 
-Si le fichier vault-password est renseigné :
-
-``ansible-playbook ansible-vitam-extra/init_pronom.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt``
-
-Sinon
-
 ``ansible-playbook ansible-vitam-extra/init_pronom.yml -i environments/<fichier d'inventaire> --ask-vault-pass``
 
 .. caution:: le playbook ne se termine pas correctement (code HTTP 403) si un référentiel PRONOM a déjà été chargé.
-

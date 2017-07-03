@@ -35,6 +35,7 @@ Collection Objects
 ==================
 
 **Points particuliers sur les end points**
+**Cette collection est DEPRECATED et va disparaître car elle est contraire aux règles d'accès aux objets à partir d'une ArchiveUnit (/units/id/object).**
 
 - **/objects** : il s'agit ici de requêter un ensemble d'objets sur leurs métadonnées uniquement.
 
@@ -80,6 +81,8 @@ Rappel sur l'usage de $depth
 .. image:: images/multi-query-schema.png
 
 
+- $source (**UNSUPPORTED**) permet de changer de collections entre deux query (unit ou object)
+
 Détails sur chaque commande de la partie $query
 ***********************************************
 
@@ -88,6 +91,14 @@ Détails sur chaque commande de la partie $query
   - Accès direct à un ou plusieurs noeuds
   - **$path : [ "id1", "id2" ]** est l'équivalent implicite de *$in : { #id : [ id1, id2 ] }* mais sur le champ #id uniquement
   - **Important** : cette commande n'est autorisée qu'en première position. Elle implique une vérification que les *$roots* sont compatibles avec ces Ids qui deviennent les nouveaux $roots implicitement
+
+::
+
+   { "$path" : [ "id1", "id2" ] }
+
+   static include fr.gouv.vitam.common.database.builder.query.QueryHelper.*;
+   Query query = path("id1", "id2");
+
 
 - $and, $or, $not
 
@@ -100,6 +111,10 @@ Détails sur chaque commande de la partie $query
 ::
 
    { "$and" : [ { "$gt" : { "StartDate" : "2014-03-25" } }, { "$lte" : { "StartDate" : "2014-04-25" } } ] }
+
+   static include fr.gouv.vitam.common.database.builder.query.QueryHelper.*;
+   Query query = and().add(gt("StartDate", dateFormat.parse("2014-03-25")), 
+            lte("StartDate", dateFormat.parse("2014-04-25"));
 
 pour toute StartDate plus grande que le 25 mars 2014 et inférieure ou égale au 25 avril 2014 (équivalent à un $range dans ce cas)
 
@@ -114,9 +129,14 @@ pour toute StartDate plus grande que le 25 mars 2014 et inférieure ou égale au
     - $gt, $gte : le champs a une valeur supérieure ou égale avec la valeur fournie
 
 - Exemple :
+:::::::::::
+
 ::
 
    { "$gt" : { "StartDate" : "2014-03-25" } }
+
+   static include fr.gouv.vitam.common.database.builder.query.QueryHelper.*;
+   Query query = gt("StartDate", dateFormat.parse("2014-03-25"));
 
 pour toute StartDate plus grande que le 25 mars 2014
 
@@ -128,7 +148,11 @@ pour toute StartDate plus grande que le 25 mars 2014
 
 ::
 
-   { $range" : { ""StartDate" : { "$gte" : "2014-03-25", "$lte" : "2014-04-25" } } }
+   { "$range" : { "StartDate" : { "$gte" : "2014-03-25", "$lte" : "2014-04-25" } } }
+
+   static include fr.gouv.vitam.common.database.builder.query.QueryHelper.*;
+   Query query = range("StartDate", dateFormat.parse("2014-03-25"), true, 
+         dateFormat.parse("2014-04-25"), true);
 
 pour toute StartDate plus grande ou égale au 25 mars 2014 mais inférieure ou égale au 25 avril 2014
 
@@ -143,6 +167,9 @@ pour toute StartDate plus grande ou égale au 25 mars 2014 mais inférieure ou �
 
    { "$exists" : "StartDate" }
 
+   static include fr.gouv.vitam.common.database.builder.query.QueryHelper.*;
+   Query query = exists("StartDate");
+
 pour tout Unit contenant le champ StartDate
 
 - $in, $nin
@@ -155,6 +182,10 @@ pour tout Unit contenant le champ StartDate
 
    { "$in" : { ""#unitups" : ["id1", "id2"] } }
 
+   static include fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.*;
+   static include fr.gouv.vitam.common.database.builder.query.QueryHelper.*;
+   Query query = in(unitups(), "id1", "id2");
+
 pour rechercher les Units qui ont pour parents immédiats au moins l'un des deux Id spécifiés
 
 - $size
@@ -165,6 +196,10 @@ pour rechercher les Units qui ont pour parents immédiats au moins l'un des deux
 ::
 
    { "$size" : { ""#unitups" : 2 } }
+
+   static include fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.*;
+   static include fr.gouv.vitam.common.database.builder.query.QueryHelper.*;
+   Query query = size(unitups(), 2);
 
 pour rechercher les Units qui ont 2 parents immédiats exactement
 
@@ -178,6 +213,10 @@ pour rechercher les Units qui ont 2 parents immédiats exactement
 
    { "$term" : { "#id" : "guid" } }
 
+   static include fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.*;
+   static include fr.gouv.vitam.common.database.builder.query.QueryHelper.*;
+   Query query = term(id(), guid);
+
 qui cherchera le Unit ayant pour Id celui précisé (équivalent dans ce cas à $eq) (non analysé, donc pour les codes uniquement)
 
 - $wildcard
@@ -189,6 +228,10 @@ qui cherchera le Unit ayant pour Id celui précisé (équivalent dans ce cas à 
 ::
 
    { "$wildcard" : { "#type" : "FAC*01" } }
+
+   static include fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.*;
+   static include fr.gouv.vitam.common.database.builder.query.QueryHelper.*;
+   Query query = wildcard(type(), "FAC*01");
 
 qui cherchera les Units qui contiennent dans le type (Document Type) une valeur commençant par FAC et terminant par 01 (non analysé, donc pour les codes uniquement)
 
@@ -204,11 +247,17 @@ qui cherchera les Units qui contiennent dans le type (Document Type) une valeur 
 
    { "$match" : { "Title" : "Napoléon Waterloo" } }
 
+   static include fr.gouv.vitam.common.database.builder.query.QueryHelper.*;
+   Query query = match("Title", "Napoléon Waterloo");
+
 qui cherchera les Units qui contiennent les deux mots dans n'importe quel ordre dans le titre
 
 ::
 
    { "$matchPhrase" : { "Description" : "le petit chat est mort" } }
+
+   static include fr.gouv.vitam.common.database.builder.query.QueryHelper.*;
+   Query query = matchPhrase("Description", "le petit chat est mort");
 
 qui cherchera les Units qui contiennent la phrase n'importe où dans la description
 
@@ -221,6 +270,9 @@ qui cherchera les Units qui contiennent la phrase n'importe où dans la descript
 ::
 
    { "$regex" : { "Title" : "Napoléon.\* [Waterloo | Leipzig]" } }
+
+   static include fr.gouv.vitam.common.database.builder.query.QueryHelper.*;
+   Query query = regex("Title", "Napoléon.\* [Waterloo | Leipzig]");
 
 qui cherchera les Units qui contiennent exactement Napoléon suivi de n'importe quoi mais se terminant sur un choix parmi Waterloo ou Leipzig dans le titre
 
@@ -244,6 +296,9 @@ qui cherchera les Units qui contiennent exactement Napoléon suivi de n'importe 
 
    { "$search" : { "Title" : "\"oeufs cuits\" +(tomate | patate) -frite" } }
 
+   static include fr.gouv.vitam.common.database.builder.query.QueryHelper.*;
+   Query query = search("Title", "\"oeufs cuits\" +(tomate | patate) -frite");
+
 pour rechercher les Units qui ont dans le titre la phrase "oeufs cuits" et au moins un parmi tomate ou patate, mais pas frite
 
 - $flt, $mlt
@@ -260,6 +315,9 @@ pour rechercher les Units qui ont dans le titre la phrase "oeufs cuits" et au mo
 
    { "$mlt" : { "$fields" : ["Title", "Description"], "$like" : "Il était une fois" } }
 
+   static include fr.gouv.vitam.common.database.builder.query.QueryHelper.*;
+   Query query = mlt("Il était une fois", "Title", "Description");
+
 pour chercher les Units qui ont dans le titre ou la description un contenu qui s'approche de la phrase spécifiée dans $like.
 
 
@@ -274,7 +332,10 @@ Partie $action dans la fonction Update
 
 ::
 
-   { "$set : { "Title" : "Mon nouveau titre", "Description" : "Ma nouvelle description" }" }
+   { "$set" : { "Title" : "Mon nouveau titre", "Description" : "Ma nouvelle description" }" }
+
+   static include fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.*;
+   Action action = set("Title", "Mon nouveau titre").add("Description", "Ma nouvelle description");
 
 qui change les champs Title et Description avec les valeurs indiquées
 
@@ -287,7 +348,10 @@ qui change les champs Title et Description avec les valeurs indiquées
 
 ::
 
-   { "$unset : [ "StartDate", "EndDate" ]" }
+   { "$unset" : [ "StartDate", "EndDate" ]" }
+
+   static include fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.*;
+   Action action = unset("StartDate", "EndDate");
 
 qui va vider les champs indiqués de toutes valeurs
 
@@ -300,7 +364,10 @@ qui va vider les champs indiqués de toutes valeurs
 
 ::
 
-   { "$min : { "MonChamp" : 3 }" }
+   { "$min" : { "MonChamp" : 3 }" }
+
+   static include fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.*;
+   Action action = set("Title", "Mon nouveau titre").add("Description", "Ma nouvelle description");
 
 Si MonCompteur contient 2, MonCompteur vaudra 3, mais si MonCompteur contient 4, la valeur restera inchangée
 
@@ -312,7 +379,10 @@ Si MonCompteur contient 2, MonCompteur vaudra 3, mais si MonCompteur contient 4,
 
 ::
 
-   { "$inc : { "MonCompteur" : -2 }" }
+   { "$inc" : { "MonCompteur" : -2 }" }
+
+   static include fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.*;
+   Action action = inc("MonCompteur", -2);
 
 décrémente de 2 la valeur initiale de MonCompteur
 
@@ -325,7 +395,10 @@ décrémente de 2 la valeur initiale de MonCompteur
 
 ::
 
-   { "$rename : { "MonChamp" : "MonNouveauChamp" }" }
+   { "$rename" : { "MonChamp" : "MonNouveauChamp" }" }
+
+   static include fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.*;
+   Action action = rename("MonChamp", "MonNouveauChamp");
 
 où le champ MonChamp va être renommé en MonNouveauChamp
 
@@ -340,6 +413,9 @@ où le champ MonChamp va être renommé en MonNouveauChamp
 
    { "$push" : { "Tag" : { "$each" : [ "Poisson", "Oiseau" ] } } }
 
+   static include fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.*;
+   Action action = push("Tag", "Poisson", "Oiseau");
+
 ajoute dans le champ Tag les valeurs précisées à la fin du tableau même si elles existent déjà dans le tableau
 
 - $add
@@ -353,6 +429,9 @@ ajoute dans le champ Tag les valeurs précisées à la fin du tableau même si e
 
    { "$add" : { "Tag" : { "$each" : [ "Poisson", "Oiseau" ] } } }
 
+   static include fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.*;
+   Action action = add("Tag", "Poisson", "Oiseau");
+
 ajoute dans le champ Tag les valeurs précisées sauf si elles existent déjà dans le tableau
 
 - $pop
@@ -364,6 +443,9 @@ ajoute dans le champ Tag les valeurs précisées sauf si elles existent déjà d
 ::
 
    { "$pop" : { "Tag" : -1 } }
+
+   static include fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.*;
+   Action action = pop("Tag", -1);
 
 retire dans le champ Tag la première valeur du tableau
 
@@ -383,6 +465,21 @@ Exemple d'un SELECT Multi-queries
     "$filter": { "$limit": 100 },
     "$projection": { "$fields": { "#id": 1, "title": 1, "#type": 1, "#parents": 1, "#object": 1 } }
    }
+
+   include fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+   static include fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.*;
+   static include fr.gouv.vitam.common.database.builder.query.QueryHelper.*;
+
+   Query query1 = match("Title", "titre").setDepthLimit(4);
+   Query query2 = and(gt("StartDate", dateFormat.parse("2014-03-25")), 
+         lte("EndDate", dateFormat.parse("2014-04-25")))
+         .setDepthLimit(0);
+   Query query3 = exists("FilePlanPosition");
+   SelectMultiQuery select = new SelectMultiQuery().addRoots("id0")
+         .addQueries(query1, query2, query3)
+         .setLimitFilter(0, 100)
+         .addProjection(id(), "Title", type(), parents(), object());
+   JsonNode json = select.getFinalSelect();
 
 1. Cette requête commence avec le Unit id0. A partir de ce Unit, on cherche des Units qui sont fils avec une distance d'au plus 4 du noeud id0 et où Title contient "titre", ce qui donne une nouvelle liste d'Ids.
 2. La query suivante utilise la liste d'Ids précédemment obtenue pour effectuer un filtre sur celle-ci ($depth = 0) et vérifie une condition sur StartDate et EndDate, ce qui donne une nouvelle liste d'Ids, sous-ensemble de celle obtenue en étape 1.
@@ -405,4 +502,288 @@ A noter qu'il aurait été possible d'optimiser cette requête comme suit :
     "$projection": { "$fields": { "#id": 1, "title": 1, "#type": 1, "#parents": 1, "#object": 1 } }
    }
 
+   include fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+   static include fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.*;
+   static include fr.gouv.vitam.common.database.builder.query.QueryHelper.*;
+
+   Query query2 = and(match("Title", "titre"), gt("StartDate", dateFormat.parse("2014-03-25")), 
+         lte("EndDate", dateFormat.parse("2014-04-25"))).setDepthLimit(4);
+   Query query3 = exists("FilePlanPosition");
+   SelectMultiQuery select = new SelectMultiQuery().addRoots("id0")
+         .addQueries(query2, query3)
+         .setLimitFilter(0, 100)
+         .addProjection(id(), "Title", type(), parents(), object());
+   JsonNode json = select.getFinalSelect();
+
 Car la requête 1 et 2 sont unifiées en une seule.
+
+
+Exemple de scénarios
+====================
+
+Cas du SIP Mercier.zip
+----------------------
+
+**Etape 1**
+
+1. je cherche l'article 2 (ArchivalAgencyArchiveUnitIdentifier) = les discours prononcés devant l'Assemblée nationale
+
+::
+
+  {
+    "$roots": [],
+    "$query": [
+          {
+            "$match": {
+              "Title": "assemblée"
+            },
+            "$depth": 20
+          },
+          {
+            "$match": {
+              "Title": "discours"
+            },
+            "$depth": 20
+          }
+        ]
+      }
+    ],
+    "$filter": {
+      "$orderby": {
+        "TransactedDate": 1
+      }
+    },
+    "$projection": {
+      "$fields": {
+
+     }
+    }
+  }
+
+**Etape 2**
+
+2. je cherche les discours prononcés lors de la préparation de la loi relative au défenseur des droits, que ce soit à l'Assemblée nationale ou le Sénat (Title = défenseur)
+
+::
+
+  {
+    "$roots": [],
+    "$query": [
+      {
+        "$or": [
+          {
+            "$match": {
+              "Title": "sénat"
+            }
+          },
+          {
+            "$match": {
+              "Title": "assemblée"
+            }
+          }
+        ],
+        "$depth": 20
+      },
+      {
+        "$and": [
+          {
+            "$match": {
+              "Title": "défenseur"
+            }
+          }
+        ],
+        "$depth": 20
+      }
+    ],
+    "$filter": {
+      "$orderby": {
+        "TransactedDate": 1
+      }
+    },
+    "$projection": {
+      "$fields": {
+      }
+    }
+  }
+
+
+**Etape 3**
+
+3. je cherche dans le dossier Sénat (Title = Sénat), les discours prononcés lors de la relative au défenseur des droits (Title = défenseur)
+
+::
+
+  {
+    "$roots": [],
+    "$query": [
+      {
+        "$and": [
+          {
+            "$eq": {
+              "Title": "Sénat"
+            }
+          }
+        ],
+        "$depth": 20
+      },
+      {
+        "$and": [
+          {
+            "$match": {
+              "Title": "défenseur"
+            }
+          }
+        ],
+        "$depth": 20
+      }
+    ],
+    "$filter": {
+      "$orderby": {
+        "TransactedDate": 1
+      }
+    },
+    "$projection": {
+      "$fields": {
+      }
+    }
+  }
+
+
+**Etape 4**
+
+4. je cherche les discours prononcé sur telle intervalle de date (StartDate, EndDate)
+
+::
+
+  {
+    "$roots": [],
+    "$query": [
+        {
+        "$or": [
+          {
+            "$match": {
+              "Title": "discours"
+            }
+          }
+        ],
+        "$depth": 20
+      },
+      {
+        "$and": [
+          { "$range" : { "StartDate" : { "$gte" : "2012-10-22", "$lte" : "2012-11-07" } } },
+          { "$range" : { "EndDate" : { "$gte" : "2012-11-07", "$lte" : "2012-11-08" } } }
+        ],
+        "$depth": 0
+      }
+    ],
+    "$filter": {
+      "$orderby": {
+        "TransactedDate": 1
+      }
+    },
+    "$projection": {
+      "$fields": {
+
+     }
+    }
+  }
+
+
+Cas du SIP 1069_OK_RULES_COMPLEXE_COMPLETE.zip
+----------------------------------------------
+
+**Etape 1**
+
+1. je cherche l'AU dont le titre est Botzaris (Title = Botzaris)
+
+::
+
+  {
+    "$roots": [],
+    "$query": [
+          {
+            "$match": {
+              "Title": "Botzaris"
+            },
+            "$depth": 20
+          }
+        ]
+      }
+    ],
+    "$filter": {
+      "$orderby": {
+        "TransactedDate": 1
+      }
+    },
+    "$projection": {
+      "$fields": {
+
+     }
+    }
+  }
+
+
+**Etape 2**
+
+2. je cherche les AU qui ne seront pas communicables au 01/01/2018 (= les AU qui ont une AccesRule avec une EndDate postérieure au 01/01/2018)
+
+::
+
+  {
+    "$roots": [],
+    "$query": [
+      {
+        "$or": [
+          {
+            "$gt": {
+              "#management.AccessRule.EndDate": "2018-01-01"
+            }
+          }
+        ],
+        "$depth": 0
+      }
+    ],
+    "$filter": {
+      "$orderby": {
+        "TransactedDate": 1
+      }
+    },
+    "$projection": {
+      "$fields": {
+      	"#rules" : 1, "Title" : 1
+      }
+    }
+  }
+
+
+**Etape 3**
+
+3. je cherche les AU qui ont une AppraisalRule avec sort final = Destroy
+
+::
+
+  {
+    "$roots": [],
+    "$query": [
+      {
+        "$or": [
+          {
+            "$eq": {
+              "#management.AppraisalRule.FinalAction": "Destroy"
+            }
+          }
+        ],
+        "$depth": 0
+      }
+    ],
+    "$filter": {
+      "$orderby": {
+        "TransactedDate": 1
+      }
+    },
+    "$projection": {
+      "$fields": {
+      	"#rules" : 1, "Title" : 1
+      }
+    }
+  }

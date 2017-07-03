@@ -75,6 +75,22 @@ public class SedaConstants {
     public static final String ALGORITHM = "Algorithm";
 
     /**
+     * Tag for storage in objectGroup
+     */
+    public static final String STORAGE = "_storage";
+
+    /**
+     * Tag in storage
+     */
+    public static final String OFFER_IDS = "offerIds";
+
+    /**
+     * Strategy Id
+     */
+    public static final String STRATEGY_ID = "strategyId";
+
+
+    /**
      * Tag of DataObjectVersion
      */
     public static final String TAG_DO_VERSION = "DataObjectVersion";
@@ -88,7 +104,7 @@ public class SedaConstants {
      * Tag of BinaryDataObject
      */
     public static final String TAG_BINARY_DATA_OBJECT = "BinaryDataObject";
-    
+
     /**
      * Tag of PhysicalDataObject
      */
@@ -118,6 +134,12 @@ public class SedaConstants {
      * Tag of DataObjectGroupReferenceId
      */
     public static final String TAG_DATA_OBJECT_GROUP_REFERENCEID = "DataObjectGroupReferenceId";
+
+    /**
+     * Tag of DataObjectGroupExistingReferenceId
+     */
+    public static final String TAG_DATA_OBJECT_GROUP_EXISITING_REFERENCEID = "DataObjectGroupExistingReferenceId";
+
 
     /**
      * Tag of DataObjectReferenceId
@@ -152,6 +174,11 @@ public class SedaConstants {
      * Prefix of qualifiers element
      */
     public static final String PREFIX_QUALIFIERS = "_qualifiers";
+
+    /**
+     * Prefix of qualifiers element
+     */
+    public static final String PREFIX_QUALIFIER = "qualifier";
 
     /**
      * Prefix of up element
@@ -210,6 +237,12 @@ public class SedaConstants {
      * tag of ArchivalAgreement
      */
     public static final String TAG_ARCHIVAL_AGREEMENT = "ArchivalAgreement";
+
+    /**
+     * tag of ArchiveProfile
+     */
+    public static final String TAG_ARCHIVE_PROFILE = "ArchivalProfile";
+
     /**
      * tag of ServiceLevel
      */
@@ -240,7 +273,7 @@ public class SedaConstants {
      */
     public static final String TAG_DATA_OBJECT_LIST = "DataObjectList";
     /**
-     * tag of ReplyCode 
+     * tag of ReplyCode
      */
     public static final String TAG_REPLY_CODE = "ReplyCode";
     /**
@@ -272,7 +305,7 @@ public class SedaConstants {
      */
     public static final String TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION = "MessageDigestAlgorithmCodeListVersion";
     /**
-     * tag of  FileFormatCodeListVersion
+     * tag of FileFormatCodeListVersion
      */
     public static final String TAG_FILE_FORMAT_CODE_LIST_VERSION = "FileFormatCodeListVersion";
     /**
@@ -291,11 +324,15 @@ public class SedaConstants {
      * tag of OriginatingAgency
      */
     public static final String TAG_ORIGINATINGAGENCY = "OriginatingAgency";
-    
+
     /**
      * tag of OriginatingAgencyIdentifier
      */
     public static final String TAG_ORIGINATINGAGENCYIDENTIFIER = "OriginatingAgencyIdentifier";
+    /**
+     * tag of OriginatingAgencyIdentifier
+     */
+    public static final String TAG_ORIGINATINGAGENCYIDENTIFIERS = "OriginatingAgencyIdentifiers";
     /**
      * tag of SubmissionAgencyIdentifier
      */
@@ -378,7 +415,7 @@ public class SedaConstants {
     // Tag's attributes used in SEDA
     public static final String TAG_ATTRIBUTE_LANG = "lang";
     public static final String TAG_ATTRIBUTE_UNIT = "unit";
-    
+
     /**
      * Prefix of rules will be applicated to archive unit
      */
@@ -422,6 +459,10 @@ public class SedaConstants {
      */
     public static final String TAG_EVENT_OUTCOME_DETAIL_MESSAGE = "OutcomeDetailMessage";
     /**
+     * tag of EventDetailData
+     */
+    public static final String TAG_EVENT_DETAIL_DATA = "EventDetailData";
+    /**
      * attribute id of archive unit
      */
     public static final String ATTRIBUTE_ID = "id";
@@ -449,9 +490,14 @@ public class SedaConstants {
      * tag of DataObjectSystemId
      */
     public static final String TAG_DATA_OBJECT_SYSTEM_ID = "DataObjectSystemId";
-    
+
     /**
-     * the namespace xlink 
+     * evDetTechData
+     */
+    public static final String EV_DET_TECH_DATA = "evDetTechData";
+
+    /**
+     * the namespace xlink
      */
     public static final String NAMESPACE_XLINK = "xlink";
     /**
@@ -466,7 +512,7 @@ public class SedaConstants {
      * the attribute schemaLocation
      */
     public static final String ATTRIBUTE_SCHEMA_LOCATION = "schemaLocation";
-    
+
     /**
      * reparing namespace property
      */

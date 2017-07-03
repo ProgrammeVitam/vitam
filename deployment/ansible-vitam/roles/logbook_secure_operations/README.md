@@ -6,28 +6,14 @@ Secure operations logbook cron entry
 Requirements
 ------------
 
-None.
-
-Role Variables
---------------
-
-None.
-
-Dependencies
-------------
-
-None.
-
-Example Playbook
-----------------
-
+VITAM has already been deployed
 
 License
 -------
 
-CeCill 2
+Cecill 2.1
 
-Author Information
-------------------
+Auteur
+------
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+Projet VITAM

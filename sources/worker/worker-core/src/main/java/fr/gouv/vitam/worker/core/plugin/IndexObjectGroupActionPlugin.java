@@ -100,7 +100,6 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
     private void indexObjectGroup(WorkerParameters params, ItemStatus itemStatus) throws ProcessingException {
         ParameterHelper.checkNullOrEmptyParameters(params);
         final String objectName = params.getObjectName();
-
         try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
             final ObjectNode json = (ObjectNode) handlerIO.getJsonFromWorkspace(OBJECT_GROUP + "/" + objectName);
             json.remove(SedaConstants.PREFIX_WORK);

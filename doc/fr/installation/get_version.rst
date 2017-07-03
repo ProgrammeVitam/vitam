@@ -3,7 +3,7 @@ Récupération de la version
 
 Cas particulier des partenaires
 =================================
-Se connecter sur l'URL `support <https://support.programmevitam.fr/releases/>`_ et récupérer :
+Se connecter sur l'URL de support partenaires et récupérer :
 
 * le package de livraison
 * la release notes
@@ -22,8 +22,8 @@ Les scripts de déploiement de VITAM sont disponibles dans le dépôt github `VI
 
 Les binaires de VITAM sont disponibles sur les dépôts `bintray <https://bintray.com/programmevitam>`_ ; ces dépôts doivent être correctement configurés sur la plate-forme cible avant toute installation.
 
-CentOS
--------
+Repository pour environnement CentOS
+-------------------------------------
 
 Sur les partitions cibles, configurer le fichier ``/etc/yum.repos.d/vitam-repositories.repo`` (remplacer <branche_vitam> par le nom de la branche de support à installer) comme suit ::
 
@@ -42,8 +42,8 @@ Sur les partitions cibles, configurer le fichier ``/etc/yum.repos.d/vitam-reposi
    enabled=1
 
 
-Debian
--------
+Repository pour environnement Debian
+-------------------------------------
 
 Sur les partitions cibles, configurer le fichier ``/etc/apt/sources.list.d/vitam-repositories.list`` (remplacer <branche_vitam> par le nom de la branche de support à installer) comme suit ::
 

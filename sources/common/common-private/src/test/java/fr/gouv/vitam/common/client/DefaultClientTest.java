@@ -32,6 +32,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.Map;
 import java.util.concurrent.Future;
 
 import javax.ws.rs.ForbiddenException;
@@ -189,7 +190,10 @@ public class DefaultClientTest extends VitamJerseyTest {
         assertTrue("no exception".length() > 0);
         assertTrue(client.getChunkedMode());
         assertTrue(client.getHttpClient() == client.getHttpClient(true));
-        assertTrue(getFactory().getDefaultConfigCient() == getFactory().getDefaultConfigCient(true));
+        String map1 = getFactory().getDefaultConfigCient().toString();
+        String map2 = getFactory().getDefaultConfigCient(true).toString();
+        LOGGER.warn(map1);
+        assertTrue(map1.equals(map2));
     }
 
     @Test
@@ -199,9 +203,9 @@ public class DefaultClientTest extends VitamJerseyTest {
                 .build());
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add("X-Test", "testvalue");
+        LOGGER.warn("Coinfig: " + client.clientFactory.getDefaultConfigCient());
         Response message =
-            client.performRequest(HttpMethod.GET, BasicClient.STATUS_URL, headers, MediaType.APPLICATION_JSON_TYPE,
-                false);
+            client.performRequest(HttpMethod.GET, BasicClient.STATUS_URL, headers, MediaType.APPLICATION_JSON_TYPE);
         assertEquals(Response.Status.OK.getStatusCode(), message.getStatus());
         when(mock.get()).thenReturn(
             Response.status(Response.Status.OK).entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}")
@@ -347,7 +351,7 @@ public class DefaultClientTest extends VitamJerseyTest {
         try {
             when(mock.get()).thenThrow(new NotFoundException());
             response =
-                client.performRequest(HttpMethod.GET, "/statusNotFound", null, MediaType.APPLICATION_JSON_TYPE, true);
+                client.performRequest(HttpMethod.GET, "/statusNotFound", null, MediaType.APPLICATION_JSON_TYPE);
             assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());
         } catch (final Exception e) {
             // Ignore
@@ -356,7 +360,7 @@ public class DefaultClientTest extends VitamJerseyTest {
         endApplication();
         try {
             response =
-                client.performRequest(HttpMethod.GET, "/status", null, MediaType.APPLICATION_JSON_TYPE, false);
+                client.performRequest(HttpMethod.GET, "/status", null, MediaType.APPLICATION_JSON_TYPE);
             fail("Should generate an exception");
         } catch (final VitamClientInternalException e) {
             // Ignore

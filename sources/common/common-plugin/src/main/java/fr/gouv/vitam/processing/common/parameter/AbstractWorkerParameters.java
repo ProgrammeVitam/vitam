@@ -212,21 +212,6 @@ abstract class AbstractWorkerParameters implements WorkerParameters {
 
     @JsonIgnore
     @Override
-    public String getStepUniqId() {
-        return mapParameters.get(WorkerParameterName.stepUniqId);
-
-    }
-
-    @JsonIgnore
-    @Override
-    public WorkerParameters setStepUniqId(String stepUniqId) {
-        ParametersChecker.checkParameter(String.format(ERROR_MESSAGE, "stepUniqId"), stepUniqId);
-        mapParameters.put(WorkerParameterName.stepUniqId, stepUniqId);
-        return this;
-    }
-
-    @JsonIgnore
-    @Override
     public String getUrlMetadata() {
         return mapParameters.get(WorkerParameterName.urlMetadata);
     }

@@ -1,80 +1,266 @@
 {
-  "typeunique": {
-    "properties": {
-      "_nbc": {
-        "type": "long"
-      },
-      "_up": {
-        "type": "string",
-        "index": "not_analyzed"
-      },
-      "_uds": {
-        "type": "object",
-        "enabled": false
-      },
-      "_us": {
-        "type": "string"
-      },
-      "FileInfo": {
-        "properties": {
-          "Filename": {
-            "type": "string",
-            "index": "analyzed"
-          }
-        }
-      },
-      "_qualifiers": {
-        "properties": {
-          "BinaryMaster": {
-            "properties": {
-              "versions": {
-                "properties": {
-                  "FormatIdentification": {
-                    "properties": {
-                      "FormatLitteral": {
-                        "type": "string",
-                        "index": "analyzed"
-                      }
-                    }
-                  },
-                  "FileInfo": {
-                    "properties": {
-                      "Filename": {
-                        "type": "string",
-                        "index": "analyzed"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "Dissimination": {
-            "properties": {
-              "versions": {
-                "properties": {
-                  "FormatIdentification": {
-                    "properties": {
-                      "FormatLitteral": {
-                        "type": "string",
-                        "index": "analyzed"
-                      }
-                    }
-                  },
-                  "FileInfo": {
-                    "properties": {
-                      "Filename": {
-                        "type": "string",
-                        "index": "analyzed"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
+	"typeunique": {
+		"properties": {
+			"FileInfo": {
+				"properties": {
+					"CreatingApplicationName": {
+						"type": "string"
+					},
+					"CreatingApplicationVersion": {
+						"type": "string"
+					},
+					"CreatingOs": {
+						"type": "string"
+					},
+					"CreatingOsVersion": {
+						"type": "string"
+					},
+					"DateCreatedByApplication": {
+						"type": "date",
+						"format": "strict_date_optional_time||epoch_millis"
+					},
+					"Filename": {
+						"type": "string"
+					},
+					"LastModified": {
+						"type": "date",
+						"format": "strict_date_optional_time||epoch_millis"
+					}
+				}
+			},
+			"_sp": {
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"_v": {
+				"type": "long"
+			},
+			"_nbc": {
+				"type": "long"
+			},
+			"_ops": {
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"_profil": {
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"_qualifiers": {
+				"properties": {
+					"_nbc": {
+						"type": "long"
+					},
+					"qualifier": {
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"versions": {
+						"properties": {
+							"Algorithm": {
+								"type": "string",
+								"index": "not_analyzed"
+							},
+							"DataObjectGroupId": {
+								"type": "string",
+								"index": "not_analyzed"
+							},
+							"DataObjectVersion": {
+								"type": "string",
+								"index": "not_analyzed"
+							},
+							"FileInfo": {
+								"properties": {
+									"CreatingApplicationName": {
+										"type": "string"
+									},
+									"CreatingApplicationVersion": {
+										"type": "string"
+									},
+									"CreatingOs": {
+										"type": "string"
+									},
+									"CreatingOsVersion": {
+										"type": "string"
+									},
+									"DateCreatedByApplication": {
+										"type": "date",
+										"format": "strict_date_optional_time||epoch_millis"
+									},
+									"Filename": {
+										"type": "string"
+									},
+									"LastModified": {
+										"type": "date",
+										"format": "strict_date_optional_time||epoch_millis"
+									}
+								}
+							},
+							"FormatIdentification": {
+								"properties": {
+									"FormatId": {
+										"type": "string",
+										"index": "not_analyzed"
+									},
+									"FormatLitteral": {
+										"type": "string"
+									},
+									"MimeType": {
+										"type": "string"
+									}
+								}
+							},
+							"MessageDigest": {
+								"type": "string",
+								"index": "not_analyzed"
+							},
+							"PhysicalDimensions": {
+								"properties": {
+									"Diameter": {
+										"properties": {
+											"unit": {
+												"type": "string"
+											},
+											"value": {
+												"type": "long"
+											}
+										}
+									},
+									"Height": {
+										"properties": {
+											"unit": {
+												"type": "string"
+											},
+											"value": {
+												"type": "long"
+											}
+										}
+									},
+									"Depth": {
+										"properties": {
+											"unit": {
+												"type": "string"
+											},
+											"value": {
+												"type": "long"
+											}
+										}
+									},
+									"Shape": {
+										"type": "string"
+									},
+									"Thickness": {
+										"properties": {
+											"unit": {
+												"type": "string"
+											},
+											"value": {
+												"type": "double"
+											}
+										}
+									},
+									"Length": {
+										"properties": {
+											"unit": {
+												"type": "string"
+											},
+											"value": {
+												"type": "double"
+											}
+										}
+									},
+									"NumberOfPage": {
+										"type": "long"
+									},
+									"Weight": {
+										"properties": {
+											"unit": {
+												"type": "string"
+											},
+											"value": {
+												"type": "long"
+											}
+										}
+									},
+									"Width": {
+										"properties": {
+											"unit": {
+												"type": "string"
+											},
+											"value": {
+												"type": "double"
+											}
+										}
+									}
+								}
+							},
+							"PhysicalId": {
+								"type": "string",
+								"index": "not_analyzed"
+							},
+							"Size": {
+								"type": "long"
+							},
+							"Uri": {
+								"type": "string",
+								"index": "not_analyzed"
+							},
+							"_id": {
+								"type": "string"
+							},
+							"_storage": {
+								"properties": {
+									"_nbc": {
+										"type": "long"
+									},
+									"offerIds": {
+										"type": "string",
+										"index": "not_analyzed"
+									},
+									"strategyId": {
+										"type": "string",
+										"index": "not_analyzed"
+									}
+								}
+							}
+						}
+					}
+				}
+			},
+			"_sps": {
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"_tenant": {
+				"type": "long"
+			},
+			"_up": {
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"_uds": {
+				"type": "object",
+				"enabled": false
+			},
+			"_us": {
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"_storage": {
+				"properties": {
+					"_nbc": {
+						"type": "long"
+					},
+					"offerIds": {
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"strategyId": {
+						"type": "string",
+						"index": "not_analyzed"
+					}
+				}
+			}
+		}
+	}
 }

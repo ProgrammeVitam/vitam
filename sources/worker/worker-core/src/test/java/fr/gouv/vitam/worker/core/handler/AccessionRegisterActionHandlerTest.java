@@ -40,11 +40,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.guid.GUID;
@@ -56,6 +51,9 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.model.IOParameter;
 import fr.gouv.vitam.processing.common.model.ProcessingUri;
 import fr.gouv.vitam.processing.common.model.UriPrefix;
@@ -65,9 +63,6 @@ import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({SedaUtils.class, SedaUtilsFactory.class})
 public class AccessionRegisterActionHandlerTest {
     private static final String ARCHIVE_ID_TO_GUID_MAP = "ARCHIVE_ID_TO_GUID_MAP_obj.json";
     private static final String OBJECT_GROUP_ID_TO_GUID_MAP = "OBJECT_GROUP_ID_TO_GUID_MAP_obj.json";
@@ -76,7 +71,7 @@ public class AccessionRegisterActionHandlerTest {
     private static final String FAKE_URL = "http://localhost:8080";
     AccessionRegisterActionHandler accessionRegisterHandler;
     private static final String HANDLER_ID = "ACCESSION_REGISTRATION";
-    private HandlerIOImpl action;
+    private HandlerIOImpl handlerIO;
     private GUID guid;
     private WorkerParameters params;
     private static final Integer TENANT_ID = 0;
@@ -87,46 +82,57 @@ public class AccessionRegisterActionHandlerTest {
 
     @Before
     public void setUp() throws Exception {
-        PowerMockito.mockStatic(SedaUtilsFactory.class);
-        PowerMockito.mockStatic(SedaUtils.class);
         AdminManagementClientFactory.changeMode(null);
         guid = GUIDFactory.newGUID();
         params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
-        action = new HandlerIOImpl(guid.getId(), "workerId");
+        handlerIO = new HandlerIOImpl(guid.getId(), "workerId");
     }
 
     @After
     public void end() {
-        action.partialClose();
+        handlerIO.partialClose();
     }
 
     @Test
     @RunWithCustomExecutor
-    public void testResponseOK()
-        throws Exception {
-    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final SedaUtils sedaUtils = mock(SedaUtils.class);
-        PowerMockito.when(SedaUtilsFactory.create(anyObject())).thenReturn(sedaUtils);
-        when(sedaUtils.computeTotalSizeOfObjectsInManifest(anyObject())).thenReturn(new Long(1024));
-        AdminManagementClientFactory.getInstance();
+    public void testResponseOK() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        GUID operationId = GUIDFactory.newGUID();
+        VitamThreadUtils.getVitamSession().setRequestId(operationId);
+        MetaDataClient metaDataClient = mock(MetaDataClient.class);
+        MetaDataClientFactory metaDataClientFactory = mock(MetaDataClientFactory.class);
+
+        when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
+
+        List<UnitPerOriginatingAgency> originatingAgencies = new ArrayList<>();
+        originatingAgencies.add(new UnitPerOriginatingAgency("sp1", 3));
+
+        when(metaDataClient.selectAccessionRegisterOnUnitByOperationId(operationId.toString()))
+            .thenReturn(originatingAgencies);
+
         AdminManagementClientFactory.changeMode(null);
         final List<IOParameter> in = new ArrayList<>();
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Maps/ARCHIVE_ID_TO_GUID_MAP.json")));
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json")));
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Maps/BDO_TO_BDO_INFO_MAP.json")));
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "ATR/globalSEDAParameters.json")));
-        action.addOutIOParameters(in);
-        action.addOuputResult(0, PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP));
-        action.addOuputResult(1, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP));
-        action.addOuputResult(2, PropertiesUtils.getResourceFile(BDO_TO_BDO_INFO_MAP));
-        action.addOuputResult(3, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS));
-        action.reset();
-        action.addInIOParameters(in);
-        accessionRegisterHandler = new AccessionRegisterActionHandler();
+        handlerIO.addOutIOParameters(in);
+        handlerIO.addOuputResult(0, PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP));
+        handlerIO.addOuputResult(1, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP));
+        handlerIO.addOuputResult(2, PropertiesUtils.getResourceFile(BDO_TO_BDO_INFO_MAP));
+        handlerIO.addOuputResult(3, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS));
+        handlerIO.reset();
+        handlerIO.addInIOParameters(in);
+        accessionRegisterHandler = new AccessionRegisterActionHandler(metaDataClientFactory);
         assertEquals(AccessionRegisterActionHandler.getId(), HANDLER_ID);
-        final ItemStatus response = accessionRegisterHandler.execute(params, action);
+
+        // When
+        final ItemStatus response = accessionRegisterHandler.execute(params, handlerIO);
+
+        // Then
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 

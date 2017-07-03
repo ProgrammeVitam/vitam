@@ -26,20 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin;
 
-import java.io.File;
-import java.io.InputStream;
-import java.util.Iterator;
-
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
-import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
@@ -49,8 +40,8 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.logbook.common.parameters.UnitType;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
@@ -64,6 +55,10 @@ import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
+import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.InputStream;
+
 /**
  * IndexUnitAction Plugin
  */
@@ -73,7 +68,6 @@ public class IndexUnitActionPlugin extends ActionHandler {
 
     private static final String ARCHIVE_UNIT = "ArchiveUnit";
     private static final String TAG_WORK = "_work";
-    private static final String TAG_CONTENT = "Content";
     private static final String TAG_MANAGEMENT = "Management";
     private static final int SEDA_PARAMETERS_RANK = 1;
 
@@ -82,7 +76,6 @@ public class IndexUnitActionPlugin extends ActionHandler {
 
     /**
      * Constructor with parameter SedaUtilsFactory
-     *
      */
     public IndexUnitActionPlugin() {
         // Empty
@@ -117,7 +110,7 @@ public class IndexUnitActionPlugin extends ActionHandler {
 
     /**
      * Index archive unit
-     * 
+     *
      * @param params work parameters
      * @param itemStatus item status
      * @throws ProcessingException when error in execution
@@ -132,7 +125,7 @@ public class IndexUnitActionPlugin extends ActionHandler {
         Response response = null;
         try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
             response = handlerIO
-                .getInputStreamNoCachedFromWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName);
+                    .getInputStreamNoCachedFromWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName);
 
             if (response != null) {
                 input = (InputStream) response.getEntity();
@@ -154,18 +147,14 @@ public class IndexUnitActionPlugin extends ActionHandler {
                     final ArrayNode parents = (ArrayNode) work.get("_up");
                     query.addRoots(parents);
                 }
-                if (Boolean.TRUE.equals(existing)) {
-                    // update case
-                    computeExistingData(containerId, query);
-                    metadataClient.updateUnitbyId(((UpdateMultiQuery) query).getFinalUpdate(),
-                        data.get("#id").asText());
-                } else {
+                if (!Boolean.TRUE.equals(existing)) {
                     // insert case
                     if (handlerIO.getInput() != null && !handlerIO.getInput().isEmpty()) {
                         String unitType = UnitType.getUnitTypeString((String) handlerIO.getInput(0));
                         data.put(VitamFieldsHelper.unitType(), unitType);
                     }
-                    metadataClient.insertUnit(((InsertMultiQuery) query).addData(data).getFinalInsert());
+                    ObjectNode finalInsert = ((InsertMultiQuery) query).addData(data).getFinalInsert();
+                    metadataClient.insertUnit(finalInsert);
                 }
                 itemStatus.increment(StatusCode.OK);
             } else {
@@ -176,7 +165,7 @@ public class IndexUnitActionPlugin extends ActionHandler {
         } catch (final MetaDataNotFoundException e) {
             LOGGER.error("Unit references a non existing unit " + query.toString());
             throw new IllegalArgumentException(e);
-        } catch (final MetaDataException | InvalidParseOperationException | InvalidCreateOperationException e) {
+        } catch (final MetaDataException | InvalidParseOperationException e) {
             LOGGER.error("Internal Server Error", e);
             throw new ProcessingException(e);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
@@ -185,28 +174,16 @@ public class IndexUnitActionPlugin extends ActionHandler {
         } catch (IllegalArgumentException e) {
             LOGGER.error("Illegal Argument Exception for " + (query != null ? query.toString() : ""));
             throw e;
-        } finally {
+        } /* catch (InvalidCreateOperationException e) {
+            e.printStackTrace();
+        } */finally {
             handlerIO.consumeAnyEntityAndClose(response);
         }
     }
 
     /**
-     * Import existing data and add them to the data defined in sip in update query
-     * 
-     * @param data sip defined data
-     * @param query update query
-     * @throws InvalidCreateOperationException exception while adding an action to the query
-     */
-    private void computeExistingData(final String containerId, RequestMultiple query)
-        throws InvalidCreateOperationException {
-        ((UpdateMultiQuery) query)
-            .addActions(UpdateActionHelper.add(VitamFieldsHelper.operations(), containerId));
-    }
-
-
-    /**
      * Convert xml archive unit to json node for insert/update.
-     * 
+     *
      * @param input xml archive unit
      * @param containerId container id
      * @param objectName unit file name
@@ -216,50 +193,35 @@ public class IndexUnitActionPlugin extends ActionHandler {
      */
     // FIXME do we need to create a new file or not ?
     private JsonNode prepareArchiveUnitJson(InputStream input, String containerId, String objectName)
-        throws InvalidParseOperationException, ProcessingException {
+            throws InvalidParseOperationException, ProcessingException {
         ParametersChecker.checkParameter("Input stream is a mandatory parameter", input);
         ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
         ParametersChecker.checkParameter("ObjectName id is a mandatory parameter", objectName);
 
         JsonNode archiveUnit = JsonHandler.getFromInputStream(input);
         ObjectNode archiveUnitNode = (ObjectNode) archiveUnit.get(ARCHIVE_UNIT);
-        ObjectNode workNode = (ObjectNode) archiveUnit.get(TAG_WORK);
 
         // replace _id by #id
         archiveUnitNode.set("#id", archiveUnitNode.get("_id"));
         archiveUnitNode.remove("_id");
 
-
-        // transform _up to real array
-        JsonNode upNode = workNode.get("_up");
-        if (upNode != null && upNode.isArray() && ((ArrayNode) upNode).size() > 0) {
-            // FIXME remove the ugly array ["GUID-GUID-GUID"] in extractSedaHandler
-            final JsonNode firstUpNode = ((ArrayNode) upNode).iterator().next();
-            final String[] parentsGuid = firstUpNode.asText().split(IngestWorkflowConstants.UPS_SEPARATOR);
-            final ArrayNode parentsArray = JsonHandler.createArrayNode();
-            for (final String parent : parentsGuid) {
-                parentsArray.add(parent);
-            }
-            workNode.set("_up", parentsArray);
-        }
-
         // replace Management by _mgt
         ObjectNode managementNode = (ObjectNode) archiveUnitNode.get(TAG_MANAGEMENT);
         final JsonNode sedaParameters = JsonHandler.getFromFile((File) handlerIO.getInput(SEDA_PARAMETERS_RANK));
-        String prodService = sedaParameters.get(SedaConstants.TAG_ARCHIVE_TRANSFER)
-            .get(SedaConstants.TAG_DATA_OBJECT_PACKAGE).get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER).asText();
-        managementNode.put(SedaConstants.TAG_ORIGINATINGAGENCY, prodService);
+        if (sedaParameters.get(SedaConstants.TAG_ARCHIVE_TRANSFER)
+                .get(SedaConstants.TAG_DATA_OBJECT_PACKAGE).get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER) != null) {
+
+            String prodService = sedaParameters.get(SedaConstants.TAG_ARCHIVE_TRANSFER)
+                    .get(SedaConstants.TAG_DATA_OBJECT_PACKAGE).get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER).asText();
+
+            ArrayNode originatingAgencies = JsonHandler.createArrayNode();
+            originatingAgencies.add(prodService);
+
+            archiveUnitNode.set(VitamFieldsHelper.originatingAgencies(), originatingAgencies);
+            archiveUnitNode.put(VitamFieldsHelper.originatingAgency(), prodService);
+        }
         archiveUnitNode.set(SedaConstants.PREFIX_MGT, (JsonNode) managementNode);
         archiveUnitNode.remove(TAG_MANAGEMENT);
-
-        // remove Content tag and move its content in ArchiveUnit
-        ObjectNode content = (ObjectNode) archiveUnitNode.get(TAG_CONTENT);
-        Iterator<String> contentFieldNames = content.fieldNames();
-        while (contentFieldNames.hasNext()) {
-            String fieldName = contentFieldNames.next();
-            archiveUnitNode.set(fieldName, content.get(fieldName));
-        }
-        archiveUnitNode.remove(TAG_CONTENT);
 
         // remove DataObjectReference
         // FIXME is it normal to have this TAG "DataObjectReference" after ExtractSeda since "_og" contains the guids

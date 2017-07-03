@@ -27,10 +27,12 @@
 package fr.gouv.vitam.functional.administration.common;
 
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.functional.administration.common.embed.ProfileFormat;
 import fr.gouv.vitam.functional.administration.common.embed.ProfileStatus;
+
 import org.bson.Document;
 
 /**
@@ -130,6 +132,11 @@ public class Profile extends VitamDocument<Profile> {
      */
     public Profile(Integer tenantId) {
         append(TENANT_ID, tenantId);
+    }
+
+    @Override
+    public VitamDocument<Profile> newInstance(JsonNode content) {
+        return new Profile(content);
     }
 
     /**
