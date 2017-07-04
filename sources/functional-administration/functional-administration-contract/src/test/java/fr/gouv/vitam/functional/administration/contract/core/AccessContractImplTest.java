@@ -315,7 +315,7 @@ public class AccessContractImplTest {
 
 
         RequestResponse<AccessContractModel> updateContractStatus =
-                accessContractService.updateContract(accessContractModelList.get(0).getId(), queryDslForUpdate);
+                accessContractService.updateContract(accessContractModelList.get(0).getIdentifier(), queryDslForUpdate);
         assertThat(updateContractStatus).isNotExactlyInstanceOf(VitamError.class);
 
         List<AccessContractModel> accessContractModelListForassert =
@@ -341,7 +341,7 @@ public class AccessContractImplTest {
         JsonNode queryDslStatusActive = updateParserActive.getRequest().getFinalUpdate();
 
 
-        accessContractService.updateContract(accessContractModelList.get(0).getId(), queryDslStatusActive);
+        accessContractService.updateContract(accessContractModelList.get(0).getIdentifier(), queryDslStatusActive);
 
 
         List<AccessContractModel> accessContractModelListForassert2 =
@@ -396,7 +396,7 @@ public class AccessContractImplTest {
         updateParser.parse(update.getFinalUpdate());
         JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
         RequestResponse<AccessContractModel> updateContractStatus =
-            accessContractService.updateContract(accessContractModelList.get(0).getId(), queryDslForUpdate);
+            accessContractService.updateContract(accessContractModelList.get(0).getIdentifier(), queryDslForUpdate);
         assertThat(updateContractStatus).isNotExactlyInstanceOf(VitamError.class);
 
         List<AccessContractModel> accessContractModelListForassert =
@@ -419,7 +419,7 @@ public class AccessContractImplTest {
         updateStatusActive.addActions(setActionEveryOriginatingAgency, setActionLastUpdateActive);
         updateParserActive.parse(updateStatusActive.getFinalUpdate());
         JsonNode queryDslStatusActive = updateParserActive.getRequest().getFinalUpdate();
-        accessContractService.updateContract(accessContractModelList.get(0).getId(), queryDslStatusActive);
+        accessContractService.updateContract(accessContractModelList.get(0).getIdentifier(), queryDslStatusActive);
 
 
         List<AccessContractModel> accessContractModelListForassert2 =
@@ -457,7 +457,7 @@ public class AccessContractImplTest {
         AccessContractModel acm = responseCast.getResults().iterator().next();
         assertThat(acm).isNotNull();
 
-        String id1 = acm.getId();
+        String id1 = acm.getIdentifier();
         assertThat(id1).isNotNull();
 
 
@@ -511,7 +511,7 @@ public class AccessContractImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenAccessContractsTestfindByID() throws Exception {
+    public void givenAccessContractsTestfindByIdentifier() throws Exception {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
@@ -527,7 +527,7 @@ public class AccessContractImplTest {
         AccessContractModel acm = responseCast.getResults().iterator().next();
         assertThat(acm).isNotNull();
 
-        String id1 = acm.getId();
+        String id1 = acm.getIdentifier();
         assertThat(id1).isNotNull();
 
 

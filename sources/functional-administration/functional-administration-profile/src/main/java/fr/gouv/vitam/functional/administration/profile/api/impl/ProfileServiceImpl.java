@@ -1,28 +1,19 @@
 /*
- *  Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- *  <p>
- *  contact.vitam@culture.gouv.fr
- *  <p>
- *  This software is a computer program whose purpose is to implement a digital archiving back-office system managing
- *  high volumetry securely and efficiently.
- *  <p>
- *  This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
- *  software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- *  circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- *  <p>
- *  As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
- *  users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
- *  successive licensors have only limited liability.
- *  <p>
- *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
- *  developing or reproducing the software by the user in light of its specific status of free software, that may mean
- *  that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
- *  experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
- *  software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
- *  to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- *  <p>
- *  The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
- *  accept its terms.
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019) <p> contact.vitam@culture.gouv.fr <p>
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently. <p> This software is governed by the CeCILL 2.1 license under French law and
+ * abiding by the rules of distribution of free software. You can use, modify and/ or redistribute the software under
+ * the terms of the CeCILL 2.1 license as circulated by CEA, CNRS and INRIA at the following URL
+ * "http://www.cecill.info". <p> As a counterpart to the access to the source code and rights to copy, modify and
+ * redistribute granted by the license, users are provided only with a limited warranty and the software's author, the
+ * holder of the economic rights, and the successive licensors have only limited liability. <p> In this respect, the
+ * user's attention is drawn to the risks associated with loading, using, modifying and/or developing or reproducing the
+ * software by the user in light of its specific status of free software, that may mean that it is complicated to
+ * manipulate, and that also therefore means that it is reserved for developers and experienced professionals having
+ * in-depth computer knowledge. Users are therefore encouraged to load and test the software's suitability as regards
+ * their requirements in conditions enabling the security of their systems and/or data to be ensured and, more
+ * generally, to use and operate it in the same conditions as regards security. <p> The fact that you are presently
+ * reading this means that you have had knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
 
 package fr.gouv.vitam.functional.administration.profile.api.impl;
@@ -100,8 +91,8 @@ import static fr.gouv.vitam.common.LocalDateUtil.now;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 
 /**
- * The implementation of the profile servie
- * This implementation manage creation, update, ... profiles with any given format (xsd, rng)
+ * The implementation of the profile servie This implementation manage creation, update, ... profiles with any given
+ * format (xsd, rng)
  *
  */
 public class ProfileServiceImpl implements ProfileService {
@@ -110,7 +101,7 @@ public class ProfileServiceImpl implements ProfileService {
     private static final String PROFILE_IS_MANDATORY_PATAMETER = "profiles parameter is mandatory";
     private static final String PROFILES_IMPORT_EVENT = "STP_IMPORT_PROFILE_JSON";
     private static final String PROFILES_FILE_IMPORT_EVENT = "STP_IMPORT_PROFILE_FILE";
-    private static final String  OP_PROFILE_STORAGE= "OP_PROFILE_STORAGE";
+    private static final String OP_PROFILE_STORAGE = "OP_PROFILE_STORAGE";
     private final MongoDbAccessAdminImpl mongoAccess;
     private LogbookOperationsClient logBookclient;
     private final WorkspaceClientFactory workspaceClientFactory;
@@ -124,7 +115,8 @@ public class ProfileServiceImpl implements ProfileService {
      * @param mongoAccess MongoDB client
      * @param vitamCounterService
      */
-    public ProfileServiceImpl(MongoDbAccessAdminImpl mongoAccess, WorkspaceClientFactory workspaceClientFactory, VitamCounterService vitamCounterService) {
+    public ProfileServiceImpl(MongoDbAccessAdminImpl mongoAccess, WorkspaceClientFactory workspaceClientFactory,
+        VitamCounterService vitamCounterService) {
         this.mongoAccess = mongoAccess;
         this.workspaceClientFactory = workspaceClientFactory;
         this.vitamCounterService = vitamCounterService;
@@ -149,8 +141,9 @@ public class ProfileServiceImpl implements ProfileService {
         final Set<String> profileNames = new HashSet<>();
         ArrayNode profilesToPersist = null;
 
-        final VitamError error = getVitamError(VitamCode.PROFILE_FILE_IMPORT_ERROR.getItem(), "Global create profile error").setHttpCode(
-            Response.Status.BAD_REQUEST.getStatusCode());
+        final VitamError error =
+            getVitamError(VitamCode.PROFILE_FILE_IMPORT_ERROR.getItem(), "Global create profile error").setHttpCode(
+                Response.Status.BAD_REQUEST.getStatusCode());
 
         try {
 
@@ -159,7 +152,8 @@ public class ProfileServiceImpl implements ProfileService {
 
                 // if a profile have and id
                 if (null != pm.getId()) {
-                    error.addToErrors(getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(), RejectionCause.rejectIdNotAllowedInCreate(pm.getName()).getReason()));
+                    error.addToErrors(getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
+                        RejectionCause.rejectIdNotAllowedInCreate(pm.getName()).getReason()));
                     continue;
                 }
 
@@ -195,10 +189,10 @@ public class ProfileServiceImpl implements ProfileService {
 
             profilesToPersist = JsonHandler.createArrayNode();
             for (final ProfileModel pm : profileModelList) {
-                String code = vitamCounterService.getNextSequence(ParameterHelper.getTenantParameter(),"PR");
+                String code = vitamCounterService.getNextSequence(ParameterHelper.getTenantParameter(), "PR");
                 pm.setIdentifier(code);
                 final JsonNode profileNode = JsonHandler.toJsonNode(pm);
-                    /* contract is valid, add it to the list to persist */
+                /* contract is valid, add it to the list to persist */
                 profilesToPersist.add(profileNode);
             }
             // at this point no exception occurred and no validation error detected
@@ -209,12 +203,12 @@ public class ProfileServiceImpl implements ProfileService {
             mongoAccess.insertDocuments(profilesToPersist, FunctionalAdminCollections.PROFILE);
         } catch (Exception exp) {
             String err = new StringBuilder("Import profiles error : ").append(exp.getMessage()).toString();
-            manager.logFatalError(PROFILES_IMPORT_EVENT,       null,     err);
+            manager.logFatalError(PROFILES_IMPORT_EVENT, null, err);
             return getVitamError(VitamCode.PROFILE_FILE_IMPORT_ERROR.getItem(), err).setHttpCode(
                 Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
         }
 
-        manager.logSuccess(PROFILES_IMPORT_EVENT, null,  null);
+        manager.logSuccess(PROFILES_IMPORT_EVENT, null, null);
 
 
         return new RequestResponseOK<ProfileModel>().addAllResults(profileModelList)
@@ -231,33 +225,40 @@ public class ProfileServiceImpl implements ProfileService {
 
         final ProfileModel profileMetadata = findOne(profileMetadataId);
 
-        final VitamError vitamError = getVitamError(VitamCode.PROFILE_FILE_IMPORT_ERROR.getItem(), "Global import profile error").setHttpCode(
-            Response.Status.BAD_REQUEST.getStatusCode());
+        final VitamError vitamError =
+            getVitamError(VitamCode.PROFILE_FILE_IMPORT_ERROR.getItem(), "Global import profile error").setHttpCode(
+                Response.Status.BAD_REQUEST.getStatusCode());
         if (null == profileMetadata) {
-            LOGGER.error("No profile metadata found with id : "+profileMetadataId+", to import the file, the metadata profile must be created first");
+            LOGGER.error("No profile metadata found with identifier : " + profileMetadataId +
+                ", to import the file, the metadata profile must be created first");
 
-            manager.logValidationError(PROFILES_FILE_IMPORT_EVENT, profileMetadata.getId(),
-                "No profile metadata found with id : "+profileMetadataId+", to import the file, the metadata profile must be created first");
-            return  vitamError. addToErrors(getVitamError(VitamCode.PROFILE_FILE_IMPORT_ERROR.getItem(), "No profile metadata found with id : "+profileMetadataId+", to import the file, the metadata profile must be created first"));
+            manager.logValidationError(PROFILES_FILE_IMPORT_EVENT, profileMetadata.getIdentifier(),
+                "No profile metadata found with identifier : " + profileMetadataId +
+                    ", to import the file, the metadata profile must be created first");
+            return vitamError.addToErrors(getVitamError(VitamCode.PROFILE_FILE_IMPORT_ERROR.getItem(),
+                "No profile metadata found with identifier : " + profileMetadataId +
+                    ", to import the file, the metadata profile must be created first"));
         }
 
 
         boolean cannotCopy = false;
         try {
-            // To create a copy of inputstream, validateProfileFile use DocumentDuilder wich in some case close the stream.
+            // To create a copy of inputstream, validateProfileFile use DocumentDuilder wich in some case close the
+            // stream.
             byte[] byteArray = IOUtils.toByteArray(profileFile);
 
             final InputStream profileFileCopy = new ByteArrayInputStream(byteArray);
 
             /*
              * Validate the stream
-              */
+             */
             boolean isValide = manager.validateProfileFile(profileMetadata, profileFileCopy, vitamError);
 
             if (!isValide) {
                 String errorsDetails =
                     vitamError.getErrors().stream().map(c -> c.getMessage()).collect(Collectors.joining(","));
-                manager.logValidationError(PROFILES_FILE_IMPORT_EVENT,profileMetadataId, "Profile file validate error : "+errorsDetails);
+                manager.logValidationError(PROFILES_FILE_IMPORT_EVENT, profileMetadataId,
+                    "Profile file validate error : " + errorsDetails);
                 return vitamError;
             }
 
@@ -271,7 +272,8 @@ public class ProfileServiceImpl implements ProfileService {
 
 
         String extention = "xsd";
-        if (profileMetadata.getFormat().equals(ProfileFormat.RNG)) extention = "rng";
+        if (profileMetadata.getFormat().equals(ProfileFormat.RNG))
+            extention = "rng";
 
         Integer tenantId = ParameterHelper.getTenantParameter();
         final String containerName = String.format("%d_profiles_%s_%s", tenantId, profileMetadata.getId(), now().format(
@@ -286,23 +288,26 @@ public class ProfileServiceImpl implements ProfileService {
         final String newPath = fileName;
 
 
-        //Final path in the workspace : tenant_profiles/format(xsd|rng)/tenant_profile_id.format(xsd|rng)
+        // Final path in the workspace : tenant_profiles/format(xsd|rng)/tenant_profile_id.format(xsd|rng)
 
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-            manager.logInProgress(OP_PROFILE_STORAGE, profileMetadataId,  StatusCode.STARTED);
+            manager.logInProgress(OP_PROFILE_STORAGE, profileMetadataId, StatusCode.STARTED);
 
             workspaceClient.createContainer(containerName);
             workspaceClient.putObject(containerName, uri, profileFile);
 
-            // If the copy of the stream is not processed then, we use workspace to save the file then read it to validate it
+            // If the copy of the stream is not processed then, we use workspace to save the file then read it to
+            // validate it
             if (cannotCopy) {
-                final InputStream fileFromWorkSpace = workspaceClient.getObject(containerName, uri).readEntity(InputStream.class);
+                final InputStream fileFromWorkSpace =
+                    workspaceClient.getObject(containerName, uri).readEntity(InputStream.class);
                 boolean isValide = manager.validateProfileFile(profileMetadata, fileFromWorkSpace, vitamError);
 
                 if (!isValide) {
                     String errorsDetails =
                         vitamError.getErrors().stream().map(c -> c.getMessage()).collect(Collectors.joining(","));
-                    manager.logValidationError(PROFILES_FILE_IMPORT_EVENT, profileMetadataId,"Profile file validate error : "+errorsDetails);
+                    manager.logValidationError(PROFILES_FILE_IMPORT_EVENT, profileMetadataId,
+                        "Profile file validate error : " + errorsDetails);
                     workspaceClient.deleteContainer(containerName, true);
                     return vitamError;
                 }
@@ -317,7 +322,8 @@ public class ProfileServiceImpl implements ProfileService {
 
             try (final StorageClient storageClient = storageClientFactory.getClient()) {
 
-                storageClient.storeFileFromWorkspace(DEFAULT_STORAGE_STRATEGY, StorageCollectionType.PROFILES, fileName, description);
+                storageClient.storeFileFromWorkspace(DEFAULT_STORAGE_STRATEGY, StorageCollectionType.PROFILES, fileName,
+                    description);
                 manager.logInProgress(OP_PROFILE_STORAGE, profileMetadataId, StatusCode.OK);
 
 
@@ -330,28 +336,29 @@ public class ProfileServiceImpl implements ProfileService {
                 update.setQuery(eq("#id", profileMetadata.getId()));
                 update.addActions(
                     UpdateActionHelper.set("Path", fileName),
-                    UpdateActionHelper.set("LastUpdate", LocalDateUtil.now().toString())
-                );
+                    UpdateActionHelper.set("LastUpdate", LocalDateUtil.now().toString()));
                 updateParserActive.parse(update.getFinalUpdate());
                 JsonNode queryDsl = updateParserActive.getRequest().getFinalUpdate();
                 this.updateProfiles(queryDsl);
 
 
 
-            } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException | InvalidCreateOperationException |
+            } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
+                InvalidCreateOperationException |
                 StorageServerClientException | ContentAddressableStorageNotFoundException e) {
                 String err = new StringBuilder("Import profiles storage error : ").append(e.getMessage()).toString();
                 LOGGER.error(err, e);
-                manager.logFatalError(OP_PROFILE_STORAGE,      profileMetadataId,     err);
+                manager.logFatalError(OP_PROFILE_STORAGE, profileMetadataId, err);
                 return getVitamError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem(), err).setHttpCode(
                     Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
             } finally {
                 workspaceClient.deleteContainer(containerName, true);
             }
         } catch (ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException e) {
-            String err = new StringBuilder("Import profiles storage workspace error : ").append(e.getMessage()).toString();
+            String err =
+                new StringBuilder("Import profiles storage workspace error : ").append(e.getMessage()).toString();
             LOGGER.error(err, e);
-            manager.logFatalError(OP_PROFILE_STORAGE,     profileMetadataId,      err);
+            manager.logFatalError(OP_PROFILE_STORAGE, profileMetadataId, err);
             return getVitamError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem(), err).setHttpCode(
                 Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
@@ -375,7 +382,7 @@ public class ProfileServiceImpl implements ProfileService {
 
             wellFormedJson = SanityChecker.sanitizeJson(object);
         } catch (InvalidParseOperationException e) {
-            //Do nothing
+            // Do nothing
         }
 
         manager.logSuccess(PROFILES_FILE_IMPORT_EVENT, profileMetadataId, wellFormedJson);
@@ -384,24 +391,29 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
-    public void downloadProfileFile(String profileMetadataId, AsyncResponse asyncResponse) throws
-        ProfileNotFoundException, InvalidParseOperationException, ReferentialException {
+    public void downloadProfileFile(String profileMetadataId, AsyncResponse asyncResponse)
+        throws ProfileNotFoundException, InvalidParseOperationException, ReferentialException {
 
         final ProfileModel profileMetadata = findOne(profileMetadataId);
         if (null == profileMetadata) {
-            LOGGER.error("No profile metadata found with id : "+profileMetadataId+", to import the file, the metadata profile must be created first");
-            throw new ProfileNotFoundException("No profile metadata found with id : "+profileMetadataId+", to import the file, the metadata profile must be created first");
+            LOGGER.error("No profile metadata found with id : " + profileMetadataId +
+                ", to import the file, the metadata profile must be created first");
+            throw new ProfileNotFoundException("No profile metadata found with id : " + profileMetadataId +
+                ", to import the file, the metadata profile must be created first");
         }
 
         if (Strings.isNullOrEmpty(profileMetadata.getPath()) || profileMetadata.getPath().isEmpty()) {
-            LOGGER.error("The profile metadata found with an id : "+profileMetadataId+", does not have an xsd or an rng file yet");
-            throw new ProfileNotFoundException("The profile metadata found with id : "+profileMetadataId+", does not have a xsd or rng file yet");
+            LOGGER.error("The profile metadata found with an id : " + profileMetadataId +
+                ", does not have an xsd or an rng file yet");
+            throw new ProfileNotFoundException(
+                "The profile metadata found with id : " + profileMetadataId + ", does not have a xsd or rng file yet");
         }
 
         // A valid operation found : download the related file
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
 
-            final Response response = storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, profileMetadata.getPath(), StorageCollectionType.PROFILES);
+            final Response response = storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY,
+                profileMetadata.getPath(), StorageCollectionType.PROFILES);
 
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
             helper.writeResponse(Response
@@ -435,7 +447,7 @@ public class ProfileServiceImpl implements ProfileService {
         final SelectParserSingle parser = new SelectParserSingle(new VarNameAdapter());
         parser.parse(new Select().getFinalSelect());
         try {
-            parser.addCondition(eq("#id", id));
+            parser.addCondition(eq("Identifier", id));
         } catch (InvalidCreateOperationException e) {
             throw new ReferentialException(e);
         }
@@ -498,11 +510,13 @@ public class ProfileServiceImpl implements ProfileService {
 
 
     private VitamError getVitamError(String vitamCode, String error) {
-        return new VitamError(vitamCode).setMessage("Profile service Error").setState("ko").setContext("FunctionalModule-Profile").setDescription(error);
+        return new VitamError(vitamCode).setMessage("Profile service Error").setState("ko")
+            .setContext("FunctionalModule-Profile").setDescription(error);
     }
 
     @Override
     public void close() {
-        if (null != logBookclient) logBookclient.close();
+        if (null != logBookclient)
+            logBookclient.close();
     }
 }

@@ -231,7 +231,7 @@ public class ContextServiceImpl implements ContextService {
         final SelectParserSingle parser = new SelectParserSingle(new VarNameAdapter());
         parser.parse(new Select().getFinalSelect());
         try {
-            parser.addCondition(QueryHelper.eq("#id", id));
+            parser.addCondition(QueryHelper.eq("Identifier", id));
         } catch (InvalidCreateOperationException e) {
             throw new ReferentialException(e);
         }
