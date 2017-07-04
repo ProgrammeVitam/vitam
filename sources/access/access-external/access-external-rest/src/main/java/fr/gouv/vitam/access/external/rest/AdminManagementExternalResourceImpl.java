@@ -225,7 +225,7 @@ public class AdminManagementExternalResourceImpl {
      * @param profileFile inputStream representing the data to import
      * @return The jaxRs Response
      */
-    @Path("/{collection}/{id}")
+    @Path("/{collection}/{id:.+}")
     @PUT
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
@@ -553,7 +553,7 @@ public class AdminManagementExternalResourceImpl {
      * @throws AdminManagementClientServerException
      * @throws InvalidParseOperationException
      */
-    @Path("/{collection}/{id}")
+    @Path("/{collection}/{id:.+}")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)

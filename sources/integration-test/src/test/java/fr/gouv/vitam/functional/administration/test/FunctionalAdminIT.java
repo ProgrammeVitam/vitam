@@ -168,7 +168,7 @@ public class FunctionalAdminIT {
         serverConfiguration.setZippingDirecorty(TMP_FOLDER);
         serverConfiguration.setLoggingDirectory(TMP_FOLDER);
 
-        serverPort =  junitHelper.findAvailablePort();;
+        serverPort = junitHelper.findAvailablePort();;
         RestAssured.port = serverPort;
         RestAssured.basePath = REST_URI;
 
@@ -185,7 +185,8 @@ public class FunctionalAdminIT {
         final WorkspaceClientFactory workspaceClientFactory = WorkspaceClientFactory.getInstance();
 
         profileService =
-            new ProfileServiceImpl(MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)), workspaceClientFactory, vitamCounterService);
+            new ProfileServiceImpl(MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)),
+                workspaceClientFactory, vitamCounterService);
     }
 
 
@@ -221,14 +222,15 @@ public class FunctionalAdminIT {
         RequestResponseOK<ProfileModel> responseCast = (RequestResponseOK<ProfileModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
 
-        final ProfileModel profileModel= responseCast.getResults().iterator().next();
-        InputStream xsdProfile = new FileInputStream(PropertiesUtils.getResourceFile("functional-admin/profile_ok.xsd"));
+        final ProfileModel profileModel = responseCast.getResults().iterator().next();
+        InputStream xsdProfile =
+            new FileInputStream(PropertiesUtils.getResourceFile("functional-admin/profile_ok.xsd"));
 
-        RequestResponse requestResponse = profileService.importProfileFile(profileModel.getId(), xsdProfile);
+        RequestResponse requestResponse = profileService.importProfileFile(profileModel.getIdentifier(), xsdProfile);
         assertThat(requestResponse.isOk()).isTrue();
 
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
-        profileService.downloadProfileFile(profileModel.getId(), responseAsync);
+        profileService.downloadProfileFile(profileModel.getIdentifier(), responseAsync);
         assertThat(responseAsync.isDone()).isTrue();
 
     }
