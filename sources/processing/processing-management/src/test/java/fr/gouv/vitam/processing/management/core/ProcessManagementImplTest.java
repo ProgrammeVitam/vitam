@@ -100,6 +100,7 @@ public class ProcessManagementImplTest {
         PowerMockito.mockStatic(WorkspaceProcessDataManagement.class);
         processDataManagement = PowerMockito.mock(WorkspaceProcessDataManagement.class);
         PowerMockito.when(WorkspaceProcessDataManagement.getInstance()).thenReturn(processDataManagement);
+
     }
 
     @Test(expected = ProcessingException.class)
