@@ -1,9 +1,9 @@
 Authentification
 ################
 
-Cette partie est destinée à expliquer les fonctionnalités du système d'authentification, qui s'affiche dès qu'un utilisateur souhaite se connecter à l'IHM minimale et du processus de déconnexion.
+Cette partie est destinée à expliquer les fonctionnalités du système d'authentification, qui s'affiche dès qu'un utilisateur souhaite se connecter à l'IHM minimale, et, également du processus de déconnexion.
 
-Le système comporte actuellement trois niveaux d'authentification, pour l'instant sans conséquence sur l'accès aux différentes fonctionnalités de la solution Vitam :
+Le système comporte actuellement trois niveaux d'authentification, pour l'instant sans conséquence sur l'accès aux différentes fonctionnalités de la solution logicielle Vitam :
 
 - Administrateur (admin)
 - Utilisateur (user)
@@ -33,7 +33,7 @@ Alors, un message d'erreur s'affiche à l'écran, demandant à l'utilisateur de 
 Par défaut, après connexion, la page "Transfert" d'un SIP est affichée.
 
 Si l'utilisateur souhaite accéder à la plate-forme en saisissant une URL vers une page de la solution logicielle Vitam, une fois l'authentification effectuée, il sera redirigé vers la page demandée.
-Si la session de l'utilisateur est expirée (la durée de la session en cas d'inactivité est d'une heure, non paramétrable par le métier), il devra s'authentifier de nouveau et accédera directement à la dernière page consultée.
+Si la session de l'utilisateur est expirée (la durée de la session en cas d'inactivité est de 30 minutes, non paramétrable par le métier), il devra s'authentifier de nouveau et accédera directement à la dernière page consultée.
 
 Le nom de l'utilisateur est indiqué en haut à droite de l'écran. Le tenant est indiqué entre parenthèses.
 
@@ -54,13 +54,13 @@ Trois niveaux de permissions sont gérés au travers des rôles suivants :
 	
 	* Transfert d'archives
     * Transfert de plan de classement
-	* Suivi des opérations d'entrée
+    * Suivi des opérations d'entrée
 	* Recherche et consultation d'archives
 	* Consultation du registre des fonds
 	* Détail des unités archivistiques
 	* Consultation des référentiels
-	* Consultation des journaux d'opération
-	* Accès aux contrats d'entrée
+    * Consultation des journaux d'opération
+    * Accès aux contrats d'entrée
     * Accès aux contrats d'accès
     * Opérations de sécurisation
 	  
@@ -92,4 +92,4 @@ Pour cela, il clique sur le bouton symbolisant une roue située en haut à droit
 Déconnexion automatique
 -----------------------
 
-L'utilisateur est automatiquement déconnecté et redirigé vers la page d'authentification après 30 minutes d’inactivité.
+L'utilisateur est automatiquement déconnecté et redirigé vers la page d'authentification après 1 heure d’inactivité.

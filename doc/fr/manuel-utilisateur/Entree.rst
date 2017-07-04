@@ -5,12 +5,12 @@ Cette partie décrit l'entrée manuelle d'archives dans la solution logicielle V
 
 Dans l’univers numérique, peuvent être transférées à un service d’archives des archives nativement numériques, des versions numérisées d’archives papier, mais aussi des références à des archives physiques, chacune d’elles accompagnée de ses métadonnées.
 
-Le SIP est un fichier compressé comportant le bordereau de versement SEDA au format XML et les objets à archiver (pour la formalisation des SIP, se référer au livrable "Design SIP").
+Le SIP est un fichier compressé comportant le bordereau de versement SEDA au format XML et les objets à archiver (pour la formalisation des SIP, se référer au livrable "Structuration des submissions information Package (SIP)").
 
 Transfert d'un SIP dans la solution logicielle Vitam
 ====================================================
 
-Le transfert d'un SIP dans la solution logicielle Vitam s'effectue depuis l'écran "Transfert". Par défaut, lors de sa connexion, l'utilisateur est dirigé vers cette page. Il peut également y accéder en cliquant sur le menu "Entrée" puis le sous-menu "Transfert SIP".
+Le transfert d'un SIP dans la solution logicielle Vitam s'effectue depuis l'écran "Transfert SIP". Par défaut, lors de sa connexion, l'utilisateur est dirigé vers cette page. Il peut également y accéder en cliquant sur le menu "Entrée" puis le sous-menu "Transfert SIP".
 
 .. image:: images/menu_entree.png
 
@@ -61,7 +61,7 @@ Lors d'une entrée en succès dans la solution logicielle Vitam, l'ATR comprend 
 - Date : date d'émission de l'ATR
 - MessageIdentifier : identifiant de l'ATR. Cet identifiant correspond à l'identification attribuée à la demande de transfert par la solution logicielle Vitam
 - ArchivalAgreement : contrat d'entrée
-- CodeListVesion : la liste des référentiels utilisés
+- CodeListVersion : la liste des référentiels utilisés
 - La liste des unités archivistiques avec l'identifiant fourni dans la demande de transfert et l'identifiant généré par la solution logicielle Vitam (SystemId) et la liste des groupes d'objets avec l'identifiant fourni dans la demande de transfert et l'identifiant généré par la solution logicielle Vitam (SystemId)
 - ReplyCode : statut final de l'entrée
 - GrantDate : date de prise en charge du SIP
@@ -78,22 +78,22 @@ Les blocs <event> sont composés des balises suivantes :
 - OutcomeDetail : code interne à la solution logicielle Vitam correspondant à l'erreur rencontrée
 - OutcomeDetailMessage : message d'erreur
 
-La notification comprend ensuite la liste des erreurs rencontrées (échecs ou avertissement), au niveau des unités archivistiques comme au niveau des groupes d'objets, sous la forme de blocs <event>.
+La notification comprend ensuite la liste des erreurs rencontrées (échec ou avertissement), au niveau des unités archivistiques comme au niveau des groupes d'objets, sous la forme de blocs <event>.
 
 Transfert d'un SIP de plan de classement
-========================================
+=======================================
 
-Le transfert d'un plan de classement dans Vitam s'effectue depuis l'écran "Transfert du plan de classement", accessible depuis le menu "Entrée" puis en cliquant sur le sous-menu du même nom
+Le transfert d'un plan de classement dans Vitam s'effectue depuis l'écran "Transfert du plan de classement", accessible depuis le menu "Entrée" puis en cliquant sur le sous-menu du même nom.
 
 .. image:: images/menu_entree_plan_classement.png
 
-Pour débuter une entrée, l’utilisateur doit sélectionner le plan, sous le format demandé, à transférer dans Vitam. Pour cela, il clique sur le bouton « Parcourir », une nouvelle fenêtre s'ouvre dans laquelle il a la possibilité de sélectionner le plan.
+Pour débuter une entrée, l’utilisateur doit sélectionner le plan, sous le format demandé, à transférer dans la solution logicielle Vitam. Pour cela, il clique sur le bouton « Parcourir », une nouvelle fenêtre s'ouvre dans laquelle il a la possibilité de sélectionner le plan.
 
 Une fois celui-ci sélectionné, il apparaît sur l'écran "Téléchargement du plan de classement". Le nom du fichier s'affiche à droite du bouton "choisissez un fichier" et une nouvelle ligne apparaît en dessous avec le nom du fichier, sa taille ainsi qu'un champ statut.
 
 Deux listes déroulantes sont présentes sur l'écran :
 
-- Mode d'exécution : l'utilisateur a le choix entre le mode d'exécution "pas à pas" permettant de passer d'une étape à une autre dans le processus d'entrée, et le mode d'exécution "continu" permettant de lancer le processus d'entrée dans sa globalité en une seule fois. Dans la grande majorité des cas, le mode d'exécution "continu" sera le choix adopté. (NB : Les actions liées au processus d'entrée en mode "pas à pas" se retrouve dans la partie administration du manuel utilisateur)
+- Mode d'exécution : l'utilisateur a le choix entre le mode d'exécution "pas à pas" permettant de passer d'une étape à une autre dans le processus d'entrée, et le mode d'exécution "continu" permettant de lancer le processus d'entrée dans sa globalité en une seule fois. Dans la grande majorité des cas, le mode d'exécution "continu" sera le choix adopté. (NB : Les actions liées au processus d'entrée en mode "pas à pas" se retrouve dans la partie "Administration" du manuel utilisateur)
 
 - Destination : l'utilisateur peut indiquer la destination du plan. Actuellement, seule l'option "production", pour verser directement le plan, est disponible.
 
@@ -109,7 +109,7 @@ Les informations visibles à l'écran sont :
   - Taille : Affiche la taille du plan en Ko, Mo ou Go en fonction de la taille arrondie au dixième près,
   - Statut (succès, erreur ou avertissement)
 
-- Une barre de progression affiche l’avancement du téléchargement du plan dans Vitam (une barre de progression complète signifie que le téléchargement est achevé).
+- Une barre de progression affiche l’avancement du téléchargement du plan dans la solution logicielle Vitam (une barre de progression complète signifie que le téléchargement est achevé).
 
 NB : Suite au téléchargement du plan, un temps d'attente est nécessaire, correspondant au traitement du plan par le système avant affichage du statut final. Dans ce cas, une roue de chargement est affichée au niveau du statut.
 
@@ -121,13 +121,13 @@ Une fenêtre pop-up s'ouvre indiquant les formats autorisés.
 Toute opération d'entrée (succès, avertissement et échec) fait l'objet d'une écriture dans le journal des opérations et génère une notification qui est proposée en téléchargement à l'utilisateur.
 
 Cette notification ou ArchiveTransferReply (ATR) est au format XML conforme au schéma SEDA 2.0.
-Lors d'une entrée en succès dans VITAM, l'ATR comprend les informations suivantes :
+Lors d'une entrée en succès dans la solution logicielle VITAM, l'ATR comprend les informations suivantes :
 
 - Date : date d'émission de l'ATR
-- MessageIdentifier : identifiant de l'ATR. Cet identifiant correspond à l'identification attribué à la demande de transfert par la solution logicielle Vitam
+- MessageIdentifier : identifiant de l'ATR. Cet identifiant correspond à l'identification attribuéesss à la demande de transfert par la solution logicielle Vitam
 - ArchivalAgreement : contrat d'entrée
-- CodeListVesion : la liste des référentiels utilisés
-- La liste des Unités Archivistiques avec l'identifiant fourni dans la demande de transfert et l'identifiant généré par la solution logicielle VITAM (SystemId)
+- CodeListVersion : la liste des référentiels utilisés
+- La liste des unités achivistiques avec l'identifiant fourni dans la demande de transfert et l'identifiant généré par la solution logicielle Vitam (SystemId)
 - ReplyCode : statut final de l'entrée
 - GrantDate : date de prise en charge du plan
 - MessageIdentifierRequest : identifiant de la demande de transfert
@@ -137,7 +137,7 @@ Lors d'une entrée en avertissement, l'ATR contient les mêmes informations que 
 En cas de rejet de l'entrée, l'ATR contient les mêmes informations que l'ATR en succès ainsi que la liste des problèmes rencontrés :
 
 - Outcome : statut de l'étape ou de la tâche ayant rencontré au moins une erreur
-- OutcomeDetail : code interne à VITAM correspondant à l'erreur rencontrée
+- OutcomeDetail : code interne à la solution logicielle Vitam correspondant à l'erreur rencontrée
 - OutcomeDetailMessage : message d'erreur
 
 La notification comprend ensuite la liste des erreurs rencontrées (échecs ou avertissement), au niveau des unités archivistiques, sous la forme de blocs <event>.
@@ -166,7 +166,7 @@ Pour initier la recherche, l'utilisateur saisit le nom du SIP et clique sur le b
 
 La recherche s'effectue de façon stricte, c'est-à-dire que seul le nom exact de l'entrée comprenant strictement la chaîne de caractères saisie sera pris en compte. La recherche porte sur toutes les opérations d'entrée quel que soit leur statut (en cours, succès, avertissement et erreur)
 
-.. image:: images/op_entree.jpg
+.. image:: images/op_entree.png
 
 Affichage des résultats
 -----------------------
@@ -175,7 +175,7 @@ Le résultat de la recherche est affiché sous forme de tableau. Par défaut, le
 
 - Identifiant de la demande d'entrée : correspond à l'identifiant du SIP porté par la balise <MessageIdentifier> du bordereau de versement SEDA
 - Intitulé
-- Statut : Succès, Erreur, En cours, Alerte (Warning)
+- Statut : Succès, Erreur, En cours, Alerte (WARNING)
 - Service Versant
 - Contrat
 - Date de début d'opération d'entrée
@@ -190,6 +190,7 @@ Il y a également la possibilité d'afficher d'autres informations, soit en les 
 
 Les informations supplémentaires disponibles sont :
 
+- Identifiant de l'entrée
 - Profil
 - Date
 - Niveau de service
@@ -212,8 +213,6 @@ En haut de la page figure le numéro de l'opération d'entrée, sous la forme "D
 Le détail est affiché sous forme de tableau comportant pour chaque événement les éléments suivants :
 
 - Etape : nom de l'étape correspondante
-- Tâche : nom de la tâche correspondante
-- Traitement : nom du traitement correspondant
 - Date : date à laquelle l'étape ou la tâche a été effectuée
 - Statut : statut final de l'étape ou de la tâche
 - Message : message expliquant le statut de l'étape, tâche ou traitement correspondant
