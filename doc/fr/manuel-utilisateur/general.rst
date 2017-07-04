@@ -33,7 +33,7 @@ Formulaires de Recherche
 Deux types de formulaire sont utilisés dans la solution logicielle Vitam :
 
 - Les formulaires de recherche simple
-- Les formulaires de recherche avancé
+- Les formulaires de recherche avancée
 
 Formulaires de recherche simple
 -------------------------------
@@ -69,9 +69,9 @@ Trois types d'écran de détail comportant des listes sont disponibles :
 - Détail d'un journal du cycle de vie de l'unité archivistique
 - Détail d'un journal du cycle de vie du groupe d'objets
 
-Les couleurs de fonds et des polices ont été adaptées lorsqu'elles rencontrent un statut KO, FATAL et WARNING.
+Les couleurs de fonds et des polices ont été adaptées en fonction des statutss KO, FATAL et WARNING.
 
-Pour les cas KO ou FATAL, les lignes s'affichent en rouge et le texte et affiché en noir. Au survol avec le pointeur de la souris, le texte passe en blanc.
+Pour les cas KO ou FATAL, les lignes s'affichent en rouge et le texte est affiché en noir. Au survol avec le pointeur de la souris, le texte passe en blanc.
 
 .. image:: images/op_entree_detail_FATAL.png
 
