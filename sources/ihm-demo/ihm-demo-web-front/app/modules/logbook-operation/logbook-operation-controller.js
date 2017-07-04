@@ -70,7 +70,7 @@ angular.module('ihm.demo')
 
     function initFielsFromObject (dataObj) {
       var result = [];
-      var excludes =["events","_id", "outMessg", "outcome", "evDateTime", "evType", "_v"];
+      var excludes =["events","_id", "evTypeProc", "outMessg", "outcome", "evDateTime", "evType", "_v"];
       for(var id in dataObj) {
         if(excludes.includes(id)) continue;
         result.push({
