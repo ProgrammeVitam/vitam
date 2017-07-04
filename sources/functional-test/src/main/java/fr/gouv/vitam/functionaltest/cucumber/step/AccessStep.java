@@ -88,9 +88,9 @@ public class AccessStep {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessStep.class);
 
     private static final String UNIT_GUID = "UNIT_GUID";
-    
-    private static String CONTRACT_WITH_LINK = "[{" + 
-    "\"Name\":\"contrat_de_rattachement_TNR\"," + 
+
+    private static String CONTRACT_WITH_LINK = "[{" +
+        "\"Name\":\"contrat_de_rattachement_TNR\"," +
         "\"Description\":\"Rattachant les SIP à une AU\"," +
         "\"Status\" : \"ACTIVE\"," +
         "\"LastUpdate\":\"10/12/2016\"," +
@@ -112,7 +112,7 @@ public class AccessStep {
     private World world;
 
     private String query;
-    
+
     private StatusCode statusCode;
 
     public AccessStep(World world) {
@@ -141,8 +141,8 @@ public class AccessStep {
 
 
     /**
-     * Upload contract with noeud 
-     * 
+     * Upload contract with noeud
+     *
      * @param title
      * @throws IOException
      */
@@ -152,13 +152,14 @@ public class AccessStep {
             String unitGuid = replaceTitleByGUID(title);
             String newContract = CONTRACT_WITH_LINK.replace(UNIT_GUID, unitGuid);
             JsonNode node = JsonHandler.getFromString(newContract);
-            world.getAdminClient().importContracts(new ByteArrayInputStream(newContract.getBytes()), 
+            world.getAdminClient().importContracts(new ByteArrayInputStream(newContract.getBytes()),
                 world.getTenantId(), AdminCollections.ENTRY_CONTRACTS);
         } catch (AccessExternalClientException | IllegalStateException | InvalidParseOperationException e) {
             // Do Nothing
             LOGGER.warn("Contrat d'entrée est déjà importé");
         }
     }
+
     /**
      * @param lastJsonNode
      * @param raw
@@ -234,7 +235,7 @@ public class AccessStep {
     /**
      * Get a specific field value from a result identified by its index
      *
-     * @param field field name
+     * @param field     field name
      * @param numResult number of the result in results
      * @return value if found or null
      * @throws Throwable
@@ -258,7 +259,7 @@ public class AccessStep {
     public void number_of_result_are(int numberOfResult) throws Throwable {
         assertThat(results).hasSize(numberOfResult);
     }
-    
+
     /**
      * check if the status of the select result is unauthorized
      *
@@ -268,12 +269,17 @@ public class AccessStep {
     @Then("^le statut de select résultat est (.*)$")
     public void the_status_of_the_select_result(String status) throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(query);
-        String s = null;
+
         RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnits(queryJSON,
             world.getTenantId(), world.getContractId());
-        assertThat(status).isEqualTo(Status.fromStatusCode(requestResponse.getHttpCode()).toString());
+
+        Status expectedStatus = Status.fromStatusCode(requestResponse.getHttpCode());
+
+        assertThat(expectedStatus).as("Invalid status %d", requestResponse.getHttpCode()).isNotNull();
+        assertThat(expectedStatus.getReasonPhrase()).isEqualTo(status);
+
     }
-    
+
     /**
      * check if the status of the update result is unauthorized
      *
@@ -339,6 +345,7 @@ public class AccessStep {
             Fail.fail("request selectUnit return an error: " + vitamError.getCode());
         }
     }
+
     /**
      * search an archive unit according to the query define before
      *
@@ -348,7 +355,7 @@ public class AccessStep {
     public void search_one_archive_unit() throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(query);
         RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnits(queryJSON,
-                world.getTenantId(), world.getContractId());
+            world.getTenantId(), world.getContractId());
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             world.setUnitId(requestResponseOK.getResults().get(0).get("#id").asText());
@@ -357,6 +364,7 @@ public class AccessStep {
             Fail.fail("request selectUnit return an error: " + vitamError.getCode());
         }
     }
+
     /**
      * update an archive unit according to the query define before
      *
@@ -380,7 +388,7 @@ public class AccessStep {
 
 
     /**
-     * Search an archive unit and retrieve object groups according to the query define before. 
+     * Search an archive unit and retrieve object groups according to the query define before.
      * Search object group with archive unit Id
      *
      * @throws Throwable
@@ -442,8 +450,8 @@ public class AccessStep {
     /**
      * Import or Check an admin referential file
      *
-     * @param action the action we want to execute : "vérifie" for check / "importe" for import
-     * @param filename name of the file to import or check
+     * @param action     the action we want to execute : "vérifie" for check / "importe" for import
+     * @param filename   name of the file to import or check
      * @param collection name of the collection
      * @throws Throwable
      */
@@ -490,7 +498,7 @@ public class AccessStep {
             Fail.fail("request findDocuments return an error: " + vitamError.getCode());
         }
     }
-    
+
     /**
      * Search logbook of unit with unit title
      *
@@ -501,7 +509,7 @@ public class AccessStep {
     public void search_LFC_Unit_with_title(String title) throws Throwable {
         String unitId = replaceTitleByGUID(title);
         RequestResponse<JsonNode> requestResponse =
-            world.getAccessClient().selectUnitLifeCycleById(unitId, world.getTenantId(), world.getContractId());        
+            world.getAccessClient().selectUnitLifeCycleById(unitId, world.getTenantId(), world.getContractId());
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             results = requestResponseOK.getResults();
@@ -510,7 +518,7 @@ public class AccessStep {
             Fail.fail("request findDocuments return an error: " + vitamError.getCode());
         }
     }
-    
+
     /**
      * Search logbook of object group with unit title
      *
@@ -521,18 +529,18 @@ public class AccessStep {
     public void search_LFC_OG_with_Unit_title(String title) throws Throwable {
         String unitId = replaceTitleByGUID(title);
         RequestResponse<JsonNode> requestResponse =
-            world.getAccessClient().selectUnitbyId(new SelectMultiQuery().getFinalSelect(), 
-                unitId, world.getTenantId(), world.getContractId());        
+            world.getAccessClient().selectUnitbyId(new SelectMultiQuery().getFinalSelect(),
+                unitId, world.getTenantId(), world.getContractId());
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             JsonNode unit = requestResponseOK.getResults().get(0);
             if (unit.get(PROJECTIONARGS.OBJECT.exactToken()).asText().isEmpty()) {
                 VitamError vitamError = (VitamError) requestResponse;
-                Fail.fail("Unit does not have object");  
+                Fail.fail("Unit does not have object");
             }
             RequestResponse<JsonNode> requestResponseLFC =
                 world.getAccessClient().selectObjectGroupLifeCycleById(
-                    unit.get(PROJECTIONARGS.OBJECT.exactToken()).asText(), world.getTenantId(), world.getContractId()); 
+                    unit.get(PROJECTIONARGS.OBJECT.exactToken()).asText(), world.getTenantId(), world.getContractId());
             if (requestResponseLFC.isOk()) {
                 RequestResponseOK<JsonNode> requestResponseLFCOK = (RequestResponseOK<JsonNode>) requestResponseLFC;
                 results = requestResponseLFCOK.getResults();
@@ -545,18 +553,18 @@ public class AccessStep {
             Fail.fail("request selectUnitbyId return an error: " + vitamError.getCode());
         }
     }
-    
+
 
     /**
      * check if the status is valid for a list of event type according to logbook lifecycle
      *
-     * @param eventNames list of event
+     * @param eventNames  list of event
      * @param eventStatus status of event
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
-     * @throws AccessUnauthorizedException 
+     * @throws AccessUnauthorizedException
      */
-    @Then("^le[s]? statut[s]? de JCV (?:de l'événement|des événements) (.*) (?:est|sont) (.*)$")    
+    @Then("^le[s]? statut[s]? de JCV (?:de l'événement|des événements) (.*) (?:est|sont) (.*)$")
     public void the_LFC_status_are(List<String> eventNames, String eventStatus)
         throws Throwable {
         ArrayNode actual = (ArrayNode) results.get(0).get("events");
@@ -565,27 +573,27 @@ public class AccessStep {
             for (String eventName : eventNames) {
                 List<JsonNode> events =
                     list.stream().filter(event -> eventName.equals(event.get("evType").textValue()))
-                    .filter(event -> !event.get("outcome").textValue().equals("STARTED"))
-                    .collect(Collectors.toList());
+                        .filter(event -> !event.get("outcome").textValue().equals("STARTED"))
+                        .collect(Collectors.toList());
 
                 JsonNode onlyElement = events.get(0);
 
                 String currentStatus = onlyElement.get("outcome").textValue();
                 softly.assertThat(currentStatus)
-                .as("event %s has status %s but excepted status is %s.", eventName, currentStatus, eventStatus)
-                .isEqualTo(eventStatus);
+                    .as("event %s has status %s but excepted status is %s.", eventName, currentStatus, eventStatus)
+                    .isEqualTo(eventStatus);
             }
         }
     }
-    
-    
+
+
     @When("^je télécharge le fichier binaire de l'unité archivistique nommé \"([^\"]*)\" à l'usage \"([^\"]*)\" version (\\d+)$")
     public void je_télécharge_le_fichier_binaire_à_l_usage_version(String title, String usage, int version) throws Throwable {
         final fr.gouv.vitam.common.database.builder.request.single.Select select =
             new fr.gouv.vitam.common.database.builder.request.single.Select();
         JsonNode queryDsl = select.getFinalSelect();
         try {
-            Response response = world.getAccessClient().getObject(queryDsl, replaceTitleByGUID(title), usage, version, 
+            Response response = world.getAccessClient().getObject(queryDsl, replaceTitleByGUID(title), usage, version,
                 world.getTenantId(), world.getContractId());
             statusCode = StatusCode.parseFromHttpStatus(response.getStatus());
         } catch (AccessExternalClientServerException | AccessExternalClientNotFoundException |
@@ -602,7 +610,7 @@ public class AccessStep {
         } else if (status.equals("OK")) {
             assertThat(Response.Status.OK.getStatusCode() == statusCode.getEquivalentHttpStatus().getStatusCode());
         }
-        
+
     }
 
     @When("^je modifie le contrat d'accès (.*) avec le fichier de requête suivant (.*)$")
@@ -612,20 +620,20 @@ public class AccessStep {
         if (world.getOperationId() != null) {
             this.query = this.query.replace(OPERATION_ID, world.getOperationId());
         }
-        
+
         JsonNode queryDsl = JsonHandler.getFromString(query);
         world.getAdminClient().updateAccessContract(get_contract_id_by_name(name),
             queryDsl, world.getTenantId());
     }
-    
-    private String get_contract_id_by_name(String name) 
+
+    private String get_contract_id_by_name(String name)
         throws AccessExternalClientNotFoundException, AccessExternalClientException, InvalidParseOperationException{
-        
+
         String QUERY = "{\"$query\":{\"$and\":[{\"$eq\":{\"Name\":\"" + name +
             "\"}}]},\"$filter\":{},\"$projection\":{}}";
-        JsonNode queryDsl =JsonHandler.getFromString(QUERY);        
-        
-        RequestResponse<ContextModel> requestResponse = 
+        JsonNode queryDsl =JsonHandler.getFromString(QUERY);
+
+        RequestResponse<ContextModel> requestResponse =
             world.getAdminClient().findDocuments(AdminCollections.ACCESS_CONTRACTS, queryDsl, world.getTenantId());
         return requestResponse.toJsonNode().findValue("_id").asText();
     }
