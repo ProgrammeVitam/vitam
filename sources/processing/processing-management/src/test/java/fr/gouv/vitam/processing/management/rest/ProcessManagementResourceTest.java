@@ -32,13 +32,16 @@ import static org.hamcrest.CoreMatchers.containsString;
 
 import java.net.URI;
 import java.util.Collections;
+import java.util.HashMap;
 
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
@@ -69,7 +72,8 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({WorkspaceClientFactory.class, ProcessDistributorImplFactory.class})
+@PrepareForTest({WorkspaceClientFactory.class, ProcessDistributorImplFactory.class,WorkspaceProcessDataManagement.class})
+
 public class ProcessManagementResourceTest {
 
     private static final String DATA_URI = "/processing/v1";
@@ -90,6 +94,7 @@ public class ProcessManagementResourceTest {
 
     private static final String CONTEXT_ID = "DEFAULT_WORKFLOW";
     private static WorkspaceClient workspaceClient;
+    private static WorkspaceProcessDataManagement processDataManagement;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -100,10 +105,16 @@ public class ProcessManagementResourceTest {
         configuration.setUrlMetadata(URL_METADATA);
         configuration.setUrlWorkspace(URL_WORKSPACE);
         configuration.setJettyConfig(JETTY_CONFIG);
+        PowerMockito.mockStatic(WorkspaceProcessDataManagement.class);
+        processDataManagement = PowerMockito.mock(WorkspaceProcessDataManagement.class);
+        PowerMockito.when(WorkspaceProcessDataManagement.getInstance()).thenReturn(processDataManagement);
+        PowerMockito.when(processDataManagement.getProcessWorkflowFor(Matchers.eq(1), Matchers.anyString()))
+            .thenReturn(new HashMap<>());
         application = new ProcessManagementApplication(configuration);
         application.start();
         RestAssured.port = port;
         RestAssured.basePath = DATA_URI;
+
     }
 
     @AfterClass

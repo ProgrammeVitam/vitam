@@ -119,9 +119,13 @@ public class ProcessManagementApplication
             // Metadata dependency: optional ???
             .registerOptional(MetaDataClientFactory.getInstance());
         // FIXME P1 worker optional register: How to do it ?
-        resourceConfig
-            .register(new ProcessManagementResource(getConfiguration()))
-            .register(new ProcessDistributorResource(getConfiguration()));
+        try {
+            resourceConfig
+                .register(new ProcessManagementResource(getConfiguration()))
+                .register(new ProcessDistributorResource(getConfiguration()));
+        } catch (Exception e) {
+           LOGGER.error("Error while initiate ProcessManagementResource", e);
+        }
     }
 
     @Override
