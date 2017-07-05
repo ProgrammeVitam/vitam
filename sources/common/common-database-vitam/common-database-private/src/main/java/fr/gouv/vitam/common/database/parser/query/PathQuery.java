@@ -50,7 +50,7 @@ public class PathQuery extends fr.gouv.vitam.common.database.builder.query.PathQ
      */
     public PathQuery(final QUERY req, final JsonNode request, final VarNameAdapter adapter) {
         super();
-        currentQUERY = req;
+        currentTokenQUERY = req;
         currentObject = ((ObjectNode) currentObject).putArray(req.exactToken());
         ((ArrayNode) currentObject).addAll((ArrayNode) request);
         setReady(true);

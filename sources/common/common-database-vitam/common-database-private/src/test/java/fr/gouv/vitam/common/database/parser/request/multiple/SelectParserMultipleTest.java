@@ -403,7 +403,7 @@ public class SelectParserMultipleTest {
         request.addCondition(eq("var5", "value"));
         assertEquals(
             "{\"$roots\":[]," +
-                "\"$query\":[{\"$and\":[{\"$and\":[{\"$term\":{\"var01\":\"value1\"}},{\"$gte\":{\"var02\":3}}]}," +
+                "\"$query\":[{\"$and\":[{\"$term\":{\"var01\":\"value1\"}},{\"$gte\":{\"var02\":3}}," +
                 "{\"$eq\":{\"var5\":\"value\"}}]}," +
                 "{\"$and\":[{\"$term\":{\"var11\":\"value2\"}},{\"$gte\":{\"var12\":4}}]}]," +
                 "\"$filter\":{\"$limit\":10000,\"$orderby\":{\"var1\":1,\"var2\":-1}}," +

@@ -326,6 +326,10 @@ public class ItemStatus {
         if (statusDetails.getData() != null) {
             computeEvDetData(statusDetails);
         }
+        // update MasterData Map
+        if (statusDetails.getMasterData() != null) {
+            computeMasterData(statusDetails);
+        }
 
         return this;
     }
@@ -364,6 +368,10 @@ public class ItemStatus {
             // update data Map
             if (compositeItemStatus.getData() != null) {
                 computeEvDetData(compositeItemStatus);
+            }
+            // update MasterData Map
+            if (compositeItemStatus.getMasterData() != null) {
+                computeMasterData(compositeItemStatus);
             }
         }
         return this;
@@ -467,6 +475,28 @@ public class ItemStatus {
         data.putAll(statusDetails.getData());
         if (!detailDataString.isEmpty()) {
             data.put(EVENT_DETAIL_DATA, detailDataString);
+        }
+    }
+
+
+    private void computeMasterData(ItemStatus statusDetails) {
+        String detailDataString = "";
+        if (statusDetails.getMasterData().containsKey(EVENT_DETAIL_DATA) &&
+            masterData.containsKey(EVENT_DETAIL_DATA)) {
+            try {
+                ObjectNode subDetailData = (ObjectNode) JsonHandler.getFromString(
+                    (String) statusDetails.getMasterData().get(EVENT_DETAIL_DATA));
+                ObjectNode detailData = (ObjectNode) JsonHandler.getFromString(
+                    (String) masterData.get(EVENT_DETAIL_DATA));
+                subDetailData.setAll(detailData);
+                detailDataString = JsonHandler.unprettyPrint(subDetailData);
+            } catch (InvalidParseOperationException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
+        }
+        masterData.putAll(statusDetails.getMasterData());
+        if (!detailDataString.isEmpty()) {
+            masterData.put(EVENT_DETAIL_DATA, detailDataString);
         }
     }
 }

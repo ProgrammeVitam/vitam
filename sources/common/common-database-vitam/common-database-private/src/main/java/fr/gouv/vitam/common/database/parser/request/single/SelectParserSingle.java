@@ -82,39 +82,7 @@ public class SelectParserSingle extends RequestParserSingle {
         internalParseSelect();
     }
 
-    /**
-     * Allow to add one condition to the current parsed Request</br>
-     * </br>
-     * Example:</br>
-     *
-     * <pre>
-     * <code>
-     *   SelectParserSingle parser = new SelectParserSingle(...);
-     *   parser.parse(jsonQuery);
-     *   parser.addCondition(eq(FieldName, value));
-     *   JsonNode newJsonQuery = parser.getRootNode();
-     * </code>
-     * </pre>
-     *
-     * @param condition the condition to add
-     * @throws InvalidCreateOperationException when invalid create query exception occurred
-     * @throws InvalidParseOperationException hen invalid parse data to create query
-     */
-    public void addCondition(Query condition) throws InvalidCreateOperationException, InvalidParseOperationException {
-        final SelectParserSingle newOne = new SelectParserSingle(adapter);
-        newOne.parse(rootNode);
-        final Select select = newOne.getRequest();
-        final Query query = select.getQuery();
-        final Query newQuery = QueryHelper.and().add(query, condition);
-        getRequest().setQuery(newQuery);
-        final JsonNode newJsonNode = getRequest().getFinalSelect().deepCopy();
-        parse(newJsonNode);
-        newOne.request = null;
-        newOne.rootNode = null;
-        newOne.sourceRequest = null;
-
-    }
-
+    
     /**
      * @throws InvalidParseOperationException if rootNode could parse to projection
      */

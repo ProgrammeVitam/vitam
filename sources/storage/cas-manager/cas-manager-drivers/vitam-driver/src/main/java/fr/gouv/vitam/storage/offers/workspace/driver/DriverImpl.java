@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client.configuration.*;
 import fr.gouv.vitam.common.exception.VitamApplicationServerDisconnectException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.driver.AbstractConnection;
@@ -123,12 +124,22 @@ public class DriverImpl extends AbstractDriver {
             } catch (final VitamApplicationServerDisconnectException e) {
                 lastExc = e;
                 connection.close();
-                Thread.yield();
+                // Give a chance for retry later on
+                try {
+                    Thread.sleep(5);
+                } catch (InterruptedException e1) {
+                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                }
                 continue;
-            } catch (final VitamApplicationServerException exception) {
-                lastExc = exception;
+            } catch (final VitamApplicationServerException e) {
+                lastExc = e;
                 connection.close();
-                Thread.yield();
+                // Give a chance for retry later on
+                try {
+                    Thread.sleep(5);
+                } catch (InterruptedException e1) {
+                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                }
                 continue;
             }
         }

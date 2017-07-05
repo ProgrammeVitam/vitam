@@ -26,9 +26,6 @@
  */
 package fr.gouv.vitam.common.model;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import javax.validation.constraints.NotNull;
 
 import org.slf4j.MDC;
@@ -61,6 +58,7 @@ public class VitamSession {
     private Integer tenantId = null;
     private String contractId = null;
     private AccessContractModel contract = null;
+    private Object other = null;
 
     /**
      * @param owningThread the owning thread
@@ -81,10 +79,28 @@ public class VitamSession {
         newSession.tenantId = origin.getTenantId();
         newSession.contractId = origin.getContractId();
         newSession.contract = origin.getContract();
+        newSession.other = origin.getOther();
         return newSession;
     }
 
     // Thread owner management
+
+    /**
+     * @return the other
+     */
+    public Object getOther() {
+        return other;
+    }
+
+    /**
+     * @param other the other to set
+     *
+     * @return this
+     */
+    public VitamSession setOther(Object other) {
+        this.other = other;
+        return this;
+    }
 
     private void checkCallingThread() {
         if (Thread.currentThread() != owningThread) {
@@ -163,8 +179,6 @@ public class VitamSession {
     }
     
 	/**
-	 *
-	 *
 	 * @return AccessContractModel
 	 */
 	public AccessContractModel getContract() {
@@ -192,6 +206,7 @@ public class VitamSession {
         setTenantId(newSession.getTenantId());
         setContractId(newSession.getContractId());
         setContract(newSession.getContract());
+        setOther(newSession.getOther());
     }
 
     /**

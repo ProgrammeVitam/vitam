@@ -27,6 +27,8 @@
 package fr.gouv.vitam.storage;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.logbook.parameters.StorageLogbookParameters;
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
@@ -48,7 +50,8 @@ import java.util.UUID;
  * Storage Logbook  Appender
  */
 public class StorageLogAppender {
-
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageLogAppender.class);
+    
     private Path fileLocation;
 
     private final String lineSeparator = System.getProperty("line.separator");
@@ -124,7 +127,12 @@ public class StorageLogAppender {
     }
 
     private OutputStream openTenantStream(Integer tenant, Path path) throws IOException {
-        return Files.newOutputStream(path, CREATE_NEW, APPEND);
+        try {
+            return Files.newOutputStream(path, CREATE_NEW, APPEND);
+        } catch (IOException e) {
+            LOGGER.error("Cannot instantiate file: {}", path.toFile().getAbsolutePath(), e);
+            throw e;
+        }
     }
 
     /**

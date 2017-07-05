@@ -43,6 +43,11 @@ public class LogbookVarNameAdapter extends VarNameAdapter {
     }
 
     @Override
+    public boolean metadataAdapter() {
+        return true;
+    }
+
+    @Override
     public String getVariableName(String name) throws InvalidParseOperationException {
         return null;
     }

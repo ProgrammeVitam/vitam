@@ -27,21 +27,23 @@
 
 package fr.gouv.vitam.common.error;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
-
-import javax.ws.rs.core.Response;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 
 /**
@@ -92,6 +94,7 @@ public class VitamError extends RequestResponse {
      * @param httpCode the httpCode to set
      * @return this
      */
+    @Override
     public VitamError setHttpCode(int httpCode) {
         super.setHttpCode(httpCode);
         return this;
@@ -165,10 +168,10 @@ public class VitamError extends RequestResponse {
     @JsonIgnore
     public VitamError addToErrors(VitamError error) {
         ParametersChecker.checkParameter("error is a mandatory parameter", error);
-        if (this.errors == null) {
-            this.errors = new ArrayList<>();
+        if (errors == null) {
+            errors = new ArrayList<>();
         }
-        this.errors.add(error);
+        errors.add(error);
 
         return this;
     }
@@ -238,12 +241,12 @@ public class VitamError extends RequestResponse {
     @Override
     public Response toResponse() {
         final Response.ResponseBuilder resp = Response.status(getStatus()).entity(toJsonNode());
-        final Map<String, String> vitamHeaders = this.getVitamHeaders();
-        for (String key : vitamHeaders.keySet()) {
+        final Map<String, String> vitamHeaders = getVitamHeaders();
+        for (final String key : vitamHeaders.keySet()) {
             resp.header(key, getHeaderString(key));
         }
 
-        this.unSetVitamHeaders();
+        unSetVitamHeaders();
         return resp.build();
     }
 

@@ -48,7 +48,7 @@ public class AccessionRegisterDetailModel {
      * tenant id
      */
     @JsonProperty("_tenant")
-    private long tenant;
+    private int tenant;
 
     /**
      * originating agency
@@ -120,13 +120,11 @@ public class AccessionRegisterDetailModel {
      */
     @JsonProperty("OperationIds")
     private List<String> operationsIds;
-    
+
     /**
-     * Constructor without fields
-     * use for jackson
+     * Constructor without fields use for jackson
      */
-    public AccessionRegisterDetailModel() {
-    }
+    public AccessionRegisterDetailModel() {}
 
     /**
      * @return id
@@ -147,7 +145,7 @@ public class AccessionRegisterDetailModel {
     /**
      * @return tenant
      */
-    public long getTenant() {
+    public int getTenant() {
         return tenant;
     }
 
@@ -155,7 +153,7 @@ public class AccessionRegisterDetailModel {
      * @param tenant the working tenant to set
      * @return this
      */
-    public AccessionRegisterDetailModel setTenant(long tenant) {
+    public AccessionRegisterDetailModel setTenant(int tenant) {
         this.tenant = tenant;
         return this;
     }
@@ -196,17 +194,18 @@ public class AccessionRegisterDetailModel {
      * @return archivalAgreement identifier
      */
     public String getArchivalAgreement() {
-		return archivalAgreement;
-	}
+        return archivalAgreement;
+    }
 
     /**
      * Set the archivalAgreement identifier
+     * 
      * @param archivalAgreement
      */
     public AccessionRegisterDetailModel setArchivalAgreement(String archivalAgreement) {
-		this.archivalAgreement = archivalAgreement;
+        this.archivalAgreement = archivalAgreement;
         return this;
-	}
+    }
 
     /**
      * @return endDate
@@ -335,32 +334,33 @@ public class AccessionRegisterDetailModel {
         ObjectSize = objectSize;
         return this;
     }
-    
+
     public List<String> getOperationsIds() {
-		return operationsIds;
-	}
-    
+        return operationsIds;
+    }
+
     /**
      * Set operationIds in the model and return the updated AccessionRegisterDetailModel
+     * 
      * @param operationsIds id of linked ingest operations
      * @return this
      */
     public AccessionRegisterDetailModel setOperationsIds(List<String> operationsIds) {
-		this.operationsIds = operationsIds;
-		return this;
-	}
-    
+        this.operationsIds = operationsIds;
+        return this;
+    }
+
     /**
      * Add an operationId to the model and return the updated AccessionRegisterDetailModel
      * @param operationsId id of linked ingest operations that must be added
      * @return this
      */
     public AccessionRegisterDetailModel addOperationsId(String operationsId) {
-    	if (operationsIds == null) {
-    		operationsIds = new ArrayList<>();
-    	}
-		operationsIds.add(operationsId);
-		return this;
-	}
+        if (operationsIds == null) {
+            operationsIds = new ArrayList<>();
+        }
+        operationsIds.add(operationsId);
+        return this;
+    }
 
 }

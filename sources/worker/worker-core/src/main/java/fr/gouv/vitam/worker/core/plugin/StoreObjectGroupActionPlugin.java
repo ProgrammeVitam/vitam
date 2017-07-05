@@ -109,7 +109,7 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
             }
             // store OG to workspace
             ((ObjectNode) mapOfObjects.jsonOG).remove(SedaConstants.PREFIX_WORK);
-            LOGGER.info("Pre Final OG: {}", JsonHandler.prettyPrint(mapOfObjects.jsonOG));
+            LOGGER.debug("Pre Final OG: {}", JsonHandler.prettyPrint(mapOfObjects.jsonOG));
             try {
                 handlerIO.transferJsonToWorkspace(StorageCollectionType.OBJECTGROUPS.getCollectionName(),
                     params.getObjectName(),

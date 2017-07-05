@@ -228,4 +228,19 @@ public class HeaderIdHelper {
             // the processing should not be interrupted by this exception
         }
     }
+    
+    /**
+     * Note: contains bug fix for Bad Junit
+     * 
+     * @return the tenant Id
+     */
+    public static int getTenantId() {
+        try {
+            return VitamThreadUtils.getVitamSession().getTenantId();
+        } catch (final VitamThreadAccessException | NullPointerException e) {
+            // FIXME Junit only !!!
+            LOGGER.error("JUNIT ONLY!!! Set TENANT to GUID value or 0 since not in VitamThreads!", e);
+        }
+        return 0;
+    }
 }

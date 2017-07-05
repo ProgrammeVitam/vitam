@@ -338,7 +338,7 @@ public class IngestContractImplTest {
         assertThat(one.getName()).isEqualTo(acm.getName());
 
         assertThat(one.getTenant()).isNotNull();
-        assertThat(one.getTenant()).isEqualTo(Long.valueOf(TENANT_ID));
+        assertThat(one.getTenant()).isEqualTo(Integer.valueOf(TENANT_ID));
 
     }
 

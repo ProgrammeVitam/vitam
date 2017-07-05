@@ -58,7 +58,7 @@ public class BooleanQuery extends Query {
             case NOT:
             case OR:
                 createQueryArray(booleanQuery);
-                currentQUERY = booleanQuery;
+                currentTokenQUERY = booleanQuery;
                 break;
             default:
                 throw new InvalidCreateOperationException(
@@ -84,15 +84,15 @@ public class BooleanQuery extends Query {
      */
     public final BooleanQuery add(final Query... queries)
         throws InvalidCreateOperationException {
-        if (currentQUERY != null) {
-            switch (currentQUERY) {
+        if (currentTokenQUERY != null) {
+            switch (currentTokenQUERY) {
                 case AND:
                 case NOT:
                 case OR:
                     break;
                 default:
                     throw new InvalidCreateOperationException(
-                        "Requests cannot be added since this is not a boolean request: " + currentQUERY);
+                        "Requests cannot be added since this is not a boolean request: " + currentTokenQUERY);
             }
         }
         final ArrayNode array = (ArrayNode) currentObject;
@@ -103,8 +103,16 @@ public class BooleanQuery extends Query {
             }
             // in case sub request has those element set: not allowed
             elt.cleanDepth();
-            this.queries.add(elt);
-            array.add(elt.getCurrentQuery());
+            if (elt.currentTokenQUERY == QUERY.AND) {
+                final BooleanQuery subelts = (BooleanQuery) elt;
+                for (final Query sub : subelts.queries) {
+                    this.queries.add(sub);
+                    array.add(sub.getCurrentQuery());
+                }
+            } else {
+                this.queries.add(elt);
+                array.add(elt.getCurrentQuery());
+            }
         }
         setReady(true);
         return this;

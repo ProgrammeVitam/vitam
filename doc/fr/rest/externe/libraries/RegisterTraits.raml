@@ -60,7 +60,7 @@ traits:
     description: Response model for check or upload of <<resourcePathName | !uppercamelcase>>
     is: [ StandardTraits.StandardOptionalHeader,
       StandardTraits.StandardHeader200,
-      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412, StandardTraits.StandardHeader409 ]
     body:
       application/xml:
         description: Body contains the <<resourcePathName | !uppercamelcase>> source file in XML (Formats from PRONOM registry)

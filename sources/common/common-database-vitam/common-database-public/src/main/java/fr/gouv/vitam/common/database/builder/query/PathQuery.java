@@ -66,7 +66,7 @@ public class PathQuery extends Query {
         if (array.size() == 0) {
             throw new InvalidCreateOperationException("No path to add");
         }
-        currentQUERY = QUERY.PATH;
+        currentTokenQUERY = QUERY.PATH;
         setReady(true);
     }
 
@@ -79,9 +79,9 @@ public class PathQuery extends Query {
      */
     public final PathQuery add(final String... pathes)
         throws InvalidCreateOperationException {
-        if (currentQUERY != QUERY.PATH) {
+        if (currentTokenQUERY != QUERY.PATH) {
             throw new InvalidCreateOperationException(
-                "Path cannot be added since this is not a path request: " + currentQUERY);
+                "Path cannot be added since this is not a path request: " + currentTokenQUERY);
         }
         final ArrayNode array = (ArrayNode) currentObject;
         for (final String elt : pathes) {

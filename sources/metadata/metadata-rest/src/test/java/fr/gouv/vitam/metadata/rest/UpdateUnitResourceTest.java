@@ -86,9 +86,9 @@ public class UpdateUnitResourceTest {
         }
     };
     private static final String DATA =
-        "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", \"#tenant\": \"0\", " + "\"data\": \"data2\" }";
+        "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", \"#tenant\": 0, " + "\"data\": \"data2\" }";
     private static final String DATA2 =
-        "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\", \"#tenant\": \"0\", " + "\"data\": \"data2\", " +
+        "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\", \"#tenant\": 0, " + "\"data\": \"data2\", " +
             "\"Title\": \"Archive3\", \"#management\": {\"OriginatingAgency\": \"XXXXXXX\"}," + " \"DescriptionLevel\": \"Item\" }";
 
     private static final String ID_UNIT = "aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab";

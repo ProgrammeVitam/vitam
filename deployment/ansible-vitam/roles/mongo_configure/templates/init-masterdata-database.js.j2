@@ -29,4 +29,5 @@ db.IngestContract.createIndex( { "_tenant" : 1 , "Identifier" : 1 } , { unique: 
 
 db.Profile.createIndex( { "_tenant" : 1 , "Identifier" : 1 } , { unique: true } )
 
-db.Context.createIndex ( { "Name" : 1 , "Identifier" : 1 } , { unique: true } )
+db.Context.createIndex ( { "Name" : 1  } , { unique: true } )
+db.Context.createIndex ( { "Identifier" : 1 } , { unique: true } )

@@ -54,7 +54,7 @@ public class SearchQuery extends Query {
             case REGEX:
             case SEARCH:
                 createQueryVariableValue(searchQuery, variableName, value);
-                currentQUERY = searchQuery;
+                currentTokenQUERY = searchQuery;
                 setReady(true);
                 break;
             default:

@@ -59,10 +59,12 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
@@ -335,6 +337,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         try {
+            SanityChecker.checkParameter(objectGUID);
             final ObjectInit objectInitFilled = DefaultOfferServiceImpl.getInstance().initCreateObject(containerName, objectInit,
                     objectGUID);
             LOGGER.info("ContainerName: " + containerName + " ObjectGUID " + objectGUID);
@@ -342,7 +345,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
         } catch (final ContentAddressableStorageAlreadyExistException e) {
             LOGGER.error("ContainerName: " + containerName + " ObjectGUID " + objectGUID, e);
             return Response.status(Response.Status.CONFLICT).build();
-        } catch (final ContentAddressableStorageException exc) {
+        } catch (final ContentAddressableStorageException | InvalidParseOperationException exc) {
             LOGGER.error(exc);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
@@ -389,6 +392,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                 return Response.status(Response.Status.BAD_REQUEST).build();
             }
             try {
+                SanityChecker.checkParameter(objectId);
                 final SizedInputStream sis = new SizedInputStream(input);
                 final String digest = DefaultOfferServiceImpl.getInstance().createObject(containerName, objectId, sis,
                         xCommandHeader.equals(StorageConstants.COMMAND_END), type);
@@ -441,6 +445,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         try {
+            SanityChecker.checkParameter(idObject);
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(Integer.parseInt(xTenantId)));
             final String containerName = buildContainerName(type, xTenantId);
             DefaultOfferServiceImpl.getInstance().deleteObject(containerName, idObject, xDigest,
@@ -450,7 +455,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
         } catch (ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e);
             return Response.status(Response.Status.NOT_FOUND).build();
-        } catch (ContentAddressableStorageException e) {
+        } catch (ContentAddressableStorageException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
@@ -494,6 +499,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
         Boolean checkAlgo = !Strings.isNullOrEmpty(xDigestAlgorithm);
 
         try {
+            SanityChecker.checkParameter(idObject);
             boolean objectIsOK;
             if (checkDigest && !checkAlgo) {
                 objectIsOK = DefaultOfferServiceImpl.getInstance().checkDigest(containerName, idObject, xDigest);
@@ -515,7 +521,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             } else {
                 return Response.status(Status.CONFLICT).build();
             }
-        } catch (final ContentAddressableStorageException e) {
+        } catch (final ContentAddressableStorageException | InvalidParseOperationException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
@@ -532,12 +538,13 @@ public class DefaultOfferResource extends ApplicationStatusResource {
         }
         final String containerName = buildContainerName(type, xTenantId);
         try {
+            SanityChecker.checkParameter(idObject);
             StorageMetadatasResult result = DefaultOfferServiceImpl.getInstance().getMetadatas(containerName, idObject);
             return Response.status(Response.Status.OK).entity(result).build();
         } catch (ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e);
             return Response.status(Response.Status.NOT_FOUND).build();
-        } catch (ContentAddressableStorageException | IOException e) {
+        } catch (ContentAddressableStorageException | IOException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
@@ -545,6 +552,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
 
     private void getObjectAsync(DataCategory type, String objectId, HttpHeaders headers, AsyncResponse asyncResponse) {
         try {
+            SanityChecker.checkParameter(objectId);
             final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
             if (Strings.isNullOrEmpty(xTenantId)) {
                 LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
@@ -557,7 +565,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e);
             buildErrorResponseAsync(VitamCode.STORAGE_NOT_FOUND, asyncResponse);
-        } catch (final ContentAddressableStorageException e) {
+        } catch (final ContentAddressableStorageException | InvalidParseOperationException e) {
             LOGGER.error(e);
             buildErrorResponseAsync(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR, asyncResponse);
         }
