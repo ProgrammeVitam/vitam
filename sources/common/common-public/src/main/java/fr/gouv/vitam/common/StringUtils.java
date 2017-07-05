@@ -26,7 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.common;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.regex.Pattern;
+
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+
 
 /**
  * String utils
@@ -37,10 +43,60 @@ public final class StringUtils {
      */
     private static final ThreadLocalRandom RANDOM = ThreadLocalRandom.current();
 
+    // default parameters for XML check
+    private static final String CDATA_TAG_UNESCAPED = "<![CDATA[";
+    private static final String CDATA_TAG_ESCAPED = "&lt;![CDATA[";
+    private static final String ENTITY_TAG_UNESCAPED = "<!ENTITY";
+    private static final String ENTITY_TAG_ESCAPED = "&lt;!ENTITY";
+    // default parameters for Javascript check
+    private static final String SCRIPT_TAG_UNESCAPED = "<script>";
+    private static final String SCRIPT_TAG_ESCAPED = "&lt;script&gt;";
+    // default parameters for Json check
+    private static final String TAG_START =
+        "\\<\\w+((\\s+\\w+(\\s*\\=\\s*(?:\".*?\"|'.*?'|[^'\"\\>\\s]+))?)+\\s*|\\s*)\\>";
+    private static final String TAG_END =
+    "\\</\\w+\\>";
+    private static final String TAG_SELF_CLOSING =
+    "\\<\\w+((\\s+\\w+(\\s*\\=\\s*(?:\".*?\"|'.*?'|[^'\"\\>\\s]+))?)+\\s*|\\s*)/\\>";
+    private static final String HTML_ENTITY =
+    "&[a-zA-Z][a-zA-Z0-9]+;";
+    public static final Pattern HTML_PATTERN = Pattern.compile(
+    "(" + TAG_START + ".*" + TAG_END + ")|(" + TAG_SELF_CLOSING + ")|(" + HTML_ENTITY + ")",
+    Pattern.DOTALL);
+    // Default ASCII for Param check
+    public static final Pattern UNPRINTABLE_PATTERN = Pattern.compile("[\\p{Cntrl}&&[^\r\n\t]]");
+    public static final List<String> RULES = new ArrayList<>();
+
+    static {
+        StringUtils.RULES.add(CDATA_TAG_UNESCAPED);
+        StringUtils.RULES.add(CDATA_TAG_ESCAPED);
+        StringUtils.RULES.add(ENTITY_TAG_UNESCAPED);
+        StringUtils.RULES.add(ENTITY_TAG_ESCAPED);
+        StringUtils.RULES.add(SCRIPT_TAG_UNESCAPED);
+        StringUtils.RULES.add(SCRIPT_TAG_ESCAPED);
+    }
+
     private StringUtils() {
         // empty
     }
 
+    /**
+     * Check external argument
+     * @param strings
+     * @throws InvalidParseOperationException 
+     */
+    public static void checkSanityString(String ...strings) throws InvalidParseOperationException {
+        for (String field : strings) {
+            if (StringUtils.UNPRINTABLE_PATTERN.matcher(field).find()) {
+                throw new InvalidParseOperationException("Invalid input bytes");
+            }
+            for (final String rule : StringUtils.RULES) {
+                if (field != null && rule != null && field.contains(rule)) {
+                    throw new InvalidParseOperationException("Invalid tag sanity check");
+                }
+            }
+        }
+    }
     /**
      * @param length the length of rray
      * @return a byte array with random values

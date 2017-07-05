@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.server.application;
 import java.io.InputStream;
 
 import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.CompletionCallback;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
@@ -188,6 +189,28 @@ public class AsyncInputStreamHelper {
      */
     public static void asyncResponseResume(AsyncResponse asyncResponse, Response response) {
         ParametersChecker.checkParameter("ErrorResponse should not be null", response);
+        asyncResponse.resume(response);
+    }
+
+    /**
+     * Call this to finalize your operation in case of Error message while no remote client operation is done.</br>
+     * </br>
+     * Note you must not call this method if you have already a received Response but the
+     * {@link #writeErrorResponse(Response)}.
+     *
+     * @param asyncResponse
+     * @param response the fully prepared ErrorResponse
+     * @param stream an inputStream to close anyway
+     */
+    public static void asyncResponseResume(AsyncResponse asyncResponse, Response response, final InputStream stream) {
+        ParametersChecker.checkParameter("ErrorResponse should not be null", response);
+        asyncResponse.register(new CompletionCallback() {
+            
+            @Override
+            public void onComplete(Throwable throwable) {
+                StreamUtils.closeSilently(stream);
+            }
+        });
         asyncResponse.resume(response);
     }
 

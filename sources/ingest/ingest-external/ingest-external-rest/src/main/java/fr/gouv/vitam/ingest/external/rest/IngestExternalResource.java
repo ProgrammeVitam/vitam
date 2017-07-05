@@ -72,6 +72,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -158,7 +159,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
                     .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED)
                     .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.FATAL)
                     .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exc.getLocalizedMessage()))
-                    .build());
+                    .build(), uploadedInputStream);
         } finally {
             StreamUtils.closeSilently(uploadedInputStream);
         }
@@ -266,9 +267,10 @@ public class IngestExternalResource extends ApplicationStatusResource {
 
         final String xContextId = headers.getRequestHeader(GlobalDataRest.X_CONTEXT_ID).get(0);
         try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
+            SanityChecker.checkParameter(id);
             ingestInternalClient.executeOperationProcess(id, null, xContextId, null);
 
-        } catch (final IllegalArgumentException e) {
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             // if the entry argument if illegal
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
@@ -321,6 +323,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getWorkFlowExecutionStatus(@PathParam("id") String id) {
         try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
+            SanityChecker.checkParameter(id);
             final ItemStatus itemStatus = ingestInternalClient.getOperationProcessStatus(id);
 
             Response.ResponseBuilder builder = Response.status(Status.ACCEPTED);
@@ -337,7 +340,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
                 .header(GlobalDataRest.X_CONTEXT_ID, itemStatus.getLogbookTypeProcess())
                 .build();
 
-        } catch (final IllegalArgumentException e) {
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.PRECONDITION_FAILED).build();
         } catch (final WorkflowNotFoundException e) {
@@ -479,9 +482,10 @@ public class IngestExternalResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter("operationId must not be null", id);
         Status status;
         try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
+            SanityChecker.checkParameter(id);
             final ItemStatus itemStatus = ingestInternalClient.cancelOperationProcessExecution(id);
             return new RequestResponseOK<ItemStatus>().addResult(itemStatus).toResponse();
-        } catch (final IllegalArgumentException e) {
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             // if the entry argument if illegal
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;

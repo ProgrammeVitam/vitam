@@ -116,8 +116,8 @@ public class SynchronizedLruCacheTest {
 
     @Test
     public final void testFullConstructor() throws InterruptedException {
-        final SynchronizedLruCache<String, Integer> synchronizedLruCache = new SynchronizedLruCache<>(2, 100, 1);
-        assertEquals(100, synchronizedLruCache.getTtl());
+        final SynchronizedLruCache<String, Integer> synchronizedLruCache = new SynchronizedLruCache<>(2, 200, 1);
+        assertEquals(200, synchronizedLruCache.getTtl());
         assertEquals(2, synchronizedLruCache.getCapacity());
         synchronizedLruCache.put("key001", 1);
         assertEquals(ONE, synchronizedLruCache.get("key001"));
@@ -128,7 +128,7 @@ public class SynchronizedLruCacheTest {
         synchronizedLruCache.put("key003", 3);
         assertEquals(THREE, synchronizedLruCache.get("key003"));
         assertEquals(2, synchronizedLruCache.size());
-        Thread.sleep(200);
+        Thread.sleep(400);
         assertEquals(2, synchronizedLruCache.size());
         synchronizedLruCache.forceClearOldest();
         assertEquals(0, synchronizedLruCache.size());

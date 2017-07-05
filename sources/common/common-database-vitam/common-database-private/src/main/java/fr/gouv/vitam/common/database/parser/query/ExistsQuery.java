@@ -49,7 +49,7 @@ public class ExistsQuery extends fr.gouv.vitam.common.database.builder.query.Exi
     public ExistsQuery(final QUERY req, final JsonNode request, final VarNameAdapter adapter)
         throws InvalidParseOperationException {
         super();
-        currentQUERY = req;
+        currentTokenQUERY = req;
         adapter.setVar(req, (ObjectNode) currentObject, request);
         setReady(true);
     }

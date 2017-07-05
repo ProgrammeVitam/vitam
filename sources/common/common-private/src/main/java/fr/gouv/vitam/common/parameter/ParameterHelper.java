@@ -95,8 +95,10 @@ public class ParameterHelper {
      *  
      * @return the tenantId
      * @throws IllegalArgumentException if the tenant Id is not found in the session
+     * @throws VitamThreadAccessException if there is no VitamThread
      */
     public static Integer getTenantParameter() {
+        ParametersChecker.checkParameter("No session in Thread", VitamThreadUtils.getVitamSession());
         ParametersChecker.checkParameter(NO_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId());
         return VitamThreadUtils.getVitamSession().getTenantId();
     }

@@ -30,6 +30,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.AbstractRequest;
@@ -119,7 +120,14 @@ public class RequestToAbstract {
      * @return True if this request is a "multiple" result request
      */
     public boolean isMultiple() {
-        return requestParser.getRequest().getFilter().get(MULTIFILTER.MULT.exactToken()).asBoolean();
+        final ObjectNode filter = requestParser.getRequest().getFilter();
+        if (filter != null) {
+            final JsonNode mult = filter.get(MULTIFILTER.MULT.exactToken());
+            if (mult != null) {
+                return mult.asBoolean();
+            }
+        }
+        return false;
     }
 
     /**

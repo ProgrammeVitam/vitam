@@ -26,8 +26,6 @@
  */
 package fr.gouv.vitam.common.thread;
 
-import java.util.Arrays;
-import java.util.List;
 
 import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.model.VitamSession;
@@ -45,7 +43,7 @@ public class VitamThreadUtils {
      * @throws VitamThreadAccessException
      */
     public static VitamSession getVitamSession() {
-        final VitamSession session;
+        VitamSession session = null;
 
         final Thread currentThread = Thread.currentThread();
         if (currentThread instanceof VitamThread) {

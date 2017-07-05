@@ -547,7 +547,7 @@ public class IngestInternalIT {
 
 
         } catch (final Exception e) {
-            e.printStackTrace();
+            LOGGER.error(e);
             fail("should not raized an exception");
         }
     }
@@ -1364,8 +1364,7 @@ public class IngestInternalIT {
 
             // Get GOT
             final JsonNode node = response.toJsonNode().get("$results").get(0);
-            final JsonNode unit = node.get("$results").get(0);
-            final String unitId = unit.get("#id").asText();
+            final String unitId = node.get("#object").asText();
 
 
             SelectMultiQuery select2 = new SelectMultiQuery();
@@ -1416,9 +1415,9 @@ public class IngestInternalIT {
             // Get AU
             RequestResponse<JsonNode> responseTree = accessClient.selectUnits(selectTree.getFinalSelect());
             assertTrue(responseTree.isOk());
-            assertEquals(responseTree.toJsonNode().get("$results").get(0).get("$hits").get("total").asInt(), 1);
+            assertEquals(responseTree.toJsonNode().get("$hits").get("total").asInt(), 1);
         } catch (final Exception e) {
-            e.printStackTrace();
+            LOGGER.error(e);
             fail("should not raized an exception");
         }
     }

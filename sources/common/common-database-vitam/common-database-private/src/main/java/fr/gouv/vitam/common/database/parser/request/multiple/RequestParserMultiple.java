@@ -54,6 +54,7 @@ import fr.gouv.vitam.common.database.parser.query.helper.QueryDepthHelper;
 import fr.gouv.vitam.common.database.parser.request.AbstractParser;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
+import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapterExternal;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -378,16 +379,27 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
      * @throws InvalidParseOperationException when invalid parse data to create query 
      */
     public void addCondition(Query condition) throws InvalidCreateOperationException, InvalidParseOperationException {
+        final Query srcquery = request.getNthQuery(0);
+        int exactDepth = 0;
+        int depth = 1;
+        if (srcquery != null) {
+            exactDepth = srcquery.getParserExactdepth();
+            depth = srcquery.getParserRelativeDepth();
+        }
         final RequestParserMultiple newOne = RequestParserHelper.getParser(rootNode.deepCopy(), adapter);
-        newOne.parse(rootNode);
         final RequestMultiple request = newOne.getRequest();
         final Query query = request.getNthQuery(0);
         Query newQuery = null;
         if (query == null) {
             newQuery = condition;
-            getRequest().getQueries().add(newQuery);
+            getRequest().getQueries().add(newQuery.setDepthLimit(0));
         } else {
             newQuery = QueryHelper.and().add(query, condition);
+            if (exactDepth != 0) {
+                newQuery.setExactDepthLimit(exactDepth);
+            } else {
+                newQuery.setDepthLimit(depth);
+            }
             getRequest().getQueries().set(0, newQuery);
         }
         if (newOne instanceof SelectParserMultiple) {

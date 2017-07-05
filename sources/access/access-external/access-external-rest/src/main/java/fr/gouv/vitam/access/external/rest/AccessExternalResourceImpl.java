@@ -118,7 +118,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         Status status;
         JsonNode result = null;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            result = client.selectUnits(queryJson).toJsonNode().get("$results").get(0);
+            result = client.selectUnits(queryJson).toJsonNode();
             return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("Predicate Failed Exception ", e);

@@ -123,7 +123,7 @@ pour toute StartDate plus grande que le 25 mars 2014 et inférieure ou égale au
   - Comparaison de la valeur d'un champ et la valeur passée en argument
   - **$gt : { name : value }** où *name* est le nom du champ et *value* la valeur avec laquelle on compare le champ
 
-    - $eq : égalité, marche également avec les champs non analysés (codes)
+    - $eq : égalité, marche également avec les champs non analysés (codes). **Attention** : pour les champs analysés, il s'agit d'un $match.
     - $ne : le champ n'a pas la valeur dournie
     - $lt, $lte : le champs a une valeur inférieure ou égale avec la valeur fournie
     - $gt, $gte : le champs a une valeur supérieure ou égale avec la valeur fournie
@@ -175,6 +175,9 @@ pour tout Unit contenant le champ StartDate
 - $in, $nin
    - Présence de valeurs dans un champ (ce champ peut être un tableau ou un simple champ avec une seule valeur)
    - **$in : { name : [ value1, value2, ... ] }** où *name* est le nom du tableau et le tableau de valeurs ce que peut contenir le tableau. Il suffit d'une seule valeur présente dans le tableau pour qu'il soit sélectionné.
+   
+     - **Attention** : pour les champs analysés, il s'agit d'un $match multiple via $or.
+   
    - **$nin** est l'opérateur inverse, le tableau ne doit contenir aucune des valeurs spécifiées
    - Exemple :
 
@@ -207,6 +210,7 @@ pour rechercher les Units qui ont 2 parents immédiats exactement
 
   - Comparaison de champs avec une valeur exacte (non analysé)
   - **$term : { name : term, name : term }** où l'on fait une recherche exacte sur les différents champs indiqués
+  - **Attention** : pour les champs analysés, il s'agit d'un $match.
   - Exemple :
 
 ::
@@ -223,6 +227,7 @@ qui cherchera le Unit ayant pour Id celui précisé (équivalent dans ce cas à 
 
   - Comparaison de champs mots-clefs à valeur
   - **$wildcard : { name : term }** où l'on fait une recherche exacte sur le champ indiqué mais avec une possibilité d'introduire un '\*' dans le contenu
+  - **NOTA BENE** : cette requête est coûteuse.
   - Exemple :
 
 ::
@@ -241,6 +246,7 @@ qui cherchera les Units qui contiennent dans le type (Document Type) une valeur 
   - **$match : { name : words, $max_expansions : n }** où *name* est le nom du champ, *words* les mots que l'on cherche, dans n'importe quel ordre, et optionnellement *n* indiquant une extension des mots recherchés ("seul" avec n=5 permet de trouver "seulement")
   - **$matchPhrase** permet de définir une phrase (*words* constitue une phrase à trouver exactement dans cet ordre)
   - **$matchPhrasePrefix** permet de définir que le champ *name* doit commencer par cette phrase
+  - **NOTA BENE** : dans le cas de champs non analysés, cette requête est remplacé par une requête de type "prefix".
   - Exemple :
 
 ::
@@ -263,7 +269,8 @@ qui cherchera les Units qui contiennent la phrase n'importe où dans la descript
 
 - $regex
 
-  - Recherche via une expression régulière : **Attention, cette requête est lente et coûteuse**
+  - Recherche via une expression régulière
+  - **NOTA BENE** : cette requête est très lenbte et très coûteuse.
   - **$regex : { name : regex }** où *name* est le nom du champ et *regex* l'expression au format expression régulière du contenu du champ
   - Exemple :
 
@@ -290,6 +297,7 @@ qui cherchera les Units qui contiennent exactement Napoléon suivi de n'importe 
     - **(** et **)** signifie une précédence dans les opérateurs (priorisation des recherches AND, OR)
     - **~N** après un mot est proche du **\*** mais en limitant le nombre de caractères dans la complétion (fuzziness)
     - **~N** après une phrase (encadré par **"**) autorise des "trous" dans la phrase
+    - **Attention** : pour les champs non analysés, il s'agit d'un $term multivalué.
   - Exemple :
 
 ::
@@ -328,6 +336,7 @@ Partie $action dans la fonction Update
 
   - change la valeur des champs
   - **$set : { name1 : value1, name2 : value2, ... }** où *nameX* est le nom des champs à changer avec la valeur indiquée dans *valueX*
+  - **NOTA BENE**: $set admet maintenant une liste de valeur pour un champ de type tableau.
   - Exemple :
 
 ::

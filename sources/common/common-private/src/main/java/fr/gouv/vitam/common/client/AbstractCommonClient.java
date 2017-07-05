@@ -84,6 +84,9 @@ abstract class AbstractCommonClient implements BasicClient {
 
     private Client client;
     private Client clientNotChunked;
+    /**
+     * Used to get random sleep only
+     */
     private final Random random = new Random(System.currentTimeMillis());
 
     /**

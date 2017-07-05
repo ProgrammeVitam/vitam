@@ -360,9 +360,10 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
         Semaphore waitingStepAllAsyncRequest) {
         // Note: While is necessary since it can be interrupted by following unachieved tasks
         while (!currentRunningObjectsInStep.isEmpty()) {
-            Thread.yield();
             // Final acquire
             try {
+                // Give a chance for other thread to release
+                Thread.sleep(5);
                 waitingStepAllAsyncRequest.tryAcquire(VitamConfiguration.getWaitingDelay(), TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) { // NOSONAR : ignore exception
                 // Empty

@@ -96,7 +96,8 @@
 			"index": "not_analyzed"
 		},
 		"Tag": {
-			"type": "string"
+			"type": "string",
+			"index": "not_analyzed"
 		},
 		"Title": {
 			"type": "string"
@@ -119,9 +120,6 @@
 					"type": "string"
 				}
 			}
-		},
-		"_max": {
-			"type": "long"
 		},
 		"_mgt": {
 			"properties": {
@@ -155,16 +153,19 @@
 							"format": "strict_date_optional_time||epoch_millis"
 						},
 						"FinalAction": {
-							"type": "string"
+							"type": "string",
+							"index": "not_analyzed"
 						},
 						"PreventInheritance": {
 							"type": "boolean"
 						},
 						"RefNonRuleId": {
-							"type": "string"
+							"type": "string",
+							"index": "not_analyzed"
 						},
 						"Rule": {
-							"type": "string"
+							"type": "string",
+							"index": "not_analyzed"
 						},
 						"StartDate": {
 							"type": "date",
@@ -182,10 +183,12 @@
 							"type": "boolean"
 						},
 						"RefNonRuleId": {
-							"type": "string"
+							"type": "string",
+							"index": "not_analyzed"
 						},
 						"Rule": {
-							"type": "string"
+							"type": "string",
+							"index": "not_analyzed"
 						},
 						"StartDate": {
 							"type": "date",
@@ -203,10 +206,12 @@
 							"type": "boolean"
 						},
 						"RefNonRuleId": {
-							"type": "string"
+							"type": "string",
+							"index": "not_analyzed"
 						},
 						"Rule": {
-							"type": "string"
+							"type": "string",
+							"index": "not_analyzed"
 						},
 						"StartDate": {
 							"type": "date",
@@ -221,16 +226,19 @@
 							"format": "strict_date_optional_time||epoch_millis"
 						},
 						"FinalAction": {
-							"type": "string"
+							"type": "string",
+							"index": "not_analyzed"
 						},
 						"PreventInheritance": {
 							"type": "boolean"
 						},
 						"RefNonRuleId": {
-							"type": "string"
+							"type": "string",
+							"index": "not_analyzed"
 						},
 						"Rule": {
-							"type": "string"
+							"type": "string",
+							"index": "not_analyzed"
 						},
 						"StartDate": {
 							"type": "date",
@@ -245,7 +253,8 @@
 							"format": "strict_date_optional_time||epoch_millis"
 						},
 						"ClassificationLevel": {
-							"type": "string"
+							"type": "string",
+							"index": "not_analyzed"
 						},
 						"ClassificationOwner": {
 							"type": "string"
@@ -261,10 +270,12 @@
 							"type": "boolean"
 						},
 						"RefNonRuleId": {
-							"type": "string"
+							"type": "string",
+							"index": "not_analyzed"
 						},
 						"Rule": {
-							"type": "string"
+							"type": "string",
+							"index": "not_analyzed"
 						},
 						"StartDate": {
 							"type": "date",
@@ -277,6 +288,9 @@
 		"_min": {
 			"type": "long"
 		},
+        "_max": {
+            "type": "long"
+        },
 		"_nbc": {
 			"type": "long"
 		},
@@ -324,6 +338,10 @@
 					"index": "not_analyzed"
 				}
 			}
+		},
+		"_unitType": {
+			"type": "string",
+			"index": "not_analyzed"
 		}
 	}
 }

@@ -64,7 +64,7 @@ public class CompareQuery extends Query {
             case NE:
             case SIZE:
                 createQueryVariableValue(compareQuery, variableName, value);
-                currentQUERY = compareQuery;
+                currentTokenQUERY = compareQuery;
                 setReady(true);
                 break;
             default:
@@ -93,7 +93,7 @@ public class CompareQuery extends Query {
             case LTE:
             case NE:
                 createQueryVariableValue(compareQuery, variableName, value);
-                currentQUERY = compareQuery;
+                currentTokenQUERY = compareQuery;
                 setReady(true);
                 break;
             default:
@@ -122,7 +122,7 @@ public class CompareQuery extends Query {
             case LTE:
             case NE:
                 createQueryVariableValue(compareQuery, variableName, value);
-                currentQUERY = compareQuery;
+                currentTokenQUERY = compareQuery;
                 setReady(true);
                 break;
             default:
@@ -151,7 +151,7 @@ public class CompareQuery extends Query {
             case LTE:
             case NE:
                 createQueryVariableValue(compareQuery, variableName, value);
-                currentQUERY = compareQuery;
+                currentTokenQUERY = compareQuery;
                 setReady(true);
                 break;
             default:
@@ -180,7 +180,7 @@ public class CompareQuery extends Query {
             case LTE:
             case NE:
                 createQueryVariableValue(compareQuery, variableName, value);
-                currentQUERY = compareQuery;
+                currentTokenQUERY = compareQuery;
                 setReady(true);
                 break;
             default:

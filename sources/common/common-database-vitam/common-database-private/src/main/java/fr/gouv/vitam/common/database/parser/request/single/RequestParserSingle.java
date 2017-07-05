@@ -35,16 +35,23 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Delete;
+import fr.gouv.vitam.common.database.builder.request.single.Insert;
 import fr.gouv.vitam.common.database.builder.request.single.RequestSingle;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.request.AbstractParser;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
+import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
+import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapterExternal;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -64,7 +71,7 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
      */
     public RequestParserSingle() {
         request = getNewRequest();
-        adapter = new VarNameAdapter();
+        adapter = new SingleVarNameAdapterExternal();
     }
 
     /**
@@ -222,6 +229,49 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
         request.setQuery(query.setFullText(hasFullTextQuery));
     }
 
+    /**
+     * Allow to add one condition to the current parsed Request</br>
+     * </br>
+     * Example:</br>
+     *
+     * <pre>
+     * <code>
+     *   SelectParserSingle parser = new SelectParserSingle(...);
+     *   parser.parse(jsonQuery);
+     *   parser.addCondition(eq(FieldName, value));
+     *   JsonNode newJsonQuery = parser.getRootNode();
+     * </code>
+     * </pre>
+     *
+     * @param condition the condition to add
+     * @throws InvalidCreateOperationException when invalid create query exception occurred
+     * @throws InvalidParseOperationException hen invalid parse data to create query
+     */
+    public void addCondition(Query condition) throws InvalidCreateOperationException, InvalidParseOperationException {
+        final RequestParserSingle newOne = RequestParserHelperSingle.getParser(rootNode.deepCopy(), adapter);
+        final Query query = request.getQuery();
+        Query newQuery = null;
+        if (query == null) {
+            newQuery = condition;
+            getRequest().setQuery(newQuery);
+        } else {
+            newQuery = QueryHelper.and().add(query, condition);
+            getRequest().setQuery(newQuery);
+        }
+        if (newOne instanceof SelectParserSingle) {
+            parse(((Select) getRequest()).getFinalSelect().deepCopy());
+        } else if (newOne instanceof InsertParserSingle) {
+            parse(((Insert) getRequest()).getFinalInsert().deepCopy());
+        } else if (newOne instanceof UpdateParserSingle) {
+            parse(((Update) getRequest()).getFinalUpdate().deepCopy());
+        } else {
+            parse(((Delete) getRequest()).getFinalDelete().deepCopy());
+        }
+        newOne.request = null;
+        newOne.rootNode = null;
+        newOne.sourceRequest = null;
+    }
+    
     @Override
     public String toString() {
         return request.toString();

@@ -129,7 +129,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
             response = performRequest(HttpMethod.POST, INGEST_URL, headers,
                 inputStream, archiveMimeType, MediaType.APPLICATION_OCTET_STREAM_TYPE);
             if (Status.ACCEPTED.getStatusCode() == response.getStatus()) {
-                LOGGER.warn("SIP Warning : " + Status.ACCEPTED.getReasonPhrase());
+                LOGGER.info("SIP uploaded: " + Status.ACCEPTED.getReasonPhrase());
             } else if (Status.SERVICE_UNAVAILABLE.getStatusCode() == response.getStatus()) {
                 throw new WorkspaceClientServerException("Workspace Server Error");
             } else {

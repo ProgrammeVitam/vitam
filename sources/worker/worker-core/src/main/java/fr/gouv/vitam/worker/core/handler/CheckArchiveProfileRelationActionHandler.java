@@ -45,7 +45,6 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
-import fr.gouv.vitam.logbook.common.parameters.LogbookEvDetDataType;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -120,11 +119,10 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
             itemStatus.increment(StatusCode.KO);
         }
         ObjectNode infoNode = JsonHandler.createObjectNode();
-        infoNode.put(LogbookOperationsClientHelper.EV_DET_DATA_TYPE, 
-            LogbookEvDetDataType.MASTER.name());
         infoNode.put(SedaConstants.TAG_ARCHIVE_PROFILE, profileIdentifier);
-        itemStatus.setData(LogbookParameterName.eventDetailData.name(), 
-            JsonHandler.unprettyPrint(infoNode));
+        String evdev = JsonHandler.unprettyPrint(infoNode);
+        itemStatus.setData(LogbookParameterName.eventDetailData.name(), evdev);
+        itemStatus.setMasterData(LogbookParameterName.eventDetailData.name(), evdev);
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
 
     }

@@ -66,11 +66,14 @@ import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -105,7 +108,9 @@ public class FunctionalAdminIT {
     static MongoClient client;
     static ProfileService profileService;
     static int mongoPort;
-    private static final String TMP_FOLDER = "tmp";
+    @ClassRule
+    public static TemporaryFolder temporaryFolder = new TemporaryFolder();
+    private static String TMP_FOLDER;
 
 
     private static final String REST_URI = StorageClientFactory.RESOURCE_PATH;
@@ -122,6 +127,11 @@ public class FunctionalAdminIT {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
 
+        try {
+            TMP_FOLDER = temporaryFolder.newFolder().getAbsolutePath();
+        } catch (IOException e) {
+            TMP_FOLDER = "/vitam/temp";
+        }
 
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         junitHelper = JunitHelper.getInstance();
