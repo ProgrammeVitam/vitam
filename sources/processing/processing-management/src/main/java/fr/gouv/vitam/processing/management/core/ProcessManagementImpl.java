@@ -334,7 +334,7 @@ public class ProcessManagementImpl implements ProcessManagement {
     @Override
     public Map<String, IEventsState> getProcessMonitorList() { return PROCESS_MONITORS; }
 
-    public static Map<String, IEventsState> loadProcessFromWorkSpace(String urlMetadata, String urlWorkspace) throws ProcessingStorageWorkspaceException {
+    private Map<String, IEventsState> loadProcessFromWorkSpace(String urlMetadata, String urlWorkspace) throws ProcessingStorageWorkspaceException {
         if (!PROCESS_MONITORS.isEmpty()) {
             return PROCESS_MONITORS;
         }
