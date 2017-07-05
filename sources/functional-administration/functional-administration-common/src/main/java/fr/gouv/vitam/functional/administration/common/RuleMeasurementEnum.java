@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common;
 
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.Calendar;
 
 /**
@@ -36,30 +38,33 @@ public enum RuleMeasurementEnum {
     /**
      * Month
      */
-    MONTH("month", Calendar.MONTH),
+    MONTH("month", Calendar.MONTH, ChronoUnit.MONTHS),
     /**
      * Day
      */
-    DAY("day", Calendar.DAY_OF_MONTH),
+    DAY("day", Calendar.DAY_OF_MONTH, ChronoUnit.DAYS),
     /**
      * Year
      */
-    YEAR("year", Calendar.YEAR),
+    YEAR("year", Calendar.YEAR, ChronoUnit.YEARS),
     /**
      * Second
      */
-    SECOND("second", Calendar.SECOND);
+    SECOND("second", Calendar.SECOND, ChronoUnit.SECONDS);
 
     private final String type;
     private final int calendarUnitType;
+    private final TemporalUnit temporalUnit;
 
 
     /**
      * Constructor
      */
-    private RuleMeasurementEnum(String ruleMeasurement, int calendarUnitType) {
+    RuleMeasurementEnum(String ruleMeasurement, int calendarUnitType,
+        TemporalUnit temporalUnit) {
         type = ruleMeasurement;
         this.calendarUnitType = calendarUnitType;
+        this.temporalUnit = temporalUnit;
     }
 
 
@@ -91,5 +96,9 @@ public enum RuleMeasurementEnum {
             }
         }
         return null;
+    }
+
+    public TemporalUnit getTemporalUnit() {
+        return temporalUnit;
     }
 }
