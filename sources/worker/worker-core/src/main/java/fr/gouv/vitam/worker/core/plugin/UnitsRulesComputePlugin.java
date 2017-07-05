@@ -33,9 +33,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -86,12 +85,11 @@ public class UnitsRulesComputePlugin extends ActionHandler {
     private static final String FILE_COULD_NOT_BE_DELETED_MSG = "File could not be deleted";
     private static final String AU_PREFIX_WITH_END_DATE = "WithEndDte_";
     private static final String DATE_FORMAT_PATTERN = "yyyy-MM-dd";
-    private static final String AU_NOT_HAVE_RULES = "Archive unit does not have rules";
     private static final String CHECKS_RULES = "Rules checks problem: missing parameters";
     private static final String UNLIMITED_RULE_DURATION = "unlimited";
     private static final String NON_EXISTING_RULE = "Rule %s does not exist";
 
-    private static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat(DATE_FORMAT_PATTERN);
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN);
 
     private HandlerIO handlerIO;
 
@@ -137,10 +135,10 @@ public class UnitsRulesComputePlugin extends ActionHandler {
             handlerIO.getInputStreamFromWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName)) {
             // Parse RULES in management Archive unit, and add EndDate
             // parseXmlRulesAndUpdateEndDate(inputStream, objectName, containerId, params, itemStatus);
-            parseRulesAndUpdateEndDate(inputStream, objectName, containerId, params, itemStatus);
+            parseRulesAndUpdateEndDate(inputStream, objectName, containerId);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
             IOException e) {
-            LOGGER.error(WORKSPACE_SERVER_ERROR);
+            LOGGER.error(WORKSPACE_SERVER_ERROR, e);
             throw new ProcessingException(e);
         }
     }
@@ -182,13 +180,11 @@ public class UnitsRulesComputePlugin extends ActionHandler {
      * @param input archiveUnit json file
      * @param objectName json file name
      * @param containerName
-     * @param params
-     * @param itemStatus
      * @throws IOException
      * @throws ProcessingException
      */
-    private void parseRulesAndUpdateEndDate(InputStream input, String objectName, String containerName,
-        WorkerParameters params, ItemStatus itemStatus) throws IOException, ProcessingException {
+    private void parseRulesAndUpdateEndDate(InputStream input, String objectName, String containerName)
+        throws IOException, ProcessingException {
 
         final File fileWithEndDate = handlerIO.getNewLocalFile(AU_PREFIX_WITH_END_DATE + objectName);
         try {
@@ -200,7 +196,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
             JsonNode managementNode = archiveUnitNode.get(SedaConstants.TAG_MANAGEMENT);
 
             // temp data
-            JsonNode rulesResults = null;
+            JsonNode rulesResults;
 
             // rules to apply
             Set<String> rulesToApply = new HashSet<>();
@@ -220,15 +216,15 @@ public class UnitsRulesComputePlugin extends ActionHandler {
                             .split(workNode.get(SedaConstants.TAG_RULE_APPLING_TO_ROOT_ARCHIVE_UNIT).asText()));
                 }
             }
-            if (rulesToApply == null || rulesToApply.isEmpty()) {
-                LOGGER.debug(AU_NOT_HAVE_RULES);
+            if (rulesToApply.isEmpty()) {
+                LOGGER.debug("Archive unit does not have rules");
                 return;
             }
 
             // search ref rules
             rulesResults = findRulesValueQueryBuilders(rulesToApply);
             LOGGER.debug("rulesResults for archive unit id: " + objectName +
-                " && containerName is :" + containerName + " is :" + rulesResults);
+                " && containerName is :" + containerName + " is:" + rulesResults);
 
             // update all rules
             for (String ruleType : SedaConstants.getSupportedRules()) {
@@ -293,11 +289,10 @@ public class UnitsRulesComputePlugin extends ActionHandler {
         if (ruleNode.get(SedaConstants.TAG_RULE_START_DATE) != null) {
             startDate = ruleNode.get(SedaConstants.TAG_RULE_START_DATE).asText();
         }
-        Date endDateAsString = getEndDate(startDate, ruleId, rulesResults, ruleType);
-        if (endDateAsString != null) {
-            ruleNode.put(SedaConstants.TAG_RULE_END_DATE, SIMPLE_DATE_FORMAT.format(endDateAsString));
+        LocalDate endDate = getEndDate(startDate, ruleId, rulesResults, ruleType);
+        if (endDate != null) {
+            ruleNode.put(SedaConstants.TAG_RULE_END_DATE, endDate.format(DATE_TIME_FORMATTER));
         }
-
     }
 
 
@@ -317,7 +312,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
         return null;
     }
 
-    private Date getEndDate(String startDateString, String ruleId, JsonNode rulesResults, String currentRuleType)
+    private LocalDate getEndDate(String startDateString, String ruleId, JsonNode rulesResults, String currentRuleType)
         throws FileRulesException, InvalidParseOperationException, ParseException, ProcessingException {
 
         if (!ParametersChecker.isNotEmpty(startDateString)) {
@@ -325,21 +320,18 @@ public class UnitsRulesComputePlugin extends ActionHandler {
         }
         if (ParametersChecker.isNotEmpty(ruleId, currentRuleType)) {
 
-            final Date startDate = SIMPLE_DATE_FORMAT.parse(startDateString);
+            LocalDate startDate = LocalDate.parse(startDateString, DATE_TIME_FORMATTER);
+
             final JsonNode ruleNode = getRuleNodeByID(ruleId, currentRuleType, rulesResults);
+
             if (checkRulesParameters(ruleNode)) {
                 final String duration = ruleNode.get(FileRules.RULEDURATION).asText();
                 final String measurement = ruleNode.get(FileRules.RULEMEASUREMENT).asText();
                 if (duration.equalsIgnoreCase(UNLIMITED_RULE_DURATION)) {
                     return null;
                 }
-                final RuleMeasurementEnum ruleMeasurement =
-                    RuleMeasurementEnum.getEnumFromType(measurement);
-                final int calendarUnit = ruleMeasurement.getCalendarUnitType();
-                final Calendar cal = Calendar.getInstance();
-                cal.setTime(startDate);
-                cal.add(calendarUnit, Integer.parseInt(duration));
-                return cal.getTime();
+                final RuleMeasurementEnum ruleMeasurement = RuleMeasurementEnum.getEnumFromType(measurement);
+                return startDate.plus(Integer.parseInt(duration), ruleMeasurement.getTemporalUnit());
             } else {
                 throw new ProcessingException(CHECKS_RULES);
             }
