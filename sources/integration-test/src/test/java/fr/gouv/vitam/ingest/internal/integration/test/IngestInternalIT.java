@@ -135,7 +135,6 @@ import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.worker.server.rest.WorkerApplication;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
-
 /**
  * Ingest Internal integration test
  */
@@ -230,9 +229,6 @@ public class IngestInternalIT {
     private static final String FILE_TO_TEST_OK = "jeu_donnees_OK_regles_CSV.csv";
 
     private static String SIP_OK_PHYSICAL_ARCHIVE = "integration-ingest-internal/OK_ArchivesPhysiques.zip";
-
-    private static String WORFKLOW_NAME = "DefaultIngestWorkflow";
-
 
     private static ElasticsearchTestConfiguration config = null;
 
@@ -1488,5 +1484,4 @@ public class IngestInternalIT {
             fail(String.format("FileNotFoundException %s", e.getCause()));
         }
     }
-
 }

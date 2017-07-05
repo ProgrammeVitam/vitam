@@ -212,7 +212,15 @@ public class VitamConfiguration {
     public static final boolean EXPORT_SCORE = true;
 
     public static final int DISTRIBUTEUR_BATCH_SIZE = 10;
+    /*
+     * Cache delay = 60 seconds
+     */
+    public static final int CACHE_CONTROL_DELAY = 60;
 
+    /*
+     * Max cache entries
+     */
+    public static final int MAX_CACHE_ENTRIES = 10000;
     /**
      * Default LANG
      */
