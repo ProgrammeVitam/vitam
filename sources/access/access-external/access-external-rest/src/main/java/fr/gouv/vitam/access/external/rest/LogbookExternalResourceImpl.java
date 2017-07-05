@@ -111,6 +111,7 @@ public class LogbookExternalResourceImpl {
 
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+            SanityChecker.checkJsonAll(query);
             final JsonNode result = client.selectOperation(query).toJsonNode().get("$results").get(0);
             return Response.status(Status.OK).entity(result).build();
         } catch (final LogbookClientException e) {

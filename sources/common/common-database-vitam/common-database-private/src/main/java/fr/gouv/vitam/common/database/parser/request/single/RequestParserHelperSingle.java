@@ -27,13 +27,13 @@
 /**
  *
  */
-package fr.gouv.vitam.common.database.parser.request.multiple;
+package fr.gouv.vitam.common.database.parser.request.single;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
+import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapterExternal;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
-import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapterExternal;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -47,60 +47,60 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * - GET: select <br>
  * - PUT: delete and insert
  */
-public class RequestParserHelper {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(RequestParserHelper.class);
+public class RequestParserHelperSingle {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(RequestParserHelperSingle.class);
 
-    private RequestParserHelper() {
+    private RequestParserHelperSingle() {
         // empty
     }
 
     /**
-     * Create one Parser according to: <br>
-     * InsertParser if { $roots: root, $query : query, $filter : filter, $data : data} <br>
-     * UpdateParser if { $roots: root, $query : query, $filter : filter, $action : action } <br>
-     * SelectParser if { $roots: roots, $query : query, $filter : filter, $projection : projection } <br>
-     * DeleteParser if { $roots: roots, $query : query, $filter : multi }
+     * Create one Parser for Internal API according to: <br>
+     * InsertParser if { $query : query, $filter : filter, $data : data} <br>
+     * UpdateParser if { $query : query, $filter : filter, $action : action } <br>
+     * SelectParser if { $query : query, $filter : filter, $projection : projection } <br>
+     * DeleteParser if { $query : query, $filter : multi }
      *
      * @param jsonRequest the request to parse
      * @return the appropriate RequestParser
      * @throws InvalidParseOperationException if jsonRequest could not parse to JSON
      */
-    public static RequestParserMultiple getParser(JsonNode jsonRequest) throws InvalidParseOperationException {
-        return getParser(jsonRequest, new VarNameAdapter());
+    public static RequestParserSingle getParser(JsonNode jsonRequest) throws InvalidParseOperationException {
+        return getParser(jsonRequest, new SingleVarNameAdapterExternal());
     }
 
     /**
-     * Create one Parser according to: <br>
-     * InsertParser if { $roots: root, $query : query, $filter : filter, $data : data} <br>
-     * UpdateParser if { $roots: root, $query : query, $filter : filter, $action : action } <br>
-     * SelectParser if { $roots: roots, $query : query, $filter : filter, $projection : projection } <br>
-     * DeleteParser if { $roots: roots, $query : query, $filter : multi } <br>
+     * Create one Parser for Masterdata according to: <br>
+     * InsertParser if { $query : query, $filter : filter, $data : data} <br>
+     * UpdateParser if { $query : query, $filter : filter, $action : action } <br>
+     * SelectParser if { $query : query, $filter : filter, $projection : projection } <br>
+     * DeleteParser if { $query : query, $filter : multi } <br>
      *
      * @param jsonRequest the request to parse
      * @param varNameAdapter the VarNameAdapter to use with the created Parser
      * @return the appropriate RequestParser
      * @throws InvalidParseOperationException if jsonRequest could not parse to JSON
      */
-    public static RequestParserMultiple getParser(JsonNode jsonRequest, VarNameAdapter varNameAdapter)
+    public static RequestParserSingle getParser(JsonNode jsonRequest, VarNameAdapter varNameAdapter)
         throws InvalidParseOperationException {
         if (jsonRequest.get(GLOBAL.PROJECTION.exactToken()) != null) {
             LOGGER.debug("SELECT");
-            final SelectParserMultiple selectParser = new SelectParserMultiple(varNameAdapter);
+            final SelectParserSingle selectParser = new SelectParserSingle(varNameAdapter);
             selectParser.parse(jsonRequest);
             return selectParser;
         } else if (jsonRequest.get(GLOBAL.DATA.exactToken()) != null) {
             LOGGER.debug("INSERT");
-            final InsertParserMultiple insertParser = new InsertParserMultiple(varNameAdapter);
+            final InsertParserSingle insertParser = new InsertParserSingle(varNameAdapter);
             insertParser.parse(jsonRequest);
             return insertParser;
         } else if (jsonRequest.get(GLOBAL.ACTION.exactToken()) != null) {
             LOGGER.debug("UPDATE");
-            final UpdateParserMultiple updateParser = new UpdateParserMultiple(varNameAdapter);
+            final UpdateParserSingle updateParser = new UpdateParserSingle(varNameAdapter);
             updateParser.parse(jsonRequest);
             return updateParser;
         } else {
             LOGGER.debug("DELETE");
-            final DeleteParserMultiple deleteParser = new DeleteParserMultiple(varNameAdapter);
+            final DeleteParserSingle deleteParser = new DeleteParserSingle(varNameAdapter);
             deleteParser.parse(jsonRequest);
             return deleteParser;
         }

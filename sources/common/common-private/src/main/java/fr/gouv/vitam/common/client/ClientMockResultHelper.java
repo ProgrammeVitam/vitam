@@ -312,9 +312,8 @@ public class ClientMockResultHelper {
                 .getFromString(RESULT + "[{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa0\"," + LOGBOOK_OPERATION + "]}");
     }
     
-    public static JsonNode getMetaDataResult(){
-        return new RequestResponseOK()
-        .setHits(1, 0, 1).toJsonNode();
+    public static JsonNode getMetaDataResult() throws InvalidParseOperationException{
+        return getArchiveUnitResult().toJsonNode();
     }
 
     /**

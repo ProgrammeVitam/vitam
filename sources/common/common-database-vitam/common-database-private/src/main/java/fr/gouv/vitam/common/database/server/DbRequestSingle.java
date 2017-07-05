@@ -82,6 +82,7 @@ import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
+import fr.gouv.vitam.common.database.parser.request.adapter.VarNameUpdateAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.SelectToMongoDb;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
@@ -90,7 +91,6 @@ import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.database.translators.elasticsearch.QueryToElasticsearch;
 import fr.gouv.vitam.common.database.translators.mongodb.QueryToMongodb;
 import fr.gouv.vitam.common.database.translators.mongodb.SelectToMongodb;
-import fr.gouv.vitam.common.database.translators.mongodb.UpdateToMongodb;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -398,7 +398,7 @@ public class DbRequestSingle {
                 nbTry++;
                 JsonNode jsonDocument = JsonHandler.toJsonNode(document);
                 MongoDbInMemory mongoInMemory = new MongoDbInMemory(jsonDocument);
-                ObjectNode updatedJsonDocument = (ObjectNode)mongoInMemory.getUpdateJson(request, false);
+                ObjectNode updatedJsonDocument = (ObjectNode)mongoInMemory.getUpdateJson(request, false, new VarNameAdapter());
 
                 updatedJsonDocument.set(VitamDocument.VERSION, new IntNode(documentVersion+1));
 

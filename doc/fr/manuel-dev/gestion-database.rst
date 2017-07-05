@@ -36,12 +36,21 @@ La définition d'un tel champ "protégé" s'effectue ainsi :
 
   - commmon-database-private
 
-    - ParserTokens.java : il contient la copie exacte de BulderToken mais y ajoute une méthode notamment **notAllowedOnSet()** qui interdit ou pas l'update/insert depuis l'extérieur. Ce check est réalisé par les API-internal via les VarNameAdapter.
+    - ParserTokens.java : il contient la copie exacte de BulderToken mais y ajoute les méthodes
+    
+      - **notAllowedOnSet()** qui interdit ou pas l'update/insert depuis l'extérieur. Ce check est réalisé par les API-internal via les VarNameAdapter.
+      - **getPROJECTIONARGS()*** qui traduit du champ interne en champ externe. Cette fonction est utilisé par les deux ci-dessous.
+      - **isNotAnalyzed()** qui indique si le champ n'est pas indexé
+      - **isAnArray()** qui indique si le champ est un tableau 
+      - **isSingleProtectedVariable** désigne les variables de collections Single
+      - **isAnArrayVariable** désigne les variables de collections Single ou Multiple
+      - **isSingleNotAnalyzedVariable** désigne les variables de collections Single
 
-      - VarNameAdapter.java pour Unit/ObjectGroup
-      - VarNameInsertAdapter.java pour Unit/ObjectGroup
-      - VarNameUpdateAdapter.java pour Unit/ObjectGroup
-      - SingleVarNameAdapter.java pour les collections hors Unit/ObjectGroup
+    - VarNameAdapter.java pour Unit/ObjectGroup
+    - VarNameInsertAdapter.java pour Unit/ObjectGroup
+    - VarNameUpdateAdapter.java pour Unit/ObjectGroup *(devra être dupliqué en usage externe et interne : protection de certains champs)*
+    - SingleVarNameAdapter.java pour les collections hors Unit/ObjectGroup pour usage interne
+    - SingleVarNameAdapterExternal.java pour usage externe pour les collections hors Unit/ObjectGroup
 
 metadata-core : Unit et ObjectGroup
 -----------------------------------

@@ -762,7 +762,7 @@ public class AccessExternalResourceImplTest {
     public void testAccessUnits() throws Exception {
         reset(clientAccessInternal);
         PowerMockito.when(clientAccessInternal.selectUnits(anyObject()))
-            .thenReturn(new RequestResponseOK().addResult(JsonHandler.getFromString(DATA_TEST)));
+            .thenReturn(new RequestResponseOK().addResult(JsonHandler.getFromString(DATA_TEST)).setHttpCode(200));
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -794,7 +794,7 @@ public class AccessExternalResourceImplTest {
     public void testHttpOverrideAccessUnits() throws Exception {
         reset(clientAccessInternal);
         PowerMockito.when(clientAccessInternal.selectUnits(anyObject()))
-            .thenReturn(new RequestResponseOK().addResult(JsonHandler.getFromString(DATA_TEST)));
+            .thenReturn(new RequestResponseOK().addResult(JsonHandler.getFromString(DATA_TEST)).setHttpCode(200));
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)

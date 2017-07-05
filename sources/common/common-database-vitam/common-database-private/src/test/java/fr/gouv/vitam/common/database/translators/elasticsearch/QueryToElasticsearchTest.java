@@ -129,8 +129,8 @@ public class QueryToElasticsearchTest {
         }
     }
 
-    @Test(expected = InvalidParseOperationException.class)
-    public void shouldRaiseException_whenPathIsNotAllowed()
+    @Test()
+    public void shouldNotRaiseException_whenPathAllowed()
         throws InvalidParseOperationException, InvalidCreateOperationException {
         final Query query = new PathQuery("id0");
         QueryToElasticsearch.getCommand(query);

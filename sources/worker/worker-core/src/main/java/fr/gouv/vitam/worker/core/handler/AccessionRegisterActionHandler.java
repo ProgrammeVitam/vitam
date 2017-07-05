@@ -54,6 +54,7 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
+import fr.gouv.vitam.common.server.HeaderIdHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
@@ -125,7 +126,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
 
         handlerIO = handler;
 
-        int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        int tenantId = HeaderIdHelper.getTenantId();
         try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
             checkMandatoryIOParameter(handler);
             if (LOGGER.isDebugEnabled()) {

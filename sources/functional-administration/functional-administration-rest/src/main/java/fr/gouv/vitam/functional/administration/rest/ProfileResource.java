@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -180,6 +181,7 @@ public class ProfileResource {
         ParametersChecker.checkParameter(PROFILE_ID_IS_MANDATORY_PATAMETER, profileMetadataId);
 
         try (ProfileService profileService = new ProfileServiceImpl(mongoAccess, workspaceClientFactory, vitamCounterService)) {
+            SanityChecker.checkParameter(profileMetadataId);
             RequestResponse requestResponse = profileService.importProfileFile(profileMetadataId, profileFile);
 
             if (!requestResponse.isOk()) {

@@ -7,34 +7,34 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class PermissionModel {
 
     @JsonProperty("_tenant")
-    private long tenant;
+    private int tenant;
 
     @JsonProperty("AccessContracts")
     private Set<String> accessContract;
-    
+
     @JsonProperty("IngestContracts")
     private Set<String> ingestContract;
-    
+
     /**
      * Constructor of permission
-     * 
+     *
      * @param tenant
      * @param accessContract
      * @param ingestContract
      */
-    public PermissionModel(long tenant, Set<String> accessContract, Set<String> ingestContract) {
+    public PermissionModel(int tenant, Set<String> accessContract, Set<String> ingestContract) {
         this.tenant = tenant;
         this.accessContract = accessContract;
         this.ingestContract = ingestContract;
     }
-    public PermissionModel() {
-    }
-    
-    public long getTenant() {
+
+    public PermissionModel() {}
+
+    public int getTenant() {
         return tenant;
     }
 
-    public void setTenant(long tenant) {
+    public void setTenant(int tenant) {
         this.tenant = tenant;
     }
 

@@ -99,7 +99,7 @@ public class VitamConfiguration {
     private static final int MAX_CLIENT_PER_HOST = 200;
     /**
      * Max delay to check if no buffer is available while trying to continue to read (MultipleInputStreamHandler Only)
-     * 
+     *
      * Not final to allow Junit to decrease it
      */
     public static int DELAY_MULTIPLE_INPUTSTREAM = 60000;
@@ -196,6 +196,11 @@ public class VitamConfiguration {
      * Max concurrent multiple inputstream (memory size bounded = n x BUFFER_NUMBER * CHUNK_SIZE) 
      */
     public static final int MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER = 200;
+    
+    /**
+     * Should we export #score
+     */
+    public static final boolean EXPORT_SCORE = false;
 
     private String config;
     private String log;

@@ -33,11 +33,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
@@ -55,6 +53,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.json.JsonSanitizer;
 
+import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
@@ -97,33 +96,6 @@ public class SanityChecker {
      */
     private static int limitParamSize = DEFAULT_LIMIT_PARAMETER_SIZE;
 
-    // default parameters for XML check
-    private static final String CDATA_TAG_UNESCAPED = "<![CDATA[";
-    private static final String CDATA_TAG_ESCAPED = "&lt;![CDATA[";
-    private static final String ENTITY_TAG_UNESCAPED = "<!ENTITY";
-    private static final String ENTITY_TAG_ESCAPED = "&lt;!ENTITY";
-
-    // default parameters for Javascript check
-    private static final String SCRIPT_TAG_UNESCAPED = "<script>";
-    private static final String SCRIPT_TAG_ESCAPED = "&lt;script&gt;";
-
-    private static final List<String> RULES = new ArrayList<>();
-
-    // default parameters for Json check
-    private static final String TAG_START =
-        "\\<\\w+((\\s+\\w+(\\s*\\=\\s*(?:\".*?\"|'.*?'|[^'\"\\>\\s]+))?)+\\s*|\\s*)\\>";
-    private static final String TAG_END =
-        "\\</\\w+\\>";
-    private static final String TAG_SELF_CLOSING =
-        "\\<\\w+((\\s+\\w+(\\s*\\=\\s*(?:\".*?\"|'.*?'|[^'\"\\>\\s]+))?)+\\s*|\\s*)/\\>";
-    private static final String HTML_ENTITY =
-        "&[a-zA-Z][a-zA-Z0-9]+;";
-    private static final Pattern HTML_PATTERN = Pattern.compile(
-        "(" + TAG_START + ".*" + TAG_END + ")|(" + TAG_SELF_CLOSING + ")|(" + HTML_ENTITY + ")",
-        Pattern.DOTALL);
-
-    // Default ASCII for Param check
-    private static final Pattern UNPRINTABLE_PATTERN = Pattern.compile("[\\p{Cntrl}&&[^\r\n\t]]");
     // ISSUE with integration
     private static final Validator ESAPI = init();
 
@@ -132,12 +104,6 @@ public class SanityChecker {
     }
 
     private static final Validator init() {
-        RULES.add(CDATA_TAG_UNESCAPED);
-        RULES.add(CDATA_TAG_ESCAPED);
-        RULES.add(ENTITY_TAG_UNESCAPED);
-        RULES.add(ENTITY_TAG_ESCAPED);
-        RULES.add(SCRIPT_TAG_UNESCAPED);
-        RULES.add(SCRIPT_TAG_ESCAPED);
         // ISSUE with integration
         return new DefaultValidator();
     }
@@ -413,7 +379,7 @@ public class SanityChecker {
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
     private static final void checkXmlSanityTags(String line) throws InvalidParseOperationException {
-        for (final String rule : RULES) {
+        for (final String rule : StringUtils.RULES) {
             checkSanityTags(line, rule);
         }
     }
@@ -441,7 +407,7 @@ public class SanityChecker {
         if (line.length() > limit) {
             throw new InvalidParseOperationException("Invalid input bytes length");
         }
-        if (UNPRINTABLE_PATTERN.matcher(line).find()) {
+        if (StringUtils.UNPRINTABLE_PATTERN.matcher(line).find()) {
             throw new InvalidParseOperationException("Invalid input bytes");
         }
         // ESAPI.getValidPrintable Not OK
@@ -476,7 +442,7 @@ public class SanityChecker {
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
     private static final void checkHtmlPattern(String param) throws InvalidParseOperationException {
-        if (HTML_PATTERN.matcher(param).find()) {
+        if (StringUtils.HTML_PATTERN.matcher(param).find()) {
             throw new InvalidParseOperationException("HTML PATTERN found");
         }
     }

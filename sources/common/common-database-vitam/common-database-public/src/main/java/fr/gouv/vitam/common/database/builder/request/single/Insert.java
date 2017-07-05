@@ -87,12 +87,16 @@ public class Insert extends RequestSingle {
      * @return this Insert
      * @throws InvalidParseOperationException when query is invalid
      */
-    public final Insert setData(final ArrayNode dataContent)
+    public final Insert setData(final JsonNode dataContent)
         throws InvalidParseOperationException {
         if (data == null) {
             data = JsonHandler.createArrayNode();
         }
-        data.addAll(dataContent);
+        if (dataContent instanceof ArrayNode) {
+            data.addAll((ArrayNode) dataContent);
+        } else {
+            data.add(JsonHandler.createArrayNode().add(dataContent));
+        }
         return this;
     }
 

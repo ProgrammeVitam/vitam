@@ -55,7 +55,7 @@ public class InQuery extends fr.gouv.vitam.common.database.builder.query.InQuery
     public InQuery(final QUERY req, final JsonNode request, final VarNameAdapter adapter)
         throws InvalidParseOperationException {
         super();
-        currentQUERY = req;
+        currentTokenQUERY = req;
         final ObjectNode sub = ((ObjectNode) currentObject).putObject(req.exactToken());
         adapter.setVarsValue(sub, request);
         final Entry<String, JsonNode> requestItem = JsonHandler.checkUnicity("InQuery", sub);

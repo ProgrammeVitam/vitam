@@ -7,7 +7,7 @@ import java.util.Random;
 import com.google.common.util.concurrent.FakeTimeLimiter;
 
 /**
- * Fake InputStream
+ * Fake InputStream: test class only
  */
 public class FakeInputStream extends InputStream {
     private static final int BYTE_VALUE_LIMIT = 126;

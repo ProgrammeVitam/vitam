@@ -38,7 +38,7 @@ import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
- * Model for VarNameAdapter
+ * Model for VarNameAdapter Internal
  */
 public class VarNameAdapter {
 
@@ -51,7 +51,7 @@ public class VarNameAdapter {
 
     /**
      *
-     * @return True if the adapter is a MetadataVarnameAdapter
+     * @return True if the adapter is a Internal VarnameAdapter
      */
     public boolean metadataAdapter() {
         return false;

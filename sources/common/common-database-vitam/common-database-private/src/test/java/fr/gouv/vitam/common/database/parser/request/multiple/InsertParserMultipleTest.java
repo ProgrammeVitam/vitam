@@ -256,16 +256,16 @@ public class InsertParserMultipleTest {
 
     @Test
     public void testDataParse() {
-        final InsertParserMultiple request = new InsertParserMultiple();
+        final InsertParserMultiple parser = new InsertParserMultiple();
         final InsertMultiQuery insert = new InsertMultiQuery();
         try {
             // empty rootNode
-            request.dataParse(insert.getData());
+            parser.dataParse(insert.getData());
             assertEquals("Data should be empty", 0,
-                request.getRequest().getData().size());
-            request.dataParse(data);
+                parser.getRequest().getData().size());
+            parser.dataParse(data);
             insert.parseData(data.toString());
-            assertEquals(request.getRequest().getFinalInsert().toString(),
+            assertEquals(parser.getRequest().getFinalInsert().toString(),
                 insert.getFinalInsert().toString());
         } catch (final InvalidParseOperationException e) {
             e.printStackTrace();
@@ -280,7 +280,7 @@ public class InsertParserMultipleTest {
             return;
         }
         try {
-            request.dataParse(node);
+            parser.dataParse(node);
             fail("Should Failed");
         } catch (final InvalidParseOperationException e) {}
 
@@ -460,7 +460,7 @@ public class InsertParserMultipleTest {
     @Test
     public void testRequestParserHelper() throws InvalidParseOperationException {
         final String s_delete = "{ $roots: [], $query : [], $filter : [] }";
-        final String s_insert = "{ $roots: [], $query : [], $filter : [], $data : [] }";
+        final String s_insert = "{ $roots: [], $query : [], $filter : [], $data : {} }";
         final String s_update = "{ $roots: [], $query : [], $filter : [], $action : [] }";
         final String s_select = "{ $roots: [], $query : [], $filter : [], $projection : [] }";
         final VarNameAdapter varNameAdapter = new VarNameAdapter();

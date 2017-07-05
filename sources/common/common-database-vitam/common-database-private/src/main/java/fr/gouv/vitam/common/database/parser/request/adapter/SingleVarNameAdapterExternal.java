@@ -24,45 +24,24 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.database.parser.query;
+package fr.gouv.vitam.common.database.parser.request.adapter;
 
-import java.util.HashSet;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERYARGS;
-import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
- * the multiple query
- *
+ * Model for VarNameAdapter for Single collections
  */
-public class MltQuery extends fr.gouv.vitam.common.database.builder.query.MltQuery {
+public class SingleVarNameAdapterExternal extends VarNameAdapterExternal {
+
     /**
-     * For Parsing
-     *
-     * @param req QUERY
-     * @param request JsonNode
-     * @param adapter VarNameAdapter
-     * @throws InvalidParseOperationException if could not parse to JSON
+     * Constructor
      */
-    public MltQuery(final QUERY req, final JsonNode request, final VarNameAdapter adapter)
-        throws InvalidParseOperationException {
-        super();
-        currentTokenQUERY = req;
-        final ObjectNode sub = ((ObjectNode) currentObject).putObject(req.exactToken());
-        sub.setAll((ObjectNode) request);
-        final ArrayNode array = (ArrayNode) sub.get(QUERYARGS.FIELDS.exactToken());
-        adapter.setVarArray(array);
-        stringVals = new HashSet<>();
-        for (final JsonNode value : array) {
-            stringVals.add(value.asText());
-        }
-        currentObject = array;
-        setReady(true);
+    public SingleVarNameAdapterExternal() {
+        // Empty
     }
+
+    @Override
+    public boolean metadataAdapter() {
+        return false;
+    }
+
 }

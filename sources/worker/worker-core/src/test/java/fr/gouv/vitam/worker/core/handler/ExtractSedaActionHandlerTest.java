@@ -599,7 +599,9 @@ public class ExtractSedaActionHandlerTest {
         String evDetDataString = (String) response.getData().get(LogbookParameterName.eventDetailData.name());
         JsonNode evDetData = JsonHandler.getFromString(evDetDataString);
         assertNotNull(evDetData);
-        assertEquals("MASTER", evDetData.get("evDetDataType").asText());
+        String masterEvDetDataString = (String) response.getMasterData().get(LogbookParameterName.eventDetailData.name());
+        JsonNode masterEvDetData = JsonHandler.getFromString(masterEvDetDataString);
+        assertNotNull(masterEvDetData);
 
         // Check comment
         assertEquals("Commentaire français", evDetData.get("EvDetailReq").asText());

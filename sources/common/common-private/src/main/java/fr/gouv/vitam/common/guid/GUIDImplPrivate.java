@@ -322,7 +322,7 @@ final class GUIDImplPrivate extends GUIDImpl {
         // something like '<pid>@<hostname>', at least in SUN / Oracle JVMs
         try {
             int processId = -1;
-            final String customProcessId = SystemPropertyUtil.get(FR_GOUV_VITAM_PROCESS_ID);
+            final String customProcessId = SystemPropertyUtil.getNoCheck(FR_GOUV_VITAM_PROCESS_ID);
             if (customProcessId != null) {
                 processId = parseProcessId(processId, customProcessId);
             }

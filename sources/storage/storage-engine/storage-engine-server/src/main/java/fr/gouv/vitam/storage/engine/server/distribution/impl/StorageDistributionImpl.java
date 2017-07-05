@@ -226,7 +226,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             try {
                 logStorage(tenantId, parameters);
             } catch (IOException e) {
-                //  e.printStackTrace();
+                LOGGER.debug(e);
             }
             // TODO P1 Handle Status result if different for offers
             return buildStoreDataResponse(objectId, category, strategyId, datas.getGlobalOfferResult());

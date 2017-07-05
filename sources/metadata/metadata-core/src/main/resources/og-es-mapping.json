@@ -57,10 +57,6 @@
 					},
 					"versions": {
 						"properties": {
-							"Algorithm": {
-								"type": "string",
-								"index": "not_analyzed"
-							},
 							"DataObjectGroupId": {
 								"type": "string",
 								"index": "not_analyzed"
@@ -114,12 +110,17 @@
 								"type": "string",
 								"index": "not_analyzed"
 							},
+                            "Algorithm": {
+                                "type": "string",
+                                "index": "not_analyzed"
+                            },
 							"PhysicalDimensions": {
 								"properties": {
 									"Diameter": {
 										"properties": {
 											"unit": {
-												"type": "string"
+												"type": "string",
+												"index": "not_analyzed"
 											},
 											"value": {
 												"type": "long"
@@ -129,7 +130,8 @@
 									"Height": {
 										"properties": {
 											"unit": {
-												"type": "string"
+												"type": "string",
+												"index": "not_analyzed"
 											},
 											"value": {
 												"type": "long"
@@ -139,7 +141,8 @@
 									"Depth": {
 										"properties": {
 											"unit": {
-												"type": "string"
+												"type": "string",
+												"index": "not_analyzed"
 											},
 											"value": {
 												"type": "long"
@@ -147,12 +150,14 @@
 										}
 									},
 									"Shape": {
-										"type": "string"
+										"type": "string",
+										"index": "not_analyzed"
 									},
 									"Thickness": {
 										"properties": {
 											"unit": {
-												"type": "string"
+												"type": "string",
+												"index": "not_analyzed"
 											},
 											"value": {
 												"type": "double"
@@ -162,7 +167,8 @@
 									"Length": {
 										"properties": {
 											"unit": {
-												"type": "string"
+												"type": "string",
+												"index": "not_analyzed"
 											},
 											"value": {
 												"type": "double"
@@ -175,7 +181,8 @@
 									"Weight": {
 										"properties": {
 											"unit": {
-												"type": "string"
+												"type": "string",
+												"index": "not_analyzed"
 											},
 											"value": {
 												"type": "long"
@@ -185,7 +192,8 @@
 									"Width": {
 										"properties": {
 											"unit": {
-												"type": "string"
+												"type": "string",
+												"index": "not_analyzed"
 											},
 											"value": {
 												"type": "double"
@@ -206,7 +214,8 @@
 								"index": "not_analyzed"
 							},
 							"_id": {
-								"type": "string"
+								"type": "string",
+								"index": "not_analyzed"
 							},
 							"_storage": {
 								"properties": {

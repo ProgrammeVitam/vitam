@@ -1,42 +1,38 @@
 {
-  "properties": {
-    "Name": {
-      "type": "string",
-      "index": "analyzed"
-    },
-    "PUID": {
-      "type": "string",
-      "index": "not_analyzed"
-    },
-    "MIMEType": {
-      "type": "string",
-      "index": "analyzed"
-    },
-    "Extension": {
-      "type": "string",
-      "index": "analyzed"
-    },
-    "VersionPronom": {
-      "type": "string",
-      "index": "not_analyzed"
-    },
-    "CreatedDate": {
-      "type": "date",
-      "format": "strict_date_optional_time"
-    },
-    "Version": {
-      "type": "string",
-      "index": "analyzed"
-    },
-    "Group": {
-      "type": "string",
-      "index" : "not_analyzed"
-    },
-    "Alert": {
-      "type": "boolean"
-    },
-    "Comment": {
-      "type": "string"
-    }
-  }
+	"properties": {
+		"Name": {
+			"type": "string"
+		},
+		"PUID": {
+			"type": "string",
+			"index": "not_analyzed"
+		},
+		"MIMEType": {
+			"type": "string"
+		},
+		"Extension": {
+			"type": "string"
+		},
+		"VersionPronom": {
+			"type": "string",
+			"index": "not_analyzed"
+		},
+		"CreatedDate": {
+			"type": "date",
+			"format": "strict_date_optional_time"
+		},
+		"Version": {
+			"type": "string"
+		},
+		"Group": {
+			"type": "string",
+			"index": "not_analyzed"
+		},
+		"Alert": {
+			"type": "boolean"
+		},
+		"Comment": {
+			"type": "string"
+		}
+	}
 }

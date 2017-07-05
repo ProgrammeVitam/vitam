@@ -520,6 +520,7 @@ public class AdminManagementExternalResourceImpl {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         try {
             ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
+            SanityChecker.checkParameter(documentId);
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 if (AdminCollections.FORMATS.compareTo(collection)) {
                     final JsonNode result = client.getFormatByID(documentId);
@@ -560,7 +561,7 @@ public class AdminManagementExternalResourceImpl {
                 final Status status = Status.BAD_REQUEST;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             }
-        } catch (final IllegalArgumentException e) {
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.PRECONDITION_FAILED)
                 .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();

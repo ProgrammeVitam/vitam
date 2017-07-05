@@ -54,6 +54,7 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.TYPE;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.UNITTYPE;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.UNITUPS;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.USAGE;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.VERSION;
 
 
@@ -98,16 +99,14 @@ public class VitamFieldsHelper {
     /**
      * @return #size
      */
-    // FIXME P2 not valid
-    static final String size() {
+    public static final String size() {
         return SIZE.exactToken();
     }
 
     /**
      * @return #format
      */
-    // FIXME P2 not valid
-    static final String format() {
+    public static final String format() {
         return FORMAT.exactToken();
     }
 
@@ -250,5 +249,13 @@ public class VitamFieldsHelper {
      */
     public static final String storage() {
         return STORAGE.exactToken();
+    }
+
+    /**
+     *
+     * @return #usage
+     */
+    public static final String usage() {
+        return USAGE.exactToken();
     }
 }

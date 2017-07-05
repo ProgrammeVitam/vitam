@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS;
@@ -53,6 +54,11 @@ public class VarNameInsertAdapter extends VarNameAdapter {
         this.adapter = adapter;
     }
 
+    @Override
+    public boolean metadataAdapter() {
+        return adapter.metadataAdapter();
+    }
+    
     /**
      * Check for Insert from Builder
      *
@@ -62,6 +68,15 @@ public class VarNameInsertAdapter extends VarNameAdapter {
      */
     public JsonNode getFixedVarNameJsonNode(JsonNode rootNode) throws InvalidParseOperationException {
         // Note: some values are not allowed, as #id
+        if (rootNode instanceof ArrayNode) {
+            final ArrayNode object = JsonHandler.createArrayNode();
+            final Iterator<JsonNode> fieldIterator = ((ArrayNode) rootNode).elements();
+            while (fieldIterator.hasNext()) {
+                final JsonNode node = getFixedVarNameJsonNode(fieldIterator.next());
+                object.add(node);
+            }
+            return object;
+        }
         final ObjectNode object = JsonHandler.createObjectNode();
         final Iterator<Entry<String, JsonNode>> fieldIterator = rootNode.fields();
         while (fieldIterator.hasNext()) {
@@ -73,6 +88,7 @@ public class VarNameInsertAdapter extends VarNameAdapter {
             }
             if (PROJECTIONARGS.notAllowedOnSet(name)) {
                 throw new InvalidParseOperationException(
+    
                     "Parse in error for Insert as Variable not allowed(" + name + "): " + rootNode);
             }
             object.set(name, entry.getValue());
