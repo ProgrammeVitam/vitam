@@ -9,8 +9,9 @@
   },
   "#id" : "aebaaaaaaaag3r7caarvuak2ij3chpyaaaaq",
   "#nbobjects" : 0,
-  "#qualifiers" : {
-    "BinaryMaster" : {
+  "#qualifiers" : [
+    {
+      "qualifier": "BinaryMaster",
       "_nbc" : 1,
       "versions" : [ {
         "_id" : "aeaaaaaaaaag3r7caarvuak2ij3chpaaaaaq",
@@ -39,7 +40,8 @@
         "Algorithm" : "SHA-512"
       } ]
     },
-    "Dissemination" : {
+    {
+      "qualifier": "Dissemination",
       "_nbc" : 1,
       "versions" : [ {
         "_id" : "aeaaaaaaaaag3r7caarvuak2ij3cj7iaaaaq",
@@ -68,7 +70,8 @@
         "Algorithm" : "SHA-512"
       } ]
     },
-    "Thumbnail" : {
+    {
+      "qualifier": "Thumbnail",
       "_nbc" : 1,
       "versions" : [ {
         "_id" : "aeaaaaaaaaag3r7caarvuak2ij3cj7qaaaba",
@@ -97,7 +100,8 @@
         "Algorithm" : "SHA-512"
       } ]
     },
-    "TextContent" : {
+    {
+      "qualifier": "TextContent",
       "_nbc" : 1,
       "versions" : [ {
         "_id" : "aeaaaaaaaaag3r7caarvuak2ij3ckaaaaaaq",
@@ -123,7 +127,7 @@
         "Algorithm" : "SHA-512"
       } ]
     }
-  },
+  ],
   "#type" : "Document",
   "#tenant" : 0,
   "#unitups" : [ "aeaqaaaaaaag3r7caarvuak2ij3ckaiaaaaq" ],

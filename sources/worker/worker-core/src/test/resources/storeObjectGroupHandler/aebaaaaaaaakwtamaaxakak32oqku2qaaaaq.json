@@ -11,8 +11,9 @@
     "CreatingOsVersion" : "CreatingOsVersion0",
     "LastModified" : "2006-05-04T18:13:51.0"
   },
-  "_qualifiers" : {
-    "PhysicalMaster" : {
+  "_qualifiers" : [
+    {
+      "qualifier": "PhysicalMaster",
       "_nbc" : 1,
       "versions" : [ {
         "_id" : "aeaaaaaaaaakwtamaaxakak32oqku2qaaabq",
@@ -26,7 +27,8 @@
         }
       } ]
     },
-    "BinaryMaster" : {
+    {
+      "qualifier": "BinaryMaster",
       "_nbc" : 1,
       "versions" : [ {
         "_id" : "aeaaaaaaaaakwtamaaxakak32oqku2iaaaaq",
@@ -52,17 +54,19 @@
         "Algorithm" : "SHA-512"
       } ]
     }
-  },
+  ],
   "_work" : {
-    "_qualifiers" : {
-      "PhysicalMaster" : {
+    "_qualifiers" : [
+      {
+        "qualifier": "PhysicalMaster",
         "_nbc" : 1,
         "versions" : [ {
           "_id" : "aeaaaaaaaaakwtamaaxakak32oqku2qaaabq",
           "PhysicalId" : 123456789
         } ]
       },
-      "BinaryMaster" : {
+      {
+        "qualifier": "BinaryMaster",
         "_nbc" : 1,
         "versions" : [ {
           "_id" : "aeaaaaaaaaakwtamaaxakak32oqku2iaaaaq",
@@ -72,7 +76,7 @@
           "Algorithm" : "SHA-512"
         } ]
       }
-    }
+    ]
   },
   "_up" : [ "aeaqaaaaaaakwtamaaxakak32oqku2yaaaba" ],
   "_nbc" : 2,

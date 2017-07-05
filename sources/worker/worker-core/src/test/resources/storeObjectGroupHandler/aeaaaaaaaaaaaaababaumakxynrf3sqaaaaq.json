@@ -12,8 +12,9 @@
     "CreatingOsVersion" : "10",
     "LastModified" : "2016-05-05T20:45:20"
   },
-  "_qualifiers" : {
-    "BinaryMaster" : {
+  "_qualifiers" : [
+    {
+      "qualifier": "BinaryMaster",
       "nb" : 1,
       "versions" : [ {
         "_id" : "aeaaaaaaaaaaaaababaumakxynrf3rqaaaaq",
@@ -42,7 +43,8 @@
         "Algorithm" : "SHA-512"
       } ]
     },
-    "Dissemination" : {
+    {
+      "qualifier": "Dissemination",
       "nb" : 1,
       "versions" : [ {
         "_id" : "aeaaaaaaaaaaaaababaumakxynrf3tqaaaaq",
@@ -71,7 +73,8 @@
         "Algorithm" : "SHA-512"
       } ]
     },
-    "Thumbnail" : {
+    {
+      "qualifier": "Thumbnail",
       "nb" : 1,
       "versions" : [ {
         "_id" : "aeaaaaaaaaaaaaababaumakxynrf3uaaaaaq",
@@ -100,7 +103,8 @@
         "Algorithm" : "SHA-512"
       } ]
     },
-    "TextContent" : {
+    {
+      "qualifier": "TextContent",
       "nb" : 1,
       "versions" : [ {
         "_id" : "aeaaaaaaaaaaaaababaumakxynrf3uyaaaaq",
@@ -126,10 +130,11 @@
         "Algorithm" : "MD5"
       } ]
     }
-  },
+  ],
   "_work" : {
-    "_qualifiers" : {
-      "BinaryMaster" : {
+    "_qualifiers" : [
+      {
+        "qualifier": "BinaryMaster",
         "nb" : 1,
         "versions" : [ {
           "_id" : "aeaaaaaaaaaaaaababaumakxynrf3rqaaaaq",
@@ -139,7 +144,8 @@
           "Size": 100646
         } ]
       },
-      "Dissemination" : {
+      {
+        "qualifier": "Dissemination",
         "nb" : 1,
         "versions" : [ {
           "_id" : "aeaaaaaaaaaaaaababaumakxynrf3tqaaaaq",
@@ -149,7 +155,8 @@
           "Size": 186536
         } ]
       },
-      "Thumbnail" : {
+      {
+        "qualifier": "Thumbnail",
         "nb" : 1,
         "versions" : [ {
           "_id" : "aeaaaaaaaaaaaaababaumakxynrf3uaaaaaq",
@@ -159,7 +166,8 @@
           "Size": 40740
         } ]
       },
-      "TextContent" : {
+      {
+        "qualifier": "TextContent",
         "nb" : 1,
         "versions" : [ {
           "_id" : "aeaaaaaaaaaaaaababaumakxynrf3uyaaaaq",
@@ -169,7 +177,7 @@
           "Size": 18079
         } ]
       }
-    }
+    ]
   },
   "_up" : [ "aeaaaaaaaaaaaaababaumakxynrf3viaaaaq" ],
   "_nb" : 4
