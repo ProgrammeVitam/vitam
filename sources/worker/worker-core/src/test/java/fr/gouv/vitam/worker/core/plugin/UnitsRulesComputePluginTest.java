@@ -34,6 +34,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,7 +45,10 @@ import javax.xml.stream.XMLStreamException;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
@@ -56,6 +60,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -81,7 +86,7 @@ public class UnitsRulesComputePluginTest {
     private WorkspaceClient workspaceClient;
     private AdminManagementClientFactory adminManagementClientFactory;
     private AdminManagementClient adminManagementClient;
-    private WorkspaceClientFactory workspaceClientFactory;
+
     private static final String ARCHIVE_UNIT_RULE = "unitsRulesComputePlugin/AU_COMPUTE_ENDDATE_SAMPLE.json";
     private static final String ARCHIVE_UNIT_RULE_MGT_ONLY =
         "unitsRulesComputePlugin/AU_COMPUTE_ENDDATE_SAMPLE_MANAGEMENT_ONLY.json";
@@ -92,23 +97,28 @@ public class UnitsRulesComputePluginTest {
     private InputStream archiveUnit;
     private HandlerIOImpl action;
 
-    public UnitsRulesComputePluginTest() throws FileNotFoundException {
-
-    }
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @Before
     public void setUp() throws Exception {
+        File tempFolder = temporaryFolder.newFolder();
+        System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
+
+        SystemPropertyUtil.refresh();
+
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
-        PowerMockito.mockStatic(WorkspaceClientFactory.class);
         adminManagementClientFactory = mock(AdminManagementClientFactory.class);
-        workspaceClientFactory = mock(WorkspaceClientFactory.class);
+
         workspaceClient = mock(WorkspaceClient.class);
+
         adminManagementClient = mock(AdminManagementClient.class);
-        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
-        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
-        action = new HandlerIOImpl(GUIDFactory.newGUID().toString(), GUIDFactory.newGUID().toString());
+
+        action = new HandlerIOImpl(workspaceClient, GUIDFactory.newGUID().toString(), GUIDFactory.newGUID().toString());
+
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
         when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
+
         archiveUnit = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_RULE);
     }
 
