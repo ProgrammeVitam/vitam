@@ -75,7 +75,6 @@ import com.jayway.restassured.response.Cookie;
 import com.jayway.restassured.response.Header;
 import com.jayway.restassured.response.ResponseBody;
 
-import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
@@ -1303,7 +1302,8 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testSearchFundsRegisterOK() throws Exception {
-        PowerMockito.when(UserInterfaceTransactionManager.findAccessionRegisterSummary(anyObject(), anyObject()))
+        PowerMockito.when(UserInterfaceTransactionManager.findAccessionRegisterSummary(anyObject(), anyObject(),
+            anyObject()))
             .thenReturn(RequestResponseOK.getFromJsonNode(sampleLogbookOperation));
 
         PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), anyObject());
@@ -1317,7 +1317,8 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testSearchFundsRegisterBadRequest() throws Exception {
-        PowerMockito.when(UserInterfaceTransactionManager.findAccessionRegisterSummary(anyObject(), anyObject()))
+        PowerMockito.when(UserInterfaceTransactionManager.findAccessionRegisterSummary(anyObject(), anyObject(),
+            anyObject()))
             .thenThrow(new InvalidParseOperationException(""));
 
         PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), anyObject());
@@ -1331,7 +1332,8 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testGetAccessionRegisterDetailOK() throws Exception {
-        PowerMockito.when(UserInterfaceTransactionManager.findAccessionRegisterSummary(anyObject(), anyObject()))
+        PowerMockito.when(UserInterfaceTransactionManager.findAccessionRegisterSummary(anyObject(), anyObject(),
+            anyObject()))
             .thenReturn(RequestResponseOK.getFromJsonNode(sampleLogbookOperation));
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
@@ -1342,7 +1344,8 @@ public class WebApplicationResourceTest {
     @Test
     public void testGetAccessionRegisterDetailBadRequest() throws Exception {
         PowerMockito
-            .when(UserInterfaceTransactionManager.findAccessionRegisterDetail(anyObject(), anyObject(), anyObject()))
+            .when(UserInterfaceTransactionManager.findAccessionRegisterDetail(anyObject(), anyObject(), anyObject(),
+                anyObject()))
             .thenThrow(new InvalidParseOperationException(""));
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
@@ -1396,7 +1399,7 @@ public class WebApplicationResourceTest {
         PowerMockito
             .when(
                 UserInterfaceTransactionManager.checkTraceabilityOperation(Mockito.anyObject(),
-                    (Integer) anyInt()))
+                    (Integer) anyInt(), anyString()))
             .thenReturn(ClientMockResultHelper.getLogbooksRequestResponse());
 
         given().contentType(ContentType.JSON).body(TRACEABILITY_CHECK_MAP).expect()
@@ -1408,16 +1411,16 @@ public class WebApplicationResourceTest {
     public void testDownloadTraceabilityOperation() throws Exception {
 
         // Mock AccessExternal response
-        AccessExternalClient accessExternalClient = Mockito.mock(AccessExternalClient.class);
+        AdminExternalClient adminExternalClient = Mockito.mock(AdminExternalClient.class);
 
-        final AccessExternalClientFactory accessExternalClientFactory =
-            PowerMockito.mock(AccessExternalClientFactory.class);
-        PowerMockito.when(accessExternalClientFactory.getClient()).thenReturn(accessExternalClient);
-        PowerMockito.when(AccessExternalClientFactory.getInstance()).thenReturn(accessExternalClientFactory);
+        final AdminExternalClientFactory adminExternalClientFactory =
+            PowerMockito.mock(AdminExternalClientFactory.class);
+        PowerMockito.when(adminExternalClientFactory.getClient()).thenReturn(adminExternalClient);
+        PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminExternalClientFactory);
 
         String contractName = "test_contract";
 
-        when(accessExternalClient.downloadTraceabilityOperationFile("1", 0, contractName))
+        when(adminExternalClient.downloadTraceabilityOperationFile("1", 0, contractName))
             .thenReturn(ClientMockResultHelper.getObjectStream());
 
         RestAssured.given()

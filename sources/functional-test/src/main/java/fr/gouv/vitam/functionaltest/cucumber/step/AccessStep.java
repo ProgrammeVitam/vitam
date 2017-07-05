@@ -436,7 +436,7 @@ public class AccessStep {
     public void search_accession_regiter_detail(String originatingAgency) throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(query);
         RequestResponse<JsonNode> requestResponse =
-            world.getAccessClient().getAccessionRegisterDetail(originatingAgency, queryJSON,
+            world.getAdminClient().getAccessionRegisterDetail(originatingAgency, queryJSON,
                 world.getTenantId(), world.getContractId());
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;

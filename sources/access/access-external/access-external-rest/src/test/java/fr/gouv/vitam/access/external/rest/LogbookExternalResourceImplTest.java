@@ -652,18 +652,6 @@ public class LogbookExternalResourceImplTest {
     }
 
     @Test
-    public void testCheckTraceabilityOperation() throws InvalidParseOperationException {
-        given()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(JsonHandler.getFromString(request))
-            .when()
-            .post(CHECK_TRACEABILITY_OPERATION_URI)
-            .then().statusCode(Status.OK.getStatusCode());
-    }
-    
-
-    @Test
     public void testDownloadTraceabilityOperationFile() throws InvalidParseOperationException {
         given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)

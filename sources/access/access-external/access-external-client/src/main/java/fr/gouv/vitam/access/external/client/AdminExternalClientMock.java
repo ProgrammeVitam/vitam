@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
+import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -18,6 +19,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 /**
@@ -57,6 +59,18 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     }
 
     @Override
+    public RequestResponse findDocuments(AdminCollections documentType, JsonNode select, Integer tenantId, String contractName)
+        throws AccessExternalClientNotFoundException, AccessExternalClientException, InvalidParseOperationException {
+        if (AdminCollections.RULES.equals(documentType)) {
+            return ClientMockResultHelper.getRuleList();
+        }
+        if (AdminCollections.FORMATS.equals(documentType)) {
+            return ClientMockResultHelper.getFormatList();
+        }
+        throw new AccessExternalClientNotFoundException(COLLECTION_NOT_VALID);
+    }
+
+    @Override
     public RequestResponse findDocumentById(AdminCollections documentType, String documentId, Integer tenantId)
         throws AccessExternalClientException, InvalidParseOperationException {
         if (AdminCollections.RULES.equals(documentType)) {
@@ -66,6 +80,13 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
             return ClientMockResultHelper.getFormat();
         }
         throw new AccessExternalClientNotFoundException(COLLECTION_NOT_VALID);
+    }
+
+    @Override
+    public RequestResponse getAccessionRegisterDetail(String id, JsonNode query, Integer tenantId, String contractName)
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException {
+        return ClientMockResultHelper.getAccessionRegisterDetail();
     }
 
     @Override
@@ -120,4 +141,16 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         return ClientMockResultHelper.createReponse(ClientMockResultHelper.getContexts(Status.CREATED.getStatusCode()).toJsonNode()).setHttpCode(Status.CREATED.getStatusCode());
     }
 
+    @Override
+    public RequestResponse checkTraceabilityOperation(JsonNode query, Integer tenantId, String contractName)
+        throws AccessExternalClientServerException, InvalidParseOperationException {
+        return ClientMockResultHelper.checkOperationTraceability();
+    }
+
+    @Override
+    public Response downloadTraceabilityOperationFile(String operationId, Integer tenantId, String contractName)
+        throws AccessExternalClientServerException {
+        return new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+    }
 }

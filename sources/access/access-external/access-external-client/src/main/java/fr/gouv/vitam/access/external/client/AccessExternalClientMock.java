@@ -89,33 +89,6 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
     }
 
     @Override
-    public RequestResponse getAccessionRegisterSummary(JsonNode query, Integer tenantId, String contractName)
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException {
-        return ClientMockResultHelper.getAccessionRegisterSummary();
-    }
-
-    @Override
-    public RequestResponse getAccessionRegisterDetail(String id, JsonNode query, Integer tenantId, String contractName)
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException {
-        return ClientMockResultHelper.getAccessionRegisterDetail();
-    }
-
-    @Override
-    public RequestResponse checkTraceabilityOperation(JsonNode query, Integer tenantId, String contractName)
-        throws AccessExternalClientServerException, InvalidParseOperationException {
-        return ClientMockResultHelper.checkOperationTraceability();
-    }
-
-    @Override
-    public Response downloadTraceabilityOperationFile(String operationId, Integer tenantId, String contractName)
-        throws AccessExternalClientServerException {
-        return new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
-            MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
-    }
-
-    @Override
     public Response getUnitObject(JsonNode selectQuery, String unitId, String usage, int version, Integer tenantId,
         String contractName)
         throws InvalidParseOperationException, AccessExternalClientServerException,

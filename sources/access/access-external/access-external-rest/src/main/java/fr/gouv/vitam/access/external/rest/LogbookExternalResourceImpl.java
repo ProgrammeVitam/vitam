@@ -372,52 +372,6 @@ public class LogbookExternalResourceImpl {
             .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
 
-    /**
-     * Checks a traceability operation
-     * 
-     * @param query the DSLQuery used to find the traceability operation to validate
-     * @return The verification report == the logbookOperation
-     */
-    @POST
-    @Path(AccessExtAPI.TRACEABILITY_API + "/check")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response checkOperationTraceability(JsonNode query) {
-
-        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            ParametersChecker.checkParameter("checks operation Logbook traceability parameters", query);
-
-            Integer tenantId = ParameterHelper.getTenantParameter();
-            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-            RequestResponse<JsonNode> result = client.checkTraceabilityOperation(query);
-            if (result.isOk()){
-                return Response.status(Status.OK).entity(result).build();
-            }
-            return Response.status(result.getHttpCode()).entity(result).build();
-        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
-            LOGGER.error(e);
-            final Status status = Status.BAD_REQUEST;
-            return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                .setContext(ServiceName.EXTERNAL_ACCESS.getName())
-                .setState("code_vitam")
-                .setMessage(status.getReasonPhrase())
-                .setDescription(e.getMessage())).build();
-        } catch (LogbookClientServerException e) {
-            LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                .setContext(ServiceName.EXTERNAL_ACCESS.getName())
-                .setState("code_vitam")
-                .setMessage(status.getReasonPhrase())
-                .setDescription(e.getMessage())).build();
-        } catch (AccessUnauthorizedException e) {
-            LOGGER.error("Contract access does not allow ", e);
-            final Status status = Status.UNAUTHORIZED;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
-        }
-    }
-    
-
     @GET
     @Path(AccessExtAPI.TRACEABILITY_API + "/{idOperation}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)

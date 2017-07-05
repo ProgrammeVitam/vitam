@@ -142,7 +142,7 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     }
 
     @Override
-    public void createorUpdateAccessionRegister(AccessionRegisterDetailModel register)
+    public RequestResponse createorUpdateAccessionRegister(AccessionRegisterDetailModel register)
         throws DatabaseConflictException {
         String result;
         try {
@@ -150,8 +150,11 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("Cannot serialize parameters", e);
             result = "{}";
+            return new RequestResponseOK().setHttpCode(Status.PRECONDITION_FAILED.getStatusCode());
         }
         LOGGER.info("AccessionRegister: " + result);
+        return new RequestResponseOK().setHttpCode(Status.CREATED.getStatusCode());
+
     }
 
     @Override
