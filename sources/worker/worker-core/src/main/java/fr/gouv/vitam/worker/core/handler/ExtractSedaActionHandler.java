@@ -176,7 +176,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String LFC_INITIAL_CREATION_EVENT_TYPE = "LFC_CREATION";
     private static final String LFC_CREATION_SUB_TASK_ID = "LFC_CREATION";
     private static final String LFC_CREATION_SUB_TASK_FULL_ID = HANDLER_ID + "." + LFC_CREATION_SUB_TASK_ID;
-    private static final String ATTACHMENT_IDS = "AttachmentIds";
+    private static final String ATTACHMENT_IDS = "_up";
     private HandlerIO handlerIO;
 
 
