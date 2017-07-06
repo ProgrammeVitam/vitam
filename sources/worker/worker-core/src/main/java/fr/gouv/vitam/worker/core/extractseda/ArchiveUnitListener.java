@@ -132,6 +132,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
     private Map<String, Set<String>> unitIdToSetOfRuleId;
     private UnitType workflowUnitType;
     private List<String> originatingAgencies;
+    private final List<String> existingGOTs;
 
     public ArchiveUnitListener(HandlerIO handlerIO, ObjectNode archiveUnitTree, Map<String, String> unitIdToGuid,
         Map<String, String> unitIdToGroupId,
@@ -144,7 +145,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         MetaDataClientFactory metaDataClientFactory,
         Map<String, String> objectGroupIdToGuid,
         Map<String, Set<String>> unitIdToSetOfRuleId, UnitType workflowUnitType,
-        List<String> originatingAgencies) {
+        List<String> originatingAgencies, List<String> existingGOTs) {
         this.unitIdToGroupId = unitIdToGroupId;
         this.objectGroupIdToUnitId = objectGroupIdToUnitId;
         this.dataObjectIdToObjectGroupId = dataObjectIdToObjectGroupId;
@@ -162,6 +163,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         this.unitIdToGuid = unitIdToGuid;
         this.workflowUnitType = workflowUnitType;
         this.originatingAgencies = originatingAgencies;
+        this.existingGOTs = existingGOTs;
         this.objectMapper = getObjectMapper();
 
         DescriptiveMetadataMapper descriptiveMetadataMapper = new DescriptiveMetadataMapper();
@@ -404,6 +406,8 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
                 throw new RuntimeException(
                     new ProcessingObjectGroupNotFoundException("Existing ObjectGroup " + groupId + " was not found"));
             }
+
+            existingGOTs.add(groupId);
 
             unitIdToGroupId.put(archiveUnitId, groupId);
             objectGroupIdToGuid.put(groupId, groupId);
