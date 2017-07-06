@@ -117,7 +117,7 @@ public class WorkerManager {
             WorkerBean workerBean;
             try{
                 workerBean =  JsonHandler.getFromJsonNodeLowerCamelCase(worker, WorkerBean.class);
-            }catch(InvalidParseOperationException e){
+            } catch(InvalidParseOperationException e) {
                 LOGGER.error("Invalid structure for \'"+ worker.toString()+"\'",e);
                 // Invalid structure : Continue with the next worker
                 continue;
@@ -125,7 +125,7 @@ public class WorkerManager {
             String workerId = workerBean.getWorkerId();
             String familyId = workerBean.getFamily();
             // Ignore if the familyId or the workerId is null 
-            if (familyId == null || workerId == null){
+            if (familyId == null || workerId == null) {
                 // Mandatory argument missing : Continue with the next worker
                 continue;
             }

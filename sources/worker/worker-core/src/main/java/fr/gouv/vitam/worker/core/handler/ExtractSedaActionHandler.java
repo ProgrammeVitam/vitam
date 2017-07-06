@@ -96,7 +96,6 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
@@ -176,6 +175,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String LFC_CREATION_SUB_TASK_ID = "LFC_CREATION";
     private static final String LFC_CREATION_SUB_TASK_FULL_ID = HANDLER_ID + "." + LFC_CREATION_SUB_TASK_ID;
     private static final String ATTACHMENT_IDS = "_up";
+    public static final String OBJECT_GROUP_ID = "_og";
     private HandlerIO handlerIO;
 
 
@@ -261,6 +261,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private MetaDataClientFactory metaDataClientFactory;
 
     private ObjectNode archiveUnitTree;
+    private List<String> existingGOTs;
 
     /**
      * Constructor with parameter SedaUtilsFactory
@@ -287,6 +288,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         existingUnitGuids = new HashSet<>();
         physicalDataObjetsGuids = new HashSet<>();
         originatingAgencies = new ArrayList<>();
+        existingGOTs = new ArrayList<>();
 
         archiveUnitTree = JsonHandler.createObjectNode();
         this.metaDataClientFactory = metaDataClientFactory;
@@ -313,8 +315,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         final ItemStatus globalCompositeItemStatus = new ItemStatus(HANDLER_ID);
 
 
-        try (LogbookLifeCyclesClient logbookLifeCycleClient =
-            LogbookLifeCyclesClientFactory.getInstance().getClient()) {
+        try (LogbookLifeCyclesClient lifeCycleClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
             checkMandatoryIOParameter(ioParam);
             globalSedaParametersFile =
                 handlerIO.getNewLocalFile(handlerIO.getOutput(GLOBAL_SEDA_PARAMETERS_FILE_IO_RANK).getPath());
@@ -323,11 +324,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
             unmarshaller.setListener(new ArchiveUnitListener(handlerIO, archiveUnitTree, unitIdToGuid, unitIdToGroupId,
                 objectGroupIdToUnitId, dataObjectIdToObjectGroupId, dataObjectIdWithoutObjectGroupId,
                 guidToLifeCycleParameters, existingUnitGuids, params.getLogbookTypeProcess(),
-                params.getContainerName(), logbookLifeCycleClient, metaDataClientFactory, objectGroupIdToGuid, unitIdToSetOfRuleId,
-                getWorkflowUnitType(), originatingAgencies));
+                params.getContainerName(), lifeCycleClient, metaDataClientFactory, objectGroupIdToGuid, unitIdToSetOfRuleId,
+                getWorkflowUnitType(), originatingAgencies, existingGOTs));
 
 
-            ObjectNode evDetData = extractSEDA(logbookLifeCycleClient, params, globalCompositeItemStatus);
+            ObjectNode evDetData = extractSEDA(lifeCycleClient, params, globalCompositeItemStatus);
 
             if (existingUnitGuids.size() > 0) {
                 ArrayNode attachmentNode = JsonHandler.createArrayNode();
@@ -628,7 +629,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
             if (directedCycle.isCyclic()) {
                 throw new CycleFoundException(GRAPH_CYCLE_MSG);
             }
-
 
             // 2- create graph and create level
             // Define Treatment Graph and Level Creation
@@ -1055,21 +1055,27 @@ public class ExtractSedaActionHandler extends ActionHandler {
             }
             llcp.setFinalStatus(HANDLER_ID, null, StatusCode.OK, null);
 
-
             List<String> parentAttachments = existAttachmentUnitAsParentOnTree(unitId);
+
+            ObjectNode evDetData = JsonHandler.createObjectNode();
+
             if (parentAttachments.size() > 0) {
-                ObjectNode evDetData = JsonHandler.createObjectNode();
                 ArrayNode arrayNode = JsonHandler.createArrayNode();
                 parentAttachments.forEach(arrayNode::add);
                 evDetData.set(ATTACHMENT_IDS, arrayNode);
-                String wellFormedJson = null;
-                try {
-                    wellFormedJson = JsonHandler.writeAsString(evDetData);
-                } catch (InvalidParseOperationException e) {
-                    LOGGER.error("unable to generate evDetData, incomplete journal generation", e);
-                }
-                llcp.putParameterValue(LogbookParameterName.eventDetailData, wellFormedJson);
             }
+
+            if (unitIdToGroupId.containsKey(unitId) && existingGOTs.contains(unitIdToGroupId.get(unitId))) {
+                evDetData.put(OBJECT_GROUP_ID, unitIdToGroupId.get(unitId));
+            }
+
+            try {
+                String wellFormedJson = JsonHandler.writeAsString(evDetData);
+                llcp.putParameterValue(LogbookParameterName.eventDetailData, wellFormedJson);
+            } catch (InvalidParseOperationException e) {
+                LOGGER.error("unable to generate evDetData, incomplete journal generation", e);
+            }
+
             handlerIO.getHelper().updateDelegate(llcp);
             logbookLifeCycleClient.bulkUpdateUnit(containerId,
                 handlerIO.getHelper().removeUpdateDelegate(unitGuid));
@@ -1837,7 +1843,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                             extractDataObjectGroupReferenceIdTag(reader, writerJson, eventFactory, elementID);
                             break;
                         case SedaConstants.TAG_DATA_OBJECT_GROUP_EXISITING_REFERENCEID:
-                            extractDataObjectGroupExistingReferenceIdTag(reader, writerJson, eventFactory, elementID);
+                            extractDataObjectGroupExistingReferenceIdTag(reader, elementID);
                             break;
                         case SedaConstants.TAG_DATA_OBJECT_REFERENCEID:
                             extractDataObjectReferenceIdTag(reader, writerJson, eventFactory, elementID);
@@ -2062,21 +2068,16 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * Also map objectGroupId to guid with key and value equals to group id
      *
      * @param reader
-     * @param writerJson
-     * @param eventFactory
      * @param elementID
      * @throws XMLStreamException
      * @throws ProcessingException
      */
-    private void extractDataObjectGroupExistingReferenceIdTag(XMLEventReader reader, XMLEventWriter writerJson,
-        XMLEventFactory eventFactory,
-        String elementID) throws XMLStreamException, ProcessingException {
+    private void extractDataObjectGroupExistingReferenceIdTag(XMLEventReader reader, String elementID)
+        throws XMLStreamException, ProcessingException {
         if (!UnitType.INGEST.equals(workflowUnitTYpe)) {
             LOGGER.error("Linking not allowed for FILING and HOLDING UNIT  {}", workflowUnitTYpe);
             throw new ProcessingObjectGroupNotFoundException("Linking not allowed for FILING and HOLDING UNIT");
         }
-
-
 
         final String groupId = reader.getElementText();
 
