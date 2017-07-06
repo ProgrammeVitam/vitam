@@ -276,7 +276,7 @@ public class AdminManagementExternalResourceImpl {
      * @param asyncResponse
      */
     @GET
-    @Path("/{collection}/{id}")
+    @Path("/{collection}/{id:.+}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void downloadProfileFileOrTraceabilityFile(@PathParam("collection") String collection,
         @PathParam("id") String fileId,

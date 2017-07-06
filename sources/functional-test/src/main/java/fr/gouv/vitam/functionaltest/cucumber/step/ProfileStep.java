@@ -119,7 +119,7 @@ public class ProfileStep {
         throws InvalidParseOperationException, IOException, AccessExternalClientException {
         Path profil = Paths.get(world.getBaseDirectory(), fileName);
         final RequestResponse response =
-            world.getAdminClient().importProfileFile(this.model.get("_id").asText(), Files.newInputStream(profil, StandardOpenOption.READ), world.getTenantId());
+            world.getAdminClient().importProfileFile(this.model.get("Identifier").asText(), Files.newInputStream(profil, StandardOpenOption.READ), world.getTenantId());
         assertThat(Response.Status.OK.getStatusCode() == response.getStatus());
     }
 
