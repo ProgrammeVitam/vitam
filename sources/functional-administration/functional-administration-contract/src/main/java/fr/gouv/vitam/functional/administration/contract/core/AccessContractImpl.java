@@ -496,8 +496,8 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                 }
                 try {
 
-                    if (contract.getDeactivationdate() == null || contract.getDeactivationdate().isEmpty()) {
-
+                    if (contract.getDeactivationdate() == null || contract.getDeactivationdate().trim().isEmpty()) {
+                        contract.setDeactivationdate(null);
                     } else {
 
                         contract.setDeactivationdate(
