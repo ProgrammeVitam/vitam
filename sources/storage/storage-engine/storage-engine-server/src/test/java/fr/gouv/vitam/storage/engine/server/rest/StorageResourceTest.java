@@ -102,7 +102,11 @@ public class StorageResourceTest {
     private static final String STATUS_URI = "/status";
     private static final String MANIFESTS_URI = "/manifests";
     private static final String STORAGELOG = "/storagelog";
+    private static final String STORAGERULE = "/rules";
+
     private static final String STORAGELOG_ID_URI = "/{storagelogname}";
+    private static final String STORAGERULE_ID_URI = "/{rulefile}";
+
     private static final String MANIFEST_ID_URI = "/{id_manifest}";
 
     private static final String ID_O1 = "idO1";
@@ -366,6 +370,11 @@ public class StorageResourceTest {
                 TENANT_ID_E)
             .body(createObjectDescription).when().post(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
+        given().contentType(ContentType.JSON)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
+                TENANT_ID_E)
+            .body(createObjectDescription).when().post(STORAGERULE + STORAGERULE_ID_URI, ID_O1).then()
+            .statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
     @Test
@@ -381,7 +390,7 @@ public class StorageResourceTest {
     }
 
     @Test
-    public final void tesLogStorage() {
+    public final void testLogStorage() {
         final ObjectDescription createObjectDescription = new ObjectDescription();
 
         createObjectDescription.setWorkspaceObjectURI("dd");
@@ -403,6 +412,33 @@ public class StorageResourceTest {
         given().contentType(ContentType.JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
             .when().post(STORAGELOG + STORAGELOG_ID_URI, ID_O1).then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+
+    @Test
+    public final void testruleStorage() {
+        final ObjectDescription createObjectDescription = new ObjectDescription();
+
+        createObjectDescription.setWorkspaceObjectURI("dd");
+        createObjectDescription.setWorkspaceContainerGUID("dd");
+        given().contentType(ContentType.JSON)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .body(createObjectDescription).when().post(STORAGERULE + STORAGERULE_ID_URI, ID_O1).then()
+            .statusCode(Status.CREATED.getStatusCode());
+        given().contentType(ContentType.JSON).body(createObjectDescription).when()
+            .post(STORAGERULE + STORAGERULE_ID_URI, ID_O1).then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given().contentType(ContentType.JSON)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
+                TENANT_ID_Ardyexist)
+            .body(createObjectDescription).when().post(STORAGERULE + STORAGERULE_ID_URI, ID_O1).then()
+            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+
+        given().contentType(ContentType.JSON)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .when().post(STORAGERULE + STORAGERULE_ID_URI, ID_O1).then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 

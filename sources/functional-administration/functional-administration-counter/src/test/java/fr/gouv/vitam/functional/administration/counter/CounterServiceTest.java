@@ -46,7 +46,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import org.bson.Document;
 import org.junit.After;
@@ -117,22 +117,23 @@ public class CounterServiceTest {
     public void testSequences() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        String ic = vitamCounterService.getNextSequence(TENANT_ID, "IC");
-        String ac = vitamCounterService.getNextSequence(TENANT_ID, "AC");
-        String pr = vitamCounterService.getNextSequence(TENANT_ID, "PR");
+        String ic = vitamCounterService.getNextSequenceAsString(TENANT_ID, SequenceType.INGEST_CONTRACT_SEQUENCE.getName());
+        String ac = vitamCounterService.getNextSequenceAsString(TENANT_ID, SequenceType.ACCESS_CONTRACT_SEQUENCE.getName());
+        String pr = vitamCounterService.getNextSequenceAsString(TENANT_ID, SequenceType.PROFILE_SEQUENCE.getName());
         assertThat(ic).isEqualTo("IC-000001");
         assertThat(ac).isEqualTo("AC-000001");
         assertThat(pr).isEqualTo("PR-000001");
 
 
-        ic = vitamCounterService.getNextSequence(TENANT_ID, "IC");
-        ac = vitamCounterService.getNextSequence(TENANT_ID, "AC");
-        ic = vitamCounterService.getNextSequence(TENANT_ID, "IC");
-        pr = vitamCounterService.getNextSequence(TENANT_ID, "PR");
+        ic = vitamCounterService.getNextSequenceAsString(TENANT_ID, SequenceType.INGEST_CONTRACT_SEQUENCE.getName());
+        ac = vitamCounterService.getNextSequenceAsString(TENANT_ID,  SequenceType.ACCESS_CONTRACT_SEQUENCE.getName());
+        ic = vitamCounterService.getNextSequenceAsString(TENANT_ID, SequenceType.INGEST_CONTRACT_SEQUENCE.getName());
+        pr = vitamCounterService.getNextSequenceAsString(TENANT_ID, SequenceType.PROFILE_SEQUENCE.getName());
 
         assertThat(ic).isEqualTo("IC-000003");
         assertThat(ac).isEqualTo("AC-000002");
         assertThat(pr).isEqualTo("PR-000002");
+        assertThat(vitamCounterService.getSequence(TENANT_ID, SequenceType.PROFILE_SEQUENCE.getName())).isEqualTo(2);
 
 
 
@@ -142,8 +143,7 @@ public class CounterServiceTest {
     public void testError() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        String ic = vitamCounterService.getNextSequence(TENANT_ID, "AB");
-
+        String ic = vitamCounterService.getNextSequenceAsString(TENANT_ID, "AB");
 
     }
 }

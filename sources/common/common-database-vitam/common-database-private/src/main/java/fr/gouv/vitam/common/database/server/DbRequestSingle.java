@@ -140,9 +140,27 @@ public class DbRequestSingle {
      */
     public DbRequestResult execute(RequestSingle request)
         throws InvalidParseOperationException, DatabaseException, InvalidCreateOperationException {
+        return execute(request, 0);
+    }
+    /**
+     * execute all request
+     * @param request
+     * @param version
+     * @throws InvalidParseOperationException
+     * @throws DatabaseException
+     * @throws InvalidCreateOperationException
+     * @throws SecurityException
+     * @throws NoSuchMethodException
+     * @throws InvocationTargetException
+     * @throws IllegalArgumentException
+     * @throws IllegalAccessException
+     * @throws InstantiationException
+     */
+    public DbRequestResult execute(RequestSingle request, Integer version)
+        throws InvalidParseOperationException, DatabaseException, InvalidCreateOperationException {
         if (request instanceof Insert) {
             ArrayNode data = ((Insert) request).getDatas();
-            return insertDocuments(data);
+            return insertDocuments(data, version);
         } else if (request instanceof Select) {
             return findDocuments(((Select) request).getFinalSelect());
         } else if (request instanceof Update) {
@@ -155,7 +173,7 @@ public class DbRequestSingle {
 
     /**
      * Helper to detect an insert that should be an Update
-     * 
+     *
      * @param e exception catched
      * @return true if an insert that should be an Update, else False
      */
@@ -176,22 +194,24 @@ public class DbRequestSingle {
         return false;
     }
 
+
     /**
      * Main method for Multiple Insert
      *
      * @param arrayNode
      * @return DbRequestResult
+     * @param version
      * @throws InvalidParseOperationException
      * @throws DatabaseException
      */
     @SuppressWarnings("unchecked")
-    private DbRequestResult insertDocuments(ArrayNode arrayNode)
+    private DbRequestResult insertDocuments(ArrayNode arrayNode, Integer version)
         throws InvalidParseOperationException, DatabaseException {
         final List<VitamDocument<?>> vitamDocumentList = new ArrayList<>();
         for (final JsonNode objNode : arrayNode) {
             // TODO : How to add _v in all VitamDocuments make by JsonHandler ?
             VitamDocument<?> obj = (VitamDocument<?>) JsonHandler.getFromJsonNode(objNode, vitamCollection.getClasz());
-            obj.append(VitamDocument.VERSION, 0);
+            obj.append(VitamDocument.VERSION, version);
             obj.remove(VitamDocument.SCORE);
             if (vitamCollection.isMultiTenant()) {
                 obj.append(VitamDocument.TENANT_ID, obj.getTenantFixJunit());
@@ -209,7 +229,16 @@ public class DbRequestSingle {
         insertToElasticsearch(vitamDocumentList);
         return new DbRequestResult().setCount(vitamDocumentList.size()).setTotal(vitamDocumentList.size());
     }
-
+    /**
+     * @param arrayNode
+     * @throws InvalidParseOperationException
+     * @throws DatabaseException
+     */
+    @SuppressWarnings("unchecked")
+    private DbRequestResult insertDocuments(ArrayNode arrayNode )
+        throws InvalidParseOperationException, DatabaseException {
+        return  insertDocuments ( arrayNode, 0);
+    }
     /**
      * Private Elasticsearch insert method
      *

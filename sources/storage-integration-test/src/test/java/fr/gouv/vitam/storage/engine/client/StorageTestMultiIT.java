@@ -27,9 +27,13 @@
 
 package fr.gouv.vitam.storage.engine.client;
 
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +49,7 @@ import java.util.regex.Pattern;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.functional.administration.rules.core.RulesSecurisator;
 import org.apache.commons.io.FileUtils;
 import org.jhades.JHades;
 import org.junit.AfterClass;
@@ -246,6 +251,33 @@ public class StorageTestMultiIT {
             }
         }
     }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testRulesSecurisator () throws Exception {
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0));
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+
+            RulesSecurisator rulesSecurisator = new RulesSecurisator();
+        final GUID eipMaster = GUIDFactory.newOperationLogbookGUID(0);
+
+
+        rulesSecurisator.secureFileRules(1 , new FileInputStream(PropertiesUtils.findFile("static-offer.json")), "json",
+                eipMaster);
+            rulesSecurisator.secureFileRules(2 , new FileInputStream(PropertiesUtils.findFile("static-offer.json")), "json",
+                eipMaster);
+            VitamRequestIterator<JsonNode> result = storageClient.listContainer("default", DataCategory.RULES);
+            TestCase.assertNotNull(result);
+            Assert.assertTrue(result.hasNext());
+            JsonNode node = result.next();
+            TestCase.assertNotNull(node);
+
+        //    assertEquals(node.get("objectId").asText()., "0_RULES-1.json");
+        assertTrue(node.get("objectId").asText().startsWith("0_RULES-1"));
+        assertTrue(node.get("objectId").asText().endsWith(".json"));
+
+    }
+
 
     @RunWithCustomExecutor
     //@Test

@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.functional.administration.counter.SequenceType;
 import org.bson.conversions.Bson;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -146,9 +147,9 @@ public class ContextServiceImpl implements ContextService {
         final VitamError error = new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem())
             .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
 
-        try {
-            for (final ContextModel cm : contextModelList) {
-                final String code = vitamCounterService.getNextSequence(ParameterHelper.getTenantParameter(), "CT");
+        try {            
+            for (final ContextModel cm : contextModelList){
+               final  String code = vitamCounterService.getNextSequenceAsString(ParameterHelper.getTenantParameter(), SequenceType.CONTEXT_SEQUENCE.getName());
                 cm.setIdentifier(code);
 
                 // if a contract have an id

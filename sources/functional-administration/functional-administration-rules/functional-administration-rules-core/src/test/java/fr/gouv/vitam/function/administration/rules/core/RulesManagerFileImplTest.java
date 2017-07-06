@@ -34,8 +34,13 @@ import static org.junit.Assume.assumeTrue;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
+import fr.gouv.vitam.functional.administration.rules.core.RulesSecurisator;
 import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -92,6 +97,7 @@ import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminF
 import fr.gouv.vitam.functional.administration.rules.core.RulesManagerFileImpl;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import static org.mockito.Mockito.mock;
 
 
 /**
@@ -120,15 +126,18 @@ public class RulesManagerFileImplTest {
     private final static String CLUSTER_NAME = "vitam-cluster";
     private final static String HOST_NAME = "127.0.0.1";
     private static ElasticsearchTestConfiguration esConfig = null;
+    private static VitamCounterService vitamCounterService;
 
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
+    static MongoClient mongoClient;
     static JunitHelper junitHelper;
     static final String DATABASE_HOST = "localhost";
     static final String DATABASE_NAME = "vitamtest";
     static final String COLLECTION_NAME = "FileRules";
     static int port;
     static RulesManagerFileImpl rulesFileManager;
+    private static MongoDbAccessAdminImpl dbImpl;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -152,10 +161,21 @@ public class RulesManagerFileImplTest {
         mongod = mongodExecutable.start();
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, port));
+
         LogbookOperationsClientFactory.changeMode(null);
+        dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
+        List<Integer> tenants = new ArrayList<>();
+        Integer tenantsList [] ={TENANT_ID,1,2,3,4,5,60,70};
+        tenants.addAll(Arrays.asList(tenantsList));
+
+
+
+        vitamCounterService = new VitamCounterService(dbImpl, tenants);
+        RulesSecurisator securisator = mock(RulesSecurisator.class);
+
         rulesFileManager = new RulesManagerFileImpl(
             MongoDbAccessAdminFactory.create(
-                new DbConfigurationImpl(nodes, DATABASE_NAME)));
+                new DbConfigurationImpl(nodes, DATABASE_NAME)), vitamCounterService, securisator);
         ElasticsearchAccessAdminFactory.create(
             new AdminManagementConfiguration(nodes, DATABASE_NAME, CLUSTER_NAME, esNodes));
 
@@ -194,7 +214,6 @@ public class RulesManagerFileImplTest {
         } catch (final Exception e) {
             fail("Check file with FILE_TO_TEST_KO should not throw this exception");
         }
-
         rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
         final MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
         final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
@@ -209,7 +228,10 @@ public class RulesManagerFileImplTest {
         final String id = fileList.getResults().get(0).getString("RuleId");
         final FileRules file = rulesFileManager.findDocumentById(id);
 
+
         assertEquals(file.getRuleid(), fileList.getResults().get(0).getRuleid());
+
+        assertEquals(file.getVersion(),1);
         client.close();
     }
 
@@ -392,6 +414,8 @@ public class RulesManagerFileImplTest {
             List<FileRules> fileRulesAfterInsert =
                 convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
             assertEquals(22, fileRulesAfterInsert.size());
+            int version = vitamCounterService.getNextSequence(TENANT_ID,"RULE");
+            assertEquals(rulesFileManager.findDocumentById("ACC-00006").get(VitamDocument.VERSION),1);
         } catch (ReferentialException | InvalidParseOperationException | IOException | InvalidCreateOperationException e) {
             fail("ReferentialException " + e.getCause());
             e.printStackTrace();
@@ -418,6 +442,8 @@ public class RulesManagerFileImplTest {
             List<FileRules> fileRulesAfterInsert =
                 convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
             assertEquals(22, fileRulesAfterInsert.size());
+            assertEquals(fileRulesAfterInsert.stream().findAny().get().get(VitamDocument.VERSION), vitamCounterService.getSequence(TENANT_ID,"RULE"));
+
         } catch (ReferentialException | InvalidParseOperationException | IOException | InvalidCreateOperationException e) {
             fail("ReferentialException " + e.getCause());
             e.printStackTrace();

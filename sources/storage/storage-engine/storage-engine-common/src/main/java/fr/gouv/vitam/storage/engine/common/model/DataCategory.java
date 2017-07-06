@@ -65,8 +65,11 @@ public enum DataCategory {
     /**
      * StorageLog (any)
      */
-    STORAGELOG("storagelog",false,false);
-
+    STORAGELOG("storagelog",false,false),
+    /**
+     * Rules files
+     */
+    RULES("rules",false,false);
     /**
      * Folder
      */

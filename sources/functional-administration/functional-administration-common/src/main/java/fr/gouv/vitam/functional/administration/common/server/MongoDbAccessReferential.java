@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common.server;
 
+import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -53,6 +54,16 @@ public interface MongoDbAccessReferential {
     DbRequestResult insertDocuments(ArrayNode arrayNode, FunctionalAdminCollections collection)
         throws ReferentialException;
 
+    /**
+     * insert documents
+     *
+     * @param arrayNode of documents
+     * @param collection collection of Mongo for insert
+     * @throws ReferentialException when error occurs
+     * @return DbRequestResult
+
+     */
+    DbRequestResult insertDocuments(ArrayNode arrayNode, FunctionalAdminCollections collection, Integer version) throws ReferentialException;
     /**
      * insert documents
      *
@@ -116,7 +127,17 @@ public interface MongoDbAccessReferential {
      */
     DbRequestResult updateData(JsonNode update, FunctionalAdminCollections collection)
         throws ReferentialException;;
-
+    /**
+     * Update with queryDsl
+     *
+     * @param update JsonNode to update
+     * @param collection collection of Mongo Type for update
+     * @param version
+     * @return DbRequestResult
+     * @throws ReferentialException when error occurs;
+     */
+    DbRequestResult updateData(JsonNode update, FunctionalAdminCollections collection, Integer version)
+        throws ReferentialException;
     /**
      * @param select filter
      * @param collection collection of Mongo for find

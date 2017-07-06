@@ -71,6 +71,7 @@ import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundE
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.counter.SequenceType;
 import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.profile.api.ProfileService;
 import fr.gouv.vitam.functional.administration.profile.core.ProfileManager;
@@ -197,12 +198,13 @@ public class ProfileServiceImpl implements ProfileService {
             profilesToPersist = JsonHandler.createArrayNode();
             for (final ProfileModel pm : profileModelList) {
                 if (pm.getIdentifier() == null) {
-                    String code = vitamCounterService.getNextSequence(ParameterHelper.getTenantParameter(), PROFIL_PREFIX);
+                    String code = vitamCounterService.getNextSequenceAsString(ParameterHelper.getTenantParameter(), SequenceType.PROFILE_SEQUENCE.getName());
                     pm.setIdentifier(code);
                 } else if (pm.getIdentifier().contains(PROFIL_PREFIX + "-")) {
-                    String code = vitamCounterService.getNextSequence(ParameterHelper.getTenantParameter(), PROFIL_PREFIX);
+                    String code = vitamCounterService.getNextSequenceAsString(ParameterHelper.getTenantParameter(), SequenceType.PROFILE_SEQUENCE.getName());
                     pm.setIdentifier(code);
                 }
+
                 final JsonNode profileNode = JsonHandler.toJsonNode(pm);
                 /* contract is valid, add it to the list to persist */
                 profilesToPersist.add(profileNode);
