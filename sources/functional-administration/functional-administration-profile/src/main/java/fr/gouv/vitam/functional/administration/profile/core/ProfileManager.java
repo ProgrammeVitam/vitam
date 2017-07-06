@@ -363,7 +363,7 @@ public class ProfileManager {
 
 
             try {
-                if (profile.getCreationdate() == null || profile.getCreationdate().isEmpty()) {
+                if (profile.getCreationdate() == null || profile.getCreationdate().trim().isEmpty()) {
                     profile.setCreationdate(now);
                 } else {
                     profile.setCreationdate(
@@ -375,7 +375,7 @@ public class ProfileManager {
                 rejection = RejectionCause.rejectMandatoryMissing("Creationdate");
             }
             try {
-                if (profile.getActivationdate() == null || profile.getActivationdate().isEmpty()) {
+                if (profile.getActivationdate() == null || profile.getActivationdate().trim().isEmpty()) {
                     profile.setActivationdate(now);
                 } else {
                     profile.setActivationdate(
@@ -388,8 +388,8 @@ public class ProfileManager {
             }
             try {
 
-                if (profile.getDeactivationdate() == null || profile.getDeactivationdate().isEmpty()) {
-
+                if (profile.getDeactivationdate() == null || profile.getDeactivationdate().trim().isEmpty()) {
+                    profile.setDeactivationdate(null);
                 } else {
 
                     profile.setDeactivationdate(

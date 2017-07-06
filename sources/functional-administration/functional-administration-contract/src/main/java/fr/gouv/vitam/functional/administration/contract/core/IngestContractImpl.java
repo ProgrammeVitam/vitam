@@ -494,7 +494,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 }
 
                 try {
-                    if (contract.getCreationdate() == null || contract.getCreationdate().isEmpty()) {
+                    if (contract.getCreationdate() == null || contract.getCreationdate().trim().isEmpty()) {
                         contract.setCreationdate(now);
                     } else {
                         contract.setCreationdate(
@@ -506,7 +506,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     rejection = GenericContractValidator.GenericRejectionCause.rejectMandatoryMissing("Creationdate");
                 }
                 try {
-                    if (contract.getActivationdate() == null || contract.getActivationdate().isEmpty()) {
+                    if (contract.getActivationdate() == null || contract.getActivationdate().trim().isEmpty()) {
                         contract.setActivationdate(now);
                     } else {
                         contract.setActivationdate(

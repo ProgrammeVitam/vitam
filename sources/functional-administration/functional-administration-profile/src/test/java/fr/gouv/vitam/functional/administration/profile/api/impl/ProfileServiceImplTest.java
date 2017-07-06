@@ -398,7 +398,7 @@ public class ProfileServiceImplTest {
         assertThat(id1).isNotNull();
 
 
-        ProfileModel one = profileService.findOne(id1);
+        ProfileModel one = profileService.findByIdentifier(id1);
 
         assertThat(one).isNotNull();
 
@@ -439,7 +439,7 @@ public class ProfileServiceImplTest {
 
         VitamThreadUtils.getVitamSession().setTenantId(2);
 
-        final ProfileModel one = profileService.findOne(id1);
+        final ProfileModel one = profileService.findByIdentifier(id1);
 
         assertThat(one).isNull();
 
@@ -466,7 +466,7 @@ public class ProfileServiceImplTest {
         assertThat(id1).isNotNull();
 
 
-        ProfileModel one = profileService.findOne(id1);
+        ProfileModel one = profileService.findByIdentifier(id1);
 
         assertThat(one).isNotNull();
 
