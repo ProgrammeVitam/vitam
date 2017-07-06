@@ -175,17 +175,38 @@
     ProxyPassReverse  /lang http://{{ hostvars[groups['hosts-dev-tools'][0]]['ip_service'] }}:9100/lang
     {% endif %}
 
-    {% if groups['hosts-kibana']|length >0 %}
-    # Kibana
-    ProxyPass /app/kibana http://{{ hostvars[groups['hosts-kibana'][0]]['ip_service']}}:{{vitam_kibana_port}}/app/kibana {{reverse_connection_short_params}}
-    ProxyPassReverse /app/kibana http://{{ hostvars[groups['hosts-kibana'][0]]['ip_service']}}:{{vitam_kibana_port}}/app/kibana
-    ProxyPass /api/status http://{{ hostvars[groups['hosts-kibana'][0]]['ip_service']}}:{{vitam_kibana_port}}/api/status {{reverse_connection_short_params}}
-    ProxyPassReverse /api/status http://{{ hostvars[groups['hosts-kibana'][0]]['ip_service']}}:{{vitam_kibana_port}}/api/status
-    ProxyPass /bundles http://{{hostvars[groups['hosts-kibana'][0]]['ip_service']}}:{{vitam_kibana_port}}/bundles {{reverse_connection_short_params}}
-    ProxyPassReverse /bundles http://{{hostvars[groups['hosts-kibana'][0]]['ip_service']}}:{{vitam_kibana_port}}/bundles
+    {% if groups['hosts-kibana-log']|length >0 %}
+    # Kibana-log
+
+    ProxyPass /kibana_log/api/status http://{{hostvars[groups['hosts-kibana-log'][0]]['ip_service']}}:{{kibana_log_port}}/api/status {{reverse_connection_short_params}}
+    ProxyPassReverse /kibana_log/api/status http://{{hostvars[groups['hosts-kibana-log'][0]]['ip_service']}}:{{kibana_log_port}}/api/status
+
     # Needed as it conflicts with Elasticsearch reverse proxy
-    ProxyPass /elasticsearch http://{{ hostvars[groups['hosts-kibana'][0]]['ip_service']}}:{{vitam_kibana_port}}/elasticsearch
-    ProxyPassReverse /elasticsearch http://{{ hostvars[groups['hosts-kibana'][0]]['ip_service']}}:{{vitam_kibana_port}}/elasticsearch
+    ProxyPass /kibana_log/elasticsearch http://{{hostvars[groups['hosts-kibana-log'][0]]['ip_service']}}:{{kibana_log_port}}/elasticsearch {{reverse_connection_short_params}}
+    ProxyPassReverse /kibana_log/elasticsearch http://{{hostvars[groups['hosts-kibana-log'][0]]['ip_service']}}:{{kibana_log_port}}/elasticsearch
+
+    ProxyPass /kibana_log/app/kibana http://{{hostvars[groups['hosts-kibana-log'][0]]['ip_service']}}:{{kibana_log_port}}/app/kibana {{reverse_connection_short_params}}
+    ProxyPassReverse /kibana_log/app/kibana http://{{hostvars[groups['hosts-kibana-log'][0]]['ip_service']}}:{{kibana_log_port}}/app/kibana
+
+    ProxyPass /kibana_log/ http://{{hostvars[groups['hosts-kibana-log'][0]]['ip_service']}}:{{kibana_log_port}}/ {{reverse_connection_short_params}}
+    ProxyPassReverse /kibana_log http://{{hostvars[groups['hosts-kibana-log'][0]]['ip_service']}}:{{kibana_log_port}}/
+    {% endif %}
+
+    {% if groups['hosts-kibana-data']|length >0 %}
+    # Kibana-data
+
+    ProxyPass /kibana_data/api/status http://{{hostvars[groups['hosts-kibana-data'][0]]['ip_service']}}:{{kibana_data_port}}/api/status {{reverse_connection_short_params}}
+    ProxyPassReverse /kibana_data/api/status http://{{hostvars[groups['hosts-kibana-data'][0]]['ip_service']}}:{{kibana_data_port}}/api/status
+
+    # Needed as it conflicts with Elasticsearch reverse proxy
+    ProxyPass /kibana_data/elasticsearch http://{{hostvars[groups['hosts-kibana-data'][0]]['ip_service']}}:{{kibana_data_port}}/elasticsearch {{reverse_connection_short_params}}
+    ProxyPassReverse /kibana_data/elasticsearch http://{{hostvars[groups['hosts-kibana-data'][0]]['ip_service']}}:{{kibana_data_port}}/elasticsearch
+
+    ProxyPass /kibana_data/app/kibana http://{{hostvars[groups['hosts-kibana-data'][0]]['ip_service']}}:{{kibana_data_port}}/app/kibana {{reverse_connection_short_params}}
+    ProxyPassReverse /kibana_data/app/kibana http://{{hostvars[groups['hosts-kibana-data'][0]]['ip_service']}}:{{kibana_data_port}}/app/kibana
+
+    ProxyPass /kibana_data/ http://{{hostvars[groups['hosts-kibana-data'][0]]['ip_service']}}:{{kibana_data_port}}/ {{reverse_connection_short_params}}
+    ProxyPassReverse /kibana_data http://{{hostvars[groups['hosts-kibana-data'][0]]['ip_service']}}:{{kibana_data_port}}/
     {% endif %}
 
     {% if groups['library']|length >0 %}

@@ -7,7 +7,7 @@ Gestion par Vitam
 
 Pour une gestion des logs par Vitam, il est nécessaire de déclarer des serveurs dans le fichier d'inventaire pour les 3 groupes suivants:
     - hosts-logstash
-    - hosts-kibana
+    - hosts-kibana-log
     - hosts-elasticsearch-log
 
 

@@ -1,0 +1,3 @@
+---
+# KWA FIXME : changing port doesn't work, yet (not taken into account in kibana configuration)
+kibana_port: 5601
