@@ -719,7 +719,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     @Override
     public Response downloadProfileFile(String profileMetadataId)
         throws AdminManagementClientServerException, ProfileNotFoundException {
-        ParametersChecker.checkParameter("Profile is is required", profileMetadataId);
+        ParametersChecker.checkParameter("Profile id is required", profileMetadataId);
 
         Response response = null;
 

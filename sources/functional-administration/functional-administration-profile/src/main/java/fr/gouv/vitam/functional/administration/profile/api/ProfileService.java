@@ -44,7 +44,6 @@ import java.util.List;
 
 /**
  * This servie manage the creation, update, find, ... profiles
- *
  */
 public interface ProfileService extends VitamAutoCloseable {
 
@@ -58,12 +57,11 @@ public interface ProfileService extends VitamAutoCloseable {
      * <li>A field has an invalid format</li>
      * <li>One or many profile already exist in the database</li>
      *
-     *
      * @param profileModelList
      * @return RequestResponseOK if success or VitamError
      * @throws VitamException if in error occurs while validating contracts
      */
-    public RequestResponse<ProfileModel> createProfiles(List<ProfileModel> profileModelList) throws VitamException;
+    RequestResponse<ProfileModel> createProfiles(List<ProfileModel> profileModelList) throws VitamException;
 
 
     /**
@@ -71,22 +69,24 @@ public interface ProfileService extends VitamAutoCloseable {
      * 2. Check that the document is (xsd, rng, ...) valid format else return VitamError
      * 3. If ok, save the file is the storage with the name (the given profile id)
      * TODO 4. In case of rng, check if RG exists ?!
-     * @param profileMetadataId
+     *
+     * @param profileIdentifier
      * @param profileFile
      * @return RequestResponseOK if success or VitamError
      * @throws VitamException
      */
-    public RequestResponse importProfileFile(String profileMetadataId,
+    RequestResponse importProfileFile(String profileIdentifier,
         InputStream profileFile)
         throws VitamException;
 
     /**
-     * download file corresponding to profileMetadataId
-     * @param profileMetadataId
+     * download file corresponding to profileIdentifier
+     *
+     * @param profileIdentifier
      * @param asyncResponse
      * @throws VitamException
      */
-    public void downloadProfileFile(String profileMetadataId, AsyncResponse asyncResponse)
+    void downloadProfileFile(String profileIdentifier, AsyncResponse asyncResponse)
         throws ProfileNotFoundException, InvalidParseOperationException, ReferentialException;
 
     /**
@@ -97,21 +97,11 @@ public interface ProfileService extends VitamAutoCloseable {
      * <li>- LastUpdate </li>
      * <li>- Status</li>
      *
-     *
      * @param jsonDsl the given profile dsl for update
      * @return RequestResponseOK if success or VitamError
      * @throws VitamException if in error occurs while validating contracts
      */
-    public RequestResponse<ProfileModel> updateProfiles(JsonNode jsonDsl) throws VitamException;
-
-
-    /**
-     * Find profile by id
-     * 
-     * @param id
-     * @return ProfileModel
-     */
-    public ProfileModel findOne(String id) throws ReferentialException, InvalidParseOperationException;
+    RequestResponse<ProfileModel> updateProfiles(JsonNode jsonDsl) throws VitamException;
 
 
     /**
@@ -120,16 +110,17 @@ public interface ProfileService extends VitamAutoCloseable {
      * @param identifier
      * @return ProfileModel
      */
-    public ProfileModel findByIdentifier(String identifier) throws ReferentialException, InvalidParseOperationException;
+    ProfileModel findByIdentifier(String identifier) throws ReferentialException, InvalidParseOperationException;
 
 
     /**
      * find Profile by QueryDsl
-     * 
+     *
      * @param queryDsl
      * @return list of ProfileModel
      */
-    public List<ProfileModel> findProfiles(JsonNode queryDsl) throws ReferentialException, InvalidParseOperationException;
+    List<ProfileModel> findProfiles(JsonNode queryDsl)
+        throws ReferentialException, InvalidParseOperationException;
 
 
 
