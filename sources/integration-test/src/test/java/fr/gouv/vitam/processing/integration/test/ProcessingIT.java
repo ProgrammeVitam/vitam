@@ -27,6 +27,7 @@
 package fr.gouv.vitam.processing.integration.test;
 
 import static com.jayway.restassured.RestAssured.get;
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.EVENT_DETAILS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -44,8 +45,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -65,6 +68,8 @@ import org.junit.rules.TemporaryFolder;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.jayway.restassured.RestAssured;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
@@ -1774,6 +1779,18 @@ public class ProcessingIT {
 
         // check got have to units
         assertEquals(db.getCollection("Unit").count(Filters.eq("_og", idGot)), 2);
+
+        ArrayList<Document> logbookLifeCycleUnits =
+            Lists.newArrayList(db.getCollection("LogbookLifeCycleUnit").find().iterator());
+
+        List<Document> currentLogbookLifeCycleUnits = logbookLifeCycleUnits.stream().filter(t -> t.get("evIdProc").equals(containerName))
+            .collect(Collectors.toList());
+
+        List<Document> events = (List<Document>) Iterables.getOnlyElement(currentLogbookLifeCycleUnits).get("events");
+
+        List<Document> lifeCycle = events.stream().filter(t -> t.get("outDetail").equals("LFC.CHECK_MANIFEST.OK"))
+            .collect(Collectors.toList());
+        assertThat(Iterables.getOnlyElement(lifeCycle).getString(EVENT_DETAILS)).containsIgnoringCase(idGot);
         try {
             Files.delete(new File(zipPath).toPath());
         } catch (Exception e) {
