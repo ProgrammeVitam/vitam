@@ -1,0 +1,13 @@
+[Unit]
+Description=Service unit to ensure consul dns is set in /etc/resolv.conf
+Wants=network.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/vitam/script/system/vitam_dns_localhost_enforce.sh
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target
