@@ -39,13 +39,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-
-import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
@@ -104,7 +97,6 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -1480,9 +1472,6 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                         updates.add(Updates.set(mongoDbName, fieldValue));
                     }
                 }
-
-                final ObjectNode evDetDataJson = (ObjectNode) JsonHandler.getFromString(
-                    item.getParameterValue(LogbookParameterName.eventDetailData));
 
                 if (updateEvDevData) {
                     String fieldValue = JsonHandler.writeAsString(oldEvDetData);
