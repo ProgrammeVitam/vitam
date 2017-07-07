@@ -7,11 +7,10 @@
     name: kibana
     state: latest
   notify:
-    - systemctl reload-daemon
     - restart kibana
 
 - name: Add kibana autostart at boot
-  service:
+  systemd:
     name: kibana
     enabled: yes
   notify:
@@ -108,11 +107,6 @@
     status_code: 200, 201
 
 - name: Ensure consul service is started
-  service:
+  systemd:
     name: "vitam-consul"
-    state: started
-
-- name: Ensure kibana service is started
-  service:
-    name: "kibana"
     state: started
