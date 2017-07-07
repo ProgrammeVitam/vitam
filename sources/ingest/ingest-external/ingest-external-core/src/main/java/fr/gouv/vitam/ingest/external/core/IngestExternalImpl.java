@@ -170,7 +170,7 @@ public class IngestExternalImpl implements IngestExternal {
             final LogbookOperationParameters sipSanityParameters =
                 LogbookParametersFactory.newLogbookOperationParameters(
                     ingestGuid,
-                    ingestContext.getEventType(),
+                    INGEST_EXT,
                     containerName,
                     logbookTypeProcess,
                     StatusCode.STARTED,

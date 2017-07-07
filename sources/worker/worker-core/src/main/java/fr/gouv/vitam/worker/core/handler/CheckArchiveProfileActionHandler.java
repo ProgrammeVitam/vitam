@@ -121,7 +121,7 @@ public class CheckArchiveProfileActionHandler extends ActionHandler {
             }
 
             if (profile != null) {
-                Response dowloadResponse = adminClient.downloadProfileFile(profile.getId());
+                Response dowloadResponse = adminClient.downloadProfileFile(profileIdentifier);
                 InputStream stream = dowloadResponse.readEntity(InputStream.class);
                 File tmpFile = PropertiesUtils.fileFromTmpFolder(profile.getPath());
                 OutputStream outputStream = new FileOutputStream(tmpFile);
