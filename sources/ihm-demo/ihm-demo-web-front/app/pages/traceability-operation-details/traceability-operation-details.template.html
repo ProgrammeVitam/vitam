@@ -61,7 +61,7 @@
     <div class="panel-body panel-collapse collapse in">
     <!-- Display Verification operation details (logbookOperation) -->
      <div ng-repeat = "report in reports">
-      <logbook-entry-table id="report.$results[0].evIdProc"></logbook-entry-table>
+      <logbook-entry-table id="report.evIdProc"></logbook-entry-table>
 
         <!-- Download traceability file -->
         <button ng-show="hasPermission('traceability:content:read')" class="btn btn-primary center-block" ng-click="downloadOperation()">
