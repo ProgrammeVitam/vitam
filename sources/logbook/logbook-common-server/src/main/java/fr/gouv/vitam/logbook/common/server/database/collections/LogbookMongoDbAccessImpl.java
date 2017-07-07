@@ -101,6 +101,13 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.request.LogbookVarNameAdapter;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
@@ -1462,7 +1469,6 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                     String fieldName = fieldNames.next();
                     String fieldValue = master.get(fieldName).asText();
                     String mongoDbName = LogbookMongoDbName.getLogbookMongoDbName(LogbookParameterName.valueOf(fieldName)).getDbname();
-                    ObjectNode oldVal = null;
                     if (mongoDbName.equals( LogbookMongoDbName.eventDetailData.getDbname())) {
                         JsonNode masterNode = ((ObjectNode) master).get(fieldName);
                         if (masterNode != null) {
@@ -1474,9 +1480,13 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                         updates.add(Updates.set(mongoDbName, fieldValue));
                     }
                 }
+
+                final ObjectNode evDetDataJson = (ObjectNode) JsonHandler.getFromString(
+                    item.getParameterValue(LogbookParameterName.eventDetailData));
+
                 if (updateEvDevData) {
-                    String fieldValue = JsonHandler.writeAsString(updateEvDevData);
-                    updates.add(Updates.set(LogbookDocument.EVENT_DETAILS, fieldValue));
+                    String fieldValue = JsonHandler.writeAsString(oldEvDetData);
+                    updates.add(Updates.set(LogbookMongoDbName.eventDetailData.getDbname(), fieldValue));
                 }
             } catch (InvalidParseOperationException e) {
                 LOGGER.warn("masterData is not parsable as a json. Analyse cancelled: " + masterData, e);
@@ -1484,5 +1494,4 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         }
         return updates;
     }
-
 }
