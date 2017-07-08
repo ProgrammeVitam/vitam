@@ -31,6 +31,7 @@ import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDo
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
@@ -652,12 +653,16 @@ public class ProcessingIT {
             selectQuery.setQuery(QueryHelper.eq("evIdProc", containerName));
             JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
             
-            assertEquals(logbookResult.get("$results").get(0).get("obIdIn").asText(),
+            JsonNode logbookNode = logbookResult.get("$results").get(0);
+            assertEquals(logbookNode.get("obIdIn").asText(),
                 "Transfert des enregistrements des délibérations de l'assemblée départementale");
-            assertEquals(logbookResult.get("$results").get(0).get("agIdSubm").asText(),
+            assertEquals(logbookNode.get("agIdSubm").asText(),
                 "https://demo.logilab.fr/seda/157118");
-            assertEquals(logbookResult.get("$results").get(0).get("agIdOrig").asText(), 
+            assertEquals(logbookNode.get("agIdOrig").asText(), 
                 "https://demo.logilab.fr/seda/157118");
+            assertTrue(logbookNode.get("evDetData").asText().contains("EvDetailReq"));
+            assertTrue(logbookNode.get("evDetData").asText().contains("EvDateTimeReq"));
+            assertTrue(logbookNode.get("evDetData").asText().contains("ArchivalAgreement"));
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
