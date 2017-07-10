@@ -41,12 +41,14 @@ import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.DistributorIndex;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
@@ -151,6 +153,42 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
         } catch (ContentAddressableStorageServerException exc) {
             throw new ProcessingStorageWorkspaceException(exc);
         }
+    }
+
+    @Override
+    public void persistDistributorIndex(String folderName, String fileName, DistributorIndex distributorIndex)
+        throws ProcessingStorageWorkspaceException, InvalidParseOperationException {
+        try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
+            client.putObject(PROCESS_CONTAINER, getPathToObjectFromFolder(folderName, fileName),
+                new ByteArrayInputStream(JsonHandler.writeAsString(distributorIndex).getBytes()));
+        } catch (ContentAddressableStorageServerException exc) {
+            throw new ProcessingStorageWorkspaceException(exc);
+        }
+    }
+
+    @Override
+    public DistributorIndex getDistributorIndex(String folderName, String fileName)
+        throws ProcessingStorageWorkspaceException, InvalidParseOperationException {
+        Response response = null;
+        InputStream is = null;
+        try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
+            response = client.getObject(PROCESS_CONTAINER, getPathToObjectFromFolder(folderName, fileName));
+            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+                is = (InputStream) response.getEntity();
+                return JsonHandler.getFromInputStream(is, DistributorIndex.class);
+            } else {
+                client.consumeAnyEntityAndClose(response);
+                throw new ProcessingStorageWorkspaceException("Workspace error: " + response.getStatusInfo()
+                    .getReasonPhrase());
+            }
+        } catch (ContentAddressableStorageServerException exc) {
+            throw new ProcessingStorageWorkspaceException(exc);
+        } catch (ContentAddressableStorageNotFoundException exc) {
+            return null;
+        } finally {
+            DefaultClient.staticConsumeAnyEntityAndClose(response);
+        }
+
     }
 
     @Override

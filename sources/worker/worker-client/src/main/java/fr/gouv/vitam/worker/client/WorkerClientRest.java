@@ -26,15 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.client;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -44,6 +39,10 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
 import fr.gouv.vitam.worker.client.exception.WorkerServerClientException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 /**
  * WorkerClient implementation for production environment using REST API.
@@ -68,13 +67,15 @@ class WorkerClientRest extends DefaultClient implements WorkerClient {
                 performRequest(HttpMethod.POST, "/" + "tasks", null, JsonHandler.toJsonNode(step),
                     MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             return handleCommonResponseStatus(step, response, ItemStatus.class);
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(WORKER_INTERNAL_SERVER_ERROR, e);
-            throw new WorkerServerClientException(WORKER_INTERNAL_SERVER_ERROR, e);
+        } catch (final WorkerNotFoundClientException e) {
+            throw e;
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(WORKER_INTERNAL_SERVER_ERROR, e);
             throw new WorkerServerClientException("Step description incorrect", e);
-        } finally {
+        } catch (final Exception e) {
+            LOGGER.error(WORKER_INTERNAL_SERVER_ERROR, e);
+            throw new WorkerServerClientException(WORKER_INTERNAL_SERVER_ERROR, e);
+        }  finally {
             consumeAnyEntityAndClose(response);
         }
     }

@@ -132,7 +132,11 @@ public final class StorageApplication extends AbstractVitamApplication<StorageAp
         resourceConfig.register(storageResource);
     }
 
-    protected void setFilter(ServletContextHandler context) {
+    @Override
+    protected void setFilter(ServletContextHandler context, boolean isAdminConnector) {
+        if (isAdminConnector) {
+            return;
+        }
         context.addEventListener(new StorageLogSecurisationListener(storageResource, getConfiguration()));
     }
 

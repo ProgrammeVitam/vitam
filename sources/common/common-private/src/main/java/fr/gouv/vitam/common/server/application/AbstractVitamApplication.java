@@ -284,9 +284,10 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
      * To set extra filters
      *
      * @param context the context on which to call context.addFilter (as many times as needed)
+     * @param isAdminConnector use to be able to add or not some specific filter or listener to the context
      * @throws VitamApplicationServerException
      */
-    protected void setFilter(ServletContextHandler context) throws VitamApplicationServerException {
+    protected void setFilter(ServletContextHandler context, boolean isAdminConnector) throws VitamApplicationServerException {
         // Default do nothing
     }
 
@@ -338,7 +339,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
         }
 
         context.setVirtualHosts(new String[] {"@business"});
-        setFilter(context);
+        setFilter(context, false);
         return context;
     }
 
@@ -383,7 +384,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
         // }
 
         context.setVirtualHosts(new String[] {"@admin"});
-        setFilter(context);
+        setFilter(context, true);
         return context;
     }
 

@@ -29,7 +29,9 @@ package fr.gouv.vitam.processing.data.core.management;
 
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.model.DistributorIndex;
 import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 
@@ -98,6 +100,12 @@ public interface ProcessDataManagement {
      */
     void persistProcessWorkflow(String folderName, String asyncId, ProcessWorkflow processWorkflow) throws
         ProcessingStorageWorkspaceException, InvalidParseOperationException;
+
+    void persistDistributorIndex(String folderName, String fileName, DistributorIndex distributorIndex)
+        throws ProcessingStorageWorkspaceException, InvalidParseOperationException;
+
+    DistributorIndex getDistributorIndex(String folderName, String fileName)
+        throws ProcessingStorageWorkspaceException, InvalidParseOperationException;
 
     /**
      * Retrieve a workflow instance on process container

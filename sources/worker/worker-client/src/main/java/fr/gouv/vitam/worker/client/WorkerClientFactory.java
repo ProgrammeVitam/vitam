@@ -68,7 +68,7 @@ public class WorkerClientFactory extends VitamClientFactory<WorkerClient> {
     // TODO  : Is the ConcurrentHashMap is mandatory or is a HashMap is sufficient ?
 
 
-    private static final Map <WorkerClientConfiguration, WorkerClientFactory> workersSetFactory = new ConcurrentHashMap<WorkerClientConfiguration,WorkerClientFactory>();
+    private static final Map <WorkerClientConfiguration, WorkerClientFactory> workersSetFactory = new ConcurrentHashMap<>();
     private static final WorkerClientFactory defaultWorkerClientFactory =  new WorkerClientFactory (null );
     /**
      * RESOURCE PATH
@@ -87,7 +87,7 @@ public class WorkerClientFactory extends VitamClientFactory<WorkerClient> {
      * @param configuration the worker client configuration
      * @return an instance of WorkerClientFactory
      */
-    public static final WorkerClientFactory getInstance(WorkerClientConfiguration configuration) {
+    public static WorkerClientFactory getInstance(WorkerClientConfiguration configuration) {
         if( configuration == null ) {
             return  defaultWorkerClientFactory ;
         }

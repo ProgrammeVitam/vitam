@@ -148,7 +148,7 @@ public class VitamRequestIteratorSslTest {
         }
 
         @Override
-        protected void setFilter(ServletContextHandler context) throws VitamApplicationServerException {
+        protected void setFilter(ServletContextHandler context, boolean isAdminConnector) throws VitamApplicationServerException {
             File shiroFile = null;
             try {
                 shiroFile = PropertiesUtils.findFile(SHIRO_FILE);

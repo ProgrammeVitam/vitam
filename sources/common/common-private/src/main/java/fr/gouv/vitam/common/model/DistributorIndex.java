@@ -24,33 +24,75 @@
  *  The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  *  accept its terms.
  */
-package fr.gouv.vitam.processing.engine.core;
+package fr.gouv.vitam.common.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Strings;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.SysErrLogger;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
- * Class ProcessEngineFactory Goal : create an instance of ProcessEngineImpl
+ * Composite Item Status
  */
-final public class ProcessEngineFactory {
+@JsonIgnoreProperties(ignoreUnknown = false)
+public class DistributorIndex {
 
-    private final static ProcessEngineFactory INSTANCE = new ProcessEngineFactory();
+    private int offset;
+    private ItemStatus itemStatus;
+    private String requestId;
+    private String stepId;
 
-    private ProcessEngineFactory(){}
-
-    public static ProcessEngineFactory get() {
-        return INSTANCE;
+    public DistributorIndex() {
     }
 
-    /**
-     *
-     * @param processDistributor the wanted processDistributor
-     * @return ProcessEngineImpl object created
-     * @throws IllegalArgumentException if processDistributor is null
-     */
-    public ProcessEngineImpl create(WorkerParameters workParams, ProcessDistributor processDistributor) {
-        ParametersChecker.checkParameter("ProcessDistributor cannot be null", processDistributor);
-        return new ProcessEngineImpl(workParams, processDistributor);
+    public DistributorIndex(int offset, ItemStatus itemStatus, String requestId, String stepId) {
+        this.offset = offset;
+        this.itemStatus = itemStatus;
+        this.requestId = requestId;
+        this.stepId = stepId;
+    }
+
+    public int getOffset() {
+        return offset;
+    }
+
+    public void setOffset(int offset) {
+        this.offset = offset;
+    }
+
+    public ItemStatus getItemStatus() {
+        return itemStatus;
+    }
+
+    public void setItemStatus(ItemStatus itemStatus) {
+        this.itemStatus = itemStatus;
+    }
+
+    public String getRequestId() {
+        return requestId;
+    }
+
+    public void setRequestId(String requestId) {
+        this.requestId = requestId;
+    }
+
+    public String getStepId() {
+        return stepId;
+    }
+
+    public void setStepId(String stepId) {
+        this.stepId = stepId;
     }
 }

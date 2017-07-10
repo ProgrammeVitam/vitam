@@ -24,33 +24,30 @@
  *  The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  *  accept its terms.
  */
-package fr.gouv.vitam.processing.engine.core;
-
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
+package fr.gouv.vitam.worker.client.exception;
 
 /**
- * Class ProcessEngineFactory Goal : create an instance of ProcessEngineImpl
+ * Worker Unreachable Exception
  */
-final public class ProcessEngineFactory {
+public class WorkerUnreachableException extends WorkerExecutorException {
 
-    private final static ProcessEngineFactory INSTANCE = new ProcessEngineFactory();
-
-    private ProcessEngineFactory(){}
-
-    public static ProcessEngineFactory get() {
-        return INSTANCE;
+    private String workerId;
+    public WorkerUnreachableException(String workerId, String message) {
+        super(message);
+        this.workerId = workerId;
     }
 
-    /**
-     *
-     * @param processDistributor the wanted processDistributor
-     * @return ProcessEngineImpl object created
-     * @throws IllegalArgumentException if processDistributor is null
-     */
-    public ProcessEngineImpl create(WorkerParameters workParams, ProcessDistributor processDistributor) {
-        ParametersChecker.checkParameter("ProcessDistributor cannot be null", processDistributor);
-        return new ProcessEngineImpl(workParams, processDistributor);
+    public WorkerUnreachableException(String workerId, Throwable cause) {
+        super(cause);
+        this.workerId = workerId;
+    }
+
+    public WorkerUnreachableException(String workerId, String messsage, Throwable cause) {
+        super(messsage, cause);
+        this.workerId = workerId;
+    }
+
+    public String getWorkerId() {
+        return workerId;
     }
 }

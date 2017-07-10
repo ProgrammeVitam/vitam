@@ -50,13 +50,12 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
 import fr.gouv.vitam.processing.common.exception.WorkerNotFoundException;
+import fr.gouv.vitam.processing.distributor.api.IWorkerManager;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
-import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImplFactory;
 import fr.gouv.vitam.processing.distributor.core.WorkerManager;
 
 /**
@@ -68,26 +67,16 @@ public class ProcessDistributorResource {
     private static final String PROCESSING_MODULE = "PROCESSING";
     private static final String CODE_VITAM = "code_vitam";
 
-
-    private final ProcessDistributor distributor;
-
-    /**
-     * Constructor used for test purpose
-     *
-     * @param processDistributor the process Distributor to be applied
-     */
-    ProcessDistributorResource(ProcessDistributor processDistributor) {
-        distributor = processDistributor;
-    }
+    private final IWorkerManager workerManager;
 
     /**
      * Constructor
      *
-     * @param configuration the Process Distributor configuration to be applied
+     * @param workerManager
      */
-    public ProcessDistributorResource(ServerConfiguration configuration) {
-        distributor = ProcessDistributorImplFactory.getDefaultDistributor();
-        WorkerManager.initialize();
+    public ProcessDistributorResource(IWorkerManager workerManager) {
+        this.workerManager = workerManager;
+
         LOGGER.info("init Process Distributor Resource server");
     }
 
@@ -258,15 +247,19 @@ public class ProcessDistributorResource {
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(workerInformation));
             GlobalDatasParser.sanityRequestCheck(workerInformation);
-            WorkerManager.registerWorker(idFamily, idWorker, workerInformation);
+            workerManager.registerWorker(idFamily, idWorker, workerInformation);
 
         } catch (ProcessingBadRequestException | InvalidParseOperationException exc) {
             LOGGER.error(exc);
-            return Response.status(Response.Status.BAD_REQUEST).entity("{\"error\":\"" + exc.getMessage() + "\"}")
+            return Response.status(Status.BAD_REQUEST).entity("{\"error\":\"" + exc.getMessage() + "\"}")
                 .build();
         } catch (final WorkerAlreadyExistsException exc) {
             LOGGER.warn(exc);
-            return Response.status(Response.Status.CONFLICT).entity("{\"error\":\"" + exc.getMessage() + "\"}")
+            return Response.status(Status.CONFLICT).entity("{\"error\":\"" + exc.getMessage() + "\"}")
+                .build();
+        } catch (IllegalArgumentException e) {
+            LOGGER.warn(e);
+            return Response.status(Status.CONFLICT).entity("{\"error\":\"" + e.getMessage() + "\"}")
                 .build();
         }
         return Response.status(Status.OK).entity("{\"success\" :\"Worker " + idWorker + " created \"}").build();
@@ -305,10 +298,10 @@ public class ProcessDistributorResource {
     public Response unregisterWorker(@Context HttpHeaders headers, @PathParam("id_family") String idFamily,
         @PathParam("id_worker") String idWorker) {
         try {
-            WorkerManager.unregisterWorker(idFamily, idWorker);
+            workerManager.unregisterWorker(idFamily, idWorker);
         } catch (WorkerFamilyNotFoundException | WorkerNotFoundException | InterruptedException exc) {
             LOGGER.error(exc);
-            return Response.status(Response.Status.NOT_FOUND).entity("{\"error\":\"" + exc.getMessage() + "\"}")
+            return Response.status(Status.NOT_FOUND).entity("{\"error\":\"" + exc.getMessage() + "\"}")
                 .build();
         }
         return Response.status(Status.OK).entity("{\"success\" :\"Worker " + idWorker + " deleted \"}").build();

@@ -24,33 +24,13 @@
  *  The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  *  accept its terms.
  */
-package fr.gouv.vitam.processing.engine.core;
 
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
+package fr.gouv.vitam.processing.distributor.v2;
 
-/**
- * Class ProcessEngineFactory Goal : create an instance of ProcessEngineImpl
- */
-final public class ProcessEngineFactory {
+public class InterruptSignal implements Runnable {
 
-    private final static ProcessEngineFactory INSTANCE = new ProcessEngineFactory();
+    @Override
+    public void run() {
 
-    private ProcessEngineFactory(){}
-
-    public static ProcessEngineFactory get() {
-        return INSTANCE;
-    }
-
-    /**
-     *
-     * @param processDistributor the wanted processDistributor
-     * @return ProcessEngineImpl object created
-     * @throws IllegalArgumentException if processDistributor is null
-     */
-    public ProcessEngineImpl create(WorkerParameters workParams, ProcessDistributor processDistributor) {
-        ParametersChecker.checkParameter("ProcessDistributor cannot be null", processDistributor);
-        return new ProcessEngineImpl(workParams, processDistributor);
     }
 }

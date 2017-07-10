@@ -46,6 +46,7 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.logbook.common.MessageLogbookEngineHelper;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
@@ -56,7 +57,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.logbook.common.MessageLogbookEngineHelper;
 import fr.gouv.vitam.processing.common.automation.IEventsProcessEngine;
 import fr.gouv.vitam.processing.common.exception.ProcessingEngineException;
 import fr.gouv.vitam.processing.common.model.Action;
@@ -64,7 +64,6 @@ import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
-import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImplFactory;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
 
@@ -76,15 +75,8 @@ public class ProcessEngineImpl implements ProcessEngine {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessEngineImpl.class);
 
-    private static final String RUNTIME_EXCEPTION_MESSAGE = "runtime exceptions thrown by the Process engine during the execution :";
-
-    private static final String ELAPSED_TIME_MESSAGE = "Total elapsed time in execution of method startProcessByWorkFlowId is :";
-
-    private static final String START_MESSAGE = "start ProcessEngine ...";
-
     private static final String OBJECTS_LIST_EMPTY = "OBJECTS_LIST_EMPTY";
 
-    private final ProcessDistributor processDistributorMock;
     private final Map<String, String> messageIdentifierMap = new HashMap<>();
     private final Map<String, String> prodserviceMap = new HashMap<>();
     private Map<String, String> engineParams = new HashMap<>();
@@ -92,19 +84,10 @@ public class ProcessEngineImpl implements ProcessEngine {
 
     final GUID processId;
     private IEventsProcessEngine callback;
-
-    /**
-     * ProcessEngineImpl constructor populate also the workflow to the pool of workflow
-     */
-    protected ProcessEngineImpl(WorkerParameters workerParameters) {
-        processDistributorMock = null;
-        this.workerParameters = workerParameters;
-        processId = GUIDFactory.newGUID();
-        this.workerParameters.setProcessId(processId.getId());
-    }
+    private ProcessDistributor processDistributor;
 
     public ProcessEngineImpl(WorkerParameters workerParameters, ProcessDistributor processDistributor) {
-        this.processDistributorMock = processDistributor;
+        this.processDistributor = processDistributor;
         this.workerParameters = workerParameters;
         processId = GUIDFactory.newGUID();
         this.workerParameters.setProcessId(processId.getId());
@@ -133,9 +116,7 @@ public class ProcessEngineImpl implements ProcessEngine {
         // if the current state is completed or pause, do not start the step
         final String operationId = this.workerParameters.getContainerName();
 
-
         LOGGER.info("Start Workflow: " + step.getId() + " Step:" + step.getStepName());
-        ProcessDistributor processDistributor = processDistributorMock;
 
         final int tenantId = ParameterHelper.getTenantParameter();
         final LogbookTypeProcess logbookTypeProcess = this.workerParameters.getLogbookTypeProcess();
@@ -164,7 +145,7 @@ public class ProcessEngineImpl implements ProcessEngine {
             // call distributor in async mode
             .supplyAsync(() -> {
                 try {
-                    return callDistributor(step, this.workerParameters, processDistributor, operationId);
+                    return callDistributor(step, this.workerParameters, operationId);
 
                 } catch (Exception e) {
                     throw new RuntimeException(e);
@@ -244,24 +225,16 @@ public class ProcessEngineImpl implements ProcessEngine {
      * Call distributor to start the given step
      * @param step
      * @param workParams
-     * @param processDistributor
      * @param operationId
      * @return
      */
-    private ItemStatus callDistributor(ProcessStep step, WorkerParameters workParams,
-        ProcessDistributor processDistributor, String operationId) {
-        if (processDistributor == null) {
-            processDistributor = ProcessDistributorImplFactory.getDefaultDistributor();
-        }
+    private ItemStatus callDistributor(ProcessStep step, WorkerParameters workParams, String operationId) {
 
         final ItemStatus stepResponse = processDistributor.distribute(workParams, step, operationId);
-
-        if (processDistributorMock == null && processDistributor != null) {
-            try {
-                processDistributor.close();
-            } catch (final Exception exc) {
-                LOGGER.warn(exc);
-            }
+        try {
+            processDistributor.close();
+        } catch (final Exception exc) {
+            LOGGER.warn(exc);
         }
         return stepResponse;
     }
