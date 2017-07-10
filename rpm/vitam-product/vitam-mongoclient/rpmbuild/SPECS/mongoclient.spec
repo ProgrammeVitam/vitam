@@ -22,14 +22,14 @@ Requires:      vitam-user-vitam
 Cross-platform easy to use mongodb management tool
 
 %prep
-%setup -q -n mongoclient-%{version}
+%setup -q -n nosqlclient-%{version}
 
 %build
 meteor npm install --production
 meteor build %{_builddir} --architecture os.linux.%{buildarch}
 cd %{_builddir}
-tar -xzf mongoclient-%{version}.tar.gz
-rm mongoclient-%{version}.tar.gz
+tar -xzf nosqlclient-%{version}.tar.gz
+rm nosqlclient-%{version}.tar.gz
 cd %{_builddir}/bundle/programs/server/
 npm install
 # Note : following line should not be necessary in theory, but somehow this dependency is missing in the runtime...
