@@ -11,7 +11,7 @@ FROM centos:7.3.1611
 MAINTAINER French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>
 
 # Make sure the package repository and packages are up to date.
-RUN yum erase -y yum-plugin-ovl && yum install -y epel-release && yum -y update && yum -y upgrade && yum clean all
+RUN yum install -y epel-release && yum -y update && yum -y upgrade && yum clean all
 
 ################################  Configure systemd  ###############################
 
@@ -54,14 +54,10 @@ RUN curl http://wwwftp.ciril.fr/pub/apache/maven/maven-3/3.3.9/binaries/apache-m
 ENV M2_HOME /opt/maven
 ENV PATH ${M2_HOME}/bin:${JAVA_HOME}/bin:${PATH}
 
-################################  Install ansible  ###############################
+################################  Install deployment tools  ###############################
 
 # for sudo in automatic deployment ; note : ansible needs epel repo
-RUN yum install -y sudo ansible which
-
-################################  Install openssl  ###############################
-
-RUN yum install -y openssl
+RUN yum install -y sudo ansible openssl which && yum clean all
 
 ##################################  install git and vim  #################################
 
