@@ -10,7 +10,6 @@
 
 - name: Check if authent is enabled
   command: "mongo localhost:{{mongos_port}}/admin -u {{mongoAdminUser}} -p {{mongoAdminPassword}} --quiet --eval 'db.help()'"
-  become_user: "{{ vitamdb_user}}"
   run_once: true
   register: mongo_authent_enabled
   failed_when: false
@@ -50,7 +49,6 @@
 
 - name: Enable the sharding
   command: mongo localhost:{{mongos_port}}/admin {{mongo_credentials}} {{vitam_folder_root}}/app/mongos/enable-sharding.js
-  become_user: "{{ vitamdb_user}}"
   run_once: true
   no_log: true
 
@@ -59,7 +57,6 @@
 
 - name: Create the users
   command: "mongo localhost:{{mongos_port}}/admin {{mongo_credentials}} {{vitam_folder_root}}/app/mongos/users-{{item}}.js"
-  become_user: "{{ vitamdb_user}}"
   run_once: true
   with_items:
     - admin
@@ -150,7 +147,6 @@
 
 - name: Initiate the databases
   command: "mongo localhost:{{mongos_port}}/admin -u {{mongoAdminUser}} -p {{mongoAdminPassword}} --quiet {{vitam_folder_root}}/app/mongos/init-{{item}}-database.js"
-  become_user: "{{ vitamdb_user}}"
   run_once: true
   with_items:
     - admin
