@@ -1,7 +1,7 @@
 Name:          vitam-elasticsearch-cerebro
 Version:       0.6.5
-Release:       1%{?dist}
-Summary:       kopf is a simple web administration tool for elasticsearch written in JavaScript + AngularJS + jQuery + Twitter bootstrap.
+Release:       2%{?dist}
+Summary:       Cerebro is a simple web administration tool for elasticsearch written in JavaScript + AngularJS + jQuery + Twitter bootstrap.
 Group:         Applications/File
 License:       MIT Licence
 BuildArch:     noarch
@@ -9,15 +9,18 @@ URL:           https://github.com/lmenezes/cerebro
 Source0:       https://github.com/lmenezes/cerebro/releases/download/v%{version}/cerebro-%{version}.zip
 Source1:       vitam-elasticsearch-cerebro.service
 Source2:       application.conf
-Requires:      elasticsearch >= 2
-Requires:	   vitam-user-vitam
+
+BuildRequires: systemd-units
+Requires:      systemd
+Requires:      java-1.8.0
+Requires:      vitam-user-vitam
 
 %global cerebro_folder vitam/app/cerebro
 %global cerebro_conffolder vitam/conf/cerebro
 %global cerebro_datafolder vitam/data/cerebro
 
 %description
-cerebro is an open source(MIT License) elasticsearch web admin tool built using Scala, Play Framework, AngularJS and Bootstrap.
+Cerebro is an open source(MIT License) elasticsearch web admin tool built using Scala, Play Framework, AngularJS and Bootstrap.
 
 %prep
 %setup -q -c
