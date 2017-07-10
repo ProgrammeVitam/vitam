@@ -17,13 +17,13 @@ curl -k -L https://github.com/rsercano/mongoclient/archive/${MONGOCLIENT_VERSION
 unzip ${MONGOCLIENT_VERSION}.zip
 rm -f ${MONGOCLIENT_VERSION}.zip
 
-cd mongoclient-${MONGOCLIENT_VERSION}
+cd nosqlclient-${MONGOCLIENT_VERSION}
 meteor npm install --production
 mkdir ${HOME}/buildir
 meteor build ${HOME}/buildir --architecture os.linux.x86_64
 cd ${HOME}/buildir
-tar -xzf mongoclient-${MONGOCLIENT_VERSION}.tar.gz
-rm mongoclient-${MONGOCLIENT_VERSION}.tar.gz
+tar -xzf nosqlclient-${MONGOCLIENT_VERSION}.tar.gz
+rm nosqlclient-${MONGOCLIENT_VERSION}.tar.gz
 cd ${HOME}/buildir/bundle/programs/server/
 
 
@@ -39,7 +39,7 @@ cp -r ${HOME}/buildir/bundle/* ${HOME}/vitam/bin/mongoclient/
 cp ${HOME}/.meteor/packages/meteor-tool/${METEOR_VERSION}/mt-os.linux.x86_64/dev_bundle/bin/node ${HOME}/vitam/bin/mongoclient
 
 # TODO: clean
-rm -rf ${HOME}/mongoclient-${MONGOCLIENT_VERSION}
+rm -rf ${HOME}/nosqlclient-${MONGOCLIENT_VERSION}
 rm -f  ${HOME}/.meteorsession
 rm -rf ${HOME}/.meteor
 rm -rf ${HOME}/.npm
