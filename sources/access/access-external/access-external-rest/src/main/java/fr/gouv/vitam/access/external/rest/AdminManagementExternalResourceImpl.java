@@ -643,7 +643,7 @@ public class AdminManagementExternalResourceImpl {
      * @param xhttpOverride the use of override POST method
      * @return Response
      */
-    @POST
+    @GET
     @Path(AccessExtAPI.ACCESSION_REGISTERS_API + "/{id_document}/accession-register-detail")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -652,10 +652,6 @@ public class AdminManagementExternalResourceImpl {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
-        if (xhttpOverride == null || !"GET".equalsIgnoreCase(xhttpOverride)) {
-            final Status status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase(), null)).build();
-        }
         ParametersChecker.checkParameter("accession register id is a mandatory parameter", documentId);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             RequestResponse accessionRegisterDetail =

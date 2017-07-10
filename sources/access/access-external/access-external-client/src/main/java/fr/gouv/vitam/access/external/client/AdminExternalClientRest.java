@@ -24,6 +24,7 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -163,6 +164,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         try {
             // FIXME Why do a POST with HTTP_OVERRIDE when a GET without body is needed ?
             response = performRequest(HttpMethod.POST, documentType.getName() + "/" + documentId, headers,
+                JsonHandler.createObjectNode(), MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
 
             RequestResponse requestResponse = RequestResponse.parseFromResponse(response);

@@ -64,6 +64,7 @@ import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
+import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -138,31 +139,6 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     }
 
     /**
-     * get units list by query with POST method
-     *
-     * @param queryJson the query to get units
-     * @param xhttpOverride the use of override POST method
-     * @return Response
-     */
-    @POST
-    @Path("/units")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response createOrSelectUnits(JsonNode queryJson,
-        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        LOGGER.debug("Execution of DSL Vitam from Access ongoing...");
-        Status status;
-        if (xhttpOverride != null && "GET".equalsIgnoreCase(xhttpOverride)) {
-            return getUnits(queryJson);
-        } else {
-            status = Status.UNAUTHORIZED;
-            return Response.status(status).entity(getErrorEntity(status, MISSING_XHTTPOVERRIDE)).build();
-        }
-    }
-
-    /**
      * update units list by query
      *
      * @param queryDsl the query to update
@@ -215,33 +191,6 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             LOGGER.error("Contract access does not allow ", e);
             status = Status.UNAUTHORIZED;
             return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
-        }
-    }
-
-    /**
-     * get units list by query based on identifier
-     *
-     * @param queryJson the query to get archive unit
-     * @param xhttpOverride the use of override POST method
-     * @param idUnit the archive unit id
-     * @return Response
-     */
-    @POST
-    @Path("/units/{idu}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response createOrSelectUnitById(JsonNode queryJson,
-        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride,
-        @PathParam("idu") String idUnit) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        ParametersChecker.checkParameter("unit id is required", idUnit);
-        Status status;
-        if (xhttpOverride != null && "GET".equalsIgnoreCase(xhttpOverride)) {
-            return getUnitById(queryJson, idUnit);
-        } else {
-            status = Status.UNAUTHORIZED;
-            return Response.status(status).entity(getErrorEntity(status, MISSING_XHTTPOVERRIDE)).build();
         }
     }
 
@@ -302,110 +251,6 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         final Status status = Status.NOT_IMPLEMENTED;
         return Response.status(status).entity(getErrorEntity(status, NOT_YET_SUPPORTED)).build();
-    }
-
-    /**
-     * get object group list by query and id
-     *
-     * @param idObjectGroup the object group id
-     * @param queryJson the query to get object
-     * @return Response
-     * @Deprecated use /units/idu/object
-     */
-    @GET
-    @Path("/objects/{ido}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Deprecated
-    public Response getObjectGroup(@PathParam("ido") String idObjectGroup, JsonNode queryJson) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        JsonNode result;
-        Status status;
-        try {
-            try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-                result = client.selectObjectbyId(queryJson, idObjectGroup).toJsonNode().get("$results").get(0);
-                return Response.status(Status.OK).entity(RequestResponseOK.getFromJsonNode(result)).build();
-            }
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.error(e);
-            status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
-        } catch (final AccessInternalClientServerException e) {
-            LOGGER.error(e);
-            status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
-        } catch (final AccessInternalClientNotFoundException e) {
-            LOGGER.error(e);
-            status = Status.NOT_FOUND;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
-        } catch (AccessUnauthorizedException e) {
-            LOGGER.error("Contract access does not allow ", e);
-            status = Status.UNAUTHORIZED;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
-        }
-    }
-
-    /**
-     * @param headers the http header defined parameters of request
-     * @param idObjectGroup the id object group
-     * @param query the query to get object
-     * @param asyncResponse the synchronized response
-     * @Deprecated use /units/idu/object
-     */
-    @GET
-    @Path("/objects/{ido}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Deprecated
-    public void getObjectIdoGet(@Context HttpHeaders headers, @PathParam("ido") String idObjectGroup,
-        JsonNode query, @Suspended final AsyncResponse asyncResponse) {
-        getObject(headers, idObjectGroup, query, asyncResponse, false);
-    }
-
-    /**
-     * @param headers the http header defined parameters of request
-     * @param idObjectGroup the id object group
-     * @param queryJson the query to get object
-     * @return Response
-     * @Deprecated use /units/idu/object
-     */
-    @POST
-    @Path("/objects/{ido}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Deprecated
-    public Response getObjectGroupPost(@Context HttpHeaders headers,
-        @PathParam("ido") String idObjectGroup, JsonNode queryJson) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        Status status;
-        final String xHttpOverride = headers.getRequestHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE).get(0);
-        if (xHttpOverride == null || !"GET".equalsIgnoreCase(xHttpOverride)) {
-            status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status, MISSING_XHTTPOVERRIDE)).build();
-        } else {
-            return getObjectGroup(idObjectGroup, queryJson);
-        }
-    }
-
-    /**
-     * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
-     *
-     * @param headers the http header defined parameters of request
-     * @param idObjectGroup the id object group
-     * @param query the query to get object
-     * @param asyncResponse the synchronized response
-     * @Deprecated use /units/idu/object
-     */
-    @POST
-    @Path("/objects/{ido}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Deprecated
-    public void getObjectIdoPost(@Context HttpHeaders headers, @PathParam("ido") String idObjectGroup,
-        JsonNode query, @Suspended final AsyncResponse asyncResponse) {
-        getObject(headers, idObjectGroup, query, asyncResponse, true);
     }
 
     /**
@@ -488,6 +333,10 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void getObject(@Context HttpHeaders headers, @PathParam("idu") String idu,
         JsonNode query, @Suspended final AsyncResponse asyncResponse) {
+
+        final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
+        VitamThreadUtils.getVitamSession().setRequestId(guid);
+
         Status status;
         try {
             String idObjectGroup = idObjectGroup(idu);
@@ -557,44 +406,6 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build());
         }
-    }
-
-    /**
-     * get object group list by query
-     *
-     * @param queryDsl the query to get list of object group
-     * @return Response
-     * @Deprecated use /units/idu/object
-     */
-    @GET
-    @Path("/objects")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Deprecated
-    public Response getObjectsList(JsonNode queryDsl) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status, NOT_YET_SUPPORTED)).build();
-    }
-
-    /**
-     * @param xhttpOverride the use of override POST method
-     * @param query the query to get object
-     * @return Response
-     * @Deprecated use /units/idu/object
-     */
-    @POST
-    @Path("/objects")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Deprecated
-    public Response getObjectListPost(@HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride,
-        JsonNode query) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status, NOT_YET_SUPPORTED)).build();
     }
 
     private VitamError getErrorEntity(Status status, String message) {
