@@ -1,0 +1,16 @@
+{
+	"StorageRule": {
+		"Rules": [
+			{
+				"Rule": "str5"
+			}
+		]
+	},
+	"AccessRule": {
+		"Rules": [
+			{
+				"Rule": "acc5"
+			}
+		]
+	}
+}

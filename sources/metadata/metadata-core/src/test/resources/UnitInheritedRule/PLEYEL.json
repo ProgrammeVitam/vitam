@@ -1,0 +1,31 @@
+{
+	"StorageRule": {
+		"Rules": [
+			{
+				"Rule": "STO-00001",
+				"StartDate": "2000-01-01",
+				"FinalAction": "Copy",
+				"EndDate": "2001-01-01"
+			}
+		]
+	},
+	"DisseminationRule": {
+		"Rules": [
+			{
+				"Rule": "DIS-00001",
+				"StartDate": "2000-01-01",
+				"EndDate": "2025-01-01"
+			}
+		]
+	},
+	"ReuseRule": {
+		"Rules": [
+			{
+				"Rule": "REU-00001",
+				"StartDate": "2000-01-01",
+				"EndDate": "2010-01-01"
+			}
+		]
+	},
+	"OriginatingAgency": "FRAAA"
+}

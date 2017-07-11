@@ -1,0 +1,20 @@
+{
+	"StorageRule": {
+		"Rules": [
+			{
+				"FinalAction": "Copy"
+			}
+		],
+		"Inheritance": {
+			"PreventRulesId": [
+				"STO-00001"
+			]
+		}
+	},
+	"DisseminationRule": {
+		"Inheritance": {
+			"PreventInheritance": true
+		}
+	},
+	"OriginatingAgency": "FRAAA"
+}

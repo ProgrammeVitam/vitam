@@ -240,6 +240,10 @@ public class SedaConstants {
     public static final String TAG_ARCHIVE_TRANSFER_REPLY = "ArchiveTransferReply";
     public static final String TAG_COMMENT = "Comment";
     /**
+     * tag of Rules
+     */
+    public static final String TAG_RULES = "Rules";
+    /**
      * tag of Date
      */
     public static final String TAG_DATE = "Date";

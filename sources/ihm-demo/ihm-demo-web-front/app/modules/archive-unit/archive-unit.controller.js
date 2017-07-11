@@ -479,7 +479,7 @@ angular.module('archive.unit')
         $scope.preventInheritance = {};
 
         $scope.refNonId = {};
-
+        
         for (var key in management) {
           if(ARCHIVE_UNIT_MODULE_CONST.RULES_CATEGORY_KEYS.indexOf(key) === -1) {
             continue;
@@ -487,15 +487,15 @@ angular.module('archive.unit')
           var translateKey = RuleUtils.translate(key);
           var currentRef = [];
           var tf = false;
-          for (var n in management[key]) {
-            var refArray = management[key][n].RefNonRuleId;
-            for (var ref in refArray) {
-              currentRef.push(refArray[ref]);
-            }
-            if (!tf) {
-              var tf = management[key][n].PreventInheritance;
-            }
+          
+          var refArray = management[key].Inheritance.PreventRulesId;
+          for (var ref in refArray) {
+            currentRef.push(refArray[ref]);
           }
+          if (!tf) {
+            var tf = management[key].Inheritance.PreventInheritance;
+          }
+          
           if (typeof currentRef[0] !== 'undefined' && currentRef[0] !== null){
             $scope.refNonId[translateKey] = currentRef;
           }

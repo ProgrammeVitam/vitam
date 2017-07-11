@@ -1,0 +1,16 @@
+{
+	"StorageRule": {
+		"Inheritance": {
+			"PreventRulesId": [
+				"STR1"
+			]
+		}
+	},
+	"AccessRule": {
+		"Inheritance": {
+			"PreventRulesId": [
+				"ACC1"
+			]
+		}
+	}
+}

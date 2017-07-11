@@ -125,161 +125,209 @@
 			"properties": {
 				"AccessRule": {
 					"properties": {
-						"EndDate": {
-							"type": "date",
-							"format": "strict_date_optional_time||epoch_millis"
+						"Rules": {
+							"properties": {
+								"EndDate": {
+									"type": "date",
+									"format": "strict_date_optional_time||epoch_millis"
+								},
+								"Rule": {
+									"type": "string",
+									"index": "not_analyzed"
+								},
+								"StartDate": {
+									"type": "date",
+									"format": "strict_date_optional_time||epoch_millis"
+								}
+							}
 						},
-						"Rule": {
-							"type": "string",
-							"index": "not_analyzed"
-						},
-						"PreventInheritance": {
-							"type": "boolean"
-						},
-						"RefNonRuleId": {
-							"type": "string",
-							"index": "not_analyzed"
-						},
-						"StartDate": {
-							"type": "date",
-							"format": "strict_date_optional_time||epoch_millis"
+						"Inheritance": {
+							"properties": {
+								"PreventInheritance": {
+									"type": "boolean"
+								},
+								"preventRulesId": {
+									"type": "string",
+									"index": "not_analyzed"
+								}
+							}
 						}
 					}
 				},
 				"AppraisalRule": {
 					"properties": {
-						"EndDate": {
-							"type": "date",
-							"format": "strict_date_optional_time||epoch_millis"
+						"Rules": {
+							"properties": {
+								"EndDate": {
+									"type": "date",
+									"format": "strict_date_optional_time||epoch_millis"
+								},
+								"FinalAction": {
+									"type": "string",
+									"index": "not_analyzed"
+								},
+								"Rule": {
+									"type": "string",
+									"index": "not_analyzed"
+								},
+								"StartDate": {
+									"type": "date",
+									"format": "strict_date_optional_time||epoch_millis"
+								}
+							}
 						},
-						"FinalAction": {
-							"type": "string",
-							"index": "not_analyzed"
-						},
-						"PreventInheritance": {
-							"type": "boolean"
-						},
-						"RefNonRuleId": {
-							"type": "string",
-							"index": "not_analyzed"
-						},
-						"Rule": {
-							"type": "string",
-							"index": "not_analyzed"
-						},
-						"StartDate": {
-							"type": "date",
-							"format": "strict_date_optional_time||epoch_millis"
+						"Inheritance": {
+							"properties": {
+								"PreventInheritance": {
+									"type": "boolean"
+								},
+								"preventRulesId": {
+									"type": "string",
+									"index": "not_analyzed"
+								}
+							}
 						}
 					}
 				},
 				"DisseminationRule": {
 					"properties": {
-						"EndDate": {
-							"type": "date",
-							"format": "strict_date_optional_time||epoch_millis"
+						"Rules": {
+							"properties": {
+								"EndDate": {
+									"type": "date",
+									"format": "strict_date_optional_time||epoch_millis"
+								},
+								"Rule": {
+									"type": "string",
+									"index": "not_analyzed"
+								},
+								"StartDate": {
+									"type": "date",
+									"format": "strict_date_optional_time||epoch_millis"
+								}
+							}
 						},
-						"PreventInheritance": {
-							"type": "boolean"
-						},
-						"RefNonRuleId": {
-							"type": "string",
-							"index": "not_analyzed"
-						},
-						"Rule": {
-							"type": "string",
-							"index": "not_analyzed"
-						},
-						"StartDate": {
-							"type": "date",
-							"format": "strict_date_optional_time||epoch_millis"
+						"Inheritance": {
+							"properties": {
+								"PreventInheritance": {
+									"type": "boolean"
+								},
+								"preventRulesId": {
+									"type": "string",
+									"index": "not_analyzed"
+								}
+							}
 						}
 					}
 				},
 				"ReuseRule": {
 					"properties": {
-						"EndDate": {
-							"type": "date",
-							"format": "strict_date_optional_time||epoch_millis"
+						"Rules": {
+							"properties": {
+								"EndDate": {
+									"type": "date",
+									"format": "strict_date_optional_time||epoch_millis"
+								},
+								"Rule": {
+									"type": "string",
+									"index": "not_analyzed"
+								},
+								"StartDate": {
+									"type": "date",
+									"format": "strict_date_optional_time||epoch_millis"
+								}
+							}
 						},
-						"PreventInheritance": {
-							"type": "boolean"
-						},
-						"RefNonRuleId": {
-							"type": "string",
-							"index": "not_analyzed"
-						},
-						"Rule": {
-							"type": "string",
-							"index": "not_analyzed"
-						},
-						"StartDate": {
-							"type": "date",
-							"format": "strict_date_optional_time||epoch_millis"
+						"Inheritance": {
+							"properties": {
+								"PreventInheritance": {
+									"type": "boolean"
+								},
+								"preventRulesId": {
+									"type": "string",
+									"index": "not_analyzed"
+								}
+							}
 						}
 					}
 				},
 				"StorageRule": {
 					"properties": {
-						"EndDate": {
-							"type": "date",
-							"format": "strict_date_optional_time||epoch_millis"
+						"Rules": {
+							"properties": {
+								"EndDate": {
+									"type": "date",
+									"format": "strict_date_optional_time||epoch_millis"
+								},
+								"FinalAction": {
+									"type": "string",
+									"index": "not_analyzed"
+								},
+								"Rule": {
+									"type": "string",
+									"index": "not_analyzed"
+								},
+								"StartDate": {
+									"type": "date",
+									"format": "strict_date_optional_time||epoch_millis"
+								}
+							}
 						},
-						"FinalAction": {
-							"type": "string",
-							"index": "not_analyzed"
-						},
-						"PreventInheritance": {
-							"type": "boolean"
-						},
-						"RefNonRuleId": {
-							"type": "string",
-							"index": "not_analyzed"
-						},
-						"Rule": {
-							"type": "string",
-							"index": "not_analyzed"
-						},
-						"StartDate": {
-							"type": "date",
-							"format": "strict_date_optional_time||epoch_millis"
+						"Inheritance": {
+							"properties": {
+								"PreventInheritance": {
+									"type": "boolean"
+								},
+								"preventRulesId": {
+									"type": "string",
+									"index": "not_analyzed"
+								}
+							}
 						}
 					}
 				},
 				"ClassificationRule": {
 					"properties": {
-						"EndDate": {
-							"type": "date",
-							"format": "strict_date_optional_time||epoch_millis"
+						"Rules": {
+							"properties": {
+								"EndDate": {
+									"type": "date",
+									"format": "strict_date_optional_time||epoch_millis"
+								},
+								"ClassificationLevel": {
+									"type": "string",
+									"index": "not_analyzed"
+								},
+								"ClassificationOwner": {
+									"type": "string"
+								},
+								"ClassificationReassessingDate": {
+									"type": "date",
+									"format": "strict_date_optional_time||epoch_millis"
+								},
+								"NeedReassessingAuthorization": {
+									"type": "boolean"
+								},
+								"Rule": {
+									"type": "string",
+									"index": "not_analyzed"
+								},
+								"StartDate": {
+									"type": "date",
+									"format": "strict_date_optional_time||epoch_millis"
+								}
+							}
 						},
-						"ClassificationLevel": {
-							"type": "string",
-							"index": "not_analyzed"
-						},
-						"ClassificationOwner": {
-							"type": "string"
-						},
-						"ClassificationReassessingDate": {
-							"type": "date",
-							"format": "strict_date_optional_time||epoch_millis"
-						},
-						"NeedReassessingAuthorization": {
-							"type": "boolean"
-						},
-						"PreventInheritance": {
-							"type": "boolean"
-						},
-						"RefNonRuleId": {
-							"type": "string",
-							"index": "not_analyzed"
-						},
-						"Rule": {
-							"type": "string",
-							"index": "not_analyzed"
-						},
-						"StartDate": {
-							"type": "date",
-							"format": "strict_date_optional_time||epoch_millis"
+						"Inheritance": {
+							"properties": {
+								"PreventInheritance": {
+									"type": "boolean"
+								},
+								"preventRulesId": {
+									"type": "string",
+									"index": "not_analyzed"
+								}
+							}
 						}
 					}
 				}
@@ -288,9 +336,9 @@
 		"_min": {
 			"type": "long"
 		},
-        "_max": {
-            "type": "long"
-        },
+		"_max": {
+			"type": "long"
+		},
 		"_nbc": {
 			"type": "long"
 		},

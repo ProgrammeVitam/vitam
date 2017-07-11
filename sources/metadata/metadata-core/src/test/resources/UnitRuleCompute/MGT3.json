@@ -1,0 +1,7 @@
+{
+	"StorageRule": {
+		"Inheritance": {
+			"PreventInheritance": "true"
+		}
+	}
+}

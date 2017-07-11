@@ -64,8 +64,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.BooleanNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.annotations.VisibleForTesting;
 import com.fasterxml.jackson.databind.node.TextNode;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 
 import de.odysseus.staxon.json.JsonXMLConfig;
@@ -108,7 +108,6 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
@@ -141,17 +140,22 @@ import fr.gouv.vitam.worker.common.utils.DataObjectInfo;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
-import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.worker.core.extractseda.ArchiveUnitListener;
+import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.worker.core.model.GotObj;
+import fr.gouv.vitam.worker.core.model.InheritanceModel;
+import fr.gouv.vitam.worker.core.model.ManagementModel;
+import fr.gouv.vitam.worker.core.model.RuleCategoryModel;
+import fr.gouv.vitam.worker.core.model.RuleModel;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 /**
- * Handler class used to extract metaData. </br> Create and put a new file (metadata extracted) json.json into container
- * GUID
+ * Handler class used to extract metaData. </br>
+ * Create and put a new file (metadata extracted) json.json into container GUID
+ * 
+ * @Deprecated
  */
-@Deprecated
 public class ExtractSedaActionHandler extends ActionHandler {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ExtractSedaActionHandler.class);
@@ -904,8 +908,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
                 // Write to workspace
                 try {
-                    handlerIO
-                        .transferFileToWorkspace(path + "/" + unitGuid + JSON_EXTENSION, unitCompleteTmpFile, true);
+                    handlerIO.transferFileToWorkspace(path + "/" + unitGuid + JSON_EXTENSION, unitCompleteTmpFile,
+                        true);
                 } finally {
                     if (!unitTmpFileForRead.delete()) {
                         LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
@@ -926,84 +930,82 @@ public class ExtractSedaActionHandler extends ActionHandler {
         throws InvalidParseOperationException {
 
         ObjectNode archiveUnitNode = (ObjectNode) archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT);
-        ObjectNode managmentNode;
+        ManagementModel archiveUnitManagementModel;
+
         if (archiveUnitNode.has(SedaConstants.TAG_MANAGEMENT) &&
             archiveUnitNode.get(SedaConstants.TAG_MANAGEMENT) instanceof ObjectNode) {
-            managmentNode = (ObjectNode) archiveUnitNode.get(SedaConstants.TAG_MANAGEMENT);
+            archiveUnitManagementModel =
+                JsonHandler.getFromJsonNode(archiveUnitNode.get(SedaConstants.TAG_MANAGEMENT), ManagementModel.class);
         } else {
-            managmentNode = JsonHandler.createObjectNode();
+            archiveUnitManagementModel = new ManagementModel();
         }
-
-
         for (final String ruleId : globalMgtIdExtra) {
-
             final StringWriter stringWriter = mngtMdRuleIdToRulesXml.get(ruleId);
             JsonNode stringWriterNode = JsonHandler.getFromString(stringWriter.toString());
-            JsonNode generalRuleNode = stringWriterNode.get(GLOBAL_MGT_RULE_TAG);
-
-            Iterator<String> ruleTypes = generalRuleNode.fieldNames();
+            JsonNode globalMgtRuleNode = stringWriterNode.get(GLOBAL_MGT_RULE_TAG);
+            Iterator<String> ruleTypes = globalMgtRuleNode.fieldNames();
             while (ruleTypes.hasNext()) {
                 String ruleType = ruleTypes.next();
-                ObjectNode generalRuleTypeNode = (ObjectNode) generalRuleNode.get(ruleType);
-                JsonNode managmentRuleTypeNode;
-                if (managmentNode.has(ruleType)) {
-                    managmentRuleTypeNode = managmentNode.get(ruleType);
-                    if (!managmentNode.isArray()) {
-                        if (managmentRuleTypeNode.isArray()) {
-                            managmentRuleTypeNode =
-                                JsonHandler.createArrayNode().addAll((ArrayNode) managmentRuleTypeNode);
-                        } else {
-                            managmentRuleTypeNode = JsonHandler.createArrayNode().add(managmentRuleTypeNode);
-                        }
+                JsonNode globalMgtRuleTypeNode = globalMgtRuleNode.get(ruleType);
+                if (globalMgtRuleTypeNode.isArray()) {
+                    for (JsonNode globalMgtRuleTypeItemNode : (ArrayNode) globalMgtRuleTypeNode) {
+                        mergeRule(globalMgtRuleTypeItemNode, archiveUnitManagementModel, ruleType);
                     }
                 } else {
-                    managmentRuleTypeNode = JsonHandler.createArrayNode();
-                }
-
-                if (!checkContainsPreventInheritance((ArrayNode) managmentRuleTypeNode)) {
-                    ((ArrayNode) managmentRuleTypeNode).add(generalRuleTypeNode);
-                    managmentNode.set(ruleType, managmentRuleTypeNode);
+                    mergeRule(globalMgtRuleTypeNode, archiveUnitManagementModel, ruleType);
                 }
             }
         }
 
-        // Ensures every ruleType node and RefNonRuleId is an array
-        for (String supportedRuleType : SedaConstants.getSupportedRules()) {
-            if (managmentNode.has(supportedRuleType)) {
-                JsonNode managmentRuleTypeNode = managmentNode.get(supportedRuleType);
-                if (!managmentRuleTypeNode.isArray()) {
-                    managmentRuleTypeNode =
-                        JsonHandler.createArrayNode().add(managmentRuleTypeNode);
-                    managmentNode.set(supportedRuleType, managmentRuleTypeNode);
-                }
-
-                for (int indexRule = 0; indexRule < ((ArrayNode) managmentRuleTypeNode).size(); indexRule++) {
-                    JsonNode ruleNode = ((ArrayNode) managmentRuleTypeNode).get(indexRule);
-                    if (ruleNode.get(SedaConstants.TAG_RULE_REF_NON_RULE_ID) != null &&
-                        !ruleNode.get(SedaConstants.TAG_RULE_REF_NON_RULE_ID).isArray()) {
-                        JsonNode refNonRuleIdNode =
-                            JsonHandler.createArrayNode().add(ruleNode.get(SedaConstants.TAG_RULE_REF_NON_RULE_ID));
-                        ((ObjectNode) ruleNode).set(SedaConstants.TAG_RULE_REF_NON_RULE_ID, refNonRuleIdNode);
-                        ((ArrayNode) managmentRuleTypeNode).set(indexRule, ruleNode);
-
-                    }
-                }
-            }
-        }
-
-        managmentNode.set(SedaConstants.TAG_ORIGINATINGAGENCY, new TextNode(originatingAgency));
-        archiveUnitNode.set(SedaConstants.TAG_MANAGEMENT, managmentNode);
+        ObjectNode archiveUnitMgtNode = (ObjectNode) JsonHandler.toJsonNode(archiveUnitManagementModel);
+        archiveUnitMgtNode.set(SedaConstants.TAG_ORIGINATINGAGENCY, new TextNode(originatingAgency));
+        archiveUnitNode.set(SedaConstants.TAG_MANAGEMENT, archiveUnitMgtNode);
     }
 
-    private boolean checkContainsPreventInheritance(ArrayNode ruleTypeNode) {
-        for (JsonNode ruleNode : ruleTypeNode) {
-            if (ruleNode.has(SedaConstants.TAG_RULE_PREVENT_INHERITANCE)) {
-                if (ruleNode.get(SedaConstants.TAG_RULE_PREVENT_INHERITANCE) instanceof BooleanNode) {
-                    return ruleNode.get(SedaConstants.TAG_RULE_PREVENT_INHERITANCE).asBoolean();
-                }
+    /**
+     * Merge global management rule in root units management rules.
+     * 
+     * @param globalMgtRuleNode global management node
+     * @param archiveUnitManagementModel rule management model
+     * @param ruleType category of rule
+     * @throws InvalidParseOperationException
+     */
+    private void mergeRule(JsonNode globalMgtRuleNode, ManagementModel archiveUnitManagementModel, String ruleType)
+        throws InvalidParseOperationException {
+        RuleCategoryModel ruleCategoryModel = archiveUnitManagementModel.getRuleCategoryModel(ruleType);
+        if (ruleCategoryModel == null) {
+            ruleCategoryModel = new RuleCategoryModel();
+        }
+        if (ruleCategoryModel.isPreventInheritance()) {
+            return;
+        }
+
+        RuleModel ruleModel = JsonHandler.getFromJsonNode(globalMgtRuleNode, RuleModel.class);
+        if (ruleModel.getRule() != null) {
+            if (ruleCategoryModel.getInheritance() != null &&
+                ruleCategoryModel.getInheritance().getPreventRulesId() != null &&
+                ruleCategoryModel.getInheritance().getPreventRulesId().contains(ruleModel.getRule())) {
+                return;
+            } else {
+                ruleCategoryModel.getRules().add(ruleModel);
             }
         }
-        return false;
+        if (globalMgtRuleNode.has(SedaConstants.TAG_RULE_PREVENT_INHERITANCE)) {
+            ruleCategoryModel
+                .setPreventInheritance(globalMgtRuleNode.get(SedaConstants.TAG_RULE_PREVENT_INHERITANCE).asBoolean());
+        }
+        if (globalMgtRuleNode.has(SedaConstants.TAG_RULE_REF_NON_RULE_ID)) {
+            if (globalMgtRuleNode.get(SedaConstants.TAG_RULE_REF_NON_RULE_ID).isArray()) {
+                for (JsonNode refNonRuleId : globalMgtRuleNode.get(SedaConstants.TAG_RULE_REF_NON_RULE_ID)) {
+                    ruleCategoryModel.addPreventRuleId(refNonRuleId.asText());
+                }
+            } else {
+                ruleCategoryModel
+                    .addPreventRuleId(globalMgtRuleNode.get(SedaConstants.TAG_RULE_REF_NON_RULE_ID).asText());
+            }
+        }
+        archiveUnitManagementModel.setRuleCategoryModel(ruleCategoryModel, ruleType);
+
     }
 
     private void addWorkInformation(ObjectNode archiveUnit, String unitId, String unitGuid, boolean isRootArchive,

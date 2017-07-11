@@ -1,50 +1,60 @@
 {
-    "ArchiveUnit": {
-        "_id": "aeaqaaaaaahfrfvaaahrgak25v5fttiaaaaq",
-        "Management": {
-            "StorageRule": [],
-            "AppraisalRule": [
-                {
-                    "Rule": "APR001",
-                    "StartDate": "9999-11-15T14:30:23",
-                    "PreventInheritance": "ID42",
-                    "FinalAction": "Keep"
-                }
-            ],
-            "AccessRule": [
-        		 {
-                    "Rule": "ACC001",
-                    "StartDate": "9000-11-15T14:30:23",
-                    "PreventInheritance": "ID42",
-                    "FinalAction": "Keep"
-                }
-            ],
-            "ReuseRule": [],
-            "ClassificationRule": [],
-            "NeedAuthorization": true,
-            "AnyOtherField": "AnyOtherValue",
-            "UpdateOperation": {
-                "SystemId": "",
-                "ToDelete": {
-                    "ArchiveUnitRefId": [
-                        "DEL001",
-                        "DEL002"
-                    ],
-                    "FullUpdate": false
-                }
-            },
-            "ArchiveUnit": {
-                "ArchiveUnitRefId": "ID_CHILD"
-            }
-        },
-        "AnyOtherField": "AnyOtherValue",
-        "DescriptionLevel": "Item",
-        "Title": "My title",
-        "AuthorizedAgent": [{
-            "FirstName": "Ludovic",
-            "GivenName": "BLANCHET",
-            "BirthName": "1990-10-01",
-            "BirthPlace": "Lagny sur Marne"
-        }]
-    }
+	"ArchiveUnit": {
+		"_id": "aeaqaaaaaahfrfvaaahrgak25v5fttiaaaaq",
+		"Management": {
+			"AppraisalRule": {
+				"Rules": [
+					{
+						"Rule": "APR001",
+						"StartDate": "9999-11-15T14:30:23",
+						"FinalAction": "Keep"
+					}
+				],
+				"Inheritance": {
+					"PreventRulesId": [
+						"ID42"
+					]
+				}
+			},
+			"AccessRule": {
+				"Rules": [
+					{
+						"Rule": "ACC001",
+						"StartDate": "9000-11-15T14:30:23"
+					}
+				],
+				"Inheritance": {
+					"PreventRulesId": [
+						"ID42"
+					]
+				}
+			},
+			"NeedAuthorization": true,
+			"AnyOtherField": "AnyOtherValue",
+			"UpdateOperation": {
+				"SystemId": "",
+				"ToDelete": {
+					"ArchiveUnitRefId": [
+						"DEL001",
+						"DEL002"
+					],
+					"FullUpdate": false
+				}
+			},
+			"ArchiveUnit": {
+				"ArchiveUnitRefId": "ID_CHILD"
+			}
+		},
+		"AnyOtherField": "AnyOtherValue",
+		"DescriptionLevel": "Item",
+		"Title": "My title",
+		"AuthorizedAgent": [
+			{
+				"FirstName": "Ludovic",
+				"GivenName": "BLANCHET",
+				"BirthName": "1990-10-01",
+				"BirthPlace": "Lagny sur Marne"
+			}
+		]
+	}
 }

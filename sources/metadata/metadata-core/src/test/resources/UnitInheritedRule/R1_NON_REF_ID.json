@@ -1,0 +1,9 @@
+{
+	"StorageRule": {
+		"Inheritance": {
+			"PreventRulesId": [
+				"R1"
+			]
+		}
+	}
+}

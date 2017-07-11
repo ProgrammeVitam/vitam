@@ -1,0 +1,31 @@
+{
+	"StorageRule": {
+		"Inheritance": {
+			"PreventInheritance": true
+		},
+		"Rules": [
+			{
+				"Rule": "R1",
+				"StartDate": "2017-01-01",
+				"FinalAction": "RestrictAccess",
+				"EndDate": "2018-01-01"
+			},
+			{
+				"Rule": "R4",
+				"StartDate": "2017-01-01",
+				"FinalAction": "RestrictAccess",
+				"EndDate": "2021-01-01"
+			}
+		]
+	},
+	"AccessRule": {
+		"Rules": [
+			{
+				"Rule": "ACC-00001",
+				"StartDate": "2017-01-01",
+				"EndDate": "2017-01-01"
+			}
+		]
+	},
+	"OriginatingAgency": "FRAN_NP_050239"
+}

@@ -1,91 +1,104 @@
 {
-    "ArchiveUnit": {
-        "_id": "aeaqaaaaaahfrfvaaahrgak25v5fttiaaaaq",
-        "Management": {
-            "StorageRule": [
-                {
-                    "Rule": "STR001",
-                    "StartDate": "2012-11-15T14:30:23",
-                    "RefNonRuleId": [],
-                    "FinalAction": "Copy"
-                }
-            ],
-            "AppraisalRule": [
-                {
-                    "Rule": "APR001",
-                    "StartDate": "2012-11-15T14:30:23",
-                    "PreventInheritance": false,
-                    "FinalAction": "Keep"
-                }
-            ],
-            "AccessRule": [],
-            "ReuseRule": [
-                {
-                    "Rule": "ID",
-                    "StartDate": "2012-11-15T14:30:23",
-                    "PreventInheritance": "ID42"
-                }
-            ],
-            "ClassificationRule": [
-                {
-                    "Rule": "CLR001",
-                    "StartDate": "2012-11-15T14:30:23",
-                    "RefNonRuleId": [
-                        "ID1",
-                        "ID2"
-                    ],
-                    "ClassificationLevel": "Level",
-                    "ClassificationOwner": "Owner",
-                    "ClassificationReassessingDate": "2016-05-02",
-                    "NeedReassessingAuthorization": false
-                },
-                {
-                    "Rule": "CLR001",
-                    "StartDate": "2012-11-15T14:30:23",
-                    "PreventInheritance": "ID",
-                    "ClassificationLevel": "Level",
-                    "ClassificationOwner": "Owner",
-                    "ClassificationReassessingDate": "2016-05-02",
-                    "NeedReassessingAuthorization": true
-                },
-                {
-                    "Rule": "CLR002",
-                    "StartDate": "2012-11-15T14:30:23",
-                    "ClassificationLevel": "Level",
-                    "ClassificationOwner": "Owner",
-                    "ClassificationReassessingDate": "2016-05-02",
-                    "NeedReassessingAuthorization": false
-                }
-            ],
-            "NeedAuthorization": true,
-            "AnyOtherField": "AnyOtherValue",
-            "UpdateOperation": {
-                "SystemId": "",
-                "ToDelete": {
-                    "ArchiveUnitRefId": [
-                        "DEL001",
-                        "DEL002"
-                    ],
-                    "FullUpdate": false
-                }
-            },
-            "ArchiveUnit": {
-                "ArchiveUnitRefId": "ID_CHILD"
-            }
-        },
-        "AnyOtherField": "AnyOtherValue",
-        "DescriptionLevel": "Item",
-        "Description": null,
-        "Title": "My title",
-        "Event": [{
-        	"EventType":"Création",
-        	"EventDateTime":"2010-01-01T10:22:02"
-        }],
-        "AuthorizedAgent": [{
-            "FirstName": "Ludovic",
-            "GivenName": "BLANCHET",
-            "BirthName": "1990-10-01",
-            "BirthPlace": "Lagny sur Marne"
-        }]
-    }
+	"ArchiveUnit": {
+		"_id": "aeaqaaaaaahfrfvaaahrgak25v5fttiaaaaq",
+		"Management": {
+			"StorageRule": {
+				"Rules": [
+					{
+						"Rule": "STR001",
+						"StartDate": "2012-11-15T14:30:23",
+						"FinalAction": "Copy"
+					}
+				]
+			},
+			"AppraisalRule": {
+				"Rules": [
+					{
+						"Rule": "APR001",
+						"StartDate": "2012-11-15T14:30:23",
+						"FinalAction": "Keep"
+					}
+				],
+				"Inheritance": {
+					"PreventRulesId": [
+						"ID42"
+					]
+				}
+			},
+			"ReuseRule": {
+				"Rules": [
+					{
+						"Rule": "ID",
+						"StartDate": "2012-11-15T14:30:23"
+					}
+				],
+				"Inheritance": {
+					"PreventRulesId": [
+						"ID42"
+					]
+				}
+			},
+			"ClassificationRule": {
+				"Rules": [
+					{
+						"Rule": "CLR001",
+						"StartDate": "2012-11-15T14:30:23",
+						"ClassificationLevel": "Level",
+						"ClassificationOwner": "Owner",
+						"ClassificationReassessingDate": "2016-05-02",
+						"NeedReassessingAuthorization": false
+					},
+					{
+						"Rule": "CLR001",
+						"StartDate": "2012-11-15T14:30:23",
+						"ClassificationLevel": "Level",
+						"ClassificationOwner": "Owner",
+						"ClassificationReassessingDate": "2016-05-02",
+						"NeedReassessingAuthorization": true
+					},
+					{
+						"Rule": "CLR002",
+						"StartDate": "2012-11-15T14:30:23",
+						"ClassificationLevel": "Level",
+						"ClassificationOwner": "Owner",
+						"ClassificationReassessingDate": "2016-05-02",
+						"NeedReassessingAuthorization": false
+					}
+				],
+				"Inheritance": {
+					"PreventRulesId": [
+						"ID1",
+						"ID2"
+					],
+					"PreventInheritance": "ID"
+				}
+			},
+			"NeedAuthorization": true,
+			"AnyOtherField": "AnyOtherValue",
+			"UpdateOperation": {
+				"SystemId": "",
+				"ToDelete": {
+					"ArchiveUnitRefId": [
+						"DEL001",
+						"DEL002"
+					],
+					"FullUpdate": false
+				}
+			},
+			"ArchiveUnit": {
+				"ArchiveUnitRefId": "ID_CHILD"
+			}
+		},
+		"AnyOtherField": "AnyOtherValue",
+		"DescriptionLevel": "Item",
+		"Title": "My title",
+		"AuthorizedAgent": [
+			{
+				"FirstName": "Ludovic",
+				"GivenName": "BLANCHET",
+				"BirthName": "1990-10-01",
+				"BirthPlace": "Lagny sur Marne"
+			}
+		]
+	}
 }

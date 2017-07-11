@@ -2,29 +2,54 @@
 	"ArchiveUnit": {
 		"ArchiveUnitProfile": "PresentationType",
 		"Management": {
-			"StorageRule": [ {
-				"Rule": "ID420",
-				"StartDate": "2016-01-10",
-				"FinalAction": "Copy",
-				"PreventInheritance": "false",
-				"RefNonRuleId": "ID100"
-			} ],
-			"ClassificationRule": [ {
-				"Rule": "ID470",
-				"StartDate": "2016-01-10",
-				"RefNonRuleId": "ID100",
-				"PreventInheritance": "false",
-				"ClassificationLevel": "1",
-				"ClassificationOwner": "2",
-				"ClassificationReassessingDate": "2016-01-10",
-				"NeedReassessingAuthorization": "false"
-			} ],
-			"AccessRule": [ {
-				"Rule": "ID019",
-				"StartDate": "2016-01-10",
-				"RefNonRuleId": "ID100",
-				"PreventInheritance": "false"
-			} ]
+			"StorageRule": {
+				"Rules": [
+					{
+						"Rule": "ID420",
+						"StartDate": "2016-01-10",
+						"FinalAction": "Copy"
+					}
+				],
+				"Inheritance": {
+					"PreventInheritance": true,
+					"PreventRulesId": [
+						"ID100"
+					]
+				}
+			},
+			"ClassificationRule": {
+				"Rules": [
+					{
+						"Rule": "ID470",
+						"StartDate": "2016-01-10",
+						"FinalAction": "Copy",
+						"ClassificationLevel": "1",
+						"ClassificationOwner": "2",
+						"ClassificationReassessingDate": "2016-01-10",
+						"NeedReassessingAuthorization": "false"
+					}
+				],
+				"Inheritance": {
+					"PreventInheritance": true,
+					"PreventRulesId": [
+						"ID100"
+					]
+				}
+			},
+			"AccessRule": {
+				"Rules": [
+					{
+						"Rule": "ID019",
+						"StartDate": "2016-01-10"
+					}
+				],
+				"Inheritance": {
+					"PreventInheritance": true,
+					"PreventRulesId": [
+						"ID100"
+					]
+				}
+			}
 		},
 		"Content": {
 			"DescriptionLevel": "Item",

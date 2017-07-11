@@ -26,84 +26,82 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.model;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import fr.gouv.culture.archivesdefrance.seda.v2.UpdateOperationType;
+import fr.gouv.vitam.worker.common.utils.SedaConstants;
 
 public class ManagementModel {
 
-    private List<RuleModel> storageRule;
+    @JsonProperty("StorageRule")
+    private RuleCategoryModel storage;
 
-    private List<RuleModel> appraisalRule;
+    @JsonProperty("AppraisalRule")
+    private RuleCategoryModel appraisal;
 
-    private List<RuleModel> accessRule;
+    @JsonProperty("AccessRule")
+    private RuleCategoryModel access;
 
-    private List<RuleModel> disseminationRule;
+    @JsonProperty("DisseminationRule")
+    private RuleCategoryModel dissemination;
 
-    private List<RuleModel> reuseRule;
+    @JsonProperty("ReuseRule")
+    private RuleCategoryModel reuse;
 
-    private List<RuleModel> classificationRule;
+    @JsonProperty("ClassificationRule")
+    private RuleCategoryModel classification;
 
     private Boolean needAuthorization;
 
     private UpdateOperationType updateOperationType;
 
-    public ManagementModel() {
-        storageRule = new ArrayList<>();
-        appraisalRule = new ArrayList<>();
-        accessRule = new ArrayList<>();
-        disseminationRule = new ArrayList<>();
-        reuseRule = new ArrayList<>();
-        classificationRule = new ArrayList<>();
+    public void setStorage(RuleCategoryModel storage) {
+        this.storage = storage;
     }
 
-    public void addStorageRule(RuleModel ruleModel) {
-        storageRule.add(ruleModel);
+    public RuleCategoryModel getStorage() {
+        return storage;
     }
 
-    public void addAppraisalRule(RuleModel ruleModel) {
-        appraisalRule.add(ruleModel);
+    public RuleCategoryModel getAppraisal() {
+        return appraisal;
     }
 
-    public void addAccessRule(RuleModel ruleModel) {
-        accessRule.add(ruleModel);
+    public void setAppraisal(RuleCategoryModel appraisal) {
+        this.appraisal = appraisal;
     }
 
-    public void addDisseminationRule(RuleModel ruleModel) {
-        disseminationRule.add(ruleModel);
+    public void setAccess(RuleCategoryModel access) {
+        this.access = access;
     }
 
-    public void addReuseRule(RuleModel ruleModel) {
-        reuseRule.add(ruleModel);
+    public RuleCategoryModel getAccess() {
+        return access;
     }
 
-    public void addClassificationRule(RuleModel ruleModel) {
-        classificationRule.add(ruleModel);
+    public RuleCategoryModel getDissemination() {
+        return dissemination;
     }
 
-    public List<RuleModel> getStorageRule() {
-        return storageRule;
+    public void setDissemination(RuleCategoryModel dissemination) {
+        this.dissemination = dissemination;
     }
 
-    public List<RuleModel> getAppraisalRule() {
-        return appraisalRule;
+    public RuleCategoryModel getReuse() {
+        return reuse;
     }
 
-    public List<RuleModel> getAccessRule() {
-        return accessRule;
+    public void setReuse(RuleCategoryModel reuse) {
+        this.reuse = reuse;
     }
 
-    public List<RuleModel> getDisseminationRule() {
-        return disseminationRule;
+    public RuleCategoryModel getClassification() {
+        return classification;
     }
 
-    public List<RuleModel> getReuseRule() {
-        return reuseRule;
-    }
-
-    public List<RuleModel> getClassificationRule() {
-        return classificationRule;
+    public void setClassification(RuleCategoryModel classification) {
+        this.classification = classification;
     }
 
     public Boolean isNeedAuthorization() {
@@ -116,5 +114,51 @@ public class ManagementModel {
 
     public void setUpdateOperationType(UpdateOperationType updateOperationType) {
         this.updateOperationType = updateOperationType;
+    }
+
+    @JsonIgnore
+    public void setRuleCategoryModel(RuleCategoryModel ruleCategoryModel, String type) {
+        switch (type) {
+            case SedaConstants.TAG_RULE_STORAGE:
+                setStorage(ruleCategoryModel);
+                break;
+            case SedaConstants.TAG_RULE_APPRAISAL:
+                setAppraisal(ruleCategoryModel);
+                break;
+            case SedaConstants.TAG_RULE_ACCESS:
+                setAccess(ruleCategoryModel);
+                break;
+            case SedaConstants.TAG_RULE_CLASSIFICATION:
+                setClassification(ruleCategoryModel);
+                break;
+            case SedaConstants.TAG_RULE_DISSEMINATION:
+                setDissemination(ruleCategoryModel);
+                break;
+            case SedaConstants.TAG_RULE_REUSE:
+                setReuse(ruleCategoryModel);
+                break;
+            default:
+                throw new IllegalArgumentException("Type cannot be " + type);
+        }
+    }
+
+    @JsonIgnore
+    public RuleCategoryModel getRuleCategoryModel(String type) {
+        switch (type) {
+            case SedaConstants.TAG_RULE_STORAGE:
+                return getStorage();
+            case SedaConstants.TAG_RULE_APPRAISAL:
+                return getAppraisal();
+            case SedaConstants.TAG_RULE_ACCESS:
+                return getAccess();
+            case SedaConstants.TAG_RULE_CLASSIFICATION:
+                return getClassification();
+            case SedaConstants.TAG_RULE_DISSEMINATION:
+                return getDissemination();
+            case SedaConstants.TAG_RULE_REUSE:
+                return getReuse();
+            default:
+                throw new IllegalArgumentException("Type cannot be " + type);
+        }
     }
 }

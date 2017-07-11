@@ -26,8 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.model;
 
-import java.util.List;
-
 public class RuleModel {
 
     /**
@@ -54,16 +52,6 @@ public class RuleModel {
      * classification owner
      */
     private String classificationOwner;
-
-    /**
-     * prevent inheritance
-     */
-    private Boolean preventInheritance;
-
-    /**
-     * refNonRuleId
-     */
-    private List<String> refNonRuleId;
 
     /**
      * classificationReassessingDate
@@ -113,22 +101,6 @@ public class RuleModel {
 
     public void setClassificationOwner(String classificationOwner) {
         this.classificationOwner = classificationOwner;
-    }
-
-    public Boolean isPreventInheritance() {
-        return preventInheritance;
-    }
-
-    public void setPreventInheritance(Boolean preventInheritance) {
-        this.preventInheritance = preventInheritance;
-    }
-
-    public List<String> getRefNonRuleId() {
-        return refNonRuleId;
-    }
-
-    public void setRefNonRuleId(List<String> refNonRuleId) {
-        this.refNonRuleId = refNonRuleId;
     }
 
     public String getClassificationReassessingDate() {

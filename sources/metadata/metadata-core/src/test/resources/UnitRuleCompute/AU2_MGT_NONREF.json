@@ -1,0 +1,17 @@
+{
+	"StorageRule": {
+		"Rules": [
+			{
+				"Rule": "str2"
+			}
+		]
+	},
+	"AccessRule": {
+		"Inheritance": {
+			"PreventRulesId": [
+				"acc1",
+				"acc404"
+			]
+		}
+	}
+}
