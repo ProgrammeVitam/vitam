@@ -24,57 +24,49 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.engine.common.model.response;
+package fr.gouv.vitam.common.model;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.error.VitamError;
 
 /**
- * Request response
+ * Storage RequestResponseError class contains error list
  *
  */
-// TODO P1 : @gledroit : unused in server resource. It probably should be ? Or
-// maybe the code should change.
-public class RequestResponse {
-    private JsonNode query;
-    private JsonNode results;
+// TODO P1 : refactor to the common vitam
+public class RequestResponseError extends RequestResponseStorage {
+
+    private VitamError error;
 
     /**
-     * @return the Result part
+     * @return the error of the RequestResponseError
      */
-    public JsonNode getResult() {
-        return results;
+    public VitamError getError() {
+        if (error != null) {
+            return error;
+        }
+        return new VitamError("0");
     }
 
     /**
-     * RequestResponse constructor
+     * RequestResponseError constructor
      *
-     * @param result
-     *            the result of type JsonNode which will be setted for
-     *            RequestResponse
+     * @param error
+     *            the error message of type VitamError which will be setted for
+     *            RequestResponseError
      * @return this
      */
-    public RequestResponse setResult(JsonNode result) {
-        results = result;
+    public RequestResponseError setError(VitamError error) {
+        ParametersChecker.checkParameter("VitamError is mandatory parameter", error);
+        this.error = error;
         return this;
     }
 
-    /**
-     * @return the query as JsonNode of Response
-     */
-    public JsonNode getQuery() {
-        return query;
-    }
-
-    /**
-     * RequestResponse constructor
-     *
-     * @param query
-     *            the query of type JsonNode which will be setted for
-     *            RequestResponse
-     * @return this
-     */
-    public RequestResponse setQuery(JsonNode query) {
-        this.query = query;
-        return this;
+    @Override
+    public String toString() {
+        if (error != null) {
+            return error.toString();
+        }
+        return "";
     }
 }

@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
@@ -86,6 +87,7 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @throws AccessInternalClientServerException if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested unit does not exist
      * @throws AccessUnauthorizedException 
+     * @throws AccessInternalRuleExecutionException 
      */
     RequestResponse<JsonNode> updateUnitbyId(JsonNode updateQuery, String unitId)
         throws InvalidParseOperationException, AccessInternalClientServerException,

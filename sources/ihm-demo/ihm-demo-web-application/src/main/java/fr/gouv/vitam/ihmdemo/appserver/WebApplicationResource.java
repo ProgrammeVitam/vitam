@@ -126,6 +126,7 @@ import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
@@ -169,6 +170,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String ACCESS_SERVER_EXCEPTION_MSG = "Access Server exception";
     private static final String INTERNAL_SERVER_ERROR_MSG = "INTERNAL SERVER ERROR";
     private static final String SEARCH_CRITERIA_MANDATORY_MSG = "Search criteria payload is mandatory";
+    private static final String UPDATE_RULES_KEY = "UpdatedRules";
     private static final String FIELD_ID_KEY = "fieldId";
     private static final String NEW_FIELD_VALUE_KEY = "newFieldValue";
     private static final String INVALID_ALL_PARENTS_TYPE_ERROR_MSG = "The parameter \"allParents\" is not an array";
@@ -738,17 +740,30 @@ public class WebApplicationResource extends ApplicationStatusResource {
         try {
             // Parse updateSet
             final Map<String, String> updateUnitIdMap = new HashMap<>();
+            final Map<String, JsonNode> updateRules = new HashMap<>();
             final JsonNode modifiedFields = JsonHandler.getFromString(updateSet);
             if (modifiedFields != null && modifiedFields.isArray()) {
                 for (final JsonNode modifiedField : modifiedFields) {
-                    updateUnitIdMap.put(modifiedField.get(FIELD_ID_KEY).textValue(),
-                        modifiedField.get(NEW_FIELD_VALUE_KEY).textValue());
+                    if (modifiedField.get(UPDATE_RULES_KEY) != null) {
+                        ArrayNode rulesCategories = (ArrayNode) modifiedField.get(UPDATE_RULES_KEY);
+                        for (JsonNode ruleCategory: rulesCategories) {
+                            for (String categoryKey: VitamConstants.getSupportedRules()) {
+                                ArrayNode rules = (ArrayNode) ruleCategory.get(categoryKey);
+                                if (rules != null) {
+                                    updateRules.put(categoryKey, rules);
+                                }
+                            }
+                        }
+                    } else {
+                        updateUnitIdMap.put(modifiedField.get(FIELD_ID_KEY).textValue(),
+                            modifiedField.get(NEW_FIELD_VALUE_KEY).textValue());
+                    }
                 }
             }
 
             // Add ID to set root part
             updateUnitIdMap.put(UiConstants.SELECT_BY_ID.toString(), unitId);
-            final JsonNode preparedQueryDsl = DslQueryHelper.createUpdateDSLQuery(updateUnitIdMap);
+            final JsonNode preparedQueryDsl = DslQueryHelper.createUpdateDSLQuery(updateUnitIdMap, updateRules);
             final RequestResponse archiveDetails =
                 UserInterfaceTransactionManager.updateUnits(preparedQueryDsl, unitId,
                     getTenantId(headers));

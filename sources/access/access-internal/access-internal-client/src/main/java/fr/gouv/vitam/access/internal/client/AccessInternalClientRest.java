@@ -28,6 +28,7 @@
 package fr.gouv.vitam.access.internal.client;
 
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
@@ -38,9 +39,13 @@ import com.mongodb.util.JSON;
 
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
@@ -49,6 +54,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
@@ -171,6 +177,15 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) { // access-common
                 throw new AccessInternalClientNotFoundException(NOT_FOUND_EXCEPTION);
             } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
+            	try {
+            		VitamError vitamError = RequestResponse.parseVitamError(response);
+                	if (VitamCodeHelper.getCode(VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CHECK_RULES)
+                			.equals(vitamError.getCode())) {
+                		return vitamError;
+                	}
+            	} catch(final InvalidParseOperationException e ) {
+            		LOGGER.info("Cant parse error as vitamError, throw a new exception");
+            	}
                 throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);// common
             } else if (response.getStatus() == Status.METHOD_NOT_ALLOWED.getStatusCode()) {
                 throw new NoWritingPermissionException(NO_WRITING_PERMISSION);

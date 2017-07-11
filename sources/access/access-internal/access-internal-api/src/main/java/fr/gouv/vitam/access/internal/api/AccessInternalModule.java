@@ -31,6 +31,7 @@ import javax.ws.rs.container.AsyncResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
@@ -76,10 +77,11 @@ public interface AccessInternalModule {
      *
      * @throws InvalidParseOperationException Throw if json format is not correct
      * @throws AccessInternalExecutionException Throw if error occurs when send Unit to database
+     * @throws AccessInternalRuleExecutionException Throw When error occures on rules update check
      * @throws IllegalArgumentException Throw if error occurs when checking argument
      */
     public JsonNode updateUnitbyId(JsonNode queryJson, String idUnit, String requestId)
-        throws InvalidParseOperationException, AccessInternalExecutionException;
+        throws InvalidParseOperationException, AccessInternalExecutionException, IllegalArgumentException, AccessInternalRuleExecutionException;
 
     /**
      * Retrieve an ObjectGroup by its id with results fields filtered based on given query

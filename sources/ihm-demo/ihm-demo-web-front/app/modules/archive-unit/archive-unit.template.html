@@ -138,34 +138,52 @@
         </a>
 
         <div class="row archive-desc panel-collapse collapse in" id="boxManage">
-            <div class="form-group col-sm-6" ng-repeat-start="(categoryId, ruleCategory) in $ctrl.ruleDisplay">
+            <div class="form-group col-sm-6" ng-repeat-start="(categoryId, ruleCategory) in $ctrl.ruleDisplay" ng-if="$ctrl.checkDisplayRuleDiv(ruleCategory)">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                      <b>{{categoryId}}</b>
+                      <b>{{$ctrl.translateRule(categoryId)}}</b>
                     </div>
                     <div class="panel-body" style="background-color: #FFFFFF">
                         <div class="table-responsive">
-                            <table class="table highlighted" ng-show="exitRule(ruleCategory.displayArray)" style="background-color: #FFFFFF">
+                            <table class="table" ng-show="existRule(ruleCategory.displayArray) || $ctrl.isEditMode" style="background-color: #FFFFFF">
                                   <tr>
                                     <th>Identifiant</th>
                                     <th>Date de Début</th>
                                     <th>Date de Fin</th>
                                     <th>Héritée</th>
                                     <th ng-if="hasSortFinal(categoryId)">Sort Final</th>
-                                    <th>&nbsp;</th>
+                                    <th>Détails</th>
+                                    <th ng-if="$ctrl.isEditMode">Supprimer/Rétablir</th>
                                   </tr>
 
                                 <tbody ng-repeat="rule in ruleCategory.displayArray" >
-                                  <tr class="table-row" ng-if="rule.ruleId" style="cursor: pointer;" ng-click="toggleDetail($index, rule)">
-                                      <td width="20%" style="background-color: #FFFFFF">{{rule.ruleId}}</td>
-                                      <td width="20%" style="background-color: #FFFFFF">{{defineStartDate(rule.StartDate | vitamFormatDate) }}</td>
+                                  <tr ng-if="rule.ruleId || $ctrl.isEditMode" ng-style="rule.deleted? {'text-decoration': 'line-through'} : ''">
+                                      <td width="20%" style="background-color: #FFFFFF">
+                                        <span ng-if="!$ctrl.isEditMode || (rule.originId !== $ctrl.archiveId) || rule.deleted">{{rule.ruleId}}</span>
+                                        <input type="text" ng-if="$ctrl.isEditMode && (rule.originId === $ctrl.archiveId) && !rule.deleted"
+                                               ng-model="rule.update.Rule">
+                                      </td>
+                                      <td width="20%" style="background-color: #FFFFFF">
+                                        <span ng-if="!$ctrl.isEditMode || (rule.originId !== $ctrl.archiveId) || rule.deleted">{{defineStartDate(rule.StartDate | vitamFormatDate) }}</span>
+                                        <input ng-if="$ctrl.isEditMode && (rule.originId === $ctrl.archiveId) && !rule.deleted" ng-model="rule.update.StartDate"
+                                                date-picker=""  type="text" class="form-control input-sm"/>
+                                      </td>
                                       <td width="20%" style="background-color: #FFFFFF">{{defineEndDate(rule.StartDate | vitamFormatDate , rule.EndDate | vitamFormatDate )}}</td>
                                       <td width="20%" style="background-color: #FFFFFF">{{checkHerited(rule.originId)}}</td>
-                                      <td ng-if="hasSortFinal(categoryId)" style="background-color: #FFFFFF">{{rule.FinalAction}}</td>
-                                      <td style="background-color: #FFFFFF">
+                                      <td ng-if="hasSortFinal(categoryId)" style="background-color: #FFFFFF">
+                                        <span ng-if="!$ctrl.isEditMode || (rule.originId !== $ctrl.archiveId) || rule.deleted">{{$ctrl.translateAction(categoryId, rule.FinalAction)}}</span>
+                                        <select ng-options="key as value.label for (key, value) in $ctrl.getFinalActions(categoryId) track by key"
+                                                ng-if="$ctrl.isEditMode && (rule.originId === $ctrl.archiveId) && !rule.deleted" ng-model="rule.update.FinalAction"></select>
+                                      </td>
+                                      <td style="cursor: pointer; background-color: #FFFFFF" ng-click="toggleDetail($index, rule)">
                                         <span ng-show="!checkUpOrDown(rule)" class="glyphicon glyphicon-chevron-down"></span>
                                         <span ng-show="checkUpOrDown(rule)" class="glyphicon glyphicon-chevron-up"></span>
                                       </td>
+                                      <td style="cursor: pointer; background-color: #FFFFFF; text-align: center;" ng-if="$ctrl.isEditMode && (rule.originId === $ctrl.archiveId)" ng-click="$ctrl.deleteRule(rule)">
+                                        <i ng-if="rule.deleted" class="material-icons">add_circle</i>
+                                        <i ng-if="!rule.deleted" class="material-icons">cancel</i>
+                                      </td>
+                                    <td style="background-color: #FFFFFF" ng-if="$ctrl.isEditMode && (rule.originId !== $ctrl.archiveId)"></td>
                                   </tr>
 
                                   <tr class="extra-row" ng-show="displayRule[rule.ruleId]">
@@ -195,6 +213,16 @@
                                     </td>
                                   </tr>
                                 </tbody>
+                              <tbody ng-if="$ctrl.isEditMode">
+                              <tr>
+                                <td style="background-color: #FFFFFF">
+                                  <button class="btn btn-primary" ng-click="$ctrl.addRule(ruleCategory)">
+                                    <i class="material-icons pull-left">add_circle</i>
+                                    <span>&nbsp;Ajouter Règle</span>
+                                  </button>
+                                </td>
+                              </tr>
+                              </tbody>
 
                             </table>
                         </div>
@@ -208,7 +236,7 @@
                     </div>
                 </div>
             </div>
-            <div class="clearfix" ng-repeat-end ng-if="$index%2===1"></div>
+            <div class="clearfix" ng-repeat-end ng-if="$ctrl.checkDisplayRuleDiv(ruleCategory) && ($ctrl.isEditMode? ruleCategory.editIndex%2===1: ruleCategory.index%2===1)"></div>
         </div>
       </div>
 
@@ -275,4 +303,45 @@
     </div>
   </div>
 </div>
-</div>
+<!--div>
+  <i class="material-icons">file_download</i>
+</div -->
+
+<script>
+  // TODO : refactor this component : it is used in archive search page too
+  /* French initialisation for the jQuery UI date picker plugin. */
+  /* Written by Keith Wood (kbwood{at}iinet.com.au),
+   Stéphane Nahmani (sholby@sholby.net),
+   Stéphane Raimbault <stephane.raimbault@gmail.com> */
+  (function( factory ) {
+    if ( typeof define === "function" && define.amd ) {
+      // AMD. Register as an anonymous module.
+      define([ "../jquery.ui.datepicker" ], factory );
+    } else {
+      // Browser globals
+      factory( jQuery.datepicker );
+    }
+  }(function( datepicker ) {
+    datepicker.regional['fr'] = {
+      closeText: 'Fermer',
+      prevText: '<',
+      nextText: '>',
+      currentText: 'Aujourd\'hui',
+      monthNames: ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+        'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'],
+      monthNamesShort: ['janv.', 'févr.', 'mars', 'avril', 'mai', 'juin',
+        'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'],
+      dayNames: ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'],
+      dayNamesShort: ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'],
+      dayNamesMin: ['D','L','M','M','J','V','S'],
+      weekHeader: 'Sem.',
+      dateFormat: 'yy-mm-dd',
+      firstDay: 1,
+      isRTL: false,
+      showMonthAfterYear: false,
+      yearSuffix: ''};
+    datepicker.setDefaults(datepicker.regional['fr']);
+    return datepicker.regional['fr'];
+  }));
+
+</script>
