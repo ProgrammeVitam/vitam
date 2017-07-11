@@ -1,6 +1,9 @@
 {
-  "id": "DefaultHoldingSchemeWorkflow",
-  "comment": "Default Holding Scheme Workflow V6",
+  "id": "DefaultFilingSchemeWorkflow",
+  "name": "Default Filing Scheme Workflow",
+  "identifier": "FILINGSCHEME",
+  "typeProc": "INGEST",
+  "comment": "Default Filing Scheme Workflow V6",
   "steps": [
     {
       "workerGroupId": "DefaultWorker",
@@ -24,11 +27,11 @@
             "in": [
               {
                 "name": "checkContract",
-                "uri": "VALUE:false"
+                "uri": "VALUE:true"
               },
               {
                 "name": "checkOriginatingAgency",
-                "uri": "VALUE:false"
+                "uri": "VALUE:true"
               },
               {
                 "name": "checkProfile",
@@ -48,7 +51,7 @@
               },
               {
                 "name": "UnitType",
-                "uri": "VALUE:HOLDING_UNIT"
+                "uri": "VALUE:FILING_UNIT"
               }
             ],
             "out": [
@@ -95,13 +98,30 @@
     },
     {
       "workerGroupId": "DefaultWorker",
+      "stepName": "STP_UNIT_CHECK_AND_PROCESS",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST",
+        "element": "Units"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "UNITS_RULES_COMPUTE",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
       "stepName": "STP_UNIT_STORING",
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "LIST",
         "element": "Units"
       },
-      "actions": [        
+      "actions": [
         {
           "action": {
             "actionKey": "UNIT_METADATA_INDEXATION",
@@ -109,12 +129,12 @@
              "in": [
               {
                 "name": "UnitType",
-                "uri": "VALUE:HOLDING_UNIT"
+                "uri": "VALUE:FILING_UNIT"
               },
               {
 	            "name": "globalSEDAParameters.file",
 	            "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
-	          }              
+	          }	          
             ]
           }
         },
@@ -135,12 +155,47 @@
     },
     {
       "workerGroupId": "DefaultWorker",
+      "stepName": "STP_ACCESSION_REGISTRATION",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": "SIP/manifest.xml"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "ACCESSION_REGISTRATION",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "mapsUnits.file",
+                "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "mapsDO.file",
+                "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "mapsDO.file",
+                "uri": "WORKSPACE:Maps/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP.json"
+              },
+              {
+                "name": "globalSEDAParameters.file",
+                "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
       "stepName": "STP_INGEST_FINALISATION",
       "behavior": "FINALLY",
       "distribution": {
         "kind": "REF",
         "element": "SIP/manifest.xml"
-      },
+      	},
       "actions": [
         {
           "action": {

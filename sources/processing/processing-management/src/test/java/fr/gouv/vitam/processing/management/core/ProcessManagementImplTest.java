@@ -164,16 +164,16 @@ public class ProcessManagementImplTest {
         Assert.assertFalse(processWorkflowList.isEmpty());
         Map<String, WorkFlow> workflowDefinitions = processManagementImpl.getWorkflowDefinitions();
         Assert.assertNotNull(workflowDefinitions);
-        Assert.assertNotNull(workflowDefinitions.get("DefaultFilingSchemeWorkflow"));
-        Assert.assertNotNull(workflowDefinitions.get("DefaultIngestWorkflow"));
-        Assert.assertEquals("DefaultFilingSchemeWorkflow",
-            workflowDefinitions.get("DefaultFilingSchemeWorkflow").getId());
+        Assert.assertNotNull(workflowDefinitions.get("FILINGSCHEME"));
+        Assert.assertNotNull(workflowDefinitions.get("PROCESS_SIP_UNITARY"));
+        Assert.assertEquals("FILINGSCHEME",
+            workflowDefinitions.get("FILINGSCHEME").getIdentifier());
         Assert.assertEquals(8,
-            workflowDefinitions.get("DefaultIngestWorkflow").getSteps().size());
+            workflowDefinitions.get("PROCESS_SIP_UNITARY").getSteps().size());
         Assert.assertEquals(2,
-            workflowDefinitions.get("DefaultIngestWorkflow").getSteps().get(2).getActions().size());
+            workflowDefinitions.get("PROCESS_SIP_UNITARY").getSteps().get(2).getActions().size());
         Assert.assertEquals("CHECK_UNIT_SCHEMA",
-            workflowDefinitions.get("DefaultIngestWorkflow").getSteps().get(2).getActions().get(0).getActionDefinition()
+            workflowDefinitions.get("PROCESS_SIP_UNITARY").getSteps().get(2).getActions().get(0).getActionDefinition()
                 .getActionKey());
     }
 

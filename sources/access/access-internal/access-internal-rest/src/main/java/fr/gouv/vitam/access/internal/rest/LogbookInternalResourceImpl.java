@@ -132,7 +132,7 @@ public class LogbookInternalResourceImpl {
         "DSL Query to start traceability check was not found.";
 
     // TODO Add Enumeration of all possible WORKFLOWS
-    private static final String DEFAULT_CHECK_TRACEABILITY_WORKFLOW = "DefaultCheckTraceability";
+    private static final String DEFAULT_CHECK_TRACEABILITY_WORKFLOW = "CHECK_LOGBOOK_OP_SECURISATION";
     private static final String DEFAULT_STORAGE_STRATEGY = "default";
 
     private static final long SLEEP_TIME = 1000l;

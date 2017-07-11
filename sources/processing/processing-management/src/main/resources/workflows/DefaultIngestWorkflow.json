@@ -1,6 +1,9 @@
 {
-  "id": "DefaultFilingSchemeWorkflow",
-  "comment": "Default Filing Scheme Workflow V6",
+  "id": "DefaultIngestWorkflow",
+  "name": "Default Ingest Workflow",
+  "identifier": "PROCESS_SIP_UNITARY",
+  "typeProc": "INGEST",
+  "comment": "Default Ingest Workflow V6",
   "steps": [
     {
       "workerGroupId": "DefaultWorker",
@@ -32,7 +35,7 @@
               },
               {
                 "name": "checkProfile",
-                "uri": "VALUE:false"
+                "uri": "VALUE:true"
               }
             ]
           }
@@ -44,11 +47,11 @@
             "in": [
               {
                 "name": "checkNoObject",
-                "uri": "VALUE:true"
+                "uri": "VALUE:false"
               },
               {
                 "name": "UnitType",
-                "uri": "VALUE:FILING_UNIT"
+                "uri": "VALUE:INGEST"
               }
             ],
             "out": [
@@ -73,7 +76,7 @@
                 "uri": "MEMORY:MapsMemory/OG_TO_ARCHIVE_ID_MAP.json"
               },
               {
-                "name": "mapsDOtoVersionBDO.file",
+                "name": "mapsDOIdtoDODetail.file",
                 "uri": "WORKSPACE:Maps/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP.json"
               },
               {
@@ -95,6 +98,35 @@
     },
     {
       "workerGroupId": "DefaultWorker",
+      "stepName": "STP_OG_CHECK_AND_TRANSFORME",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST",
+        "element": "ObjectGroup"
+      },
+      "actions": [
+      	{
+          "action": {
+            "actionKey": "CHECK_DIGEST",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "algo",
+                "uri": "VALUE:SHA-512"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "OG_OBJECTS_FORMAT_CHECK",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
       "stepName": "STP_UNIT_CHECK_AND_PROCESS",
       "behavior": "BLOCKING",
       "distribution": {
@@ -102,9 +134,67 @@
         "element": "Units"
       },
       "actions": [
+      	{
+          "action": {
+            "actionKey": "CHECK_UNIT_SCHEMA",
+            "behavior": "BLOCKING"
+          }
+        },
         {
           "action": {
             "actionKey": "UNITS_RULES_COMPUTE",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_STORAGE_AVAILABILITY_CHECK",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": "SIP/manifest.xml"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "STORAGE_AVAILABILITY_CHECK",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_OG_STORING",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST",
+        "element": "ObjectGroup"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "OG_STORAGE",
+            "behavior": "BLOCKING"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "OG_METADATA_INDEXATION",
+            "behavior": "BLOCKING"
+          }
+        },
+                {
+          "action": {
+            "actionKey": "OG_METADATA_STORAGE",
+            "behavior": "BLOCKING"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "COMMIT_LIFE_CYCLE_OBJECT_GROUP",
             "behavior": "BLOCKING"
           }
         }
@@ -118,21 +208,21 @@
         "kind": "LIST",
         "element": "Units"
       },
-      "actions": [
+      "actions": [      	
         {
           "action": {
             "actionKey": "UNIT_METADATA_INDEXATION",
-            "behavior": "BLOCKING",
-             "in": [
-              {
-                "name": "UnitType",
-                "uri": "VALUE:FILING_UNIT"
-              },
-              {
-	            "name": "globalSEDAParameters.file",
-	            "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
-	          }	          
-            ]
+            "behavior": "BLOCKING", 
+	        "in": [
+	            {
+	               "name": "UnitType",
+	               "uri": "VALUE:INGEST"
+                },
+	            {
+	              "name": "globalSEDAParameters.file",
+	              "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
+	            }
+	        ]            
           }
         },
         {
@@ -192,7 +282,7 @@
       "distribution": {
         "kind": "REF",
         "element": "SIP/manifest.xml"
-      	},
+      },
       "actions": [
         {
           "action": {
@@ -215,7 +305,7 @@
                 "optional": true
               },
               {
-                "name": "mapsDOIdtoDODetail.file",
+                "name": "mapsDOtoVersionBDO.file",
                 "uri": "WORKSPACE:Maps/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP.json",
                 "optional": true
               },
@@ -237,7 +327,7 @@
               }
             ]
           }
-        },
+        }, 
         {
           "action": {
             "actionKey": "ROLL_BACK",

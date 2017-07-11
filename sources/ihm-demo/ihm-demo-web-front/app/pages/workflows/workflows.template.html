@@ -17,7 +17,7 @@
           <input type="text" class="form-control" ng-model="search.form.id" id="entrypuid"/>
         </div>
         <div class="form-group col-md-3">
-          <label for="categories">Catégorie</label>
+          <label for="categories">Process</label>
           <select multiple class="form-control" name="categories" ng-model="search.form.categories" id="categories"
                   ng-change="updateSelectableSteps(search.form.categories)" ng-disabled="!!search.form.id"
                   ng-options="item as item.name for item in workflowCategories track by item.id">

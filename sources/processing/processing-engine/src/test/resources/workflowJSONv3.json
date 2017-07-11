@@ -1,5 +1,8 @@
 {
-	"id": "id",
+	"id": "workflowJSONv3",
+	"identifier":"workflowJSONv3",
+	"name":"name",
+	"typeProc":"typeProc",
 	"comment":"traitement en deux macro étapes",
 	"steps":
 	[

@@ -1,6 +1,9 @@
 {
-  "id": "DefaultIngestWorkflow",
-  "comment": "Default Ingest Workflow V6",
+  "id": "DefaultIngestBlankTestWorkflow",
+  "name": "Default Ingest Blank Test Workflow",
+  "identifier": "PROCESS_SIP_UNITARY_TEST",
+  "typeProc": "INGEST",
+  "comment": "Default Ingest Blank Test Workflow V6",
   "steps": [
     {
       "workerGroupId": "DefaultWorker",
@@ -131,12 +134,6 @@
         "element": "Units"
       },
       "actions": [
-      	{
-          "action": {
-            "actionKey": "CHECK_UNIT_SCHEMA",
-            "behavior": "BLOCKING"
-          }
-        },
         {
           "action": {
             "actionKey": "UNITS_RULES_COMPUTE",
@@ -158,116 +155,6 @@
           "action": {
             "actionKey": "STORAGE_AVAILABILITY_CHECK",
             "behavior": "BLOCKING"
-          }
-        }
-      ]
-    },
-    {
-      "workerGroupId": "DefaultWorker",
-      "stepName": "STP_OG_STORING",
-      "behavior": "BLOCKING",
-      "distribution": {
-        "kind": "LIST",
-        "element": "ObjectGroup"
-      },
-      "actions": [
-        {
-          "action": {
-            "actionKey": "OG_STORAGE",
-            "behavior": "BLOCKING"
-          }
-        },
-        {
-          "action": {
-            "actionKey": "OG_METADATA_INDEXATION",
-            "behavior": "BLOCKING"
-          }
-        },
-                {
-          "action": {
-            "actionKey": "OG_METADATA_STORAGE",
-            "behavior": "BLOCKING"
-          }
-        },
-        {
-          "action": {
-            "actionKey": "COMMIT_LIFE_CYCLE_OBJECT_GROUP",
-            "behavior": "BLOCKING"
-          }
-        }
-      ]
-    },
-    {
-      "workerGroupId": "DefaultWorker",
-      "stepName": "STP_UNIT_STORING",
-      "behavior": "BLOCKING",
-      "distribution": {
-        "kind": "LIST",
-        "element": "Units"
-      },
-      "actions": [      	
-        {
-          "action": {
-            "actionKey": "UNIT_METADATA_INDEXATION",
-            "behavior": "BLOCKING", 
-	        "in": [
-	            {
-	               "name": "UnitType",
-	               "uri": "VALUE:INGEST"
-                },
-	            {
-	              "name": "globalSEDAParameters.file",
-	              "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
-	            }
-	        ]            
-          }
-        },
-        {
-          "action": {
-            "actionKey": "UNIT_METADATA_STORAGE",
-            "behavior": "BLOCKING"
-          }
-        }
-        ,
-        {
-          "action": {
-            "actionKey": "COMMIT_LIFE_CYCLE_UNIT",
-            "behavior": "BLOCKING"
-          }
-        }
-      ]
-    },
-    {
-      "workerGroupId": "DefaultWorker",
-      "stepName": "STP_ACCESSION_REGISTRATION",
-      "behavior": "BLOCKING",
-      "distribution": {
-        "kind": "REF",
-        "element": "SIP/manifest.xml"
-      },
-      "actions": [
-        {
-          "action": {
-            "actionKey": "ACCESSION_REGISTRATION",
-            "behavior": "BLOCKING",
-            "in": [
-              {
-                "name": "mapsUnits.file",
-                "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json"
-              },
-              {
-                "name": "mapsDO.file",
-                "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
-              },
-              {
-                "name": "mapsDO.file",
-                "uri": "WORKSPACE:Maps/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP.json"
-              },
-              {
-                "name": "globalSEDAParameters.file",
-                "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
-              }
-            ]
           }
         }
       ]
@@ -302,7 +189,7 @@
                 "optional": true
               },
               {
-                "name": "mapsDOtoVersionBDO.file",
+                "name": "mapsDOIdtoDODetail.file",
                 "uri": "WORKSPACE:Maps/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP.json",
                 "optional": true
               },
@@ -324,7 +211,7 @@
               }
             ]
           }
-        }, 
+        },
         {
           "action": {
             "actionKey": "ROLL_BACK",

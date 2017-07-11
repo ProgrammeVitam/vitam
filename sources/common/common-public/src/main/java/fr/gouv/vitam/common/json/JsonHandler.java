@@ -175,6 +175,7 @@ public final class JsonHandler {
     }
 
     /**
+     * getFromInputStream, get JsonNode from stream
      *
      * @param stream to transform
      * @return the jsonNode (ObjectNode or ArrayNode)
@@ -188,6 +189,62 @@ public final class JsonHandler {
         } catch (final IOException | IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
         }
+    }
+
+    /**
+     * getFromInputStream, get merged JsonNode from streams
+     *
+     * @param stream1 to transform
+     * @param stream2 to transform and merge with
+     * @return the jsonNode (ObjectNode or ArrayNode)
+     * @throws InvalidParseOperationException if parse JsonNode object exception occurred
+     */
+    public static final JsonNode getFromInputStream(final InputStream stream1, final InputStream stream2)
+            throws InvalidParseOperationException {
+        // if stream2 is null, forward call
+        if(stream2 == null) {
+            return getFromInputStream(stream1);
+        }
+
+        // load and merge nodes
+        ParametersChecker.checkParameter("InputStream 1", stream1);
+        //ParametersChecker.checkParameter("InputStream 2", stream2); // check already done
+
+        // JsonNode node = OBJECT_MAPPER.readValue(ByteStreams.toByteArray(stream1), JsonNode.class);
+        // ObjectReader updater = OBJECT_MAPPER.readerForUpdating(node);
+        // return updater.readValue(stream2);
+
+        // Use manual merge
+        return merge(getFromInputStream(stream1), getFromInputStream(stream2));
+    }
+
+    /**
+     * merge, Merge two jsonNode
+     *
+     * @param mainNode node to update
+     * @param updateNode note to merge with
+     * @return merged node
+     */
+    private static JsonNode merge(JsonNode mainNode, JsonNode updateNode) {
+
+        Iterator<String> fieldNames = updateNode.fieldNames();
+        while (fieldNames.hasNext()) {
+            String fieldName = fieldNames.next();
+            JsonNode jsonNode = mainNode.get(fieldName);
+            // if field exists and is an embedded object
+            if (jsonNode != null && jsonNode.isObject()) {
+                merge(jsonNode, updateNode.get(fieldName));
+            }
+            else {
+                if (mainNode instanceof ObjectNode) {
+                    // Overwrite field
+                    JsonNode value = updateNode.get(fieldName);
+                    ((ObjectNode) mainNode).put(fieldName, value);
+                }
+            }
+        }
+
+        return mainNode;
     }
 
     /**

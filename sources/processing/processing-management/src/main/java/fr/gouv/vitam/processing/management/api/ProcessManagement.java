@@ -130,6 +130,12 @@ public interface ProcessManagement extends VitamAutoCloseable {
     Map<String, WorkFlow> getWorkflowDefinitions();
 
     /**
+     * Reload workflow definitions
+     *
+     */
+    void reloadWorkflowDefinitions();
+
+    /**
      * Get filtered process workflow
      *
      * @param query to filter

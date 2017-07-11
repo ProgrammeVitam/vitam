@@ -72,8 +72,8 @@ public class ProcessEngineImplTest {
     private ProcessMonitoringImpl processMonitoring;
     private ProcessDistributor processDistributor;
     private static final Integer TENANT_ID = 0;
-    private static final String WORKFLOW_ID = "workflowJSONv1";
-    private static final String WORKFLOW_WITH_FINALLY_STEP = "workflowJSONFinallyStep";
+    private static final String WORKFLOW_FILE = "workflowJSONv1.json";
+    private static final String WORKFLOW_WITH_FINALLY_STEP = "workflowJSONFinallyStep.json";
 
     private ProcessDataAccess processData;
 
@@ -99,8 +99,8 @@ public class ProcessEngineImplTest {
     public void processEngineTest() throws Exception {
 
         final ProcessWorkflow processWorkflow =
-            processData.initProcessWorkflow(ProcessPopulator.populate(WORKFLOW_ID), workParams.getContainerName(), LogbookTypeProcess.INGEST, TENANT_ID);
-
+            processData.initProcessWorkflow(ProcessPopulator.populate(WORKFLOW_FILE), workParams.getContainerName(),
+                    LogbookTypeProcess.INGEST, TENANT_ID);
 
         processEngine = ProcessEngineFactory.get().create(WorkerParametersFactory.newWorkerParameters(), processDistributor);
 

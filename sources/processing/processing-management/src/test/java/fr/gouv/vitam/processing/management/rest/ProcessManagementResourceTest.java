@@ -73,7 +73,7 @@ public class ProcessManagementResourceTest {
 
     private static final String DATA_URI = "/processing/v1";
     private static final String NOT_EXITS_WORKFLOW_ID = "workflowJSONv3";
-    private static final String EXITS_WORKFLOW_ID = "DefaultIngestWorkflow";
+    private static final String EXITS_WORKFLOW_ID = "PROCESS_SIP_UNITARY";
     private static final String URL_METADATA = "http://localhost:8086";
     private static final String URL_WORKSPACE = "http://localhost:8084";
     private static final String CONTAINER_NAME = "sipContainer";
@@ -316,7 +316,7 @@ public class ProcessManagementResourceTest {
             .headers(GlobalDataRest.X_REQUEST_ID, ID, GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().get(WORKFLOWS_URI).then()
             .statusCode(Status.OK.getStatusCode()).assertThat()
-            .body("DefaultIngestWorkflow.id", containsString("DefaultIngestWorkflow"));
+            .body(EXITS_WORKFLOW_ID + ".identifier", containsString(EXITS_WORKFLOW_ID));
 
     }
 }

@@ -124,7 +124,7 @@ public class PausedProcessingIT {
     private static final long SLEEP_TIME = 100l;
     private static final long NB_TRY = 4800; // equivalent to 4 minute
 
-    private static final String WORFKLOW_NAME = "DefaultIngestWorkflow";
+    private static final String WORFKLOW_NAME = "PROCESS_SIP_UNITARY";
 
     private static int TCP_PORT = 54321;
     private static int HTTP_PORT = 54320;
