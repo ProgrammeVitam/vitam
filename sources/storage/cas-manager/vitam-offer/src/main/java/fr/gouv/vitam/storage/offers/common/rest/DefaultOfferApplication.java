@@ -115,7 +115,7 @@ public final class DefaultOfferApplication extends AbstractVitamApplication<Defa
 
     // FIXME Duplication of code with other components in TLS
     @Override
-    protected void setFilter(ServletContextHandler context) throws VitamApplicationServerException {
+    protected void setFilter(ServletContextHandler context, boolean isAdminConnector) throws VitamApplicationServerException {
         if (getConfiguration().isAuthentication()) {
             File shiroFile = null;
             try {

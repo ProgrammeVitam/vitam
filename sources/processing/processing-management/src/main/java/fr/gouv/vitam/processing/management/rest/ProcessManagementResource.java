@@ -26,18 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.rest;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
@@ -57,24 +48,18 @@ import javax.ws.rs.core.Response.Status;
 
 import com.codahale.metrics.Gauge;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
-import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -84,13 +69,12 @@ import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
-import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
-import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.model.WorkFlow;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
+import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoring;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.api.ProcessManagement;
@@ -111,23 +95,20 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     private static final String ERR_PROCESS_INPUT_ISMANDATORY = "The process input object is mandatory";
 
     private final ServerConfiguration config;
-    private final ProcessManagement processManagementMock;
+    private final ProcessManagement processManagement;
     private final ProcessMonitoring processMonitoring;
     private final AtomicLong runningWorkflows = new AtomicLong(0L);
+    private ProcessDistributor processDistributor;
 
     /**
      * ProcessManagementResource : initiate the ProcessManagementResource resources
      *
      * @param configuration the server configuration to be applied
      */
-    public ProcessManagementResource(ServerConfiguration configuration) {
-        processManagementMock = null;
+    public ProcessManagementResource(ServerConfiguration configuration, ProcessDistributor processDistributor) throws ProcessingStorageWorkspaceException {
         config = configuration;
-        try {
-            ProcessManagementImpl.loadProcessFromWorkSpace(config.getUrlMetadata(), config.getUrlWorkspace());
-        } catch (ProcessingStorageWorkspaceException e) {
-            LOGGER.error("Error load process", e);
-        }
+        processManagement = new ProcessManagementImpl(config, processDistributor);
+
         processMonitoring = ProcessMonitoringImpl.getInstance();
         LOGGER.info("init Process Management Resource server");
         AbstractVitamApplication.getBusinessMetricsRegistry().register("Running workflows",
@@ -146,7 +127,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
      * @param configuration the configuration
      */
     ProcessManagementResource(ProcessManagement pManagement, ServerConfiguration configuration) {
-        processManagementMock = pManagement;
+        processManagement = pManagement;
         config = configuration;
         processMonitoring = ProcessMonitoringImpl.getInstance();
     }
@@ -187,10 +168,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getWorkflowDefinitions() {
         try {
-            ProcessManagement processManagement = processManagementMock;
-            if (processManagement == null) {
-                processManagement = new ProcessManagementImpl(config);
-            }
+
             Map<String, WorkFlow> workflowDefinitions = processManagement.getWorkflowDefinitions();
             return Response.status(Status.OK).entity(workflowDefinitions).build();
         } catch (Exception e) {
@@ -226,7 +204,6 @@ public class ProcessManagementResource extends ApplicationStatusResource {
             .setUrlMetadata(config.getUrlMetadata())
             .setUrlWorkspace(config.getUrlWorkspace());
 
-        ProcessManagement processManagement = processManagementMock;
         ParametersChecker.checkParameter("actionId is a mandatory parameter",
             headers.getRequestHeader(GlobalDataRest.X_ACTION));
 
@@ -235,9 +212,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
 
         try {
             runningWorkflows.incrementAndGet();
-            if (processManagement == null) {
-                processManagement = new ProcessManagementImpl(config);
-            }
+
             final ProcessAction action = ProcessAction.getProcessAction(xAction);
 
             ItemStatus itemStatus = null;
@@ -384,13 +359,10 @@ public class ProcessManagementResource extends ApplicationStatusResource {
             .setUrlMetadata(config.getUrlMetadata())
             .setUrlWorkspace(config.getUrlWorkspace());
 
-        ProcessManagement processManagement = processManagementMock;
         final String xAction = headers.getRequestHeader(GlobalDataRest.X_ACTION).get(0);
 
         try {
-            if (processManagement == null) {
-                processManagement = new ProcessManagementImpl(config);
-            }
+
             final ProcessAction action = ProcessAction.getProcessAction(xAction);
 
             ItemStatus itemStatus = null;
@@ -449,12 +421,9 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     public Response interruptWorkFlowExecution(@PathParam("id") String id) {
         ParametersChecker.checkParameter(ERR_OPERATION_ID_IS_MANDATORY, id);
 
-        ProcessManagement processManagement = processManagementMock;
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         try {
-            if (processManagement == null) {
-                processManagement = new ProcessManagementImpl(config);
-            }
+
             final ItemStatus itemStatus = processManagement.cancel(id, tenantId);
             return this.buildResponse(itemStatus);
 
@@ -530,16 +499,13 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response findProcessWorkflows(ProcessQuery query) {
-        ProcessManagement processManagement = processManagementMock;
         try {
-            if (processManagement == null) {
-                processManagement = new ProcessManagementImpl(config);
-            }
+
 
             Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
             return Response.status(Status.OK).entity(processManagement.getFilteredProcess(query, tenantId)).build();
 
-        } catch (ProcessingStorageWorkspaceException exc) {
+        } catch (Exception exc) {
             LOGGER.error(exc);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, "Error while finding existing workflow process",

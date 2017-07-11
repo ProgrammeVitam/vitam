@@ -360,7 +360,7 @@ public class ContractResourceTest {
             .get(resource)
             .then().statusCode(Status.OK.getStatusCode()).extract().body().jsonPath();
 
-        List<String> ids = body.get("$results._id");
+        List<String> ids = body.get("$results.Identifier");
         return ids;
     }
 

@@ -356,7 +356,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public void createorUpdateAccessionRegister(AccessionRegisterDetailModel register)
+    public RequestResponse createorUpdateAccessionRegister(AccessionRegisterDetailModel register)
         throws DatabaseConflictException, AccessionRegisterException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("Accession register is a mandatory parameter", register);
         Response response = null;
@@ -375,6 +375,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 default:
                     throw new AccessionRegisterException("Unknown error: " + status.getStatusCode());
             }
+            return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
@@ -719,7 +720,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     @Override
     public Response downloadProfileFile(String profileMetadataId)
         throws AdminManagementClientServerException, ProfileNotFoundException {
-        ParametersChecker.checkParameter("Profile is is required", profileMetadataId);
+        ParametersChecker.checkParameter("Profile id is required", profileMetadataId);
 
         Response response = null;
 

@@ -149,7 +149,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws DatabaseConflictException when Database conflict exception occurs
      * @throws AdminManagementClientServerException when
      */
-    void createorUpdateAccessionRegister(AccessionRegisterDetailModel register)
+    RequestResponse<AccessionRegisterDetailModel> createorUpdateAccessionRegister(AccessionRegisterDetailModel register)
         throws AccessionRegisterException, DatabaseConflictException, AdminManagementClientServerException;
 
     /**

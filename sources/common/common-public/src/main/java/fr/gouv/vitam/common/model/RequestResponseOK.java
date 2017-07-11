@@ -26,26 +26,29 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model;
 
-import com.fasterxml.jackson.annotation.JsonGetter;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSetter;
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-
-import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import javax.ws.rs.core.Response;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
+
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 
 
 /**
  * Access RequestResponseOK class contains list of results<br>
  * default results : is an empty list (immutable)
+ * 
+ * @param <T> Type of results
  */
 public final class RequestResponseOK<T> extends RequestResponse<T> {
-    
+
     /**
      * result detail in response
      */
@@ -60,7 +63,7 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
      * context in response
      */
     public static final String CONTEXT = "$context";
-    
+
     @JsonProperty(HITS)
     private DatabaseCursor hits;
     @JsonProperty(RESULTS)
@@ -75,10 +78,15 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
         this(JsonHandler.createObjectNode());
     }
 
+    /**
+     * Initialize from a query
+     * 
+     * @param query
+     */
     public RequestResponseOK(JsonNode query) {
         this.query = query;
         hits = new DatabaseCursor(0, 0, 0);
-        results = new ArrayList<T>();
+        results = new ArrayList<>();
     }
 
     /**
@@ -182,6 +190,15 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
     }
 
     /**
+     *
+     * @return True if the result is empty
+     */
+    @JsonIgnore
+    public boolean isEmpty() {
+        return results.isEmpty();
+    }
+
+    /**
      * @param node to transform
      * @return the corresponding VitamError
      * @throws InvalidParseOperationException if parse json object exception occurred
@@ -192,17 +209,18 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
 
     /**
      * transform a RequestResponse to a standard response
+     * 
      * @return Response
      */
     @Override
     public Response toResponse() {
         final Response.ResponseBuilder resp = Response.status(getStatus()).entity(toJsonNode());
-        final Map<String, String> vitamHeaders = this.getVitamHeaders();
-        for (String key : vitamHeaders.keySet()) {
+        final Map<String, String> vitamHeaders = getVitamHeaders();
+        for (final String key : vitamHeaders.keySet()) {
             resp.header(key, getHeaderString(key));
         }
 
-        this.unSetVitamHeaders();
+        unSetVitamHeaders();
         return resp.build();
     }
 }

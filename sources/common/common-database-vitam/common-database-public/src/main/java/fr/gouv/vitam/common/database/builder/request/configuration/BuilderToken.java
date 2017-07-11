@@ -536,12 +536,10 @@ public abstract class BuilderToken {
         /**
          * Object size
          */
-        // FIXME P2 not valid
         SIZE("size"),
         /**
          * Object format
          */
-        // FIXME P2 not valid
         FORMAT("format"),
         /**
          * Unit/ObjectGroup type
@@ -596,9 +594,17 @@ public abstract class BuilderToken {
          */
         OPERATIONS("operations"),
         /**
-         * Document's version (nomber of update on document)
+         * Document's version (number of update on document)
          */
-        VERSION("version");
+        VERSION("version"),
+        /**
+         * Document's usage (BINARY_MASTER, PHYSICAL_MASTER, DISSEMINATION, ...)
+         */
+        USAGE("usage"),
+        /**
+         * Document scoring according to research
+         */
+        SCORE("score");
 
         private final String exactToken;
 
@@ -672,7 +678,7 @@ public abstract class BuilderToken {
      *
      * <pre>
      * {\@code
-     * 
+     *
      * Pour mettre à jour (update) :
      * multiple update : { $multi : true/false } pour autoriser une mise à jour de plusieurs noeuds ou pas (si la requête présente plusieurs résultats mais $multi = false is erreur )
      * action :
@@ -689,7 +695,7 @@ public abstract class BuilderToken {
      *   { $sort : { clef : 1 ou -1 } } pour trier une liste selon un ordre ascendant (1) ou descendant (-1)
      * 3 parties : critères de sélection (expression depuis root) + filtres (multi) + action
      * retourne : la requête + des info générales (nb de résultats) + les n premiers résultats (noeuds mis à jour) selon le format souhaité
-     * 
+     *
      * }
      * </pre>
      */

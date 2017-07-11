@@ -170,7 +170,7 @@ public class IngestExternalImpl implements IngestExternal {
             final LogbookOperationParameters sipSanityParameters =
                 LogbookParametersFactory.newLogbookOperationParameters(
                     ingestGuid,
-                    ingestContext.getEventType(),
+                    INGEST_EXT,
                     containerName,
                     logbookTypeProcess,
                     StatusCode.STARTED,
@@ -212,7 +212,7 @@ public class IngestExternalImpl implements IngestExternal {
                         .header(GlobalDataRest.X_REQUEST_ID, guid.getId())
                         .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.PAUSE)
                         .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.UNKNOWN)
-                        .build());
+                        .build(), input);
 
                 }
             } catch (final ContentAddressableStorageException e) {

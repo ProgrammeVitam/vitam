@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -26,25 +26,7 @@
  */
 package fr.gouv.vitam.processing.distributor.core;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.ThreadLocalRandom;
-
-import javax.validation.constraints.NotNull;
-
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -63,11 +45,39 @@ import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.model.WorkerAsyncRequest;
+import fr.gouv.vitam.worker.client.WorkerClientConfiguration;
+import fr.gouv.vitam.worker.client.WorkerClientFactory;
 import fr.gouv.vitam.worker.common.DescriptionStep;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
+import javax.validation.constraints.NotNull;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.ThreadLocalRandom;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 /**
- * 
+ *
  */
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.net.ssl.*")
+@PrepareForTest({WorkerClientFactory.class})
 public class WorkerManagerTest {
 
     private static final String WORKER_DESCRIPTION =
@@ -79,20 +89,42 @@ public class WorkerManagerTest {
         "{ \"name\" : \"workername2\", \"family\" : \"BigWorker\", \"capacity\" : 10, \"storage\" : 100," +
             "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"12345\" } }";
 
-    private static String registeredWorkerFile = "worker.db";    
-    private static String defautDataFolder = VitamConfiguration.getVitamDataFolder();    
-    
+    private static String registeredWorkerFile = "worker.db";
+    private static String defautDataFolder = VitamConfiguration.getVitamDataFolder();
+
+    private WorkerManager workerManager;
+
     @Before
-    public void setup() throws InvalidParseOperationException, FileNotFoundException
-    {
-        VitamConfiguration.getConfiguration().setData(PropertiesUtils.getResourcePath("").toString());        
-        WorkerManager.initialize();
+    public void setup() throws Exception {
+        WorkerClientFactory.changeMode(null);
+        WorkerClientFactory workerClientFactory = WorkerClientFactory.getInstance(null);
+
+        PowerMockito.mockStatic(WorkerClientFactory.class);
+
+        when(WorkerClientFactory.getInstance(any(WorkerClientConfiguration.class))).thenReturn(workerClientFactory);
+
+        VitamConfiguration.getConfiguration().setData(PropertiesUtils.getResourcePath("").toString());
+
+        workerManager = new WorkerManager();
+        workerManager.initialize();
     }
 
+    @After
+    public void tearDownAfter() throws Exception {
+        cleanWorkerDb();
+    }
+
+    private static void cleanWorkerDb() {
+        File WORKKER_DB_FILE = PropertiesUtils.fileFromDataFolder(registeredWorkerFile);
+        if (null != WORKKER_DB_FILE && WORKKER_DB_FILE.exists()) {
+            WORKKER_DB_FILE.delete();
+        }
+    }
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        VitamConfiguration.getConfiguration().setData(defautDataFolder);        
-    }    
+        VitamConfiguration.getConfiguration().setData(defautDataFolder);
+    }
+
     @Test
     public void givenBigWorkerFamilyAndStepOfBigWorkflowRunningOn() throws Exception {
         final String familyId = "BigWorker";
@@ -107,19 +139,19 @@ public class WorkerManagerTest {
         final List<Action> actions = new ArrayList<>();
         final Action action = new Action();
 
-        
+
         action.setActionDefinition(
             new ActionDefinition().setActionKey("DummyHandler").setBehavior(ProcessBehavior.NOBLOCKING));
         actions.add(action);
         step.setBehavior(ProcessBehavior.NOBLOCKING).setActions(actions);
-        ProcessDistributorImpl processDistributor = ProcessDistributorImplFactory.getDefaultDistributor();
+        ProcessDistributorImpl processDistributor = new ProcessDistributorImpl(workerManager);
         DescriptionStep descriptionStep =
             new DescriptionStep(step, params);
         Semaphore waitingStepAllAsyncRequest = new Semaphore(1);
         WorkerAsyncRequest workerAsyncRequest =
             new WorkerAsyncRequest(descriptionStep, processDistributor, new HashSet<>(), step.getWorkerGroupId(),waitingStepAllAsyncRequest,vsm);
-        WorkerManager.registerWorker(familyId, workerId, BIG_WORKER_DESCRIPTION);        
-        WorkerManager.submitJob(workerAsyncRequest);
+        workerManager.registerWorker(familyId, workerId, BIG_WORKER_DESCRIPTION);
+        workerManager.submitJob(workerAsyncRequest);
     }
 
     @Test
@@ -135,20 +167,20 @@ public class WorkerManagerTest {
         final Action action = new Action();
         final String familyId = "DefaultWorker";
         final String workerId = "NewWorkerId";
-        
+
         action.setActionDefinition(
             new ActionDefinition().setActionKey("DummyHandler").setBehavior(ProcessBehavior.NOBLOCKING));
         actions.add(action);
         step.setBehavior(ProcessBehavior.NOBLOCKING).setActions(actions);
-        ProcessDistributorImpl processDistributor = ProcessDistributorImplFactory.getDefaultDistributor();
+        ProcessDistributorImpl processDistributor = new ProcessDistributorImpl(workerManager);
         DescriptionStep descriptionStep =
             new DescriptionStep(step, params);
         Semaphore waitingStepAllAsyncRequest = new Semaphore(1);
         WorkerAsyncRequest workerAsyncRequest =
             new WorkerAsyncRequest(descriptionStep, processDistributor, new HashSet<>(), step.getWorkerGroupId(),waitingStepAllAsyncRequest,vsm);
-        WorkerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
-        
-        WorkerManager.submitJob(workerAsyncRequest);
+        workerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
+
+        workerManager.submitJob(workerAsyncRequest);
     }
 
     @Test(expected = ProcessingBadRequestException.class)
@@ -156,29 +188,29 @@ public class WorkerManagerTest {
         RunnableMock rm = new RunnableMock();
         VitamThread vt = new VitamThread(rm, ThreadLocalRandom.current().nextLong(1000));
         VitamSessionMock vsm = new VitamSessionMock(vt);
-        ProcessDistributorImpl processDistributor = ProcessDistributorImplFactory.getDefaultDistributor();
+        ProcessDistributorImpl processDistributor = new ProcessDistributorImpl(workerManager);
         DescriptionStep descriptionStep =
             new DescriptionStep(new Step(), WorkerParametersFactory.newWorkerParameters());
         Semaphore waitingStepAllAsyncRequest = new Semaphore(1);
         WorkerAsyncRequest workerAsyncRequest =
             new WorkerAsyncRequest(descriptionStep, processDistributor, new HashSet<>(), "FAKE_QUEUE",waitingStepAllAsyncRequest,vsm);
-        WorkerManager.submitJob(workerAsyncRequest);
+        workerManager.submitJob(workerAsyncRequest);
     }
 
     @Test
     public void givenProcessDistributorWhenRegisterWorkerThenOK() throws Exception {
         final String familyId = "DefaultWorker";
         final String workerId = "NewWorkerId" + GUIDFactory.newGUID().getId();
-        WorkerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
-        assertTrue(WorkerManager.getWorkersList().size() > 0);
+        workerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
+        assertTrue(workerManager.getWorkersList().size() > 0);
     }
 
     @Test(expected = WorkerAlreadyExistsException.class)
     public void givenProcessDistributorWhenRegisterExistingWorkerThenProcessingException() throws Exception {
         final String familyId = "DefaultWorker";
         final String workerId = "NewWorkerId1"+ GUIDFactory.newGUID().getId();;
-        WorkerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
-        WorkerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
+        workerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
+        workerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
     }
 
 
@@ -186,10 +218,10 @@ public class WorkerManagerTest {
     public void givenProcessDistributorWhenUnRegisterExistingWorkerThenOK() throws Exception {
         final String familyId = "DefaultWorker";
         final String workerId = "NewWorkerId2"+ GUIDFactory.newGUID().getId();
-        WorkerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
-        final int sizeBefore = WorkerManager.getWorkersList().get(familyId).size();
-        WorkerManager.unregisterWorker(familyId, workerId);
-        final int sizeAfter = WorkerManager.getWorkersList().get(familyId).size();
+        workerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
+        final int sizeBefore = workerManager.getWorkersList().get(familyId).size();
+        workerManager.unregisterWorker(familyId, workerId);
+        final int sizeAfter = workerManager.getWorkersList().get(familyId).size();
         assertTrue(sizeBefore > sizeAfter);
     }
 
@@ -197,7 +229,7 @@ public class WorkerManagerTest {
     public void givenProcessDistributorWhenUnRegisterNonExistingFamilyThenProcessingException() throws Exception {
         final String familyId = "NewFamilyId" + GUIDFactory.newGUID().getId();
         final String workerId = "NewWorkerId1";
-        WorkerManager.unregisterWorker(familyId, workerId);
+        workerManager.unregisterWorker(familyId, workerId);
     }
 
     @Test(expected = WorkerNotFoundException.class)
@@ -205,61 +237,61 @@ public class WorkerManagerTest {
         final String familyId = "DefaultWorker" ;
         final String workerId = "NewWorkerId3" + GUIDFactory.newGUID().getId();
         final String workerUnknownId = "UnknownWorkerId";
-        WorkerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
-        WorkerManager.unregisterWorker(familyId, workerUnknownId);
+        workerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
+        workerManager.unregisterWorker(familyId, workerUnknownId);
     }
 
     @Test(expected = ProcessingBadRequestException.class)
     public void givenProcessDistributorWhenRegisterIncorrectJsonNodeThenProcessingException() throws Exception {
         final String familyId = "NewFamilyId";
         final String workerId = "NewWorkerId4" + GUIDFactory.newGUID().getId();
-        WorkerManager.registerWorker(familyId, workerId, "{\"fakeKey\" : \"fakeValue\"}");
+        workerManager.registerWorker(familyId, workerId, "{\"fakeKey\" : \"fakeValue\"}");
     }
 
     @Test
     public void givenProcessDistributorWhenRegisterWorkerExistingFamilyThenOK() throws Exception {
         final String familyId = "DefaultWorker" ;
         final String workerId = "NewWorkerId5"+ GUIDFactory.newGUID().getId();
-        WorkerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
-        assertTrue(WorkerManager.getWorkersList().size() > 0);
+        workerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
+        assertTrue(workerManager.getWorkersList().size() > 0);
     }
-    
+
     @Test
-    public void loadWorkerList () throws JsonProcessingException, IOException, InvalidParseOperationException{        
-        WorkerManager.initialize();
-        assertTrue(WorkerManager.getWorkersList().size() > 0);
+    public void loadWorkerList () throws JsonProcessingException, IOException, InvalidParseOperationException{
+        workerManager.initialize();
+        assertTrue(workerManager.getWorkersList().size() == 0);
     }
-    
+
     @Test
     public void removeWorkerFromList () throws JsonProcessingException, WorkerAlreadyExistsException, ProcessingBadRequestException, InvalidParseOperationException, WorkerFamilyNotFoundException, WorkerNotFoundException, InterruptedException{
         final String familyId = "BigWorker";
         final String workerId = "NewWorkerId2"+ GUIDFactory.newGUID().getId();
-        final int  workerNumber = WorkerManager.getWorkersList().size(); 
-        WorkerManager.registerWorker(familyId, workerId, BIG_WORKER_DESCRIPTION);        
-        WorkerManager.unregisterWorker(familyId, workerId);
-        assertEquals(WorkerManager.getWorkersList().size(), workerNumber);
+        workerManager.registerWorker(familyId, workerId, BIG_WORKER_DESCRIPTION);
+        assertEquals(workerManager.getWorkersList().get(familyId).size(), 1);
+        workerManager.unregisterWorker(familyId, workerId);
+        assertEquals(workerManager.getWorkersList().get(familyId).size(), 0);
     }
-    
+
 
     @Test
-    public void addWorkerToList () throws JsonProcessingException, IOException, WorkerFamilyNotFoundException, WorkerNotFoundException, InterruptedException, InvalidParseOperationException, WorkerAlreadyExistsException, ProcessingBadRequestException{        
+    public void addWorkerToList () throws JsonProcessingException, IOException, WorkerFamilyNotFoundException, WorkerNotFoundException, InterruptedException, InvalidParseOperationException, WorkerAlreadyExistsException, ProcessingBadRequestException{
         final String familyId = "DefaultWorker";
         final String workerId = "NewWorkerId2" + GUIDFactory.newGUID().getId();
-        WorkerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
-        assertTrue(WorkerManager.getWorkersList().size() > 0);
+        workerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
+        assertTrue(workerManager.getWorkersList().size() > 0);
     }
 
     private class RunnableMock implements Runnable{
         public RunnableMock(){
-            
+
         }
-        
+
         @Override
         public void run(){
-            
+
         }
     }
-    
+
     private class VitamSessionMock extends VitamSession{
         /**
          * @param owningThread
@@ -284,7 +316,7 @@ public class WorkerManagerTest {
         @Override
         public void mutateFrom(@NotNull VitamSession newSession) {
         }
-        
+
         @Override
         public void erase() {
         }

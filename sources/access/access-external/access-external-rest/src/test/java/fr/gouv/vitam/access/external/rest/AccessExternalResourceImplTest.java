@@ -762,7 +762,7 @@ public class AccessExternalResourceImplTest {
     public void testAccessUnits() throws Exception {
         reset(clientAccessInternal);
         PowerMockito.when(clientAccessInternal.selectUnits(anyObject()))
-            .thenReturn(new RequestResponseOK().addResult(JsonHandler.getFromString(DATA_TEST)));
+            .thenReturn(new RequestResponseOK().addResult(JsonHandler.getFromString(DATA_TEST)).setHttpCode(200));
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -794,7 +794,7 @@ public class AccessExternalResourceImplTest {
     public void testHttpOverrideAccessUnits() throws Exception {
         reset(clientAccessInternal);
         PowerMockito.when(clientAccessInternal.selectUnits(anyObject()))
-            .thenReturn(new RequestResponseOK().addResult(JsonHandler.getFromString(DATA_TEST)));
+            .thenReturn(new RequestResponseOK().addResult(JsonHandler.getFromString(DATA_TEST)).setHttpCode(200));
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -1492,195 +1492,6 @@ public class AccessExternalResourceImplTest {
                 "GET")
             .body(JsonHandler.getFromString(BODY_TEST)).when().get("/objects/goodId").then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-    }
-
-
-    @Test
-    public void testGetDocuments() throws InvalidCreateOperationException, FileNotFoundException {
-        final Select select = new Select();
-        select.setQuery(eq("Id", "APP-00001"));
-        AdminManagementClientFactory.changeMode(null);
-
-        given()
-            .contentType(ContentType.JSON)
-            .header(X_HTTP_METHOD_OVERRIDE, "GET")
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
-            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(select.getFinalSelect())
-            .when().post(AccessExtAPI.ACCESSION_REGISTERS_API)
-            .then().statusCode(Status.OK.getStatusCode());
-
-        given()
-            .contentType(ContentType.JSON)
-            .header(X_HTTP_METHOD_OVERRIDE, "GET")
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
-            .body(select.getFinalSelect())
-            .when().post(AccessExtAPI.ACCESSION_REGISTERS_API)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-
-        given()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
-            .body(select.getFinalSelect())
-            .when().post(AccessExtAPI.ACCESSION_REGISTERS_API)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-
-        given()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
-            .body(select.getFinalSelect())
-            .when().post(AccessExtAPI.ACCESSION_REGISTERS_API)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-
-        given()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(select.getFinalSelect())
-            .when().post(AccessExtAPI.ACCESSION_REGISTERS_API + "/" + good_id)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-
-        given()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
-            .body(select.getFinalSelect())
-            .when().post(AccessExtAPI.ACCESSION_REGISTERS_API + "/" + good_id)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-
-        given()
-            .contentType(ContentType.JSON)
-            .header(X_HTTP_METHOD_OVERRIDE, "GET")
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
-            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(select.getFinalSelect())
-            .when().post(ACCESSION_REGISTER_DETAIL_URI)
-            .then().statusCode(Status.OK.getStatusCode());
-
-        given()
-            .contentType(ContentType.JSON)
-            .header(X_HTTP_METHOD_OVERRIDE, "GET")
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
-            .body(select.getFinalSelect())
-            .when().post(ACCESSION_REGISTER_DETAIL_URI)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-
-        given()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
-            .body(select.getFinalSelect())
-            .when().post(ACCESSION_REGISTER_DETAIL_URI)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-
-        given()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
-            .body(select.getFinalSelect())
-            .when().post(ACCESSION_REGISTER_DETAIL_URI)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void testGetDocumentsError() throws Exception {
-        PowerMockito.mockStatic(AdminManagementClientFactory.class);
-        adminCLient = PowerMockito.mock(AdminManagementClient.class);
-        VitamThreadUtils.getVitamSession().setTenantId(0);
-        VitamThreadUtils.getVitamSession().setContractId(CONTRACT_ID);
-        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
-        PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        PowerMockito.doThrow(new ReferentialNotFoundException("")).when(adminCLient).getAccessionRegister(anyObject());
-        PowerMockito.doThrow(new ReferentialNotFoundException("")).when(adminCLient)
-            .getAccessionRegisterDetail(anyString(), anyObject());
-        AccessContractModel model =
-            JsonHandler.getFromString(ClientMockResultHelper.ACCESS_CONTRACTS, AccessContractModel.class);
-        PowerMockito.when(adminCLient.findAccessContracts(anyObject()))
-            .thenReturn(ClientMockResultHelper.createReponse(model));
-        final Select select = new Select();
-        select.setQuery(eq("Id", "APP-00001"));
-
-        given()
-            .contentType(ContentType.JSON)
-            .header(X_HTTP_METHOD_OVERRIDE, "GET")
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
-            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(select.getFinalSelect())
-            .when().post(AccessExtAPI.ACCESSION_REGISTERS_API)
-            .then().statusCode(Status.OK.getStatusCode());
-
-        given()
-            .contentType(ContentType.JSON)
-            .header(X_HTTP_METHOD_OVERRIDE, "GET")
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
-            .body(select.getFinalSelect())
-            .when().post(AccessExtAPI.ACCESSION_REGISTERS_API)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-
-        given()
-            .contentType(ContentType.JSON)
-            .header(X_HTTP_METHOD_OVERRIDE, "GET")
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
-            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(select.getFinalSelect())
-            .when().post(ACCESSION_REGISTER_DETAIL_URI)
-            .then().statusCode(Status.OK.getStatusCode());
-
-        given()
-            .contentType(ContentType.JSON)
-            .header(X_HTTP_METHOD_OVERRIDE, "GET")
-            .body(select.getFinalSelect())
-            .when().post(ACCESSION_REGISTER_DETAIL_URI)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-
-        PowerMockito.doThrow(new InvalidParseOperationException("fake message")).when(adminCLient)
-            .getAccessionRegister(anyObject());
-        PowerMockito.doThrow(new InvalidParseOperationException("fake message")).when(adminCLient)
-            .getAccessionRegisterDetail(anyString(), anyObject());
-
-        given()
-            .contentType(ContentType.JSON)
-            .header(X_HTTP_METHOD_OVERRIDE, "GET")
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
-            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(select.getFinalSelect())
-            .when().post(AccessExtAPI.ACCESSION_REGISTERS_API)
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
-
-        given()
-            .contentType(ContentType.JSON)
-            .header(X_HTTP_METHOD_OVERRIDE, "GET")
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
-            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(select.getFinalSelect())
-            .when().post(ACCESSION_REGISTER_DETAIL_URI)
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
-
-        PowerMockito.doThrow(new IllegalArgumentException("fake message")).when(adminCLient)
-            .getAccessionRegister(anyObject());
-        PowerMockito.doThrow(new IllegalArgumentException("fake message")).when(adminCLient)
-            .getAccessionRegisterDetail(anyString(), anyObject());
-
-        given()
-            .contentType(ContentType.JSON)
-            .header(X_HTTP_METHOD_OVERRIDE, "GET")
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
-            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(select.getFinalSelect())
-            .when().post(AccessExtAPI.ACCESSION_REGISTERS_API)
-            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
-
-        given()
-            .contentType(ContentType.JSON)
-            .header(X_HTTP_METHOD_OVERRIDE, "GET")
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
-            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(select.getFinalSelect())
-            .when().post(ACCESSION_REGISTER_DETAIL_URI)
-            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
-
     }
 
 }

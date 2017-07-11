@@ -44,6 +44,6 @@ Le modèle de réponse est selon la demande (Accept) le message ArchiveTransferR
 Actuellement, seul le mode XML est proposé.
 
 Deux rapports sont disponibles une fois l'opération terminée :
-- **ATR (ArchiveTransferReply)** via GET /ingests/id/ATR
-- **Manifest (fichier SEDA d'origine)** via GET /ingests/id/Manifest
+- **Reports (ArchiveTransferReply)** via GET /ingests/id/Reports
+- **Manifests (fichier SEDA d'origine)** via GET /ingests/id/Manifests
 

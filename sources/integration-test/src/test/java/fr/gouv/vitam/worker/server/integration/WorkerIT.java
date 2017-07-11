@@ -278,17 +278,17 @@ public class WorkerIT {
 
     private void printAndCheckXmlConfiguration() {
         LOGGER.warn("XML Configuration: " +
-            "\n\tjavax.xml.parsers.SAXParserFactory: " + SystemPropertyUtil.get("javax.xml.parsers.SAXParserFactory") +
+            "\n\tjavax.xml.parsers.SAXParserFactory: " + SystemPropertyUtil.getNoCheck("javax.xml.parsers.SAXParserFactory") +
             "\n\tjavax.xml.parsers.DocumentBuilderFactory: " +
-            SystemPropertyUtil.get("javax.xml.parsers.DocumentBuilderFactory") +
-            "\n\tjavax.xml.datatype.DatatypeFactory: " + SystemPropertyUtil.get("javax.xml.datatype.DatatypeFactory") +
-            "\n\tjavax.xml.stream.XMLEventFactory: " + SystemPropertyUtil.get("javax.xml.stream.XMLEventFactory") +
-            "\n\tjavax.xml.stream.XMLInputFactory: " + SystemPropertyUtil.get("javax.xml.stream.XMLInputFactory") +
-            "\n\tjavax.xml.stream.XMLOutputFactory: " + SystemPropertyUtil.get("javax.xml.stream.XMLOutputFactory") +
+            SystemPropertyUtil.getNoCheck("javax.xml.parsers.DocumentBuilderFactory") +
+            "\n\tjavax.xml.datatype.DatatypeFactory: " + SystemPropertyUtil.getNoCheck("javax.xml.datatype.DatatypeFactory") +
+            "\n\tjavax.xml.stream.XMLEventFactory: " + SystemPropertyUtil.getNoCheck("javax.xml.stream.XMLEventFactory") +
+            "\n\tjavax.xml.stream.XMLInputFactory: " + SystemPropertyUtil.getNoCheck("javax.xml.stream.XMLInputFactory") +
+            "\n\tjavax.xml.stream.XMLOutputFactory: " + SystemPropertyUtil.getNoCheck("javax.xml.stream.XMLOutputFactory") +
             "\n\tjavax.xml.transform.TransformerFactory: " +
-            SystemPropertyUtil.get("javax.xml.transform.TransformerFactory") +
-            "\n\tjavax.xml.validation.SchemaFactory: " + SystemPropertyUtil.get("javax.xml.validation.SchemaFactory") +
-            "\n\tjavax.xml.xpath.XPathFactory: " + SystemPropertyUtil.get("javax.xml.xpath.XPathFactory"));
+            SystemPropertyUtil.getNoCheck("javax.xml.transform.TransformerFactory") +
+            "\n\tjavax.xml.validation.SchemaFactory: " + SystemPropertyUtil.getNoCheck("javax.xml.validation.SchemaFactory") +
+            "\n\tjavax.xml.xpath.XPathFactory: " + SystemPropertyUtil.getNoCheck("javax.xml.xpath.XPathFactory"));
         try {
             LOGGER.warn("XML Implementation: " +
                 "\n\tjavax.xml.parsers.SAXParserFactory: " +

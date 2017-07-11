@@ -331,16 +331,16 @@ PUT
 ***
 
 - La query sélectionne les Units sur lesquelles l'update va être réalisé.
-  - Le contenu est :
-    - Pour **Units/Objects** :
-      - **$roots**
-      - **$query**
-      - **$filter**
-      - **$action**
-    - Pour les autres collections :
-      - **$query**
-      - **$filter**
-      - **$action**
+   - Le contenu est :
+      - Pour **Units/Objects** :
+         - **$roots**
+         - **$query**
+         - **$filter**
+         - **$action**
+      - Pour les autres collections :
+         - **$query**
+         - **$filter**
+         - **$action**
 
 ::
 
@@ -361,11 +361,11 @@ Une réponse est composée de plusieurs parties :
 
 - **$hits**:
 
-  - **limit**: le nombre maximum d'items retournés (limité à 1000 par défaut)
-  - **offset**: la position de démarrage dans la liste retournée (positionné à 0 par défaut)
-  - **total**: le nombre total potentiel (estimation) des résultats possibles
-  - **size**: le nombre réel d'items retournés
-  - **time_out**: Vrai si la requête a durée trop longtemps et donc avec un résultat potentiellement partiel
+   - **limit**: le nombre maximum d'items retournés (limité à 1000 par défaut)
+   - **offset**: la position de démarrage dans la liste retournée (positionné à 0 par défaut)
+   - **total**: le nombre total potentiel (estimation) des résultats possibles
+   - **size**: le nombre réel d'items retournés
+   - **time_out**: Vrai si la requête a durée trop longtemps et donc avec un résultat potentiellement partiel
 
 - **$context**: rapelle la requête exprimée
 - **$results**: contient le résultat de la requête sous forme d'une liste d'items
@@ -377,36 +377,43 @@ Des champs sont protégés dans les requêtes :
 - La plupart de ces champs protégés sont interdits à la modification. Ils ne sont utilisables que dans la partie *$projection* ou *$query* mais pas dans la partie *$data*
 - Communs Units et Objects
 
-  - **#id** est l'identifiant de l'item
-  - **#all** est l'équivalent de "SELECT \*"
-  - **#unitups** est la liste des Units parents
-  - **#tenant** est le tenant associé
-  - **#operations** est la liste des opérations qui ont opéré sur cet élément
-  - **#originating_agency** est l'OriginatingAgency su SIP d'origine
-  - **#originating_agencies** est l'ensemble des OriginatingAgencies issues du SIP et des rattachements (héritage)
+   - **#id** est l'identifiant de l'item
+   - **#all** est l'équivalent de "SELECT \*"
+   - **#unitups** est la liste des Units parents
+   - **#tenant** est le tenant associé
+   - **#operations** est la liste des opérations qui ont opéré sur cet élément
+   - **#originating_agency** est l'OriginatingAgency su SIP d'origine
+   - **#originating_agencies** est l'ensemble des OriginatingAgencies issues du SIP et des rattachements (héritage)
+   - **#storage** est l'état de stockage
+   - **#score** (**UNSUPORTED**) contiendra en cas de requête avec plein texte le score de pertinence
 
 - Spécifiques pour les Units
 
-  - **#unittype** est la typologie du Unit (Arbre **HOLLDING_UNIT**, Plan **FILING_UNIT** ou ArchiveUnit **INGEST**)
-  - **#nbunits** est le nombre de fils immédiats à un Unit donné
-  - **#object** est l'objet associé à un Unit (s'il existe)
-  - **#type** est le type d'item (Document Type)
-  - **#allunitups** est l'ensemble des Units parents (depuis les racines)
-  - **#management** est la partie règles de gestion associées au Unit (ce champ est autorisée à être modifiée et donc dans *$data*)
+   - **#unittype** est la typologie du Unit (Arbre **HOLLDING_UNIT**, Plan **FILING_UNIT** ou ArchiveUnit **INGEST**)
+   - **#nbunits** est le nombre de fils immédiats à un Unit donné
+   - **#object** est l'objet associé à un Unit (s'il existe)
+   - **#type** est le type d'item (Document Type)
+   - **#allunitups** est l'ensemble des Units parents (depuis les racines)
+   - **#management** est la partie règles de gestion associées au Unit (ce champ est autorisée à être modifiée et donc dans *$data*)
 
 - Spécifiques pour les Objects
 
-  - **#type** est le type d'item (Type d'Objet : **Document**, **Audio**, **Video**, **Image**, **Text**, ...)
-  - **#nbobjects** est le nombre d'objets binaires (usages/version) associé à cet objet
-  - **#qualifiers** est la liste des qualifiers disponibles
+   - **#type** est le type d'item (Type d'Objet : **Document**, **Audio**, **Video**, **Image**, **Text**, ...)
+   - **#nbobjects** est le nombre d'objets binaires (usages/version) associé à cet objet
+   - **#qualifiers** est la liste des qualifiers disponibles
 
-    - Les "qualifiers" disponibles pour les objets :
+      - Les "qualifiers" disponibles pour les objets :
 
-      - **PhysicalMaster** pour original physique
-      - **BinaryMaster** pour conservation
-      - **Dissemination** pour la version de diffusion compatible avec un accès rapide et via navigateur
-      - **Thumbnail** pour les vignettes pour les affichages en qualité très réduite et très rapide en "prévue"
-      - **TextContent** pour la partie native texte (ASCII UTF8)
+         - **PhysicalMaster** pour original physique
+         - **BinaryMaster** pour conservation
+         - **Dissemination** pour la version de diffusion compatible avec un accès rapide et via navigateur
+         - **Thumbnail** pour les vignettes pour les affichages en qualité très réduite et très rapide en "prévue"
+         - **TextContent** pour la partie native texte (ASCII UTF8)
+
+    - Un raccourci exite : **#usage**
+    
+      - **#size** est la taille d'un objet
+      - **#format** est le format (PUID) d'un objet
 
 La réponse dispose également de champs dans le *Header* :
 

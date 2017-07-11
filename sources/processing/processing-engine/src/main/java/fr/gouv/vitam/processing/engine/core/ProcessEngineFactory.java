@@ -42,16 +42,8 @@ final public class ProcessEngineFactory {
     public static ProcessEngineFactory get() {
         return INSTANCE;
     }
-    /**
-     * @param workParams the work Params
-     * @return ProcessEngineImpl object created
-     */
-    public ProcessEngineImpl create(WorkerParameters workParams) {
-        return new ProcessEngineImpl(workParams);
-    }
 
     /**
-     * For test purpose
      *
      * @param processDistributor the wanted processDistributor
      * @return ProcessEngineImpl object created

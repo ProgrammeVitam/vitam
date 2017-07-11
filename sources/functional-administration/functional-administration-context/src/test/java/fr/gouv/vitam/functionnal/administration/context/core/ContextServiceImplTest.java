@@ -199,7 +199,7 @@ public class ContextServiceImplTest {
         update.getActions().get(0).getCurrentAction();
 
         JsonNode queryDslForUpdate = update.getFinalUpdate();
-        contextService.updateContext(context.getId(), queryDslForUpdate);
+        contextService.updateContext(context.getIdentifier(), queryDslForUpdate);
 
        
         queryDslForUpdate = update.getFinalUpdate();     

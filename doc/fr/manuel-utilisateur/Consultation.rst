@@ -138,14 +138,14 @@ Ces règles ont les attributs suivants :
 - Date de fin : date de fin d'application de la règle
 - Sort final : optionnel, dans le cas où la règle possède un sort final
 
-Le fait qu'une ou plusieurs règles soient bloquées et retirées de l'héritage est affiché au travers deux mentions :
+Le fait qu'une ou plusieurs règles soient bloquées est affiché au travers deux mentions :
 
 - "Règle désactivée" liste les identifiants des règles, provenant des parents, et qui ne sont plus appliquées à partir de cette unité archivistique.
 
 - "Cette unité archivistique n'hérite d'aucune règle" indique que toutes les règles de cette catégorie (DUA, DUC, Règle de communicabilité, etc.) provenant des parents ne sont plus appliquées à partir de cette unité archivistique.
 
 Chaque règle possède un détail qu'il est possible de consulter en cliquant sur la ligne de la règle en question. Ce détail reprend l'ensemble des valeurs déclarées pour la règle.
-La ligne "hérité de" indique quelle unité archivistique est à l'origine de l'application de la règle sur l'unité consultée. Cet origine est cliquable et mène sur le détail de l'unité mentionnée.
+La ligne "hérité de" indique quelle unité archivistique est à l'origine de l'application de la règle sur l'unité consultée. Cette origine est cliquable et mène sur le détail de l'unité mentionnée.
 
 Si des objets sont disponibles, le bloc "Groupe d'objets" affiche le ou les objets présents dans le groupe d'objets ainsi que les métadonnées associées pour cette unité archivistique.
 
@@ -159,7 +159,7 @@ Chaque objet est listé dans une ligne du tableau, Les colonnes affichent les in
 
 .. image:: images/detail_v3.png
 
-En ce qui concerne les objets physiques, les colonnes n'affichent que l'informations suivante :
+En ce qui concerne les objets physiques, les colonnes n'affichent que l'information suivante :
 
 - Usage
 
@@ -223,7 +223,7 @@ Par défaut, l'écran du journal du cycle de vie du groupe d'objets affiche les 
 - Statut de l'événement
 - Détail de l'événement
 
-.. image:: images/JCV_GO.jpg
+.. image:: images/JCV_GO.png
 
 S'il le souhaite, l'utilisateur peut sélectionner la totalité des informations disponibles dans le journal du cycle de vie de l'unité archivistique en cliquant sur le bouton "Tout sélectionner" ou en choisissant les options souhaitées dans la liste déroulante.
 
@@ -339,4 +339,4 @@ Pour chaque entrée, les informations suivantes sont affichées :
   - Supprimé : Nombre d'objets supprimés de la solution logicielle Vitam
   - Restant : Nombre d'objets restant dans la solution logicielle Vitam
 
-- statut (En stock et complète, en stock et mise à jour, sortie du stock)
+- statut (En stock et complète, Wn stock et mise à jour, Sortie du stock)

@@ -106,11 +106,14 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
 
 
     private final ProcessDataAccess processDataAccess;
+    private final WorkerManager workerManager;
 
     /**
      * Empty constructor
+     * @param workerManager
      */
-    public ProcessDistributorImpl() {
+    public ProcessDistributorImpl(WorkerManager workerManager) {
+        this.workerManager = workerManager;
         processDataAccess = ProcessDataAccessImpl.getInstance();
     }
 
@@ -158,10 +161,10 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
                         } finally {
                             workspaceClient.consumeAnyEntityAndClose(response);
                         }
-                        final Iterator<Entry<String, JsonNode>> iteratorlLevelFile = levelFileJson.fields();
+                        final Iterator<Entry<String, JsonNode>> iteratorLevelFile = levelFileJson.fields();
 
-                        while (iteratorlLevelFile.hasNext()) {
-                            final Entry<String, JsonNode> guidFieldList = iteratorlLevelFile.next();
+                        while (iteratorLevelFile.hasNext()) {
+                            final Entry<String, JsonNode> guidFieldList = iteratorLevelFile.next();
                             final JsonNode guid = guidFieldList.getValue();
                             if (guid != null && guid.size() > 0) {
                                 for (final JsonNode _idGuid : guid) {
@@ -283,7 +286,7 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
 
         try {
             // This call is blocking on queue if full
-            WorkerManager.submitJob(workerAsyncRequest);
+            workerManager.submitJob(workerAsyncRequest);
             if (Thread.interrupted()) {
                 // To check if the ProcessDistributor was interrupt in between, implying a break of the Process
                 throw new InterruptedException("ProcessDistributor thread has been interrupted");
@@ -295,7 +298,7 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
             for (WorkerAsyncRequest war : currentRunningObjectsInStep) {
                 // Remove from the Running JobsSet if the job was still in the BlockingQueue (not
                 // currently consumed by the worker)
-                if (WorkerManager.removeJobs(war)) {
+                if (workerManager.removeJobs(war)) {
                     tempSet.add(war);
                 }
             }
@@ -360,9 +363,10 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
         Semaphore waitingStepAllAsyncRequest) {
         // Note: While is necessary since it can be interrupted by following unachieved tasks
         while (!currentRunningObjectsInStep.isEmpty()) {
-            Thread.yield();
             // Final acquire
             try {
+                // Give a chance for other thread to release
+                Thread.sleep(5);
                 waitingStepAllAsyncRequest.tryAcquire(VitamConfiguration.getWaitingDelay(), TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) { // NOSONAR : ignore exception
                 // Empty

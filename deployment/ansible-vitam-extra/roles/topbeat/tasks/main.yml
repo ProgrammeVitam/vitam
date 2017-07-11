@@ -5,7 +5,6 @@
     name: topbeat
     state: latest
 
-
 - name: apply Topbeat configuration
   template:
     src: topbeat.yml.j2
@@ -16,15 +15,28 @@
 # OMA Commented curl -XDELETE 'http://{{vitam_log_host}}:{{elasticsearch_log_http_port}}/topbeat-*';
 # OMA added ignore_errors due to stange things sometimes when redeploying
 - name: force use topbeat index
-  when: "{{ (groups['hosts-kibana'] | length) > 0}}"
+  when: "{{ (groups['hosts-kibana-log'] | length) > 0}}"
   command: curl -XPUT 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/_template/topbeat' -d@/etc/topbeat/topbeat.template.json
   notify:
     - restart kibana
-  delegate_to: "{{groups['hosts-kibana'][0]}}"
+  delegate_to: "{{groups['hosts-kibana-log'][0]}}"
   run_once: true
 
+- name: load topbeat index pattern into Elasticsearch log .kibana index
+  when: "{{ (groups['hosts-kibana-log'] | length) > 0}}"
+  run_once: true
+  uri:
+    url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/.kibana/{{ item.split(".")[0] }}*'
+    method: PUT
+    body: "{{ lookup('file', '{{role_path}}/files/kibana-metrics-configuration/{{item}}') }}"
+    body_format: json
+    status_code: 200, 201
+  with_lines: find {{ index_pattern_dir }} -name '*.json' -type f | awk -F '/' '{print $(NF-1)"/"$NF}'
+  vars:
+    index_pattern_dir: "{{role_path}}/files/kibana-metrics-configuration/index-pattern"
+
 - name: load dashboards into Elasticsearch log .kibana index
-  when: "{{ (groups['hosts-kibana'] | length) > 0}}"
+  when: "{{ (groups['hosts-kibana-log'] | length) > 0}}"
   run_once: true
   uri:
     url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/.kibana/{{ item.split(".")[0] }}'
@@ -32,11 +44,10 @@
     body: "{{ lookup('file', '{{role_path}}/files/kibana-metrics-configuration/{{item}}') }}"
     body_format: json
     status_code: 200, 201
-  with_lines: find {{ search_dir }} {{ dashboard_dir }} {{ index_pattern_dir }} {{ visualization_dir }} -name '*.json' -type f | awk -F '/' '{print $(NF-1)"/"$NF}'
+  with_lines: find {{ search_dir }} {{ dashboard_dir }} {{ visualization_dir }} -name '*.json' -type f | awk -F '/' '{print $(NF-1)"/"$NF}'
   vars:
     search_dir: "{{role_path}}/files/kibana-metrics-configuration/search"
     dashboard_dir: "{{role_path}}/files/kibana-metrics-configuration/dashboard"
-    index_pattern_dir: "{{role_path}}/files/kibana-metrics-configuration/index-pattern"
     visualization_dir: "{{role_path}}/files/kibana-metrics-configuration/visualization"
 
 - name: restart topbeat

@@ -34,6 +34,7 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFou
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalNotFoundException;
 import fr.gouv.vitam.common.client.BasicClient;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.RequestResponse;
 
@@ -88,7 +89,24 @@ public interface AdminExternalClient extends BasicClient {
      * @throws InvalidParseOperationException
      */
     RequestResponse findDocuments(AdminCollections documentType, JsonNode select, Integer tenantId)
-        throws AccessExternalClientNotFoundException, AccessExternalClientException, InvalidParseOperationException;
+        throws AccessExternalClientException, InvalidParseOperationException;
+
+    /**
+     * findDocuments
+     * with contractName
+     * used by accesion-registers
+     *
+     * @param documentType
+     * @param select
+     * @param tenantId
+     * @param contractName
+     * @return the JsonNode results
+     * @throws AccessExternalClientNotFoundException
+     * @throws AccessExternalClientException
+     * @throws InvalidParseOperationException
+     */
+    RequestResponse findDocuments(AdminCollections documentType, JsonNode select, Integer tenantId, String contractName)
+        throws AccessExternalClientException, InvalidParseOperationException;
 
     /**
      * findDocumentById
@@ -103,6 +121,21 @@ public interface AdminExternalClient extends BasicClient {
     RequestResponse findDocumentById(AdminCollections documentType, String documentId, Integer tenantId)
         throws AccessExternalClientException, InvalidParseOperationException;
 
+    /**
+     * Get the accession register details matching the given query
+     *
+     * @param id the id of accession register
+     * @param query The DSL Query as a JSON Node
+     * @param tenantId the working tenant
+     * @return The AccessionregisterDetails list as a response jsonNode
+     * @throws InvalidParseOperationException
+     * @throws AccessExternalClientServerException
+     * @throws AccessExternalClientNotFoundException
+     * @throws AccessUnauthorizedException
+     */
+    RequestResponse getAccessionRegisterDetail(String id, JsonNode query, Integer tenantId, String contractName)
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException;
 
     /**
      * Import a set of contracts after passing the validation steps. If all the contracts are valid, they are stored in
@@ -219,4 +252,27 @@ public interface AdminExternalClient extends BasicClient {
      * @throws InvalidParseOperationException 
      */
     RequestResponse updateContext(String id, JsonNode queryDsl, Integer tenantId) throws AccessExternalClientException, InvalidParseOperationException;
+
+    /**
+     * @param query
+     * @param tenantId
+     * @param contractName
+     * @throws AccessExternalClientServerException
+     * @throws InvalidParseOperationException
+     * @throws AccessUnauthorizedException
+     */
+    RequestResponse checkTraceabilityOperation(JsonNode query, Integer tenantId, String contractName)
+        throws AccessExternalClientServerException, InvalidParseOperationException, AccessUnauthorizedException;
+
+    /**
+     * Download the traceability operation file according to operationId
+     *
+     * @param operationId
+     * @param tenantId
+     * @param contractName
+     * @throws AccessExternalClientServerException
+     * @throws AccessUnauthorizedException
+     */
+    Response downloadTraceabilityOperationFile(String operationId, Integer tenantId, String contractName)
+        throws AccessExternalClientServerException, AccessUnauthorizedException;
 }

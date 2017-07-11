@@ -49,7 +49,7 @@ public class SearchQuery extends fr.gouv.vitam.common.database.builder.query.Sea
     public SearchQuery(final QUERY req, final JsonNode request, final VarNameAdapter adapter)
         throws InvalidParseOperationException {
         super();
-        currentQUERY = req;
+        currentTokenQUERY = req;
         currentObject = ((ObjectNode) currentObject).putObject(req.exactToken());
         adapter.setVarsValue((ObjectNode) currentObject, request);
         setReady(true);

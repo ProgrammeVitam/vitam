@@ -1429,13 +1429,13 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         vitamDocument.put(LogbookDocument.EVENTS, eventDocuments);
 
     }
-
     private List<Bson> checkCopyToMaster(LogbookCollections collection, LogbookParameters item)
         throws LogbookNotFoundException {
         final String mainLogbookDocumentId = getDocumentForUpdate(item).getId();
         Document oldValue = (Document) collection.getCollection().
             find(eq(LogbookDocument.ID, mainLogbookDocumentId)).first();
         String masterData = item.getParameterValue(LogbookParameterName.masterData);
+
         List<Bson> updates = new ArrayList<Bson>();
         if (ParametersChecker.isNotEmpty(masterData)) {
             try {
@@ -1461,8 +1461,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                     String fieldName = fieldNames.next();
                     String fieldValue = master.get(fieldName).asText();
                     String mongoDbName = LogbookMongoDbName.getLogbookMongoDbName(LogbookParameterName.valueOf(fieldName)).getDbname();
-                    ObjectNode oldVal = null;
-                    if (mongoDbName == LogbookMongoDbName.eventDetailData.getDbname()) {
+                    if (mongoDbName.equals( LogbookMongoDbName.eventDetailData.getDbname())) {
                         JsonNode masterNode = ((ObjectNode) master).get(fieldName);
                         if (masterNode != null) {
                             String masterField = masterNode.asText();
@@ -1473,8 +1472,9 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                         updates.add(Updates.set(mongoDbName, fieldValue));
                     }
                 }
+
                 if (updateEvDevData) {
-                    String fieldValue = JsonHandler.writeAsString(updateEvDevData);
+                    String fieldValue = JsonHandler.writeAsString(oldEvDetData);
                     updates.add(Updates.set(LogbookMongoDbName.eventDetailData.getDbname(), fieldValue));
                 }
             } catch (InvalidParseOperationException e) {
@@ -1483,5 +1483,4 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         }
         return updates;
     }
-
 }

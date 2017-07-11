@@ -49,7 +49,7 @@ public class WildcardQuery extends Query {
         throws InvalidCreateOperationException {
         super();
         createQueryVariableValue(QUERY.WILDCARD, variableName, value);
-        currentQUERY = QUERY.WILDCARD;
+        currentTokenQUERY = QUERY.WILDCARD;
         setReady(true);
     }
 }

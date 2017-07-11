@@ -105,7 +105,7 @@ public class DbRequestResult {
      * @return this
      */
     public DbRequestResult setDiffs(Map<String, List<String>> diffs) {
-        this.diffs = diffs;
+        this.diffs.putAll(diffs); 
         return this;
     }
 

@@ -1,14 +1,14 @@
 Gestion des archives existantes
 ################################
 
-Cette partie décrit les fonctionnalités de gestion et modification des archives dans Vitam.
+Cette partie décrit les fonctionnalités de gestion et modification des archives dans la solution logicielle Vitam.
 
 NB : Cette partie est disponible via l'IHM de démonstration.
 
 Modification des métadonnées
 ============================
 
-La modification des métadonnées d'une unité archivistique s'effectue depuis son écran de détail.
+Il est possible de modifier les métadonnées depuis le détail d'une unité archivistique, issu d'une recherche dans l'écran "Recherche d'archive".
 
 .. image:: images/GESTION_modif_boutons.png
 

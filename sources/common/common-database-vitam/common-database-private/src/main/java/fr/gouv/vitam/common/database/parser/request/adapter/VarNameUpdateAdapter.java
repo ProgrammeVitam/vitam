@@ -46,8 +46,13 @@ public class VarNameUpdateAdapter extends VarNameAdapter {
     }
 
     @Override
+    public boolean metadataAdapter() {
+        return adapter.metadataAdapter();
+    }
+
+    @Override
     public String getVariableName(String name) throws InvalidParseOperationException {
-        if (PROJECTIONARGS.notAllowedOnSet(name)) {
+        if (!adapter.metadataAdapter() && PROJECTIONARGS.notAllowedOnSet(name)) {
             throw new InvalidParseOperationException("Name not allowed in Update: " + name);
         }
         return adapter.getVariableName(name);

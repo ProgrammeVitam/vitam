@@ -212,7 +212,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
         final SelectParserSingle parser = new SelectParserSingle(new VarNameAdapter());
         parser.parse(new Select().getFinalSelect());
         try {
-            parser.addCondition(QueryHelper.eq("#id", id));
+            parser.addCondition(QueryHelper.eq("Identifier", id));
         } catch (InvalidCreateOperationException e) {
             throw new ReferentialException(e);
         }
@@ -471,7 +471,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
 
 
                 try {
-                    if (contract.getCreationdate() == null || contract.getCreationdate().isEmpty()) {
+                    if (contract.getCreationdate() == null || contract.getCreationdate().trim().isEmpty()) {
                         contract.setCreationdate(now);
                     } else {
                         contract.setCreationdate(
@@ -483,7 +483,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                     rejection = GenericRejectionCause.rejectMandatoryMissing("Creationdate");
                 }
                 try {
-                    if (contract.getActivationdate() == null || contract.getActivationdate().isEmpty()) {
+                    if (contract.getActivationdate() == null || contract.getActivationdate().trim().isEmpty()) {
                         contract.setActivationdate(now);
                     } else {
                         contract.setActivationdate(
@@ -496,8 +496,8 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                 }
                 try {
 
-                    if (contract.getDeactivationdate() == null || contract.getDeactivationdate().isEmpty()) {
-
+                    if (contract.getDeactivationdate() == null || contract.getDeactivationdate().trim().isEmpty()) {
+                        contract.setDeactivationdate(null);
                     } else {
 
                         contract.setDeactivationdate(
@@ -610,7 +610,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
 
             return error;
         }
-        manager.logUpdateSuccess(id, updateDiffs.get(id));
+        manager.logUpdateSuccess(id, updateDiffs.get(accContractModel.getId()));
         return new RequestResponseOK<AccessContractModel>();
     }
 

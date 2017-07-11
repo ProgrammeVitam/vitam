@@ -31,6 +31,7 @@ import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.util.Properties;
 
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 
 /**
@@ -142,6 +143,20 @@ public final class SystemPropertyUtil {
     }
 
     /**
+     * Returns the value of the Java system property with the specified {@code key}, while falling back to {@code null}
+     * if the property access fails.
+     *
+     * @param key of system property to get
+     * @return the property value or {@code null}
+     * @throws IllegalArgumentException key null
+     */
+    public static final String getNoCheck(final String key) {
+        ParametersChecker.checkParameter("Key", key);
+        final String value = PROPS.getProperty(key);
+        return value;
+    }
+
+    /**
      * Returns the value of the Java system property with the specified {@code key}, while falling back to the specified
      * default value if the property access fails.
      *
@@ -154,6 +169,12 @@ public final class SystemPropertyUtil {
     public static final String get(final String key, final String def) {
         ParametersChecker.checkParameter("Key", key);
         final String value = PROPS.getProperty(key);
+        try {
+            StringUtils.checkSanityString(value);
+        } catch (InvalidParseOperationException e) {
+            SysErrLogger.FAKE_LOGGER.syserr("Invalid property " + key, e);
+            return def;
+        }
         if (value == null) {
             return def;
         }
@@ -190,6 +211,12 @@ public final class SystemPropertyUtil {
         if ("false".equals(value) || "no".equals(value) || "0".equals(value)) {
             return false;
         }
+        try {
+            StringUtils.checkSanityString(value);
+        } catch (InvalidParseOperationException e) {
+            SysErrLogger.FAKE_LOGGER.syserr("Invalid property " + key, e);
+            return def;
+        }
         SysErrLogger.FAKE_LOGGER.syserr(
             "Unable to parse the boolean system property '" + key + "':" + value + " - " +
                 USING_THE_DEFAULT_VALUE + def);
@@ -224,6 +251,12 @@ public final class SystemPropertyUtil {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
         }
+        try {
+            StringUtils.checkSanityString(value);
+        } catch (InvalidParseOperationException e) {
+            SysErrLogger.FAKE_LOGGER.syserr("Invalid property " + key, e);
+            return def;
+        }
         SysErrLogger.FAKE_LOGGER.syserr(
             "Unable to parse the integer system property '" + key + "':" + value + " - " +
                 USING_THE_DEFAULT_VALUE + def);
@@ -257,6 +290,12 @@ public final class SystemPropertyUtil {
                 // Ignore
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
+        }
+        try {
+            StringUtils.checkSanityString(value);
+        } catch (InvalidParseOperationException e) {
+            SysErrLogger.FAKE_LOGGER.syserr("Invalid property " + key, e);
+            return def;
         }
 
         SysErrLogger.FAKE_LOGGER.syserr(

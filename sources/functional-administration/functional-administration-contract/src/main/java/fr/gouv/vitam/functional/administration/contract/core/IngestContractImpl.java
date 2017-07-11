@@ -243,7 +243,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         final SelectParserSingle parser = new SelectParserSingle(new VarNameAdapter());
         parser.parse(new Select().getFinalSelect());
         try {
-            parser.addCondition(QueryHelper.eq("#id", id));
+            parser.addCondition(QueryHelper.eq("Identifier", id));
         } catch (InvalidCreateOperationException e) {
             throw new ReferentialException(e);
         }
@@ -494,7 +494,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 }
 
                 try {
-                    if (contract.getCreationdate() == null || contract.getCreationdate().isEmpty()) {
+                    if (contract.getCreationdate() == null || contract.getCreationdate().trim().isEmpty()) {
                         contract.setCreationdate(now);
                     } else {
                         contract.setCreationdate(
@@ -506,7 +506,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     rejection = GenericContractValidator.GenericRejectionCause.rejectMandatoryMissing("Creationdate");
                 }
                 try {
-                    if (contract.getActivationdate() == null || contract.getActivationdate().isEmpty()) {
+                    if (contract.getActivationdate() == null || contract.getActivationdate().trim().isEmpty()) {
                         contract.setActivationdate(now);
                     } else {
                         contract.setActivationdate(
@@ -519,8 +519,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 }
                 try {
 
-                    if (contract.getDeactivationdate() == null || contract.getDeactivationdate().isEmpty()) {
-
+                    if (contract.getDeactivationdate() == null || contract.getDeactivationdate().trim().isEmpty()) {
+                        contract.setDeactivationdate(null);
                     } else {
 
                         contract.setDeactivationdate(

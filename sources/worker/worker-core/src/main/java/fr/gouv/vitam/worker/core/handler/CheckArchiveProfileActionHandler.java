@@ -59,7 +59,6 @@ import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.embed.ProfileFormat;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
-import fr.gouv.vitam.logbook.common.parameters.LogbookEvDetDataType;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -122,7 +121,7 @@ public class CheckArchiveProfileActionHandler extends ActionHandler {
             }
 
             if (profile != null) {
-                Response dowloadResponse = adminClient.downloadProfileFile(profile.getId());
+                Response dowloadResponse = adminClient.downloadProfileFile(profileIdentifier);
                 InputStream stream = dowloadResponse.readEntity(InputStream.class);
                 File tmpFile = PropertiesUtils.fileFromTmpFolder(profile.getPath());
                 OutputStream outputStream = new FileOutputStream(tmpFile);
@@ -178,11 +177,10 @@ public class CheckArchiveProfileActionHandler extends ActionHandler {
             itemStatus.increment(StatusCode.KO);
         }
         
-        infoNode.put(LogbookOperationsClientHelper.EV_DET_DATA_TYPE, 
-            LogbookEvDetDataType.MASTER.name());
         infoNode.put(SedaConstants.TAG_ARCHIVE_PROFILE, profileIdentifier);
-        itemStatus.setData(LogbookParameterName.eventDetailData.name(), 
-            JsonHandler.unprettyPrint(infoNode));
+        String evdev = JsonHandler.unprettyPrint(infoNode);
+        itemStatus.setData(LogbookParameterName.eventDetailData.name(), evdev);
+        itemStatus.setMasterData(LogbookParameterName.eventDetailData.name(), evdev);
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 

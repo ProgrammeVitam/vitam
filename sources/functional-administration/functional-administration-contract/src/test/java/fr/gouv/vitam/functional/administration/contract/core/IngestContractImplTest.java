@@ -327,7 +327,7 @@ public class IngestContractImplTest {
         IngestContractModel acm = responseCast.getResults().iterator().next();
         assertThat(acm).isNotNull();
 
-        String id1 = acm.getId();
+        String id1 = acm.getIdentifier();
         assertThat(id1).isNotNull();
 
 
@@ -338,7 +338,7 @@ public class IngestContractImplTest {
         assertThat(one.getName()).isEqualTo(acm.getName());
 
         assertThat(one.getTenant()).isNotNull();
-        assertThat(one.getTenant()).isEqualTo(Long.valueOf(TENANT_ID));
+        assertThat(one.getTenant()).isEqualTo(Integer.valueOf(TENANT_ID));
 
     }
 
@@ -381,7 +381,7 @@ public class IngestContractImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenIngestContractsTestfindByID() throws Exception {
+    public void givenIngestContractsTestfindByIdentifier() throws Exception {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
@@ -397,7 +397,7 @@ public class IngestContractImplTest {
         IngestContractModel acm = responseCast.getResults().iterator().next();
         assertThat(acm).isNotNull();
 
-        String id1 = acm.getId();
+        String id1 = acm.getIdentifier();
         assertThat(id1).isNotNull();
 
 
@@ -478,7 +478,7 @@ public class IngestContractImplTest {
         JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
 
         RequestResponse<IngestContractModel> updateContractStatus =
-                ingestContractService.updateContract(ingestModelList.get(0).getId(), queryDslForUpdate);
+                ingestContractService.updateContract(ingestModelList.get(0).getIdentifier(), queryDslForUpdate);
         assertThat(updateContractStatus).isNotExactlyInstanceOf(VitamError.class);
 
         List<IngestContractModel> ingestContractModelListForassert =
@@ -502,7 +502,7 @@ public class IngestContractImplTest {
                 setActionLastUpdateActive);
         updateParserActive.parse(updateStatusActive.getFinalUpdate());
         JsonNode queryDslStatusActive = updateParserActive.getRequest().getFinalUpdate();
-        ingestContractService.updateContract(ingestModelList.get(0).getId(), queryDslStatusActive);
+        ingestContractService.updateContract(ingestModelList.get(0).getIdentifier(), queryDslStatusActive);
 
 
         List<IngestContractModel> accessContractModelListForassert2 =

@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>fr.gouv.vitam</groupId>
 	<artifactId>parent</artifactId>
-	<version>0.20.0-SNAPSHOT</version>
+	<version>0.21.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>vitam-parent</name>
 	<description>${project.artifactId}</description>
@@ -340,7 +340,7 @@
 						<parallel>classes</parallel>
 						<threadCount>1</threadCount>
 						<perCoreThreadCount>true</perCoreThreadCount>
-						<forkCount>3C</forkCount>
+						<forkCount>2C</forkCount>
 						<reuseForks>false</reuseForks>
 						<trimStackTrace>false</trimStackTrace>
 						<!-- Non Parallel mode -->

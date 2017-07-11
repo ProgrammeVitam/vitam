@@ -175,7 +175,7 @@ public class ProfileServiceImplTest {
         doAnswer(invocation -> xsdProfile).when(workspaceClient).putObject(anyString(), anyString(), any(InputStream.class));
 
 
-        RequestResponse requestResponse = profileService.importProfileFile(profileModel.getId(), xsdProfile);
+        RequestResponse requestResponse = profileService.importProfileFile(profileModel.getIdentifier(), xsdProfile);
         assertThat(requestResponse.isOk()).isTrue();
 
     }
@@ -203,7 +203,7 @@ public class ProfileServiceImplTest {
         given(workspaceClientFactory.getClient()).willReturn(workspaceClient);
 
 
-        RequestResponse requestResponse = profileService.importProfileFile(profileModel.getId(), xsdProfile);
+        RequestResponse requestResponse = profileService.importProfileFile(profileModel.getIdentifier(), xsdProfile);
         assertThat(requestResponse.isOk()).isTrue();
 
     }
@@ -229,7 +229,7 @@ public class ProfileServiceImplTest {
         given(workspaceClientFactory.getClient()).willReturn(workspaceClient);
 
 
-        RequestResponse requestResponse = profileService.importProfileFile(profileModel.getId(), xsdProfile);
+        RequestResponse requestResponse = profileService.importProfileFile(profileModel.getIdentifier(), xsdProfile);
         assertThat(requestResponse.isOk()).isFalse();
 
     }
@@ -253,11 +253,11 @@ public class ProfileServiceImplTest {
 
         doAnswer(invocation -> xsdProfile).when(workspaceClient).putObject(anyString(), anyString(), any(InputStream.class));
         given(workspaceClientFactory.getClient()).willReturn(workspaceClient);
-        RequestResponse requestResponse = profileService.importProfileFile(profileModel.getId(), xsdProfile);
+        RequestResponse requestResponse = profileService.importProfileFile(profileModel.getIdentifier(), xsdProfile);
         assertThat(requestResponse.isOk()).isTrue();
 
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
-        profileService.downloadProfileFile(profileModel.getId(), responseAsync);
+        profileService.downloadProfileFile(profileModel.getIdentifier(), responseAsync);
 
     }
     @Test
@@ -394,18 +394,18 @@ public class ProfileServiceImplTest {
         ProfileModel acm = responseCast.getResults().iterator().next();
         assertThat(acm).isNotNull();
 
-        String id1 = acm.getId();
+        String id1 = acm.getIdentifier();
         assertThat(id1).isNotNull();
 
 
-        ProfileModel one = profileService.findOne(id1);
+        ProfileModel one = profileService.findByIdentifier(id1);
 
         assertThat(one).isNotNull();
 
         assertThat(one.getName()).isEqualTo(acm.getName());
 
         assertThat(one.getTenant()).isNotNull();
-        assertThat(one.getTenant()).isEqualTo(Long.valueOf(TENANT_ID));
+        assertThat(one.getTenant()).isEqualTo(Integer.valueOf(TENANT_ID));
 
     }
 
@@ -439,7 +439,7 @@ public class ProfileServiceImplTest {
 
         VitamThreadUtils.getVitamSession().setTenantId(2);
 
-        final ProfileModel one = profileService.findOne(id1);
+        final ProfileModel one = profileService.findByIdentifier(id1);
 
         assertThat(one).isNull();
 
@@ -462,11 +462,11 @@ public class ProfileServiceImplTest {
         ProfileModel acm = responseCast.getResults().iterator().next();
         assertThat(acm).isNotNull();
 
-        String id1 = acm.getId();
+        String id1 = acm.getIdentifier();
         assertThat(id1).isNotNull();
 
 
-        ProfileModel one = profileService.findOne(id1);
+        ProfileModel one = profileService.findByIdentifier(id1);
 
         assertThat(one).isNotNull();
 

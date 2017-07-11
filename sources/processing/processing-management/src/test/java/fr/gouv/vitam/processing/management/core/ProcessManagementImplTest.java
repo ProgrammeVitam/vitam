@@ -26,32 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.core;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.time.LocalDate;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.assertj.core.api.Assertions;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Matchers;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
@@ -77,19 +54,48 @@ import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.model.UriPrefix;
 import fr.gouv.vitam.processing.common.model.WorkFlow;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
+import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
-import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoring;
-import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
+import fr.gouv.vitam.processing.distributor.api.IWorkerManager;
+import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
+import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImpl;
+import fr.gouv.vitam.processing.distributor.core.WorkerManager;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Matchers;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.eq;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"javax.net.ssl.*"})
-@PrepareForTest({WorkspaceProcessDataManagement.class})
+@PrepareForTest({WorkspaceProcessDataManagement.class, ProcessDataAccessImpl.class})
 public class ProcessManagementImplTest {
 
     private ProcessManagementImpl processManagementImpl;
     private static final String CONTAINER_NAME = "container1";
     private static final String ID = "id1";
     private static WorkspaceProcessDataManagement processDataManagement;
+    private IWorkerManager workerManager = null;
+    private ProcessDistributor processDistributor = null;
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -100,6 +106,14 @@ public class ProcessManagementImplTest {
         PowerMockito.mockStatic(WorkspaceProcessDataManagement.class);
         processDataManagement = PowerMockito.mock(WorkspaceProcessDataManagement.class);
         PowerMockito.when(WorkspaceProcessDataManagement.getInstance()).thenReturn(processDataManagement);
+
+        if (VitamConfiguration.ENABLE_DISTRIBUTOR_V2) {
+            workerManager = new fr.gouv.vitam.processing.distributor.v2.WorkerManager();
+            processDistributor= new fr.gouv.vitam.processing.distributor.v2.ProcessDistributorImpl(workerManager);
+        } else {
+            workerManager = new WorkerManager();
+            processDistributor= new ProcessDistributorImpl((WorkerManager)workerManager);
+        }
     }
 
     @Test(expected = ProcessingException.class)
@@ -110,7 +124,7 @@ public class ProcessManagementImplTest {
         PowerMockito.when(processDataManagement.getProcessWorkflowFor(Matchers.eq(1), Matchers.anyString()))
             .thenReturn(new HashMap<>());
         processManagementImpl =
-            new ProcessManagementImpl(new ServerConfiguration());
+            new ProcessManagementImpl(new ServerConfiguration(), processDistributor);
         processManagementImpl.resume(
             WorkerParametersFactory.newWorkerParameters(ID, ID, CONTAINER_NAME, ID, ID,
                 "http://localhost:8083",
@@ -126,7 +140,7 @@ public class ProcessManagementImplTest {
         PowerMockito.verifyNoMoreInteractions(processDataManagement);
         PowerMockito.when(processDataManagement.getProcessWorkflowFor(Matchers.eq(2), Matchers.anyString()))
             .thenReturn(new HashMap<>());
-        processManagementImpl = new ProcessManagementImpl(new ServerConfiguration());
+        processManagementImpl = new ProcessManagementImpl(new ServerConfiguration(), processDistributor);
         Assert.assertNotNull(processManagementImpl);
         List<ProcessWorkflow> processWorkflowList = processManagementImpl.findAllProcessWorkflow(2);
         Assert.assertNotNull(processWorkflowList);
@@ -143,7 +157,7 @@ public class ProcessManagementImplTest {
         ServerConfiguration serverConfiguration = new ServerConfiguration();
         serverConfiguration.setUrlMetadata("fakeurl:1111");
         serverConfiguration.setUrlWorkspace("fakeurl:1112");
-        processManagementImpl = new ProcessManagementImpl(serverConfiguration);
+        processManagementImpl = new ProcessManagementImpl(serverConfiguration, processDistributor);
         Assert.assertNotNull(processManagementImpl);
         List<ProcessWorkflow> processWorkflowList = processManagementImpl.findAllProcessWorkflow(3);
         Assert.assertNotNull(processWorkflowList);
@@ -165,15 +179,22 @@ public class ProcessManagementImplTest {
 
     @Test
     public void getFilteredProcessTest() throws Exception {
-        ProcessMonitoring processMonitoring = PowerMockito.mock(ProcessMonitoringImpl.class);
         ServerConfiguration serverConfiguration = new ServerConfiguration();
         serverConfiguration.setUrlMetadata("fakeurl:1111");
         serverConfiguration.setUrlWorkspace("fakeurl:1112");
-        processManagementImpl = new ProcessManagementImpl(serverConfiguration, processMonitoring);
-        Assert.assertNotNull(processManagementImpl);
 
-        PowerMockito.when(processMonitoring.findAllProcessWorkflow(Matchers.eq(0))).thenReturn
-            (getPausedWorkflowList(5));
+        ProcessDataAccessImpl processDataAccess = mock(ProcessDataAccessImpl.class);
+
+        PowerMockito.mockStatic(ProcessDataAccessImpl.class);
+
+        when(ProcessDataAccessImpl.getInstance()).thenReturn(processDataAccess);
+
+        when(processDataAccess.findAllProcessWorkflow(eq(0))).thenReturn(getPausedWorkflowList(5));
+
+        VitamConfiguration.getConfiguration().setData(PropertiesUtils.getResourcePath("").toString());
+
+        processManagementImpl = new ProcessManagementImpl(serverConfiguration, processDistributor);
+        Assert.assertNotNull(processManagementImpl);
 
         ProcessQuery pq = new ProcessQuery();
 

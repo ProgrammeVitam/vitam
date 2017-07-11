@@ -105,7 +105,7 @@ public class MetaDataResourceTest {
     private final static String HOST_NAME = "127.0.0.1";
 
     private static final String QUERY_PATH = "{ $path :  [\"aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq\"]  }";
-    private static final String QUERY_EXISTS = "{ $exists :  \"#id\"  }";
+    private static final String QUERY_EXISTS = "{ $exists :  'data' }";
     private static final String QUERY_TEST =
         "{ $or : " + "[ " + "   {$exists : '#id'}, " + "   {$missing : 'mavar2'}, " + "   {$isNull : 'mavar3'}, " +
             "   { $or : [ " + "          {$in : { 'mavar4' : [1, 2, 'maval1'] }}, " +

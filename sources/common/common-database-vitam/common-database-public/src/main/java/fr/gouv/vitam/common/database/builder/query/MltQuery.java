@@ -111,7 +111,7 @@ public class MltQuery extends Query {
                 throw new InvalidCreateOperationException(
                     QUERY2 + mltQuery + " is not an MoreLikeThis or In Query");
         }
-        currentQUERY = mltQuery;
+        currentTokenQUERY = mltQuery;
         setReady(true);
     }
 
@@ -124,9 +124,9 @@ public class MltQuery extends Query {
      */
     public final MltQuery add(final String... variableName)
         throws InvalidCreateOperationException {
-        if (currentQUERY != QUERY.FLT && currentQUERY != QUERY.MLT) {
+        if (currentTokenQUERY != QUERY.FLT && currentTokenQUERY != QUERY.MLT) {
             throw new InvalidCreateOperationException(
-                "Cannot add a variableName since this is not an Mlt Query: " + currentQUERY);
+                "Cannot add a variableName since this is not an Mlt Query: " + currentTokenQUERY);
         }
         final ArrayNode array = (ArrayNode) currentObject;
         if (stringVals == null) {
@@ -135,7 +135,7 @@ public class MltQuery extends Query {
         for (String val : variableName) {
             if (val == null || val.trim().isEmpty()) {
                 throw new InvalidCreateOperationException(
-                    QUERY2 + currentQUERY + " cannot be updated with empty variable name");
+                    QUERY2 + currentTokenQUERY + " cannot be updated with empty variable name");
             }
             try {
                 GlobalDatas.sanityParameterCheck(val);

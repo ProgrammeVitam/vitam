@@ -633,21 +633,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                         throw new InvalidParseOperationException(
                                             "Request method undefined for collection " + requestedCollection);
                                 }
-                            } else if (requestedCollection.equalsIgnoreCase(ACCESSION_REGISTERS_COLLECTION)) {
-                                switch (requestMethod) {
-                                    case HTTP_GET:
-                                        if (StringUtils.isBlank(objectID)) {
-                                            result = client.getAccessionRegisterSummary(criteria, tenantId,
-                                                contractId);
-                                        } else {
-                                            result = client.getAccessionRegisterDetail(objectID, criteria, tenantId,
-                                                contractId);
-                                        }
-                                        break;
-                                    default:
-                                        throw new InvalidParseOperationException(
-                                            "Request method undefined for collection " + requestedCollection);
-                                }
                             } else {
                                 throw new InvalidParseOperationException("Collection unrecognized");
                             }
@@ -687,12 +672,19 @@ public class WebApplicationResource extends ApplicationStatusResource {
                         AdminExternalClientFactory.getInstance().getClient()) {
                         switch (requestMethod) {
                             case HTTP_GET:
+                                contractId = AdminCollections.ACCESSION_REGISTERS.equals(requestedAdminCollection) ?
+                                    contractId : null;
                                 if (StringUtils.isBlank(objectID)) {
                                     result = adminExternalClient.findDocuments(requestedAdminCollection, criteria,
-                                        tenantId);
+                                        tenantId, contractId);
                                 } else {
-                                    result = adminExternalClient.findDocumentById(requestedAdminCollection, objectID,
-                                        tenantId);
+                                    if (AdminCollections.ACCESSION_REGISTERS.equals(requestedAdminCollection)) {
+                                        result = adminExternalClient.getAccessionRegisterDetail(objectID, criteria,
+                                            tenantId, contractId);
+                                    } else {
+                                        result = adminExternalClient.findDocumentById(requestedAdminCollection, objectID,
+                                            tenantId);
+                                    }
                                 }
                                 break;
                             case "PUT":

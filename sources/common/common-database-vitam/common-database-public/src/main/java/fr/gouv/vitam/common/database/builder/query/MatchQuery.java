@@ -62,7 +62,7 @@ public class MatchQuery extends Query {
             case MATCH_PHRASE_PREFIX:
             case PREFIX:
                 createQueryVariableValue(matchQuery, variableName, value);
-                currentQUERY = matchQuery;
+                currentTokenQUERY = matchQuery;
                 setReady(true);
                 break;
             default:
@@ -79,7 +79,7 @@ public class MatchQuery extends Query {
      */
     public final MatchQuery setMatchMaxExpansions(final int max)
         throws InvalidCreateOperationException {
-        switch (currentQUERY) {
+        switch (currentTokenQUERY) {
             case MATCH:
             case MATCH_PHRASE:
             case MATCH_PHRASE_PREFIX:
@@ -89,7 +89,7 @@ public class MatchQuery extends Query {
                 break;
             default:
                 throw new InvalidCreateOperationException(
-                    QUERY2 + currentQUERY + IS_NOT_A_MATCH_QUERY);
+                    QUERY2 + currentTokenQUERY + IS_NOT_A_MATCH_QUERY);
         }
         return this;
     }

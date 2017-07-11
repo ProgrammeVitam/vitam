@@ -440,7 +440,7 @@ public class SelectParserSingleTest {
         assertNotNull(request.getRequest());
         request.addCondition(eq("var5", "value"));
         assertEquals(
-            "{\"$query\":{\"$and\":[{\"$and\":[{\"$term\":{\"var01\":\"value1\"}},{\"$gte\":{\"var02\":3}}]}," +
+            "{\"$query\":{\"$and\":[{\"$term\":{\"var01\":\"value1\"}},{\"$gte\":{\"var02\":3}}," +
                 "{\"$eq\":{\"var5\":\"value\"}}]}," +
                 "\"$filter\":{\"$limit\":10000,\"$orderby\":{\"var1\":1,\"var2\":-1}}," +
                 "\"$projection\":{\"$fields\":{\"var3\":1,\"var4\":0}}}",

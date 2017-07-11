@@ -41,6 +41,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
@@ -50,9 +51,13 @@ import javax.ws.rs.core.UriInfo;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.external.api.AdminCollections;
+import fr.gouv.vitam.access.internal.client.AccessInternalClient;
+import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.error.ServiceName;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -62,6 +67,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AccessContractModel;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
@@ -70,6 +76,7 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
 import fr.gouv.vitam.functional.administration.client.model.ContextModel;
 import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
 import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
@@ -80,6 +87,7 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesNotFoun
 import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 
 /**
  * Admin Management External Resource Implement
@@ -225,7 +233,7 @@ public class AdminManagementExternalResourceImpl {
      * @param profileFile inputStream representing the data to import
      * @return The jaxRs Response
      */
-    @Path("/{collection}/{id}")
+    @Path("/{collection}/{id:.+}")
     @PUT
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
@@ -270,13 +278,13 @@ public class AdminManagementExternalResourceImpl {
      * Download the file (profile file or traceability file)<br/>
      * <br/>
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
-     * 
+     *
      * @param collection
      * @param fileId
      * @param asyncResponse
      */
     @GET
-    @Path("/{collection}/{id}")
+    @Path("/{collection}/{id:.+}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void downloadProfileFileOrTraceabilityFile(@PathParam("collection") String collection,
         @PathParam("id") String fileId,
@@ -334,7 +342,10 @@ public class AdminManagementExternalResourceImpl {
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response findDocuments(@PathParam("collection") String collection, JsonNode select) {
+    public Response findDocuments(@Context HttpHeaders headers,
+        @PathParam("collection") String collection, JsonNode select) {
+
+
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         try {
@@ -406,9 +417,10 @@ public class AdminManagementExternalResourceImpl {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createOrfindDocuments(@PathParam("collection") String collection, JsonNode select,
-        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
+        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) throws DatabaseConflictException {
+
         if (xhttpOverride != null && "GET".equalsIgnoreCase(xhttpOverride)) {
-            return findDocuments(collection, select);
+            return findDocuments(null, collection, select);
         } else {
             Integer tenantId = ParameterHelper.getTenantParameter();
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
@@ -441,6 +453,18 @@ public class AdminManagementExternalResourceImpl {
                     status = client.importContexts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
                         new TypeReference<List<ContextModel>>() {}));
                 }
+
+                if (AdminCollections.ACCESSION_REGISTERS.compareTo(collection)) {
+                    SanityChecker.checkJsonAll(select);
+                    RequestResponse requestResponse =
+                        client.createorUpdateAccessionRegister(JsonHandler.getFromStringAsTypeRefence(select.toString(),
+                            new TypeReference<AccessionRegisterDetailModel>() {}));
+
+                    return Response.status(requestResponse.getStatus())
+                        .entity(requestResponse).build();
+
+                }
+
                 // Send the http response with the entity and the status got from internalService;
                 ResponseBuilder ResponseBuilder = Response.status(status)
                     .entity(respEntity != null ? respEntity : "Successfully imported");
@@ -458,7 +482,7 @@ public class AdminManagementExternalResourceImpl {
 
     /**
      * With Document By Id
-     * 
+     *
      * @param collection
      * @param documentId
      * @param xhttpOverride
@@ -471,7 +495,7 @@ public class AdminManagementExternalResourceImpl {
         @PathParam("id_document") String documentId,
         @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
         if (xhttpOverride != null && "GET".equalsIgnoreCase(xhttpOverride)) {
-            return findDocumentByID(collection, documentId);
+            return findDocumentByID(collection, documentId, JsonHandler.createObjectNode());
         } else {
             Integer tenantId = ParameterHelper.getTenantParameter();
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
@@ -491,11 +515,12 @@ public class AdminManagementExternalResourceImpl {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response findDocumentByID(@PathParam("collection") String collection,
-        @PathParam("id_document") String documentId) {
+        @PathParam("id_document") String documentId, JsonNode select) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         try {
             ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
+            SanityChecker.checkParameter(documentId);
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 if (AdminCollections.FORMATS.compareTo(collection)) {
                     final JsonNode result = client.getFormatByID(documentId);
@@ -536,7 +561,7 @@ public class AdminManagementExternalResourceImpl {
                 final Status status = Status.BAD_REQUEST;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             }
-        } catch (final IllegalArgumentException e) {
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.PRECONDITION_FAILED)
                 .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
@@ -545,7 +570,7 @@ public class AdminManagementExternalResourceImpl {
 
     /**
      * Update document
-     * 
+     *
      * @param collection
      * @param id
      * @param queryDsl
@@ -553,7 +578,7 @@ public class AdminManagementExternalResourceImpl {
      * @throws AdminManagementClientServerException
      * @throws InvalidParseOperationException
      */
-    @Path("/{collection}/{id}")
+    @Path("/{collection}/{id:.+}")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -594,6 +619,107 @@ public class AdminManagementExternalResourceImpl {
     }
 
     /**
+     * findDocumentByID
+     *
+     * @param documentId the document id to get
+     * @return Response
+     */
+    @POST
+    @Path(AccessExtAPI.ACCESSION_REGISTERS_API + "/{id_document}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response findAccessionRegisterById(@PathParam("id_document") String documentId) {
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        final Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase(), null)).build();
+    }
+
+
+    /**
+     * findAccessionRegisterDetail
+     *
+     * @param documentId the document id of accession register to get
+     * @param select the query to get document
+     * @param xhttpOverride the use of override POST method
+     * @return Response
+     */
+    @POST
+    @Path(AccessExtAPI.ACCESSION_REGISTERS_API + "/{id_document}/accession-register-detail")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response findAccessionRegisterDetail(@PathParam("id_document") String documentId, JsonNode select,
+        @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+
+        if (xhttpOverride == null || !"GET".equalsIgnoreCase(xhttpOverride)) {
+            final Status status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase(), null)).build();
+        }
+        ParametersChecker.checkParameter("accession register id is a mandatory parameter", documentId);
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            RequestResponse accessionRegisterDetail =
+                client.getAccessionRegisterDetail(documentId, select);
+            return Response.status(Status.OK).entity(accessionRegisterDetail).build();
+        } catch (final ReferentialNotFoundException e) {
+            return Response.status(Status.OK).entity(new RequestResponseOK()).build();
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error(e);
+            final Status status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase(), null)).build();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            final Status status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase(), null)).build();
+        }
+    }
+
+    /**
+     * Checks a traceability operation
+     *
+     * @param query the DSLQuery used to find the traceability operation to validate
+     * @return The verification report == the logbookOperation
+     */
+    @POST
+    @Path(AccessExtAPI.TRACEABILITY_API + "/check")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response checkOperationTraceability(JsonNode query) {
+
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+            ParametersChecker.checkParameter("checks operation Logbook traceability parameters", query);
+
+            Integer tenantId = ParameterHelper.getTenantParameter();
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+            RequestResponse<JsonNode> result = client.checkTraceabilityOperation(query);
+            if (result.isOk()){
+                return Response.status(Status.OK).entity(result).build();
+            }
+            return Response.status(result.getHttpCode()).entity(result).build();
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            final Status status = Status.BAD_REQUEST;
+            return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                .setContext(ServiceName.EXTERNAL_ACCESS.getName())
+                .setState("code_vitam")
+                .setMessage(status.getReasonPhrase())
+                .setDescription(e.getMessage())).build();
+        } catch (LogbookClientServerException e) {
+            LOGGER.error(e);
+            final Status status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                .setContext(ServiceName.EXTERNAL_ACCESS.getName())
+                .setState("code_vitam")
+                .setMessage(status.getReasonPhrase())
+                .setDescription(e.getMessage())).build();
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error("Contract access does not allow ", e);
+            final Status status = Status.UNAUTHORIZED;
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+        }
+    }
+
+    /**
      * Construct the error following input
      *
      * @param status Http error status
@@ -607,6 +733,15 @@ public class AdminManagementExternalResourceImpl {
                 : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
         String aCode = (code != null) ? code : String.valueOf(status.getStatusCode());
         return new VitamError(aCode).setHttpCode(status.getStatusCode()).setContext(ACCESS_EXTERNAL_MODULE)
+            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);
+    }
+
+    private VitamError getErrorEntity(Status status, String message) {
+        String aMessage =
+            (message != null && !message.trim().isEmpty()) ? message
+                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+
+        return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(ACCESS_EXTERNAL_MODULE)
             .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
 }

@@ -10,8 +10,9 @@
 		"CreatingOsVersion": "10",
 		"LastModified": "2016-05-05T20:45:20"
 	},
-	"_qualifiers": {
-		"BinaryMaster": {
+	"_qualifiers": [
+		{
+			"qualifier": "BinaryMaster",
 			"nb": 1,
 			"versions": [
 				{
@@ -35,7 +36,8 @@
 				}
 			]
 		},
-		"Dissemination": {
+		{
+			"qualifier": "Dissemination",
 			"nb": 1,
 			"versions": [
 				{
@@ -63,7 +65,8 @@
 				}
 			]
 		},
-		"Thumbnail": {
+		{
+			"qualifier": "Thumbnail",
 			"nb": 1,
 			"versions": [
 				{
@@ -90,7 +93,8 @@
 				}
 			]
 		},
-		"TextContent": {
+		{
+			"qualifier": "TextContent",
 			"nb": 1,
 			"versions": [
 				{
@@ -112,39 +116,42 @@
 				}
 			]
 		}
-	},
+	],
 	"_work" : {
-	    "_qualifiers" : {
-			"BinaryMaster" : {
+	    "_qualifiers" : [
+			{
+        		"qualifier": "BinaryMaster",
 				"nb" : 1,
 				"versions" : [ {
 					"_id" : "aeaaaaaaaaaam7myaaaamakxfgivurqaaaaq",
 					"Uri" : "content/e3e02a356a2e903a03c6b8b6c7a36e6ad4b50d29c6a5360c79a60719812c54cd5433caa227de9856ee80d95ff9f84f416090a62ee52f681e0a29b9b07d75d51a.odp"
 				} ]
 			},
-			"Dissemination" : {
+			{
+        		"qualifier": "Dissemination",
 				"nb" : 1,
 				"versions" : [ {
 					"_id" : "aeaaaaaaaaaam7myaaaamakxfgivuuiaaaaq",
 					"Uri" : "content/e3e02a356a2e903a03c6b8b6c7a36e6ad4b50d29c6a5360c79a60719812c54cd5433caa227de9856ee80d95ff9f84f416090a62ee52f681e0a29b9b07d75d51a.pdf"
 				} ]
 			},
-			"Thumbnail" : {
+			{
+        		"qualifier": "Thumbnail",
 				"nb" : 1,
 				"versions" : [ {
 					"_id" : "aeaaaaaaaaaam7myaaaamakxfgivuuyaaaaq",
 					"Uri" : "content/e3e02a356a2e903a03c6b8b6c7a36e6ad4b50d29c6a5360c79a60719812c54cd5433caa227de9856ee80d95ff9f84f416090a62ee52f681e0a29b9b07d75d51a.png"
 				} ]
 			},
-			"TextContent" : {
+			{
+        		"qualifier": "TextContent",
 				"nb" : 1,
 				"versions" : [ {
 					"_id" : "aeaaaaaaaaaam7myaaaamakxfgivuvaaaaaq",
 					"Uri" : "content/e3e02a356a2e903a03c6b8b6c7a36e6ad4b50d29c6a5360c79a60719812c54cd5433caa227de9856ee80d95ff9f84f416090a62ee52f681e0a29b9b07d75d51a.txt"
 				} ]
 			}
-			
-		}
+		]
 	},
 	"_up": [
 		"aeaaaaaaaaaam7myaaaamakxfgivuvqaaaaq"

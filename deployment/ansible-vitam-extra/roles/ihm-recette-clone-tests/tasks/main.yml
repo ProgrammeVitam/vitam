@@ -1,6 +1,6 @@
 ---
 # tasks file for clone-tests
-- block: 
+- block:
   - name: get repo for git lfs for CentOS
     copy:
       src: gitlfs-centos7.repo
@@ -13,7 +13,7 @@
 
 - block:
   - name: get repo for git lfs for Debian
-    copy: 
+    copy:
       src: gitlfs-debian8.list
       dest: /etc/apt/sources.list.d/github_git-lfs.list
       owner: root
@@ -26,11 +26,16 @@
       state: latest
 
   - name: add GPG key
-    shell: curl -L "https://packagecloud.io/github/git-lfs/gpgkey" 2> /dev/null | apt-key add -
+    shell: "export https_proxy={{ http_proxy_environnement }} && curl -L 'https://packagecloud.io/github/git-lfs/gpgkey' 2> /dev/null | apt-key add -"
+    when: http_proxy_environnement is defined
+
+  - name: add GPG key
+    shell: "curl -L 'https://packagecloud.io/github/git-lfs/gpgkey' 2> /dev/null | apt-key add -"
+    when: http_proxy_environnement is undefined
 
   - name: update apt cache
     shell: apt-get update
-  
+
   when: (ansible_distribution == "Debian" )
 
 - name: install git-lfs
@@ -81,7 +86,7 @@
 #   shell: git config credential.helper 'store --timeout=3600 --socket=/vitam/data/ihm-recette/test-data/system/.git-credential-cache/socket'
 #   become_user: "{{vitam_user}}"
 #   args:
-#     chdir: /vitam/data/ihm-recette/test-data/system/  
+#     chdir: /vitam/data/ihm-recette/test-data/system/
 
 # - name: init cache for git
 #   shell: git config credential.helper 'cache --timeout=3600 --socket=/vitam/data/ihm-recette/test-data/system/.git-credential-cache/socket'

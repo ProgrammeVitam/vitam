@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -26,19 +26,8 @@
  */
 package fr.gouv.vitam.processing.distributor.core;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.Semaphore;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -55,7 +44,8 @@ import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
 import fr.gouv.vitam.processing.common.exception.WorkerNotFoundException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
-import fr.gouv.vitam.processing.common.model.WorkerRemoteConfiguration;
+import fr.gouv.vitam.processing.distributor.api.IWorkerManager;
+import fr.gouv.vitam.processing.distributor.v2.WorkerFamilyManager;
 import fr.gouv.vitam.processing.model.WorkerAsyncRequest;
 import fr.gouv.vitam.processing.model.WorkerAsyncResponse;
 import fr.gouv.vitam.worker.client.WorkerClient;
@@ -64,99 +54,38 @@ import fr.gouv.vitam.worker.client.WorkerClientFactory;
 import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
 import fr.gouv.vitam.worker.client.exception.WorkerServerClientException;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Semaphore;
+
 /**
  * Manage the parallelism calls to worker in the same distributor
  */
-public class WorkerManager {
+public class WorkerManager implements IWorkerManager {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerManager.class);
     // No need to have a concurrent map while there is no dymanic add/remove of queues
-    private static final ConcurrentMap<String, BlockingQueue<WorkerAsyncRequest>> STEP_BLOCKINGQUEUE_MAP =
-        new ConcurrentHashMap<>();
+    final ConcurrentMap<String, BlockingQueue<WorkerAsyncRequest>> STEP_BLOCKINGQUEUE_MAP = new ConcurrentHashMap<>();
     // The risk of collision between a register/unregister worker is not null
-    private static final Map<String, Map<String, WorkerThreadManager>> WORKERS_LIST = new ConcurrentHashMap<>();
-    private static final int DEFAULT_QUEUE_BACKLOG_SIZE = 20;
-    private static final String WORKKER_DB_PATH = "worker.db";
-    private static final File WORKKER_DB_FILE = PropertiesUtils.fileFromDataFolder(WORKKER_DB_PATH);
+    private final Map<String, Map<String, WorkerThreadManager>> WORKERS_LIST = new ConcurrentHashMap<>();
+    private final int DEFAULT_QUEUE_BACKLOG_SIZE = 20;
+    private final String WORKKER_DB_PATH = "worker.db";
+    private final File WORKKER_DB_FILE = PropertiesUtils.fileFromDataFolder(WORKKER_DB_PATH);
 
     /**
      * Empty Constructor
      */
-    private WorkerManager() {
+    public WorkerManager() {
     }
 
-    /**
-     * init the worker database
-     */
-    public static void initialize() {
-        if (WORKKER_DB_FILE.exists()) {
-            WorkerManager.loadWorkerList(WORKKER_DB_FILE);
-        } else {
-            LOGGER.warn("No worker list serialization file : " + WORKKER_DB_FILE.getName());
-        }
-    }
-
-    /**
-     * To load a registered worker list
-     * 
-     * @param registerWorkerFile
-     */
-    private static void loadWorkerList(File registerWorkerFile){
-        // Load the list of worker from database
-        // for now it is a file content json data
-        ArrayNode registeredWorkerList = null;
-        try {
-            registeredWorkerList = (ArrayNode) JsonHandler.getFromFile(registerWorkerFile);
-        } catch (InvalidParseOperationException e) {
-            LOGGER.error("Cannot load worker list from database.",e);
-            // Ignore the rest of the file
-            return;
-        }
-        
-        // load to the list of WORKERS_LIST
-        for (JsonNode worker : registeredWorkerList) {
-            WorkerBean workerBean;
-            try{
-                workerBean =  JsonHandler.getFromJsonNodeLowerCamelCase(worker, WorkerBean.class);
-            }catch(InvalidParseOperationException e){
-                LOGGER.error("Invalid structure for \'"+ worker.toString()+"\'",e);
-                // Invalid structure : Continue with the next worker
-                continue;
-            }
-            String workerId = workerBean.getWorkerId();
-            String familyId = workerBean.getFamily();
-            // Ignore if the familyId or the workerId is null 
-            if (familyId == null || workerId == null){
-                // Mandatory argument missing : Continue with the next worker
-                continue;
-            }
-            WorkerRemoteConfiguration config = workerBean.getConfiguration();
-            if (checkStatusWorker(config.getServerHost(), config.getServerPort())) {
-                try{
-                    registerWorker(workerBean);
-                }catch(WorkerAlreadyExistsException e){
-                    // This case should almost never happened as we are in the initialization
-                    LOGGER.error("Worker already exists during the initialization",e);
-                }
-            }
-        }
-        marshallToDB();
-    }
-    private static boolean checkStatusWorker(String serverHost, int serverPort) {
-        WorkerClientConfiguration workerClientConfiguration =
-            new WorkerClientConfiguration(serverHost, serverPort);
-        WorkerClientFactory.changeMode(workerClientConfiguration);
-        WorkerClient workerClient = WorkerClientFactory.getInstance(workerClientConfiguration).getClient();
-        try {
-            workerClient.checkStatus();
-            return true;
-        } catch (Exception e) {
-            LOGGER.error("Worker server [" + serverHost + ":" + serverPort + "] is not active.", e);
-            return false;
-        }
-    }
     /**
      * To register a worker in the processing
-     * 
+     *
      * @param familyId : family of this worker
      * @param workerId : ID of the worker
      * @param workerInformation : Worker Json representation
@@ -164,7 +93,7 @@ public class WorkerManager {
      * @throws ProcessingBadRequestException if cannot register worker to family
      * @throws InvalidParseOperationException if worker description is not well-formed
      */
-    public static void registerWorker(String familyId, String workerId, String workerInformation)
+    @Override public void registerWorker(String familyId, String workerId, String workerInformation)
         throws WorkerAlreadyExistsException, ProcessingBadRequestException, InvalidParseOperationException {
         ParametersChecker.checkParameter("familyId is a mandatory argument", familyId);
         ParametersChecker.checkParameter("workerId is a mandatory argument", workerId);
@@ -185,16 +114,13 @@ public class WorkerManager {
 
     }
 
-    private static void registerWorker(WorkerBean workerBean) throws WorkerAlreadyExistsException{
+    @Override public void registerWorker(WorkerBean workerBean) throws WorkerAlreadyExistsException {
         String familyId = workerBean.getFamily();
         String workerId = workerBean.getWorkerId();
         // Create the blocking queue for familyId worker
-        if (STEP_BLOCKINGQUEUE_MAP.get(familyId) == null) {
-            STEP_BLOCKINGQUEUE_MAP.put(familyId,
-                new ArrayBlockingQueue<WorkerAsyncRequest>(DEFAULT_QUEUE_BACKLOG_SIZE));
-        }
+        STEP_BLOCKINGQUEUE_MAP.computeIfAbsent(familyId, k -> new ArrayBlockingQueue<>(DEFAULT_QUEUE_BACKLOG_SIZE));
         // Create the WorkerThreadManager for this new Worker
-        final WorkerThreadManager workerThreadManager = new WorkerThreadManager(workerBean, familyId);
+        final WorkerThreadManager workerThreadManager = new WorkerThreadManager(workerBean, familyId, this);
         if (WORKERS_LIST.get(familyId) != null) {
             final Map<String, WorkerThreadManager> familyWorkers = WORKERS_LIST.get(familyId);
             if (familyWorkers.get(workerId) != null) {
@@ -221,14 +147,14 @@ public class WorkerManager {
 
     /**
      * To unregister a worker in the processing
-     * 
+     *
      * @param familyId : family of this worker
      * @param workerId : ID of the worker
      * @throws WorkerFamilyNotFoundException : when the family is unknown
      * @throws WorkerNotFoundException : when the ID of the worker is unknown in the family
      * @throws InterruptedException if error in stopping thread
      */
-    public static void unregisterWorker(String familyId, String workerId)
+    @Override public void unregisterWorker(String familyId, String workerId)
         throws WorkerFamilyNotFoundException, WorkerNotFoundException, InterruptedException {
         ParametersChecker.checkParameter("familyId is a mandatory argument", familyId);
         ParametersChecker.checkParameter("workerId is a mandatory argument", workerId);
@@ -252,14 +178,15 @@ public class WorkerManager {
             throw new WorkerFamilyNotFoundException("Worker Family does not exist");
         }
     }
+
     /**
      * To submit a Job to the workerManager (blocking method)
-     * 
+     *
      * @param workerAsyncRequest : Asynchronous request
      * @throws ProcessingBadRequestException : if the queueID is unknown
      * @throws InterruptedException if error in stopping thread
      */
-    public static void submitJob(WorkerAsyncRequest workerAsyncRequest)
+    public void submitJob(WorkerAsyncRequest workerAsyncRequest)
         throws ProcessingBadRequestException, InterruptedException {
         ParametersChecker.checkParameter("queue is a mandatory argument", workerAsyncRequest.getQueueID());
         ParametersChecker.checkParameter("workerAsyncRequest is a mandatory argument", workerAsyncRequest);
@@ -271,14 +198,15 @@ public class WorkerManager {
                 "Unknown queue in the workerManager : " + workerAsyncRequest.getQueueID());
         }
     }
+
     /**
      * To remove a Job from the workerManager (non blocking method)
-     * 
+     *
      * @param workerAsyncRequest : Asynchronous request that must be removed
      * @return true if the workerAsyncRequest was present, false if not
      * @throws ProcessingBadRequestException : if the queueID is unknown
      */
-    public static boolean removeJobs(WorkerAsyncRequest workerAsyncRequest)
+    public boolean removeJobs(WorkerAsyncRequest workerAsyncRequest)
         throws ProcessingBadRequestException {
         BlockingQueue<WorkerAsyncRequest> blockingQueue = STEP_BLOCKINGQUEUE_MAP.get(workerAsyncRequest.getQueueID());
         if (blockingQueue != null) {
@@ -288,30 +216,44 @@ public class WorkerManager {
                 "Unknown queue in the workerManager : " + workerAsyncRequest.getQueueID());
         }
     }
-    protected static Map<String, Map<String, WorkerThreadManager>> getWorkersList() {
+
+    protected Map<String, Map<String, WorkerThreadManager>> getWorkersList() {
         return WORKERS_LIST;
     }
-    private synchronized static void marshallToDB() {
+
+    @Override public synchronized void marshallToDB() {
         if (!WORKKER_DB_FILE.exists()) {
             try {
                 WORKKER_DB_FILE.createNewFile();
             } catch (IOException e) {
-                LOGGER.warn("Cannot create worker list serialization file : " + WORKKER_DB_FILE.getName(),e);
+                LOGGER.warn("Cannot create worker list serialization file : " + WORKKER_DB_FILE.getName(), e);
             }
         }
+
         ArrayNode registeredWorkers = JsonHandler.createArrayNode();
         for (Entry<String, Map<String, WorkerThreadManager>> family : WORKERS_LIST.entrySet()) {
             for (Entry<String, WorkerThreadManager> worker : family.getValue().entrySet()) {
                 try {
                     JsonNode workerBean = JsonHandler.toJsonNode(worker.getValue().getWorkerBean());
                     registeredWorkers.add(workerBean);
-                    JsonHandler.writeAsFile(registeredWorkers, WORKKER_DB_FILE);
                 } catch (InvalidParseOperationException e) {
-                    LOGGER.error("Cannot update database worker",e);
+                    LOGGER.error("Cannot update database worker", e);
                 }
             }
         }
+
+        try {
+            JsonHandler.writeAsFile(registeredWorkers, WORKKER_DB_FILE);
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error("Cannot update database worker", e);
+        }
+
     }
+
+    @Override public WorkerFamilyManager findWorkerBy(String workerFamily) {
+        return null;
+    }
+
     /**
      * The WorkerThreadManager manages all the threads for a given Worker
      */
@@ -324,7 +266,10 @@ public class WorkerManager {
         private final Semaphore semaphore;
         private volatile Thread myself;
         private final int capacity;
-        public WorkerThreadManager(WorkerBean workerBean, String queue) {
+        private WorkerManager workerManager;
+
+        public WorkerThreadManager(WorkerBean workerBean, String queue, WorkerManager workerManager) {
+            this.workerManager = workerManager;
             ParametersChecker.checkParameter("workerBean is a mandatory argument", workerBean);
             ParametersChecker.checkParameter("queue is a mandatory argument", queue);
             this.workerBean = workerBean;
@@ -332,6 +277,7 @@ public class WorkerManager {
             this.capacity = workerBean.getCapacity();
             this.semaphore = new Semaphore(capacity);
         }
+
         /**
          * Main forever method
          */
@@ -347,16 +293,17 @@ public class WorkerManager {
                 // So in this way, we don't take a task if can not treat it right now
                 while (toBeRunnable) {
                     semaphore.acquire();
-                    if (STEP_BLOCKINGQUEUE_MAP.get(queue) != null) {
-                        WorkerAsyncRequest workerAsyncRequest = STEP_BLOCKINGQUEUE_MAP.get(queue).take();
+                    if (workerManager.STEP_BLOCKINGQUEUE_MAP.get(queue) != null) {
+                        WorkerAsyncRequest workerAsyncRequest = workerManager.STEP_BLOCKINGQUEUE_MAP.get(queue).take();
                         VitamThreadPoolExecutor.getDefaultExecutor()
-                        .execute(new WorkerThread(this, workerAsyncRequest));
+                            .execute(new WorkerThread(this, workerAsyncRequest, workerManager));
                     }
                 }
             } catch (InterruptedException e) { // NOSONAR already taken into account
                 LOGGER.warn("Probably unregistring this Worker", e);
             }
         }
+
         /**
          * Stop the workerThreadManager, both using boolean and interruption
          */
@@ -366,6 +313,7 @@ public class WorkerManager {
                 myself.interrupt();
             }
         }
+
         public void waitingRunningJobsDone(long timeout) throws InterruptedException {
             long epoch = System.currentTimeMillis();
             while (System.currentTimeMillis() < (epoch + timeout)) {
@@ -375,23 +323,32 @@ public class WorkerManager {
                 Thread.sleep(1000);
             }
         }
+
         public WorkerBean getWorkerBean() {
             return workerBean;
         }
+
         public Semaphore getSemaphore() {
             return semaphore;
         }
     }
+
+
     /**
      * The Worker Thread manages the actions for one thread for a given Worker
      */
     private static class WorkerThread implements Runnable {
         private WorkerThreadManager workerThreadManager;
         private WorkerAsyncRequest workerAsyncRequest;
-        public WorkerThread(WorkerThreadManager workerThreadManager, WorkerAsyncRequest workerAsyncRequest) {
+        private WorkerManager workerManager;
+
+        public WorkerThread(WorkerThreadManager workerThreadManager, WorkerAsyncRequest workerAsyncRequest,
+            WorkerManager workerManager) {
             this.workerThreadManager = workerThreadManager;
             this.workerAsyncRequest = workerAsyncRequest;
+            this.workerManager = workerManager;
         }
+
         /**
          *
          */
@@ -405,6 +362,7 @@ public class WorkerManager {
                 actionsResponse =
                     new ItemStatus(workerAsyncRequest.getDescriptionStep().getStep().getStepName());
                 loadWorkerClient(workerThreadManager.getWorkerBean());
+
                 WorkerClientConfiguration configuration = new WorkerClientConfiguration(
                     workerThreadManager.getWorkerBean().getConfiguration().getServerHost(),
                     workerThreadManager.getWorkerBean().getConfiguration().getServerPort());
@@ -433,7 +391,8 @@ public class WorkerManager {
                     int numberCallCheckStatus = 0;
                     while (!checkStatus && numberCallCheckStatus < GlobalDataRest.STATUS_CHECK_RETRY) {
                         checkStatus =
-                            checkStatusWorker(workerThreadManager.getWorkerBean().getConfiguration().getServerHost(),
+                            workerManager.checkStatusWorker(
+                                workerThreadManager.getWorkerBean().getConfiguration().getServerHost(),
                                 workerThreadManager.getWorkerBean().getConfiguration().getServerPort());
                         numberCallCheckStatus++;
                         if (!checkStatus) {
@@ -446,7 +405,7 @@ public class WorkerManager {
                     }
                     if (!checkStatus) {
                         try {
-                            WorkerManager.unregisterWorker(workerThreadManager.getWorkerBean().getFamily(),
+                            workerManager.unregisterWorker(workerThreadManager.getWorkerBean().getFamily(),
                                 workerThreadManager.getWorkerBean().getWorkerId());
                         } catch (WorkerFamilyNotFoundException | WorkerNotFoundException | InterruptedException e1) {
                             LOGGER.error("Cannot unregister the worker.");
@@ -463,10 +422,11 @@ public class WorkerManager {
             } finally {
                 // except using a special boolean for resubmit ?
                 workerAsyncRequest
-                .callCallback(new WorkerAsyncResponse(workerAsyncRequest, actionsResponse));
+                    .callCallback(new WorkerAsyncResponse(workerAsyncRequest, actionsResponse));
                 workerThreadManager.getSemaphore().release();
             }
         }
+
         private void loadWorkerClient(WorkerBean workerBean) {
             final WorkerClientConfiguration workerClientConfiguration =
                 new WorkerClientConfiguration(workerBean.getConfiguration().getServerHost(),

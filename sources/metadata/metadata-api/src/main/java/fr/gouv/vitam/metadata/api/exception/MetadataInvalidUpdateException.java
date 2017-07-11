@@ -29,7 +29,7 @@ package fr.gouv.vitam.metadata.api.exception;
 /**
  * MetadataInvalidUpdateException update failed in update operation in metatada
  */
-public class MetadataInvalidUpdateException extends MetaDataException {
+public class MetadataInvalidUpdateException extends MetaDataExecutionException {
 
     /**
      * serial id

@@ -24,27 +24,24 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.processing.distributor.core;
+package fr.gouv.vitam.common.database.parser.request.adapter;
+
 
 /**
- * ProcessDistributorImpl Factory to create ProcessDistributorImpl
+ * Model for VarNameAdapter for Single collections
  */
-public final class ProcessDistributorImplFactory {
-
-    private static final ProcessDistributorImpl PROCESS_DISTRIBUTOR = new ProcessDistributorImpl();
-
-
-    private ProcessDistributorImplFactory() {
-        // empty constructor
-    }
+public class SingleVarNameAdapterExternal extends VarNameAdapterExternal {
 
     /**
-     * Retrieve a process distributor
-     *
-     * @return the default ProcessDistributorImpl
+     * Constructor
      */
-    public static ProcessDistributorImpl getDefaultDistributor() {
-        return PROCESS_DISTRIBUTOR;
+    public SingleVarNameAdapterExternal() {
+        // Empty
+    }
+
+    @Override
+    public boolean metadataAdapter() {
+        return false;
     }
 
 }

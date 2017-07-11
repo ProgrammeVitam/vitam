@@ -49,6 +49,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AccessContractModel;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.server.HeaderIdHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
@@ -142,7 +143,7 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     }
 
     @Override
-    public void createorUpdateAccessionRegister(AccessionRegisterDetailModel register)
+    public RequestResponse createorUpdateAccessionRegister(AccessionRegisterDetailModel register)
         throws DatabaseConflictException {
         String result;
         try {
@@ -150,8 +151,11 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("Cannot serialize parameters", e);
             result = "{}";
+            return new RequestResponseOK().setHttpCode(Status.PRECONDITION_FAILED.getStatusCode());
         }
         LOGGER.info("AccessionRegister: " + result);
+        return new RequestResponseOK().setHttpCode(Status.CREATED.getStatusCode());
+
     }
 
     @Override

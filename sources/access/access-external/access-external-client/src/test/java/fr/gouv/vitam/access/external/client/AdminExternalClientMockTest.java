@@ -5,7 +5,6 @@ import static org.junit.Assert.assertNotNull;
 
 import java.io.ByteArrayInputStream;
 
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.junit.Before;
@@ -18,8 +17,14 @@ import fr.gouv.vitam.common.json.JsonHandler;
 public class AdminExternalClientMockTest {
 
     AdminExternalClient client;
+    final String queryDsql =
+        "{ \"$query\" : [ { \"$eq\": { \"title\" : \"test\" } } ], " +
+            " \"$filter\": { \"$orderby\": \"#id\" }, " +
+            " \"$projection\" : { \"$fields\" : { \"#id\": 1, \"title\" : 2, \"transacdate\": 1 } } " +
+            " }";
     private static final String DOCUMENT_ID = "1";
     final int TENANT_ID = 0;
+    final String CONTRACT = "contract";
 
     @Before
     public void givenMockConfExistWhenAccessExternalCreateMockedClientThenReturnOK() {
@@ -71,6 +76,11 @@ public class AdminExternalClientMockTest {
         assertEquals(
             client.importContexts(new ByteArrayInputStream("test".getBytes()), TENANT_ID).getHttpCode(),
             Status.CREATED.getStatusCode());
+
+        assertEquals(
+            client.checkTraceabilityOperation(JsonHandler.getFromString(queryDsql), TENANT_ID, CONTRACT).getHttpCode(),
+            Status.OK.getStatusCode());
+
     }
 
 }

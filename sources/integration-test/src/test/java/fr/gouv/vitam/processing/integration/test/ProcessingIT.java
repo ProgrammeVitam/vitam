@@ -27,9 +27,11 @@
 package fr.gouv.vitam.processing.integration.test;
 
 import static com.jayway.restassured.RestAssured.get;
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.EVENT_DETAILS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
@@ -44,8 +46,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -65,6 +69,8 @@ import org.junit.rules.TemporaryFolder;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.jayway.restassured.RestAssured;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
@@ -204,7 +210,7 @@ public class ProcessingIT {
 
     // private static VitamServer workerApplication;
     private static MetaDataApplication metadataApplication;
-    private static WorkerApplication wkrapplication;
+    private static WorkerApplication workerApplication;
     private static AdminManagementApplication adminApplication;
     private static LogbookApplication lgbapplication;
     private static WorkspaceApplication workspaceApplication;
@@ -218,16 +224,17 @@ public class ProcessingIT {
 
     private static String WORFKLOW_NAME_2 = "DefaultIngestWorkflow";
     private static String WORFKLOW_NAME = "DefaultIngestWorkflow";
+    private static String BIG_WORFKLOW_NAME = "BigIngestWorkflow";
     private static String INGEST_TREE_WORFKLOW = "DefaultHoldingSchemeWorkflow";
     private static String INGEST_PLAN_WORFKLOW = "DefaultFilingSchemeWorkflow";
-    private static String BIG_WORFKLOW_NAME = "BigIngestWorkflow";
+
     private static String SIP_FILE_OK_NAME = "integration-processing/SIP-test.zip";
     private static String SIP_PROFIL_OK = "integration-processing/SIP_ok_profil.zip";
     private static String SIP_FILE_OK_WITH_SYSTEMID = "integration-processing/SIP_with_systemID.zip";
     // TODO : use for IT test to add a link between two AUs (US 1686)
-    private static String SIP_FILE_AU_LINK_OK_NAME_TARGET = "integration-processing";
+
     // TODO : use for IT test to add a link between two AUs (US 1686)
-    private static String SIP_FILE_AU_LINK_OK_NAME = "integration-processing/OK_SIP_AU_LINK";
+
     private static String SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET = "integration-processing";
     private static String SIP_FILE_ADD_AU_LINK_OK_NAME = "integration-processing/OK_SIP_ADD_AU_LINK";
 
@@ -343,8 +350,8 @@ public class ProcessingIT {
 
         // launch worker
         SystemPropertyUtil.set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
-        wkrapplication = new WorkerApplication(CONFIG_WORKER_PATH);
-        wkrapplication.start();
+        workerApplication = new WorkerApplication(CONFIG_WORKER_PATH);
+        workerApplication.start();
         SystemPropertyUtil.clear("jetty.worker.port");
 
         FormatIdentifierFactory.getInstance().changeConfigurationFile(CONFIG_SIEGFRIED_PATH);
@@ -374,7 +381,7 @@ public class ProcessingIT {
         try {
             workspaceApplication.stop();
             adminApplication.stop();
-            wkrapplication.stop();
+            workerApplication.stop();
             lgbapplication.stop();
             processManagementApplication.stop();
             metadataApplication.stop();
@@ -647,12 +654,16 @@ public class ProcessingIT {
             selectQuery.setQuery(QueryHelper.eq("evIdProc", containerName));
             JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
             
-            assertEquals(logbookResult.get("$results").get(0).get("obIdIn").asText(),
+            JsonNode logbookNode = logbookResult.get("$results").get(0);
+            assertEquals(logbookNode.get("obIdIn").asText(),
                 "Transfert des enregistrements des délibérations de l'assemblée départementale");
-            assertEquals(logbookResult.get("$results").get(0).get("agIdSubm").asText(),
+            assertEquals(logbookNode.get("agIdSubm").asText(),
                 "https://demo.logilab.fr/seda/157118");
-            assertEquals(logbookResult.get("$results").get(0).get("agIdOrig").asText(), 
+            assertEquals(logbookNode.get("agIdOrig").asText(), 
                 "https://demo.logilab.fr/seda/157118");
+            assertTrue(logbookNode.get("evDetData").asText().contains("EvDetailReq"));
+            assertTrue(logbookNode.get("evDetData").asText().contains("EvDateTimeReq"));
+            assertTrue(logbookNode.get("evDetData").asText().contains("ArchivalAgreement"));
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
@@ -1774,6 +1785,18 @@ public class ProcessingIT {
 
         // check got have to units
         assertEquals(db.getCollection("Unit").count(Filters.eq("_og", idGot)), 2);
+
+        ArrayList<Document> logbookLifeCycleUnits =
+            Lists.newArrayList(db.getCollection("LogbookLifeCycleUnit").find().iterator());
+
+        List<Document> currentLogbookLifeCycleUnits = logbookLifeCycleUnits.stream().filter(t -> t.get("evIdProc").equals(containerName))
+            .collect(Collectors.toList());
+
+        List<Document> events = (List<Document>) Iterables.getOnlyElement(currentLogbookLifeCycleUnits).get("events");
+
+        List<Document> lifeCycle = events.stream().filter(t -> t.get("outDetail").equals("LFC.CHECK_MANIFEST.OK"))
+            .collect(Collectors.toList());
+        assertThat(Iterables.getOnlyElement(lifeCycle).getString(EVENT_DETAILS)).containsIgnoringCase(idGot);
         try {
             Files.delete(new File(zipPath).toPath());
         } catch (Exception e) {
@@ -1903,12 +1926,12 @@ public class ProcessingIT {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
         // re-launch worker
-        wkrapplication.stop();
+        workerApplication.stop();
         // FIXME Sleep to be removed when asynchronous mode is implemented
-        Thread.sleep(8500);
+        //Thread.sleep(8500);
         SystemPropertyUtil.set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
-        wkrapplication = new WorkerApplication(CONFIG_BIG_WORKER_PATH);
-        wkrapplication.start();
+        workerApplication = new WorkerApplication(CONFIG_BIG_WORKER_PATH);
+        workerApplication.start();
         try {
             final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
@@ -1928,7 +1951,7 @@ public class ProcessingIT {
             RestAssured.port = PORT_SERVICE_PROCESSING;
             RestAssured.basePath = PROCESSING_PATH;
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-            processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
+            processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, BIG_WORFKLOW_NAME);
 
             final RequestResponse<JsonNode> ret = processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
                 Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
@@ -1946,10 +1969,10 @@ public class ProcessingIT {
             fail("should not raized an exception");
         }
 
-        wkrapplication.stop();
+        workerApplication.stop();
         SystemPropertyUtil.set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
-        wkrapplication = new WorkerApplication(CONFIG_WORKER_PATH);
-        wkrapplication.start();
+        workerApplication = new WorkerApplication(CONFIG_WORKER_PATH);
+        workerApplication.start();
     }
 
     @RunWithCustomExecutor
@@ -1997,22 +2020,34 @@ public class ProcessingIT {
 
     @RunWithCustomExecutor
     @Test
-    public void testWorkerUnregister() throws Exception {
+    public void testWorkerUnRegister() throws Exception {
         try {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
 
-            wkrapplication.stop();
+            //1. Stop the worker this will unregister the worker
+            workerApplication.stop();
+            Thread.sleep(500);
+
+            //2. Start the worker this will register the worker
             SystemPropertyUtil.set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
-            wkrapplication = new WorkerApplication(CONFIG_WORKER_PATH);
-            wkrapplication.start();
+            workerApplication = new WorkerApplication(CONFIG_WORKER_PATH);
+            workerApplication.start();
+            Thread.sleep(500);
+
+            //3. Stop processing, this will make worker retry register
             processManagementApplication.stop();
+            Thread.sleep(500);
+
             SystemPropertyUtil.set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT,
                 Integer.toString(PORT_SERVICE_PROCESSING));
             processManagementApplication = new ProcessManagementApplication(CONFIG_PROCESSING_PATH);
             processManagementApplication.start();
             SystemPropertyUtil.clear(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT);
-            // Wait processing server start
-            Thread.sleep(10000);
+            //4.Wait processing server start
+            Thread.sleep(500);
+
+            // For test, worker.conf is modified to have registerDelay: 1 (mean every one second worker try to register it self
+
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");

@@ -109,7 +109,7 @@ public class AccessInternalApplication
     }
 
     @Override
-    protected void setFilter(ServletContextHandler context) {}
+    protected void setFilter(ServletContextHandler context, boolean isAdminConnector) {}
 
 
     @Override
