@@ -27,30 +27,10 @@
 
 'use strict';
 
-// Define the `ihm-demo` module
-angular.module('ihm.demo', [
-  'ngAnimate',
-  'ngFileUpload',
-  'ui.bootstrap',
-  'ui.multiselect',
-  'ngRoute',
-  'core',
-  'archiveSearch',
-  'angularFileUpload',
-  'ngMaterial',
-  'archive.unit',
-  'vAccordion',
-  'ngCookies',
-  'lifecycle',
-  'pascalprecht.translate',
-  'accession.register.search',
-  'accession.register.details',
-  'flow',
-  'workflows',
-  'accessContracts',
-  'entryContracts',
-  'contexts',
-  'traceability.operation.search',
-  'traceability.operation.details',
-  'profiles.search'
-]);
+// Register `contextsComponent` component, along with its associated controller and template
+angular.
+module('contexts').
+component('contextsComponent', {
+    templateUrl: 'modules/contexts/contexts.template.html',
+    controller: 'contextsController as logctrl'
+});

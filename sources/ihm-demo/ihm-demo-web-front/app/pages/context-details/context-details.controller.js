@@ -27,30 +27,18 @@
 
 'use strict';
 
-// Define the `ihm-demo` module
-angular.module('ihm.demo', [
-  'ngAnimate',
-  'ngFileUpload',
-  'ui.bootstrap',
-  'ui.multiselect',
-  'ngRoute',
-  'core',
-  'archiveSearch',
-  'angularFileUpload',
-  'ngMaterial',
-  'archive.unit',
-  'vAccordion',
-  'ngCookies',
-  'lifecycle',
-  'pascalprecht.translate',
-  'accession.register.search',
-  'accession.register.details',
-  'flow',
-  'workflows',
-  'accessContracts',
-  'entryContracts',
-  'contexts',
-  'traceability.operation.search',
-  'traceability.operation.details',
-  'profiles.search'
-]);
+angular.module('ihm.demo')
+    .controller('contextsDetailsController', function ($scope, $routeParams, contextResource, $mdDialog, authVitamService) {
+        var id = $routeParams.id;
+
+        var getDetails = function (id) {
+            contextResource.getDetails(id, function (response) {
+                if (response.data.length !== 0) {
+                    $scope.context = response.data.$results[0];
+                }
+            });
+        };
+
+        getDetails(id);
+
+    });

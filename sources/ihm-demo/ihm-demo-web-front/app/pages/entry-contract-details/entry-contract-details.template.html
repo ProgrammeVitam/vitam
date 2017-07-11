@@ -58,6 +58,10 @@
                         <label>Profils d'archivage</label>
                         <span>{{contract.ArchiveProfiles}}</span>
                     </div>
+                    <div class="form-group col-md-12">
+                        <label>Noeuds de rattachement</label>
+                        <span>{{contract.FilingParentId}}</span>
+                    </div>
 
                     <button class="btn btn-primary center-block" ng-click="saveModifs()" ng-hide="checkPermission()">
                         <i class="material-icons pull-left">save</i>

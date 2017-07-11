@@ -67,6 +67,8 @@ public final class DslQueryHelper {
     private static final String EVENT_TYPE_PROCESS = "evTypeProc";
     private static final String ALL = "All";
     private static final String EVENT_ID_PROCESS = "evIdProc";
+    private static final String CONTEXT_ID = "ContextID";
+    private static final String CONTEXT_NAME = "ContextName";
     private static final String CONTRACT_ID = "ContractID";
     private static final String CONTRACT_NAME = "ContractName";
     private static final String PROFILE_ID = "ProfileID";
@@ -285,6 +287,21 @@ public final class DslQueryHelper {
                         break;
 
                     case CONTRACT_ID:
+                        if (!"all".equals(searchValue)) {
+                            query.add(eq("Identifier", searchValue));
+                        }
+                        break;
+                        
+                    case CONTEXT_NAME:
+                        if ("all".equals(searchValue)) {
+                            query.add(exists("Name"));
+                        }
+                        else  if (!searchValue.isEmpty()) {
+                            query.add(match("Name", searchValue));
+                        }
+                        break;
+                        
+                    case CONTEXT_ID:
                         if (!"all".equals(searchValue)) {
                             query.add(eq("Identifier", searchValue));
                         }
