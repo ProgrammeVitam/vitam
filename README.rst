@@ -17,6 +17,8 @@ Il a pour objectif :
 * la conception, la réalisation et la maintenance mutualisées d’une solution logicielle générique d’archivage électronique. Cette solution logicielle est appelée Vitam. Elle est l'objet du document ;
 * la mise en place ou la mise à jour, dans chacun des trois ministères porteurs, de plates-formes d’archivage utilisant la solution logicielle Vitam ;
 * la réutilisation de la solution logicielle Vitam par le plus grand nombre d’acteurs publics possible, en veillant à sa capacité d'usage dans des contextes divers.
+* les documents sont sous "La Licence Ouverte V2" et le code sous CeCILL 2.1
+* La "La Licence Ouverte V2" est compatible avec le [Creative Commons CC-By-SA 2.0 license](https://creativecommons.org/licenses/by-sa/2.0/); Une copie de cette licence est disponible dans le fichier [Licence\_CC-By-SA\_2.0-en.txt](./Licence_CC-By-SA_2.0-en.txt).
 
 Pour plus d’information sur le programme, voir `www.programmevitam.fr <http://www.programmevitam.fr/pages/1-presentation/>`_.
 
@@ -245,7 +247,7 @@ Configuration initiale de la VM
 +++++++++++++++++++++++++++++++
 
 * Installer les dépôts epel : ``yum install -y epel-release``
-* Installer ansible : ``yum install -y ansible`` ; valider que la version installée est bien au moins la version 2.1 (``ansible --version``)
+* Installer ansible : ``yum install -y ansible`` ; valider que la version installée est bien au moins la version 2.3 (``ansible --version``)
 * Installer les dépendances requises pour la construction d'un dépôt : ``yum install -y createrepo initscripts.x86_64``
 * Déclarer un dépôt yum local pointant vers ``/code/target`` ; pour cela, insérer le contenu suivant dans un fichier ``devlocal.repo`` dans le répertoire ``/etc/yum.repos.d`` :
 

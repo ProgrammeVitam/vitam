@@ -6,25 +6,15 @@
 
 * Frédéric Bregier (Architect/Technical Leader)
 * Edouard Vasseur (Archivist Leader)
-
 * Mehdi Afnaï
 * Pierre Ané
-* Etienne Carrière
 * Frédéric Deguilhen
 * Emmanuel Laborde
 * Jean-Séverin Lair
 * Charles Pouplin
 * Mélanie Rebours
 * Marion Ville
-
-### CDH-IT (Hit-Part) development team
-
-* Hela Amri
-* Haykel Ben Messaoud
-* Birkan Gokcek
-* Ramzi Lazreg
-* Thomas Morsellino
-* Jean-Yves Gateau
+* Nathalie Morin
 
 ### Goood
 
@@ -36,7 +26,6 @@
 * Laurent Dubois
 * Olivier Elbhar
 * Ba Tuan Ngo
-* Hoan Vu
 
 ### Smile - Palpateam development team
 
@@ -44,18 +33,20 @@
 * Gaëlle Fournier
 * Germain Ledroit
 * Cédric Legrand
+* Antoine Paris
+* Hassen Bamri
 * Ludivine Lenoir
 * Guillaume Dutey-Harispe
 
 ### Smile - HexaTeam development team
 
-* Nathanaël Attar
 * Stéphanie Bonnet
 * Jean-Eudes Couignoux
 * Djamel Hamas
 * Idrissa Manzo
 * Clément Massard
 * Pierre Pavy
+* Dédé Agnodji
 
 ### Thales integration team
 
@@ -63,6 +54,7 @@
 * Olivier Marsol
 * Nicolas Ménétrier
 * Kristopher Waltzer
+* Bernardo Resende
 
 ## Those who have gone a long (or short) way with us
 
@@ -79,6 +71,16 @@
 * Violette Rouchy-Levy
 * Stéphane Saadi
 * Gwendoline Stab
+* Hoan Vu
+* Etienne Carrière
+* Hela Amri
+* Haykel Ben Messaoud
+* Birkan Gokcek
+* Ramzi Lazreg
+* Thomas Morsellino
+* Jean-Yves Gateau
+* Nathanaël Attar
+* Ismail Jamel
 * ...
 
 ## Thanks for collaboration
