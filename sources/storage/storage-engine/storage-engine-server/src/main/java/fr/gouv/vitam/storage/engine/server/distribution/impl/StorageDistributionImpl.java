@@ -899,6 +899,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     private StorageGetResult getGetObjectResult(Integer tenantId, String objectId, DataCategory type,
         List<OfferReference> offerReferences, AsyncResponse asyncResponse) throws StorageException {
         StorageGetResult result;
+        boolean offerOkNoBinary = false;
         for (final OfferReference offerReference : offerReferences) {
             final Driver driver = retrieveDriverInternal(offerReference.getId());
             final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
@@ -912,12 +913,20 @@ public class StorageDistributionImpl implements StorageDistribution {
                     helper.writeResponse(responseBuilder);
                     return result;
                 }
+            } catch (final fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException exc) {
+                LOGGER.warn("Error with the storage: object not found. Take next offer in strategy (by priority)" + exc);
+                offerOkNoBinary = true;
             } catch (final StorageDriverException exc) {
                 LOGGER.warn("Error with the storage, take the next offer in the strategy (by priority)", exc);
             }
         }
-        LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, objectId));
-        throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, objectId));
+        if (offerOkNoBinary) {
+            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, objectId));
+            throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, objectId));
+        } else {
+            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
+            throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
+        }
     }
 
     @Override
