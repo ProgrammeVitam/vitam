@@ -253,7 +253,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             return response;
         }
         final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
+        return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
     }
 
     /**
@@ -273,7 +273,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             return response;
         }
         final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
+        return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
     }
 
     /**
@@ -329,7 +329,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             return response;
         }
         final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
+        return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
     }
 
     /**
@@ -440,7 +440,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             return response;
         }
         if (!DataCategory.OBJECT.canDelete()) {
-            return Response.status(Status.UNAUTHORIZED).entity(getErrorEntity(Status.UNAUTHORIZED)).build();
+            return Response.status(Status.UNAUTHORIZED).entity(getErrorEntity(Status.UNAUTHORIZED, "Cannot be deleted")).build();
         }
         response = checkDigestAlgorithmHeader(headers);
         if (response == null) {
@@ -509,7 +509,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             return response;
         }
         final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
+        return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
     }
 
     /**
@@ -531,7 +531,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             return response;
         }
         final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
+        return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
     }
 
     /**
@@ -602,7 +602,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         if (!DataCategory.LOGBOOK.canDelete()) {
             status = Status.UNAUTHORIZED;
         }
-        return Response.status(status).entity(getErrorEntity(status)).build();
+        return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
     }
 
     /**
@@ -622,7 +622,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             return response;
         }
         final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
+        return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
     }
 
     /**
@@ -643,7 +643,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             return response;
         }
         final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
+        return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
     }
 
     /**
@@ -665,7 +665,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             return response;
         }
         final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
+        return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
     }
 
     /**
@@ -719,7 +719,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         if (!DataCategory.UNIT.canUpdate()) {
             status = Status.UNAUTHORIZED;
         }
-        return Response.status(status).entity(getErrorEntity(status)).build();
+        return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
     }
 
     /**
@@ -742,7 +742,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         if (!DataCategory.UNIT.canDelete()) {
             status = Status.UNAUTHORIZED;
         }
-        return Response.status(status).entity(getErrorEntity(status)).build();
+        return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
     }
 
     /**
@@ -762,7 +762,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             return response;
         }
         final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
+        return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
     }
 
     /**
@@ -783,7 +783,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             return response;
         }
         final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
+        return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
     }
 
     /**
@@ -805,7 +805,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             return response;
         }
         final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
+        return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
     }
 
     /**
@@ -863,7 +863,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         if (!DataCategory.OBJECT_GROUP.canUpdate()) {
             status = Status.UNAUTHORIZED;
         }
-        return Response.status(status).entity(getErrorEntity(status)).build();
+        return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
     }
 
     /**
@@ -888,7 +888,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         if (!DataCategory.OBJECT_GROUP.canDelete()) {
             status = Status.UNAUTHORIZED;
         }
-        return Response.status(status).entity(getErrorEntity(status)).build();
+        return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
     }
 
     /**
@@ -910,7 +910,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             return response;
         }
         final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
+        return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
     }
 
     private Response buildErrorResponse(VitamCode vitamCode) {
@@ -1197,10 +1197,14 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
                 .toString()).build());
     }
 
-    private VitamError getErrorEntity(Status status) {
+    private VitamError getErrorEntity(Status status, String message) {
+        String aMessage =
+            (message != null && !message.trim().isEmpty()) ? message
+                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+
         return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(STORAGE_MODULE)
             .setState(CODE_VITAM)
-            .setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase());
+            .setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
 
     @Override

@@ -104,11 +104,6 @@ public class Unit extends MetadataDocument<Unit> {
      */
     public static final String UNIT_TYPE = "_unitType";
 
-    /**
-     * ES Mapping
-     */
-    public static final String TYPEUNIQUE = "typeunique";
-
     @Override
     public MetadataDocument<Unit> newInstance(JsonNode content) {
         return new Unit(content);

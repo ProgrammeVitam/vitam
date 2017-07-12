@@ -61,6 +61,7 @@ import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchUtil;
@@ -127,7 +128,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             try {
                 LOGGER.debug("createIndex");
                 final String mapping = getMapping(collection);
-                final String type = getTypeUnique(collection);
+                final String type = VitamCollection.getTypeunique();
                 LOGGER.debug("setMapping: " + getIndexName(collection, tenantId) + " type: " + type + "\n\t" + mapping);
                 final CreateIndexResponse response = client.admin().indices()
                     .prepareCreate(getIndexName(collection, tenantId))
@@ -170,7 +171,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      */
     final boolean addEntryIndex(final MetadataCollections collection, final Integer tenantId, final String id,
         final String json) {
-        final String type = collection == MetadataCollections.C_UNIT ? Unit.TYPEUNIQUE : ObjectGroup.TYPEUNIQUE;
+        final String type = VitamCollection.getTypeunique();
         return client.prepareIndex(getIndexName(collection, tenantId), type, id).setSource(json)
             .setOpType(OpType.INDEX)
             .get().getVersion() > 0;
@@ -190,7 +191,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         final BulkRequestBuilder bulkRequest = client.prepareBulk();
         // either use client#prepare, or use Requests# to directly build
         // index/delete requests
-        final String type = collection == MetadataCollections.C_UNIT ? Unit.TYPEUNIQUE : ObjectGroup.TYPEUNIQUE;
+        final String type = VitamCollection.getTypeunique();
         for (final Entry<String, String> val : mapIdJson.entrySet()) {
             bulkRequest.add(client.prepareIndex(getIndexName(collection, tenantId), type, val.getKey())
                 .setSource(val.getValue()));
@@ -297,7 +298,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      */
     final boolean updateEntryIndex(final MetadataCollections collection, final Integer tenantId, final String id,
         final String json) throws Exception {
-        final String type = collection == MetadataCollections.C_UNIT ? Unit.TYPEUNIQUE : ObjectGroup.TYPEUNIQUE;
+        final String type = VitamCollection.getTypeunique();
         return client.prepareUpdate(getIndexName(collection, tenantId), type, id).setDoc(json).setRefresh(true)
             .execute().actionGet().getVersion() > 1;
     }
@@ -334,7 +335,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
                 throw new MetaDataExecutionException("Result to insert is empty");
             }
             bulkRequest.add(client
-                .prepareIndex(getIndexName(MetadataCollections.C_UNIT, tenantId), Unit.TYPEUNIQUE, id)
+                .prepareIndex(getIndexName(MetadataCollections.C_UNIT, tenantId), VitamCollection.getTypeunique(), id)
                 .setSource(toInsert));
             if (max == 0) {
                 max = VitamConfiguration.MAX_ELASTICSEARCH_BULK;
@@ -403,7 +404,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             }
 
             bulkRequest
-                .add(client.prepareUpdate(getIndexName(MetadataCollections.C_UNIT, tenantId), Unit.TYPEUNIQUE, id)
+                .add(client.prepareUpdate(getIndexName(MetadataCollections.C_UNIT, tenantId), VitamCollection.getTypeunique(), id)
                     .setDoc(toUpdate));
             if (max == 0) {
                 max = VitamConfiguration.MAX_ELASTICSEARCH_BULK;
@@ -578,7 +579,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
                 throw new MetaDataExecutionException("Result to insert is empty");
             }
             bulkRequest.add(client
-                .prepareIndex(getIndexName(MetadataCollections.C_OBJECTGROUP, tenantId), ObjectGroup.TYPEUNIQUE, id)
+                .prepareIndex(getIndexName(MetadataCollections.C_OBJECTGROUP, tenantId), VitamCollection.getTypeunique(), id)
                 .setSource(toInsert));
             if (max == 0) {
                 max = VitamConfiguration.MAX_ELASTICSEARCH_BULK;
@@ -647,7 +648,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             }
 
             bulkRequest.add(client.prepareUpdate(getIndexName(MetadataCollections.C_OBJECTGROUP, tenantId),
-                ObjectGroup.TYPEUNIQUE, id).setDoc(toUpdate));
+                VitamCollection.getTypeunique(), id).setDoc(toUpdate));
             if (max == 0) {
                 max = VitamConfiguration.MAX_ELASTICSEARCH_BULK;
                 final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
@@ -686,7 +687,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         final DBObject dbObject = (DBObject) com.mongodb.util.JSON.parse(mongoJson);
         final String toUpdate = dbObject.toString().trim();
         UpdateResponse response = client.prepareUpdate(getIndexName(MetadataCollections.C_OBJECTGROUP, tenantId),
-            ObjectGroup.TYPEUNIQUE, id).setDoc(toUpdate).setRefresh(true).execute().actionGet();
+            VitamCollection.getTypeunique(), id).setDoc(toUpdate).setRefresh(true).execute().actionGet();
         return response.getId().equals(id);
     }
 
@@ -711,7 +712,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         for (String id : ids) {
             max--;
             bulkRequest.add(client.prepareDelete(getIndexName(MetadataCollections.C_OBJECTGROUP, tenantId),
-                ObjectGroup.TYPEUNIQUE, id));
+                VitamCollection.getTypeunique(), id));
             if (max == 0) {
                 max = VitamConfiguration.MAX_ELASTICSEARCH_BULK;
                 final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
@@ -755,7 +756,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         for (String id : ids) {
             max--;
             bulkRequest
-                .add(client.prepareDelete(getIndexName(MetadataCollections.C_UNIT, tenantId), Unit.TYPEUNIQUE, id));
+                .add(client.prepareDelete(getIndexName(MetadataCollections.C_UNIT, tenantId), VitamCollection.getTypeunique(), id));
             if (max == 0) {
                 max = VitamConfiguration.MAX_ELASTICSEARCH_BULK;
                 final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
@@ -787,15 +788,6 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         } else if (collection == MetadataCollections.C_OBJECTGROUP) {
             return ElasticsearchUtil
                 .transferJsonToMapping(ObjectGroup.class.getResourceAsStream(MAPPING_OBJECT_GROUP_FILE));
-        }
-        return "";
-    }
-
-    private String getTypeUnique(MetadataCollections collection) {
-        if (collection.equals(MetadataCollections.C_UNIT)) {
-            return Unit.TYPEUNIQUE;
-        } else if (collection.equals(MetadataCollections.C_OBJECTGROUP)) {
-            return ObjectGroup.TYPEUNIQUE;
         }
         return "";
     }

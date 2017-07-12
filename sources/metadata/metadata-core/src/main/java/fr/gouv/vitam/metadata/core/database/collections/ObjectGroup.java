@@ -133,6 +133,11 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
      * Copies
      */
     public static final String COPIES = VERSIONS + "." + "_copies";
+    /**
+     * depths
+     */
+    public static final String OGDEPTHS = "_ops";
+
 
 
     private static final BasicDBObject[] indexes = {
@@ -153,18 +158,7 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
      */
     private int nbCopy;
 
-
-    /**
-     * ES Mapping
-     */
-    public static final String TYPEUNIQUE = "typeunique";
-
     // TODO P1 add Nested objects or Parent/child relationships
-
-    /**
-     * depths
-     */
-    public static final String OGDEPTHS = "_ops";
 
     /**
      * Empty constructor

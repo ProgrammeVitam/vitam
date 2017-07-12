@@ -79,6 +79,7 @@ import java.util.List;
 public class ProfileResource {
 
 
+    private static final String FUNCTIONAL_ADMINISTRATION_MODULE = "FUNCTIONAL_ADMINISTRATION_MODULE";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProfileResource.class);
     private static final String PROFILE_JSON_IS_MANDATORY_PATAMETER =
         "The json input of profile is mandatory";
@@ -284,7 +285,7 @@ public class ProfileResource {
                 : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
         String aCode = (code != null) ? code : String.valueOf(status.getStatusCode());
         return new VitamError(aCode).setHttpCode(status.getStatusCode())
-            .setContext("FUNCTIONAL_ADMINISTRATION_MODULE")
+            .setContext(FUNCTIONAL_ADMINISTRATION_MODULE)
             .setState("ko").setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
 

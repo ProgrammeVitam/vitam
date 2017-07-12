@@ -207,10 +207,10 @@ public class MetaDataResourceTest {
         return obj.toString();
     }
 
-    private static String generateResponseErrorFromStatus(Status status) throws JsonProcessingException {
+    private static String generateResponseErrorFromStatus(Status status, String message) throws JsonProcessingException {
         return new ObjectMapper().writeValueAsString(new VitamError(status.name()).setHttpCode(status.getStatusCode())
             .setContext("ingest").setState("code_vitam")
-            .setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase()));
+            .setMessage(status.getReasonPhrase()).setDescription(message));
     }
 
 
@@ -232,7 +232,7 @@ public class MetaDataResourceTest {
             .contentType(ContentType.JSON)
             .body(buildDSLWithOptions("invalid", DATA)).when()
             .post("/units").then()
-            .body(equalTo(generateResponseErrorFromStatus(Status.BAD_REQUEST)))
+            .body(equalTo(generateResponseErrorFromStatus(Status.BAD_REQUEST, Status.BAD_REQUEST.getReasonPhrase())))
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
@@ -241,7 +241,7 @@ public class MetaDataResourceTest {
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions("", DATA)).when()
+            .body(buildDSLWithOptions("{}", DATA)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
 
@@ -250,7 +250,7 @@ public class MetaDataResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions("", DATA)).when()
             .post("/units").then()
-            .body(equalTo(generateResponseErrorFromStatus(Status.CONFLICT)))
+            .body(equalTo(generateResponseErrorFromStatus(Status.CONFLICT, "Unit already exists: aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq")))
             .statusCode(Status.CONFLICT.getStatusCode());
     }
 
@@ -259,7 +259,7 @@ public class MetaDataResourceTest {
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions("", DATA)).when()
+            .body(buildDSLWithOptions("{}", DATA)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
 
@@ -321,7 +321,7 @@ public class MetaDataResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions(QUERY_EXISTS, DATA)).when()
             .post("/units").then()
-            .body(equalTo(generateResponseErrorFromStatus(Status.NOT_FOUND)))
+            .body(equalTo(generateResponseErrorFromStatus(Status.NOT_FOUND, "Cannot find Parent: [aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab]")))
             .statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
@@ -329,13 +329,16 @@ public class MetaDataResourceTest {
     public void shouldReturnErrorRequestBadRequestIfDocumentIsTooLarge() throws Exception {
         final int limitRequest = GlobalDatasParser.limitRequest;
         GlobalDatasParser.limitRequest = 99;
-        given()
-            .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions("", createJsonStringWithDepth(60))).when()
-            .post("/units").then()
-            .body(equalTo(generateResponseErrorFromStatus(Status.BAD_REQUEST)))
-            .statusCode(Status.BAD_REQUEST.getStatusCode());
-        GlobalDatasParser.limitRequest = limitRequest;
+        try {
+            given()
+                .contentType(ContentType.JSON)
+                .body(buildDSLWithOptions("", createJsonStringWithDepth(60))).when()
+                .post("/units").then()
+                .body(equalTo(generateResponseErrorFromStatus(Status.BAD_REQUEST, "String exceeds sanity check of 99")))
+                .statusCode(Status.BAD_REQUEST.getStatusCode());
+        } finally {
+            GlobalDatasParser.limitRequest = limitRequest;
+        }
     }
 
     @Test
@@ -357,7 +360,7 @@ public class MetaDataResourceTest {
             .contentType(ContentType.JSON)
             .body(buildDSLWithOptions("invalid", DATA)).when()
             .post("/objectgroups").then()
-            .body(equalTo(generateResponseErrorFromStatus(Status.BAD_REQUEST)))
+            .body(equalTo(generateResponseErrorFromStatus(Status.BAD_REQUEST, Status.BAD_REQUEST.getReasonPhrase())))
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
@@ -381,7 +384,7 @@ public class MetaDataResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions(QUERY_PATH, DATA2)).when()
             .post("/objectgroups").then()
-            .body(equalTo(generateResponseErrorFromStatus(Status.CONFLICT)))
+            .body(equalTo(generateResponseErrorFromStatus(Status.CONFLICT, "ObjectGroup already exists: aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab")))
             .statusCode(Status.CONFLICT.getStatusCode());
     }
 
@@ -392,7 +395,7 @@ public class MetaDataResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions("", DATA3)).when()
             .post("/objectgroups").then()
-            .body(equalTo(generateResponseErrorFromStatus(Status.NOT_FOUND)))
+            .body(equalTo(generateResponseErrorFromStatus(Status.NOT_FOUND, "No Unit parent defined")))
             .statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
@@ -400,13 +403,16 @@ public class MetaDataResourceTest {
     public void shouldReturnErrorRequestBadRequestWhenInsertGOIfDocumentIsTooLarge() throws Exception {
         final int limitRequest = GlobalDatasParser.limitRequest;
         GlobalDatasParser.limitRequest = 99;
-        given()
-            .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions("", createJsonStringWithDepth(60))).when()
-            .post("/objectgroups").then()
-            .body(equalTo(generateResponseErrorFromStatus(Status.BAD_REQUEST)))
-            .statusCode(Status.BAD_REQUEST.getStatusCode());
-        GlobalDatasParser.limitRequest = limitRequest;
+        try {
+            given()
+                .contentType(ContentType.JSON)
+                .body(buildDSLWithOptions("", createJsonStringWithDepth(60))).when()
+                .post("/objectgroups").then()
+                .body(equalTo(generateResponseErrorFromStatus(Status.BAD_REQUEST, "String exceeds sanity check of 99")))
+                .statusCode(Status.BAD_REQUEST.getStatusCode());
+        } finally {
+            GlobalDatasParser.limitRequest = limitRequest;
+        }
     }
 
     @Test

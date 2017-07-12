@@ -92,6 +92,10 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 
 public class ContextServiceImpl implements ContextService {
+    private static final String INVALID_IDENTIFIER_OF_THE_ACCESS_CONTRACT = "Invalid identifier of the access contract:";
+
+    private static final String INVALID_IDENTIFIER_OF_THE_INGEST_CONTRACT = "Invalid identifier of the ingest contract:";
+
     private static final String PERMISSIONS_TENANT = "Permissions._tenant";
 
     private static final String EACH = "$each";
@@ -256,7 +260,7 @@ public class ContextServiceImpl implements ContextService {
                             if (!ContextManager.checkIdentifierOfAccessContract(objNode.asText(), tenantCurrent)) {
                                 error.addToErrors(
                                     new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem())
-                                        .setMessage("Invalid identifier of the ingest contract:" + objNode.asText()));
+                                        .setMessage(INVALID_IDENTIFIER_OF_THE_INGEST_CONTRACT + objNode.asText()));
                             }
                         }
                     }
@@ -271,7 +275,7 @@ public class ContextServiceImpl implements ContextService {
                             if (!ContextManager.checkIdentifierOfIngestContract(objNode.asText(), tenantCurrent)) {
                                 error.addToErrors(
                                     new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem())
-                                        .setMessage("Invalid identifier of the access contract:" + objNode.asText()));
+                                        .setMessage(INVALID_IDENTIFIER_OF_THE_ACCESS_CONTRACT + objNode.asText()));
                             }
                         }
                     }

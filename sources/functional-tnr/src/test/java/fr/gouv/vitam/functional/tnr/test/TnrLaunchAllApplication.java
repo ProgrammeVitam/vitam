@@ -27,13 +27,15 @@
 package fr.gouv.vitam.functional.tnr.test;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
@@ -51,14 +53,13 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementApplication;
 import fr.gouv.vitam.ingest.external.rest.IngestExternalApplication;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalApplication;
@@ -67,8 +68,8 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookApplication;
 import fr.gouv.vitam.metadata.rest.MetaDataApplication;
+import fr.gouv.vitam.processing.common.exception.PluginException;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementApplication;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.server.rest.StorageApplication;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferApplication;
@@ -79,30 +80,96 @@ import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
  * This class aims to help to launch locally the TNR by launching all necessary components
  */
 public class TnrLaunchAllApplication {
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TnrLaunchAllApplication.class);
 
-    @Rule
-    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
-        VitamThreadPoolExecutor.getDefaultExecutor());
+    /**
+     * Java -D argument
+     */
+    private static final String JAVA_ARG_TNR_JUNIT_CONF = "tnrJunitConf";
+    /**
+     * Default tnr-config.conf filename
+     */
+    private static final String TNR_CONFIG_CONF = "tnr-config.conf";
+
+    /**
+     * Still not possible to launch 2 offers, when possible change the static-strategy.json to reflect the changes
+     */
+    private static final boolean START_OFFER2 = false;
+
+    /**
+     * Jetty port setters
+     */
+    private static final String JETTY_INGEST_EXTERNAL_PORT = "jetty.ingest-external.port";
+    private static final String JETTY_INGEST_INTERNAL_PORT = "jetty.ingest-internal.port";
+    private static final String JETTY_ACCESS_EXTERNAL_PORT = "jetty.access-external.port";
+    private static final String JETTY_ACCESS_INTERNAL_PORT = "jetty.access-internal.port";
+    private static final String JETTY_WORKER_PORT = "jetty.worker.port";
+    private static final String JETTY_FUNCTIONAL_ADMIN_PORT = "jetty.functional-admin.port";
+    private static final String JETTY_STORAGE_PORT = "jetty.storage.port";
+    private static final String JETTY_OFFER2_PORT = "jetty.offer2.port";
+    private static final String JETTY_OFFER_PORT = "jetty.offer.port";
+    /**
+     * Vitam TMP Folder
+     */
+    private static final String VITAM_TMP_FOLDER = "vitam.tmp.folder";
+    /**
+     * Configuration files for applications
+     */
+    private static final String FUNCTIONAL_TNR_ACCESS_EXTERNAL_CONF = "functional-tnr/access-external.conf";
+    private static final String FUNCTIONAL_TNR_INGEST_EXTERNAL_CONF = "functional-tnr/ingest-external.conf";
+    private static final String FUNCTIONAL_TNR_ACCESS_INTERNAL_CONF = "functional-tnr/access-internal.conf";
+    private static final String FUNCTIONAL_TNR_INGEST_INTERNAL_CONF = "functional-tnr/ingest-internal.conf";
+    private static final String FUNCTIONAL_TNR_LOGBOOK_CONF = "functional-tnr/logbook.conf";
+    private static final String FUNCTIONAL_TNR_FUNCTIONAL_ADMINISTRATION_CONF =
+        "functional-tnr/functional-administration.conf";
+    private static final String FUNCTIONAL_TNR_PROCESSING_CONF = "functional-tnr/processing.conf";
+    private static final String FUNCTIONAL_TNR_WORKSPACE_CONF = "functional-tnr/workspace.conf";
+    private static final String FUNCTIONAL_TNR_METADATA_CONF = "functional-tnr/metadata.conf";
+    private static final String FUNCTIONAL_TNR_STORAGE_DEFAULT_OFFER_NOSSL2_CONF =
+        "functional-tnr/storage-default-offer-nossl2.conf";
+    private static final String FUNCTIONAL_TNR_STORAGE_DEFAULT_OFFER_NOSSL_CONF =
+        "functional-tnr/storage-default-offer-nossl.conf";
+    private static final String FUNCTIONAL_TNR_STORAGE_ENGINE_CONF = "functional-tnr/storage-engine.conf";
+    /**
+     * OWASP setter
+     */
+    private static final String ORG_OWASP_ESAPI_RESOURCES = "org.owasp.esapi.resources";
+
+    private static final String LOCALHOST = "localhost";
+
+    /**
+     * SUB_PATHES
+     */
+    private static final String PROCESS_SUBPATH = "process";
+    private static final String VERSION_FOLDER_SUBPATH = "version/folder";
+    private static final String STORAGELOG_SUBPATH = "storagelog";
+    private static final String STORAGEZIP_SUBPATH = "storagezip";
+    private static final String WORKER_DB_SUBPATH = "worker.db";
+    private static final String WKSINGEST_SUBPATH = "wksingest";
+    private static final String OFFER2_SUBPATH = "offer2";
+    private static final String OFFER_SUBPATH = "offer";
+    private static final String WORKSPACE_SUBPATH = "workspace";
+
+    /**
+     * MongoDB
+     */
     private static final int DATABASE_PORT = 12346;
     private static MongodExecutable mongodExecutable;
-    static MongodProcess mongod;
+    private static MongodProcess mongod;
+    /**
+     * Elasticsearch
+     */
     private static LogbookElasticsearchAccess esClient;
+    private static final int TCP_PORT = 54321;
+    private static final int HTTP_PORT = 54320;
+    private static final String CLUSTER_NAME = "vitam-cluster";
 
+    /**
+     * Temporary folder for database
+     */
     @ClassRule
     public static TemporaryFolder temporaryFolder = new TemporaryFolder();
-    private final static String CLUSTER_NAME = "vitam-cluster";
-    static JunitHelper junitHelper;
-    private static int TCP_PORT = 54321;
-    private static int HTTP_PORT = 54320;
 
-    private static final String VITAM_DATA = "/vitam/data/";
-    private static final String WORKSPACE = VITAM_DATA + "workspace";
-    private static final String OFFER = VITAM_DATA + "offer";
-    private static final String OFFER_INGEST = VITAM_DATA + "wksingest";
-    private static final String SIEGFRIED_PATH = "/usr/bin/sf";
-    
     private static final int PORT_SERVICE_WORKER = 8098;
     private static final int PORT_SERVICE_WORKSPACE = 8094;
     private static final int PORT_SERVICE_METADATA = 8096;
@@ -111,6 +178,7 @@ public class TnrLaunchAllApplication {
     private static final int PORT_SERVICE_LOGBOOK = 8099;
     private static final int PORT_SERVICE_STORAGE = 8100;
     private static final int PORT_SERVICE_STORAGE_OFFER = 8101;
+    private static final int PORT_SERVICE_STORAGE_OFFER2 = 8103;
     private static final int PORT_SERVICE_SIEGFRIED = 8102;
     private static final int PORT_SERVICE_INGEST_INTERNAL = 8095;
     private static final int PORT_SERVICE_INGEST_EXTERNAL = 8090;
@@ -128,6 +196,7 @@ public class TnrLaunchAllApplication {
     private static String CONFIG_INGEST_EXTERNAL_PATH = "";
     private static String CONFIG_ACCESS_EXTERNAL_PATH = "";
     private static String DEFAULT_OFFER_CONF = "";
+    private static String DEFAULT_OFFER_CONF2 = "";
     private static String STORAGE_CONF = "";
 
     // private static VitamServer workerApplication;
@@ -142,81 +211,107 @@ public class TnrLaunchAllApplication {
     private static IngestExternalApplication ingestExternalApplication;
     private static AccessExternalApplication accessExternalApplication;
     private static StorageApplication storageApplication;
-    private static StorageClient storageClient;
     private static DefaultOfferApplication defaultOfferApplication;
+    private static DefaultOfferApplication defaultOfferApplication2;
     private static Process siegfried;
-    
-    private static final String WORKSPACE_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE;
-
-
     private static ElasticsearchTestConfiguration config = null;
 
+
+    private static JunitTnrConfiguration buildConfiguration;
+
+    /**
+     * Start Vitam
+     */
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-        STORAGE_CONF = PropertiesUtils.getResourcePath("functional-tnr/storage-engine.conf").toString();
-        DEFAULT_OFFER_CONF =
-            PropertiesUtils.getResourcePath("functional-tnr/storage-default-offer-nossl.conf").toString();
-        CONFIG_METADATA_PATH = PropertiesUtils.getResourcePath("functional-tnr/metadata.conf").toString();
-        CONFIG_WORKER_PATH = PropertiesUtils.getResourcePath("functional-tnr/worker.conf").toString();
-        CONFIG_WORKSPACE_PATH =
-            PropertiesUtils.getResourcePath("functional-tnr/workspace.conf").toString();
-        CONFIG_PROCESSING_PATH =
-            PropertiesUtils.getResourcePath("functional-tnr/processing.conf").toString();
-        CONFIG_FUNCTIONAL_ADMIN_PATH =
-            PropertiesUtils.getResourcePath("functional-tnr/functional-administration.conf").toString();
+    public static void setUpBeforeClass() {
+        LOGGER.warn("Start TNR configuration");
+        String tnrconfigFile = SystemPropertyUtil.get(JAVA_ARG_TNR_JUNIT_CONF, TNR_CONFIG_CONF);
+        LOGGER.warn("Try to load config : " + tnrconfigFile);
+        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(tnrconfigFile)) {
+            buildConfiguration = PropertiesUtils.readYaml(yamlIS,
+                JunitTnrConfiguration.class);
+        } catch (final IOException e) {
+            LOGGER.error("Cannot load the configuration file: " + tnrconfigFile, e);
+            System.exit(1);
+        }
+        deleteDirectories();
+        createDirectories();
+        boolean launchSiegfried = buildConfiguration.isLaunchSiegfried();
+        String SIEGFRIED_PATH = buildConfiguration.getSiegfriedPath();
+        String VITAM_APP_SIEGFRIED = buildConfiguration.getDataSiegfried();
 
-        CONFIG_LOGBOOK_PATH = PropertiesUtils.getResourcePath("functional-tnr/logbook.conf").toString();
+        try {
+            STORAGE_CONF = PropertiesUtils.getResourcePath(FUNCTIONAL_TNR_STORAGE_ENGINE_CONF).toString();
+            DEFAULT_OFFER_CONF =
+                PropertiesUtils.getResourcePath(FUNCTIONAL_TNR_STORAGE_DEFAULT_OFFER_NOSSL_CONF).toString();
+            DEFAULT_OFFER_CONF2 =
+                PropertiesUtils.getResourcePath(FUNCTIONAL_TNR_STORAGE_DEFAULT_OFFER_NOSSL2_CONF).toString();
+            CONFIG_METADATA_PATH = PropertiesUtils.getResourcePath(FUNCTIONAL_TNR_METADATA_CONF).toString();
+            CONFIG_WORKER_PATH = PropertiesUtils.getResourcePath("functional-tnr/worker.conf").toString();
+            CONFIG_WORKSPACE_PATH =
+                PropertiesUtils.getResourcePath(FUNCTIONAL_TNR_WORKSPACE_CONF).toString();
+            CONFIG_PROCESSING_PATH =
+                PropertiesUtils.getResourcePath(FUNCTIONAL_TNR_PROCESSING_CONF).toString();
+            CONFIG_FUNCTIONAL_ADMIN_PATH =
+                PropertiesUtils.getResourcePath(FUNCTIONAL_TNR_FUNCTIONAL_ADMINISTRATION_CONF).toString();
+            CONFIG_LOGBOOK_PATH = PropertiesUtils.getResourcePath(FUNCTIONAL_TNR_LOGBOOK_CONF).toString();
+            CONFIG_INGEST_INTERNAL_PATH =
+                PropertiesUtils.getResourcePath(FUNCTIONAL_TNR_INGEST_INTERNAL_CONF).toString();
+            CONFIG_ACCESS_INTERNAL_PATH =
+                PropertiesUtils.getResourcePath(FUNCTIONAL_TNR_ACCESS_INTERNAL_CONF).toString();
 
-        CONFIG_INGEST_INTERNAL_PATH =
-            PropertiesUtils.getResourcePath("functional-tnr/ingest-internal.conf").toString();
-        CONFIG_ACCESS_INTERNAL_PATH =
-            PropertiesUtils.getResourcePath("functional-tnr/access-internal.conf").toString();
+            CONFIG_INGEST_EXTERNAL_PATH =
+                PropertiesUtils.getResourcePath(FUNCTIONAL_TNR_INGEST_EXTERNAL_CONF).toString();
+            CONFIG_ACCESS_EXTERNAL_PATH =
+                PropertiesUtils.getResourcePath(FUNCTIONAL_TNR_ACCESS_EXTERNAL_CONF).toString();
+        } catch (FileNotFoundException e) {
+            LOGGER.error(e);
+            System.exit(1);
+        }
 
-        CONFIG_INGEST_EXTERNAL_PATH =
-            PropertiesUtils.getResourcePath("functional-tnr/ingest-external.conf").toString();
-        CONFIG_ACCESS_EXTERNAL_PATH =
-            PropertiesUtils.getResourcePath("functional-tnr/access-external.conf").toString();
-
-        File tempFolder = temporaryFolder.newFolder();
-        System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
-
-        SystemPropertyUtil.refresh();
-
-        
         // MoongoDB and ES
         LOGGER.warn("Start MongoDb and Elasticsearch");
-        config = JunitHelper.startElasticsearchForTest(temporaryFolder, CLUSTER_NAME, TCP_PORT, HTTP_PORT);
+        try {
+            config = JunitHelper.startElasticsearchForTest(temporaryFolder, CLUSTER_NAME, TCP_PORT, HTTP_PORT);
+        } catch (VitamApplicationServerException e1) {
+            LOGGER.error(e1);
+            earlyShutdown();
+        }
 
         final MongodStarter starter = MongodStarter.getDefaultInstance();
 
-        mongodExecutable = starter.prepare(new MongodConfigBuilder()
-            .version(Version.Main.PRODUCTION)
-            .net(new Net(DATABASE_PORT, Network.localhostIsIPv6()))
-            .build());
-        mongod = mongodExecutable.start();
+        try {
+            mongodExecutable = starter.prepare(new MongodConfigBuilder()
+                .version(Version.Main.PRODUCTION)
+                .net(new Net(DATABASE_PORT, Network.localhostIsIPv6()))
+                .build());
+            mongod = mongodExecutable.start();
+        } catch (IOException e1) {
+            LOGGER.error(e1);
+            earlyShutdown();
+        }
 
         // ES client
         final List<ElasticsearchNode> nodes = new ArrayList<>();
-        nodes.add(new ElasticsearchNode("localhost", config.getTcpPort()));
-        esClient = new LogbookElasticsearchAccess(CLUSTER_NAME, nodes);
+        nodes.add(new ElasticsearchNode(LOCALHOST, config.getTcpPort()));
+        try {
+            esClient = new LogbookElasticsearchAccess(CLUSTER_NAME, nodes);
+        } catch (VitamException e1) {
+            LOGGER.error(e1);
+            earlyShutdown();
+        }
 
-        new File(VITAM_DATA + "worker.db").delete();
-        File workspaceRoot = new File(WORKSPACE);
-        new File(workspaceRoot, "process").mkdirs();
-        File storageRoot = new File(OFFER);
-        storageRoot.mkdirs();
-        new File(storageRoot, "storagezip").mkdirs();
-        new File(storageRoot, "storagelog").mkdirs();
-        new File(OFFER_INGEST).mkdirs();
-        new File(VITAM_DATA + "version/folder").mkdirs();
-        
-        
         // launch metadata
         LOGGER.warn("Start Metadata");
         SystemPropertyUtil.set(MetaDataApplication.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_METADATA));
         medtadataApplication = new MetaDataApplication(CONFIG_METADATA_PATH);
-        medtadataApplication.start();
+        try {
+            medtadataApplication.start();
+        } catch (VitamApplicationServerException e1) {
+            LOGGER.error(e1);
+            earlyShutdown();
+        }
         SystemPropertyUtil.clear(MetaDataApplication.PARAMETER_JETTY_SERVER_PORT);
 
         // launch workspace
@@ -224,36 +319,67 @@ public class TnrLaunchAllApplication {
         SystemPropertyUtil.set(WorkspaceApplication.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_WORKSPACE));
         workspaceApplication = new WorkspaceApplication(CONFIG_WORKSPACE_PATH);
-        workspaceApplication.start();
+        try {
+            workspaceApplication.start();
+        } catch (VitamApplicationServerException e1) {
+            LOGGER.error(e1);
+            earlyShutdown();
+        }
         SystemPropertyUtil.clear(WorkspaceApplication.PARAMETER_JETTY_SERVER_PORT);
 
         // launch storage
 
         // first offer
-        LOGGER.warn("Start Offer");
+        LOGGER.warn("Start Offer1");
         SystemPropertyUtil
-            .set("jetty.offer.port", Integer.toString(PORT_SERVICE_STORAGE_OFFER));
-        final fr.gouv.vitam.common.storage.StorageConfiguration offerConfiguration = PropertiesUtils
-            .readYaml(PropertiesUtils.findFile(DEFAULT_OFFER_CONF),
-                fr.gouv.vitam.common.storage.StorageConfiguration.class);
-        defaultOfferApplication = new DefaultOfferApplication(offerConfiguration);
-        defaultOfferApplication.start();
-        SystemPropertyUtil.clear("jetty.offer.port");
+            .set(JETTY_OFFER_PORT, Integer.toString(PORT_SERVICE_STORAGE_OFFER));
+        fr.gouv.vitam.common.storage.StorageConfiguration offerConfiguration;
+        try {
+            offerConfiguration = PropertiesUtils
+                .readYaml(PropertiesUtils.findFile(DEFAULT_OFFER_CONF),
+                    fr.gouv.vitam.common.storage.StorageConfiguration.class);
+            defaultOfferApplication = new DefaultOfferApplication(offerConfiguration);
+            defaultOfferApplication.start();
+        } catch (IOException | VitamApplicationServerException e1) {
+            LOGGER.error(e1);
+            earlyShutdown();
+        }
+        SystemPropertyUtil.clear(JETTY_OFFER_PORT);
+
+
+        // second offer
+        if (START_OFFER2) {
+            LOGGER.warn("Start Offer2");
+            SystemPropertyUtil
+                .set(JETTY_OFFER2_PORT, Integer.toString(PORT_SERVICE_STORAGE_OFFER2));
+            fr.gouv.vitam.common.storage.StorageConfiguration offerConfiguration2;
+            try {
+                offerConfiguration2 = PropertiesUtils
+                    .readYaml(PropertiesUtils.findFile(DEFAULT_OFFER_CONF2),
+                        fr.gouv.vitam.common.storage.StorageConfiguration.class);
+                defaultOfferApplication2 = new DefaultOfferApplication(offerConfiguration2);
+                defaultOfferApplication2.start();
+            } catch (IOException | VitamApplicationServerException e1) {
+                LOGGER.error(e1);
+                earlyShutdown();
+            }
+            SystemPropertyUtil.clear(JETTY_OFFER2_PORT);
+        }
 
         // storage engine
         LOGGER.warn("Start Storage");
-        final StorageConfiguration serverConfiguration =
-            PropertiesUtils.readYaml(PropertiesUtils.findFile(STORAGE_CONF),
-                StorageConfiguration.class);
         try {
+            final StorageConfiguration serverConfiguration =
+                PropertiesUtils.readYaml(PropertiesUtils.findFile(STORAGE_CONF),
+                    StorageConfiguration.class);
             SystemPropertyUtil
-                .set("jetty.storage.port", Integer.toString(PORT_SERVICE_STORAGE));
+                .set(JETTY_STORAGE_PORT, Integer.toString(PORT_SERVICE_STORAGE));
             storageApplication = new StorageApplication(serverConfiguration);
             storageApplication.start();
-            SystemPropertyUtil.clear("jetty.storage.port");
-        } catch (final VitamApplicationServerException e) {
+            SystemPropertyUtil.clear(JETTY_STORAGE_PORT);
+        } catch (final VitamApplicationServerException | IOException e) {
             LOGGER.error(e);
-            throw new IllegalStateException("Cannot start the Composite Application Server", e);
+            earlyShutdown();
         }
 
         // launch logbook
@@ -261,120 +387,375 @@ public class TnrLaunchAllApplication {
         SystemPropertyUtil
             .set(LogbookApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_LOGBOOK));
         lgbapplication = new LogbookApplication(CONFIG_LOGBOOK_PATH);
-        lgbapplication.start();
+        try {
+            lgbapplication.start();
+        } catch (VitamApplicationServerException e) {
+            LOGGER.error(e);
+            earlyShutdown();
+        }
         SystemPropertyUtil.clear(LogbookApplication.PARAMETER_JETTY_SERVER_PORT);
-        LogbookOperationsClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_LOGBOOK));
-        LogbookLifeCyclesClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_LOGBOOK));
+        LogbookOperationsClientFactory.changeMode(new ClientConfigurationImpl(LOCALHOST, PORT_SERVICE_LOGBOOK));
+        LogbookLifeCyclesClientFactory.changeMode(new ClientConfigurationImpl(LOCALHOST, PORT_SERVICE_LOGBOOK));
 
         // launch functional Admin server
         LOGGER.warn("Start Functional Admin");
-        SystemPropertyUtil.set("jetty.functional-admin.port", Integer.toString(PORT_SERVICE_FUNCTIONAL_ADMIN));
+        SystemPropertyUtil.set(JETTY_FUNCTIONAL_ADMIN_PORT, Integer.toString(PORT_SERVICE_FUNCTIONAL_ADMIN));
         adminApplication = new AdminManagementApplication(CONFIG_FUNCTIONAL_ADMIN_PATH);
-        adminApplication.start();
-        SystemPropertyUtil.clear("jetty.functional-admin.port");
+        try {
+            adminApplication.start();
+        } catch (VitamApplicationServerException e) {
+            LOGGER.error(e);
+            earlyShutdown();
+        }
+        SystemPropertyUtil.clear(JETTY_FUNCTIONAL_ADMIN_PORT);
 
         // launch processing
         LOGGER.warn("Start Processing");
         SystemPropertyUtil.set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_PROCESSING));
         processManagementApplication = new ProcessManagementApplication(CONFIG_PROCESSING_PATH);
-        processManagementApplication.start();
+        try {
+            processManagementApplication.start();
+        } catch (VitamApplicationServerException e) {
+            LOGGER.error(e);
+            earlyShutdown();
+        }
         SystemPropertyUtil.clear(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT);
 
         // Launch Siegfried
-        LOGGER.warn("Start Siegfried");
-        ProcessBuilder pb = new ProcessBuilder(SIEGFRIED_PATH, "-serve", "localhost:" + PORT_SERVICE_SIEGFRIED);
-        pb.redirectErrorStream(true);
-        pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-        siegfried = pb.start();
+        if (launchSiegfried) {
+            LOGGER.warn("Start Siegfried");
+            ProcessBuilder pb = new ProcessBuilder(SIEGFRIED_PATH, "-home", VITAM_APP_SIEGFRIED, "-serve",
+                "localhost:" + PORT_SERVICE_SIEGFRIED);
+            pb.redirectErrorStream(true);
+            pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+            try {
+                siegfried = pb.start();
+                Thread.sleep(100);
+            } catch (IOException | InterruptedException e) {
+                LOGGER.error(e);
+                earlyShutdown();
+            }
+            LOGGER.warn("Siegfried alive ? : " + siegfried.isAlive());
+        }
 
         // launch worker
         LOGGER.warn("Start Worker");
-        SystemPropertyUtil.set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
-        wkrapplication = new WorkerApplication(CONFIG_WORKER_PATH);
-        wkrapplication.start();
-        SystemPropertyUtil.clear("jetty.worker.port");
+        SystemPropertyUtil.set(JETTY_WORKER_PORT, Integer.toString(PORT_SERVICE_WORKER));
+        try {
+            wkrapplication = new WorkerApplication(CONFIG_WORKER_PATH);
+            wkrapplication.start();
+        } catch (FileNotFoundException | PluginException | InvalidParseOperationException |
+            VitamApplicationServerException e) {
+            LOGGER.error(e);
+            shutdownSiegfried();
+            earlyShutdown();
+        }
+        SystemPropertyUtil.clear(JETTY_WORKER_PORT);
 
         // launch access-internal
         LOGGER.warn("Start Access Internal");
-        SystemPropertyUtil.set("jetty.access-internal.port", Integer.toString(PORT_SERVICE_ACCESS_INTERNAL));
+        SystemPropertyUtil.set(JETTY_ACCESS_INTERNAL_PORT, Integer.toString(PORT_SERVICE_ACCESS_INTERNAL));
         accessInternalApplication =
             new AccessInternalApplication(CONFIG_ACCESS_INTERNAL_PATH);
-        accessInternalApplication.start();
-        SystemPropertyUtil.clear("jetty.access-internal.port");
+        try {
+            accessInternalApplication.start();
+        } catch (VitamApplicationServerException e) {
+            LOGGER.error(e);
+            shutdownSiegfried();
+            earlyShutdown();
+        }
+        SystemPropertyUtil.clear(JETTY_ACCESS_INTERNAL_PORT);
 
         // launch access-external
         LOGGER.warn("Start Access External");
-        SystemPropertyUtil.set("jetty.access-external.port", Integer.toString(PORT_SERVICE_ACCESS_EXTERNAL));
+        SystemPropertyUtil.set(JETTY_ACCESS_EXTERNAL_PORT, Integer.toString(PORT_SERVICE_ACCESS_EXTERNAL));
         accessExternalApplication =
             new AccessExternalApplication(CONFIG_ACCESS_EXTERNAL_PATH);
-        accessExternalApplication.start();
-        SystemPropertyUtil.clear("jetty.access-external.port");
+        try {
+            accessExternalApplication.start();
+        } catch (VitamApplicationServerException e) {
+            LOGGER.error(e);
+            shutdownSiegfried();
+            earlyShutdown();
+        }
+        SystemPropertyUtil.clear(JETTY_ACCESS_EXTERNAL_PORT);
 
         // launch ingest-internal
         LOGGER.warn("Start Ingest Internal");
-        SystemPropertyUtil.set("jetty.ingest-internal.port", Integer.toString(PORT_SERVICE_INGEST_INTERNAL));
+        SystemPropertyUtil.set(JETTY_INGEST_INTERNAL_PORT, Integer.toString(PORT_SERVICE_INGEST_INTERNAL));
         ingestInternalApplication = new IngestInternalApplication(CONFIG_INGEST_INTERNAL_PATH);
-        ingestInternalApplication.start();
-        SystemPropertyUtil.clear("jetty.ingest-internal.port");
+        try {
+            ingestInternalApplication.start();
+        } catch (VitamApplicationServerException e) {
+            LOGGER.error(e);
+            shutdownSiegfried();
+            earlyShutdown();
+        }
+        SystemPropertyUtil.clear(JETTY_INGEST_INTERNAL_PORT);
 
         // launch ingest-external
         LOGGER.warn("Start Ingest external");
-        SystemPropertyUtil.set("jetty.ingest-external.port", Integer.toString(PORT_SERVICE_INGEST_EXTERNAL));
+        SystemPropertyUtil.set(JETTY_INGEST_EXTERNAL_PORT, Integer.toString(PORT_SERVICE_INGEST_EXTERNAL));
         ingestExternalApplication = new IngestExternalApplication(CONFIG_INGEST_EXTERNAL_PATH);
-        ingestExternalApplication.start();
-        SystemPropertyUtil.clear("jetty.ingest-external.port");
-        
+        try {
+            ingestExternalApplication.start();
+        } catch (VitamApplicationServerException e) {
+            LOGGER.error(e);
+            shutdownSiegfried();
+            earlyShutdown();
+        }
+        SystemPropertyUtil.clear(JETTY_INGEST_EXTERNAL_PORT);
+
         LOGGER.warn("ALL STARTED");
 
     }
-    
+
+    /**
+     * Stop Vitam
+     */
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        esClient.close();
+    public static void tearDownAfterClass() {
+        LOGGER.error("try to shutdown ALL");
+        try {
+            if (ingestExternalApplication != null) {
+                LOGGER.error("try to shutdown INGEST_EXTERNAL");
+                ingestExternalApplication.stop();
+            }
+        } catch (Exception e) {
+            LOGGER.error(e);
+        }
+        try {
+            if (ingestInternalApplication != null) {
+                LOGGER.error("try to shutdown INGEST_INTERNAL");
+                ingestInternalApplication.stop();
+            }
+        } catch (Exception e) {
+            LOGGER.error(e);
+        }
+        try {
+            if (accessExternalApplication != null) {
+                LOGGER.error("try to shutdown ACCESS_EXTERNAL");
+                accessExternalApplication.stop();
+            }
+        } catch (Exception e) {
+            LOGGER.error(e);
+        }
+        try {
+            if (accessInternalApplication != null) {
+                LOGGER.error("try to shutdown ACCESS_INTERNAL");
+                accessInternalApplication.stop();
+            }
+        } catch (Exception e) {
+            LOGGER.error(e);
+        }
+        try {
+            if (wkrapplication != null) {
+                LOGGER.error("try to shutdown WORKER");
+                wkrapplication.stop();
+            }
+        } catch (Exception e) {
+            LOGGER.error(e);
+        }
+        try {
+            if (processManagementApplication != null) {
+                LOGGER.error("try to shutdown PROCESSING");
+                processManagementApplication.stop();
+            }
+        } catch (Exception e) {
+            LOGGER.error(e);
+        }
+        try {
+            if (adminApplication != null) {
+                LOGGER.error("try to shutdown ADMIN_FUNCTIONAL");
+                adminApplication.stop();
+            }
+        } catch (Exception e) {
+            LOGGER.error(e);
+        }
+        try {
+            if (lgbapplication != null) {
+                LOGGER.warn("try to shutdown LOGBOOK");
+                lgbapplication.stop();
+            }
+        } catch (Exception e) {
+            LOGGER.error(e);
+        }
+        try {
+            if (storageApplication != null) {
+                LOGGER.warn("try to shutdown STORAGE");
+                storageApplication.stop();
+            }
+        } catch (Exception e) {
+            LOGGER.error(e);
+        }
+        try {
+            if (defaultOfferApplication != null) {
+                LOGGER.warn("try to shutdown DEFAULT_OFFER");
+                defaultOfferApplication.stop();
+            }
+        } catch (Exception e) {
+            LOGGER.error(e);
+        }
+        try {
+            if (defaultOfferApplication2 != null) {
+                LOGGER.warn("try to shutdown DEFAULT_OFFER2");
+                defaultOfferApplication2.stop();
+            }
+        } catch (Exception e) {
+            LOGGER.error(e);
+        }
+        try {
+            if (workspaceApplication != null) {
+                LOGGER.warn("try to shutdown WORKSPACE");
+                workspaceApplication.stop();
+            }
+        } catch (Exception e) {
+            LOGGER.error(e);
+        }
+        try {
+            if (medtadataApplication != null) {
+                LOGGER.warn("try to shutdown METADATA");
+                medtadataApplication.stop();
+            }
+        } catch (Exception e) {
+            LOGGER.error(e);
+        }
+
+        earlyShutdown();
+        LOGGER.error("ALL shutdown");
+    }
+
+    private static void earlyShutdown() {
+        LOGGER.warn("try to shutdown ELEASTICSEARCH");
+        if (esClient != null) {
+            esClient.close();
+        }
         if (config != null) {
             JunitHelper.stopElasticsearchForTest(config);
         }
-        mongod.stop();
-        mongodExecutable.stop();
-        try {
-            ingestInternalApplication.stop();
-            workspaceApplication.stop();
-            wkrapplication.stop();
-            lgbapplication.stop();
-            processManagementApplication.stop();
-            medtadataApplication.stop();
-            adminApplication.stop();
-            accessInternalApplication.stop();
-            storageClient.close();
-            defaultOfferApplication.stop();
-            storageApplication.stop();
-            // Clean directrories
+        LOGGER.warn("try to shutdown MONGODB");
+        if (mongod != null) {
+            mongod.stop();
+        }
+        if (mongodExecutable != null) {
+            mongodExecutable.stop();
+        }
+        // Clean directrories
+        LOGGER.warn("try to CLEAN");
+        if (temporaryFolder != null) {
             temporaryFolder.delete();
+        }
+        deleteDirectories();
+        shutdownSiegfried();
+    }
+
+    private static void deleteDirectories() {
+        String VITAM_DATA = buildConfiguration.getVitamData();
+        if (VITAM_DATA != null && !VITAM_DATA.trim().isEmpty()) {
+            LOGGER.warn("try to CLEAN DATA");
+            String WORKSPACE = VITAM_DATA + WORKSPACE_SUBPATH;
+            String OFFER = VITAM_DATA + OFFER_SUBPATH;
+            String OFFER2 = VITAM_DATA + OFFER2_SUBPATH;
+            String OFFER_INGEST = VITAM_DATA + WKSINGEST_SUBPATH;
+
             File workspaceRoot = new File(WORKSPACE);
             File storageRoot = new File(OFFER);
+            File storageRoot2 = new File(OFFER2);
             File workspaceIngest = new File(OFFER_INGEST);
             FileUtil.deleteRecursive(workspaceRoot);
             FileUtil.deleteRecursive(storageRoot);
+            FileUtil.deleteRecursive(storageRoot2);
             FileUtil.deleteRecursive(workspaceIngest);
-            new File(VITAM_DATA + "worker.db").delete();
-            // Try to kill Siegfried
-            Process kill = Runtime.getRuntime().exec("killall "+SIEGFRIED_PATH);
-            kill.destroy();
-            // Does not work
-            //siegfried.destroyForcibly();
-        } catch (final Exception e) {
-            LOGGER.error(e);
+            new File(VITAM_DATA + WORKER_DB_SUBPATH).delete();
         }
     }
 
+    private static void createDirectories() {
+        try {
+            File tempFolder = temporaryFolder.newFolder();
+            SystemPropertyUtil.set(VITAM_TMP_FOLDER, tempFolder.getAbsolutePath());
+        } catch (IOException e) {
+            LOGGER.error(e);
+            earlyShutdown();
+        }
 
-    //@RunWithCustomExecutor
+        String VITAM_DATA = buildConfiguration.getVitamData();
+        if (VITAM_DATA == null || VITAM_DATA.trim().isEmpty()) {
+            LOGGER.error("VITAM_DATA not defined");
+            System.exit(1);
+        }
+        String WORKSPACE = VITAM_DATA + WORKSPACE_SUBPATH;
+        String OFFER = VITAM_DATA + OFFER_SUBPATH;
+        String OFFER2 = VITAM_DATA + OFFER2_SUBPATH;
+        String OFFER_INGEST = VITAM_DATA + WKSINGEST_SUBPATH;
+        SystemPropertyUtil.set("tnrBaseDirectory", buildConfiguration.getHomeItest());
+        File dir = null;
+        try {
+            dir = PropertiesUtils.getResourceFile(TNR_CONFIG_CONF);
+        } catch (FileNotFoundException e) {
+            LOGGER.error(e);
+            System.exit(1);
+        }
+        dir = dir.getParentFile();
+        SystemPropertyUtil.set(ORG_OWASP_ESAPI_RESOURCES,
+            dir.getAbsolutePath());
+
+
+        File workspaceRoot = new File(WORKSPACE);
+        new File(workspaceRoot, PROCESS_SUBPATH).mkdirs();
+        File storageRoot = new File(OFFER);
+        storageRoot.mkdirs();
+        File storageRoot2 = new File(OFFER2);
+        storageRoot2.mkdirs();
+        new File(storageRoot, STORAGEZIP_SUBPATH).mkdirs();
+        new File(storageRoot, STORAGELOG_SUBPATH).mkdirs();
+        File workspaceIngest = new File(OFFER_INGEST);
+        workspaceIngest.mkdirs();
+        new File(VITAM_DATA + VERSION_FOLDER_SUBPATH).mkdirs();
+    }
+
+    private static void shutdownSiegfried() {
+        String SIEGFRIED_PATH = buildConfiguration.getSiegfriedPath();
+        boolean launchSiegfried = buildConfiguration.isLaunchSiegfried();
+        if (launchSiegfried && siegfried != null) {
+            LOGGER.warn("try to shutdown SIEGFRIED");
+            // Try to kill Siegfried
+            try {
+                Process kill = Runtime.getRuntime().exec(new String[] {"killall", "-SIGKILL", SIEGFRIED_PATH});
+                Thread.sleep(100);
+                kill.destroy();
+                // does not work
+                siegfried.destroyForcibly();
+                Thread.sleep(100);
+            } catch (Exception e) {
+                LOGGER.error(e);
+            }
+        }
+    }
+
+    /**
+     * Run TNR
+     */
     @Test
-    public void ruenTestTNR() throws Throwable {
-        cucumber.api.cli.Main.main(new String[] {"-g", "fr.gouv.vitam.functionaltest.cucumber",
-            "-p", "fr.gouv.vitam.functionaltest.cucumber.report.VitamReporter:report.json",
-            "/home/vitam/workspace2/vitam-itests/"});
+    public void runTestTNR() {
+        try {
+            String HOME_ITEST = buildConfiguration.getHomeItest();
+            String specificTest = buildConfiguration.getSpecificItest();
+            if (specificTest != null && !specificTest.trim().isEmpty()) {
+                HOME_ITEST = specificTest;
+            }
+            LOGGER.warn("START TEST: {}", HOME_ITEST);
+            long start = System.nanoTime();
+            cucumber.api.cli.Main.run(new String[] {"-g", "fr.gouv.vitam.functionaltest.cucumber",
+                "-p", "fr.gouv.vitam.functionaltest.cucumber.report.VitamReporter:report.json",
+                HOME_ITEST}, Thread.currentThread().getContextClassLoader());
+            long end = System.nanoTime();
+            Thread.sleep(100);
+            LOGGER.warn("ENDING TEST: {} in {} ms", HOME_ITEST, (end-start)/1000000);
+        } catch (Throwable e) {
+            LOGGER.error(e);
+        }
     }
 
 }

@@ -68,6 +68,7 @@ import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
 @ApplicationPath("webresources")
 public class ContextResource {
 
+    private static final String FUNCTIONAL_ADMINISTRATION_MODULE = "FUNCTIONAL_ADMINISTRATION_MODULE";
     static final String CONTEXTS_URI = "/contexts";
     static final String UPDATE_CONTEXT_URI = "/context";
 
@@ -131,7 +132,7 @@ public class ContextResource {
                 : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
         String aCode = (code != null) ? code : String.valueOf(status.getStatusCode());
         return new VitamError(aCode).setHttpCode(status.getStatusCode())
-            .setContext("FUNCTIONAL_ADMINISTRATION_MODULE")
+            .setContext(FUNCTIONAL_ADMINISTRATION_MODULE)
             .setState("ko").setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
 

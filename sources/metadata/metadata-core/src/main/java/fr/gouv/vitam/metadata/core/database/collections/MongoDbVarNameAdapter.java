@@ -80,7 +80,7 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                         return ObjectGroup.OBJECTFORMAT;
                     case ID:
                         // Valid for Unit and OG
-                        return MetadataDocument.ID;
+                        return VitamDocument.ID;
                     case QUALIFIERS:
                         // Valid for OG
                         return MetadataDocument.QUALIFIERS + extension;
@@ -98,7 +98,7 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                         return MetadataDocument.TYPE;
                     case TENANT:
                         // Valid for Unit and OG
-                        return MetadataDocument.TENANT_ID;
+                        return VitamDocument.TENANT_ID;
                     case OBJECT:
                         // Valid for Unit
                         return MetadataDocument.OG;

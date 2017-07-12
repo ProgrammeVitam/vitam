@@ -88,6 +88,8 @@ import fr.gouv.vitam.processing.management.core.ProcessManagementImpl;
 @ApplicationPath("webresources")
 public class ProcessManagementResource extends ApplicationStatusResource {
 
+    private static final String INGEST = "ingest";
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessManagementResource.class);
 
     private static final String ERR_OPERATION_ID_IS_MANDATORY = "The operation identifier is mandatory";
@@ -134,7 +136,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
 
     private VitamError getErrorEntity(Status status, String msg, String description) {
         return new VitamError(status.name()).setHttpCode(status.getStatusCode())
-            .setContext("ingest")
+            .setContext(INGEST)
             .setState("code_vitam")
             .setMessage(msg)
             .setDescription(description);

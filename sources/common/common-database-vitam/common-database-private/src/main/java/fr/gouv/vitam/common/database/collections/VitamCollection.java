@@ -118,7 +118,7 @@ public class VitamCollection {
     /**
      * @return the typeunique
      */
-    public String getTypeunique() {
+    public static String getTypeunique() {
         return TYPEUNIQUE;
     }
 

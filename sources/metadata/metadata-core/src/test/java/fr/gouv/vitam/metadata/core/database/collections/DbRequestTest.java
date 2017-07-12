@@ -106,6 +106,7 @@ import fr.gouv.vitam.common.database.builder.request.multiple.DeleteMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.parser.request.multiple.DeleteParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.InsertParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserHelper;
@@ -916,7 +917,7 @@ public class DbRequestTest {
         final SearchRequestBuilder request =
             esClientWithoutVitambBehavior.getClient()
                 .prepareSearch(getIndexName(MetadataCollections.C_UNIT, tenantId))
-                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setTypes(Unit.TYPEUNIQUE).setExplain(false)
+                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setTypes(VitamCollection.getTypeunique()).setExplain(false)
                 .setSize(GlobalDatas.LIMIT_LOAD);
         SearchResponse response;
         request.setQuery(qb1);
@@ -1278,7 +1279,7 @@ public class DbRequestTest {
         final SearchRequestBuilder request =
             esClientWithoutVitambBehavior.getClient()
                 .prepareSearch(getIndexName(MetadataCollections.C_OBJECTGROUP, tenantId))
-                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setTypes(ObjectGroup.TYPEUNIQUE).setExplain(false)
+                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setTypes(VitamCollection.getTypeunique()).setExplain(false)
                 .setSize(GlobalDatas.LIMIT_LOAD);
         request.setQuery(qb);
         final SearchResponse response = request.get();

@@ -43,6 +43,7 @@ import org.junit.rules.TemporaryFolder;
 
 import com.mongodb.MongoClient;
 
+import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -130,7 +131,7 @@ public class ElasticsearchAccessMetadataTest {
         assertEquals(true, esClient.addEntryIndex(MetadataCollections.C_UNIT, TENANT_ID_0, id, S1));
         // delete unit
         try {
-            esClient.deleteEntryIndex(MetadataCollections.C_UNIT, TENANT_ID_0, Unit.TYPEUNIQUE, id);
+            esClient.deleteEntryIndex(MetadataCollections.C_UNIT, TENANT_ID_0, VitamCollection.getTypeunique(), id);
         } catch (final MetaDataExecutionException e) {
             fail(e.getMessage());
         } catch (final MetaDataNotFoundException e) {
@@ -138,7 +139,7 @@ public class ElasticsearchAccessMetadataTest {
         }
 
         try {
-            esClient.deleteEntryIndex(MetadataCollections.C_UNIT, TENANT_ID_0, Unit.TYPEUNIQUE,
+            esClient.deleteEntryIndex(MetadataCollections.C_UNIT, TENANT_ID_0, VitamCollection.getTypeunique(),
                 GUIDFactory.newUnitGUID(TENANT_ID).toString());
             fail("Unit not found");
 
@@ -183,7 +184,7 @@ public class ElasticsearchAccessMetadataTest {
         assertEquals(true, esClient.addEntryIndex(MetadataCollections.C_OBJECTGROUP, TENANT_ID_0, id, S1_OG));
         // delete OG
 
-        esClient.deleteEntryIndex(MetadataCollections.C_OBJECTGROUP, TENANT_ID_0, ObjectGroup.TYPEUNIQUE, id);
+        esClient.deleteEntryIndex(MetadataCollections.C_OBJECTGROUP, TENANT_ID_0, VitamCollection.getTypeunique(), id);
 
         // delete index
         assertEquals(true, esClient.deleteIndex(MetadataCollections.C_OBJECTGROUP, TENANT_ID_0));
@@ -193,7 +194,7 @@ public class ElasticsearchAccessMetadataTest {
     @Test(expected = MetaDataNotFoundException.class)
     public void testElasticSearchDeleteOGAccessMetadatsNotFoundThenThrowException()
         throws MetaDataExecutionException, MetaDataNotFoundException {
-        esClient.deleteEntryIndex(MetadataCollections.C_OBJECTGROUP, TENANT_ID_0, ObjectGroup.TYPEUNIQUE,
+        esClient.deleteEntryIndex(MetadataCollections.C_OBJECTGROUP, TENANT_ID_0, VitamCollection.getTypeunique(),
             GUIDFactory.newObjectGroupGUID(TENANT_ID).toString());
     }
 

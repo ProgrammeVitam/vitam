@@ -591,9 +591,12 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                 .toString()).build());
     }
 
-    private VitamError getErrorEntity(Status status) {
+    private VitamError getErrorEntity(Status status, String message) {
+        String aMessage =
+            (message != null && !message.trim().isEmpty()) ? message
+                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
         return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(DEFAULT_OFFER_MODULE)
-                .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase());
+                .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
 
     private String buildContainerName(DataCategory type, String tenantId) {

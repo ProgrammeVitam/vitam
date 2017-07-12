@@ -183,7 +183,7 @@ abstract class AbstractCommonClient implements BasicClient {
         if (source instanceof ConnectTimeoutException || source instanceof UnknownHostException ||
             source instanceof HttpHostConnectException || source instanceof NoHttpResponseException ||
             source.getMessage().startsWith(UNABLE_TO_ESTABLISH_ROUTE)) {
-            LOGGER.warn(TIMEOUT_OCCURS_OR_DNS_PROBE_ERROR_RETRY + retry, source);
+            LOGGER.info(TIMEOUT_OCCURS_OR_DNS_PROBE_ERROR_RETRY + retry, source);
             try {
                 long sleep = random.nextInt(50) + 20;
                 Thread.sleep(sleep);

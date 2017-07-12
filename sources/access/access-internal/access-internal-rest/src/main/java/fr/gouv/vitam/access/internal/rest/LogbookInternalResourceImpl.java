@@ -114,6 +114,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 @javax.ws.rs.ApplicationPath("webresources")
 public class LogbookInternalResourceImpl {
 
+    private static final String LOGBOOK = "logbook";
     /**
      * 
      */
@@ -167,15 +168,15 @@ public class LogbookInternalResourceImpl {
         } catch (final LogbookClientException e) {
             LOGGER.error(e);
             status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (InvalidCreateOperationException e) {
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
     }
 
@@ -205,11 +206,11 @@ public class LogbookInternalResourceImpl {
         } catch (final LogbookClientException e) {
             LOGGER.error(e);
             status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
     }
 
@@ -238,11 +239,11 @@ public class LogbookInternalResourceImpl {
         } catch (final LogbookClientException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
     }
 
@@ -269,15 +270,15 @@ public class LogbookInternalResourceImpl {
         } catch (final LogbookClientException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (InvalidCreateOperationException e) {
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
     }
 
@@ -302,11 +303,11 @@ public class LogbookInternalResourceImpl {
         } catch (final LogbookClientException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
     }
 
@@ -318,6 +319,16 @@ public class LogbookInternalResourceImpl {
 
             .setHttpCode(status.getStatusCode()).setState(CODE_VITAM).setMessage(status.getReasonPhrase())
             .setDescription(status.getReasonPhrase());
+    }
+
+
+    private VitamError getErrorEntity(Status status, String message) {
+        String aMessage =
+            (message != null && !message.trim().isEmpty()) ? message
+                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+
+        return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(LOGBOOK_MODULE)
+            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
 
     /**
@@ -394,13 +405,13 @@ public class LogbookInternalResourceImpl {
                 }
                 return Response.status(status).entity(new VitamError(status.name())
                     .setDescription(JsonHandler.unprettyPrint(itemStatus)).setHttpCode(status.getStatusCode())
-                    .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())).build();
+                    .setContext(LOGBOOK).setState("code_vitam").setMessage(status.getReasonPhrase())).build();
             }
         } catch (BadRequestException | LogbookClientBadRequestException e) {            
             LOGGER.error(e);
             final Status status = Status.BAD_REQUEST;
             return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                .setContext("logbook")
+                .setContext(LOGBOOK)
                 .setState("code_vitam")
                 .setMessage(status.getReasonPhrase())
                 .setDescription(e.getMessage())).build();
@@ -410,7 +421,7 @@ public class LogbookInternalResourceImpl {
             LOGGER.error(e);
             final Status status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                .setContext("logbook")
+                .setContext(LOGBOOK)
                 .setState("code_vitam")
                 .setMessage(status.getReasonPhrase())
                 .setDescription(e.getMessage())).build();
@@ -419,7 +430,7 @@ public class LogbookInternalResourceImpl {
             LOGGER.error(e);
             final Status status = Status.NOT_FOUND;
             return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                .setContext("logbook")
+                .setContext(LOGBOOK)
                 .setState("code_vitam")
                 .setMessage(status.getReasonPhrase())
                 .setDescription(e.getMessage())).build();
