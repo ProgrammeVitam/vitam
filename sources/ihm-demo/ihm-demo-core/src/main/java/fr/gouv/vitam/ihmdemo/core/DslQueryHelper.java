@@ -570,12 +570,11 @@ public final class DslQueryHelper {
             // search by transacted date
             transactedDateBetween.add(gte(TRANSACTED_DATE, startDate));
             transactedDateBetween.add(lte(TRANSACTED_DATE, endDate));
-            query.add(transactedDateBetween);
             // search by begin and end date
             final BooleanQuery queryAroundDate = and();
             queryAroundDate.add(gte(END_DATE, startDate));
             queryAroundDate.add(lte(START_DATE, endDate));
-            query.add(queryAroundDate);
+            query.add(transactedDateBetween, queryAroundDate);
         }
         LOGGER.debug("in createSearchUntisQueryByDate / query:" + query.toString());
         return query;

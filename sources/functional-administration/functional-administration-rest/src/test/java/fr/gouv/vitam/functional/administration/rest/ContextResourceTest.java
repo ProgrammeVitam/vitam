@@ -168,7 +168,7 @@ public class ContextResourceTest {
 
     @After
     public void tearDown() throws Exception {
-        mongoDbAccess.deleteCollection(FunctionalAdminCollections.CONTEXT);
+        mongoDbAccess.deleteCollection(FunctionalAdminCollections.CONTEXT).close();
     }
     
     @Test

@@ -51,7 +51,6 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
-import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.error.ServiceName;
 import fr.gouv.vitam.common.error.VitamError;
@@ -171,7 +170,7 @@ public class LogbookExternalResourceImpl {
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(queryDsl);
             SanityChecker.checkParameter(operationId);
-            final SelectParserSingle parser = new SelectParserSingle(new VarNameAdapter());
+            final SelectParserSingle parser = new SelectParserSingle();
             Select select = new Select();
             parser.parse(select.getFinalSelect());
             parser.addCondition(QueryHelper.eq(EVENT_ID_PROCESS, operationId));
@@ -242,7 +241,7 @@ public class LogbookExternalResourceImpl {
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(queryDsl);
             SanityChecker.checkParameter(unitLifeCycleId);
-            final SelectParserSingle parser = new SelectParserSingle(new VarNameAdapter());
+            final SelectParserSingle parser = new SelectParserSingle();
             Select select = new Select();
             parser.parse(select.getFinalSelect());
             parser.addCondition(QueryHelper.eq(OB_ID, unitLifeCycleId));
@@ -312,7 +311,7 @@ public class LogbookExternalResourceImpl {
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(queryDsl);
             SanityChecker.checkParameter(objectGroupLifeCycleId);
-            final SelectParserSingle parser = new SelectParserSingle(new VarNameAdapter());
+            final SelectParserSingle parser = new SelectParserSingle();
             Select select = new Select();
             parser.parse(select.getFinalSelect());
             parser.addCondition(QueryHelper.eq(OB_ID, objectGroupLifeCycleId));

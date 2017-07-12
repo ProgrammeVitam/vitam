@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
@@ -146,7 +147,7 @@ public abstract class RequestSingle extends AbstractRequest {
     public JsonNode getData() {
         return JsonHandler.createObjectNode();
     }
-    
+
     @Override
     public boolean getAllProjection() {
         return selectGetAllProjection();
@@ -170,6 +171,14 @@ public abstract class RequestSingle extends AbstractRequest {
         return new StringBuilder()
             .append("Requests: ").append(query != null ? query : "").append(super.toString())
             .toString();
+    }
+
+    /**
+     *
+     * @return the multiple data to insert at once
+     */
+    public ArrayNode getDatas() {
+        return JsonHandler.createArrayNode();
     }
 
 }

@@ -231,15 +231,12 @@ public class ProfileResourceTest {
         }
     }
 
-    @After
-    public void tearDown() throws Exception {
-        mongoDbAccess.deleteCollection(FunctionalAdminCollections.PROFILE);
-    }
 
     @Test
     @RunWithCustomExecutor
     public void givenAWellFormedProfileJsonThenReturnCeated() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        mongoDbAccess.deleteCollection(FunctionalAdminCollections.PROFILE).close();
         File fileProfiles = PropertiesUtils.getResourceFile("profile_ok.json");
         JsonNode json = JsonHandler.getFromFile(fileProfiles);
         // transform to json
@@ -267,6 +264,7 @@ public class ProfileResourceTest {
     @RunWithCustomExecutor
     public void givenProfileJsonWithAmissingIdentifierReturnBadRequest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        mongoDbAccess.deleteCollection(FunctionalAdminCollections.PROFILE).close();
         File fileProfiles = PropertiesUtils.getResourceFile("profile_missing_identifier.json");
         JsonNode json = JsonHandler.getFromFile(fileProfiles);
         // transform to json
@@ -280,6 +278,7 @@ public class ProfileResourceTest {
     @RunWithCustomExecutor
     public void givenProfilesWithDuplicateName() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        mongoDbAccess.deleteCollection(FunctionalAdminCollections.PROFILE).close();
         File fileProfiles = PropertiesUtils.getResourceFile("profile_duplicate_name.json");
         JsonNode json = JsonHandler.getFromFile(fileProfiles);
         // transform to json
@@ -293,8 +292,9 @@ public class ProfileResourceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenTestImportSXDProfileFile() throws Exception {
+    public void givenTestImportXSDProfileFile() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        mongoDbAccess.deleteCollection(FunctionalAdminCollections.PROFILE).close();
         File fileProfiles = PropertiesUtils.getResourceFile("profile_ok.json");
         JsonNode json = JsonHandler.getFromFile(fileProfiles);
         // transform to json
@@ -303,7 +303,8 @@ public class ProfileResourceTest {
             .when().post(ProfileResource.PROFILE_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
-        JsonPath result = given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
+        Select select = new Select().addOrderByAscFilter("Identifier");
+        JsonPath result = given().contentType(ContentType.JSON).body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, 0)
             .when().get(ProfileResource.PROFILE_URI)
             .then().statusCode(Status.OK.getStatusCode()).extract().body().jsonPath();
@@ -341,6 +342,7 @@ public class ProfileResourceTest {
     @RunWithCustomExecutor
     public void givenTestImportRNGProfileFile() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        mongoDbAccess.deleteCollection(FunctionalAdminCollections.PROFILE).close();
         File fileProfiles = PropertiesUtils.getResourceFile("profile_ok.json");
         JsonNode json = JsonHandler.getFromFile(fileProfiles);
         // transform to json
@@ -348,8 +350,9 @@ public class ProfileResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, 0)
             .when().post(ProfileResource.PROFILE_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
+        Select select = new Select().addOrderByAscFilter("Identifier");
 
-        JsonPath result = given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
+        JsonPath result = given().contentType(ContentType.JSON).body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, 0)
             .when().get(ProfileResource.PROFILE_URI)
             .then().statusCode(Status.OK.getStatusCode()).extract().body().jsonPath();

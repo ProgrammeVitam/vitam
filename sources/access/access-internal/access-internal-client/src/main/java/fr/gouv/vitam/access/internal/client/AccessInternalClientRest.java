@@ -98,6 +98,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         VitamThreadUtils.getVitamSession().checkValidRequestId();
 
         Response response = null;
+        LOGGER.debug("DEBUG: start selectUnits {}", selectQuery);
         try {
             response = performRequest(HttpMethod.GET, "units", null, selectQuery, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
@@ -112,6 +113,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             } else if (response.getStatus() == Status.FORBIDDEN.getStatusCode()) {
                 throw new fr.gouv.vitam.common.exception.BadRequestException(FORBIDDEN_OPERATION);
             }
+            LOGGER.debug("DEBUG: end selectUnits {}", response);
             return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common

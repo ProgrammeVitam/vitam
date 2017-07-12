@@ -42,7 +42,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * Used to create access client : if configuration file does not exist 'access-external-client.conf',<br>
  * mock access client will be returned
  */
-public final class AccessExternalClientFactory extends VitamClientFactory<AccessExternalClient> {
+public class AccessExternalClientFactory extends VitamClientFactory<AccessExternalClient> {
 
     private static final String CONFIGURATION_FILENAME = "access-external-client.conf";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessExternalClientFactory.class);
@@ -50,7 +50,7 @@ public final class AccessExternalClientFactory extends VitamClientFactory<Access
 
     private static final String RESOURCE_PATH = "/access-external/v1";
 
-    private AccessExternalClientFactory() {
+    protected AccessExternalClientFactory() {
         super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH, false);
         disableUseAuthorizationFilter();
     }
@@ -104,10 +104,11 @@ public final class AccessExternalClientFactory extends VitamClientFactory<Access
     }
 
     /**
-     *
+     * JUnit only!!
+     * 
      * @param configuration null for MOCK
      */
-    public static final void changeMode(ClientConfiguration configuration) {
+    public static void changeMode(ClientConfiguration configuration) {
         getInstance().initialisation(configuration, getInstance().getResourcePath());
     }
 }

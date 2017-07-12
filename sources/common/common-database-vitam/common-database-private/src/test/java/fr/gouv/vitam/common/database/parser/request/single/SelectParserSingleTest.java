@@ -77,6 +77,7 @@ import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
+import fr.gouv.vitam.common.database.translators.mongodb.SelectToMongodb;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogLevel;
@@ -383,26 +384,26 @@ public class SelectParserSingleTest {
             } catch (final InvalidParseOperationException e) {
                 // Ignore
             }
-            new SelectToMongoDb(request).getFinalProjection();
+            new SelectToMongodb(request).getFinalProjection();
             try {
                 request.addProjection(DEFAULT_SLICE, DEFAULT_ALLKEYS);
-                new SelectToMongoDb(request).getFinalProjection();
+                new SelectToMongodb(request).getFinalProjection();
             } catch (final InvalidParseOperationException e) {
                 fail("Should not raized an exception");
             }
             request.projectionParse(JsonHandler.getFromString("{$fields: { var1: -1 }}"));
-            new SelectToMongoDb(request).getFinalProjection();
+            new SelectToMongodb(request).getFinalProjection();
             try {
                 request.addProjection(DEFAULT_SLICE, DEFAULT_ALLKEYS);
-                new SelectToMongoDb(request).getFinalProjection();
+                new SelectToMongodb(request).getFinalProjection();
             } catch (final InvalidParseOperationException e) {
                 fail("Should not raized an exception");
             }
             request.projectionParse(JsonHandler.createObjectNode());
-            new SelectToMongoDb(request).getFinalProjection();
+            new SelectToMongodb(request).getFinalProjection();
             try {
                 request.addProjection(DEFAULT_SLICE, DEFAULT_ALLKEYS);
-                new SelectToMongoDb(request).getFinalProjection();
+                new SelectToMongodb(request).getFinalProjection();
             } catch (final InvalidParseOperationException e) {
                 fail("Should not raized an exception");
             }
@@ -452,7 +453,7 @@ public class SelectParserSingleTest {
         final SelectParserSingle request = new SelectParserSingle();
         request.parse(EX_MD);
         assertNotNull(request);
-        SelectToMongoDb selectToMongoDb = new SelectToMongoDb(request);
+        SelectToMongodb selectToMongoDb = new SelectToMongodb(request);
         assertFalse(selectToMongoDb.hasFullTextQuery());
         assertFalse(selectToMongoDb.hintNoTimeout());
         assertTrue(selectToMongoDb.getHints().size() > 0);
@@ -461,7 +462,7 @@ public class SelectParserSingleTest {
         assertNull(selectToMongoDb.getFinalProjection());
 
         request.parse(EX_BOTH_ES_MD);
-        selectToMongoDb = new SelectToMongoDb(request);
+        selectToMongoDb = new SelectToMongodb(request);
         assertTrue(selectToMongoDb.hasFullTextQuery());
         assertFalse(selectToMongoDb.hintNoTimeout());
         assertTrue(selectToMongoDb.getHints().size() > 0);
@@ -470,7 +471,7 @@ public class SelectParserSingleTest {
         assertNull(selectToMongoDb.getFinalProjection());
 
         request.parse(EX_MD2);
-        selectToMongoDb = new SelectToMongoDb(request);
+        selectToMongoDb = new SelectToMongodb(request);
         assertFalse(selectToMongoDb.hasFullTextQuery());
         assertFalse(selectToMongoDb.hintNoTimeout());
         assertNull(selectToMongoDb.getHints());

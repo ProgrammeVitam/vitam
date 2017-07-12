@@ -254,11 +254,10 @@ public class ProfileResource {
 
         try (ProfileService profileService = new ProfileServiceImpl(mongoAccess, workspaceClientFactory, vitamCounterService)) {
 
-            final List<ProfileModel> profileModelList = profileService.findProfiles(queryDsl);
+            final RequestResponseOK<ProfileModel> profileModelList = profileService.findProfiles(queryDsl).setQuery(queryDsl);
 
             return Response.status(Status.OK)
-                .entity(
-                    new RequestResponseOK<ProfileModel>(queryDsl).addAllResults(profileModelList))
+                .entity(profileModelList)
                 .build();
 
         } catch (ReferentialException e) {

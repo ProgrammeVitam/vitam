@@ -94,12 +94,10 @@ public abstract class RequestToElasticsearch extends RequestToAbstract {
      *
      * @param nth int
      * @return the associated query for find (missing the source however, as initialRoots)
-     * @throws IllegalAccessException if nth exceed the size of list
-     * @throws IllegalAccessError if query is full text
+     * @throws IllegalAccessError if nth exceed the size of list
      * @throws InvalidParseOperationException if could not get command by query
      */
-    public QueryBuilder getNthQueries(final int nth) throws IllegalAccessException,
-        IllegalAccessError, InvalidParseOperationException {
+    public QueryBuilder getNthQueries(final int nth) throws IllegalAccessError, InvalidParseOperationException {
         final List<Query> list = requestParser.getRequest().getQueries();
         if (nth >= list.size()) {
             throw new IllegalAccessError(

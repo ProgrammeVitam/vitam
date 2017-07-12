@@ -770,16 +770,16 @@ public final class JsonHandler {
     public static JsonNode getParentNodeByPath(JsonNode node, String fieldPath, boolean deepCopy) {
 
         String[] fieldNamePath = fieldPath.split("[.]");
-        JsonNode currentLevelNode = deepCopy? node.deepCopy(): node;
+        JsonNode currentLevelNode = node;
         for (int i=0, len=fieldNamePath.length-1; i<len; i++) {
             JsonNode nextLevel = currentLevelNode.get(fieldNamePath[i]);
             if (nextLevel == null) {
                 return null;
             }
-            currentLevelNode = deepCopy? nextLevel.deepCopy(): nextLevel;
+            currentLevelNode = nextLevel;
         }
 
-        return currentLevelNode;
+        return deepCopy ? currentLevelNode.deepCopy() : currentLevelNode;
     }
 
 	/**

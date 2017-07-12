@@ -40,8 +40,8 @@ import java.util.List;
 import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
@@ -57,11 +57,14 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -83,14 +86,14 @@ public class ReferentialFormatFileImplTest {
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-    
+
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
-    private final static String CLUSTER_NAME = "vitam-cluster";    
+    private final static String CLUSTER_NAME = "vitam-cluster";
     private final static String HOST_NAME = "127.0.0.1";
     private static ElasticsearchTestConfiguration esConfig = null;
-    
+
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
     static MongoClient mongoClient;
@@ -113,7 +116,7 @@ public class ReferentialFormatFileImplTest {
 
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
         esNodes.add(new ElasticsearchNode(HOST_NAME, esConfig.getTcpPort()));
-        
+
         port = junitHelper.findAvailablePort();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
@@ -160,14 +163,17 @@ public class ReferentialFormatFileImplTest {
         assertEquals(1328, collection.count());
         final Select select = new Select();
         select.setQuery(eq("PUID", "fmt/164"));
-        final List<FileFormat> fileList = formatFile.findDocuments(select.getFinalSelect());
-        final String id = fileList.get(0).getString("PUID");
+        final RequestResponseOK<FileFormat> fileList = formatFile.findDocuments(select.getFinalSelect());
+        final String id = fileList.getResults().get(0).getString("PUID");
         final FileFormat file = formatFile.findDocumentById(id);
         assertEquals("[wps]", file.get("Extension").toString());
-        assertEquals(file, fileList.get(0));
-        assertFalse(fileList.get(0).getBoolean("Alert"));
-        assertEquals(fileList.get(0).getString("Group"), "");
-        assertEquals(fileList.get(0).getString("Comment"), "");
+        if (VitamConfiguration.EXPORT_SCORE) {
+            file.append(VitamDocument.SCORE, fileList.getResults().get(0).get(VitamDocument.SCORE));
+        }
+        assertEquals(file, fileList.getResults().get(0));
+        assertFalse(fileList.getResults().get(0).getBoolean("Alert"));
+        assertEquals(fileList.getResults().get(0).getString("Group"), "");
+        assertEquals(fileList.getResults().get(0).getString("Comment"), "");
         client.close();
     }
 }

@@ -37,13 +37,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class DatabaseCursor {
     @JsonProperty("total")
-    private int total;
+    private long total;
     @JsonProperty("offset")
-    private int offset;
+    private long offset;
     @JsonProperty("limit")
-    private int limit;
+    private long limit;
     @JsonProperty("size")
-    private int size;
+    private long size;
 
 
     /**
@@ -60,11 +60,11 @@ public class DatabaseCursor {
      * @param offset the offset of items in database
      * @param limit number limit of items per response
      */
-    public DatabaseCursor(int total, int offset, int limit) {
+    public DatabaseCursor(long total, long offset, long limit) {
         this.total = total;
         this.offset = offset;
         this.limit = limit;
-        this.size = total;
+        size = total;
     }
 
     /**
@@ -75,7 +75,7 @@ public class DatabaseCursor {
      * @param limit number limit of items per response
      * @param size size of the current response
      */
-    public DatabaseCursor(int total, int offset, int limit, int size) {
+    public DatabaseCursor(long total, long offset, long limit, long size) {
         this.total = total;
         this.offset = offset;
         this.limit = limit;
@@ -86,7 +86,7 @@ public class DatabaseCursor {
      * @return the total of units inserted/modified/selected as potential total response size (beyond current limit)
      *
      */
-    public int getTotal() {
+    public long getTotal() {
         return total;
     }
 
@@ -94,7 +94,7 @@ public class DatabaseCursor {
      * @param total of units as integer
      * @return the DatabaseCursor with the total is setted
      */
-    public DatabaseCursor setTotal(int total) {
+    public DatabaseCursor setTotal(long total) {
         this.total = total;
         return this;
     }
@@ -102,7 +102,7 @@ public class DatabaseCursor {
     /**
      * @return the offset of units in database
      */
-    public int getOffset() {
+    public long getOffset() {
         return offset;
     }
 
@@ -111,7 +111,7 @@ public class DatabaseCursor {
      * @param offset the offset of units in database
      * @return the DatabaseCursor with the offset is setted
      */
-    public DatabaseCursor setOffset(int offset) {
+    public DatabaseCursor setOffset(long offset) {
         this.offset = offset;
         return this;
     }
@@ -119,7 +119,7 @@ public class DatabaseCursor {
     /**
      * @return the limit of units per response
      */
-    public int getLimit() {
+    public long getLimit() {
         return limit;
     }
 
@@ -127,7 +127,7 @@ public class DatabaseCursor {
      * @param limit limit of units as integer
      * @return the DatabaseCursor with the limits of units is setted
      */
-    public DatabaseCursor setLimit(int limit) {
+    public DatabaseCursor setLimit(long limit) {
         this.limit = limit;
         return this;
     }
@@ -135,7 +135,7 @@ public class DatabaseCursor {
     /**
      * @return the size as current response size
      */
-    public int getSize() {
+    public long getSize() {
         return size;
     }
 
@@ -144,7 +144,7 @@ public class DatabaseCursor {
      *
      * @return this
      */
-    public DatabaseCursor setSize(int size) {
+    public DatabaseCursor setSize(long size) {
         this.size = size;
         return this;
     }

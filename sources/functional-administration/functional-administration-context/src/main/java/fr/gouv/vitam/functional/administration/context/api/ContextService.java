@@ -30,6 +30,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -37,12 +38,12 @@ import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.functional.administration.client.model.ContextModel;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
-public interface ContextService extends VitamAutoCloseable{
+public interface ContextService extends VitamAutoCloseable {
 
-    
+
     RequestResponse<ContextModel> createContexts(List<ContextModel> contextModelList) throws VitamException;
 
-    List<ContextModel> findContexts(JsonNode queryDsl) throws ReferentialException, InvalidParseOperationException;
+    DbRequestResult findContexts(JsonNode queryDsl) throws ReferentialException, InvalidParseOperationException;
 
     RequestResponse<ContextModel> updateContext(String id, JsonNode queryDsl) throws VitamException;
 

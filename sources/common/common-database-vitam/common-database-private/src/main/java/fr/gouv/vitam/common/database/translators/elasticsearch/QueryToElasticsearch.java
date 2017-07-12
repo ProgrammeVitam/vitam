@@ -27,18 +27,18 @@
 package fr.gouv.vitam.common.database.translators.elasticsearch;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.bson.conversions.Bson;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.MatchQueryBuilder.Operator;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.RangeQueryBuilder;
-import org.elasticsearch.index.query.SimpleQueryStringFlag;
 import org.elasticsearch.script.Script;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
@@ -54,9 +54,11 @@ import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERYARGS;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.RANGEARGS;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
+import fr.gouv.vitam.common.database.parser.request.AbstractParser;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
-import fr.gouv.vitam.common.database.translators.mongodb.MongoDbHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
@@ -77,7 +79,7 @@ public class QueryToElasticsearch {
      * @return the filter associated with the roots
      * @throws InvalidParseOperationException if field is not in roots
      */
-    public static QueryBuilder getRoots(final String field, final Set<String> roots)
+    public static QueryBuilder getRoots(final String field, final Collection<String> roots)
         throws InvalidParseOperationException {
         final String[] values = new String[roots.size()];
         int i = 0;
@@ -101,36 +103,76 @@ public class QueryToElasticsearch {
         return QueryBuilders.boolQuery()
             .must(command)
             .must(roots);
-
-        // TODO P1 add TenantId filter
     }
 
     /**
-     * Generate sort list from order by mongo query orders : {field1 : -1, field2 : 1} or [{field1 : -1, field2 :
-     * 1},{field3 : -1}]
+     * Generate sort list from order by ES query orders : {field1 : -1, field2 : 1} or [{field1 : -1, field2 :
+     * 1},{field3 : -1}]<br>
+     * <br>
+     * <b>Note</b> : if the query contains a match and the collection allows to use score, the socre is added to the
+     * sort<br>
+     * <br>
      * 
-     * @param orderBy orderBy (one or list)
+     * @param requestParser the original parser
+     * @param hasFullText True to add scoreSort
+     * @param score True will add score first
      * @return list of order by as sort objects
      * @throws InvalidParseOperationException if the orderBy is not valid
      */
-    public static List<SortBuilder> getSorts(final Bson orderBy) throws InvalidParseOperationException {
-        // FIXME P0 : clean code and validate orderBy => list translation
-        // FIXME P0 : use DSL object or JsonNode in place of a Bson
-        List<SortBuilder> sorts = new ArrayList<>();
-        if (orderBy != null) {
-            JsonNode node = JsonHandler.getFromString(MongoDbHelper.bsonToString(orderBy, false), JsonNode.class);
-            if (node.isArray()) {
-                ((ArrayNode) node).forEach(item -> sorts.addAll(getSortsForNode((ObjectNode) item)));
-            } else {
-                sorts.addAll(getSortsForNode((ObjectNode) node));
+    public static List<SortBuilder> getSorts(final AbstractParser<?> requestParser, boolean hasFullText, boolean score)
+        throws InvalidParseOperationException {
+        final JsonNode orderby = requestParser.getRequest().getFilter()
+            .get(SELECTFILTER.ORDERBY.exactToken());
+        int size = score && requestParser.hasFullTextQuery() ? 1 : 0;
+        if (orderby != null && orderby.size() > 0) {
+            size += orderby.size();
+        }
+        final List<SortBuilder> sorts = new ArrayList<>(size);
+        if (orderby == null || orderby.size() == 0) {
+            if (score && requestParser.hasFullTextQuery()) {
+                sorts.add(new SortBuilders().scoreSort().order(SortOrder.DESC));
+                return sorts;
             }
+            return null;
+        }
+        final Iterator<Entry<String, JsonNode>> iterator = orderby.fields();
+        if (!iterator.hasNext()) {
+            if (score && requestParser.hasFullTextQuery()) {
+                sorts.add(new SortBuilders().scoreSort().order(SortOrder.DESC));
+                return sorts;
+            }
+            return null;
+        }
+        boolean scoreNotAdded = true;
+        while (iterator.hasNext()) {
+            final Entry<String, JsonNode> entry = iterator.next();
+            final FieldSortBuilder fieldSort = SortBuilders.fieldSort(entry.getKey());
+            if (scoreNotAdded && score && requestParser.hasFullTextQuery() &&
+                !ParserTokens.PROJECTIONARGS.isNotAnalyzed(entry.getKey())) {
+                // First time we get an analyzed sort by
+                scoreNotAdded = false;
+                sorts.add(new SortBuilders().scoreSort().order(SortOrder.DESC));
+            }
+
+            if (entry.getValue().asInt() < 0) {
+                fieldSort.order(SortOrder.DESC);
+                sorts.add(fieldSort);
+            } else {
+                fieldSort.order(SortOrder.ASC);
+                sorts.add(fieldSort);
+            }
+        }
+        if (scoreNotAdded && score && requestParser.hasFullTextQuery()) {
+            // Last filter if not yet added
+            scoreNotAdded = false;
+            sorts.add(new SortBuilders().scoreSort().order(SortOrder.DESC));
         }
         return sorts;
     }
 
     /**
      * Generate sort list from node with form : {field1 : -1, field2 : 1}
-     * 
+     *
      * @param node node containing sort list from mongo as json
      * @return list of order by as sort objects
      */
@@ -178,6 +220,7 @@ public class QueryToElasticsearch {
             case MLT:
                 return xltCommand(req, content);
             case MATCH:
+            case MATCH_ALL:
             case MATCH_PHRASE:
             case MATCH_PHRASE_PREFIX:
             case PREFIX:
@@ -235,7 +278,7 @@ public class QueryToElasticsearch {
         }
         return QueryBuilders.termsQuery("_id", values);
     }
-    
+
     /**
      * $size : { name : length }
      *
@@ -300,7 +343,11 @@ public class QueryToElasticsearch {
         throws InvalidParseOperationException {
         final ArrayNode fields = (ArrayNode) content.get(QUERYARGS.FIELDS.exactToken());
         final JsonNode like = content.get(QUERYARGS.LIKE.exactToken());
-        if (fields == null || like == null) {
+        if (fields == null || like == null || fields.size() == 0) {
+            throw new InvalidParseOperationException("Incorrect command: " + query.exactToken() + " : " + query);
+        }
+        final String slike = like.toString();
+        if (slike.trim().isEmpty()) {
             throw new InvalidParseOperationException("Incorrect command: " + query.exactToken() + " : " + query);
         }
         final String[] names = new String[fields.size()];
@@ -310,19 +357,18 @@ public class QueryToElasticsearch {
         }
         switch (query) {
             case FLT:
-                final String slike = like.toString();
-                if (names.length > 0) {
-                    final BoolQueryBuilder builder = QueryBuilders.boolQuery();
+                if (names.length > 1) {
+                    final BoolQueryBuilder builder = QueryBuilders.boolQuery().minimumNumberShouldMatch(1);
                     for (final String name : names) {
                         builder.should(QueryBuilders.matchQuery(name, slike).fuzziness(FUZZINESS));
                     }
                     return builder;
-                } else {
+                } else if (names.length == 1) {
                     return QueryBuilders.matchQuery(names[0], slike).fuzziness(FUZZINESS);
                 }
             case MLT:
             default:
-                return QueryBuilders.moreLikeThisQuery(names).addLikeText(like.toString());
+                return QueryBuilders.moreLikeThisQuery(names).addLikeText(slike);
         }
     }
 
@@ -337,7 +383,28 @@ public class QueryToElasticsearch {
     private static QueryBuilder searchCommand(final QUERY query, final JsonNode content)
         throws InvalidParseOperationException {
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(query.exactToken(), content);
-        return QueryBuilders.simpleQueryStringQuery(element.getValue().toString()).field(element.getKey());
+        final String attribute = element.getKey();
+        if (ParserTokens.PROJECTIONARGS.isNotAnalyzed(attribute)) {
+            final Set<Object> set = new HashSet<>();
+            List<JsonNode> nodes = new ArrayList<>();
+            JsonNode node = element.getValue();
+            if (node instanceof ArrayNode) {
+                for (JsonNode jsonNode : node) {
+                    nodes.add(jsonNode);
+                }
+            } else {
+                nodes.add(node);
+            }
+            for (final JsonNode value : nodes) {
+                String[] sval = value.asText().split("[\\+\\|\\-\\\"\\*\\(\\)\\~]");
+                for (String string : sval) {
+                    set.add(string);
+                }
+            }
+            return QueryBuilders.termsQuery(attribute, set);
+        } else {
+            return QueryBuilders.simpleQueryStringQuery(element.getValue().toString()).field(attribute);
+        }
     }
 
     /**
@@ -354,8 +421,8 @@ public class QueryToElasticsearch {
         final JsonNode max = ((ObjectNode) content).remove(QUERYARGS.MAX_EXPANSIONS.exactToken());
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(query.exactToken(), content);
         final String attribute = element.getKey();
-        if ((query == QUERY.MATCH_PHRASE_PREFIX || query == QUERY.MATCH_PHRASE) && isAttributeNotAnalyzed(attribute)) {
-            return QueryBuilders.prefixQuery(element.getKey(), element.getValue().toString());
+        if (ParserTokens.PROJECTIONARGS.isNotAnalyzed(attribute)) {
+            return QueryBuilders.termQuery(element.getKey(), element.getValue().toString());
         } else {
             QUERY query2 = query;
             if (query == QUERY.PREFIX) {
@@ -365,7 +432,10 @@ public class QueryToElasticsearch {
                 switch (query2) {
                     case MATCH:
                         return QueryBuilders.matchQuery(element.getKey(), element.getValue().toString())
-                            .maxExpansions(max.asInt());
+                            .maxExpansions(max.asInt()).operator(Operator.OR);
+                    case MATCH_ALL:
+                        return QueryBuilders.matchQuery(element.getKey(), element.getValue().toString())
+                            .maxExpansions(max.asInt()).operator(Operator.AND);
                     case MATCH_PHRASE:
                         return QueryBuilders.matchPhraseQuery(element.getKey(), element.getValue().toString())
                             .maxExpansions(max.asInt());
@@ -378,7 +448,11 @@ public class QueryToElasticsearch {
             } else {
                 switch (query) {
                     case MATCH:
-                        return QueryBuilders.matchQuery(element.getKey(), element.getValue().toString());
+                        return QueryBuilders.matchQuery(element.getKey(), element.getValue().toString())
+                            .operator(Operator.OR);
+                    case MATCH_ALL:
+                        return QueryBuilders.matchQuery(element.getKey(), element.getValue().toString())
+                            .operator(Operator.AND);
                     case MATCH_PHRASE:
                         return QueryBuilders.matchPhraseQuery(element.getKey(), element.getValue().toString());
                     case MATCH_PHRASE_PREFIX:
@@ -402,19 +476,37 @@ public class QueryToElasticsearch {
         throws InvalidParseOperationException {
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(query.exactToken(), content);
         String key = element.getKey();
-        final List<JsonNode> nodes = element.getValue().findValues(ParserTokens.QUERYARGS.DATE.exactToken());
-
+        List<JsonNode> nodes = element.getValue().findValues(ParserTokens.QUERYARGS.DATE.exactToken());
         if (nodes != null && !nodes.isEmpty()) {
             key += "." + ParserTokens.QUERYARGS.DATE.exactToken();
+        } else {
+            nodes = new ArrayList<>();
+            JsonNode node = element.getValue();
+            if (node instanceof ArrayNode) {
+                for (JsonNode jsonNode : node) {
+                    nodes.add(jsonNode);
+                }
+            } else {
+                nodes.add(node);
+            }
         }
         final Set<Object> set = new HashSet<>();
         for (final JsonNode value : nodes) {
             set.add(getAsObject(value));
         }
-        final QueryBuilder query2 = QueryBuilders.termsQuery(key, set);
+        final QueryBuilder query2;
+        if (ParserTokens.PROJECTIONARGS.isNotAnalyzed(key)) {
+            query2 = QueryBuilders.termsQuery(key, set);
+        } else {
+            final BoolQueryBuilder builder = new BoolQueryBuilder().minimumNumberShouldMatch(1);
+            for (final Object object : set) {
+                builder.should(QueryBuilders.matchQuery(key, object).operator(Operator.OR));
+            }
+            VitamCollection.setMatch(true);
+            query2 = builder;
+        }
         if (query == QUERY.NIN) {
-            final QueryBuilder query3 = QueryBuilders.boolQuery().mustNot(query2);
-            return query3;
+            return QueryBuilders.boolQuery().mustNot(query2);
         }
         return query2;
     }
@@ -500,7 +592,7 @@ public class QueryToElasticsearch {
         throws InvalidParseOperationException {
 
         boolean multiple = false;
-        QueryBuilder query2 = null;
+        BoolQueryBuilder query2 = null;
         if (content.size() > 1) {
             multiple = true;
             query2 = QueryBuilders.boolQuery();
@@ -520,20 +612,20 @@ public class QueryToElasticsearch {
                 if (!multiple) {
                     return QueryBuilders.termQuery(key, getAsObject(node));
                 }
-                ((BoolQueryBuilder) query2).must(QueryBuilders.termQuery(key, getAsObject(node)));
+                query2.must(QueryBuilders.termQuery(key, getAsObject(node)));
             } else {
                 final String val = node.asText();
-                QueryBuilder query3 = null;
-                if (isAttributeNotAnalyzed(key) || isDate) {
+                QueryBuilder query3;
+                if (ParserTokens.PROJECTIONARGS.isNotAnalyzed(key) || isDate) {
                     query3 = QueryBuilders.termQuery(key, val);
                 } else {
-                    query3 = QueryBuilders.simpleQueryStringQuery("\"" + val + "\"").field(key)
-                        .flags(SimpleQueryStringFlag.PHRASE);
+                    query3 = QueryBuilders.matchQuery(key, val).operator(Operator.AND);
+                    VitamCollection.setMatch(true);
                 }
                 if (!multiple) {
                     return query3;
                 }
-                ((BoolQueryBuilder) query2).must(query3);
+                query2.must(query3);
             }
         }
         return query2;
@@ -576,15 +668,15 @@ public class QueryToElasticsearch {
             isDate = true;
             key += "." + ParserTokens.QUERYARGS.DATE.exactToken();
         }
-        if (isAttributeNotAnalyzed(key) || isDate) {
+        if (ParserTokens.PROJECTIONARGS.isNotAnalyzed(key) || isDate) {
             final QueryBuilder query2 = QueryBuilders.termQuery(key, getAsObject(node));
             if (query == QUERY.NE) {
                 return QueryBuilders.boolQuery().mustNot(query2);
             }
             return query2;
         } else {
-            final QueryBuilder query2 = QueryBuilders.simpleQueryStringQuery("\"" + getAsObject(node) + "\"").field(key)
-                .flags(SimpleQueryStringFlag.PHRASE);
+            final QueryBuilder query2 = QueryBuilders.matchQuery(key, getAsObject(node)).operator(Operator.AND);
+            VitamCollection.setMatch(true);
             if (query == QUERY.NE) {
                 return QueryBuilders.boolQuery().mustNot(query2);
             }
@@ -644,7 +736,7 @@ public class QueryToElasticsearch {
         final BooleanQuery nthrequest = (BooleanQuery) req;
         final List<Query> sub = nthrequest.getQueries();
 
-        final BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
+        final BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder().minimumNumberShouldMatch(1);
         for (int i = 0; i < sub.size(); i++) {
             switch (query) {
                 case AND:
@@ -678,14 +770,4 @@ public class QueryToElasticsearch {
             return value.asText();
         }
     }
-
-    /*
-     * Returns True if this attribute is not analyzed by ElasticSearch, else False
-     */
-    private static boolean isAttributeNotAnalyzed(String attributeName) {
-
-        // TODO P1 returns True if this attribute is not analyzed by ElasticSearch, else False
-        return true;
-    }
-
 }

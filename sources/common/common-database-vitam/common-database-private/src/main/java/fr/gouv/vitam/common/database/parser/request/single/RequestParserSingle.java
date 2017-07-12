@@ -58,7 +58,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 
 
 /**
- * Single Request Parser (common base): [ , {query}, {filter} ] or { $query : query, $filter : filter }
+ * Single Request Parser (common base): [ {query}, {filter} ] or { $query : query, $filter : filter }
  *
  */
 public abstract class RequestParserSingle extends AbstractParser<RequestSingle> {
@@ -67,7 +67,7 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
 
 
     /**
-     * Constructor
+     * Constructor for Internal API
      */
     public RequestParserSingle() {
         request = getNewRequest();
@@ -75,6 +75,8 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
     }
 
     /**
+     * Constructor for Masterdata
+     * 
      * @param adapter VarNameAdapter
      *
      */
@@ -271,7 +273,7 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
         newOne.rootNode = null;
         newOne.sourceRequest = null;
     }
-    
+
     @Override
     public String toString() {
         return request.toString();

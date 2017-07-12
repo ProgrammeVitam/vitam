@@ -36,7 +36,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
- * Insert: { $query: query, $data : data , $filter: filter} // No query in  
+ * Insert: { $query: query, $data : data , $filter: filter} // No query in
  *
  */
 public class Insert extends RequestSingle {
@@ -110,7 +110,7 @@ public class Insert extends RequestSingle {
         throws InvalidParseOperationException {
         GlobalDatas.sanityValueCheck(data);
         final JsonNode dataContent = JsonHandler.getFromString(data);
-        return setData((ArrayNode) dataContent);
+        return setData(dataContent);
     }
 
     /**
@@ -131,7 +131,18 @@ public class Insert extends RequestSingle {
      * @return the data
      */
     @Override
-    public final ArrayNode getData() {
+    public final ObjectNode getData() {
+        if (data == null) {
+            return JsonHandler.createObjectNode();
+        }
+        return (ObjectNode) data.get(0);
+    }
+
+    /**
+     * @return the datas
+     */
+    @Override
+    public final ArrayNode getDatas() {
         if (data == null) {
             return JsonHandler.createArrayNode();
         }

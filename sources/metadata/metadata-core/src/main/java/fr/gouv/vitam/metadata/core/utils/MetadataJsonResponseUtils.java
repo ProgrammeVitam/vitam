@@ -74,10 +74,10 @@ public final class MetadataJsonResponseUtils {
         // is instanceof SelectParserMultiple, we have an IllegalArgumentException during call to
         // getMetadataJsonObject(). This should not be the case
         // the nbResult problem originates from DbRequest.execRequest:Result result = roots;
-        if (result != null && result.getNbResult() > 0 && (selectRequest instanceof SelectParserMultiple &&
-            result.hasFinalResult())) {
-            LOGGER.debug("Result document: " + result.getFinal().toJson());
-            jsonListResponse = (ArrayNode) getMetadataJsonObject(result.getMetadataDocumentListFiltered());
+        if (result != null && result.getNbResult() > 0 && selectRequest instanceof SelectParserMultiple &&
+            result.hasFinalResult()) {
+            LOGGER.debug("Result document: " + result.getFinal().toString());
+            jsonListResponse = (ArrayNode) getMetadataJsonObject(result.getListFiltered());
         }
         LOGGER.debug("MetaDataImpl / selectUnitsByQuery /Results: " + jsonListResponse.toString());
         return jsonListResponse;

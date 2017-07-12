@@ -116,10 +116,10 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         Status status;
-        JsonNode result = null;
+        RequestResponse<JsonNode> result = null;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            result = client.selectUnits(queryJson).toJsonNode();
-            return Response.status(Status.OK).entity(result).build();
+            result = client.selectUnits(queryJson);
+            return Response.status(result.getHttpCode()).entity(result.toJsonNode()).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("Predicate Failed Exception ", e);
             status = Status.PRECONDITION_FAILED;

@@ -63,6 +63,13 @@ Cette partie va essayer de montrer quelques exemples d'usages du DSL dans diffé
 
 - $source (**UNSUPPORTED**) permet de changer de collections entre deux query (unit ou object)
 
+### Détails sur la partie $filter $orderby
+
+Il y a une différence entre un tri sur un champ non analysé (date, nombre, code) et un champ analysé :
+- Pour un champ non analysé : l'ordre est lexicographique pour un texte, l'ordre est naturel pour un champ date ou nombre
+- **IMPORTANT** : Pour un champ analysé (plein texte), le tri n'est pas lexicographique mais basé sur le score de correspondance
+- l'ordre de déclaration des tris est respectés dans la réponse
+
 ### Détails sur chaque commande de la partie $query
 
 - $path : [ id1, id2, ... ]
@@ -100,10 +107,10 @@ pour toute StartDate plus grande que le 25 mars 2014 et inférieure ou égale au
      static Comparaison de la valeur d'un champ et la valeur passée en argument
 
     - **$gt : { name : value }** où *name* est le nom du champ et *value* la valeur avec laquelle on compare le champ
-        - $eq : égalité, marche également avec les champs non analysés (codes). **Attention** : pour les champs analysés, il s'agit d'un $match.
-        - $ne : le champ n'a pas la valeur dournie
-        - $lt, $lte : le champs a une valeur inférieure ou égale avec la valeur fournie
-        - $gt, $gte : le champs a une valeur supérieure ou égale avec la valeur fournie
+    - $eq : égalité, marche également avec les champs non analysés (codes). **Attention** : pour les champs analysés, il s'agit d'un $match_all.
+    - $ne : le champ n'a pas la valeur dournie
+    - $lt, $lte : le champs a une valeur inférieure ou égale avec la valeur fournie
+    - $gt, $gte : le champs a une valeur supérieure ou égale avec la valeur fournie
     - Exemple :
 
 ```json
@@ -186,7 +193,7 @@ pour rechercher les Units qui ont 2 parents immédiats exactement
 - $term
     - Comparaison de champs avec une valeur exacte (non analysé)#type
     - **$term : { name : term, name : term }** où l on fait une recherche exacte sur les différents champs indiqués
-    - **Attention** : pour les champs analysés, il s'agit d'un $match.
+    - **Attention** : pour les champs analysés, il s'agit d'un $match_all.
     - Exemple :
 
 ```json
@@ -217,11 +224,12 @@ Query query = wildcard(type(), "FAC*01");
 ```
 qui cherchera les Units qui contiennent dans le type (Document Type) une valeur commençant par FAC et terminant par 01 (non analysé, donc pour les codes uniquement)
 
-- $match, $matchPhrase, $matchPhrasePrefix
+- $match, $match_all, $match_phrase, $match_phrase_prefix
     - Recherche plein texte soit sur des mots, des phrases ou un préfixe de phrase
     - **$match : { name : words, $max_expansions : n }** où *name* est le nom du champ, *words* les mots que l'on cherche, dans n'importe quel ordre, et optionnellement *n* indiquant une extension des mots recherchés ("seul" avec n=5 permet de trouver "seulement")
-    - **$matchPhrase** permet de définir une phrase (*words* constitue une phrase à trouver exactement dans cet ordre)
-    - **$matchPhrasePrefix** permet de définir que le champ *name* doit commencer par cette phrase
+    - **$match_all : { name : words, $max_expansions : n }** où *name* est le nom du champ, *words* les mots que l'on cherche (tous), dans n'importe quel ordre, et optionnellement *n* indiquant une extension des mots recherchés ("seul" avec n=5 permet de trouver "seulement")
+    - **$match_phrase** permet de définir une phrase (*words* constitue une phrase à trouver exactement dans cet ordre)
+    - **$match_phrase_prefix** permet de définir que le champ *name* doit commencer par cette phrase
     - **NOTA BENE** : dans le cas de champs non analysés, cette requête est remplacé par une requête de type "prefix".
     - Exemple 1 :
 
@@ -238,7 +246,7 @@ qui cherchera les Units qui contiennent les deux mots dans n importe quel ordre 
    - Exemple 2 :
 
 ```json
-{ "$matchPhrase" : { "Description" : "le petit chat est mort" }}
+{ "$match_phrase" : { "Description" : "le petit chat est mort" }}
 ```
 
 ```java
@@ -275,7 +283,7 @@ qui cherchera les Units qui contiennent exactement Napoléon suivi de n importe 
         - **(** et **)** signifie une précédence dans les opérateurs (priorisation des recherches AND, OR)
         - **~N** après un mot est proche du **\*** mais en limitant le nombre de caractères dans la complétion (fuzziness)
         - **~N** après une phrase (encadré par **"**) autorise des "trous" dans la phrase
-    - **Attention** : pour les champs non analysés, il s'agit d'un $term multivalué.
+    - **Attention** : pour les champs non analysés, il s'agit d'un $term multivalué (choix parmi plusieurs valeurs).
     - Exemple :
 
 ```json

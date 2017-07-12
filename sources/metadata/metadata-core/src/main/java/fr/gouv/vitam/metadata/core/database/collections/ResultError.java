@@ -59,11 +59,12 @@ public class ResultError extends Result {
 
     /**
      *
-     * @param error as a String for adding to ResultError 
+     * @param error as a String for adding to ResultError
      * @return ResultError with an error added
      */
     public ResultError addError(String error) {
         currentIds.add(error);
+        scores.add(new Float(0));
         return this;
     }
 

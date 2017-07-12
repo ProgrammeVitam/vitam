@@ -34,11 +34,11 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
  * Result LRU in memory version
  *
  */
-public class ResultDefault extends Result {
+public class ResultDefault<T> extends Result<T> {
     /**
      * Constructor
      *
-     * @param type of filter 
+     * @param type of filter
      */
     public ResultDefault(FILTERARGS type) {
         super(type);
@@ -46,7 +46,7 @@ public class ResultDefault extends Result {
 
     /**
      * @param type of filter
-     * @param collection as a set of collection 
+     * @param collection as a set of collection
      */
     public ResultDefault(FILTERARGS type, final Collection<String> collection) {
         super(type, collection);
