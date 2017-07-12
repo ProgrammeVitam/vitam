@@ -46,21 +46,21 @@ function addCaInJks {
 function crtKeyToP12 {
     local BASEFILE="${1}"
     local MDP_KEY="${2}"
-    local COMPOSANT="${3}"
+    local KEYPAIR_NAME="${3}"
     local MDP_P12="${4}"
     local TARGET_FILE="${5}"
 
     openssl pkcs12 -export \
-        -inkey "${BASEFILE}/${COMPOSANT}.key" \
-        -in "${BASEFILE}/${COMPOSANT}.crt" \
-        -name "${COMPOSANT}" \
+        -inkey "${BASEFILE}/${KEYPAIR_NAME}.key" \
+        -in "${BASEFILE}/${KEYPAIR_NAME}.crt" \
+        -name "${KEYPAIR_NAME}" \
         -passin pass:"${MDP_KEY}" \
-        -out "${BASEFILE}/${COMPOSANT}.p12" \
+        -out "${BASEFILE}/${KEYPAIR_NAME}.p12" \
         -passout pass:"${MDP_P12}"
 
-    if [ "${BASEFILE}/${COMPOSANT}.p12" != "${TARGET_FILE}" ]; then
+    if [ "${BASEFILE}/${KEYPAIR_NAME}.p12" != "${TARGET_FILE}" ]; then
         mkdir -p $(dirname ${TARGET_FILE})
-        mv "${BASEFILE}/${COMPOSANT}.p12" "${TARGET_FILE}"
+        mv "${BASEFILE}/${KEYPAIR_NAME}.p12" "${TARGET_FILE}"
     fi
 }
 
@@ -85,7 +85,7 @@ function getKeystorePassphrase {
     local YAML_PATH="${1}"
     local RETURN_CODE=0
 
-    if [ ! -f ${VAULT_KEYSTORES} ]; then
+    if [ ! -f "${VAULT_KEYSTORES}" ]; then
         return 1
     fi
 
@@ -103,14 +103,14 @@ function getKeystorePassphrase {
         # And store it into another var: $CERT_KEY
         eval $(echo "STORE_KEY=\$storeKey_$(echo ${YAML_PATH} |sed 's/[\.-]/_/g')") && \
         # Print the $CERT_KEY var
-        echo ${STORE_KEY}
+        echo "${STORE_KEY}"
     } || {
         # Catch
         RETURN_CODE=1
         pki_logger "ERROR" "Error while reading keystore passphrase for ${YAML_PATH} in keystores vault: ${VAULT_KEYSTORES}"
     } && {
         # Finally
-        if [ ${STORE_KEY} == "" ]; then
+        if [ "${STORE_KEY}" == "" ]; then
             pki_logger "ERROR" "Error while retrieving the store key: ${YAML_PATH}"
             RETURN_CODE=1
         fi
@@ -124,16 +124,16 @@ function generateTrustStore {
     local TRUSTORE_TYPE=${1}
     local CLIENT_TYPE=${2}
 
-    if [ ${TRUSTORE_TYPE} != "server" ] && [ ${TRUSTORE_TYPE} != "client" ]; then
+    if [ "${TRUSTORE_TYPE}" != "server" ] && [ ${TRUSTORE_TYPE} != "client" ]; then
         pki_logger "ERROR" "Invalid trustore type: ${TRUSTORE_TYPE}"
         return 1
     fi
 
     # Set truststore path and delete the store if already exists
-    if [ ${TRUSTORE_TYPE} == "client" ]; then
+    if [ "${TRUSTORE_TYPE}" == "client" ]; then
         JKS_TRUST_STORE=${REPERTOIRE_KEYSTORES}/client-${CLIENT_TYPE}/truststore_${CLIENT_TYPE}.jks
         TRUST_STORE_PASSWORD=$(getKeystorePassphrase "truststores_client_${CLIENT_TYPE}")
-    elif [ ${TRUSTORE_TYPE} == "server" ]; then
+    elif [ "${TRUSTORE_TYPE}" == "server" ]; then
         JKS_TRUST_STORE=${REPERTOIRE_KEYSTORES}/server/truststore_server.jks
         TRUST_STORE_PASSWORD=$(getKeystorePassphrase "truststores_server")
     else
@@ -141,13 +141,13 @@ function generateTrustStore {
         return 1
     fi
 
-    if [ -f ${JKS_TRUST_STORE} ]; then
-        rm -f ${JKS_TRUST_STORE}
+    if [ -f "${JKS_TRUST_STORE}" ]; then
+        rm -f "${JKS_TRUST_STORE}"
     fi
 
     # Add the public client certificates to the truststore
     pki_logger "Ajout des certificats client dans le truststore"
-    if [ ${TRUSTORE_TYPE} == "client" ]; then
+    if [ "${TRUSTORE_TYPE}" == "client" ]; then
 
         for CRT_FILE in $(ls ${REPERTOIRE_CERTIFICAT}/client-${CLIENT_TYPE}/ca/*.crt); do
             pki_logger "Ajout de ${CRT_FILE} dans le truststore ${CLIENT_TYPE}"
@@ -247,21 +247,22 @@ done
 
 # Generate the timestamp keystores
 # awk : used to strip extension
-for COMPONENT in $( ls ${REPERTOIRE_CERTIFICAT}/timestamping/vitam/ 2>/dev/null | awk -F "." '{for (i=1;i<NF;i++) print $i}' | sort | uniq ); do
+for USAGE in $( ls ${REPERTOIRE_CERTIFICAT}/timestamping/vitam/ 2>/dev/null | awk -F "." '{for (i=1;i<NF;i++) print $i}' | sort | uniq ); do
 
     pki_logger "-------------------------------------------"
-    pki_logger "Creation du keystore timestamp de ${COMPONENT}"
-    P12_KEYSTORE=${REPERTOIRE_KEYSTORES}/timestamping/keystore_${COMPONENT}.p12
-    TMP_P12_KEYSTORE=${REPERTOIRE_CERTIFICAT}/timestamping/vitam/${COMPONENT}.p12
-    CRT_KEY_PASSWORD=$(getComponentCertPassphrase "timestamping_${COMPONENT}_key")
-    P12_PASSWORD=$(getKeystorePassphrase "keystores_timestamping_${COMPONENT}")
+    pki_logger "Creation du keystore timestamp de ${USAGE}"
+    P12_KEYSTORE=${REPERTOIRE_KEYSTORES}/timestamping/keystore_${USAGE}.p12
+    TMP_P12_KEYSTORE=${REPERTOIRE_CERTIFICAT}/timestamping/vitam/${USAGE}.p12
+    CRT_KEY_PASSWORD=$(getComponentCertPassphrase "timestamping_${USAGE}_key")
+    P12_PASSWORD=$(getKeystorePassphrase "keystores_timestamping_${USAGE}")
 
+    # KWA FIXME : simplify (we only use TMP_P12_KEYSTORE to do this dirname...)
     crtKeyToP12 $(dirname ${TMP_P12_KEYSTORE}) \
                 ${CRT_KEY_PASSWORD} \
-                ${COMPONENT} \
+                ${USAGE} \
                 ${P12_PASSWORD} \
                 ${P12_KEYSTORE}
-
+    # KWA TODO: generate two keystores : private (with crt + key) + public (with only the crt)
 done
 
 
@@ -314,7 +315,7 @@ for CLIENT_TYPE in external storage; do
     # Add the external certificates to the granted store
     pki_logger "-------------------------------------------"
     pki_logger "Ajout des certificat public du répertoire external dans le grantedstore ${CLIENT_TYPE}"
-    if [ ${CLIENT_TYPE} == "external" ]; then
+    if [ "${CLIENT_TYPE}" == "external" ]; then
         for CRT_FILE in $(ls ${REPERTOIRE_CERTIFICAT}/client-${CLIENT_TYPE}/clients/external/*.crt 2>/dev/null); do
             addCrtInJks ${JKS_GRANTED_STORE} \
                         ${GRANTED_STORE_PASSWORD} \
