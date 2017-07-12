@@ -10,7 +10,7 @@ PARAM_KEY_CHIFFREMENT="rsa:4096"
 VAULT_CERTS="${REPERTOIRE_CERTIFICAT}/vault-certs.yml"
 VAULT_KEYSTORES="${REPERTOIRE_ROOT}/environments/group_vars/all/vault-keystores.yml"
 
-if [ -f ${REPERTOIRE_ROOT}/vault_pass.txt ]; then
+if [ -f "${REPERTOIRE_ROOT}/vault_pass.txt" ]; then
     ANSIBLE_VAULT_PASSWD="--vault-password-file ${REPERTOIRE_ROOT}/vault_pass.txt"
 else
     ANSIBLE_VAULT_PASSWD="--ask-vault-pass"
@@ -20,14 +20,14 @@ fi
 function purge_directory {
     local DIR_TO_PURGE="${1}"
 
-    if [ ! -d ${DIR_TO_PURGE} ]; then
+    if [ ! -d "${DIR_TO_PURGE}" ]; then
         pki_logger "ERROR" "Directory ${DIR_TO_PURGE} does not exists"
         return 1
     fi
 
-    find ${DIR_TO_PURGE} -type f -name "*.attr" -exec rm -f {} \;
-    find ${DIR_TO_PURGE} -type f -name "*.old"  -exec rm -f {} \;
-    find ${DIR_TO_PURGE} -type f -name "*.req"  -exec rm -f {} \;
+    find "${DIR_TO_PURGE}" -type f -name "*.attr" -exec rm -f {} \;
+    find "${DIR_TO_PURGE}" -type f -name "*.old"  -exec rm -f {} \;
+    find "${DIR_TO_PURGE}" -type f -name "*.req"  -exec rm -f {} \;
 }
 
 function generatePassphrase {
@@ -37,14 +37,14 @@ function generatePassphrase {
 function normalize_key {
     local KEY="${1}"
 
-    echo ${KEY} | sed 's/[\\/\.-]/_/g'
+    echo "${KEY}" | sed 's/[\\/\.-]/_/g'
 }
 
 function getComponentCertPassphrase {
-    local KEY_FILE=${1}
+    local KEY_FILE="${1}"
     local RETURN_CODE=0
 
-    if [ ! -f ${VAULT_CERTS} ]; then
+    if [ ! -f "${VAULT_CERTS}" ]; then
         return 1
     fi
 
@@ -62,14 +62,14 @@ function getComponentCertPassphrase {
         # And store it into another var: $CERT_KEY
         eval $(echo "CERT_KEY=\$certKey_$(normalize_key ${KEY_FILE})") && \
         # Print the $CERT_KEY var
-        echo ${CERT_KEY}
+        echo "${CERT_KEY}"
     } || {
         # Catch
         RETURN_CODE=1
         pki_logger "ERROR" "Error while reading certificate passphrase for ${KEY_FILE} in certificates vault: ${VAULT_CERTS}"
     } && {
         # Finally
-        if [ ${CERT_KEY} == "" ]; then
+        if [ "${CERT_KEY}" == "" ]; then
             pki_logger "ERROR" "Error while retrieving the key: ${KEY_FILE}"
             RETURN_CODE=1
         fi
@@ -92,11 +92,11 @@ function setComponentCertPassphrase {
     # fi
 
     # Manage initial state (non-existing vault)
-    if [ -f ${VAULT_CERTS} ]; then
+    if [ -f "${VAULT_CERTS}" ]; then
         ansible-vault decrypt ${VAULT_CERTS} ${ANSIBLE_VAULT_PASSWD}
     else
-        if [ -f ${VAULT_CERTS}.example ]; then
-            rm -f ${VAULT_CERTS}.example
+        if [ -f "${VAULT_CERTS}.example" ]; then
+            rm -f "${VAULT_CERTS}.example"
         fi
     fi
 
@@ -104,16 +104,16 @@ function setComponentCertPassphrase {
     {
         # Try
         # Add key to example vault
-        normalize_key "${KEY_FILE}: changeme" >> ${VAULT_CERTS}.example && \
+        normalize_key "${KEY_FILE}: changeme" >> "${VAULT_CERTS}.example" && \
         # Add key to vault
-        normalize_key "${KEY_FILE}: ${KEY}" >> ${VAULT_CERTS}
+        normalize_key "${KEY_FILE}: ${KEY}" >> "${VAULT_CERTS}"
     } || {
         # Catch
         RETURN_CODE=1
         pki_logger "ERROR" "Error while writing to vault file: ${VAULT_CERTS}"
     } && {
         # Finally
-        ansible-vault encrypt ${VAULT_CERTS} ${ANSIBLE_VAULT_PASSWD}
+        ansible-vault encrypt "${VAULT_CERTS}" "${ANSIBLE_VAULT_PASSWD}"
         return ${RETURN_CODE}
     }
 }

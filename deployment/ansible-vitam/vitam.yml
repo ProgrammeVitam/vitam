@@ -122,7 +122,7 @@
 
 - hosts: hosts-logbook
   roles:
-    - {role: vitam, vitam_component: logbook, java_args: /vitam/conf/logbook/logbook.conf, port_http: "{{vitam_logbook_port}}", port_http_admin: "{{vitam_logbook_port_admin}}", cluster_name: elasticsearch-data, secret_platform: "true" }
+    - {role: vitam, vitam_component: logbook, vitam_timestamp_usage: secure-logbook, java_args: /vitam/conf/logbook/logbook.conf, port_http: "{{vitam_logbook_port}}", port_http_admin: "{{vitam_logbook_port_admin}}", cluster_name: elasticsearch-data, secret_platform: "true" }
     - logbook_secure_operations
 
 - hosts: hosts-functional-administration
@@ -140,7 +140,7 @@
 - hosts: hosts-worker
   roles:
     - siegfried
-    - {role: vitam, vitam_component: worker,java_args: /vitam/conf/worker/worker.conf, port_http: "{{vitam_worker_port}}", port_http_admin: "{{vitam_worker_port_admin}}", secret_platform: "true" }
+    - {role: vitam, vitam_component: worker, vitam_timestamp_usage: secure-logbook, java_args: /vitam/conf/worker/worker.conf, port_http: "{{vitam_worker_port}}", port_http_admin: "{{vitam_worker_port_admin}}", secret_platform: "true" }
 
 - hosts: hosts-access-internal
   roles:
