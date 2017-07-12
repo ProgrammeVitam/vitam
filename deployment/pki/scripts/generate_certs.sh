@@ -50,13 +50,12 @@ function generateHostCertificate {
     purge_directory "${REPERTOIRE_CONFIG}/${TYPE_CERTIFICAT}"
 }
 
-# Génération d'un certificat de timestamping
+# Génération d'un certificat de timestamping ; le nom du certificat est dérivé de son usage
 function generateTimestampCertificate {
-    local COMPOSANT="${1}"
+    local USAGE="${1}"
     local CERT_KEY="${2}"
     local INTERMEDIATE_CA_KEY="${3}"
-    local HOSTNAME="${4}"
-    local CN_VALEUR="${HOSTNAME}"
+    local CN_VALEUR="${USAGE}"
     local TYPE_CERTIFICAT="timestamping"
 
     # Correctly set certificate CN (env var is read inside the openssl configuration file)
@@ -64,13 +63,13 @@ function generateTimestampCertificate {
     # Correctly set certificate DIRECTORY (env var is read inside the openssl configuration file)
     export OPENSSL_CRT_DIR=${TYPE_CERTIFICAT}
 
-    pki_logger "Création du certificat ${TYPE_CERTIFICAT} pour ${COMPOSANT}"
+    pki_logger "Création du certificat ${TYPE_CERTIFICAT} pour usage ${USAGE}"
     mkdir -p "${REPERTOIRE_CERTIFICAT}/${TYPE_CERTIFICAT}/vitam"
     pki_logger "Generation de la clé..."
     openssl req -newkey "${PARAM_KEY_CHIFFREMENT}" \
         -passout pass:"${CERT_KEY}" \
-        -keyout "${REPERTOIRE_CERTIFICAT}/${TYPE_CERTIFICAT}/vitam/${COMPOSANT}.key" \
-        -out "${REPERTOIRE_CERTIFICAT}/${TYPE_CERTIFICAT}/vitam/${COMPOSANT}.req" \
+        -keyout "${REPERTOIRE_CERTIFICAT}/${TYPE_CERTIFICAT}/vitam/${USAGE}.key" \
+        -out "${REPERTOIRE_CERTIFICAT}/${TYPE_CERTIFICAT}/vitam/${USAGE}.req" \
         -nodes \
         -config "${REPERTOIRE_CONFIG}/crt-config" \
         -batch
@@ -78,8 +77,8 @@ function generateTimestampCertificate {
     pki_logger "Generation du certificat signé avec CA ${TYPE_CERTIFICAT}..."
     openssl ca -config "${REPERTOIRE_CONFIG}/crt-config" \
         -passin pass:"${INTERMEDIATE_CA_KEY}" \
-        -out "${REPERTOIRE_CERTIFICAT}/${TYPE_CERTIFICAT}/vitam/${COMPOSANT}.crt" \
-        -in "${REPERTOIRE_CERTIFICAT}/${TYPE_CERTIFICAT}/vitam/${COMPOSANT}.req" \
+        -out "${REPERTOIRE_CERTIFICAT}/${TYPE_CERTIFICAT}/vitam/${USAGE}.crt" \
+        -in "${REPERTOIRE_CERTIFICAT}/${TYPE_CERTIFICAT}/vitam/${USAGE}.req" \
         -extensions extension_${TYPE_CERTIFICAT} -batch
 
     purge_directory "${REPERTOIRE_CERTIFICAT}/${TYPE_CERTIFICAT}/vitam"
@@ -144,15 +143,14 @@ function generateHostCertAndStorePassphrase {
 
 # Génération d'un certificat timestamp (utilise la fonction de génération de certificats serveur)
 function generateTimestampCertAndStorePassphrase {
-    local COMPONENT="${1}"
+    local USAGE="${1}"
 
     # Generate the key
     local CERT_KEY=$(generatePassphrase)
     # Create the certificate
-    generateTimestampCertificate    ${COMPONENT} \
+    generateTimestampCertificate    ${USAGE} \
                                     ${CERT_KEY} \
-                                    caintermediatekeypassword \
-                                    "${COMPONENT}.service.consul"
+                                    caintermediatekeypassword
     # Store the key to the vault
     setComponentCertPassphrase  "timestamping_${COMPONENT}_key" \
                                 "${CERT_KEY}"
@@ -201,7 +199,7 @@ ENVIRONNEMENT="${1}"
 
 ENVIRONNEMENT_FILE="${1}"
 
-if [ ! -f ${ENVIRONNEMENT_FILE} ]; then
+if [ ! -f "${ENVIRONNEMENT_FILE}" ]; then
     pki_logger "ERROR" "Cannot find environment file: ${ENVIRONNEMENT_FILE}"
     exit 1
 fi
@@ -222,9 +220,8 @@ generateHostCertAndStorePassphrase          offer                    hosts-stora
 
 # Generate timestamp certificates
 pki_logger "Génération des certificats timestamping"
-# Method                                    # Component name         # Host group name
-generateTimestampCertAndStorePassphrase     logbook                  hosts-logbook
-generateTimestampCertAndStorePassphrase     worker                   hosts-worker
+# Method                                    # Usage
+generateTimestampCertAndStorePassphrase     secure-logbook
 
 # Generate clients certificates
 pki_logger "Génération des certificats clients"

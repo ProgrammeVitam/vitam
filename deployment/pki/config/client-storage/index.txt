@@ -28,3 +28,6 @@ V	200305180422Z		DD	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=storage
 V	270313121842Z		DE	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=CA_client-storage
 V	270313121842Z		DF	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=CA_client-storage
 V	200314121855Z		E0	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=storage
+V	270710142903Z		E1	unknown	/C=fr/ST=idf/L=paris/O=vitam/OU=authorities/CN=ca_root_client-storage
+V	270710142905Z		E2	unknown	/C=fr/ST=idf/L=paris/O=vitam/OU=authorities/CN=ca_intermediate_client-storage
+V	200711143001Z		E3	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=storage
