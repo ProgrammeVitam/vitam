@@ -419,7 +419,7 @@ public class ProfileManager {
             Bson clause = or(and(eq(VitamDocument.TENANT_ID, tenant), eq(Profile.IDENTIFIER, profile.getIdentifier())), and(eq(VitamDocument.TENANT_ID, tenant), eq(Profile.NAME, profile.getName())));
             boolean exist = FunctionalAdminCollections.PROFILE.getCollection().count(clause) > 0;
             if (exist) {
-                rejection = RejectionCause.rejectDuplicatedInDatabase(profile.getIdentifier());
+                rejection = RejectionCause.rejectDuplicatedInDatabase(profile.getName());
             }
             return (rejection == null) ? Optional.empty() : Optional.of(rejection);
 
