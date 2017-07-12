@@ -45,60 +45,60 @@
 
     # External API for status (must be the first proxypass as ihms or API proxypass can use the same context and this one is more specific)
     {% for host in groups['hosts-access-internal'] %}
-    ProxyPass {{vitam_accessinternal_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_accessinternal_port}}/admin/v1 {{reverse_connection_params}}
-    ProxyPassReverse  {{vitam_accessinternal_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_accessinternal_port}}/admin/v1
+    ProxyPass {{vitam_accessinternal_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_accessinternal_port_admin}}/admin/v1 {{reverse_connection_params}}
+    ProxyPassReverse  {{vitam_accessinternal_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_accessinternal_port_admin}}/admin/v1
     {% endfor %}
     {% for host in groups['hosts-access-external'] %}
-    ProxyPass {{vitam_accessexternal_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_accessexternal_port}}/admin/v1 {{reverse_connection_params}}
-    ProxyPassReverse  {{vitam_accessexternal_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_accessexternal_port}}/admin/v1
+    ProxyPass {{vitam_accessexternal_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_accessexternal_port_admin}}/admin/v1 {{reverse_connection_params}}
+    ProxyPassReverse  {{vitam_accessexternal_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_accessexternal_port_admin}}/admin/v1
     {% endfor %}
     {% for host in groups['hosts-ingest-internal'] %}
-    ProxyPass {{vitam_ingestinternal_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_ingestinternal_port}}/admin/v1 {{reverse_connection_params}}
-    ProxyPassReverse  {{vitam_ingestinternal_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_ingestinternal_port}}/admin/v1
+    ProxyPass {{vitam_ingestinternal_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_ingestinternal_port_admin}}/admin/v1 {{reverse_connection_params}}
+    ProxyPassReverse  {{vitam_ingestinternal_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_ingestinternal_port_admin}}/admin/v1
     {% endfor %}
     {% for host in groups['hosts-ingest-external'] %}
-    ProxyPass {{vitam_ingestexternal_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_ingestexternal_port}}/admin/v1 {{reverse_connection_params}}
-    ProxyPassReverse  {{vitam_ingestexternal_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_ingestexternal_port}}/admin/v1
+    ProxyPass {{vitam_ingestexternal_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_ingestexternal_port_admin}}/admin/v1 {{reverse_connection_params}}
+    ProxyPassReverse  {{vitam_ingestexternal_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_ingestexternal_port_admin}}/admin/v1
     {% endfor %}
     {% for host in groups['hosts-metadata'] %}
-    ProxyPass {{vitam_metadata_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{host}}:{{vitam_metadata_port}}/admin/v1 {{reverse_connection_params}}
-    ProxyPassReverse  {{vitam_metadata_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{host}}:{{vitam_metadata_port}}/admin/v1
+    ProxyPass {{vitam_metadata_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_metadata_port_admin}}/admin/v1 {{reverse_connection_params}}
+    ProxyPassReverse  {{vitam_metadata_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_metadata_port_admin}}/admin/v1
     {% endfor %}
     {% for host in groups['hosts-ihm-demo'] %}
-    ProxyPass {{vitam_ihm_demo_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_ihm_demo_port}}/admin/v1 {{reverse_connection_params}}
-    ProxyPassReverse  {{vitam_ihm_demo_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_ihm_demo_port}}/admin/v1
+    ProxyPass {{vitam_ihm_demo_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_ihm_demo_port_admin}}/admin/v1 {{reverse_connection_params}}
+    ProxyPassReverse  {{vitam_ihm_demo_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_ihm_demo_port_admin}}/admin/v1
     {% endfor %}
     {% for host in groups['hosts-ihm-recette'] %}
-    ProxyPass {{vitam_ihm_recette_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_ihm_recette_port}}/admin/v1 {{reverse_connection_params}}
-    ProxyPassReverse  {{vitam_ihm_recette_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_ihm_recette_port}}/admin/v1
+    ProxyPass {{vitam_ihm_recette_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_ihm_recette_port_admin}}/admin/v1 {{reverse_connection_params}}
+    ProxyPassReverse  {{vitam_ihm_recette_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_ihm_recette_port_admin}}/admin/v1
     {% endfor %}
     {% for host in groups['hosts-logbook'] %}
-    ProxyPass {{vitam_logbook_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_logbook_port}}/admin/v1 {{reverse_connection_params}}
-    ProxyPassReverse  {{vitam_logbook_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_logbook_port}}/admin/v1
+    ProxyPass {{vitam_logbook_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_logbook_port_admin}}/admin/v1 {{reverse_connection_params}}
+    ProxyPassReverse  {{vitam_logbook_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_logbook_port_admin}}/admin/v1
     {% endfor %}
     {% for host in groups['hosts-workspace'] %}
-    ProxyPass {{vitam_workspace_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_workspace_port}}/admin/v1 {{reverse_connection_params}}
-    ProxyPassReverse  {{vitam_workspace_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_workspace_port}}/admin/v1
+    ProxyPass {{vitam_workspace_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_workspace_port_admin}}/admin/v1 {{reverse_connection_params}}
+    ProxyPassReverse  {{vitam_workspace_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_workspace_port_admin}}/admin/v1
     {% endfor %}
     {% for host in groups['hosts-processing'] %}
-    ProxyPass {{vitam_processing_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_processing_port}}/admin/v1 {{reverse_connection_params}}
-    ProxyPassReverse  {{vitam_processing_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_processing_port}}/admin/v1
+    ProxyPass {{vitam_processing_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_processing_port_admin}}/admin/v1 {{reverse_connection_params}}
+    ProxyPassReverse  {{vitam_processing_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_processing_port_admin}}/admin/v1
     {% endfor %}
     {% for host in groups['hosts-worker'] %}
-    ProxyPass {{vitam_worker_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_worker_port}}/admin/v1 {{reverse_connection_params}}
-    ProxyPassReverse  {{vitam_worker_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_worker_port}}/admin/v1
+    ProxyPass {{vitam_worker_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_worker_port_admin}}/admin/v1 {{reverse_connection_params}}
+    ProxyPassReverse  {{vitam_worker_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_worker_port_admin}}/admin/v1
     {% endfor %}
     {% for host in groups['hosts-storage-engine'] %}
-    ProxyPass {{vitam_storageengine_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_storageengine_port}}/admin/v1 {{reverse_connection_params}}
-    ProxyPassReverse  {{vitam_storageengine_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_storageengine_port}}/admin/v1
+    ProxyPass {{vitam_storageengine_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_storageengine_port_admin}}/admin/v1 {{reverse_connection_params}}
+    ProxyPassReverse  {{vitam_storageengine_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_storageengine_port_admin}}/admin/v1
     {% endfor %}
     {% for host in groups['hosts-storage-offer-default'] %}
-    ProxyPass {{vitam_storageofferdefault_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_storageofferdefault_port}}/admin/v1 {{reverse_connection_params}}
-    ProxyPassReverse  {{vitam_storageofferdefault_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_storageofferdefault_port}}/admin/v1
+    ProxyPass {{vitam_storageofferdefault_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_storageofferdefault_port_admin}}/admin/v1 {{reverse_connection_params}}
+    ProxyPassReverse  {{vitam_storageofferdefault_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_storageofferdefault_port_admin}}/admin/v1
     {% endfor %}
     {% for host in groups['hosts-functional-administration'] %}
-    ProxyPass {{vitam_functional_administration_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_functional_administration_port}}/admin/v1 {{reverse_connection_params}}
-    ProxyPassReverse  {{vitam_functional_administration_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_functional_administration_port}}/admin/v1
+    ProxyPass {{vitam_functional_administration_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_functional_administration_port_admin}}/admin/v1 {{reverse_connection_params}}
+    ProxyPassReverse  {{vitam_functional_administration_baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam_functional_administration_port_admin}}/admin/v1
     {% endfor %}
 
     # IHM Demo
