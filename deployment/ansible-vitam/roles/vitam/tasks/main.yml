@@ -199,12 +199,12 @@
 
 - name: "Copy timestamp keystore"
   copy:
-    src: "{{inventory_dir}}/keystores/timestamping/keystore_{{vitam_component}}.p12"
-    dest: "/vitam/conf/{{vitam_component}}/keystore_{{vitam_component}}.p12"
+    src: "{{inventory_dir}}/keystores/timestamping/keystore_{{vitam_timestamp_usage}}.p12"
+    dest: "/vitam/conf/{{vitam_component}}/keystore_{{vitam_timestamp_usage}}.p12"
     owner: "{{ vitam_user }}"
     group: "{{ vitam_group }}"
     mode: "{{vitam_conf_permission}}"
-  when: "{{ lookup('pipe', 'test -f {{inventory_dir}}/keystores/timestamping/keystore_{{vitam_component}}.p12 || echo nofile') == \"\" }}"
+  when: "( vitam_timestamp_usage is defined ) and ( {{ lookup('pipe', 'test -f {{inventory_dir}}/keystores/timestamping/keystore_{{vitam_timestamp_usage}}.p12 || echo nofile') == \"\" }} )"
   tags:
     - update_vitam_certificates
   notify:
