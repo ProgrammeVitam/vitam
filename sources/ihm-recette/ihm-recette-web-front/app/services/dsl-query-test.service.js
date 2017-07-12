@@ -35,8 +35,8 @@ angular.module('dsl.query.test')
       dslQueryResource.getContracts().then(successCallback, errorCallback);
     }
 
-    DslQueryService.executeRequest = function(successCallback, errorCallback, tenantId, contractId, requestedCollection, requestMethod, query, objectId) {
-      dslQueryResource.executeRequest(tenantId, contractId, requestedCollection, requestMethod, query, objectId).then(successCallback, errorCallback);
+    DslQueryService.executeRequest = function(successCallback, errorCallback, tenantId, contractId, requestedCollection, requestMethod, xAction, query, objectId) {
+      dslQueryResource.executeRequest(tenantId, contractId, requestedCollection, requestMethod, xAction, query, objectId).then(successCallback, errorCallback);
     }
 
 
