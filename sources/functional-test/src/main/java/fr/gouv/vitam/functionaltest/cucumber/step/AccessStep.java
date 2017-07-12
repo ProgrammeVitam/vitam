@@ -134,7 +134,13 @@ public class AccessStep {
 
         for (List<String> raw : raws) {
             String resultValue = getResultValue(firstJsonNode, raw.get(0));
+            if (null != resultValue) {
+                resultValue = resultValue.replace("\n", "").replace("\\n", "");
+            }
             String resultExpected = transformToGuid(raw.get(1));
+            if (null != resultExpected) {
+                resultExpected = resultExpected.replace("\n", "").replace("\\n", "");
+            }
             assertThat(resultValue).contains(resultExpected);
         }
     }
@@ -291,13 +297,11 @@ public class AccessStep {
         String s = null;
         // get id of last result
         String unitId = getValueFromResult("#id", 0);
-        try {
-            RequestResponse<JsonNode> requestResponse = world.getAccessClient().updateUnitbyId(queryJSON, unitId,
-                world.getTenantId(), world.getContractId());
-        } catch (AccessUnauthorizedException e) {
-            s = Status.UNAUTHORIZED.toString();
-        }
-        assertThat(status).isEqualTo(s);
+        RequestResponse<JsonNode> requestResponse = world.getAccessClient().updateUnitbyId(queryJSON, unitId,
+            world.getTenantId(), world.getContractId());
+        assertThat(requestResponse.isOk()).isFalse();
+        final VitamError vitamError = (VitamError)requestResponse;
+        assertThat(Response.Status.valueOf(status.toUpperCase()).getStatusCode()).isEqualTo(vitamError.getHttpCode());
     }
 
     /**
@@ -347,6 +351,27 @@ public class AccessStep {
             Fail.fail("request selectUnit return an error: " + vitamError.getCode());
         }
     }
+
+    @When("^je recherche les unités archivistiques pour trouver l'unite (.*)$")
+    public void search_archive_unit(String originatingSystemId) throws Throwable {
+
+
+        this.query = this.query.replace("Originating_System_Id", originatingSystemId);
+
+        JsonNode queryJSON = JsonHandler.getFromString(query);
+
+        RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnits(queryJSON,
+            world.getTenantId(), world.getContractId());
+        if (requestResponse.isOk()) {
+            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
+            results = requestResponseOK.getResults();
+        } else {
+            VitamError vitamError = (VitamError) requestResponse;
+            Fail.fail("request selectUnit return an error: " + vitamError.getCode());
+        }
+    }
+
+
 
     /**
      * search an archive unit according to the query define before

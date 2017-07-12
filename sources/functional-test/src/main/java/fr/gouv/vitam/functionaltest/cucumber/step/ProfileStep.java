@@ -39,6 +39,7 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.AccessContractModel;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -109,7 +110,7 @@ public class ProfileStep {
             Object o = (res.getResults().stream().findFirst()).get();
             this.model = (JsonNode) o;
          } else {
-            fail("Fail to import profile.");
+            fail("Fail to import profile :"+ response.toString());
         }
     }
 
