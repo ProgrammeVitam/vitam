@@ -185,9 +185,9 @@ public class ProfileServiceImplTest {
         final RequestResponseOK<ProfileModel> responseCast = (RequestResponseOK<ProfileModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
         assertThat(responseCast.getResults().get(0).getIdentifier()).contains("PR-000");
-        assertThat(responseCast.getResults().get(1).getIdentifier()).contains("PR-000");
-        final ProfileModel profileModel = responseCast.getResults().get(1);
-        final InputStream xsdProfile = new FileInputStream(PropertiesUtils.getResourceFile("profile_ok.rng"));
+        assertThat(responseCast.getResults().get(1).getIdentifier()).contains("aIdentifier");
+        final ProfileModel profileModel= responseCast.getResults().get(1);
+        InputStream xsdProfile = new FileInputStream(PropertiesUtils.getResourceFile("profile_ok.rng"));
 
 
         doAnswer(invocation -> null).when(workspaceClient).createContainer(anyString());

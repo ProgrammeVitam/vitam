@@ -1,6 +1,5 @@
 [
 	{
-		"Identifier":"aIdentifier1",
 		"Name":"aName",
 		"Description":"aDescription of the Profile",
 		"Status":"ACTIVE",
@@ -11,7 +10,6 @@
 		"DeactivationDate":"10/12/2016"
 	},
 		{
-		"Identifier":"aIdentifier2",
 		"Name":"aName2",
 		"Description":"aDescription of the profile 2",
 		"Status":"ACTIVE",
