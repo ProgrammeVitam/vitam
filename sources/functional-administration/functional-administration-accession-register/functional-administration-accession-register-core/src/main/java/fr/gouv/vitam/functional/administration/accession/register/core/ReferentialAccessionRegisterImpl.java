@@ -26,24 +26,23 @@
  */
 package fr.gouv.vitam.functional.administration.accession.register.core;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.MongoBulkWriteException;
 import com.mongodb.MongoWriteException;
-import com.mongodb.client.MongoCursor;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.database.server.DbRequestResult;
+import fr.gouv.vitam.common.database.server.DbRequestSingle;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.functional.administration.client.model.RegisterValueDetailModel;
@@ -83,7 +82,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
         // store accession register detail
         try {
             mongoAccess.insertDocument(JsonHandler.toJsonNode(registerDetail),
-                FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
+                FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL).close();
         } catch (final InvalidParseOperationException e) {
             LOGGER.info("Create register detail Error", e);
             throw new ReferentialException(e);
@@ -94,13 +93,13 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
         try {
             final AccessionRegisterSummary accessionRegister = new AccessionRegisterSummary();
             accessionRegister
-            .setId(GUIDFactory.newAccessionRegisterSummaryGUID(ParameterHelper.getTenantParameter()).getId())
-            .setOriginatingAgency(registerDetail.getOriginatingAgency())
-            .setTotalObjects(initialValue)
-            .setTotalObjectGroups(initialValue)
-            .setTotalUnits(initialValue)
-            .setObjectSize(initialValue)
-            .setCreationDate(LocalDateUtil.now().toString());
+                .setId(GUIDFactory.newAccessionRegisterSummaryGUID(ParameterHelper.getTenantParameter()).getId())
+                .setOriginatingAgency(registerDetail.getOriginatingAgency())
+                .setTotalObjects(initialValue)
+                .setTotalObjectGroups(initialValue)
+                .setTotalUnits(initialValue)
+                .setObjectSize(initialValue)
+                .setCreationDate(LocalDateUtil.now().toString());
 
 
             LOGGER.debug("register ID / Originating Agency: {} / {}", registerDetail.getId(),
@@ -108,6 +107,10 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
 
             mongoAccess.insertDocument(JsonHandler.toJsonNode(accessionRegister),
                 FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
+        } catch (ReferentialException e) {
+            if (! DbRequestSingle.checkInsertOrUpdate(e)) {
+                throw e;
+            }
         } catch (final InvalidParseOperationException e) {
             throw new ReferentialException(e);
         } catch (final MongoWriteException | MongoBulkWriteException e) {
@@ -116,7 +119,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
 
         try {
             final Map<String, Object> updateMap = createMaptoUpdate(registerDetail);
-            mongoAccess.updateDocumentByMap(
+            mongoAccess.updateAccessionRegisterByMap(
                 updateMap,
                 JsonHandler.toJsonNode(registerDetail),
                 FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY,
@@ -172,22 +175,16 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
      * @return A list of AccressionRegisterSummaries matching the 'select' criteria.
      * @throws ReferentialException If the search's result is null or empty, or if the mongo search throw error
      */
-
-
-    public List<AccessionRegisterSummary> findDocuments(JsonNode select) throws ReferentialException {
-        try (final MongoCursor<VitamDocument<?>> registers =
-            (MongoCursor<VitamDocument<?>>) mongoAccess.findDocuments(select,
-                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY)) {
-
-            final List<AccessionRegisterSummary> result = new ArrayList<>();
-
-            if (registers == null || !registers.hasNext()) {
-                throw new ReferentialNotFoundException("Register Detail not found");
+    public RequestResponseOK<AccessionRegisterSummary> findDocuments(JsonNode select) throws ReferentialException {
+        try (DbRequestResult result =
+            mongoAccess.findDocuments(select, FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY)) {
+            final RequestResponseOK<AccessionRegisterSummary> list =
+                result.getRequestResponseOK(AccessionRegisterSummary.class)
+                    .setQuery(select);
+            if (list.isEmpty()) {
+                throw new ReferentialNotFoundException("Register Sumarry not found");
             }
-            while (registers.hasNext()) {
-                result.add((AccessionRegisterSummary)registers.next());
-            }
-            return result;
+            return list;
         } catch (final ReferentialException e) {
             LOGGER.error(e.getMessage());
             throw e;
@@ -201,21 +198,16 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
      * @return A list of AccressionRegisterDetails matching the 'select' criteria.
      * @throws ReferentialException If the search's result is null or empty, or if the mongo search throw error
      */
-    public List<AccessionRegisterDetail> findDetail(JsonNode select) throws ReferentialException {
-        try (@SuppressWarnings("unchecked")
-        final MongoCursor<VitamDocument<?>> registers =
-        (MongoCursor<VitamDocument<?>>) mongoAccess.findDocuments(select,
-            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL)) {
-
-            final List<AccessionRegisterDetail> result = new ArrayList<>();
-
-            if (registers == null || !registers.hasNext()) {
+    public RequestResponseOK<AccessionRegisterDetail> findDetail(JsonNode select) throws ReferentialException {
+        try (DbRequestResult result =
+            mongoAccess.findDocuments(select, FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL)) {
+            final RequestResponseOK<AccessionRegisterDetail> list =
+                result.getRequestResponseOK(AccessionRegisterDetail.class)
+                    .setQuery(select);
+            if (list.isEmpty()) {
                 throw new ReferentialNotFoundException("Register Detail not found");
             }
-            while (registers.hasNext()) {
-                result.add((AccessionRegisterDetail)registers.next());
-            }
-            return result;
+            return list;
         } catch (final ReferentialException e) {
             LOGGER.error(e.getMessage());
             throw e;

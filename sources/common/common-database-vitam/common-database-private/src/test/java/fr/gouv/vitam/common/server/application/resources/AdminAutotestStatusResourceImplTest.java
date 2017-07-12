@@ -51,7 +51,6 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.common.client.DefaultAdminClient;
 import fr.gouv.vitam.common.client.TestVitamClientFactory;
 import fr.gouv.vitam.common.database.collections.VitamCollection;

@@ -6,7 +6,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-
 import org.junit.Before;
 import org.junit.Test;
 
@@ -14,36 +13,37 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.common.database.parser.request.AbstractParser;
-import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
+import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 public class MongoDbInMemoryTest {
-
-    private final static String jsonNodeValue = "{"
-        + "\"oldValue\": \"value\","
-        + "\"oldField\": \"valueOld\","
-        + "\"nullField\": null,"
-        + "\"numberTen\": 10,"
-        + "\"numberAsString\": \"2\","
-        + "\"arrayToPop\": [\"val1\", \"val2\", \"val3\"],"
-        + "\"arrayToPull\": [\"v1\", \"v2\", \"v3\"],"
-        + "\"ArrayToAdd\": [\"val1\", \"val2\"],"
-        + "\"ArrayToPush\": [\"v1\", \"v2\"],"
-        + "\"subItem\": {\"subArray\": [\"subValue\"], \"subInt\": 42}"
-        + "}";
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MongoDbInMemoryTest.class);
+    
+    private final static String jsonNodeValue =
+        "{" + "\"oldValue\": \"value\"," + "\"oldField\": \"valueOld\"," + "\"nullField\": null," +
+            "\"numberTen\": 10," + "\"numberAsString\": \"2\"," + "\"arrayToPop\": [\"val1\", \"val2\", \"val3\"]," +
+            "\"arrayToPull\": [\"v1\", \"v2\", \"v3\"]," + "\"ArrayToAdd\": [\"val1\", \"val2\"]," +
+            "\"ArrayToPush\": [\"v1\", \"v2\"]," + "\"subItem\": {\"subArray\": [\"subValue\"], \"subInt\": 42}" + "}";
     private static JsonNode jsonDocument;
     private static MongoDbInMemory mDIM;
-    private static AbstractParser<?> parser = new UpdateParserSingle(new VarNameAdapter());
-    private final static AbstractParser<?> emptyParser = new UpdateParserSingle(new VarNameAdapter());
+    private static AbstractParser<?> parser = new UpdateParserSingle(new SingleVarNameAdapter());
+    private final static AbstractParser<?> emptyParser = new UpdateParserSingle(new SingleVarNameAdapter());
 
     private static String requestAdd = "{\"$action\": [{ \"$add\": {\"ArrayToAdd\": { \"$each\": [\"val3\"]} } }]}";
-    private static String requestAddMultiple = "{\"$action\": [{ \"$add\": {\"ArrayToAdd\": { \"$each\": [\"val3\", \"val4\"]} } }]}";
-    private static String requestAddSubField = "{\"$action\": [{ \"$add\": {\"subItem.subArray\": { \"$each\": [\"val3\"]} } }]}";
-    private static String requestAddWrongField = "{\"$action\": [{ \"$add\": {\"numberAsString\": { \"$each\": [\"val3\"]} } }]}";
-    private static String requestAddDuplicate = "{\"$action\": [{ \"$add\": {\"ArrayToAdd\": { \"$each\": [\"val2\"]} } }]}";
-    private static String requestAddOnNull = "{\"$action\": [{ \"$add\": {\"nullField\": { \"$each\": [\"val2\"]} } }]}";
+    private static String requestAddMultiple =
+        "{\"$action\": [{ \"$add\": {\"ArrayToAdd\": { \"$each\": [\"val3\", \"val4\"]} } }]}";
+    private static String requestAddSubField =
+        "{\"$action\": [{ \"$add\": {\"subItem.subArray\": { \"$each\": [\"val3\"]} } }]}";
+    private static String requestAddWrongField =
+        "{\"$action\": [{ \"$add\": {\"numberAsString\": { \"$each\": [\"val3\"]} } }]}";
+    private static String requestAddDuplicate =
+        "{\"$action\": [{ \"$add\": {\"ArrayToAdd\": { \"$each\": [\"val2\"]} } }]}";
+    private static String requestAddOnNull =
+        "{\"$action\": [{ \"$add\": {\"nullField\": { \"$each\": [\"val2\"]} } }]}";
 
     private static String requestInc = "{\"$action\": [{ \"$inc\": {\"numberTen\": 2 } }]}";
     private static String requestIncSubField = "{\"$action\": [{ \"$inc\": {\"subItem.subInt\": 2 } }]}";
@@ -73,46 +73,57 @@ public class MongoDbInMemoryTest {
     private static String requestPopWrongValue = "{\"$action\": [{ \"$pop\": {\"arrayToPop\": \"b\" } }]}";
     private static String requestPopOnNull = "{\"$action\": [{ \"$pop\": {\"nullField\": 1 } }]}";
 
-    private static String requestPullSubField = "{\"$action\": [{ \"$pull\": {\"subItem.subArray\": { \"$each\": [\"subValue\"]} } }] }";
-    private static String requestPullFirst = "{\"$action\": [{ \"$pull\": {\"arrayToPull\": { \"$each\": [\"v1\"]} } }] }";
-    private static String requestPullMultiple = "{\"$action\": [{ \"$pull\": {\"arrayToPull\": { \"$each\": [\"v1\", \"v3\"]} } }]}";
-    private static String requestPullUnknow = "{\"$action\": [{ \"$pull\": {\"arrayToPull\": { \"$each\": [\"v6\"]} } }] }";
+    private static String requestPullSubField =
+        "{\"$action\": [{ \"$pull\": {\"subItem.subArray\": { \"$each\": [\"subValue\"]} } }] }";
+    private static String requestPullFirst =
+        "{\"$action\": [{ \"$pull\": {\"arrayToPull\": { \"$each\": [\"v1\"]} } }] }";
+    private static String requestPullMultiple =
+        "{\"$action\": [{ \"$pull\": {\"arrayToPull\": { \"$each\": [\"v1\", \"v3\"]} } }]}";
+    private static String requestPullUnknow =
+        "{\"$action\": [{ \"$pull\": {\"arrayToPull\": { \"$each\": [\"v6\"]} } }] }";
     private static String requestPullWrongField = "{\"$action\": [{ \"$pull\": {\"numberAsString\": \"2\"} }]}";
-    private static String requestPullOnNull = "{\"$action\": [{ \"$pull\": {\"nullField\": { \"$each\": [\"v1\"]} } }] }";
+    private static String requestPullOnNull =
+        "{\"$action\": [{ \"$pull\": {\"nullField\": { \"$each\": [\"v1\"]} } }] }";
 
-    private static String requestPush = "{\"$action\": [{ \"$push\": {\"ArrayToPush\": {\"$each\": [\"v3\", \"v4\"]}}}]}";
-    private static String requestPushSubField = "{\"$action\": [{ \"$push\": {\"subItem.subArray\": {\"$each\": [\"v3\", \"v4\"]}}}]}";
-    private static String requestPushDuplicate = "{\"$action\": [{ \"$push\": {\"ArrayToPush\": {\"$each\": [\"v1\", \"v1\"]}}}]}";
-    private static String requestPushWrongField = "{\"$action\": [{ \"$push\": {\"numberAsString\": {\"$each\": [\"v1\"]}}}]}";
-    private static String requestPushOnNull = "{\"$action\": [{ \"$push\": {\"nullField\": {\"$each\": [\"v3\", \"v4\"]}}}]}";
+    private static String requestPush =
+        "{\"$action\": [{ \"$push\": {\"ArrayToPush\": {\"$each\": [\"v3\", \"v4\"]}}}]}";
+    private static String requestPushSubField =
+        "{\"$action\": [{ \"$push\": {\"subItem.subArray\": {\"$each\": [\"v3\", \"v4\"]}}}]}";
+    private static String requestPushDuplicate =
+        "{\"$action\": [{ \"$push\": {\"ArrayToPush\": {\"$each\": [\"v1\", \"v1\"]}}}]}";
+    private static String requestPushWrongField =
+        "{\"$action\": [{ \"$push\": {\"numberAsString\": {\"$each\": [\"v1\"]}}}]}";
+    private static String requestPushOnNull =
+        "{\"$action\": [{ \"$push\": {\"nullField\": {\"$each\": [\"v3\", \"v4\"]}}}]}";
 
     private static String requestRename = "{\"$action\": [{ \"$rename\": {\"oldField\": \"renamedField\" } }]}";
-    private static String requestRenameSubField = "{\"$action\": [{ \"$rename\": {\"subItem.subInt\": \"newSubItem.newName\" } }]}";
+    private static String requestRenameSubField =
+        "{\"$action\": [{ \"$rename\": {\"subItem.subInt\": \"newSubItem.newName\" } }]}";
     private static String requestRenameUnknowField = "{\"$action\": [{ \"$rename\": {\"unknowField\": \"field\" } }]}";
 
     private static String requestSet = "{\"$action\": [{ \"$set\": { \"oldValue\": \"newValue\"} }]}";
     private static String requestSetSubField = "{\"$action\": [{ \"$set\": { \"subItem.subInt\": \"newValue\"} }]}";
-    
+
     private static String requestUnset = "{\"$action\": [{ \"$unset\": [ \"oldValue\", \"oldField\" ] }]}";
     private static String requestUnsetSubField = "{\"$action\": [{ \"$unset\": [ \"subItem.subInt\" ] }]}";
 
-	@Before
-	public void setUp() throws InvalidParseOperationException {
+    @Before
+    public void setUp() throws InvalidParseOperationException {
         // Init jsonDocument with values (from real document or only some json ?)
         jsonDocument = JsonHandler.getFromString(jsonNodeValue);
         mDIM = new MongoDbInMemory(jsonDocument);
-	}
+    }
 
-	@Test
-	public void testReset() throws InvalidParseOperationException {
+    @Test
+    public void testReset() throws InvalidParseOperationException {
         parser.parse(JsonHandler.getFromString(requestSet));
 
-        JsonNode resultAfterUpdate = mDIM.getUpdateJson(parser);
+        final JsonNode resultAfterUpdate = mDIM.getUpdateJson(parser);
         assertNotEquals("Json should be updated", jsonDocument, resultAfterUpdate);
         mDIM.resetUpdatedAU();
-        JsonNode resultAfterReset = mDIM.getUpdateJson(emptyParser);
+        final JsonNode resultAfterReset = mDIM.getUpdateJson(emptyParser);
         assertEquals("Json should be reseted to original value", jsonDocument, resultAfterReset);
-	}
+    }
 
     @Test
     public void testAddActions() throws InvalidParseOperationException {
@@ -150,7 +161,7 @@ public class MongoDbInMemoryTest {
             parser.parse(JsonHandler.getFromString(requestAddWrongField));
             result = mDIM.getUpdateJson(parser);
             fail("Should throw InvalidParseOperationException because original value is not an array");
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             // Normal Path of the unit test
         }
     }
@@ -175,7 +186,7 @@ public class MongoDbInMemoryTest {
             parser.parse(JsonHandler.getFromString(requestIncWrongField));
             result = mDIM.getUpdateJson(parser);
             fail("Should throw InvalidParseOperationException because original value is a string");
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             // Normal Path of the unit test
         }
 
@@ -184,7 +195,7 @@ public class MongoDbInMemoryTest {
             parser.parse(JsonHandler.getFromString(requestIncOnNull));
             result = mDIM.getUpdateJson(parser);
             fail("Should throw InvalidParseOperationException because original value is null");
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             // Normal Path of the unit test
         }
 
@@ -193,9 +204,9 @@ public class MongoDbInMemoryTest {
             parser.parse(JsonHandler.getFromString(requestIncWrongValue));
             result = mDIM.getUpdateJson(parser);
             fail("Should throw InvalidParseOperationException because action value is a string");
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             // Normal Path of the unit test
-	    }
+        }
     }
 
     @Test
@@ -225,27 +236,27 @@ public class MongoDbInMemoryTest {
             parser.parse(JsonHandler.getFromString(requestMinWrongField));
             result = mDIM.getUpdateJson(parser);
             fail("Should throw InvalidParseOperationException because original value is a string");
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             // Normal Path of the unit test
-	    }
+        }
 
         try {
             mDIM.resetUpdatedAU();
             parser.parse(JsonHandler.getFromString(requestMinOnNull));
             result = mDIM.getUpdateJson(parser);
             fail("Should throw InvalidParseOperationException because original value is null");
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             // Normal Path of the unit test
-	    }
+        }
 
         try {
             mDIM.resetUpdatedAU();
             parser.parse(JsonHandler.getFromString(requestMinWrongValue));
             result = mDIM.getUpdateJson(parser);
             fail("Should throw InvalidParseOperationException because action value is a string");
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             // Normal Path of the unit test
-	    }
+        }
     }
 
     @Test
@@ -275,7 +286,7 @@ public class MongoDbInMemoryTest {
             parser.parse(JsonHandler.getFromString(requestMaxWrongField));
             result = mDIM.getUpdateJson(parser);
             fail("Should throw InvalidParseOperationException because original value is a string");
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             // Normal Path of the unit test
         }
 
@@ -284,7 +295,7 @@ public class MongoDbInMemoryTest {
             parser.parse(JsonHandler.getFromString(requestMaxOnNull));
             result = mDIM.getUpdateJson(parser);
             fail("Should throw InvalidParseOperationException because original value is null");
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             // Normal Path of the unit test
         }
 
@@ -293,7 +304,7 @@ public class MongoDbInMemoryTest {
             parser.parse(JsonHandler.getFromString(requestMaxWrongValue));
             result = mDIM.getUpdateJson(parser);
             fail("Should throw InvalidParseOperationException because action value is a string");
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             // Normal Path of the unit test
         }
     }
@@ -331,7 +342,7 @@ public class MongoDbInMemoryTest {
             parser.parse(JsonHandler.getFromString(requestPopWrongField));
             result = mDIM.getUpdateJson(parser);
             fail("Should throw InvalidParseOperationException because original value is not an array");
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             // Normal Path of the unit test
         }
 
@@ -340,7 +351,7 @@ public class MongoDbInMemoryTest {
             parser.parse(JsonHandler.getFromString(requestPopOnNull));
             result = mDIM.getUpdateJson(parser);
             fail("Should throw InvalidParseOperationException because original value is null");
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             // Normal Path of the unit test
         }
 
@@ -349,7 +360,7 @@ public class MongoDbInMemoryTest {
             parser.parse(JsonHandler.getFromString(requestPopWrongValue));
             result = mDIM.getUpdateJson(parser);
             fail("Should throw InvalidParseOperationException because action value is not a number");
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             // Normal Path of the unit test
         }
     }
@@ -392,7 +403,7 @@ public class MongoDbInMemoryTest {
             parser.parse(JsonHandler.getFromString(requestPullWrongField));
             result = mDIM.getUpdateJson(parser);
             fail("Should throw InvalidParseOperationException because original value is not an array");
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             // Normal Path of the unit test
         }
     }
@@ -427,7 +438,7 @@ public class MongoDbInMemoryTest {
             parser.parse(JsonHandler.getFromString(requestPushWrongField));
             result = mDIM.getUpdateJson(parser);
             fail("Should throw InvalidParseOperationException because original value is not an array");
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             // Normal Path of the unit test
         }
     }
@@ -441,16 +452,16 @@ public class MongoDbInMemoryTest {
 
         parser.parse(JsonHandler.getFromString(requestRenameSubField));
         result = mDIM.getUpdateJson(parser);
-        JsonNode oldSubItem = result.get("subItem");
+        final JsonNode oldSubItem = result.get("subItem");
         assertNull("Old name should be deleted", oldSubItem.get("subInt"));
-        JsonNode newSubItem = result.get("newSubItem");
+        final JsonNode newSubItem = result.get("newSubItem");
         assertEquals("New field should have oldValue", 42, newSubItem.get("newName").asInt());
 
         try {
             mDIM.resetUpdatedAU();
             parser.parse(JsonHandler.getFromString(requestRenameUnknowField));
             result = mDIM.getUpdateJson(parser);
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             // Normal Path of the unit test
         }
     }
@@ -465,11 +476,18 @@ public class MongoDbInMemoryTest {
         mDIM.resetUpdatedAU();
         parser.parse(JsonHandler.getFromString(requestSetSubField));
         resultAfterUpdate = mDIM.getUpdateJson(parser);
-        assertEquals("Json should be updated", "newValue", JsonHandler.getNodeByPath(resultAfterUpdate, "subItem.subInt", true).asText());
+        assertEquals("Json should be updated", "[\"newValue\"]",
+            JsonHandler.getNodeByPath(resultAfterUpdate, "subItem.subInt", true).toString());
+
+        mDIM.resetUpdatedAU();
+        parser.parse(JsonHandler.getFromString("{\"$action\": [{ \"$set\": { \"OriginatingAgency\": \"newValue\"} }]}"));
+        resultAfterUpdate = mDIM.getUpdateJson(parser);
+        assertEquals("Json should be updated", "newValue",
+            JsonHandler.getNodeByPath(resultAfterUpdate, "OriginatingAgency", true).asText());
 
         mDIM.resetUpdatedAU();
         parser.parse(JsonHandler.getFromString(requestUnset));
-        JsonNode resultAfterReset = mDIM.getUpdateJson(parser);
+        final JsonNode resultAfterReset = mDIM.getUpdateJson(parser);
         assertNull("Json should unset value", resultAfterReset.get("oldValue"));
         assertNull("Json should unset value", resultAfterReset.get("oldField"));
 

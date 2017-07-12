@@ -28,26 +28,29 @@ package fr.gouv.vitam.metadata.core.database.collections;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
-import com.mongodb.BasicDBList;
-
 import fr.gouv.vitam.common.SingletonUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * Abstract class for Result
+ * 
+ * @param <T> Parameter Type
  *
  */
-public abstract class Result {
+public abstract class Result<T> {
+    private static final String INVALID_NUMBER_OF_RESULT_AND_LIST_OF_RESULTS =
+        "Invalid number of Result and List of results";
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ElasticsearchAccessMetadata.class);
     /**
      * Field containing the full documents result as an array of document
      */
@@ -61,11 +64,19 @@ public abstract class Result {
     /**
      * Current Ids in the result
      */
-    protected Set<String> currentIds = new HashSet<>();
+    protected List<String> currentIds = new ArrayList<>();
+    /**
+     * Current Ids in the result
+     */
+    protected List<Float> scores = new ArrayList<>();
     /**
      * Number of result (might be different on update/delete than currentUnits)
      */
     protected long nbResult = 0;
+    /**
+     * Total aproximated results out of limit
+     */
+    protected long total = 0;
     /**
      * The type of the results (Units, ObjectGroups, Objects)
      */
@@ -73,7 +84,7 @@ public abstract class Result {
     /**
      * The final Result part
      */
-    protected Document finalResult;
+    protected List<T> finalResult;
 
     /**
      * Constructor for empty result
@@ -95,6 +106,10 @@ public abstract class Result {
         currentIds.addAll(collection);
         currentIds.remove("");
         nbResult = currentIds.size();
+        for (int i = 0; i < collection.size(); i++) {
+            scores.add(new Float(1));
+        }
+        total = nbResult;
     }
 
     /**
@@ -102,9 +117,11 @@ public abstract class Result {
      *
      * @return this
      */
-    public Result clear() {
+    public Result<T> clear() {
         currentIds.clear();
+        scores.clear();
         nbResult = 0;
+        total = 0;
         finalResult = null;
         return this;
     }
@@ -115,9 +132,15 @@ public abstract class Result {
      * @param from the Result for creating another
      * @return Result created
      */
-    public Result putFrom(final Result from) {
-        currentIds.addAll(from.currentIds);
-        nbResult = from.nbResult;
+    public Result<T> putFrom(final Result from) {
+        for (int i = 0; i < from.currentIds.size(); i++) {
+            if (! currentIds.contains(from.currentIds.get(i))) {
+                currentIds.add((String) from.currentIds.get(i));
+                scores.add((Float) from.scores.get(i));
+            }
+        }
+        nbResult = currentIds.size();
+        total += from.total;
         return this;
     }
 
@@ -131,29 +154,38 @@ public abstract class Result {
     /**
      * @return the current Ids
      */
-    public Set<String> getCurrentIds() {
+    public List<String> getCurrentIds() {
         return currentIds;
+    }
+
+    /**
+     * @return the current scores
+     */
+    public List<Float> getCurrentScores() {
+        return scores;
+    }
+
+    /**
+     *
+     * @return the type of Results
+     */
+    public FILTERARGS getType() {
+        return type;
     }
 
     /**
      * Ad one Id to CurrentIds
      *
      * @param id the id as String adding to current result
+     * @param score the associated score
      * @return this
      */
-    public Result addId(String id) {
-        if (id != null) {
+    public Result<T> addId(String id, float score) {
+        if (id != null && !currentIds.contains(id)) {
             currentIds.add(id);
+            scores.add((Float) score);
+            nbResult = currentIds.size();
         }
-        return this;
-    }
-
-    /**
-     * @param currentIds the current Ids to set
-     * @return this
-     */
-    public Result setCurrentIds(Set<String> currentIds) {
-        this.currentIds = currentIds;
         return this;
     }
 
@@ -165,31 +197,42 @@ public abstract class Result {
     }
 
     /**
-     * @param nbResult the nbResult to set
+     *
+     * @param nb the number of updated elements
      * @return this
      */
-    public final Result setNbResult(long nbResult) {
-        this.nbResult = nbResult;
+    public final Result<T> setUpdatedResult(long nb) {
+        this.nbResult = nb;
+        this.total = nb;
+        return this;
+    }
+
+    /**
+     *
+     * @return the approximative total of responses possible, out of limit
+     */
+    public long getTotal() {
+        return total;
+    }
+
+    /**
+     *
+     * @param total the approximative total of responses possible, out of limit
+     * @return this
+     */
+    public Result<T> setTotal(long total) {
+        this.total = total;
         return this;
     }
 
     /**
      * @return the final Result
      */
-    public Document getFinal() {
+    public List<T> getFinal() {
         if (finalResult == null) {
-            finalResult = new Document(RESULT_FIELD, null);
+            finalResult = new ArrayList<>();
         }
         return finalResult;
-    }
-
-    /**
-     * Gets the type
-     * 
-     * @return the type
-     */
-    public FILTERARGS getType() {
-        return type;
     }
 
     /**
@@ -197,35 +240,32 @@ public abstract class Result {
      * @return the filtered list for Select operation
      * @throws InvalidParseOperationException if exception occurred when getting the filter list
      */
-    public List<MetadataDocument<?>> getMetadataDocumentListFiltered() throws InvalidParseOperationException {
-        final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ElasticsearchAccessMetadata.class);
+    public List<T> getListFiltered() throws InvalidParseOperationException {
         LOGGER.debug(toString());
-        if (finalResult == null) {
+        if (finalResult == null || finalResult.isEmpty()) {
             if (nbResult != 0) {
-                throw new InvalidParseOperationException("Invalid number of Result and List of results");
+                throw new InvalidParseOperationException(INVALID_NUMBER_OF_RESULT_AND_LIST_OF_RESULTS);
             }
             return SingletonUtils.singletonList();
         }
 
-        final BasicDBList result = (BasicDBList) finalResult.get(RESULT_FIELD);
-        if (result == null) {
-            if (nbResult != 0) {
-                throw new InvalidParseOperationException("Invalid number of Result and List of results");
-            }
-            return SingletonUtils.singletonList();
-        }
-
-        final int size = result.size();
+        final int size = finalResult.size();
         if (size != nbResult) {
-            throw new InvalidParseOperationException("Invalid number of Result and List of results");
+            throw new InvalidParseOperationException(INVALID_NUMBER_OF_RESULT_AND_LIST_OF_RESULTS);
         }
-        final List<MetadataDocument<?>> list = new ArrayList<>(size);
-        for (final Object object : result) {
-            final MetadataDocument<?> metadataDocument = (MetadataDocument<?>) object;
-            MongoDbMetadataResponseFilter.filterFinalResponse(metadataDocument);
-            list.add(metadataDocument);
+        if (finalResult.get(0) instanceof MetadataDocument<?>) {
+            final List<MetadataDocument<?>> list = new ArrayList<>(size);
+            for (int i = 0; i < size; i++) {
+                final MetadataDocument<?> metadataDocument = (MetadataDocument<?>) finalResult.get(i);
+                if (VitamConfiguration.EXPORT_SCORE) {
+                    metadataDocument.append(VitamDocument.SCORE, scores.get(i));
+                }
+                MongoDbMetadataResponseFilter.filterFinalResponse(metadataDocument);
+                list.add(metadataDocument);
+            }
+            return (List<T>) list;
         }
-        return list;
+        return finalResult;
     }
 
     /**
@@ -233,16 +273,12 @@ public abstract class Result {
      *
      * @param document of type MetaDataDocument adding to result
      */
-    public void addFinal(MetadataDocument<?> document) {
+    public void addFinal(T document) {
         if (finalResult == null) {
-            finalResult = new Document();
+            finalResult = new ArrayList<>();
         }
-        BasicDBList result = (BasicDBList) finalResult.get(RESULT_FIELD);
-        if (result == null) {
-            result = new BasicDBList();
-        }
-        result.add(document);
-        finalResult.append(RESULT_FIELD, result);
+        finalResult.add(document);
+        nbResult = finalResult.size();
     }
 
     /**
@@ -251,24 +287,33 @@ public abstract class Result {
      * @param projection the project of document
      */
     public void setFinal(Bson projection) {
-        final List<Document> list = new ArrayList<>(currentIds.size());
+        final List<T> list = new ArrayList<>(currentIds.size());
         if (type == FILTERARGS.UNITS) {
-            for (final String id : currentIds) {
+            for (int i = 0; i < currentIds.size(); i++) {
+                String id = currentIds.get(i);
                 final Unit unit =
                     (Unit) MetadataCollections.C_UNIT.getCollection().find(new Document(MetadataDocument.ID, id))
                         .projection(projection).first();
-                list.add(unit);
+                if (VitamConfiguration.EXPORT_SCORE) {
+                    unit.append(VitamDocument.SCORE, scores.get(i));
+                }
+                list.add((T) unit);
             }
         } else if (type == FILTERARGS.OBJECTGROUPS) {
-            for (final String id : currentIds) {
+            for (int i = 0; i < currentIds.size(); i++) {
+                String id = currentIds.get(i);
                 final ObjectGroup og =
                     (ObjectGroup) MetadataCollections.C_OBJECTGROUP.getCollection()
                         .find(new Document(MetadataDocument.ID, id))
                         .projection(projection).first();
-                list.add(og);
+                if (VitamConfiguration.EXPORT_SCORE) {
+                    og.append(VitamDocument.SCORE, scores.get(i));
+                }
+                list.add((T) og);
             }
         }
-        finalResult = new Document(RESULT_FIELD, list);
+        finalResult = list;
+        nbResult = finalResult.size();
     }
 
 
@@ -278,13 +323,13 @@ public abstract class Result {
         if (finalResult == null) {
             return new StringBuilder(this.getClass().getSimpleName()).append(": {")
                 .append(IDLIST).append(':').append(currentIds).append(',')
-                .append("nb").append(':').append(nbResult).append(',')
-                .append("type").append(':').append(type).append('}').toString();
+                .append("nb").append(':').append(nbResult).append(", total: ").append(total)
+                .append(',').append("type").append(':').append(type).append('}').toString();
         } else {
             return new StringBuilder(this.getClass().getSimpleName()).append(": {")
                 .append(IDLIST).append(':').append(currentIds).append(',')
-                .append("nb").append(':').append(nbResult).append(',')
-                .append("type").append(':').append(type).append(',')
+                .append("nb").append(':').append(nbResult).append(", total: ").append(total)
+                .append(',').append("type").append(':').append(type).append(',')
                 .append(finalResult).append('}').toString();
         }
     }

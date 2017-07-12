@@ -61,6 +61,7 @@ import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -168,10 +169,10 @@ public class RulesManagerFileImplTest {
         assertEquals(22, collection.count());
         final Select select = new Select();
         select.setQuery(eq("RuleId", "APP-00005"));
-        final List<FileRules> fileList = rulesFileManager.findDocuments(select.getFinalSelect());
-        final String id = fileList.get(0).getString("RuleId");
+        final RequestResponseOK<FileRules> fileList = rulesFileManager.findDocuments(select.getFinalSelect());
+        final String id = fileList.getResults().get(0).getString("RuleId");
         final FileRules file = rulesFileManager.findDocumentById(id);
-        assertEquals(file, fileList.get(0));
+        assertEquals(file, fileList.getResults().get(0));
         client.close();
     }
 }

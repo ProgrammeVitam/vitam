@@ -26,14 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common.server;
 
-import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.mongodb.client.MongoCursor;
 
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
+import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
@@ -48,27 +47,33 @@ public interface MongoDbAccessReferential {
      *
      * @param arrayNode of documents
      * @param collection collection of Mongo for insert
+     * @return DbRequestResult
      * @throws ReferentialException when error occurs
      */
-    void insertDocuments(ArrayNode arrayNode, FunctionalAdminCollections collection) throws ReferentialException;
+    DbRequestResult insertDocuments(ArrayNode arrayNode, FunctionalAdminCollections collection)
+        throws ReferentialException;
 
     /**
      * insert documents
      *
      * @param jsonNode of documents
      * @param collection collection of Mongo for insert
+     * @return DbRequestResult
      * @throws ReferentialException when error occurs
      */
-    void insertDocument(JsonNode jsonNode, FunctionalAdminCollections collection) throws ReferentialException;
+    DbRequestResult insertDocument(JsonNode jsonNode, FunctionalAdminCollections collection)
+        throws ReferentialException;
 
     /**
      * Delete FileFormat collections
      *
      * @param collection collection of Mongo for delete
+     * @return DbRequestResult
      * @throws DatabaseException thrown when error on delete
      * @throws ReferentialException when error occurs
      */
-    void deleteCollection(FunctionalAdminCollections collection) throws DatabaseException, ReferentialException;
+    DbRequestResult deleteCollection(FunctionalAdminCollections collection)
+        throws DatabaseException, ReferentialException;
 
     /**
      * @param id of vitam document
@@ -96,28 +101,28 @@ public interface MongoDbAccessReferential {
      * @param action update actions
      * @throws ReferentialException when error occurs
      */
-    void updateDocumentByMap(Map<String, Object> map, JsonNode object, FunctionalAdminCollections collection,
+    void updateAccessionRegisterByMap(Map<String, Object> map, JsonNode object, FunctionalAdminCollections collection,
         UPDATEACTION action)
         throws ReferentialException;
 
     /**
      * Update with queryDsl
-     * 
+     *
      * @param update JsonNode to update
      * @param collection collection of Mongo Type for update
-     * @return map of modified data
+     * @return DbRequestResult
      * @throws ReferentialException when error occurs;
      */
-    Map<String, List<String>> updateData(JsonNode update, FunctionalAdminCollections collection)
-        throws ReferentialException;
+    DbRequestResult updateData(JsonNode update, FunctionalAdminCollections collection)
+        throws ReferentialException;;
 
     /**
      * @param select filter
      * @param collection collection of Mongo for find
-     * @return vitam document list
+     * @return DbRequestResult
      * @throws ReferentialException when error occurs
      */
-    MongoCursor<? extends VitamDocument<?>> findDocuments(JsonNode select, FunctionalAdminCollections collection)
+    DbRequestResult findDocuments(JsonNode select, FunctionalAdminCollections collection)
         throws ReferentialException;
 
 }

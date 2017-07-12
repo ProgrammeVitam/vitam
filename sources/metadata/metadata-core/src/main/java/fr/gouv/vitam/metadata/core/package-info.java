@@ -25,7 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Provides 
+ * Provides
  * <p>
  * <ul>
  * <li>core interface and implementation for the Metadata module

@@ -53,10 +53,7 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFou
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
@@ -67,6 +64,7 @@ import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
@@ -111,10 +109,10 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         Status status;
-        JsonNode result = null;
+        RequestResponse<JsonNode> result = null;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            result = client.selectUnits(queryJson).toJsonNode();
-            return Response.status(Status.OK).entity(result).build();
+            result = client.selectUnits(queryJson);
+            return Response.status(result.getHttpCode()).entity(result.toJsonNode()).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("Predicate Failed Exception ", e);
             status = Status.PRECONDITION_FAILED;

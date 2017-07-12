@@ -85,8 +85,17 @@ public class MongoDbAccessMetadataFactoryTest {
     private static ElasticsearchTestConfiguration config = null;
 
     static final int tenantId = 0;
-    static final List tenantList =  new ArrayList(){{add(tenantId);}};
-    
+    static final List tenantList = new ArrayList() {
+        /**
+        * 
+        */
+        private static final long serialVersionUID = -315017116521336143L;
+
+        {
+            add(tenantId);
+        }
+    };
+
     @BeforeClass
     public static void setup() throws IOException {
         // ES

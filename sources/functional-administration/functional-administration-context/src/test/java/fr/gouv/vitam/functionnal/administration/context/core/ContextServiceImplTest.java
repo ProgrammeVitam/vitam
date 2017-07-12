@@ -1,28 +1,19 @@
 /*
- *  Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- *  <p>
- *  contact.vitam@culture.gouv.fr
- *  <p>
- *  This software is a computer program whose purpose is to implement a digital archiving back-office system managing
- *  high volumetry securely and efficiently.
- *  <p>
- *  This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
- *  software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- *  circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- *  <p>
- *  As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
- *  users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
- *  successive licensors have only limited liability.
- *  <p>
- *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
- *  developing or reproducing the software by the user in light of its specific status of free software, that may mean
- *  that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
- *  experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
- *  software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
- *  to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- *  <p>
- *  The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
- *  accept its terms.
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019) <p> contact.vitam@culture.gouv.fr <p>
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently. <p> This software is governed by the CeCILL 2.1 license under French law and
+ * abiding by the rules of distribution of free software. You can use, modify and/ or redistribute the software under
+ * the terms of the CeCILL 2.1 license as circulated by CEA, CNRS and INRIA at the following URL
+ * "http://www.cecill.info". <p> As a counterpart to the access to the source code and rights to copy, modify and
+ * redistribute granted by the license, users are provided only with a limited warranty and the software's author, the
+ * holder of the economic rights, and the successive licensors have only limited liability. <p> In this respect, the
+ * user's attention is drawn to the risks associated with loading, using, modifying and/or developing or reproducing the
+ * software by the user in light of its specific status of free software, that may mean that it is complicated to
+ * manipulate, and that also therefore means that it is reserved for developers and experienced professionals having
+ * in-depth computer knowledge. Users are therefore encouraged to load and test the software's suitability as regards
+ * their requirements in conditions enabling the security of their systems and/or data to be ensured and, more
+ * generally, to use and operate it in the same conditions as regards security. <p> The fact that you are presently
+ * reading this means that you have had knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
 package fr.gouv.vitam.functionnal.administration.context.core;
 
@@ -71,6 +62,7 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.model.ContextModel;
 import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
+import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.context.api.ContextService;
@@ -102,7 +94,7 @@ public class ContextServiceImplTest {
     static ContractService ingestContractService;
     static ContractService accessContractService;
     static int mongoPort;
-    
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         final MongodStarter starter = MongodStarter.getDefaultInstance();
@@ -117,14 +109,15 @@ public class ContextServiceImplTest {
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, mongoPort));
-        
+
         dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
-        List tenants = new ArrayList<>();
+        final List tenants = new ArrayList<>();
         tenants.add(new Integer(TENANT_ID));
         vitamCounterService = new VitamCounterService(dbImpl, tenants);
 
         contextService =
-            new ContextServiceImpl(MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)), vitamCounterService);
+            new ContextServiceImpl(MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)),
+                vitamCounterService);
 
         ingestContractService = new IngestContractImpl(dbImpl, vitamCounterService);
         accessContractService = new AccessContractImpl(dbImpl, vitamCounterService);
@@ -144,55 +137,56 @@ public class ContextServiceImplTest {
         final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
         collection.deleteMany(new Document());
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public void givenTestWellFormedContextThenImportSuccessfully() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        
-        File fileIngest = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
-        List<IngestContractModel> IngestContractModelList =
+
+        final File fileIngest = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
+        final List<IngestContractModel> IngestContractModelList =
             JsonHandler.getFromFileAsTypeRefence(fileIngest, new TypeReference<List<IngestContractModel>>() {});
         ingestContractService.createContracts(IngestContractModelList);
-        
-        File fileAccess = PropertiesUtils.getResourceFile("contracts_access_ok.json");
-        List<AccessContractModel> accessContractModelList =
+
+        final File fileAccess = PropertiesUtils.getResourceFile("contracts_access_ok.json");
+        final List<AccessContractModel> accessContractModelList =
             JsonHandler.getFromFileAsTypeRefence(fileAccess, new TypeReference<List<AccessContractModel>>() {});
         accessContractService.createContracts(accessContractModelList);
-        
-        File fileContexts = PropertiesUtils.getResourceFile("contexts_ok.json");
-        List<ContextModel> ModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {});
-        
-        RequestResponse response = contextService.createContexts(ModelList);
 
-        assertThat(response.isOk());
-        RequestResponseOK<ContextModel> responseCast = (RequestResponseOK<ContextModel>) response;
+        final File fileContexts = PropertiesUtils.getResourceFile("contexts_ok.json");
+        final List<ContextModel> ModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {});
+
+        final RequestResponse response = contextService.createContexts(ModelList);
+
+        assertThat(response.isOk()).isTrue();
+        final RequestResponseOK<ContextModel> responseCast = (RequestResponseOK<ContextModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public void givenContextUpdateTest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        File fileIngest = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
-        List<IngestContractModel> IngestContractModelList =
+        final File fileIngest = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
+        final List<IngestContractModel> IngestContractModelList =
             JsonHandler.getFromFileAsTypeRefence(fileIngest, new TypeReference<List<IngestContractModel>>() {});
         ingestContractService.createContracts(IngestContractModelList);
         ingestContractService.findContracts(new Select().getFinalSelect());
-        File fileContexts = PropertiesUtils.getResourceFile("contexts_empty.json");
-        List<ContextModel> ModelList =
+        final File fileContexts = PropertiesUtils.getResourceFile("contexts_empty.json");
+        final List<ContextModel> ModelList =
             JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {});
-        
-        RequestResponse response = contextService.createContexts(ModelList);
-        
-        PushAction addIdentifierAction = UpdateActionHelper.push("Permissions.0.AccessContracts", "AC-000011");
-        Select select = new Select();
+
+        final RequestResponse response = contextService.createContexts(ModelList);
+
+        final PushAction addIdentifierAction = UpdateActionHelper.push("Permissions.0.AccessContracts", "AC-000011");
+        final Select select = new Select();
         select.setQuery(QueryHelper.eq("Name", "My_Context_1"));
-        ContextModel context = contextService.findContexts(select.getFinalSelect()).get(0);
-        
-        
-        Update update = new Update();
+        final ContextModel context =
+            contextService.findContexts(select.getFinalSelect()).getDocuments(Context.class, ContextModel.class).get(0);
+
+
+        final Update update = new Update();
         update.addActions(addIdentifierAction);
         update.setQuery(QueryHelper.and().add(QueryHelper.eq("Permissions._tenant", 0))
             .add(QueryHelper.eq("#id", context.getId())));
@@ -201,9 +195,9 @@ public class ContextServiceImplTest {
         JsonNode queryDslForUpdate = update.getFinalUpdate();
         contextService.updateContext(context.getIdentifier(), queryDslForUpdate);
 
-       
-        queryDslForUpdate = update.getFinalUpdate();     
-        
+
+        queryDslForUpdate = update.getFinalUpdate();
+
     }
 
 }

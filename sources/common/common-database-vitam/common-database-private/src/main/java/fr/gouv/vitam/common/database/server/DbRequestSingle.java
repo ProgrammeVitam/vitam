@@ -44,13 +44,12 @@ import org.bson.json.JsonMode;
 import org.bson.json.JsonWriterSettings;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.delete.DeleteRequestBuilder;
-import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
@@ -61,17 +60,21 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.DBObject;
+import com.mongodb.MongoBulkWriteException;
 import com.mongodb.MongoException;
+import com.mongodb.MongoWriteException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.FindOneAndReplaceOptions;
 import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.result.DeleteResult;
-import com.mongodb.client.result.UpdateResult;
 
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.builder.query.NopQuery;
 import fr.gouv.vitam.common.database.builder.query.PathQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
@@ -82,13 +85,12 @@ import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
-import fr.gouv.vitam.common.database.parser.request.adapter.VarNameUpdateAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
-import fr.gouv.vitam.common.database.parser.request.single.SelectToMongoDb;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.mongodb.EmptyMongoCursor;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.database.translators.elasticsearch.QueryToElasticsearch;
+import fr.gouv.vitam.common.database.translators.elasticsearch.SelectToElasticsearch;
 import fr.gouv.vitam.common.database.translators.mongodb.QueryToMongodb;
 import fr.gouv.vitam.common.database.translators.mongodb.SelectToMongodb;
 import fr.gouv.vitam.common.exception.DatabaseException;
@@ -96,7 +98,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.server.HeaderIdHelper;
 
 /**
  * This class execute all request single in Vitam
@@ -106,34 +108,41 @@ public class DbRequestSingle {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DbRequestSingle.class);
 
     private final VitamCollection vitamCollection;
+    private final VarNameAdapter vaNameAdapter;
+    private long count = 0;
+    private long total = 0;
+    private long offset = 0;
+    private long limit = 0;
 
     /**
      * Constructor with VitamCollection
-     * 
+     *
      * @param collection
      */
     public DbRequestSingle(VitamCollection collection) {
         this.vitamCollection = collection;
+        vaNameAdapter = new SingleVarNameAdapter();
     }
 
     /**
      * execute all request
-     * 
+     *
      * @param request
+     * @return DbRequestResult
      * @throws InvalidParseOperationException
      * @throws DatabaseException
      * @throws InvalidCreateOperationException
-     * @throws SecurityException 
-     * @throws NoSuchMethodException 
-     * @throws InvocationTargetException 
-     * @throws IllegalArgumentException 
-     * @throws IllegalAccessException 
-     * @throws InstantiationException 
+     * @throws SecurityException
+     * @throws NoSuchMethodException
+     * @throws InvocationTargetException
+     * @throws IllegalArgumentException
+     * @throws IllegalAccessException
+     * @throws InstantiationException
      */
     public DbRequestResult execute(RequestSingle request)
         throws InvalidParseOperationException, DatabaseException, InvalidCreateOperationException {
         if (request instanceof Insert) {
-            ArrayNode data = ((Insert) request).getData();
+            ArrayNode data = ((Insert) request).getDatas();
             return insertDocuments(data);
         } else if (request instanceof Select) {
             return findDocuments(((Select) request).getFinalSelect());
@@ -145,31 +154,65 @@ public class DbRequestSingle {
         return new DbRequestResult();
     }
 
-
+    /**
+     * Helper to detect an insert that should be an Update
+     * 
+     * @param e exception catched 
+     * @return true if an insert that should be an Update, else False
+     */
+    public static boolean checkInsertOrUpdate(Exception e) {
+        if (e instanceof DatabaseException &&
+            (((DatabaseException) e).getCause() instanceof MongoBulkWriteException |
+                ((DatabaseException) e).getCause() instanceof MongoWriteException)) {
+            LOGGER.info("Document existed, updating ...");
+            return true;
+        }
+        Throwable d = e.getCause();
+        if (d instanceof DatabaseException &&
+            (((DatabaseException) d).getCause() instanceof MongoBulkWriteException |
+                ((DatabaseException) d).getCause() instanceof MongoWriteException)) {
+            LOGGER.info("Document existed, updating ...");
+            return true;
+        }
+        return false;
+    }
 
     /**
+     * Main method for Multiple Insert
+     *
      * @param arrayNode
+     * @return DbRequestResult
      * @throws InvalidParseOperationException
      * @throws DatabaseException
      */
     @SuppressWarnings("unchecked")
     private DbRequestResult insertDocuments(ArrayNode arrayNode)
         throws InvalidParseOperationException, DatabaseException {
-        final List<VitamDocument<?>> vitamDocumentList = new ArrayList<VitamDocument<?>>();
+        final List<VitamDocument<?>> vitamDocumentList = new ArrayList<>();
         for (final JsonNode objNode : arrayNode) {
             // TODO : How to add _v in all VitamDocuments make by JsonHandler ?
             VitamDocument<?> obj = (VitamDocument<?>) JsonHandler.getFromJsonNode(objNode, vitamCollection.getClasz());
             obj.append(VitamDocument.VERSION, 0);
+            obj.remove(VitamDocument.SCORE);
+            if (vitamCollection.isMultiTenant()) {
+                obj.append(VitamDocument.TENANT_ID, obj.getTenantFixJunit());
+            }
             vitamDocumentList.add(obj);
         }
         MongoCollection<VitamDocument<?>> collection =
             (MongoCollection<VitamDocument<?>>) vitamCollection.getCollection();
-        collection.insertMany(vitamDocumentList);
+        try {
+            collection.insertMany(vitamDocumentList);
+        } catch (final MongoException e) {
+            throw new DatabaseException(e);
+        }
         insertToElasticsearch(vitamDocumentList);
-        return new DbRequestResult().setCount(vitamDocumentList.size());
+        return new DbRequestResult().setCount(vitamDocumentList.size()).setTotal(vitamDocumentList.size());
     }
 
     /**
+     * Private Elasticsearch insert method
+     *
      * @param vitamDocumentList
      * @param vitamDocumentList
      * @throws DatabaseException
@@ -180,18 +223,32 @@ public class DbRequestSingle {
             return;
         }
         Map<String, String> mapIdJson = new HashMap<>();
+        int max = VitamConfiguration.MAX_ELASTICSEARCH_BULK;
         for (VitamDocument<?> document : vitamDocumentList) {
+            max--;
             String id = document.getString(VitamDocument.ID);
             document.remove(VitamDocument.ID);
+            document.remove(VitamDocument.SCORE);
             final String mongoJson = document.toJson(new JsonWriterSettings(JsonMode.STRICT));
             document.clear();
             final String esJson = ((DBObject) com.mongodb.util.JSON.parse(mongoJson)).toString();
             mapIdJson.put(id, esJson);
+            if (max == 0) {
+                max = VitamConfiguration.MAX_ELASTICSEARCH_BULK;
+                final BulkResponse bulkResponse = addEntryIndexes(mapIdJson);
+                if (bulkResponse.hasFailures()) {
+                    LOGGER.error("Insert Documents Exception");
+                    throw new DatabaseException("Insert Document Exception");
+                }
+                mapIdJson.clear();
+            }
         }
-        final BulkResponse bulkResponse = addEntryIndexes(mapIdJson);
-        if (bulkResponse.hasFailures()) {
-            LOGGER.error("Insert Documents Exception");
-            throw new DatabaseException("Insert Document Exception");
+        if (!mapIdJson.isEmpty()) {
+            final BulkResponse bulkResponse = addEntryIndexes(mapIdJson);
+            if (bulkResponse.hasFailures()) {
+                LOGGER.error("Insert Documents Exception");
+                throw new DatabaseException("Insert Document Exception");
+            }
         }
     }
 
@@ -217,18 +274,35 @@ public class DbRequestSingle {
         return bulkRequest.execute().actionGet();
     }
 
+    /**
+     * Main Select method
+     *
+     * @param select
+     * @return DbRequestResult
+     * @throws DatabaseException
+     */
     private DbRequestResult findDocuments(JsonNode select) throws DatabaseException {
         MongoCursor<VitamDocument<?>> cursor = search(select);
-        return new DbRequestResult().setCursor(cursor);
+        return new DbRequestResult().setCursor(cursor).setTotal(total > 0 ? total : count).setCount(count)
+            .setLimit(limit).setOffset(offset);
     }
 
+    /**
+     * Private method to select Elasticsearch or MongoDb
+     *
+     * @param select
+     * @return MongoCursor<VitamDocument<?>>
+     * @throws DatabaseException
+     */
     private MongoCursor<VitamDocument<?>> search(JsonNode select) throws DatabaseException {
         try {
-            final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
+            final SelectParserSingle parser = new SelectParserSingle(vaNameAdapter);
             parser.parse(select);
-            final SelectToMongodb requestToMongodb = new SelectToMongodb(parser);
-            if (requestToMongodb.hasFullTextQuery() && vitamCollection.getEsClient() != null) {
-                return findDocumentsElasticsearch(parser);
+            if (vitamCollection.isMultiTenant()) {
+                parser.addCondition(QueryHelper.eq(VitamFieldsHelper.tenant(), HeaderIdHelper.getTenantId()));
+            }
+            if (vitamCollection.getEsClient() != null) {
+                return selectElasticsearchExecute(parser);
             } else {
                 return selectMongoDbExecute(parser);
             }
@@ -239,77 +313,101 @@ public class DbRequestSingle {
     }
 
     /**
+     * Private method for select using Elasticsearch
+     *
      * @param parser
-     * @return
+     * @return MongoCursor<VitamDocument<?>>
      * @throws InvalidParseOperationException
      * @throws DatabaseException
      * @throws InvalidCreateOperationException
      * @throws DatabaseException
      */
-    private MongoCursor<VitamDocument<?>> findDocumentsElasticsearch(SelectParserSingle parser)
+    private MongoCursor<VitamDocument<?>> selectElasticsearchExecute(SelectParserSingle parser)
         throws InvalidParseOperationException, InvalidCreateOperationException, DatabaseException {
-        final SelectToMongodb requestToMongodb = new SelectToMongodb(parser);
-        QueryBuilder query = QueryToElasticsearch.getCommand(requestToMongodb.getNthQuery(0));
-        List<SortBuilder> sorts = QueryToElasticsearch.getSorts(requestToMongodb.getFinalOrderBy());
+        SelectToElasticsearch requestToEs = new SelectToElasticsearch(parser);
+        QueryBuilder query = QueryToElasticsearch.getCommand(requestToEs.getNthQuery(0));
+        List<SortBuilder> sorts = requestToEs.getFinalOrderBy(vitamCollection.isUseScore());
+        offset = requestToEs.getFinalOffset();
+        limit = requestToEs.getFinalLimit();
         SearchResponse elasticSearchResponse =
-            search(query, null, sorts, requestToMongodb.getFinalOffset(), requestToMongodb.getFinalLimit());
+            search(query, null, sorts, requestToEs.getFinalOffset(), requestToEs.getFinalLimit());
         if (elasticSearchResponse.status() != RestStatus.OK) {
-            return new EmptyMongoCursor<VitamDocument<?>>();
+            return new EmptyMongoCursor<>();
         }
         final SearchHits hits = elasticSearchResponse.getHits();
         if (hits.getTotalHits() == 0) {
-            return new EmptyMongoCursor<VitamDocument<?>>();
+            return new EmptyMongoCursor<>();
         }
-        PathQuery newQuery = null;
+        total = hits.getTotalHits();
         final Iterator<SearchHit> iterator = hits.iterator();
+        count = hits.getHits().length;
+        final List<String> list = new ArrayList<>((int) count);
+        final List<Float> listFloat = new ArrayList<>((int) count);
         while (iterator.hasNext()) {
             final SearchHit hit = iterator.next();
-            if (newQuery == null) {
-                newQuery = QueryHelper.path(hit.getId());
-            } else {
-                newQuery.add(hit.getId());
-            }
+            list.add(hit.getId());
+            listFloat.add(hit.getScore());
         }
-        
-        parser.getRequest().setQuery(newQuery);
-        return selectMongoDbExecute(parser);
+        parser.getRequest().setQuery(new NopQuery());
+        return selectMongoDbExecute(parser, list, listFloat);
     }
 
     /**
+     * Private method for select using MongoDb from Elasticsearch result
+     *
      * @param parser
-     * @return the Closeable MongoCursor on the find request based on the given collection
+     * @param list list of Ids
+     * @param list list of scores for each Ids
+     * @return MongoCursor<VitamDocument<?>>
      * @throws InvalidParseOperationException when query is not correct
+     * @throws InvalidCreateOperationException
+     */
+    private MongoCursor<VitamDocument<?>> selectMongoDbExecute(SelectParserSingle parser, List<String> list,
+        List<Float> score)
+        throws InvalidParseOperationException, InvalidCreateOperationException {
+        return DbRequestHelper.selectMongoDbExecuteThroughFakeMongoCursor(vitamCollection, parser,
+            list, score);
+    }
+
+    /**
+     * Private method for select using MongoDb
+     *
+     * @param parser
+     * @return MongoCursor<VitamDocument<?>>
+     * @throws InvalidParseOperationException when query is not correctBson
      */
     @SuppressWarnings("unchecked")
     private MongoCursor<VitamDocument<?>> selectMongoDbExecute(SelectParserSingle parser)
         throws InvalidParseOperationException {
-        final SelectToMongoDb selectToMongoDb = new SelectToMongoDb(parser);
-        int tenantId = ParameterHelper.getTenantParameter();
-        Bson initialCondition = QueryToMongodb.getCommand(selectToMongoDb.getSelect().getQuery());
+        final SelectToMongodb selectToMongoDb = new SelectToMongodb(parser);
+        Bson initialCondition = QueryToMongodb.getCommand(selectToMongoDb.getSingleSelect().getQuery());
         Bson condition = initialCondition;
-        if (vitamCollection.isMultiTenant()) {
-            condition = and(initialCondition, eq(VitamDocument.TENANT_ID, tenantId));
-        }
         final Bson projection = selectToMongoDb.getFinalProjection();
         final Bson orderBy = selectToMongoDb.getFinalOrderBy();
-        final int offset = selectToMongoDb.getFinalOffset();
-        final int limit = selectToMongoDb.getFinalLimit();
+        final int offset2 = selectToMongoDb.getFinalOffset();
+        final int limit2 = selectToMongoDb.getFinalLimit();
         FindIterable<VitamDocument<?>> find =
-            (FindIterable<VitamDocument<?>>) vitamCollection.getCollection().find(condition).skip(offset);
+            (FindIterable<VitamDocument<?>>) vitamCollection.getCollection().find(condition).skip(offset2);
         if (projection != null) {
             find = find.projection(projection);
         }
         if (orderBy != null) {
             find = find.sort(orderBy);
         }
-        if (limit > 0) {
-            find = find.limit(limit);
+        if (limit2 > 0) {
+            find = find.limit(limit2);
+        }
+        if (offset == 0) {
+            offset = offset2;
+        }
+        if (limit == 0) {
+            limit = limit2;
         }
         return find.iterator();
     }
 
-
     /**
+     * Private sub method for Elasticsearch search
      *
      * @param query as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }" "{ "ids" : { "
      *        values" : [list of id] } }"
@@ -325,19 +423,19 @@ public class DbRequestSingle {
         throws DatabaseException {
         final SearchRequestBuilder request =
             vitamCollection.getEsClient().getClient()
-                .prepareSearch(vitamCollection.getName().toLowerCase()).setSearchType(SearchType.DEFAULT)
+                .prepareSearch(vitamCollection.getName().toLowerCase()).setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
                 .setTypes(vitamCollection.getTypeunique()).setExplain(false).setFrom(offset)
-                .setSize(GlobalDatas.LIMIT_LOAD < limit ? GlobalDatas.LIMIT_LOAD : limit);
+                .setSize(GlobalDatas.LIMIT_LOAD < limit ? GlobalDatas.LIMIT_LOAD : limit)
+                .addFields(VitamDocument.ID, VitamDocument.TENANT_ID);
         if (sorts != null) {
             sorts.stream().forEach(sort -> request.addSort(sort));
         }
         if (filter != null) {
-            request.setQuery(query).setPostFilter(filter);
+            request.setQuery(QueryBuilders.boolQuery().must(query).must(filter));
         } else {
             request.setQuery(query);
         }
         try {
-            
             return request.get();
         } catch (final Exception e) {
             LOGGER.debug(e.getMessage(), e);
@@ -346,31 +444,22 @@ public class DbRequestSingle {
     }
 
     /**
-     * @param condition where condition
-     * @param actions update
-     * @param isMultiple nb of item to update
-     * @return the UpdateResult on the update request based on the given collection
+     * Main Update method
+     *
+     * @param request
+     * @return DbRequestResult
+     * @throws InvalidParseOperationException
      * @throws DatabaseException
+     * @throws InvalidCreateOperationException
      */
-    private final UpdateResult updateMongoDb(final Bson condition, final Bson actions, final boolean isMultiple)
-        throws DatabaseException {
-        try {
-            if (isMultiple) {
-                return vitamCollection.getCollection().updateMany(condition, actions);
-            } else {
-                return vitamCollection.getCollection().updateOne(condition, actions);
-            }
-        } catch (final MongoException e) {
-            throw new DatabaseException(e);
-        }
-    }
-
     private DbRequestResult updateDocuments(JsonNode request)
         throws InvalidParseOperationException, DatabaseException, InvalidCreateOperationException {
-        final UpdateParserSingle parser = new UpdateParserSingle(new VarNameAdapter());
+        final UpdateParserSingle parser = new UpdateParserSingle(vaNameAdapter);
         parser.parse(request);
-        
-        Select selectQuery = new Select();
+        if (vitamCollection.isMultiTenant()) {
+            parser.addCondition(QueryHelper.eq(VitamFieldsHelper.tenant(), HeaderIdHelper.getTenantId()));
+        }
+        final Select selectQuery = new Select();
         selectQuery.setQuery(parser.getRequest().getQuery());
         MongoCursor<VitamDocument<?>> searchResult = search(selectQuery.getFinalSelect());
 
@@ -378,122 +467,148 @@ public class DbRequestSingle {
             throw new DatabaseException("Document not found");
         }
 
-        List<VitamDocument<?>> listDocuments = new ArrayList<VitamDocument<?>>();
+        List<VitamDocument<?>> listDocuments = new ArrayList<>();
 
         while (searchResult.hasNext()) {
             listDocuments.add(searchResult.next());
         }
         searchResult.close();
         final Map<String, List<String>> diffs = new HashMap<>();
-        List<VitamDocument<?>> listUpdatedDocuments = new ArrayList<VitamDocument<?>>();
+        List<VitamDocument<?>> listUpdatedDocuments = new ArrayList<>();
         for (VitamDocument<?> document : listDocuments) {
+            document.remove(VitamDocument.SCORE);
             final String documentId = document.getId();
             final Integer documentVersion = document.getVersion();
             final String documentBeforeUpdate = JsonHandler.prettyPrint(document);
 
             VitamDocument<?> updatedDocument = null;
             int nbTry = 0;
-
-            while(updatedDocument == null && nbTry < 3) {
+            boolean modified = false;
+            while (updatedDocument == null && nbTry < 3) {
                 nbTry++;
                 JsonNode jsonDocument = JsonHandler.toJsonNode(document);
                 MongoDbInMemory mongoInMemory = new MongoDbInMemory(jsonDocument);
-                ObjectNode updatedJsonDocument = (ObjectNode)mongoInMemory.getUpdateJson(request, false, new VarNameAdapter());
-
-                updatedJsonDocument.set(VitamDocument.VERSION, new IntNode(documentVersion+1));
-
-                MongoCollection collection = vitamCollection.getCollection();
-                Bson condition = and(eq(VitamDocument.ID, documentId), eq(VitamDocument.VERSION, documentVersion));
-
-                FindOneAndReplaceOptions options = new FindOneAndReplaceOptions();
-                options.returnDocument(ReturnDocument.AFTER);
-
-                updatedDocument = (VitamDocument)collection.findOneAndReplace(condition,
-                    document.newInstance(updatedJsonDocument), options);
+                ObjectNode updatedJsonDocument = (ObjectNode)mongoInMemory.getUpdateJson(request, false, vaNameAdapter);
+                final String documentAfterUpdate = JsonHandler.prettyPrint(updatedDocument);
+                if (! documentAfterUpdate.equals(documentBeforeUpdate)) {
+                    modified = true;
+                    updatedJsonDocument.set(VitamDocument.VERSION, new IntNode(documentVersion + 1));
+    
+                    MongoCollection collection = vitamCollection.getCollection();
+                    Bson condition = and(eq(VitamDocument.ID, documentId), eq(VitamDocument.VERSION, documentVersion));
+    
+                    FindOneAndReplaceOptions options = new FindOneAndReplaceOptions();
+                    options.returnDocument(ReturnDocument.AFTER);
+                    try {
+                        updatedDocument = (VitamDocument<?>) collection.findOneAndReplace(condition,
+                            document.newInstance(updatedJsonDocument), options);
+                    } catch (final MongoException e) {
+                        updatedDocument = null;
+                    }
+                } else {
+                    break;
+                }
             }
 
-            if (updatedDocument == null) {
+            if (modified && updatedDocument == null) {
                 // Throw Error after 3 try
                 throw new DatabaseException("Can not modify Document");
             }
-            listUpdatedDocuments.add(updatedDocument);
-            final String documentAfterUpdate = JsonHandler.prettyPrint(updatedDocument);
-            diffs.put(documentId,
-                getConcernedDiffLines(getUnifiedDiff(documentBeforeUpdate, documentAfterUpdate)));
+            if (modified) {
+                listUpdatedDocuments.add(updatedDocument);
+                final String documentAfterUpdate = JsonHandler.prettyPrint(updatedDocument);
+                diffs.put(documentId,
+                    getConcernedDiffLines(getUnifiedDiff(documentBeforeUpdate, documentAfterUpdate)));
+            }
         }
-        insertToElasticsearch(listUpdatedDocuments);
+        if (! listUpdatedDocuments.isEmpty()) {
+            insertToElasticsearch(listUpdatedDocuments);
+        }
         return new DbRequestResult()
-            .setCount(listDocuments.size())
+            .setCount(listUpdatedDocuments.size()).setTotal(listUpdatedDocuments.size())
             .setDiffs(diffs);
     }
 
+    /**
+     * Main Delete method
+     *
+     * @param request
+     * @return DbRequestResult
+     * @throws DatabaseException
+     * @throws InvalidCreateOperationException
+     * @throws InvalidParseOperationException
+     */
     private DbRequestResult deleteDocuments(JsonNode request)
         throws DatabaseException, InvalidCreateOperationException, InvalidParseOperationException {
-        MongoCursor<VitamDocument<?>> searchResult = search(request);
+        final SelectParserSingle parser = new SelectParserSingle(vaNameAdapter);
+        parser.parse(request);
+        parser.addProjection(JsonHandler.createObjectNode(), JsonHandler.createObjectNode().put(VitamDocument.ID, 1));
+        final MongoCursor<VitamDocument<?>> searchResult = search(parser.getRequest().getFinalSelect());
         if (searchResult == null || !searchResult.hasNext()) {
             throw new DatabaseException("Document not found");
         }
 
         PathQuery newQuery = null;
+        final List<String> ids = new ArrayList<>();
         while (searchResult.hasNext()) {
             final String documentId = searchResult.next().getId();
-            if (newQuery == null) {
-                newQuery = QueryHelper.path(documentId);
-            } else {
-                newQuery.add(documentId);
-            }
-            if (vitamCollection.getEsClient() != null) {
-                deleteEntry(documentId);
-            }
+            ids.add(documentId);
         }
+        newQuery = QueryHelper.path(ids.toArray(new String[0]));
         searchResult.close();
-        Bson filter = QueryToMongodb.getCommand(newQuery);
-        DeleteResult result = vitamCollection.getCollection().deleteMany(filter);
-        return new DbRequestResult().setCount(result.getDeletedCount());
+        final Bson filter = QueryToMongodb.getCommand(newQuery);
+        DeleteResult result = null;
+        try {
+            result = vitamCollection.getCollection().deleteMany(filter);
+        } catch (final MongoException e) {
+            throw new DatabaseException(e);
+        }
+        deleteToElasticsearch(ids);
+        return new DbRequestResult().setCount(result.getDeletedCount()).setTotal(result.getDeletedCount());
     }
 
 
     /**
-     * Delete one index
+     * Private method for delete in Elasticsearch
      *
-     * @throws DatabaseException
+     * @param list list of Ids to delete
+     * @return the number of deleted items
+     * @throws DatabaseException if error occurs
      */
-    private final void deleteIndex() throws DatabaseException {
-        final Client client = vitamCollection.getEsClient().getClient();
-        try {
-            if (client.admin().indices().prepareExists(vitamCollection.getName().toLowerCase()).get().isExists()) {
-                if (!client.admin().indices().prepareDelete(vitamCollection.getName().toLowerCase()).get()
-                    .isAcknowledged()) {
-                    LOGGER.error("Error on index delete");
-                }
-            }
-        } catch (final Exception e) {
-            LOGGER.error("Error while deleting index", e);
-            throw new DatabaseException(e);
+    private int deleteToElasticsearch(List<String> list) throws DatabaseException {
+        if (vitamCollection.getEsClient() == null || list.isEmpty()) {
+            return 0;
         }
-    }
-
-    /**
-     * Delete one index
-     *
-     * @param id
-     * @throws DatabaseException
-     */
-    private final void deleteEntry(String id) throws DatabaseException {
         final Client client = vitamCollection.getEsClient().getClient();
-        final DeleteResponse response;
-        try {
-            if (client.admin().indices().prepareExists(vitamCollection.getName().toLowerCase()).get().isExists()) {
-                final DeleteRequestBuilder builder =
-                    client.prepareDelete(vitamCollection.getName().toLowerCase(), vitamCollection.getTypeunique(), id);
-                response = builder.setRefresh(true).get();
-                if (!response.isFound()) {
-                    throw new DatabaseException("Item not found when trying to delete");
+        BulkRequestBuilder bulkRequest = client.prepareBulk();
+        int max = VitamConfiguration.MAX_ELASTICSEARCH_BULK;
+        int count = 0;
+        for (final String id : list) {
+            max--;
+            bulkRequest
+                .add(
+                    client.prepareDelete(vitamCollection.getName().toLowerCase(), vitamCollection.getTypeunique(), id));
+            if (max == 0) {
+                max = VitamConfiguration.MAX_ELASTICSEARCH_BULK;
+                final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
+                // thread
+                if (bulkResponse.hasFailures()) {
+                    LOGGER.error("ES delete in error: " + bulkResponse.buildFailureMessage());
+                    throw new DatabaseException(bulkResponse.buildFailureMessage());
                 }
+                count += bulkResponse.getItems().length;
+                bulkRequest = client.prepareBulk();
             }
-        } catch (final Exception e) {
-            LOGGER.error("Error while deleting index", e);
-            throw new DatabaseException(e);
         }
+        if (bulkRequest.numberOfActions() > 0) {
+            final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
+            // thread
+            if (bulkResponse.hasFailures()) {
+                LOGGER.error("ES delete in error: " + bulkResponse.buildFailureMessage());
+                throw new DatabaseException(bulkResponse.buildFailureMessage());
+            }
+            return count + bulkResponse.getItems().length;
+        }
+        return count;
     }
 }

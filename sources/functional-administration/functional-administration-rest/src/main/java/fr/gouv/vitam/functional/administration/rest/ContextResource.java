@@ -45,6 +45,7 @@ import javax.ws.rs.core.UriInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -52,6 +53,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.functional.administration.client.model.ContextModel;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
@@ -147,15 +149,13 @@ public class ContextResource {
 
         try(ContextService contextService = new ContextServiceImpl(mongoAccess,
             vitamCounterService)){
-
-            final List<ContextModel> contextModelList = contextService.findContexts(queryDsl);
-
-            return Response
-                .status(Status.OK)
-                .entity(
-                    new RequestResponseOK(queryDsl).addAllResults(contextModelList))
-                .build();
-
+            SanityChecker.checkJsonAll(queryDsl); 
+            try (DbRequestResult result = contextService.findContexts(queryDsl)) {
+                RequestResponseOK<ContextModel> response = 
+                    result.getRequestResponseOK(fr.gouv.vitam.functional.administration.common.Context.class, ContextModel.class)
+                    .setQuery(queryDsl);
+                return Response.status(Status.OK).entity(response).build();
+            }
         } catch (ReferentialException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST)

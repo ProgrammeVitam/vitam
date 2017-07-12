@@ -298,7 +298,7 @@ public class InsertParserMultipleTest {
         request.parse(exampleMd.deepCopy());
         assertNotNull(request);
 
-        final InsertParserMultiple request2 = new InsertParserMultiple(new VarNameAdapter());
+        final InsertParserMultiple request2 = new InsertParserMultiple();
         assertNotNull(request2);
     }
 

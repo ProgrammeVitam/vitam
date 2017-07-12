@@ -189,7 +189,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
                     MediaType.APPLICATION_JSON_TYPE);
 
             RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
-            if (!requestResponse.isOk()) {
+            if (requestResponse.isOk()) {
                 return requestResponse;
             } else {
                 final VitamError vitamError =
@@ -417,7 +417,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
                 performRequest(HttpMethod.DELETE, OPERATION_URI + "/" + id, headers, MediaType.APPLICATION_JSON_TYPE);
 
             RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
-            if (!requestResponse.isOk()) {
+            if (requestResponse.isOk()) {
                 return requestResponse;
             } else {
                 final VitamError vitamError =

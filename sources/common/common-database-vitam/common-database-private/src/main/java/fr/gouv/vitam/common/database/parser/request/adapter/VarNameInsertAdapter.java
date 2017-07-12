@@ -59,6 +59,13 @@ public class VarNameInsertAdapter extends VarNameAdapter {
         return adapter.metadataAdapter();
     }
     
+    public String getVariableName(String name) throws InvalidParseOperationException {
+        if (! adapter.metadataAdapter() && PROJECTIONARGS.notAllowedOnSet(name)) {
+            throw new InvalidParseOperationException("Name not allowed in Insert: " + name);
+        }
+        return adapter.getVariableName(name);
+    }
+
     /**
      * Check for Insert from Builder
      *
@@ -82,14 +89,9 @@ public class VarNameInsertAdapter extends VarNameAdapter {
         while (fieldIterator.hasNext()) {
             final Entry<String, JsonNode> entry = fieldIterator.next();
             String name = entry.getKey();
-            final String newname = adapter.getVariableName(name);
+            final String newname = getVariableName(name);
             if (newname != null) {
                 name = newname;
-            }
-            if (PROJECTIONARGS.notAllowedOnSet(name)) {
-                throw new InvalidParseOperationException(
-    
-                    "Parse in error for Insert as Variable not allowed(" + name + "): " + rootNode);
             }
             object.set(name, entry.getValue());
         }

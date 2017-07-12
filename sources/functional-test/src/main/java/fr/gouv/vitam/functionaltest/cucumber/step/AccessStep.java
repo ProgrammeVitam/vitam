@@ -269,7 +269,6 @@ public class AccessStep {
     @Then("^le statut de select résultat est (.*)$")
     public void the_status_of_the_select_result(String status) throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(query);
-
         RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnits(queryJSON,
             world.getTenantId(), world.getContractId());
 
@@ -277,7 +276,6 @@ public class AccessStep {
 
         assertThat(expectedStatus).as("Invalid status %d", requestResponse.getHttpCode()).isNotNull();
         assertThat(expectedStatus.getReasonPhrase()).isEqualTo(status);
-
     }
 
     /**
@@ -568,7 +566,7 @@ public class AccessStep {
     public void the_LFC_status_are(List<String> eventNames, String eventStatus)
         throws Throwable {
         ArrayNode actual = (ArrayNode) results.get(0).get("events");
-        List<JsonNode> list = JsonHandler.toArrayList(actual);
+        List<JsonNode> list = (List<JsonNode>) JsonHandler.toArrayList(actual);
         try (AutoCloseableSoftAssertions softly = new AutoCloseableSoftAssertions()) {
             for (String eventName : eventNames) {
                 List<JsonNode> events =
@@ -588,7 +586,8 @@ public class AccessStep {
 
 
     @When("^je télécharge le fichier binaire de l'unité archivistique nommé \"([^\"]*)\" à l'usage \"([^\"]*)\" version (\\d+)$")
-    public void je_télécharge_le_fichier_binaire_à_l_usage_version(String title, String usage, int version) throws Throwable {
+    public void je_télécharge_le_fichier_binaire_à_l_usage_version(String title, String usage, int version)
+        throws Throwable {
         final fr.gouv.vitam.common.database.builder.request.single.Select select =
             new fr.gouv.vitam.common.database.builder.request.single.Select();
         JsonNode queryDsl = select.getFinalSelect();
@@ -606,7 +605,8 @@ public class AccessStep {
     @Then("^le status de la réponse est (.*)$")
     public void checkStatut(String status) throws Throwable {
         if (status.equals("UNAUTHORIZED")) {
-            assertThat(Response.Status.UNAUTHORIZED.getStatusCode() == statusCode.getEquivalentHttpStatus().getStatusCode());
+            assertThat(
+                Response.Status.UNAUTHORIZED.getStatusCode() == statusCode.getEquivalentHttpStatus().getStatusCode());
         } else if (status.equals("OK")) {
             assertThat(Response.Status.OK.getStatusCode() == statusCode.getEquivalentHttpStatus().getStatusCode());
         }
@@ -614,7 +614,7 @@ public class AccessStep {
     }
 
     @When("^je modifie le contrat d'accès (.*) avec le fichier de requête suivant (.*)$")
-    public void je_modifie_le_contrat_d_accès(String name ,String queryFilename) throws Throwable {
+    public void je_modifie_le_contrat_d_accès(String name, String queryFilename) throws Throwable {
         Path queryFile = Paths.get(world.getBaseDirectory(), queryFilename);
         this.query = FileUtil.readFile(queryFile.toFile());
         if (world.getOperationId() != null) {

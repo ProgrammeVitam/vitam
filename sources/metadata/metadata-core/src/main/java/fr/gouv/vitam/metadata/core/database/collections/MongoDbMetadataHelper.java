@@ -32,8 +32,8 @@ package fr.gouv.vitam.metadata.core.database.collections;
 import static com.mongodb.client.model.Filters.eq;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -69,7 +69,7 @@ public class MongoDbMetadataHelper {
      * Does not call getAfterLoad
      *
      * @param metadataCollections (not results except if already hashed)
-     * @param ref the reference of MetadataDocument object 
+     * @param ref the reference of MetadataDocument object
      * @return a MetadataDocument generic object from ID = ref value
      */
     @SuppressWarnings("rawtypes")
@@ -82,9 +82,9 @@ public class MongoDbMetadataHelper {
      * Load a Document into MetadataDocument<?>. Calls getAfterLoad
      *
      * @param coll the working collection
-     * @param obj the document 
+     * @param obj the document
      * @return the MetadataDocument<?> casted object
-     * @throws InstantiationException when collection class instantiation exception occurred 
+     * @throws InstantiationException when collection class instantiation exception occurred
      * @throws IllegalAccessException when illegal access exception occurred
      */
     @SuppressWarnings("rawtypes")
@@ -101,7 +101,7 @@ public class MongoDbMetadataHelper {
      *
      * @param col metadata collection (not Results except if already hashed)
      * @param field of collection
-     * @param ref reference of collection field 
+     * @param ref reference of collection field
      * @return the MetadataDocument casted object using field = ref
      */
     @SuppressWarnings("rawtypes")
@@ -120,7 +120,7 @@ public class MongoDbMetadataHelper {
      * Find the corresponding id in col collection if it exists. Calls getAfterLoad
      *
      * @param col (not results except if already hashed) the working collection
-     * @param id the id value for searching in collection field 
+     * @param id the id value for searching in collection field
      * @return the MetadataDocument casted object using ID = id
      */
     @SuppressWarnings("rawtypes")
@@ -135,7 +135,7 @@ public class MongoDbMetadataHelper {
      * OK with native id for Results
      *
      * @param col the working collection
-     * @param id the id value for searching in collection field 
+     * @param id the id value for searching in collection field
      * @return True if one MetadataDocument object exists with this id
      */
     public static final boolean exists(final MetadataCollections col, final String id) {
@@ -178,15 +178,32 @@ public class MongoDbMetadataHelper {
     public static final FindIterable<?> select(final MetadataCollections collection,
         final Bson condition, final Bson projection, final Bson orderBy,
         final int offset, final int limit) {
-        FindIterable<?> find = collection.getCollection().find(condition).skip(offset);
+        FindIterable<?> find = collection.getCollection().find(condition);
         if (projection != null) {
             find = find.projection(projection);
         }
+        return selectFiltered(find, orderBy, offset, limit);
+    }
+
+    /**
+     * Aff orderBy and offset and limit if not null or not -1
+     * 
+     * @param find
+     * @param orderBy
+     * @param offset
+     * @param limit
+     * @return the modified FindIterable
+     */
+    public static final FindIterable<?> selectFiltered(FindIterable<?> find, final Bson orderBy,
+        final int offset, final int limit) {
+        if (offset != -1) {
+            find.skip(offset);
+        }
         if (orderBy != null) {
-            find = find.sort(orderBy);
+            find.sort(orderBy);
         }
         if (limit > 0) {
-            find = find.limit(limit);
+            find.limit(limit);
         }
         return find;
     }
@@ -194,7 +211,7 @@ public class MongoDbMetadataHelper {
     /**
      * @param collection domain of request
      * @param condition where condition
-     * @param data the update data 
+     * @param data the update data
      * @param nb number of item to update
      * @return the UpdateResult on the update request based on the given collection
      * @throws MetaDataExecutionException if a mongo operation exception occurred
@@ -235,30 +252,37 @@ public class MongoDbMetadataHelper {
     }
 
     /**
+     * Used to filter Units according to some OG and some Units ancestors
+     *
      * @param targetIds set of target ids
-     * @param ancestorIds set of ancestor ids 
+     * @param ancestorIds set of ancestor ids
      * @return the Filter condition to find if ancestorIds are ancestors of ObjectGroup targetIds
      */
-    public static final Bson queryObjectGroupForAncestors(Set<String> targetIds, Set<String> ancestorIds) {
+    public static final Bson queryObjectGroupForAncestors(Collection<String> targetIds,
+        Collection<String> ancestorIds) {
         return Filters.and(Filters.in(MetadataDocument.OG, targetIds),
-            Filters.or(Filters.in(MetadataDocument.UP, ancestorIds), Filters.in(MetadataDocument.ID, ancestorIds)));
+            Filters.or(Filters.in(Unit.UNITUPS, ancestorIds), Filters.in(MetadataDocument.ID, ancestorIds)));
     }
 
     /**
+     * Used to filter Units/OG according to immediate Unit ancestors
+     *
      * @param targetIds set of target id
      * @param ancestorIds set of ancestor id
      * @return the Filter condition to find if ancestorIds are ancestors of targetIds
      */
-    public static final Bson queryForAncestors(Set<String> targetIds, Set<String> ancestorIds) {
+    public static final Bson queryForImmediateAncestors(Collection<String> targetIds, Collection<String> ancestorIds) {
         return Filters.and(Filters.in(MetadataDocument.ID, targetIds), Filters.in(MetadataDocument.UP, ancestorIds));
     }
 
     /**
+     * Used to filter Units/OG according to some Units ancestors
+     *
      * @param targetIds set of target ids
-     * @param ancestorIds set of ancestor ids 
+     * @param ancestorIds set of ancestor ids
      * @return the Filter condition to find if ancestorIds are ancestors of targetIds or equals to targetIds
      */
-    public static final Bson queryForAncestorsOrSame(Set<String> targetIds, Set<String> ancestorIds) {
+    public static final Bson queryForAncestorsOrSame(Collection<String> targetIds, Collection<String> ancestorIds) {
         ancestorIds.addAll(targetIds);
         // TODO P1 understand why it add empty string
         ancestorIds.remove("");
@@ -266,7 +290,8 @@ public class MongoDbMetadataHelper {
         if (size > 0) {
             return Filters.or(
                 Filters.and(Filters.in(MetadataDocument.ID, targetIds), Filters.in(MetadataDocument.ID, ancestorIds)),
-                Filters.and(Filters.in(MetadataDocument.ID, targetIds), Filters.in(MetadataDocument.UP, ancestorIds)));
+                Filters.and(Filters.in(MetadataDocument.ID, targetIds), Filters.in(MetadataDocument.UP, ancestorIds)),
+                Filters.and(Filters.in(MetadataDocument.ID, targetIds), Filters.in(Unit.UNITUPS, ancestorIds)));
         }
         return new BasicDBObject();
     }
@@ -445,7 +470,7 @@ public class MongoDbMetadataHelper {
      * @param set of collection for creating Result
      * @return a new Result
      */
-    public static Result createOneResult(FILTERARGS type, Set<String> set) {
+    public static Result createOneResult(FILTERARGS type, Collection<String> set) {
         return new ResultDefault(type, set);
     }
 

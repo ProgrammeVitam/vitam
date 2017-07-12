@@ -32,9 +32,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
-
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -62,7 +59,7 @@ import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
-import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
+import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.error.VitamError;
@@ -78,7 +75,9 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
+import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
 
 
 public class AccessContractImplTest {
@@ -86,10 +85,11 @@ public class AccessContractImplTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
-            VitamThreadPoolExecutor.getDefaultExecutor());
+        VitamThreadPoolExecutor.getDefaultExecutor());
 
     private static final Integer TENANT_ID = 1;
     private static MongoDbAccessAdminImpl dbImpl;
+    private static final SingleVarNameAdapter DEFAULT_VARNAME_ADAPTER = new SingleVarNameAdapter();
 
     static JunitHelper junitHelper;
     static final String COLLECTION_NAME = "AccessContract";
@@ -110,9 +110,9 @@ public class AccessContractImplTest {
         junitHelper = JunitHelper.getInstance();
         mongoPort = junitHelper.findAvailablePort();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
-                .version(Version.Main.PRODUCTION)
-                .net(new Net(mongoPort, Network.localhostIsIPv6()))
-                .build());
+            .version(Version.Main.PRODUCTION)
+            .net(new Net(mongoPort, Network.localhostIsIPv6()))
+            .build());
         mongod = mongodExecutable.start();
         client = new MongoClient(new ServerAddress(DATABASE_HOST, mongoPort));
 
@@ -120,14 +120,14 @@ public class AccessContractImplTest {
         nodes.add(new MongoDbNode(DATABASE_HOST, mongoPort));
 
         dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
-        List tenants = new ArrayList<>();
+        final List tenants = new ArrayList<>();
         tenants.add(new Integer(TENANT_ID));
         vitamCounterService = new VitamCounterService(dbImpl, tenants);
 
 
         accessContractService =
-                new AccessContractImpl(MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)),
-                        vitamCounterService);
+            new AccessContractImpl(MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)),
+                vitamCounterService);
 
     }
 
@@ -151,14 +151,13 @@ public class AccessContractImplTest {
     @RunWithCustomExecutor
     public void givenAccessContractsTestWellFormedContractThenImportSuccessfully() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
-        List<AccessContractModel> accessContractModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {
-                });
-        RequestResponse response = accessContractService.createContracts(accessContractModelList);
+        final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
+        final List<AccessContractModel> accessContractModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {});
+        final RequestResponse response = accessContractService.createContracts(accessContractModelList);
 
         assertThat(response.isOk());
-        RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
+        final RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
         assertThat(responseCast.getResults().get(0).getIdentifier()).contains("AC-000");
         assertThat(responseCast.getResults().get(1).getIdentifier()).contains("AC-000");
@@ -168,11 +167,10 @@ public class AccessContractImplTest {
     @RunWithCustomExecutor
     public void givenAccessContractsTestMissingNameReturnBadRequest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        File fileContracts = PropertiesUtils.getResourceFile("contracts_access_missingName.json");
-        List<AccessContractModel> accessContractModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {
-                });
-        RequestResponse response = accessContractService.createContracts(accessContractModelList);
+        final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_missingName.json");
+        final List<AccessContractModel> accessContractModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {});
+        final RequestResponse response = accessContractService.createContracts(accessContractModelList);
 
         assertThat(!response.isOk());
 
@@ -182,11 +180,10 @@ public class AccessContractImplTest {
     @RunWithCustomExecutor
     public void givenAccessContractsTestMissingOriginatingAgenciesReturnBadRequest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        File fileContracts = PropertiesUtils.getResourceFile("contracts_access_missingOriginatingAgencies.json");
-        List<AccessContractModel> accessContractModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {
-                });
-        RequestResponse response = accessContractService.createContracts(accessContractModelList);
+        final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_missingOriginatingAgencies.json");
+        final List<AccessContractModel> accessContractModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {});
+        final RequestResponse response = accessContractService.createContracts(accessContractModelList);
 
         assertThat(!response.isOk());
 
@@ -196,11 +193,10 @@ public class AccessContractImplTest {
     @RunWithCustomExecutor
     public void givenAccessContractsTestDuplicateNames() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        File fileContracts = PropertiesUtils.getResourceFile("contracts_access_duplicate.json");
-        List<AccessContractModel> accessContractModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {
-                });
-        RequestResponse response = accessContractService.createContracts(accessContractModelList);
+        final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_duplicate.json");
+        final List<AccessContractModel> accessContractModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {});
+        final RequestResponse response = accessContractService.createContracts(accessContractModelList);
 
         assertThat(!response.isOk());
     }
@@ -209,14 +205,13 @@ public class AccessContractImplTest {
     @RunWithCustomExecutor
     public void givenAccessContractsTestNotAllowedNotNullIdInCreation() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
+        final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
 
-        List<AccessContractModel> accessContractModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {
-                });
+        final List<AccessContractModel> accessContractModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {});
         RequestResponse response = accessContractService.createContracts(accessContractModelList);
 
-        RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
+        final RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
 
         // Try to recreate the same contract but with id
@@ -230,21 +225,19 @@ public class AccessContractImplTest {
     @RunWithCustomExecutor
     public void givenAccessContractsTestAlreadyExistsContract() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
+        final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
 
         List<AccessContractModel> accessContractModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {
-                });
+            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {});
         RequestResponse response = accessContractService.createContracts(accessContractModelList);
 
-        RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
+        final RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
 
 
         // unset ids
         accessContractModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {
-                });
+            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {});
         response = accessContractService.createContracts(accessContractModelList);
 
         assertThat(!response.isOk());
@@ -257,18 +250,19 @@ public class AccessContractImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         // find accessContract with the fake id should return Status.OK
 
-        final SelectParserSingle parser = new SelectParserSingle(new VarNameAdapter());
-        Select select = new Select();
+        final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
+        final Select select = new Select();
         parser.parse(select.getFinalSelect());
         parser.addCondition(QueryHelper.eq("#id", "fakeid"));
-        JsonNode queryDsl = parser.getRequest().getFinalSelect();
+        final JsonNode queryDsl = parser.getRequest().getFinalSelect();
         /*
          * String q = "{ \"$query\" : [ { \"$eq\" : { \"_id\" : \"fake_id\" } } ] }"; JsonNode queryDsl =
          * JsonHandler.getFromString(q);
          */
-        List<AccessContractModel> accessContractModelList = accessContractService.findContracts(queryDsl);
+        final RequestResponseOK<AccessContractModel> accessContractModelList =
+            accessContractService.findContracts(queryDsl);
 
-        assertThat(accessContractModelList).isEmpty();
+        assertThat(accessContractModelList.getResults()).isEmpty();
     }
 
     @Test
@@ -279,49 +273,49 @@ public class AccessContractImplTest {
         final String inactiveStatus = "INACTIVE";
         final String activeStatus = "ACTIVE";
         // Create document
-        File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
+        final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
 
-        List<AccessContractModel> accessContractModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {
-                });
-        RequestResponse response = accessContractService.createContracts(accessContractModelList);
+        final List<AccessContractModel> accessContractModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {});
+        final RequestResponse response = accessContractService.createContracts(accessContractModelList);
 
-        RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
+        final RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
 
 
-        final SelectParserSingle parser = new SelectParserSingle(new VarNameAdapter());
-        Select select = new Select();
+        final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
+        final Select select = new Select();
         parser.parse(select.getFinalSelect());
         parser.addCondition(QueryHelper.eq("Name", documentName));
-        JsonNode queryDsl = parser.getRequest().getFinalSelect();
-        accessContractModelList = accessContractService.findContracts(queryDsl);
-        assertThat(accessContractModelList).isNotEmpty();
-        for (AccessContractModel accessContractModel : accessContractModelList) {
+        final JsonNode queryDsl = parser.getRequest().getFinalSelect();
+        final RequestResponseOK<AccessContractModel> accessContractModelList2 =
+            accessContractService.findContracts(queryDsl);
+        assertThat(accessContractModelList2.getResults()).isNotEmpty();
+        for (final AccessContractModel accessContractModel : accessContractModelList2.getResults()) {
             assertThat(activeStatus.equals(accessContractModel.getStatus()));
         }
 
         // Test update for access contract Status => inactive
-        String now = LocalDateUtil.now().toString();
-        final UpdateParserSingle updateParser = new UpdateParserSingle(new VarNameAdapter());
-        SetAction setActionStatusInactive = UpdateActionHelper.set("Status", inactiveStatus);
-        SetAction setActionDesactivationDateInactive = UpdateActionHelper.set("DeactivationDate", now);
-        SetAction setActionLastUpdateInactive = UpdateActionHelper.set("LastUpdate", now);
-        Update update = new Update();
+        final String now = LocalDateUtil.now().toString();
+        final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
+        final SetAction setActionStatusInactive = UpdateActionHelper.set("Status", inactiveStatus);
+        final SetAction setActionDesactivationDateInactive = UpdateActionHelper.set("DeactivationDate", now);
+        final SetAction setActionLastUpdateInactive = UpdateActionHelper.set("LastUpdate", now);
+        final Update update = new Update();
         update.setQuery(QueryHelper.eq("Name", documentName));
         update.addActions(setActionStatusInactive, setActionDesactivationDateInactive, setActionLastUpdateInactive);
         updateParser.parse(update.getFinalUpdate());
-        JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
+        final JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
 
 
         RequestResponse<AccessContractModel> updateContractStatus =
                 accessContractService.updateContract(accessContractModelList.get(0).getIdentifier(), queryDslForUpdate);
         assertThat(updateContractStatus).isNotExactlyInstanceOf(VitamError.class);
 
-        List<AccessContractModel> accessContractModelListForassert =
-                accessContractService.findContracts(queryDsl);
-        assertThat(accessContractModelListForassert).isNotEmpty();
-        for (AccessContractModel accessContractModel : accessContractModelListForassert) {
+        final RequestResponseOK<AccessContractModel> accessContractModelListForassert =
+            accessContractService.findContracts(queryDsl);
+        assertThat(accessContractModelListForassert.getResults()).isNotEmpty();
+        for (final AccessContractModel accessContractModel : accessContractModelListForassert.getResults()) {
             assertThat(inactiveStatus.equals(accessContractModel.getStatus())).isTrue();
             assertThat(activeStatus.equals(accessContractModel.getStatus())).isFalse();
             assertThat(accessContractModel.getDeactivationdate()).isNotEmpty();
@@ -329,25 +323,25 @@ public class AccessContractImplTest {
         }
 
         // Test update for access contract Status => Active
-        final UpdateParserSingle updateParserActive = new UpdateParserSingle(new VarNameAdapter());
-        SetAction setActionStatusActive = UpdateActionHelper.set("Status", activeStatus);
-        SetAction setActionDesactivationDateActive = UpdateActionHelper.set("ActivationDate", now);
-        SetAction setActionLastUpdateActive = UpdateActionHelper.set("LastUpdate", now);
-        Update updateStatusActive = new Update();
+        final UpdateParserSingle updateParserActive = new UpdateParserSingle(new SingleVarNameAdapter());
+        final SetAction setActionStatusActive = UpdateActionHelper.set("Status", activeStatus);
+        final SetAction setActionDesactivationDateActive = UpdateActionHelper.set("ActivationDate", now);
+        final SetAction setActionLastUpdateActive = UpdateActionHelper.set("LastUpdate", now);
+        final Update updateStatusActive = new Update();
         updateStatusActive.setQuery(QueryHelper.eq("Name", documentName));
         updateStatusActive.addActions(setActionStatusActive, setActionDesactivationDateActive,
-                setActionLastUpdateActive);
+            setActionLastUpdateActive);
         updateParserActive.parse(updateStatusActive.getFinalUpdate());
-        JsonNode queryDslStatusActive = updateParserActive.getRequest().getFinalUpdate();
+        final JsonNode queryDslStatusActive = updateParserActive.getRequest().getFinalUpdate();
 
 
         accessContractService.updateContract(accessContractModelList.get(0).getIdentifier(), queryDslStatusActive);
 
 
-        List<AccessContractModel> accessContractModelListForassert2 =
-                accessContractService.findContracts(queryDsl);
-        assertThat(accessContractModelListForassert2).isNotEmpty();
-        for (AccessContractModel accessContractModel : accessContractModelListForassert2) {
+        final RequestResponseOK<AccessContractModel> accessContractModelListForassert2 =
+            accessContractService.findContracts(queryDsl);
+        assertThat(accessContractModelListForassert2.getResults()).isNotEmpty();
+        for (final AccessContractModel accessContractModel : accessContractModelListForassert2.getResults()) {
             assertThat(inactiveStatus.equals(accessContractModel.getStatus())).isFalse();
             assertThat(activeStatus.equals(accessContractModel.getStatus())).isTrue();
             assertThat(accessContractModel.getActivationdate()).isNotEmpty();
@@ -363,34 +357,34 @@ public class AccessContractImplTest {
         final String inactiveStatus = "INACTIVE";
         final String activeStatus = "ACTIVE";
         // Create document
-        File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
+        final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
 
-        List<AccessContractModel> accessContractModelList =
+        final List<AccessContractModel> accessContractModelList =
             JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {});
-        RequestResponse response = accessContractService.createContracts(accessContractModelList);
+        final RequestResponse response = accessContractService.createContracts(accessContractModelList);
 
         RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
 
 
-        final SelectParserSingle parser = new SelectParserSingle(new VarNameAdapter());
-        Select select = new Select();
+        final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
+        final Select select = new Select();
         parser.parse(select.getFinalSelect());
         parser.addCondition(QueryHelper.eq("Name", documentName));
-        JsonNode queryDsl = parser.getRequest().getFinalSelect();
-        accessContractModelList = accessContractService.findContracts(queryDsl);
-        assertThat(accessContractModelList).isNotEmpty();
-        for (AccessContractModel accessContractModel : accessContractModelList) {
+        final JsonNode queryDsl = parser.getRequest().getFinalSelect();
+        responseCast = accessContractService.findContracts(queryDsl);
+        assertThat(responseCast.getResults()).isNotEmpty();
+        for (final AccessContractModel accessContractModel : responseCast.getResults()) {
             assertThat(activeStatus.equals(accessContractModel.getStatus()));
         }
 
         // Test update for access contract Status => inactive
-        String now = LocalDateUtil.now().toString();
-        final UpdateParserSingle updateParser = new UpdateParserSingle(new VarNameAdapter());
-        SetAction setActionStatusInactive = UpdateActionHelper.set("Status", inactiveStatus);
-        SetAction setActionDesactivationDateInactive = UpdateActionHelper.set("DeactivationDate", now);
-        SetAction setActionLastUpdateInactive = UpdateActionHelper.set("LastUpdate", now);
-        Update update = new Update();
+        final String now = LocalDateUtil.now().toString();
+        final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
+        final SetAction setActionStatusInactive = UpdateActionHelper.set("Status", inactiveStatus);
+        final SetAction setActionDesactivationDateInactive = UpdateActionHelper.set("DeactivationDate", now);
+        final SetAction setActionLastUpdateInactive = UpdateActionHelper.set("LastUpdate", now);
+        final Update update = new Update();
         update.setQuery(QueryHelper.eq("Name", documentName));
         update.addActions(setActionStatusInactive, setActionDesactivationDateInactive, setActionLastUpdateInactive);
         updateParser.parse(update.getFinalUpdate());
@@ -399,10 +393,10 @@ public class AccessContractImplTest {
             accessContractService.updateContract(accessContractModelList.get(0).getIdentifier(), queryDslForUpdate);
         assertThat(updateContractStatus).isNotExactlyInstanceOf(VitamError.class);
 
-        List<AccessContractModel> accessContractModelListForassert =
+        final RequestResponseOK<AccessContractModel> accessContractModelListForassert =
             accessContractService.findContracts(queryDsl);
-        assertThat(accessContractModelListForassert).isNotEmpty();
-        for (AccessContractModel accessContractModel : accessContractModelListForassert) {
+        assertThat(accessContractModelListForassert.getResults()).isNotEmpty();
+        for (final AccessContractModel accessContractModel : accessContractModelListForassert.getResults()) {
             assertThat(inactiveStatus.equals(accessContractModel.getStatus())).isTrue();
             assertThat(activeStatus.equals(accessContractModel.getStatus())).isFalse();
             assertThat(accessContractModel.getEveryOriginatingAgency()).isFalse();
@@ -411,21 +405,20 @@ public class AccessContractImplTest {
         }
 
         // Test update for access contract Status => Active
-        final UpdateParserSingle updateParserActive = new UpdateParserSingle(new VarNameAdapter());
-        SetAction setActionEveryOriginatingAgency = UpdateActionHelper.set("EveryOriginatingAgency", true);
-        SetAction setActionLastUpdateActive = UpdateActionHelper.set("LastUpdate", now);
-        Update updateStatusActive = new Update();
+        final UpdateParserSingle updateParserActive = new UpdateParserSingle(new SingleVarNameAdapter());
+        final SetAction setActionEveryOriginatingAgency = UpdateActionHelper.set("EveryOriginatingAgency", true);
+        final SetAction setActionLastUpdateActive = UpdateActionHelper.set("LastUpdate", now);
+        final Update updateStatusActive = new Update();
         updateStatusActive.setQuery(QueryHelper.eq("Name", documentName));
         updateStatusActive.addActions(setActionEveryOriginatingAgency, setActionLastUpdateActive);
         updateParserActive.parse(updateStatusActive.getFinalUpdate());
         JsonNode queryDslStatusActive = updateParserActive.getRequest().getFinalUpdate();
         accessContractService.updateContract(accessContractModelList.get(0).getIdentifier(), queryDslStatusActive);
 
-
-        List<AccessContractModel> accessContractModelListForassert2 =
+        final RequestResponseOK<AccessContractModel> accessContractModelListForassert2 =
             accessContractService.findContracts(queryDsl);
-        assertThat(accessContractModelListForassert2).isNotEmpty();
-        for (AccessContractModel accessContractModel : accessContractModelListForassert2) {
+        assertThat(accessContractModelListForassert2.getResults()).isNotEmpty();
+        for (final AccessContractModel accessContractModel : accessContractModelListForassert2.getResults()) {
             assertThat(inactiveStatus.equals(accessContractModel.getStatus())).isTrue();
             assertThat(activeStatus.equals(accessContractModel.getStatus())).isFalse();
             assertThat(accessContractModel.getEveryOriginatingAgency()).isTrue();
@@ -444,24 +437,23 @@ public class AccessContractImplTest {
     public void givenAccessContractsTestTenantOwner() throws Exception {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
-        List<AccessContractModel> accessContractModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {
-                });
-        RequestResponse response = accessContractService.createContracts(accessContractModelList);
+        final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
+        final List<AccessContractModel> accessContractModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {});
+        final RequestResponse response = accessContractService.createContracts(accessContractModelList);
 
-        RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
+        final RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
 
         // We juste test the first contract
-        AccessContractModel acm = responseCast.getResults().iterator().next();
+        final AccessContractModel acm = responseCast.getResults().iterator().next();
         assertThat(acm).isNotNull();
 
         String id1 = acm.getIdentifier();
         assertThat(id1).isNotNull();
 
 
-        AccessContractModel one = accessContractService.findOne(id1);
+        final AccessContractModel one = accessContractService.findOne(id1);
 
         assertThat(one).isNotNull();
 
@@ -484,20 +476,19 @@ public class AccessContractImplTest {
     public void givenAccessContractsTestNotTenantOwner() throws Exception {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
-        List<AccessContractModel> accessContractModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {
-                });
-        RequestResponse response = accessContractService.createContracts(accessContractModelList);
+        final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
+        final List<AccessContractModel> accessContractModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {});
+        final RequestResponse response = accessContractService.createContracts(accessContractModelList);
 
-        RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
+        final RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
 
         // We juste test the first contract
-        AccessContractModel acm = responseCast.getResults().iterator().next();
+        final AccessContractModel acm = responseCast.getResults().iterator().next();
         assertThat(acm).isNotNull();
 
-        String id1 = acm.getId();
+        final String id1 = acm.getId();
         assertThat(id1).isNotNull();
 
 
@@ -514,24 +505,23 @@ public class AccessContractImplTest {
     public void givenAccessContractsTestfindByIdentifier() throws Exception {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
-        List<AccessContractModel> accessContractModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {
-                });
-        RequestResponse response = accessContractService.createContracts(accessContractModelList);
+        final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
+        final List<AccessContractModel> accessContractModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {});
+        final RequestResponse response = accessContractService.createContracts(accessContractModelList);
 
-        RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
+        final RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
 
         // We juste test the first contract
-        AccessContractModel acm = responseCast.getResults().iterator().next();
+        final AccessContractModel acm = responseCast.getResults().iterator().next();
         assertThat(acm).isNotNull();
 
         String id1 = acm.getIdentifier();
         assertThat(id1).isNotNull();
 
 
-        AccessContractModel one = accessContractService.findOne(id1);
+        final AccessContractModel one = accessContractService.findOne(id1);
 
         assertThat(one).isNotNull();
 
@@ -542,64 +532,63 @@ public class AccessContractImplTest {
     @RunWithCustomExecutor
     public void givenAccessContractsTestFindAllThenReturnEmpty() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        List<AccessContractModel> accessContractModelList =
-                accessContractService.findContracts(JsonHandler.createObjectNode());
-        assertThat(accessContractModelList).isEmpty();
+        final RequestResponseOK<AccessContractModel> accessContractModelList =
+            accessContractService.findContracts(JsonHandler.createObjectNode());
+        assertThat(accessContractModelList.getResults()).isEmpty();
     }
 
     @Test
     @RunWithCustomExecutor
     public void givenAccessContractsTestFindAllThenReturnTwoContracts() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
-        List<AccessContractModel> accessContractModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {
-                });
-        RequestResponse response = accessContractService.createContracts(accessContractModelList);
+        final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
+        final List<AccessContractModel> accessContractModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {});
+        final RequestResponse response = accessContractService.createContracts(accessContractModelList);
 
-        RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
+        final RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
 
-        List<AccessContractModel> accessContractModelListSearch =
-                accessContractService.findContracts(JsonHandler.createObjectNode());
-        assertThat(accessContractModelListSearch).hasSize(2);
+        final RequestResponseOK<AccessContractModel> accessContractModelListSearch =
+            accessContractService.findContracts(JsonHandler.createObjectNode());
+        assertThat(accessContractModelListSearch.getResults()).hasSize(2);
     }
 
     @Test
     @RunWithCustomExecutor
     public void givenAccessContractsTestFindByName() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
-        List<AccessContractModel> accessContractModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {
-                });
-        RequestResponse response = accessContractService.createContracts(accessContractModelList);
+        final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
+        final List<AccessContractModel> accessContractModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {});
+        final RequestResponse response = accessContractService.createContracts(accessContractModelList);
 
-        RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
+        final RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
 
 
-        AccessContractModel acm = accessContractModelList.iterator().next();
+        final AccessContractModel acm = accessContractModelList.iterator().next();
         assertThat(acm).isNotNull();
 
-        String id1 = acm.getId();
+        final String id1 = acm.getId();
         assertThat(id1).isNotNull();
 
-        String name = acm.getName();
+        final String name = acm.getName();
         assertThat(name).isNotNull();
 
 
-        final SelectParserSingle parser = new SelectParserSingle(new VarNameAdapter());
-        Select select = new Select();
+        final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
+        final Select select = new Select();
         parser.parse(select.getFinalSelect());
         parser.addCondition(QueryHelper.eq("Name", name));
-        JsonNode queryDsl = parser.getRequest().getFinalSelect();
+        final JsonNode queryDsl = parser.getRequest().getFinalSelect();
 
 
-        List<AccessContractModel> accessContractModelListFound = accessContractService.findContracts(queryDsl);
-        assertThat(accessContractModelListFound).hasSize(1);
+        final RequestResponseOK<AccessContractModel> accessContractModelListFound =
+            accessContractService.findContracts(queryDsl);
+        assertThat(accessContractModelListFound.getResults()).hasSize(1);
 
-        AccessContractModel acmFound = accessContractModelListFound.iterator().next();
+        final AccessContractModel acmFound = accessContractModelListFound.getResults().iterator().next();
         assertThat(acmFound).isNotNull();
 
 

@@ -223,8 +223,8 @@ public class AdminManagementResourceTest {
 
     @After
     public void tearDown() throws Exception {
-        mongoDbAccess.deleteCollection(FunctionalAdminCollections.FORMATS);
-        mongoDbAccess.deleteCollection(FunctionalAdminCollections.RULES);
+        mongoDbAccess.deleteCollection(FunctionalAdminCollections.FORMATS).close();
+        mongoDbAccess.deleteCollection(FunctionalAdminCollections.RULES).close();
     }
 
     @Test
@@ -300,7 +300,7 @@ public class AdminManagementResourceTest {
         contractModel.setName(contractId);
         contractModel.setStatus(ContractStatus.ACTIVE.name());
 
-        mongoDbAccess.insertDocument(JsonHandler.toJsonNode(contractModel), FunctionalAdminCollections.ACCESS_CONTRACT);
+        mongoDbAccess.insertDocument(JsonHandler.toJsonNode(contractModel), FunctionalAdminCollections.ACCESS_CONTRACT).close();
 
         stream = PropertiesUtils.getResourceAsStream("accession-register.json");
         final AccessionRegisterDetail register = JsonHandler.getFromInputStream(stream, AccessionRegisterDetail.class);
@@ -597,7 +597,7 @@ public class AdminManagementResourceTest {
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
-        mongoDbAccess.deleteCollection(FunctionalAdminCollections.RULES);
+        mongoDbAccess.deleteCollection(FunctionalAdminCollections.RULES).close();
 
         VitamThreadUtils.getVitamSession().setTenantId(1);
         stream = PropertiesUtils.getResourceAsStream(FILE_TEST_OK);
@@ -662,8 +662,7 @@ public class AdminManagementResourceTest {
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(jsonDocument)
-            .pathParam("id_rule", "fake_identifier")
-            .when().post(GET_BYID_RULES_URI + RULES_ID_URI)
+            .when().post(GET_BYID_RULES_URI + "/fake_identifier")
             .then().statusCode(Status.NOT_FOUND.getStatusCode());
     }
 

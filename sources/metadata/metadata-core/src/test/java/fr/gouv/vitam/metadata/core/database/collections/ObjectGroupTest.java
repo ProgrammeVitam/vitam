@@ -31,6 +31,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import org.junit.Rule;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -38,8 +39,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
 public class ObjectGroupTest {
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     private final int IntTest = 12345;
     String groupGUID = GUIDFactory.newObjectGUID(IntTest).toString();
@@ -47,7 +55,9 @@ public class ObjectGroupTest {
         "\", \"_qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description\" : \"Test\"}}, \"title\":\"title1\"}";
 
     @Test
+    @RunWithCustomExecutor
     public void testGOInitialization() throws InvalidParseOperationException {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         final JsonNode jsonGO = JsonHandler.getFromString(go);
 
         final ObjectGroup go1 = new ObjectGroup();
@@ -56,19 +66,23 @@ public class ObjectGroupTest {
 
         assertTrue(go1.isEmpty());
         assertFalse(go2.isEmpty());
-        assertEquals("Document{{}}", go1.toStringDirect());
+        assertEquals("ObjectGroup: Document{{}}", go1.toStringDirect());
         assertNotNull(go3);
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testloadDocument() {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         final ObjectGroup group = new ObjectGroup();
         group.load(go);
         assertNotNull(group);
     }
 
     @Test
+    @RunWithCustomExecutor
     public void givenObjectGroupWhenGetGuid() {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         final ObjectGroup group = new ObjectGroup(go);
         assertNotNull(group.newObjectGuid());
         assertEquals(2, ObjectGroup.getGUIDObjectTypeId());
@@ -94,7 +108,9 @@ public class ObjectGroupTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void givenObjectGroupWhenIsNotImmediateParentThenReturnFalse() {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         final ObjectGroup group = new ObjectGroup(go);
         assertFalse(group.isImmediateParent(groupGUID));
     }

@@ -73,7 +73,7 @@ public class VarNameAdapter {
             } else {
                 realname = name.substring(1);
             }
-            if (!ParserTokens.PROJECTIONARGS.isValid(realname)) {
+            if (!this.metadataAdapter() && !ParserTokens.PROJECTIONARGS.isValid(realname)) {
                 throw new InvalidParseOperationException("Illegal variable name found: " + name);
             }
         }
