@@ -126,6 +126,16 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
                     return vitamError.setHttpCode(status.getStatusCode())
                     .setDescription(VitamCode.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage() + " Cause : " +
                         status.getReasonPhrase());
+                case SERVICE_UNAVAILABLE:
+                    LOGGER.error(ErrorMessage.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage());
+                    final VitamError vitamErrorFatal = new VitamError(VitamCode.INGEST_EXTERNAL_UPLOAD_ERROR.getItem())
+                        .setMessage(response.readEntity(String.class))
+                        .setState(StatusCode.FATAL.name())
+                        .setContext("IngestExternalModule");
+
+                    return vitamErrorFatal.setHttpCode(status.getStatusCode())
+                    .setDescription(VitamCode.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage() + " Cause : " +
+                        status.getReasonPhrase());
                 default:
                     throw new IngestExternalException("Unknown error: " + status.getReasonPhrase());
             }
