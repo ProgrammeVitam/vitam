@@ -631,7 +631,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         result.setNbCopy(offerResults.size());
         result.setStrategy(strategy);
         result.setOfferIds(Arrays.asList(offerResults.keySet().toArray(new String[0])));
-        LOGGER.warn("DEBUG result: {}", result);
+        LOGGER.debug("DEBUG result: {}", result);
         return result;
     }
 

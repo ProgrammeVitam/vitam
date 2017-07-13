@@ -1840,4 +1840,87 @@ public class DbRequestTest {
         final Result result2 = dbRequest.execRequest(selectParser, null);
         assertEquals(0, result2.nbResult);
     }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testOrAndMatch() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
+
+        final GUID uuid = GUIDFactory.newObjectGroupGUID(TENANT_ID_0);
+        final DbRequest dbRequest = new DbRequest();
+        RequestParserMultiple requestParser = null;
+        // INSERT 1
+        ObjectNode data = JsonHandler.createObjectNode().put(id(), uuid.toString())
+            .put(TITLE, "Rectorat 1").put(DESCRIPTION, "Ma description public est bien détaillée")
+            .put("DescriptionLevel", "Item")
+            .put(CREATED_DATE, "" + LocalDateUtil.now())
+            .put(tenant(), tenantId);
+        InsertMultiQuery insert = new InsertMultiQuery();
+        insert.addHintFilter(BuilderToken.FILTERARGS.UNITS.exactToken());
+        insert.addData(data);
+        LOGGER.debug("InsertString: " + insert.getFinalInsert().toString());
+        ObjectNode insertNode = insert.getFinalInsert();
+        requestParser = RequestParserHelper.getParser(insertNode, mongoDbVarNameAdapter);
+        executeRequest(dbRequest, requestParser);
+        //Insert 2
+        final GUID uuid2 = GUIDFactory.newObjectGroupGUID(TENANT_ID_0);
+        ObjectNode data2 = JsonHandler.createObjectNode().put(id(), uuid2.toString())
+            .put(TITLE, "Rectorat 2").put(DESCRIPTION, "Ma description privé est bien détaillée")
+            .put("DescriptionLevel", "Item")
+            .put(CREATED_DATE, "" + LocalDateUtil.now())
+            .put(tenant(), tenantId);
+        insert.reset();
+        insert.addHintFilter(BuilderToken.FILTERARGS.UNITS.exactToken());
+        insert.addData(data2);
+        LOGGER.debug("InsertString: " + insert.getFinalInsert().toString());
+        insertNode = insert.getFinalInsert();
+        requestParser = RequestParserHelper.getParser(insertNode, mongoDbVarNameAdapter);
+        executeRequest(dbRequest, requestParser);
+        //Insert 3 false description
+        final GUID uuid3 = GUIDFactory.newObjectGroupGUID(TENANT_ID_0);
+        ObjectNode data3 = JsonHandler.createObjectNode().put(id(), uuid3.toString())
+            .put(TITLE, "Rectorat 3").put(DESCRIPTION, "Ma description est bien détaillée")
+            .put("DescriptionLevel", "Item")
+            .put(CREATED_DATE, "" + LocalDateUtil.now())
+            .put(tenant(), tenantId);
+        insert.reset();
+        insert.addHintFilter(BuilderToken.FILTERARGS.UNITS.exactToken());
+        insert.addData(data3);
+        LOGGER.debug("InsertString: " + insert.getFinalInsert().toString());
+        insertNode = insert.getFinalInsert();
+        requestParser = RequestParserHelper.getParser(insertNode, mongoDbVarNameAdapter);
+        executeRequest(dbRequest, requestParser);
+        //Insert 4 false Title
+        final GUID uuid4 = GUIDFactory.newObjectGroupGUID(TENANT_ID_0);
+        ObjectNode data4 = JsonHandler.createObjectNode().put(id(), uuid4.toString())
+            .put(TITLE, "Title 4").put(DESCRIPTION, "Ma description public est bien détaillée")
+            .put("DescriptionLevel", "Item")
+            .put(CREATED_DATE, "" + LocalDateUtil.now())
+            .put(tenant(), tenantId);
+        insert.reset();
+        insert.addHintFilter(BuilderToken.FILTERARGS.UNITS.exactToken());
+        insert.addData(data4);
+        LOGGER.debug("InsertString: " + insert.getFinalInsert().toString());
+        insertNode = insert.getFinalInsert();
+        requestParser = RequestParserHelper.getParser(insertNode, mongoDbVarNameAdapter);
+        executeRequest(dbRequest, requestParser);
+
+        String query = "{\"$roots\": [],\"$query\": [{\"$or\": " +
+            "[{\"$and\": [{\"$match\": {\"Title\": \"Rectorat\"}},{\"$match\": {\"Description\": \"public\"}}]}," +
+            "{\"$and\": [{\"$match\": {\"Title\": \"Rectorat\"}},{\"$match\": {\"Description\": \"privé\"}}]}]," +
+            "\"$depth\": 20}],\"$filter\": {\"$hint\": [\"units\"], \"$orderby\": {\"TransactedDate\": 1}}," +
+            "\"$projection\": {\"$fields\": {\"TransactedDate\": 1,\"#id\": 1,\"Title\": 1,\"#object\": 1,\"Description\": 1}}}";
+        final SelectParserMultiple selectParser = new SelectParserMultiple(mongoDbVarNameAdapter);
+        selectParser.parse(JsonHandler.getFromString(query));
+        final Result result = dbRequest.execRequest(selectParser, null);
+        
+        // Clean
+        final DeleteMultiQuery delete = new DeleteMultiQuery();
+        delete.addQueries(in(VitamFieldsHelper.id(), uuid.toString(), uuid2.toString(), uuid3.toString(), uuid4.toString()));
+        delete.setMult(true);
+        final DeleteParserMultiple deleteParser = new DeleteParserMultiple(mongoDbVarNameAdapter);
+        deleteParser.parse(delete.getFinalDelete());
+        dbRequest.execRequest(deleteParser, null);
+        assertEquals(2, result.nbResult);
+    }
 }
