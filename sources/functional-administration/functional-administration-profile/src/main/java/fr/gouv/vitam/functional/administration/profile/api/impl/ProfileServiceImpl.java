@@ -97,6 +97,8 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  *
  */
 public class ProfileServiceImpl implements ProfileService {
+    private static final String PROFIL_PREFIX = "PR";
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProfileServiceImpl.class);
 
     private static final String PROFILE_IS_MANDATORY_PATAMETER = "profiles parameter is mandatory";
@@ -190,8 +192,13 @@ public class ProfileServiceImpl implements ProfileService {
 
             profilesToPersist = JsonHandler.createArrayNode();
             for (final ProfileModel pm : profileModelList) {
-                String code = vitamCounterService.getNextSequence(ParameterHelper.getTenantParameter(), "PR");
-                pm.setIdentifier(code);
+                if (pm.getIdentifier() == null) {
+                    String code = vitamCounterService.getNextSequence(ParameterHelper.getTenantParameter(), PROFIL_PREFIX);
+                    pm.setIdentifier(code);
+                } else if (pm.getIdentifier().contains(PROFIL_PREFIX + "-")) {
+                    String code = vitamCounterService.getNextSequence(ParameterHelper.getTenantParameter(), PROFIL_PREFIX);
+                    pm.setIdentifier(code);
+                }
                 final JsonNode profileNode = JsonHandler.toJsonNode(pm);
                 /* contract is valid, add it to the list to persist */
                 profilesToPersist.add(profileNode);
