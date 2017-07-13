@@ -113,7 +113,7 @@ function setComponentCertPassphrase {
         pki_logger "ERROR" "Error while writing to vault file: ${VAULT_CERTS}"
     } && {
         # Finally
-        ansible-vault encrypt "${VAULT_CERTS}" "${ANSIBLE_VAULT_PASSWD}"
+        ansible-vault encrypt ${VAULT_CERTS} ${ANSIBLE_VAULT_PASSWD}
         return ${RETURN_CODE}
     }
 }
