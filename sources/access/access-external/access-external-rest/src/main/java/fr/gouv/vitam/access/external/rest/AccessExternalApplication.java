@@ -117,7 +117,8 @@ public class AccessExternalApplication
             .register(new LogbookExternalResourceImpl())
             .register(new AdminManagementExternalResourceImpl())
             .register(SanityCheckerCommonFilter.class)
-            .register(SanityDynamicFeature.class);
+            .register(SanityDynamicFeature.class)
+            .register(HttpMethodOverrideFilter.class);
     }
 
     @Override

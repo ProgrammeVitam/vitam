@@ -28,8 +28,6 @@ package fr.gouv.vitam.access.external.rest;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -52,21 +50,18 @@ import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
-import fr.gouv.vitam.common.error.ServiceName;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 
 /**
  * AccessResourceImpl implements AccessResource
@@ -78,7 +73,6 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 public class LogbookExternalResourceImpl {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookExternalResourceImpl.class);
-    protected static final String MISSING_XHTTPOVERRIDE = "X-HTTP-OVERRIDE=GET missing";
     private static final String ACCESS_EXTERNAL_MODULE = "LOGBOOK_EXTERNAL";
     private static final String CODE_VITAM = "code_vitam";
     private static final String EVENT_ID_PROCESS = "evIdProc";
@@ -129,30 +123,6 @@ public class LogbookExternalResourceImpl {
     }
 
     /**
-     * @param query as JsonNode
-     * @param xhttpOverride header parameter indicate that we use POST with X-Http-Method-Override,
-     * @return Response of SELECT query with POST method
-     */
-    @POST
-    @Path("/operations")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response selectOperationWithPostOverride(JsonNode query,
-        @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
-        Status status;
-        if (xhttpOverride != null && "GET".equals(xhttpOverride)) {
-            return selectOperation(query);
-        } else {
-            Integer tenantId = ParameterHelper.getTenantParameter();
-            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-
-            status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status, MISSING_XHTTPOVERRIDE)).build();
-        }
-
-    }
-
-    /**
      * @param operationId the operation id
      * @param queryDsl the query
      * @return the response with a specific HTTP status
@@ -194,31 +164,6 @@ public class LogbookExternalResourceImpl {
             LOGGER.error("Contract access does not allow ", e);
             status = Status.UNAUTHORIZED;
             return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
-        }
-    }
-
-    /**
-     * @param queryDSL
-     * @param operationId
-     * @param xhttpOverride
-     * @return the selected operation
-     */
-    @POST
-    @Path("/operations/{id_op}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response selectOperationByPost(JsonNode queryDSL, @PathParam("id_op") String operationId,
-        @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
-        Status status;
-        if (xhttpOverride != null && "GET".equals(xhttpOverride)) {
-            ParametersChecker.checkParameter("Operation id is required", operationId);
-            return getOperationById(operationId, queryDSL);
-        } else {
-            Integer tenantId = ParameterHelper.getTenantParameter();
-            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-
-            status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status, MISSING_XHTTPOVERRIDE)).build();
         }
     }
 
@@ -269,30 +214,6 @@ public class LogbookExternalResourceImpl {
     }
 
     /**
-     * @param unitLifeCycleId the unit lifecycle id to get
-     * @param query as JsonNode
-     * @param xhttpOverride header parameter indicate that we use POST with X-Http-Method-Override,
-     * @return Response of SELECT query with POST method
-     */
-    @POST
-    @Path("/unitlifecycles/{id_lc}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getUnitLifeCycleWithPostOverride(@PathParam("id_lc") String unitLifeCycleId,
-        JsonNode query, @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
-        Status status;
-        if (xhttpOverride != null && "GET".equals(xhttpOverride)) {
-            return getUnitLifeCycle(unitLifeCycleId, query);
-        } else {
-            Integer tenantId = ParameterHelper.getTenantParameter();
-            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-
-            status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status, MISSING_XHTTPOVERRIDE)).build();
-        }
-
-    }
-
-    /**
      * gets the object group life cycle based on its id
      *
      * @param objectGroupLifeCycleId the object group life cycle id
@@ -335,29 +256,6 @@ public class LogbookExternalResourceImpl {
             LOGGER.error("Contract access does not allow ", e);
             status = Status.UNAUTHORIZED;
             return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
-        }
-    }
-
-    /**
-     * @param query as JsonNode
-     * @param objectGroupLifeCycleId the object Group LifeCycle Id
-     * @param xhttpOverride header parameter indicate that we use POST with X-Http-Method-Override,
-     * @return Response of SELECT query with POST method
-     */
-    @POST
-    @Path("/objectgrouplifecycles/{id_lc}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getObjectGroupLifeCycleWithPostOverride(@PathParam("id_lc") String objectGroupLifeCycleId,
-        JsonNode query, @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
-        Status status;
-        if (xhttpOverride != null && "GET".equals(xhttpOverride)) {
-            return getObjectGroupLifeCycle(objectGroupLifeCycleId, query);
-        } else {
-            Integer tenantId = ParameterHelper.getTenantParameter();
-            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-
-            status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status, MISSING_XHTTPOVERRIDE)).build();
         }
     }
 

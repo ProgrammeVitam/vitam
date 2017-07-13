@@ -262,7 +262,7 @@
               <td ng-class="getClassVersion(version.DataObjectVersion)">{{version.LastModified | vitamFormatDate}}</td>
               <td>
                 <a href=""
-                   ng-click="download($event, archiveObjectGroupsOgId , version.DataObjectVersion, version.FileName)"
+                   ng-click="download($event, $ctrl.archiveId , version.DataObjectVersion, version.FileName)"
                    target="_blank" ng-if="getClassVersion(version.DataObjectVersion) != 'grayColor' && !isPhysicalArchive(version)">
                   <i class="material-icons">file_download</i>
                 </a>

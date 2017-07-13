@@ -172,7 +172,7 @@ public class LogbookExternalResourceImplTest {
             .when()
             .post(OPERATIONS_URI)
             .then()
-            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -205,7 +205,7 @@ public class LogbookExternalResourceImplTest {
             .when()
             .post(OPERATIONS_URI + OPERATION_ID_URI)
             .then()
-            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)

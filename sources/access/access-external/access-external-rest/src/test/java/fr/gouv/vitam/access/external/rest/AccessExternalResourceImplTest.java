@@ -106,7 +106,7 @@ public class AccessExternalResourceImplTest {
     // URI
     private static final String ACCESS_RESOURCE_URI = "access-external/v1";
     private static final String ACCESS_UNITS_ID_URI = "/units/xyz";
-    private static final String ACCESS_OBJECTS_ID_URI = "/objects/xyz";
+    private static final String ACCESS_OBJECTS_ID_URI = "/units/xyz/object";
     private static AccessExternalApplication application;
     private static VitamServer vitamServer;
 
@@ -161,13 +161,18 @@ public class AccessExternalResourceImplTest {
     private static final String TENANT_ID = "0";
     private static final String CONTRACT_ID = "NAME";
     private static final String UNEXTISTING_TENANT_ID = "25";
+    private static final String GOOD_ID = "goodId";
 
 
     private static final String OBJECT_ID = "objectId";
-    private static final String OBJECTS_URI = "/objects/";
+    private static final String OBJECT_URI = "/object";
     private static final String ACCESSION_REGISTER_DETAIL_URI = AccessExtAPI.ACCESSION_REGISTERS_API +
         "/FR_ORG_AGEC/" +
         AccessExtAPI.ACCESSION_REGISTERS_DETAIL;
+    private static final String OBJECT_RETURN =
+        "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"ArchiveUnit1\" }}, " +
+            "$projection: {}, $filter: {}},$result:[{\"#id\":\"1\",\"#tenant\":0,\"#object\":\""+ OBJECT_ID +"\",\"#version\":0}]}";
+
     private static AdminManagementClient adminCLient;
 
     @Rule
@@ -443,7 +448,7 @@ public class AccessExternalResourceImplTest {
             .when()
             .post("/units/" + ID_UNIT)
             .then()
-            .statusCode(Status.UNAUTHORIZED.getStatusCode());
+            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -626,7 +631,7 @@ public class AccessExternalResourceImplTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithRoots(DATA_HTML))
             .when()
-            .get("/objects/" + ID_UNIT)
+            .get("/units/" + ID_UNIT + "/object")
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
@@ -635,7 +640,7 @@ public class AccessExternalResourceImplTest {
             .header(GlobalDataRest.X_TENANT_ID, UNEXTISTING_TENANT_ID)
             .body(buildDSLWithRoots(DATA_HTML))
             .when()
-            .get("/objects/" + ID_UNIT)
+            .get("/units/" + ID_UNIT + "/object")
             .then()
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
@@ -643,7 +648,7 @@ public class AccessExternalResourceImplTest {
             .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
             .body(buildDSLWithRoots(DATA_HTML))
             .when()
-            .get("/objects/" + ID_UNIT)
+            .get("/units/" + ID_UNIT + "/object")
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -700,7 +705,7 @@ public class AccessExternalResourceImplTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithRoots(DATA_HTML))
             .when()
-            .get("/objects/" + ID_UNIT)
+            .get("/units/" + ID_UNIT + "/object")
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
@@ -709,7 +714,7 @@ public class AccessExternalResourceImplTest {
             .header(GlobalDataRest.X_TENANT_ID, UNEXTISTING_TENANT_ID)
             .body(buildDSLWithRoots(DATA_HTML))
             .when()
-            .get("/objects/" + ID_UNIT)
+            .get("/units/" + ID_UNIT + "/object")
             .then()
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
@@ -717,7 +722,7 @@ public class AccessExternalResourceImplTest {
             .contentType(ContentType.JSON)
             .body(buildDSLWithRoots(DATA_HTML))
             .when()
-            .get("/objects/" + ID_UNIT)
+            .get("/units/" + ID_UNIT + "/object")
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -1132,44 +1137,49 @@ public class AccessExternalResourceImplTest {
         when(clientAccessInternal.selectObjectbyId(JsonHandler.getFromString("\"" + anyString() + "\""),
             "\"" + anyString() + "\""))
                 .thenReturn(new RequestResponseOK().addResult(result));
+        final JsonNode resultObjectReturn = JsonHandler.getFromString(OBJECT_RETURN);
+        when(clientAccessInternal.selectUnitbyId(JsonHandler.getFromString("\"" + anyString() + "\""),
+            "\"" + anyString() + "\""))
+                .thenReturn(new RequestResponseOK().addResult(resultObjectReturn));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(JsonHandler.getFromString(BODY_TEST))
             .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
                 "GET")
-            .when().get(OBJECTS_URI + OBJECT_ID).then()
+            .when().post("/units/" + ID_UNIT + "/object").then()
             .statusCode(Status.OK.getStatusCode()).contentType(MediaType.APPLICATION_JSON);
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(JsonHandler.getFromString(BODY_TEST))
             .headers(getStreamHeadersUnknwonTenant()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
                 "GET")
-            .when().get(OBJECTS_URI + OBJECT_ID).then()
+            .when().post("/units/" + ID_UNIT + "/object").then()
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(JsonHandler.getFromString(BODY_TEST))
             .headers(getStreamHeadersWithoutTenant()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
                 "GET")
-            .when().get(OBJECTS_URI + OBJECT_ID).then()
+            .when().post("/units/" + ID_UNIT + "/object").then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(BODY_TEST)
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .body(BODY_TEST)
             .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
                 "PUT")
-            .when().get(OBJECTS_URI + OBJECT_ID).then()
+            .when().get("/units/" + ID_UNIT + "/object").then()
             .statusCode(Status.OK.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(BODY_TEST)
             .headers(getStreamHeadersUnknwonTenant()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
                 "PUT")
-            .when().get(OBJECTS_URI + OBJECT_ID).then()
+            .when().get("/units/" + ID_UNIT + "/object").then()
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(BODY_TEST)
             .headers(getStreamHeadersWithoutTenant()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
                 "PUT")
-            .when().get(OBJECTS_URI + OBJECT_ID).then()
+            .when().get("/units/" + ID_UNIT + "/object").then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         reset(clientAccessInternal);
@@ -1180,7 +1190,7 @@ public class AccessExternalResourceImplTest {
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(BODY_TEST)
             .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
                 "GET")
-            .when().get(OBJECTS_URI + OBJECT_ID).then()
+            .when().get("/units/" + ID_UNIT + "/object").then()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
         reset(clientAccessInternal);
@@ -1191,7 +1201,7 @@ public class AccessExternalResourceImplTest {
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(BODY_TEST)
             .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
                 "GET")
-            .when().post(OBJECTS_URI + OBJECT_ID).then()
+            .when().post("/units/" + ID_UNIT + "/object").then()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
@@ -1237,14 +1247,14 @@ public class AccessExternalResourceImplTest {
             .when().get("/units/" + OBJECT_ID + "/object").then()
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
-        // GET ignore override ok
+        // GET (PUT override isn't filtered) ok
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(BODY_TEST)
             .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
                 "PUT")
             .when().get("/units/" + OBJECT_ID + "/object").then()
             .statusCode(Status.OK.getStatusCode());
 
-        // POST override PUT ko
+        // POST (PUT override isn't filtered) precondition failed
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(BODY_TEST)
             .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
                 "PUT")
@@ -1308,30 +1318,35 @@ public class AccessExternalResourceImplTest {
     @Test
     public void testGetObjectStream() throws Exception {
         final Map<String, String> headers = new HashMap<>();
+        final String GET_OBJECT_STREAM_URI = ACCESS_UNITS_URI + "/" + GOOD_ID + OBJECT_URI;
         headers.put("Content-Length", "4");
         reset(clientAccessInternal);
         final Response response =
             ResponseHelper.getOutboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
                 MediaType.APPLICATION_OCTET_STREAM, headers);
-        final JsonNode queryJson = JsonHandler.getFromString("\"" + anyString() + "\"");
 
-        PowerMockito.when(clientAccessInternal.getObject(queryJson, anyString(), anyString(), anyInt()))
+        final JsonNode resultObjectReturn = JsonHandler.getFromString(OBJECT_RETURN);
+        PowerMockito.when(clientAccessInternal.selectUnitbyId(anyObject(), anyString()))
+            .thenReturn(new RequestResponseOK().addResult(resultObjectReturn));
+
+        PowerMockito.when(clientAccessInternal.getObject(anyObject(), anyString(), anyString(), anyInt()))
             .thenReturn(response);
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
-            .headers(getStreamHeaders()).body(JsonHandler.getFromString(BODY_TEST)).when().get("/objects/goodId")
+            .headers(getStreamHeaders()).body(JsonHandler.getFromString(BODY_TEST))
+            .when().get(GET_OBJECT_STREAM_URI)
             .then()
             .statusCode(Status.OK.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
-            .headers(getStreamHeadersUnknwonTenant()).body(JsonHandler.getFromString(BODY_TEST)).when()
-            .get("/objects/goodId")
+            .headers(getStreamHeadersUnknwonTenant()).body(JsonHandler.getFromString(BODY_TEST))
+            .when().get(GET_OBJECT_STREAM_URI)
             .then()
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
-            .headers(getStreamHeadersWithoutTenant()).body(JsonHandler.getFromString(BODY_TEST)).when()
-            .get("/objects/goodId")
+            .headers(getStreamHeadersWithoutTenant()).body(JsonHandler.getFromString(BODY_TEST))
+            .when().get(GET_OBJECT_STREAM_URI)
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
@@ -1340,7 +1355,7 @@ public class AccessExternalResourceImplTest {
             .accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(JsonHandler.getFromString(BODY_TEST))
-            .when().get("/objects/goodId").then()
+            .when().get(GET_OBJECT_STREAM_URI).then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
@@ -1348,32 +1363,32 @@ public class AccessExternalResourceImplTest {
             .accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_TENANT_ID, UNEXTISTING_TENANT_ID)
             .body(JsonHandler.getFromString(BODY_TEST))
-            .when().get("/objects/goodId").then()
+            .when().get(GET_OBJECT_STREAM_URI).then()
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_OCTET_STREAM)
             .body(JsonHandler.getFromString(BODY_TEST))
-            .when().get("/objects/goodId").then()
+            .when().get(GET_OBJECT_STREAM_URI).then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeaders())
-            .body(JsonHandler.getFromString(BODY_TEST)).when().post("/objects/goodId")
+            .body(JsonHandler.getFromString(BODY_TEST)).when().post(GET_OBJECT_STREAM_URI)
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeadersUnknwonTenant())
-            .body(JsonHandler.getFromString(BODY_TEST)).when().post("/objects/goodId")
+            .body(JsonHandler.getFromString(BODY_TEST)).when().post(GET_OBJECT_STREAM_URI)
             .then()
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeadersWithoutTenant())
-            .body(JsonHandler.getFromString(BODY_TEST)).when().post("/objects/goodId")
+            .body(JsonHandler.getFromString(BODY_TEST)).when().post(GET_OBJECT_STREAM_URI)
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
@@ -1381,19 +1396,19 @@ public class AccessExternalResourceImplTest {
             .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
                 "PUT")
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(JsonHandler.getFromString(BODY_TEST)).when().post("/objects/goodId").then()
+            .body(JsonHandler.getFromString(BODY_TEST)).when().post(GET_OBJECT_STREAM_URI).then()
             .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeadersUnknwonTenant()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
                 "PUT")
-            .body(JsonHandler.getFromString(BODY_TEST)).when().post("/objects/goodId").then()
+            .body(JsonHandler.getFromString(BODY_TEST)).when().post(GET_OBJECT_STREAM_URI).then()
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeadersWithoutTenant()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
                 "PUT")
-            .body(JsonHandler.getFromString(BODY_TEST)).when().post("/objects/goodId").then()
+            .body(JsonHandler.getFromString(BODY_TEST)).when().post(GET_OBJECT_STREAM_URI).then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
     }
@@ -1471,26 +1486,30 @@ public class AccessExternalResourceImplTest {
         throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
         InvalidParseOperationException, AccessUnauthorizedException {
         final JsonNode queryJson = JsonHandler.getFromString("\"" + anyString() + "\"");
+        JsonNode objectGroup = JsonHandler.getFromString(
+            "{\"$hint\":{\"total\":1},\"$context\":{\"$query\":{\"$eq\":{\"id\":\"1\"}},\"$projection\":{},\"$filter\":{}},\"$result\":[{\"#id\":\"1\",\"#object\":\"goodResult\",\"Title\":\"Archive 1\",\"DescriptionLevel\":\"Archive Mock\"}]}");
 
         PowerMockito.when(clientAccessInternal.getObject(queryJson, anyString(), anyString(), anyInt()))
             .thenThrow(new InvalidParseOperationException(""));
+        PowerMockito.when(clientAccessInternal.selectUnitbyId(anyObject(), anyString()))
+            .thenReturn(new RequestResponseOK().addResult(objectGroup));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
-                "GET")
-            .body(JsonHandler.getFromString(BODY_TEST)).when().get("/objects/goodId").then()
+            "GET")
+            .body(JsonHandler.getFromString(BODY_TEST)).when().get("/units/goodId/object").then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeadersUnknwonTenant()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
                 "GET")
-            .body(JsonHandler.getFromString(BODY_TEST)).when().get("/objects/goodId").then()
+            .body(JsonHandler.getFromString(BODY_TEST)).when().get("/units/goodId/object").then()
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeadersWithoutTenant()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
                 "GET")
-            .body(JsonHandler.getFromString(BODY_TEST)).when().get("/objects/goodId").then()
+            .body(JsonHandler.getFromString(BODY_TEST)).when().get("/units/goodId/object").then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
