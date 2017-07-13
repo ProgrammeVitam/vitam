@@ -184,7 +184,7 @@ public class ProfileServiceImpl implements ProfileService {
                 // log book + application log
                 // stop
                 final String errorsDetails =
-                    error.getErrors().stream().map(c -> c.getMessage()).collect(Collectors.joining(","));
+                    error.getErrors().stream().map(c -> c.getMessage()+ " : " + c.getDescription()).collect(Collectors.joining(","));
                 manager.logValidationError(PROFILES_IMPORT_EVENT, null, errorsDetails);
                 return error;
             }
