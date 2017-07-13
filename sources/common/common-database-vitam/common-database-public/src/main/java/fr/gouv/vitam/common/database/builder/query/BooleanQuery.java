@@ -103,7 +103,7 @@ public class BooleanQuery extends Query {
             }
             // in case sub request has those element set: not allowed
             elt.cleanDepth();
-            if (elt.currentTokenQUERY == QUERY.AND) {
+            if (currentTokenQUERY == QUERY.AND && elt.currentTokenQUERY == QUERY.AND) {
                 final BooleanQuery subelts = (BooleanQuery) elt;
                 for (final Query sub : subelts.queries) {
                     this.queries.add(sub);

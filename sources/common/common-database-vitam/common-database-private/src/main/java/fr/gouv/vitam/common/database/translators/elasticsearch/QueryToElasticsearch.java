@@ -736,7 +736,7 @@ public class QueryToElasticsearch {
         final BooleanQuery nthrequest = (BooleanQuery) req;
         final List<Query> sub = nthrequest.getQueries();
 
-        final BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder().minimumNumberShouldMatch(1);
+        final BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
         for (int i = 0; i < sub.size(); i++) {
             switch (query) {
                 case AND:
@@ -747,7 +747,7 @@ public class QueryToElasticsearch {
                     break;
                 case OR:
                 default:
-                    boolQueryBuilder.should(getCommand(sub.get(i)));
+                    boolQueryBuilder.minimumNumberShouldMatch(1).should(getCommand(sub.get(i)));
             }
         }
         return boolQueryBuilder;
