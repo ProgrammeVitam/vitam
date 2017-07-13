@@ -1995,7 +1995,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
             if (updateData.get(STATUS_FIELD_QUERY) != null &&
                 (updateData.get(ACTIVATION_DATE_FIELD_QUERY) != null ||
-                    updateData.get(DEACTIVATION_DATE_FIELD_QUERY) != null)) {
+                updateData.get(DEACTIVATION_DATE_FIELD_QUERY) != null)) {
                 actions.add(UpdateActionHelper.set(STATUS_FIELD_QUERY, updateData.get(STATUS_FIELD_QUERY)));
                 SetAction setActionDesactivationDateActive = null;
                 if (updateData.get(ACTIVATION_DATE_FIELD_QUERY) != null) {
