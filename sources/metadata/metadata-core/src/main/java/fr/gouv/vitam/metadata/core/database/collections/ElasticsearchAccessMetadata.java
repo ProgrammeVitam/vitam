@@ -695,24 +695,21 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * <p>
      * Bulk to delete entry indexes
      *
-     * @param cursor the {@link MongoCursor} of ObjectGroup
+     * @param ids list of ids of OG
      * @param tenantId the tenant for operation
      * @return boolean true if delete ok
      * @throws MetaDataExecutionException when delete index exception occurred
      */
-    public boolean deleteBulkOGEntriesIndexes(MongoCursor<ObjectGroup> cursor, final Integer tenantId)
+    public boolean deleteBulkOGEntriesIndexes(List<String> ids, final Integer tenantId)
         throws MetaDataExecutionException {
-        if (!cursor.hasNext()) {
+        if (ids.isEmpty()) {
             LOGGER.error("ES delete in error since no results to delete");
             throw new MetaDataExecutionException("No result to delete");
         }
         BulkRequestBuilder bulkRequest = client.prepareBulk();
         int max = VitamConfiguration.MAX_ELASTICSEARCH_BULK;
-        while (cursor.hasNext()) {
+        for (String id : ids) {
             max--;
-            final ObjectGroup og = cursor.next();
-            final String id = og.getId();
-            og.remove(VitamDocument.ID);
             bulkRequest.add(client.prepareDelete(getIndexName(MetadataCollections.C_OBJECTGROUP, tenantId),
                 ObjectGroup.TYPEUNIQUE, id));
             if (max == 0) {
@@ -743,23 +740,20 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * <p>
      * Bulk to delete entry indexes
      *
-     * @param cursor the {@link MongoCursor} of Unit, containing all Unit to be delete
+     * @param ids containing all Unit to be delete
      * @param tenantId the tenant of operation
      * @throws MetaDataExecutionException when delete exception occurred
      */
-    public void deleteBulkUnitsEntriesIndexes(MongoCursor<Unit> cursor, final Integer tenantId)
+    public void deleteBulkUnitsEntriesIndexes(List<String> ids, final Integer tenantId)
         throws MetaDataExecutionException {
-        if (!cursor.hasNext()) {
+        if (ids.isEmpty()) {
             LOGGER.error("ES delete in error since no results to delete");
             throw new MetaDataExecutionException("No result to delete");
         }
         BulkRequestBuilder bulkRequest = client.prepareBulk();
         int max = VitamConfiguration.MAX_ELASTICSEARCH_BULK;
-        while (cursor.hasNext()) {
+        for (String id : ids) {
             max--;
-            final Unit unit = cursor.next();
-            final String id = unit.getId();
-            unit.remove(VitamDocument.ID);
             bulkRequest
                 .add(client.prepareDelete(getIndexName(MetadataCollections.C_UNIT, tenantId), Unit.TYPEUNIQUE, id));
             if (max == 0) {

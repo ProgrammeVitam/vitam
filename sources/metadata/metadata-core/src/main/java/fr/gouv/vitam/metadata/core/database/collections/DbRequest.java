@@ -1045,19 +1045,7 @@ public class DbRequest {
             // no result to delete
             return;
         }
-        if (last.getCurrentIds().size() == 1) {
-            finalQuery = eq(MetadataDocument.ID, last.getCurrentIds().iterator().next());
-        } else {
-            finalQuery = in(MetadataDocument.ID, last.getCurrentIds());
-        }
-        @SuppressWarnings("unchecked")
-        final FindIterable<ObjectGroup> iterable = (FindIterable<ObjectGroup>) MongoDbMetadataHelper
-            .select(MetadataCollections.C_OBJECTGROUP, finalQuery, ObjectGroup.OBJECTGROUP_VITAM_PROJECTION);
-        // TODO maybe retry once if in error ?
-        try (final MongoCursor<ObjectGroup> cursor = iterable.iterator()) {
-            MetadataCollections.C_OBJECTGROUP.getEsClient().deleteBulkOGEntriesIndexes(cursor, tenantId);
-        }
-
+        MetadataCollections.C_OBJECTGROUP.getEsClient().deleteBulkOGEntriesIndexes(last.getCurrentIds(), tenantId);
     }
 
     /**
@@ -1076,18 +1064,7 @@ public class DbRequest {
             // no result to delete
             return;
         }
-        if (last.getCurrentIds().size() == 1) {
-            finalQuery = eq(MetadataDocument.ID, last.getCurrentIds().iterator().next());
-        } else {
-            finalQuery = in(MetadataDocument.ID, last.getCurrentIds());
-        }
-        @SuppressWarnings("unchecked")
-        final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper
-            .select(MetadataCollections.C_UNIT, finalQuery, Unit.UNIT_ES_PROJECTION);
-        // TODO maybe retry once if in error ?
-        try (final MongoCursor<Unit> cursor = iterable.iterator()) {
-            MetadataCollections.C_UNIT.getEsClient().deleteBulkUnitsEntriesIndexes(cursor, tenantId);
-        }
+        MetadataCollections.C_UNIT.getEsClient().deleteBulkUnitsEntriesIndexes(last.getCurrentIds(), tenantId);
     }
 
     /**
