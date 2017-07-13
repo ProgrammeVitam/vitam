@@ -508,7 +508,7 @@ public class IngestInternalIT {
             // Try to check OG
             select = new SelectMultiQuery();
             select.addRoots(og);
-            select.setProjectionSliceOnQualifier("BinaryMaster", 1);
+            select.setProjectionSliceOnQualifier();
             final JsonNode jsonResponse = metadataClient.selectObjectGrouptbyId(select.getFinalSelect(), og);
             LOGGER.warn("Result: " + jsonResponse);
             final List<String> valuesAsText = jsonResponse.get("$results").findValuesAsText("_id");
@@ -626,7 +626,7 @@ public class IngestInternalIT {
             // Try to check OG
             select = new SelectMultiQuery();
             select.addRoots(og);
-            select.setProjectionSliceOnQualifier("PhysicalMaster", 0);
+            select.setProjectionSliceOnQualifier();
             final JsonNode jsonResponse = metadataClient.selectObjectGrouptbyId(select.getFinalSelect(), og);
             LOGGER.warn("Result: " + jsonResponse);
             final List<String> valuesAsText = jsonResponse.get("$results").findValuesAsText("_id");

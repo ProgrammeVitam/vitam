@@ -231,13 +231,11 @@ public class SelectMultiQuery extends RequestMultiple {
 
     /**
      * Specific command to get the correct Qualifier and Version from ObjectGroup. By default always return "_id".
-     *
-     * @param qualifier might be either Xxx or Xxx_n
-     * @param version the version ob object group
      * @param additionalFields additional fields
+     *
      * @throws InvalidParseOperationException when projection parse exception occurred
      */
-    public void setProjectionSliceOnQualifier(String qualifier, int version, String... additionalFields)
+    public void setProjectionSliceOnQualifier(String... additionalFields)
         throws InvalidParseOperationException {
         // FIXME P1 : it would be nice to be able to handle $slice in projection via builder
         String projection =

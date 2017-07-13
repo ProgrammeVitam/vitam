@@ -300,7 +300,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         final SelectMultiQuery request = selectRequest.getRequest();
         request.reset().addRoots(idObjectGroup);
         // FIXME P1: we should find a better way to do that than use json, like a POJO.
-        request.setProjectionSliceOnQualifier(qualifier, version, "FormatIdentification", "FileInfo");
+        request.setProjectionSliceOnQualifier("FormatIdentification", "FileInfo");
 
         final JsonNode jsonResponse = selectObjectGroupById(request.getFinalSelect(), idObjectGroup);
         if (jsonResponse == null) {
@@ -311,6 +311,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             JsonHandler.getFromJsonNode(jsonResponse.get(RESULTS), ObjectGroupResponse.class);
 
 
+
         VersionsJson finalversionsResponse = null;
         // FIXME P1: do not use direct access but POJO
         // #2604 : Filter the given result for not having false positif in the request result
@@ -318,6 +319,11 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         if (objectGroupResponse.getQualifiers() != null) {
             final String dataObjectVersion = qualifier + "_" + version;
             for (QualifiersJson qualifiersResponse : objectGroupResponse.getQualifiers()) {
+                // FIXME very ugly fix, qualifier with underscore should be handled
+                if (qualifiersResponse.getQualifier() != null && qualifiersResponse.getQualifier().contains("_")) {
+                    qualifiersResponse.setQualifier(qualifiersResponse
+                        .getQualifier().split("_")[0]);
+                }
                 if (qualifier.equals(qualifiersResponse.getQualifier())) {
                     for (VersionsJson versionResponse : qualifiersResponse.getVersions()) {
                         if (dataObjectVersion.equals(versionResponse.getDataObjectVersion())) {
@@ -448,11 +454,13 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             if (updateLogbook) {
                 logbookOperationClient.create(logbookOpStpParamStart);
                 globalStep = false;
-    
+
                 // Update logbook operation TASK INDEXATION
-                logbookOpParamStart = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
-                    StatusCode.STARTED, VitamLogbookMessages.getCodeOp(UNIT_METADATA_UPDATE, StatusCode.STARTED), idGUID,
-                    UNIT_METADATA_UPDATE);
+                logbookOpParamStart =
+                    getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
+                        StatusCode.STARTED, VitamLogbookMessages.getCodeOp(UNIT_METADATA_UPDATE, StatusCode.STARTED),
+                        idGUID,
+                        UNIT_METADATA_UPDATE);
                 logbookOperationClient.update(logbookOpParamStart);
             }
             stepMetadataUpdate = false;
@@ -489,7 +497,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     VitamLogbookMessages.getCodeOp(UNIT_METADATA_STORAGE, StatusCode.STARTED),
                     idGUID, UNIT_METADATA_STORAGE);
                 logbookOperationClient.update(logbookOpParamStart);
-    
+
                 // update logbook lifecycle TASK STORAGE
                 logbookLCParamStart = getLogbookLifeCycleUpdateUnitParameters(updateOpGuidStart, StatusCode.STARTED,
                     idGUID, UNIT_METADATA_STORAGE);
@@ -516,7 +524,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 logbookLCParamEnd.putParameterValue(LogbookParameterName.eventDetailData,
                     getDiffMessageFor(jsonNode, idUnit));
                 logbookLifeCycleClient.update(logbookLCParamEnd);
-    
+
                 // update logbook operation STP
                 logbookOpStpParamEnd = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
                     StatusCode.OK, VitamLogbookMessages.getCodeOp(STP_UPDATE_UNIT, StatusCode.OK), idGUID,
