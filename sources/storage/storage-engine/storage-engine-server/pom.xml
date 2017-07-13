@@ -178,7 +178,7 @@
 					<archive>
 						<manifest>
 							<addClasspath>true</addClasspath>
-							<mainClass>fr.gouv.vitam.storage.engine.server.rest.StorageApplication</mainClass>
+							<mainClass>fr.gouv.vitam.storage.engine.server.rest.StorageMain</mainClass>
 						</manifest>
 					</archive>
 				</configuration>

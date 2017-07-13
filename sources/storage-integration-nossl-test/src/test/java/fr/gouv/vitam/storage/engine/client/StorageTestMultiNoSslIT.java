@@ -60,7 +60,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.FakeInputStream;
@@ -77,8 +76,8 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
-import fr.gouv.vitam.storage.engine.server.rest.StorageApplication;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
+import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferApplication;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -96,7 +95,7 @@ public class StorageTestMultiNoSslIT {
     private static final String DEFAULT_OFFER_CONF = "storage-test/storage-default-offer-nossl.conf";
     private static final String OFFER_FOLDER = "offer";
 
-    private static StorageApplication storageApplication;
+    private static StorageMain storageMain;
     private static StorageClient storageClient;
     private static final String STORAGE_CONF = "storage-test/storage-engine.conf";
 
@@ -133,7 +132,9 @@ public class StorageTestMultiNoSslIT {
         defaultOfferApplication.start();
 
         // storage engine
-        final StorageConfiguration serverConfiguration = PropertiesUtils.readYaml(PropertiesUtils.findFile(STORAGE_CONF),
+        File storageConfigurationFile = PropertiesUtils.findFile(STORAGE_CONF);
+        final StorageConfiguration serverConfiguration = PropertiesUtils.readYaml(
+            storageConfigurationFile,
                 StorageConfiguration.class);
         final Pattern compiledPattern = Pattern.compile(":(\\d+)");
         final Matcher matcher = compiledPattern.matcher(serverConfiguration.getUrlWorkspace());
@@ -147,17 +148,13 @@ public class StorageTestMultiNoSslIT {
         serverConfiguration.setZippingDirecorty(folder.newFolder().getAbsolutePath());
         serverConfiguration.setLoggingDirectory(folder.newFolder().getAbsolutePath());
 
-        try {
-            storageApplication = new StorageApplication(serverConfiguration);
-            storageApplication.start();
-        } catch (final VitamApplicationServerException e) {
-            LOGGER.error(e);
-            throw new IllegalStateException("Cannot start the Composite Application Server", e);
-        }
+        PropertiesUtils.writeYaml(storageConfigurationFile, serverConfiguration);
+
+        storageMain = new StorageMain(STORAGE_CONF);
+        storageMain.start();
 
         StorageClientFactory.getInstance().setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);
         storageClient = StorageClientFactory.getInstance().getClient();
-
     }
 
     @AfterClass
@@ -197,7 +194,7 @@ public class StorageTestMultiNoSslIT {
         }
         storageClient.close();
         defaultOfferApplication.stop();
-        storageApplication.stop();
+        storageMain.stop();
         folder.delete();
     }
 

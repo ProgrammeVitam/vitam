@@ -14,7 +14,7 @@
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
  *
- * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
@@ -24,42 +24,30 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common.server.application.configuration;
 
-import java.util.List;
+package fr.gouv.vitam.common.serverv2.application;
 
-import fr.gouv.vitam.common.ParametersChecker;
+import java.util.HashSet;
+import java.util.Set;
 
-/**
- * Default minimal Vitam Application Configuration
- */
-public abstract class DefaultVitamApplicationConfiguration implements VitamApplicationConfiguration {
-    protected static final String IS_A_MANDATORY_PARAMETER = " is a mandatory parameter";
-    protected String jettyConfig;
-    protected List<Integer> tenants;
+import fr.gouv.vitam.common.server.application.GenericExceptionMapper;
+import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
+import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
+import fr.gouv.vitam.common.serverv2.ConfigurationApplication;
 
-    @Override
-    public String getJettyConfig() {
-        return jettyConfig;
+public class AdminApplication extends ConfigurationApplication {
+
+    private Set<Object> singletons;
+
+    public AdminApplication() {
+        singletons = new HashSet<>();
+        singletons.add(new GenericExceptionMapper());
+        singletons.add(new AdminStatusResource(new VitamServiceRegistry()));
     }
 
     @Override
-    public VitamApplicationConfiguration setJettyConfig(String jettyConfig) {
-        ParametersChecker.checkParameter("JettyConfiguration file" + IS_A_MANDATORY_PARAMETER, jettyConfig);
-        this.jettyConfig = jettyConfig;
-        return this;
-    }
-    
-    @Override
-    public List<Integer> getTenants() {
-        return tenants;
-    }
-
-    @Override
-    public VitamApplicationConfiguration setTenants(List<Integer> tenants) {
-        ParametersChecker.checkParameter("Tenant id" + IS_A_MANDATORY_PARAMETER, tenants);
-        this.tenants = tenants;
-        return this;
+    public Set<Object> getSingletons() {
+        return singletons;
     }
 
 }

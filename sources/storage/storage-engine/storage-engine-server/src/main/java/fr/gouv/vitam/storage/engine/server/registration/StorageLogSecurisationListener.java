@@ -26,11 +26,18 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.server.registration;
 
+import java.io.IOException;
+import java.io.InputStream;
+
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.serverv2.ConfigurationFile;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.rest.StorageResource;
+import fr.gouv.vitam.storage.logbook.StorageLogbookService;
 
+import javax.imageio.IIOException;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
@@ -41,11 +48,21 @@ public class StorageLogSecurisationListener implements ServletContextListener {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageLogSecurisationListener.class);
     private final StorageConfiguration configuration;
-    private final StorageResource storageResource ;
-    public StorageLogSecurisationListener(
-        StorageResource storageResource, StorageConfiguration configuration) {
+    private final StorageResource storageResource;
+
+    public StorageLogSecurisationListener(StorageResource storageResource, StorageConfiguration configuration) {
         this.configuration = configuration;
-        this.storageResource = storageResource ;
+        this.storageResource = storageResource;
+    }
+
+    public StorageLogSecurisationListener(StorageResource storageResource, String configurationFile) {
+        this.storageResource = storageResource;
+        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
+            configuration = PropertiesUtils.readYaml(yamlIS, StorageConfiguration.class);
+        } catch (IOException e) {
+            // FIXME: erf... Runtime ?
+            throw new RuntimeException("Cannot configure listener " + this.getClass().getName());
+        }
     }
 
     @Override
@@ -53,16 +70,17 @@ public class StorageLogSecurisationListener implements ServletContextListener {
         LOGGER.debug("ServletContextListener started");
         //TODO RETRY TO Secure LOG When Server not shutdown correctly Or securisation fail
     }
-    //FIME  secure logs after rebooting server
+
+    //TODO  secure logs after rebooting server
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
         LOGGER.debug("ServletContextListener destroyed");
         try {
-            for ( Integer tenant : configuration.getTenants()) {
+            for (Integer tenant : configuration.getTenants()) {
                 storageResource.getStorageLogbookService().stopAppenderLoggerAndSecureLastLogs(tenant);
             }
         } catch (final Exception e) {
-            LOGGER.error("Fail to Backup Storage log " , e);
+            LOGGER.error("Fail to Backup Storage log ", e);
         }
     }
 

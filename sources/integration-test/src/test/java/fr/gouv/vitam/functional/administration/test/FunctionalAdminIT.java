@@ -79,8 +79,8 @@ import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.profile.api.ProfileService;
 import fr.gouv.vitam.functional.administration.profile.api.impl.ProfileServiceImpl;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.server.rest.StorageApplication;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
+import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
 /**
@@ -112,7 +112,7 @@ public class FunctionalAdminIT {
     private static final String STORAGE_CONF = "functional-admin/storage-engine.conf";
     private static int serverPort;
     private static int workspacePort;
-    private static StorageApplication storageApplication;
+    private static StorageMain storageMain;
     private static WorkspaceApplication workspaceApplication;
     private static VitamCounterService vitamCounterService;
     private static MongoDbAccessAdminImpl dbImpl;
@@ -151,8 +151,9 @@ public class FunctionalAdminIT {
                 "Cannot start Workspace Server", e);
         }
         // Prepare storage
+        File storageConfigurationFile = PropertiesUtils.findFile(STORAGE_CONF);
         final StorageConfiguration serverConfiguration =
-            PropertiesUtils.readYaml(PropertiesUtils.findFile(STORAGE_CONF), StorageConfiguration.class);
+            PropertiesUtils.readYaml(storageConfigurationFile, StorageConfiguration.class);
         final Pattern compiledPattern = Pattern.compile(":(\\d+)");
         final Matcher matcher = compiledPattern.matcher(serverConfiguration.getUrlWorkspace());
         if (matcher.find()) {
@@ -167,14 +168,12 @@ public class FunctionalAdminIT {
         serverPort = junitHelper.findAvailablePort();;
         RestAssured.port = serverPort;
         RestAssured.basePath = REST_URI;
-        try {
-            storageApplication = new StorageApplication(serverConfiguration);
-            storageApplication.start();
-        } catch (final VitamApplicationServerException e) {
-            LOGGER.error(e);
-            throw new IllegalStateException(
-                "Cannot start storage Server", e);
-        }
+
+        PropertiesUtils.writeYaml(storageConfigurationFile, serverConfiguration);
+
+        storageMain = new StorageMain(STORAGE_CONF);
+        storageMain.start();
+
         WorkspaceClientFactory.changeMode("http://localhost:" + workspacePort);
         final WorkspaceClientFactory workspaceClientFactory = WorkspaceClientFactory.getInstance();
         profileService =
@@ -185,7 +184,7 @@ public class FunctionalAdminIT {
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
         workspaceApplication.stop();
-        storageApplication.stop();
+        storageMain.stop();
         mongod.stop();
         mongodExecutable.stop();
         junitHelper.releasePort(mongoPort);

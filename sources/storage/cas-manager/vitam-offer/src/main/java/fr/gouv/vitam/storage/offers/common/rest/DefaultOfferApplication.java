@@ -130,4 +130,5 @@ public final class DefaultOfferApplication extends AbstractVitamApplication<Defa
                     DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
         }
     }
+
 }

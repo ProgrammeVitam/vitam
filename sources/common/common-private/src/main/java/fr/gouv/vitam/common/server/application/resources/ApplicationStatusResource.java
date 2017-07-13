@@ -88,6 +88,7 @@ public class ApplicationStatusResource implements VitamResource {
     @Path(STATUS_URL)
     @Produces(MediaType.APPLICATION_JSON)
     public Response status() {
+
         if (statusService.getResourcesStatus()) {
             return Response.status(Status.NO_CONTENT).build();
         } else {
