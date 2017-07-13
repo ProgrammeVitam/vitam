@@ -1,0 +1,48 @@
+<div id="global" class="container-fluid">
+    <ol class="breadcrumb">
+        <li>Administration</li>
+        <li><a href="#!/admin/contexts">Contextes applicatifs</a></li>
+        <li><a href="#!/admin/contexts/{{context._id}}">Détail d'un contexte applicatif</a></li>
+    </ol>
+
+    <div class="panel panel-default boxSearchWrapper col-md-12">
+                <span class="panel-header no-toggle">
+                    <h2>Détail d'un contexte applicatif - {{context._id}}</h2>
+                </span>
+        <div id="boxContextsList" class="panel-collapse">
+            <div id="collapse1" class="panel-body">
+                <div class="panel-body">
+
+                    <form>
+                        <input type="hidden" name="hiddenField"/>
+                    </form>
+                    <div class="form-group col-md-6">
+                        <label>Nom</label>
+                        <span>{{context.Name}}</span>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label>Statut</label>
+                        <span>{{context.Status}}</span>
+                    </div>
+                    <br/>
+                    <div ng-repeat="permission in context.Permissions">
+                        <div class="form-group col-md-4" style="background-color: #F5F5F5; border-color: #FFFFFF; border-style: solid; border-width: 10px;">
+                            <br/>
+                            <label>tenant {{permission._tenant}}:</label>
+                            <label>Liste contrats d'accès</label>
+                            <div ng-repeat="ac in permission.AccessContracts">
+                                <span>{{ac}}</span>
+                            </div>
+                            <br/>
+                            <label>Liste contrats d'entrée</label>
+                            <div ng-repeat="ic in permission.IngestContracts">
+                                <span>{{ic}}</span>
+                            </div>
+                            <br/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

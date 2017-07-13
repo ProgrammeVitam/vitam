@@ -25,32 +25,23 @@
  * accept its terms.
  */
 
-'use strict';
+// Define resources in order to call WebApp http endpoints for context
+angular.module('core')
+    .factory('contextResource', function(ihmDemoCLient) {
 
-// Define the `ihm-demo` module
-angular.module('ihm.demo', [
-  'ngAnimate',
-  'ngFileUpload',
-  'ui.bootstrap',
-  'ui.multiselect',
-  'ngRoute',
-  'core',
-  'archiveSearch',
-  'angularFileUpload',
-  'ngMaterial',
-  'archive.unit',
-  'vAccordion',
-  'ngCookies',
-  'lifecycle',
-  'pascalprecht.translate',
-  'accession.register.search',
-  'accession.register.details',
-  'flow',
-  'workflows',
-  'accessContracts',
-  'entryContracts',
-  'contexts',
-  'traceability.operation.search',
-  'traceability.operation.details',
-  'profiles.search'
-]);
+        var accessContractResource = {};
+
+        accessContractResource.getDetails = function (id, callback) {
+            ihmDemoCLient.getClient('contexts').one(id).get().then(function (response) {
+                callback(response);
+            }, function (error) {
+                console.log('Error while read contract with id: ' + id, error);
+            });
+        }
+
+        accessContractResource.update = function (id, data) {
+            return ihmDemoCLient.getClient('contexts').all(id).post(data);
+        };
+
+        return accessContractResource;
+    });
