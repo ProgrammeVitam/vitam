@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -49,6 +50,8 @@ import java.util.stream.Collectors;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.sun.xml.internal.bind.v2.model.core.TypeRef;
 import org.assertj.core.api.AutoCloseableSoftAssertions;
 import org.assertj.core.api.Fail;
 
@@ -133,7 +136,22 @@ public class AccessStep {
         List<List<String>> raws = dataTable.raw();
 
         for (List<String> raw : raws) {
-            String resultValue = getResultValue(firstJsonNode, raw.get(0));
+            String key = raw.get(0);
+            boolean isArray = false;
+            boolean isOfArray = false;
+
+
+            if (null != key && key.endsWith(".array[][]")) {
+                key = key.replace(".array[][]", "");
+                isOfArray = true;
+            }
+
+            if (null != key && key.endsWith(".array[]")) {
+                key = key.replace(".array[]", "");
+                isArray = true;
+            }
+
+            String resultValue = getResultValue(firstJsonNode, key);
             if (null != resultValue) {
                 resultValue = resultValue.replace("\n", "").replace("\\n", "");
             }
@@ -141,7 +159,31 @@ public class AccessStep {
             if (null != resultExpected) {
                 resultExpected = resultExpected.replace("\n", "").replace("\\n", "");
             }
-            assertThat(resultValue).contains(resultExpected);
+
+            if (!isArray && !isOfArray) {
+                assertThat(resultValue).contains(resultExpected);
+            } else {
+                if (isArray) {
+                    Set<String> resultArray =
+                        JsonHandler.getFromStringAsTypeRefence(resultValue, new TypeReference<Set<String>>() {
+                        });
+
+                    Set<String> expectedrray =
+                        JsonHandler.getFromStringAsTypeRefence(resultExpected, new TypeReference<Set<String>>() {
+                        });
+                    assertThat(resultArray).isEqualTo(expectedrray);
+                } else {
+                    Set<Set<String>> resultArray =
+                        JsonHandler.getFromStringAsTypeRefence(resultValue, new TypeReference<Set<Set<String>>>() {
+                        });
+
+                    Set<Set<String>> expectedrray =
+                        JsonHandler.getFromStringAsTypeRefence(resultExpected, new TypeReference<Set<Set<String>>>() {
+                        });
+
+                    assertThat(expectedrray).isEqualTo(resultArray);
+                }
+            }
         }
     }
 
@@ -300,7 +342,7 @@ public class AccessStep {
         RequestResponse<JsonNode> requestResponse = world.getAccessClient().updateUnitbyId(queryJSON, unitId,
             world.getTenantId(), world.getContractId());
         assertThat(requestResponse.isOk()).isFalse();
-        final VitamError vitamError = (VitamError)requestResponse;
+        final VitamError vitamError = (VitamError) requestResponse;
         assertThat(Response.Status.valueOf(status.toUpperCase()).getStatusCode()).isEqualTo(vitamError.getHttpCode());
     }
 
