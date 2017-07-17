@@ -101,6 +101,8 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 
 public class IngestContractImpl implements ContractService<IngestContractModel> {
 
+    private static final String THE_INGEST_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT = "The Ingest contract status must be ACTIVE or INACTIVE but not ";
+    private static final String INGEST_CONTRACT_NOT_FIND = "Ingest contract not find";
     private static final String CONTRACT_IS_MANDATORY_PATAMETER = "The collection of ingest contracts is mandatory";
     private static final String CONTRACTS_IMPORT_EVENT = "STP_IMPORT_INGEST_CONTRACT";
     private static final String CONTRACT_UPDATE_EVENT = "STP_UPDATE_INGEST_CONTRACT";
@@ -596,7 +598,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         final IngestContractModel ingestContractModel = findOne(id);
         if (ingestContractModel == null) {
             return error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
-                "Access contract not find" + id));
+                INGEST_CONTRACT_NOT_FIND + id));
         }
         final IngestContractManager manager = new IngestContractManager(logBookclient);
         manager.logUpdateStarted(ingestContractModel.getId());
@@ -614,7 +616,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                         if (!(ContractStatus.ACTIVE.name().equals(value.asText()) || ContractStatus.INACTIVE
                             .name().equals(value.asText()))) {
                             error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem())
-                                .setMessage("The Ingest contract status must be ACTIVE or INACTIVE but not " +
+                                .setMessage(THE_INGEST_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT +
                                     value.asText()));
                         }
                         updateStatus = value.asText();

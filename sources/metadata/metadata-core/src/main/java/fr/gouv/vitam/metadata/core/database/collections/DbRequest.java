@@ -505,7 +505,7 @@ public class DbRequest {
 
         final Result<MetadataDocument<?>> result =
             MetadataCollections.C_UNIT.getEsClient().search(MetadataCollections.C_UNIT, tenantId,
-                Unit.TYPEUNIQUE, query, null, sorts, offset, limit);
+                VitamCollection.getTypeunique(), query, null, sorts, offset, limit);
 
         if (GlobalDatasDb.PRINT_REQUEST) {
             LOGGER.warn("UnitExact: {}", result);
@@ -573,7 +573,7 @@ public class DbRequest {
 
         final Result<MetadataDocument<?>> resultPreviousFilter =
             MetadataCollections.C_UNIT.getEsClient().search(MetadataCollections.C_UNIT, tenantId,
-                Unit.TYPEUNIQUE, query, null, sorts, offset, limit);
+                VitamCollection.getTypeunique(), query, null, sorts, offset, limit);
 
         // Now filter to remove false positive for > 1
         Result<MetadataDocument<?>> result = resultPreviousFilter;
@@ -697,7 +697,7 @@ public class DbRequest {
 
         LOGGER.debug(QUERY2 + "{}", finalQuery);
         return MetadataCollections.C_UNIT.getEsClient().search(MetadataCollections.C_UNIT, tenantId,
-            Unit.TYPEUNIQUE, finalQuery, null, sorts, offset, limit);
+            VitamCollection.getTypeunique(), finalQuery, null, sorts, offset, limit);
     }
 
     /**
@@ -739,7 +739,7 @@ public class DbRequest {
 
         LOGGER.debug(QUERY2 + "{}", finalQuery);
         return MetadataCollections.C_OBJECTGROUP.getEsClient().search(MetadataCollections.C_OBJECTGROUP, tenantId,
-            Unit.TYPEUNIQUE, finalQuery, null, sorts, offset, limit);
+            VitamCollection.getTypeunique(), finalQuery, null, sorts, offset, limit);
     }
 
     private Result<MetadataDocument<?>> getDebug(FILTERARGS model, Result<MetadataDocument<?>> last)

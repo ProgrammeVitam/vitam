@@ -51,7 +51,7 @@ class SiegfriedClientMock extends AbstractMockClient implements SiegfriedClient 
     @Override
     public RequestResponse<JsonNode> analysePath(Path filePath)
         throws FormatIdentifierTechnicalException, FormatIdentifierNotFoundException {
-        return new RequestResponseOK().addResult(getFormatJson());
+        return new RequestResponseOK().addResult(getFormatJson(filePath));
     }
 
     private JsonNode getVersionJson() {
@@ -62,6 +62,48 @@ class SiegfriedClientMock extends AbstractMockClient implements SiegfriedClient 
     private JsonNode getFormatJson() {
         final String okResponse =
             "{\"files\":[{\"matches\":[{\"ns\": \"pronom\",\"id\": \"x-fmt/263\",\"format\": \"ZIP Format\",\"mime\": \"application/zip\"}]}]}";
+        return getJsonNode(okResponse);
+    }
+
+    private JsonNode getFormatJson(Path path) {
+        final String okResponse;
+        if (path.endsWith(".zip")) {
+            okResponse =
+                "{\"files\":[{\"matches\":[{\"ns\": \"pronom\",\"id\": \"x-fmt/263\",\"format\": \"ZIP Format\",\"mime\": \"application/zip\"}]}]}";
+        } else if (path.endsWith(".tar.gz")) {
+            okResponse =
+                "{\"files\":[{\"matches\":[{\"ns\": \"pronom\",\"id\": \"x-fmt/266\",\"format\": \"TAR GZIP Format\",\"mime\": \"application/x-tar\"}]}]}";
+        } else if (path.endsWith(".tar.bz2")) {
+            okResponse =
+                "{\"files\":[{\"matches\":[{\"ns\": \"pronom\",\"id\": \"x-fmt/267\",\"format\": \"TAR BZ2 Format\",\"mime\": \"application/x-bzip2\"}]}]}";
+        } else if (path.endsWith(".tar")) {
+            okResponse =
+                "{\"files\":[{\"matches\":[{\"ns\": \"pronom\",\"id\": \"x-fmt/265\",\"format\": \"TAR Format\",\"mime\": \"application/x-tar\"}]}]}";
+        } else if (path.endsWith(".pdf")) {
+            okResponse =
+                "{\"files\":[{\"matches\":[{\"ns\": \"pronom\",\"id\": \"x-fmt/18\",\"format\": \"PDF Format\",\"mime\": \"application/pdf\"}]}]}";
+        } else if (path.endsWith(".jpg")) {
+            okResponse =
+                "{\"files\":[{\"matches\":[{\"ns\": \"pronom\",\"id\": \"fmt/43\",\"format\": \"JPG Format\",\"mime\": \"image/jpeg\"}]}]}";
+        } else if (path.endsWith(".png")) {
+            okResponse =
+                "{\"files\":[{\"matches\":[{\"ns\": \"pronom\",\"id\": \"fmt/12\",\"format\": \"PNG Format\",\"mime\": \"image/png\"}]}]}";
+        } else if (path.endsWith(".ods")) {
+            okResponse =
+                "{\"files\":[{\"matches\":[{\"ns\": \"pronom\",\"id\": \"fmt/295\",\"format\": \"ODS Format\",\"mime\": \"application/vnd.oasis.opendocument.spreadsheet\"}]}]}";
+        } else if (path.endsWith(".odt")) {
+            okResponse =
+                "{\"files\":[{\"matches\":[{\"ns\": \"pronom\",\"id\": \"fmt/290\",\"format\": \"ODT Format\",\"mime\": \"application/vnd.oasis.opendocument.text\"}]}]}";
+        } else if (path.endsWith(".doc")) {
+            okResponse =
+                "{\"files\":[{\"matches\":[{\"ns\": \"pronom\",\"id\": \"fmt/40\",\"format\": \"DOC Format\",\"mime\": \"application/msword\"}]}]}";
+        } else if (path.endsWith(".xls")) {
+            okResponse =
+                "{\"files\":[{\"matches\":[{\"ns\": \"pronom\",\"id\": \"fmt/61\",\"format\": \"XLS Format\",\"mime\": \"application/vnd.ms-excel\"}]}]}";
+        } else {
+            okResponse =
+                "{\"files\":[{\"matches\":[{\"ns\": \"pronom\",\"id\": \"x-fmt/263\",\"format\": \"ZIP Format\",\"mime\": \"application/zip\"}]}]}";
+        }
         return getJsonNode(okResponse);
     }
 

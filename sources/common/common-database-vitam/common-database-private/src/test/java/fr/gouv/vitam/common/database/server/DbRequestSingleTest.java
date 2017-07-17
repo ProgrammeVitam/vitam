@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
-import com.mongodb.client.MongoCursor;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
@@ -149,25 +148,22 @@ public class DbRequestSingleTest {
         // find all
         final Select select = new Select();
         final DbRequestResult selectResult = dbRequestSingle.execute(select);
-        final MongoCursor<VitamDocument<?>> selectCursor = selectResult.getCursor();
-        assertEquals(true, selectCursor.hasNext());
-        selectCursor.next();
-        assertEquals(true, selectCursor.hasNext());
-        selectCursor.next();
-        assertEquals(false, selectCursor.hasNext());
-        selectCursor.close();
+        final List<VitamDocument> selectCursor = selectResult.getDocuments(VitamDocument.class);
+        assertEquals(true, !selectCursor.isEmpty());
+        assertEquals(2, selectCursor.size());
+        selectCursor.clear();
         selectResult.close();
 
         // find with sort in mongo
         final Select sortedSelect = new Select();
         sortedSelect.addOrderByDescFilter("Title");
         final DbRequestResult sortedSelectResult = dbRequestSingle.execute(sortedSelect);
-        final MongoCursor<VitamDocument<?>> sortedSelectCursor = sortedSelectResult.getCursor();
-        final Document documentSorted1 = sortedSelectCursor.next();
-        final Document documentSorted2 = sortedSelectCursor.next();
+        final List<VitamDocument> sortedSelectCursor = sortedSelectResult.getDocuments(VitamDocument.class);
+        final Document documentSorted1 = sortedSelectCursor.get(0);
+        final Document documentSorted2 = sortedSelectCursor.get(1);
         assertEquals("title two", documentSorted1.getString("Title"));
         assertEquals("title one", documentSorted2.getString("Title"));
-        sortedSelectCursor.close();
+        sortedSelectCursor.clear();
         sortedSelectResult.close();
 
         // find with sort in ES
@@ -175,12 +171,12 @@ public class DbRequestSingleTest {
         sortedSelectES.setQuery(match("Title", "title"));
         sortedSelectES.addOrderByDescFilter("Title");
         DbRequestResult sortedSelectESResult = dbRequestSingle.execute(sortedSelectES);
-        MongoCursor<VitamDocument<?>> sortedSelectESCursor = sortedSelectESResult.getCursor();
-        final Document documentSortedES1 = sortedSelectESCursor.next();
-        final Document documentSortedES2 = sortedSelectESCursor.next();
+        List<VitamDocument> sortedSelectESCursor = sortedSelectESResult.getDocuments(VitamDocument.class);
+        final Document documentSortedES1 = sortedSelectESCursor.get(0);
+        final Document documentSortedES2 = sortedSelectESCursor.get(1);
         assertEquals("title two", documentSortedES1.getString("Title"));
         assertEquals("title one", documentSortedES2.getString("Title"));
-        sortedSelectESCursor.close();
+        sortedSelectESCursor.clear();
         sortedSelectESResult.close();
 
         // update
@@ -192,11 +188,9 @@ public class DbRequestSingleTest {
         updateResult.close();
 
         sortedSelectESResult = dbRequestSingle.execute(sortedSelectES);
-        sortedSelectESCursor = sortedSelectESResult.getCursor();
-        assertEquals(true, sortedSelectESCursor.hasNext());
-        sortedSelectESCursor.next();
-        assertEquals(false, sortedSelectESCursor.hasNext());
-        sortedSelectESCursor.close();
+        sortedSelectESCursor = sortedSelectESResult.getDocuments(VitamDocument.class);
+        assertEquals(1, sortedSelectESCursor.size());
+        sortedSelectESCursor.clear();
         sortedSelectESResult.close();
 
         // delete

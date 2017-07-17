@@ -67,6 +67,7 @@ import java.util.List;
 @javax.ws.rs.ApplicationPath("webresources")
 public class ContractResource {
 
+    private static final String ADMIN_MODULE = "ADMIN_MODULE";
     static final String INGEST_CONTRACTS_URI = "/entrycontracts";
     static final String ACCESS_CONTRACTS_URI = "/accesscontracts";
     static final String UPDATE_ACCESS_CONTRACT_URI = "/accesscontracts";
@@ -314,7 +315,7 @@ public class ContractResource {
             (message != null && !message.trim().isEmpty()) ? message
                 : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
         String aCode = (code != null) ? code : String.valueOf(status.getStatusCode());
-        return new VitamError(aCode).setHttpCode(status.getStatusCode()).setContext("ADMIN_MODULE")
+        return new VitamError(aCode).setHttpCode(status.getStatusCode()).setContext(ADMIN_MODULE)
             .setState("code_vitam").setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
 

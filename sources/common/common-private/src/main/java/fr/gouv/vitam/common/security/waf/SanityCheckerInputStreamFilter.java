@@ -32,6 +32,6 @@ public class SanityCheckerInputStreamFilter implements ContainerRequestFilter {
 
     private VitamError getErrorEntity(Response.Status status) {
         return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(CHECK_SANITY)
-            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase());
+            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription("Send of Stream must be in Chunked Mode");
     }
 }

@@ -97,6 +97,10 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  *
  */
 public class ProfileServiceImpl implements ProfileService {
+    private static final String PROFILE_SERVICE_ERROR = "Profile service Error";
+
+    private static final String FUNCTIONAL_MODULE_PROFILE = "FunctionalModule-Profile";
+
     private static final String PROFIL_PREFIX = "PR";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProfileServiceImpl.class);
@@ -486,8 +490,8 @@ public class ProfileServiceImpl implements ProfileService {
 
 
     private VitamError getVitamError(String vitamCode, String error) {
-        return new VitamError(vitamCode).setMessage("Profile service Error").setState("ko")
-            .setContext("FunctionalModule-Profile").setDescription(error);
+        return new VitamError(vitamCode).setMessage(PROFILE_SERVICE_ERROR).setState("ko")
+            .setContext(FUNCTIONAL_MODULE_PROFILE).setDescription(error);
     }
 
     @Override

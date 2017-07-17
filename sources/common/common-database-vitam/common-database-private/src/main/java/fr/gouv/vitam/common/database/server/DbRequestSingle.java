@@ -268,7 +268,7 @@ public class DbRequestSingle {
         // either use client#prepare, or use Requests# to directly build index/delete requests
         for (final Entry<String, String> val : mapIdJson.entrySet()) {
             bulkRequest.setRefresh(true)
-                .add(client.prepareIndex(vitamCollection.getName().toLowerCase(), vitamCollection.getTypeunique(),
+                .add(client.prepareIndex(vitamCollection.getName().toLowerCase(), VitamCollection.getTypeunique(),
                     val.getKey()).setSource(val.getValue()));
         }
         return bulkRequest.execute().actionGet();
@@ -424,7 +424,7 @@ public class DbRequestSingle {
         final SearchRequestBuilder request =
             vitamCollection.getEsClient().getClient()
                 .prepareSearch(vitamCollection.getName().toLowerCase()).setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
-                .setTypes(vitamCollection.getTypeunique()).setExplain(false).setFrom(offset)
+                .setTypes(VitamCollection.getTypeunique()).setExplain(false).setFrom(offset)
                 .setSize(GlobalDatas.LIMIT_LOAD < limit ? GlobalDatas.LIMIT_LOAD : limit)
                 .addFields(VitamDocument.ID, VitamDocument.TENANT_ID);
         if (sorts != null) {
@@ -587,7 +587,7 @@ public class DbRequestSingle {
             max--;
             bulkRequest
                 .add(
-                    client.prepareDelete(vitamCollection.getName().toLowerCase(), vitamCollection.getTypeunique(), id));
+                    client.prepareDelete(vitamCollection.getName().toLowerCase(), VitamCollection.getTypeunique(), id));
             if (max == 0) {
                 max = VitamConfiguration.MAX_ELASTICSEARCH_BULK;
                 final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new

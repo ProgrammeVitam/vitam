@@ -95,6 +95,10 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 
 public class AccessContractImpl implements ContractService<AccessContractModel> {
 
+    private static final String THE_ACCESS_CONTRACT_EVERY_DATA_OBJECT_VERSION_MUST_BE_TRUE_OR_FALSE_BUT_NOT = "The Access contract EveryDataObjectVersion must be true or false but not ";
+    private static final String THE_ACCESS_CONTRACT_EVERY_ORIGINATING_AGENCY_MUST_BE_TRUE_OR_FALSE_BUT_NOT = "The Access contract EveryOriginatingAgency must be true or false but not ";
+    private static final String THE_ACCESS_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT = "The Access contract status must be ACTIVE or INACTIVE but not ";
+    private static final String ACCESS_CONTRACT_NOT_FIND = "Access contract not find";
     private static final String ACCESS_CONTRACT_IS_MANDATORY_PATAMETER =
         "The collection of access contracts is mandatory";
     private static final String UPDATE_ACCESS_CONTRACT_MANDATORY_PATAMETER = "access contracts is mandatory";
@@ -538,7 +542,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
         Map<String, List<String>> updateDiffs = new HashMap<>();
         if (accContractModel == null) {
             return error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
-                "Access contract not find" + id));
+                ACCESS_CONTRACT_NOT_FIND + id));
         }
         final AccessContractManager manager = new AccessContractManager(logBookclient);
         manager.logUpdateStarted(accContractModel.getId());
@@ -559,18 +563,18 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                         if (!(ContractStatus.ACTIVE.name().equals(value.asText()) || ContractStatus.INACTIVE
                             .name().equals(value.asText()))) {
                             error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
-                                "The Access contract status must be ACTIVE or INACTIVE but not " + value.asText()));
+                                THE_ACCESS_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT + value.asText()));
                         }
                     } else if (AccessContractModel.EVERY_ORIGINATINGAGENCY.equals(field)) {
                         if (!(value instanceof BooleanNode)) {
                             error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
-                                "The Access contract EveryOriginatingAgency must be true or false but not " +
+                                THE_ACCESS_CONTRACT_EVERY_ORIGINATING_AGENCY_MUST_BE_TRUE_OR_FALSE_BUT_NOT +
                                     value.asText()));
                         }
                     } else if (AccessContractModel.EVERY_DATA_OBJECT_VERSION.equals(field)) {
                         if (!(value instanceof BooleanNode)) {
                             error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
-                                "The Access contract EveryDataObjectVersion must be true or false but not " +
+                                THE_ACCESS_CONTRACT_EVERY_DATA_OBJECT_VERSION_MUST_BE_TRUE_OR_FALSE_BUT_NOT +
                                     value.asText()));
                         }
                     }

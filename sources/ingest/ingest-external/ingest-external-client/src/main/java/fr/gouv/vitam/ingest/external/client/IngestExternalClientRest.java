@@ -73,6 +73,7 @@ import fr.gouv.vitam.ingest.external.common.client.ErrorMessage;
  * Ingest External client
  */
 class IngestExternalClientRest extends DefaultClient implements IngestExternalClient {
+    private static final String INGEST_EXTERNAL_MODULE = "IngestExternalModule";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalClientRest.class);
     private static final String INGEST_URL = "/ingests";
     private static final String BLANK_OBJECT_ID = "object identifier should be filled";
@@ -120,13 +121,13 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
                     final VitamError vitamError = new VitamError(VitamCode.INGEST_EXTERNAL_UPLOAD_ERROR.getItem())
                         .setMessage(VitamCode.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage())
                         .setState(StatusCode.KO.name())
-                        .setContext("IngestExternalModule");
+                        .setContext(INGEST_EXTERNAL_MODULE);
 
                     return vitamError.setHttpCode(status.getStatusCode())
                     .setDescription(VitamCode.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage() + " Cause : " +
                         status.getReasonPhrase());
                 default:
-                    throw new IngestExternalException("Unknown error");
+                    throw new IngestExternalException("Unknown error: " + status.getReasonPhrase());
             }
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Ingest External Internal Server Error", e);
@@ -196,7 +197,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
                     new VitamError(VitamCode.INGEST_EXTERNAL_EXECUTE_OPERATION_PROCESS_ERROR.getItem())
                         .setMessage(VitamCode.INGEST_EXTERNAL_EXECUTE_OPERATION_PROCESS_ERROR.getMessage())
                         .setState(StatusCode.KO.name())
-                        .setContext("IngestExternalModule")
+                        .setContext(INGEST_EXTERNAL_MODULE)
                         .setDescription("");
 
                 if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
@@ -424,7 +425,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
                     new VitamError(VitamCode.INGEST_EXTERNAL_CANCEL_OPERATION_PROCESS_EXECUTION_ERROR.getItem())
                         .setMessage(VitamCode.INGEST_EXTERNAL_CANCEL_OPERATION_PROCESS_EXECUTION_ERROR.getMessage())
                         .setState(StatusCode.KO.name())
-                        .setContext("IngestExternalModule")
+                        .setContext(INGEST_EXTERNAL_MODULE)
                         .setDescription("");
 
                 if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {

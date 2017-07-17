@@ -56,7 +56,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCursor;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
@@ -295,7 +294,7 @@ public class MongoDbAccessAdminImplTest {
             .add(eq(FileFormat.PUID, FILEFORMAT_PUID)));
         final DbRequestResult fileList =
             mongoAccess.findDocuments(select.getFinalSelect(), formatCollection);
-        final FileFormat f1 = (FileFormat) fileList.getCursor().next();
+        final FileFormat f1 = (FileFormat) fileList.getDocuments(FileFormat.class).get(0);
         final String id = f1.getString("_id");
         final FileFormat f2 = (FileFormat) mongoAccess.getDocumentById(id, formatCollection);
         if (VitamConfiguration.EXPORT_SCORE) {
@@ -306,7 +305,7 @@ public class MongoDbAccessAdminImplTest {
         final FileFormat f3 = (FileFormat) mongoAccess.getDocumentByUniqueId(puid, formatCollection, FileFormat.PUID);
         assertEquals(f3, f1);
         formatCollection.getEsClient().refreshIndex(formatCollection);
-        assertEquals(false, fileList.getCursor().hasNext());
+        assertEquals(1, fileList.getCount());
         fileList.close();
         
         // Test select by query with order on name
@@ -315,13 +314,13 @@ public class MongoDbAccessAdminImplTest {
         selectWithSortName.addOrderByDescFilter(FileFormat.NAME);
         final DbRequestSingle dbrequestSort = new DbRequestSingle(formatCollection.getVitamCollection());
         final DbRequestResult selectSortResult = dbrequestSort.execute(selectWithSortName);
-        final MongoCursor<VitamDocument<?>> selectSortList = selectSortResult.getCursor();
-        assertEquals(true, selectSortList.hasNext());
-        FileFormat fileFormatFirst = (FileFormat) selectSortList.next();
+        final List<FileFormat> selectSortList = selectSortResult.getDocuments(FileFormat.class);
+        assertEquals(true, !selectSortList.isEmpty());
+        FileFormat fileFormatFirst = (FileFormat) selectSortList.get(0);
         assertEquals(FILEFORMAT_PUID_3, fileFormatFirst.getString(FileFormat.PUID));
-        FileFormat fileFormatSecond = (FileFormat) selectSortList.next();
+        FileFormat fileFormatSecond = (FileFormat) selectSortList.get(1);
         assertEquals(FILEFORMAT_PUID_2, fileFormatSecond.getString(FileFormat.PUID));
-        selectSortList.close();
+        selectSortList.clear();
         selectSortResult.close();
 
         // Test select by query with order on id
@@ -330,13 +329,13 @@ public class MongoDbAccessAdminImplTest {
         selectWithSortName.addOrderByAscFilter(FileFormat.PUID);
         final DbRequestSingle dbrequestSortId = new DbRequestSingle(formatCollection.getVitamCollection());
         final DbRequestResult selectSortIdResult = dbrequestSortId.execute(selectWithSortId);
-        final MongoCursor<VitamDocument<?>> selectSortIdList = selectSortIdResult.getCursor();
-        assertEquals(true, selectSortIdList.hasNext());
-        fileFormatFirst = (FileFormat) selectSortIdList.next();
+        final List<FileFormat> selectSortIdList = selectSortIdResult.getDocuments(FileFormat.class);
+        assertEquals(true, !selectSortIdList.isEmpty());
+        fileFormatFirst = (FileFormat) selectSortIdList.get(0);
         assertEquals(FILEFORMAT_PUID_2, fileFormatFirst.getString(FileFormat.PUID));
-        fileFormatSecond = (FileFormat) selectSortIdList.next();
+        fileFormatSecond = (FileFormat) selectSortIdList.get(1);
         assertEquals(FILEFORMAT_PUID_3, fileFormatSecond.getString(FileFormat.PUID));
-        selectSortIdList.close();
+        selectSortIdList.clear();
         selectSortIdResult.close();
 
         // Test update and delete by query
@@ -391,7 +390,7 @@ public class MongoDbAccessAdminImplTest {
                 .add(eq(FileRules.RULETYPE, "AccessRule"))));
         final DbRequestResult fileList =
             mongoAccess.findDocuments(select.getFinalSelect(), rulesCollection);
-        final FileRules f1 = (FileRules) fileList.getCursor().next();
+        final FileRules f1 = (FileRules) fileList.getDocuments(FileRules.class).get(0);
         LOGGER.debug(f1.toJson());
         assertEquals(RULE_ID_VALUE, f1.getString(RULE_ID));
         rulesCollection.getEsClient().refreshIndex(rulesCollection);
@@ -526,7 +525,7 @@ public class MongoDbAccessAdminImplTest {
                 .add(eq(IngestContract.CREATIONDATE, "10/12/2016"))));
         final DbRequestResult contracts =
             mongoAccess.findDocuments(select.getFinalSelect(), contractCollection);
-        final IngestContract foundContract = (IngestContract) contracts.getCursor().next();
+        final IngestContract foundContract = (IngestContract) contracts.getDocuments(IngestContract.class).get(0);
         contracts.close();
         assertEquals("aName", foundContract.getString(IngestContract.NAME));
         mongoAccess.deleteCollection(contractCollection).close();
@@ -556,7 +555,7 @@ public class MongoDbAccessAdminImplTest {
                 .add(eq(AccessContract.CREATIONDATE, "10/12/2016"))));
         final DbRequestResult contracts =
             mongoAccess.findDocuments(select.getFinalSelect(), contractCollection);
-        final AccessContract foundContract = (AccessContract) contracts.getCursor().next();
+        final AccessContract foundContract = (AccessContract) contracts.getDocuments(AccessContract.class).get(0);
         contracts.close();
         assertEquals("aName", foundContract.getString(AccessContract.NAME));
         mongoAccess.deleteCollection(contractCollection).close();
@@ -585,7 +584,7 @@ public class MongoDbAccessAdminImplTest {
                 .add(eq(Profile.CREATIONDATE, "10/12/2016"))));
         final DbRequestResult profiles =
             mongoAccess.findDocuments(select.getFinalSelect(), profileCollection);
-        final Profile foundProfile = (Profile) profiles.getCursor().next();
+        final Profile foundProfile = (Profile) profiles.getDocuments(Profile.class).get(0);
         profiles.close();
         assertEquals("FakeId", foundProfile.getString(Profile.IDENTIFIER));
         mongoAccess.deleteCollection(profileCollection).close();

@@ -149,14 +149,16 @@ public class DbRequestResult implements VitamAutoCloseable {
     }
 
     /**
-     * Should not be used directly
      * 
-     * @return the cursor
+     * @return True if the query has at least one result
      */
-    public MongoCursor<VitamDocument<?>> getCursor() {
-        return cursor;
+    public boolean hasResult() {
+        if (cursor != null) {
+            return cursor.hasNext();
+        }
+        return count > 0;
     }
-
+    
     /**
      * @param cursor the cursor to set
      *

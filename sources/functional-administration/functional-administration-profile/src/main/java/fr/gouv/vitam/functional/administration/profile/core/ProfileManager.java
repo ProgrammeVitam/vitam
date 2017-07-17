@@ -79,6 +79,8 @@ import static com.mongodb.client.model.Filters.or;
  */
 public class ProfileManager {
 
+    private static final String PROFILE_SERVICE_ERROR = "Profile service Error";
+    private static final String FUNCTIONAL_MODULE_PROFILE = "FunctionalModule-Profile";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProfileManager.class);
     public static final String RNG_GRAMMAR = "rng:grammar";
     public static final String XSD_SCHEMA = "xsd:schema";
@@ -174,7 +176,7 @@ public class ProfileManager {
     }
 
     private VitamError getVitamError(String error) {
-        return new VitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem()).setMessage("Profile service Error").setState("ko").setContext("FunctionalModule-Profile").setDescription(error);
+        return new VitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem()).setMessage(PROFILE_SERVICE_ERROR).setState("ko").setContext(FUNCTIONAL_MODULE_PROFILE).setDescription(error);
     }
     /**
      * TODO

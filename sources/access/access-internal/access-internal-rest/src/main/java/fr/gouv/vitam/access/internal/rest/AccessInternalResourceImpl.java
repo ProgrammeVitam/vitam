@@ -150,11 +150,11 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
             // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (final AccessInternalExecutionException e) {
             LOGGER.error(e.getMessage(), e);
             status = Status.METHOD_NOT_ALLOWED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (BadRequestException e) {
             LOGGER.error("Empty query is impossible", e);
             return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY);
@@ -193,11 +193,11 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
             // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (final AccessInternalExecutionException e) {
             LOGGER.error(e.getMessage(), e);
             status = Status.METHOD_NOT_ALLOWED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
         LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
         return Response.status(Status.OK).entity(result).build();
@@ -236,11 +236,11 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
             // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (final AccessInternalExecutionException e) {
             LOGGER.error(e.getMessage(), e);
             status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
         LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
         return Response.status(Status.OK).entity(result).build();
@@ -273,11 +273,11 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         } catch (final InvalidParseOperationException | IllegalArgumentException | InvalidCreateOperationException exc) {
             LOGGER.error(exc);
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, exc.getMessage())).build();
         } catch (final AccessInternalExecutionException exc) {
             LOGGER.error(exc);
             status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, exc.getMessage())).build();
         }
         return Response.status(Status.OK).entity(result).build();
     }
@@ -412,6 +412,16 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
             .setHttpCode(status.getStatusCode()).setState(CODE_VITAM).setMessage(status.getReasonPhrase())
             .setDescription(status.getReasonPhrase());
+    }
+
+
+    private VitamError getErrorEntity(Status status, String message) {
+        String aMessage =
+            (message != null && !message.trim().isEmpty()) ? message
+                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+
+        return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(ACCESS_MODULE)
+            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
 
     private Response buildErrorResponse(VitamCode vitamCode) {

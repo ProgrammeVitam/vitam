@@ -83,6 +83,8 @@ public class VitamCounterService {
      * Constructor
      *
      * @param dbConfiguration
+     * @param tenants 
+     * @throws VitamException 
      */
     public VitamCounterService(MongoDbAccessAdminImpl dbConfiguration, List<Integer> tenants)
             throws VitamException {
@@ -109,7 +111,7 @@ public class VitamCounterService {
                             JsonNode query = generateQuery(entry.getKey());
                             try (DbRequestResult result =
                                 mongoAccess.findDocuments(query, FunctionalAdminCollections.VITAM_SEQUENCE)) {
-                                if (!result.getCursor().hasNext()) {
+                                if (!result.hasResult()) {
                                     createSequence(tenantId, entry);
                                 }
                             }

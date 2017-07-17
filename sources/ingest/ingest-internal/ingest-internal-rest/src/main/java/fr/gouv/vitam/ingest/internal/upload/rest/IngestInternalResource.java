@@ -120,6 +120,8 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 @javax.ws.rs.ApplicationPath("webresources")
 public class IngestInternalResource extends ApplicationStatusResource {
 
+    private static final String INGEST = "ingest";
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalResource.class);
 
     private static final String FOLDER_SIP = "SIP";
@@ -282,7 +284,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
             LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(getErrorEntity(status))
+                .entity(getErrorEntity(status, e.getMessage()))
                 .build();
         }
         return Response.status(Status.OK).build();
@@ -346,19 +348,19 @@ public class IngestInternalResource extends ApplicationStatusResource {
                     LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
                     status = Status.INTERNAL_SERVER_ERROR;
                     return Response.status(status)
-                        .entity(getErrorEntity(status))
+                        .entity(getErrorEntity(status, e.getMessage()))
                         .build();
                 } catch (InternalServerException e) {
                     LOGGER.error(e);
                     status = Status.INTERNAL_SERVER_ERROR;
                     return Response.status(status)
-                        .entity(getErrorEntity(status))
+                        .entity(getErrorEntity(status, e.getMessage()))
                         .build();
                 } catch (BadRequestException e) {
                     LOGGER.error(e);
                     status = Status.BAD_REQUEST;
                     return Response.status(status)
-                        .entity(getErrorEntity(status))
+                        .entity(getErrorEntity(status, e.getMessage()))
                         .build();
                 }
             } else {
@@ -378,14 +380,14 @@ public class IngestInternalResource extends ApplicationStatusResource {
             LOGGER.error("unable to create container", e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(getErrorEntity(status))
+                .entity(getErrorEntity(status, e.getMessage()))
                 .build();
 
         } catch (ContentAddressableStorageNotFoundException e) {
             LOGGER.error("unable to create container", e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(getErrorEntity(status))
+                .entity(getErrorEntity(status, e.getMessage()))
                 .build();
         } catch (LogbookClientNotFoundException e) {
             LOGGER.error(e);
@@ -403,31 +405,31 @@ public class IngestInternalResource extends ApplicationStatusResource {
             LOGGER.error("unable to create container", e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(getErrorEntity(status))
+                .entity(getErrorEntity(status, e.getMessage()))
                 .build();
         } catch (ContentAddressableStorageCompressedFileException e) {
             LOGGER.error("unable to create container", e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(getErrorEntity(status))
+                .entity(getErrorEntity(status, e.getMessage()))
                 .build();
         } catch (ContentAddressableStorageException e) {
             LOGGER.error("unable to create container", e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(getErrorEntity(status))
+                .entity(getErrorEntity(status, e.getMessage()))
                 .build();
         } catch (IngestInternalException e) {
             LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(getErrorEntity(status))
+                .entity(getErrorEntity(status, e.getMessage()))
                 .build();
         } catch (InvalidGuidOperationException e) {
             LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(getErrorEntity(status))
+                .entity(getErrorEntity(status, e.getMessage()))
                 .build();
         }
         // FIXME: 4/14/17 resp is null !!! move this to the try bloc
@@ -435,12 +437,16 @@ public class IngestInternalResource extends ApplicationStatusResource {
 
     }
 
-    private VitamError getErrorEntity(Status status) {
+    private VitamError getErrorEntity(Status status, String message) {
+        String aMessage =
+            (message != null && !message.trim().isEmpty()) ? message
+                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+
         return new VitamError(status.name()).setHttpCode(status.getStatusCode())
-            .setContext("ingest")
+            .setContext(INGEST)
             .setState("code_vitam")
             .setMessage(status.getReasonPhrase())
-            .setDescription(status.getReasonPhrase());
+            .setDescription(aMessage);
     }
 
     /**
@@ -509,38 +515,38 @@ public class IngestInternalResource extends ApplicationStatusResource {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
-                .entity(getErrorEntity(status))
+                .entity(getErrorEntity(status, e.getMessage()))
                 .build();
         } catch (VitamClientException e) {
             LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(getErrorEntity(status))
+                .entity(getErrorEntity(status, e.getMessage()))
                 .build();
         } catch (WorkflowNotFoundException e) {
             LOGGER.error(e);
             status = Status.NO_CONTENT;
             return Response.status(status)
-                .entity(getErrorEntity(status))
+                .entity(getErrorEntity(status, e.getMessage()))
                 .build();
 
         } catch (InternalServerException e) {
             LOGGER.error(e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(getErrorEntity(status))
+                .entity(getErrorEntity(status, e.getMessage()))
                 .build();
         } catch (BadRequestException e) {
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
             return Response.status(status)
-                .entity(getErrorEntity(status))
+                .entity(getErrorEntity(status, e.getMessage()))
                 .build();
         } catch (Exception e) {
             LOGGER.error(e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(getErrorEntity(status))
+                .entity(getErrorEntity(status, e.getMessage()))
                 .build();
         }
         return Response.status(Status.OK).entity(itemStatus).build();
@@ -572,31 +578,31 @@ public class IngestInternalResource extends ApplicationStatusResource {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
-                .entity(getErrorEntity(status))
+                .entity(getErrorEntity(status, e.getMessage()))
                 .build();
         } catch (VitamClientException e) {
             LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(getErrorEntity(status))
+                .entity(getErrorEntity(status, e.getMessage()))
                 .build();
         } catch (InternalServerException e) {
             LOGGER.error(e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(getErrorEntity(status))
+                .entity(getErrorEntity(status, e.getMessage()))
                 .build();
         } catch (BadRequestException e) {
             LOGGER.error(e);
             status = Status.UNAUTHORIZED;
             return Response.status(status)
-                .entity(getErrorEntity(status))
+                .entity(getErrorEntity(status, e.getMessage()))
                 .build();
         } catch (WorkflowNotFoundException e) {
             LOGGER.error(e);
             status = Status.NOT_FOUND;
             return Response.status(status)
-                .entity(getErrorEntity(status))
+                .entity(getErrorEntity(status, e.getMessage()))
                 .build();
         }
     }

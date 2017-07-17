@@ -96,7 +96,7 @@ public class DefaultAdminClient extends AbstractCommonClient implements AdminCli
     public VitamError adminAutotest() throws VitamClientException {
         Response response = null;
         final String name = StringUtils.getClassName(clientFactory);
-        VitamError message = new VitamError("000000").setDescription(name)
+        VitamError message = new VitamError("000000")
             .setContext(name).setDescription(THE_REQUESTED_SERVICE_IS_UNAVAILABLE)
             .setHttpCode(Status.SERVICE_UNAVAILABLE.getStatusCode()).setMessage(THE_REQUESTED_SERVICE_IS_UNAVAILABLE)
             .setState(Status.SERVICE_UNAVAILABLE.getReasonPhrase());

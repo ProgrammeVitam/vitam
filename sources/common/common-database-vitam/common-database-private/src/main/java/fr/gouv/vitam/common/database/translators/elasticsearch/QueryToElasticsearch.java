@@ -59,6 +59,7 @@ import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.request.AbstractParser;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
@@ -67,6 +68,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
  */
 public class QueryToElasticsearch {
 
+    private static final String _UID = "_uid";
     private static final String FUZZINESS = "AUTO";
 
     private QueryToElasticsearch() {
@@ -130,7 +132,7 @@ public class QueryToElasticsearch {
         final List<SortBuilder> sorts = new ArrayList<>(size);
         if (orderby == null || orderby.size() == 0) {
             if (score && requestParser.hasFullTextQuery()) {
-                sorts.add(new SortBuilders().scoreSort().order(SortOrder.DESC));
+                sorts.add(SortBuilders.scoreSort().order(SortOrder.DESC));
                 return sorts;
             }
             return null;
@@ -138,7 +140,7 @@ public class QueryToElasticsearch {
         final Iterator<Entry<String, JsonNode>> iterator = orderby.fields();
         if (!iterator.hasNext()) {
             if (score && requestParser.hasFullTextQuery()) {
-                sorts.add(new SortBuilders().scoreSort().order(SortOrder.DESC));
+                sorts.add(SortBuilders.scoreSort().order(SortOrder.DESC));
                 return sorts;
             }
             return null;
@@ -146,14 +148,19 @@ public class QueryToElasticsearch {
         boolean scoreNotAdded = true;
         while (iterator.hasNext()) {
             final Entry<String, JsonNode> entry = iterator.next();
-            final FieldSortBuilder fieldSort = SortBuilders.fieldSort(entry.getKey());
+            String key = entry.getKey();
+            // special case of _id
+            if (key.equals(VitamDocument.ID)) {
+                key = _UID;
+            }
             if (scoreNotAdded && score && requestParser.hasFullTextQuery() &&
                 !ParserTokens.PROJECTIONARGS.isNotAnalyzed(entry.getKey())) {
                 // First time we get an analyzed sort by
                 scoreNotAdded = false;
-                sorts.add(new SortBuilders().scoreSort().order(SortOrder.DESC));
+                sorts.add(SortBuilders.scoreSort().order(SortOrder.DESC));
             }
 
+            final FieldSortBuilder fieldSort = SortBuilders.fieldSort(key);
             if (entry.getValue().asInt() < 0) {
                 fieldSort.order(SortOrder.DESC);
                 sorts.add(fieldSort);
@@ -165,34 +172,7 @@ public class QueryToElasticsearch {
         if (scoreNotAdded && score && requestParser.hasFullTextQuery()) {
             // Last filter if not yet added
             scoreNotAdded = false;
-            sorts.add(new SortBuilders().scoreSort().order(SortOrder.DESC));
-        }
-        return sorts;
-    }
-
-    /**
-     * Generate sort list from node with form : {field1 : -1, field2 : 1}
-     *
-     * @param node node containing sort list from mongo as json
-     * @return list of order by as sort objects
-     */
-    private static List<SortBuilder> getSortsForNode(ObjectNode node) {
-        List<SortBuilder> sorts = new ArrayList<>();
-        Iterator<String> fieldNames = node.fieldNames();
-        while (fieldNames.hasNext()) {
-            String fieldName = fieldNames.next();
-            if (!node.get(fieldName).isInt()) {
-                break;
-            }
-            int value = node.get(fieldName).asInt();
-            FieldSortBuilder fieldSort = SortBuilders.fieldSort(fieldName);
-            if (value < 0) {
-                fieldSort.order(SortOrder.DESC);
-                sorts.add(fieldSort);
-            } else if (value > 0) {
-                fieldSort.order(SortOrder.ASC);
-                sorts.add(fieldSort);
-            }
+            sorts.add(SortBuilders.scoreSort().order(SortOrder.DESC));
         }
         return sorts;
     }
@@ -307,6 +287,12 @@ public class QueryToElasticsearch {
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(query.exactToken(), content);
 
         String key = element.getKey();
+        // special case of _id
+        boolean isId = false;
+        if (key.equals(VitamDocument.ID)) {
+            key = _UID;
+            isId = true;
+        }
 
         // TODO P0 remove after POC validation all DATE from Vitam code
         JsonNode node = element.getValue().findValue(ParserTokens.QUERYARGS.DATE.exactToken());
@@ -316,7 +302,10 @@ public class QueryToElasticsearch {
             node = element.getValue();
         }
 
-        final Object value = GlobalDatasParser.getValue(node);
+        Object value = GlobalDatasParser.getValue(node);
+        if (isId) {
+            value = VitamCollection.getTypeunique() + "#" + value.toString();
+        }
         switch (query) {
             case GT:
                 return QueryBuilders.rangeQuery(key).gt(value);
@@ -422,7 +411,15 @@ public class QueryToElasticsearch {
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(query.exactToken(), content);
         final String attribute = element.getKey();
         if (ParserTokens.PROJECTIONARGS.isNotAnalyzed(attribute)) {
-            return QueryBuilders.termQuery(element.getKey(), element.getValue().toString());
+            switch (query) {
+                case MATCH:
+                    return QueryBuilders.termsQuery(element.getKey(), element.getValue().toString().split(" "));
+                case MATCH_ALL:
+                case MATCH_PHRASE:
+                case MATCH_PHRASE_PREFIX:
+                default:
+                    return QueryBuilders.termQuery(element.getKey(), element.getValue().toString());
+            }
         } else {
             QUERY query2 = query;
             if (query == QUERY.PREFIX) {
@@ -577,7 +574,15 @@ public class QueryToElasticsearch {
     private static QueryBuilder regexCommand(final QUERY query, final JsonNode content)
         throws InvalidParseOperationException {
         final Entry<String, JsonNode> entry = JsonHandler.checkUnicity(query.exactToken(), content);
-        return QueryBuilders.regexpQuery(entry.getKey(), "/" + entry.getValue().asText() + "/");
+        // special case of _id
+        String key = entry.getKey();
+        String value = "/" + entry.getValue().asText() + "/";
+        if (key.equals(VitamDocument.ID)) {
+            value = entry.getValue().asText().replaceAll("[\\.\\?\\+\\*\\|\\{\\}\\[\\]\\(\\)\\\"\\\\\\#\\@\\&\\<\\>\\~]", " ");
+            value = removeAllDoubleSpace(value);
+            return QueryBuilders.termsQuery(key, value.split(" "));
+        }
+        return QueryBuilders.regexpQuery(key, value);
     }
 
     /**
@@ -641,12 +646,27 @@ public class QueryToElasticsearch {
     private static QueryBuilder wildcardCommand(final QUERY query, final JsonNode content)
         throws InvalidParseOperationException {
         final Entry<String, JsonNode> entry = JsonHandler.checkUnicity(query.exactToken(), content);
-        final String key = entry.getKey();
+        String key = entry.getKey();
         final JsonNode node = entry.getValue();
-        final String val = node.asText();
+        String val = node.asText();
+        if (ParserTokens.PROJECTIONARGS.isNotAnalyzed(key)) {
+            val = val.replace("*", " ");
+            val = val.replace("?", " ");
+            val = removeAllDoubleSpace(val);
+            return QueryBuilders.termsQuery(key, val.split(" "));
+        }
         return QueryBuilders.wildcardQuery(key, val);
     }
 
+    private static String removeAllDoubleSpace(String value) {
+        String oldValue = value;
+        String newValue = oldValue.replace("  ", " ");
+        while (newValue.length() != oldValue.length()) {
+            oldValue = newValue;
+            newValue = oldValue.replace("  ", " ");
+        }
+        return newValue;
+    }
     /**
      * $eq : { name : value }
      *
@@ -668,7 +688,7 @@ public class QueryToElasticsearch {
             isDate = true;
             key += "." + ParserTokens.QUERYARGS.DATE.exactToken();
         }
-        if (ParserTokens.PROJECTIONARGS.isNotAnalyzed(key) || isDate) {
+        if (ParserTokens.PROJECTIONARGS.isNotAnalyzed(entry.getKey()) || isDate) {
             final QueryBuilder query2 = QueryBuilders.termQuery(key, getAsObject(node));
             if (query == QUERY.NE) {
                 return QueryBuilders.boolQuery().mustNot(query2);
@@ -695,7 +715,10 @@ public class QueryToElasticsearch {
     private static QueryBuilder existsMissingCommand(final QUERY query, final JsonNode content)
         throws InvalidParseOperationException {
 
-        final String fieldname = content.asText();
+        String fieldname = content.asText();
+        if (fieldname.equals(VitamDocument.ID)) {
+            fieldname = _UID;
+        }
         final QueryBuilder queryBuilder = QueryBuilders.existsQuery(fieldname);
         switch (query) {
             case MISSING:
@@ -716,7 +739,10 @@ public class QueryToElasticsearch {
      */
     private static QueryBuilder isNullCommand(final QUERY query, final JsonNode content)
         throws InvalidParseOperationException {
-        final String fieldname = content.asText();
+        String fieldname = content.asText();
+        if (fieldname.equals(VitamDocument.ID)) {
+            fieldname = _UID;
+        }
         return QueryBuilders.boolQuery().mustNot(QueryBuilders.existsQuery(fieldname));
     }
 
@@ -735,7 +761,6 @@ public class QueryToElasticsearch {
 
         final BooleanQuery nthrequest = (BooleanQuery) req;
         final List<Query> sub = nthrequest.getQueries();
-
         final BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
         for (int i = 0; i < sub.size(); i++) {
             switch (query) {
