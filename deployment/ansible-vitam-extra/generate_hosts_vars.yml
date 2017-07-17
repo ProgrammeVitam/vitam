@@ -1,4 +1,0 @@
----
-- hosts: hosts
-  roles:
-    - generate_hosts_vars
