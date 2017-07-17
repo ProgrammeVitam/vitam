@@ -22,7 +22,7 @@ Fonctions :
 Contraintes techniques :
 
 * Grand nombre de tâches
-* La durée d’exécution d’un ensemble de tâches peut être longue (ex: une campagne de transformation de document peut durer plusieurs semaines, voire mois)
+* La durée d’exécution d’un ensemble de tâches peut être longue (ex: une campagne de transformation de document peut durer plusieurs semaines, voire plusieurs mois)
 * Possibilité de devoir gérer des objets lourds ; cela implique notamment l'usage de l’espace de travail pour passer des informations entre tâches, et des optimisations (colocalisations ou copies directes) permettant de limiter les contraintes sur le réseau.
 
 Données gérées :
