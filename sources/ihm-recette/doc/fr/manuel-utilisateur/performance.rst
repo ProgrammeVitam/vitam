@@ -9,7 +9,7 @@ Une api existe dans IHM-recette pour lancer des tests de performance
 Lancer un test de performance
 *****************************
 
-Pour lancer un test de performance, il faut utiliser appeler l'URL suivante en POST : ``/ihm-recette/v1/api/performance``.
+Pour lancer un test de performance, il faut appeler l'URL suivante en POST : ``/ihm-recette/v1/api/performance``.
 
 Cette URL prend en paramètre un fichier JSON avec 3 attributs :
  - le nom du fichier SIP
