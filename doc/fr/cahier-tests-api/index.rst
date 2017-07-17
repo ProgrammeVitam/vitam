@@ -5,6 +5,8 @@
 .. toctree::
    :maxdepth: 2
 
-   cahier_de_test.rst
+   introduction
+   cahier_test_api
+   cahier_test_tenant
 
 

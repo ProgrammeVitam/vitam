@@ -1,17 +1,10 @@
-CAHIER DE TESTS API VITAM
-##########################################################
+Cahier des API externes et requêtes DSL
+#######################################
 
-1. Présentation / objectif du document
-##########################################################
-L’objectif de ce document est la description modulaire des tests autour des APIs Vitam automatisables (ingest, referentiel, logbook, access et accession-registre).
-Toutes les APIs y sont listées et testées, avec le descriptif des différentes requêtes utilisées, leurs pré-requis et les critères d’acceptance finaux.
+Synthèse des tests
+==================
 
-L’outillage d’automatisation sera opéré par SoapUI. Ce cahier de test comprend deux volets, selon le type de scnario : le premier volet détaille les scénarios de tests par catégories, le second volet détaille les scenarios de test que l’on implementera par module.
-
-2. Cahier des API externes et requêtes DSL
-##########################################################
-
-Synthèse des tests par opérateurs du DSL et de leurs faisabilité d'implémentation
+Tests par opérateurs du DSL et de leurs faisabilité d'implémentation
 
 +------------------------+---------------------------+---------------------------+
 | Opérateur              | Code test                 | Implémentable             |
@@ -115,8 +108,8 @@ Synthèse des tests par opérateurs du DSL et de leurs faisabilité d'implément
 
 
 
-2. Scénarios de tests par catégories
-##########################################################
+Scénarios de tests par catégories
+=================================
 
 **1. Accès direct**
 
@@ -127,6 +120,7 @@ Opérateur : $path
 On va mettre à jour un archive Unit id1 qui est enfant de l’AU id0, on ajoute une nouvelle propriété  : propriétaire est MrT
 
 .. code-block:: json
+
     {
       "$roots": [ "id0" ],
         "$query": [
@@ -378,8 +372,8 @@ Opérateur : $set, unset
 - Chercher les archive units dont la description est “privé” et ne vouloir en résultat uniquement les valeurs des titres et des dates de transaction
 
 
-3. Scénarios de tests non implémentés, par modules
-##########################################################
+Scénarios de tests non implémentés, par modules
+===============================================
 
 **1. Logbook module opération (LGMO) : Afficher les opérations en warning des SIP versés dans les 10 dernières minutes**
 
@@ -400,7 +394,9 @@ Pour la TransactedDate, la valeur sera ajoutée dynamiquement. Pour cet exemple,
 
 
 Requête :
+
 .. code-block:: json
+
     {
       "$query": {
         "$and": [
@@ -435,7 +431,7 @@ Code : RGSTR1
 ``API:  {{accessServiceUrl}}/access-external/v1/accession-register``
 
 
-*Pré-requis : *
+*Pré-requis :*
 
 Note : SIP avec producteurs ayant versé plus de 5 et moins de 5 objets
 
@@ -444,7 +440,9 @@ Note : SIP avec producteurs ayant versé plus de 5 et moins de 5 objets
 - Verser OK_SIP_RGSTR1_PRODUCTEUR_1OBJ contenant le producteur FRAN_NP_002 versant 1 objet.zip
 
 *Requête :*
+
 .. code-block:: json
+
      {
        "$query": {
          "$and": [
@@ -478,8 +476,8 @@ Dans le cas contraire FRAN_NP_002 aura versé un objet la première que les test
 6 objets la 6ème fois, ce qui aura pour conséquence que FRAN_NP_002 aura lui aussi versé plus de 6 objets au total et se retrouvera dans les résultats, ce qui n’est pas le comportement désiré pour garantir une bonne qualité du jeu de test.
 
 
-4. Scénarios de tests implémentés, par modules
-##########################################################
+Scénarios de tests implémentés, par modules
+===========================================
 
 **1. Search (SRC)**
 
@@ -490,12 +488,14 @@ Code : SRC1
 ``API :   {{accessServiceUrl}}/access-external/v1/units``
 
 *Pré-requis :*
+
 Verser le SIP SRC1.zip. Ce SIP contient :
 
 	- 1 unité d’archive dont le titre est « Correspondance » et dont les dates extrêmes sont 1916-1920 et qui contiennent des objets
 	- 1 unité d’archive « Compte rendu » dont les dates sont 1910-1916 et qui contiennent des objets
 	- 1 unité d’archive « Liste des armements »dont les dates extrêmes sont 1917-1918 et qui contiennent des objets
 	- 1 unité d’archive “Vidéos d’époque” dont les dates extrêmes sont 1915-1916 et qui n’a pas d’objet
+
 Les dates extrêmes sont toujours à date du 1er janvier de l’année
 
 *Requête :*
@@ -543,17 +543,13 @@ Les dates extrêmes sont toujours à date du 1er janvier de l’année
 
 *Critères d'acceptance:*
 
-La requête doit retourner uniquement l’unité d’archive répondant aux critères demandés, c’est à dire :
+La requête doit retourner uniquement l’unité d’archive répondant aux critères demandés, c’est à dire::
 
-$result.#id = identifiant de l’opération ayant versée le SIP
-
-$result.Title = ‘Liste des armements’
-
-$result.DescriptionLevel = ‘Item’
-
-$result.StartDate = ‘1917-01-01’
-
-$result.EndDate = ‘1918-01-01’
+	$result.#id = identifiant de l’opération ayant versée le SIP
+	$result.Title = ‘Liste des armements’
+	$result.DescriptionLevel = ‘Item’
+	$result.StartDate = ‘1917-01-01’
+	$result.EndDate = ‘1918-01-01’
 
 
 **1.2. Chercher les unités dont le titre contient “Rectorat” et dont la description contient “public” ou “privé”**
@@ -683,7 +679,6 @@ Requête :
 
 *Critères d’acceptance :*
 
-
 La requête doit retourner le résultat qui contient  :
 
 - “RuleId” = “APP-00001”
@@ -700,7 +695,8 @@ Code : REFRMT1
 
 ``API : {{accessServiceUrl}}/admin-external/v1/formats``
 
-*Pré-requis : *
+*Pré-requis :*
+
 Importer le fichier PRONOM Droid Signature Files Version 88. Ce fichier contient 4 formats relatifs à l’extension .png
 
 *Requête :*
@@ -731,10 +727,10 @@ formatNumber = 4
 Content = [...]
 
 .. figure:: images/Png_results.png
-:align: center
-:height: 22 cm
+	:align: center
+	:height: 22 cm
 
-Capture d’écran du résultat sur le site des archives nationales anglaises pour la recherche PNG
+	Capture d’écran du résultat sur le site des archives nationales anglaises pour la recherche PNG
 
 **4. Mise à jour : modifier le titre et la description d’une unité d'archive**
 
@@ -776,573 +772,3 @@ En recherchant cette unité d’archive par son identifiant, on doit retrouver c
 
 
 
-
-POSTMAN :
-############
-
-
-Postman est un plugin disponible via Google Chrome, qui peut être utilisé pour tester les services API.
-Il s'agit en réalité d'un client HTTP puissant pour tester les services Web.
-
-Pour les tests manuels ou exploratoires, Postman est un bon choix pour tester une API.
-Avec Postman, presque toutes les données d'API Web modernes peuvent être extraites.
-
-Les 2 fonctionnalités pertinentes à retenir :
-- Ecrirure des tests booléens dans Postman Interface
-- Création de collections d'appels REST et enregistreement de chaque appel dans le cadre d'une collection à exécuter ultérieurement.
-
-Contrairement à CURL, Postman n'est pas un outil en ligne de commande, ce qui rend cet outil sans tracas dans la fenêtre de ligne de commande.
-Pour lancer les collections de postman en ligne de commande, on peut installer https://www.npmjs.com/package/newman
-
-Pour transmettre et recevoir des informations REST, Postman est plus fiable.
-
-
-3. Cahier des API externes par tenant
-##########################################################
-
-Introduction
-############
-L'objectif de cette documentation est d‘élaborer le cahier de test multi-tenant des API external (ingest, referentiel, logbook, access et accession-registre) via postman. On va lister tous les APIs testés, les réponses, les pré-requis et les différents cas téstés avec les différents requêtes utilisés.
-
-**A propos des pré-requis et stratégie de tests**
-
-
-
-La manipulation des données dans Vitam pouvant être très impactant (par exemple lors de suppression et de remplacement du référentiel de gestion), il est nécessaire de garantir que la suite des tests se déroule dans de bonnes conditions opérationnelles.
-
-Voici trois stratégies possibles concernant la spécification des pré-requis :
-
-*1 - Le test remet la plateforme dans l’état dans laquelle il l’a trouvé*
-
-Le test sauvegarde temporairement certaines données du système, exécute ses prérequis puis le test lui même. Ce dernier terminé, il supprime ses données issues du prérequis et restaure les données du système précédemment sauvegardées.
-En revanche, pendant la durée du test, des utilisateurs effectuant des opérations sur le tenant pourront subir de forte perturbation d’utilisations (selon les données et le test effectué).
-
-Illustration avec un test sur un référentiel de gestion spécifique pour l’occasion :
-
-- 1/ Sauvegarde du référentiel en cours d’utilisation (données initiales)
-- 2/ Purge du référentiel en cours (prérequis)
-- 3/ Import d’un référentiel spécifique (prérequis)
-- 4/ Exécution du test lui même (test)
-- 5/ Purge du référentiel spécifique (remise en condition)
-- 6 / Import du référentiel d’origine (remise en condition)
-
-*2 - Les tests sont séquencés et les dépendances sont connues*
-
-Dans ce cas, les pré et posts conditions sont connues et il sera possible de factoriser les tests par prérequis. Par exemple, si 5 tests requièrent un référentiel spécifique, ce référentiel ne sera importé qu’une seule fois et supprimé une seule fois au début et à la fin de ces 5 tests.
-
-*3 - Chaque test est indépendant et chacun est garant de la mise en place de ses pré requis*
-
-Chaque test doit effectuer l’ensemble des purges et importations nécessaires. Les tests sont indépendants et peuvent être lancés dans n’importe quel ordre, mais l’exécution des conditions est très coûteuse (on purgera et importera N fois le même référentiel)
-
-Dans une démarche progressive, il est possible d’implémenter plusieurs tests suivant la démarche n°3, puis de factoriser les prérequis pour arriver à la démarche n°2
-
-Dans un soucis de simplicité pour une premier jet, la stratégie n°3 est envisagée dans le reste de ce document.
-
-
-##################
-Règles de gestion
-##################
-
-**1. Importer des règles de gestion sur le tenant 0**
-
-
-Code : #RG01
-
-``API : {{accessServiceUrl}}/admin-external/v1/rules/``
-
-Pré-requis(données de référence):
-
-Utiliser sur le tenant 0 le jeu_donnees_OK_regles_CSV.csv contenant 22 règles de gestion. Ce jeu de données est le référentiel standard utilisé dans le reste des tests Vitam
-
-Headers:  Accept : application/json ; Content-type : application/octet-stream ;X-Tenant-id : 0
-
-Critères d'acceptance
-
-- Le nombre de règle du référentiel est bien égal à 22. Pour s'en assurer, on effectue une recherche dans la base avec API en accompagnant des paramètres ci-dessous
-
-Requête :
-
-.. code-block:: json
-
-    {
-        "$roots":[],
-        "$query":[],
-        "$filter":{},
-        "$projection":{}
-    }
-
-
-On doit retrouver :
-- Dans la réponse : $hits.total = 22
-- Pour chaque règle : _tenant = 0
-
-
-Headers:
-Accept : application/json ; Content-type : application/octet-stream ;X-Tenant-id : 0
-
-
-Evolution du test :
-Lorsque Vitam utilisera les CodeListVersions des référentiels dont celui des règles des gestions, celui ci pourra être intégré au test, possiblement à la place du _tenant.
-
-2. Importer des règles de gestion avec tenant 1 (tenant de test)
------------------------------------------------------------------
-
-**Code :** #RG02
-
-**Pré-requis** :
-
-Importer le référentiel de test : jeu_donnees_OK_regles_T1.csv, ou s'assurer qu'il s'agit bien du référentiel en cours d'utilisation. Ce référentiel contient 3 règles.
-
-API : identique à #RG01
-
-Critère d'acceptance :
-
-On doit retrouver :
-
-- Dans la réponse : $hits.total = 3
-- Pour chaque règle : _tenant = 1
-
-3. Rechercher une règle existante liée au tenant 0 par son identifiant via access-external
--------------------------------------------------------------------------------------------
-
-
-
-Code : #RG03
-
-``API: {{accessServiceUrl}}/admin-external/v1/rules/{IdRule}``
-
-Headers:
-Accept : application/json ; X-Http-Method-Override : GET ;X-Tenant-id : 0
-
-
-4. Rechercher une règle liée au tenant 1 via access-external non trouvé
----------------------------------------------------------------------------------
-
-Code : #RG04
-
-``API testé: {{accessServiceUrl}}/admin-external/v1/rules/{IdRule}``
-
-Requête :
-
-.. code-block:: json
-
- {
-     "$roots":[],
-     "$query":[],
-     "$filter":{},
-     "$projection":{}
- }
-
-Headers:
-
-Accept : application/json ; X-Http-Method-Override : GET ;X-Tenant-id : 1
-
-La réponse: 500 INTERNAL_SERVER_ERROR
-
-.. code-block:: json
-
-     {
-         "httpCode": 500,
-         "code": "INTERNAL_SERVER_ERROR",
-         "context": "ADMIN_EXTERNAL",
-         "state": "code_vitam",
-         "message": "Internal Server Error",
-         "description": "Internal Server Error",
-         "errors": []
-     }
-
-
-
-
-##################
-Ingest
-##################
-1. Envoi d'un SIP ‘sip1’ (contenant au moins une unité d’archive valide) sur le *tenant 0*
--------------------------------------------------------------------------------------------
-1.1.  Verser un SIP sur le tenant 0 (POST [ingest])
-----------------------------------------------------------------------------
-
-
-Code : #ING01
-
-``API: {{ingestServiceUrl}}/ingest-external/v1/ingests``
-Pré-requis(données de référence): OKSIP-v2-rules.zip
-
-Headers:
-
-Accept : application/json ; application/octet-stream ;X-Tenant-id : 0
-
-La réponse: 200 OK
-
-1.2.  Rechercher une unité d’archive insérée dans la base  (POST [access-external])
-------------------------------------------------------------------------------------
-
-Code : #ING02
-
-``API: {{accessServiceUrl}}/access-external/v1/units``
-
-Headers
-
-Accept : application/json ; application/octet-stream ;X-Tenant-id : 0
-
-Critère d’acceptance :
-
-- hits.total = 1 sur le tenant 0
-- L’identifiant de l’unité d’archive est bien celui demandée
-
-
-Requête
-
-.. code-block:: json
-
-    {
-        "$hits": {
-            "total": 1,
-            "offset" : 1,
-            "limit": 1,
-            "size": 1
-        },
-        "$results": [
-            {
-                {"_tenant" : 0}
-            }
-        ],
-        "$context":{}
-    }
-
-2. Verser un autre SIP ‘sip2’ ayant une unité d’archive valide sur le *tenant 1*
----------------------------------------------------------------------------------
-
-
-Code : #ING03
-
-Le test partage ses conditions avec #ING01, à ceci près qu’il utilise un SIP différent (OK_SIP_2_GO.zip) et vérifie que les données créées soient bien associées au tenant 1.
-
-#################
-Logbook
-#################
-
-1. Rechercher l’opération, par son identifiant, correspondant au versement du SIP ‘sip1’ sur le tenant 0 (story #1650)
--------------------------------------------------------------------------------------------------------------------------
-
-
-Code : #OPLOG01
-
-``API : {{accessServiceUrl}}/access-external/v1/operations``
-
-Requête :
-
-.. code-block:: json
-
-    {
-        "$query":{
-            "$and":[
-                {
-                    "$eq":
-                    {
-                        "evTypeProc":"INGEST"
-                    }
-                }
-            ]
-        },
-        "$filter":{},
-        "$projection":{}
-    }
-
-
-Headers:
-
-Accept :application/json ; Content-Type : application/json ; X-Http-Method-Override : GET ;  X-Tenant-Id : 0
-
-La réponse: 200 OK et la valeur total dans la réponse soit 1
-
-Critères d’acceptance :
-
-- La réponse doit être 200 OK
-- La valeur totale de la réponse doit être 1 hits.total = 1
-- L’identifiant demandé doit bien être l’identifiant retourné
-
-2. Rechercher l’opération, par son identifiant, correspondant au versement du SIP ‘sip2’ sur le tenant 1
-------------------------------------------------------------------------------------------------------------
-
-
-Code : #OPLO02
-
-Ce test partage ses conditions avec #OPLOG01, à ceci près qu’il interroge l’identifiant de sip2 et vérifie que les données créées soient bien associées au tenant 1.
-
-3. Rechercher les logbook opération avec le tenant 0, il retournera la liste des opérations, et chaque opération contiendra l'attribut "_tenant": 0
-----------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
-Code : #OPLOG03
-
-``API testé: {{accessServiceUrl}}/access-external/v1/operations``
-
-Opérateurs du DSL:
-
-.. code-block:: json
-
- {"$query":{},"$filter":{},"$projection":{}}
-
-Headers:
-
-+----------------------------+---------------------------+
-| key                        | value                     |
-+============================+===========================+
-| Accept                     | application/json          |
-+----------------------------+---------------------------+
-| Content-Type               | application/json          |
-+----------------------------+---------------------------+
-| X-Http-Method-Override     | GET                       |
-+----------------------------+---------------------------+
-| X-Tenant-Id                | 0                         |
-+----------------------------+---------------------------+
-
-La réponse: 200 OK et la valeur total dans la réponse soit 3
-
-
-
-##################################################
-Unités archivistiques et groupes d’objets
-##################################################
-
-1.  Recherche des unités d’archive sur le "tenant 0" (POST [units]) via access-external
-------------------------------------------------------------------------------------------------------------
-
-
-Code : #AUOG1
-
-``API : {{accessServiceUrl}}/access-external/v1/units``
-
-Requête :
-
-.. code-block:: json
-
- {"$roots":[],"$query":[],"$filter":{},"$projection":{}}
-
-Headers:
-
-Accept : application/json ; Content-Type : application/json ; X-Tenant-Id : 0
-
-La réponse: 200 OK. ET la valeur total qu'on a dans la réponse soit 1
-
-
-2.  Rechercher des unités d’archive sur le tenant 1
------------------------------------------------------
-
-Code : #AUOG2
-
-Ce test partage ses conditions et ses étapes avec #AUOG1, à la différence qu’il s’effectue sur le tenant 1.
-La réponse doit être 200 OK et la valeur total dans la réponse soit 7.
-
-
-3. Accès à une unité d’archive ajoutée par sip1 sur le tenant 0 (archive trouvée) -----------------------------------------------------------------
-
-Code : #AUOG3
-
-``API testé: {{accessServiceUrl}}/access-external/v1/units``
-
-Requête :
-
-.. code-block:: json
-
- {"$roots":[],"$query":[{"$match":{"Title":"Sensibilisation API"}}],"$filter":{},"$projection":{}}
-
-
-Headers:
-
-Accept : application/json ; Content-Type : application/json ; X-Tenant-Id : 0
-
-La réponse doit être 200 OK avec résultat ci-dessous
-
-
-4. Accès à une unité d’archive ajoutée par sip1 sur le tenant 1 (archive introuvable)
---------------------------------------------------------------------------------------
-
-
-Code : #AUOG4
-
-Ce test partage ses conditions et ses étapes avec #AUOG1, à la différence qu’il s’effectue sur le tenant 1
-
-
-5. Modification d'une unité d’archive versée par sip1 sur le *tenant 0* (archive trouvée et valide)
-----------------------------------------------------------------------------------------------------
-
-
-Code : #AUOG5
-
-``API : {{accessServiceUrl}}/access-external/v1/units/{idUnit}``
-
-Requête :
-
-.. code-block:: json
-
- {"$roots":["aeaaaaaaaaaam7mxabujeakzonzrepqaaaba"],"$query":[],"$filter":{},"$action":[{"$set":{"Title":"Demo Sensibilisation API"}}]}
-
-Headers:
-
-Accept : application/json ; Content-Type : application/json ; X-Tenant-Id : 0
-
-La réponse doit être 200 OK avec résultat ci-dessous
-
-.. code-block:: json
-
- {"$hits":{"total":1,"offset":0,"limit":1,"size":1},"$results":[{"#id":"aeaaaaaaaaaam7mxabujeakzonzrepqaaaba","#diff":"-  Title : Sensibilisation API\n+  Title : Demo Sensibilisation API\n-  #operations : [ aedqaaaaacaam7mxab5eeakzonzq74yaaaaq \n+  #operations : [ aedqaaaaacaam7mxab5eeakzonzq74yaaaaq, aecaaaaaacaam7mxabv7cakzoo5rahqaaaaq "}],"$context":{"$roots":["aeaaaaaaaaaam7mxabujeakzonzrepqaaaba"],"$query":[],"$filter":{},"$action":[{"$set":{"Title":"Demo Sensibilisation API"}},{"$push":{"#operations":{"$each":["aecaaaaaacaam7mxabv7cakzoo5rahqaaaaq"]}}}]}}
-
-
-6. Modification d'un unité d’archive versée par sip1 sur le *tenant 1* (archive non trouvée)
--------------------------------------------------------------------------------------------------
-
-
-Code : #AUOG6
-
- Ce test partage ses conditions et ses étapes avec #AUOG5, à la différence qu’il s’effectue sur le tenant 1.
-
-7. Accès au journal du cycle de vie d'une unité d’archive  versée par sip1 sur le tenant 0 (journal de l’unité trouvé)
-------------------------------------------------------------------------------------------------------------------------
-
-
-Code : #AUOG7
-
-``API : {{accessServiceUrl}}/access-external/v1/unitlifecycles/{IdUnit}``
-
-Headers:
-
-Accept : application/json ; Content-Type : application/json ; X-Tenant-Id : 0 ; X-Http-Method-Override : GET
-
-La réponse doit être 200 OK et le résultat doit renvoyer le journal du cycle de vie de l’unité d’archive.
-
-8. Accès au journal du cycle de vie d'une unité d’archive versée par sip1 sur le tenant 0 (journal de l’unité introuvable)
------------------------------------------------------------------------------------------------------------------------------
-
-Code : #AUOG8
-
-Ce test partage ses conditions et ses étapes avec #AUOG7, à la différence qu’il s’effectue sur le tenant 1.
-
-La réponse doit être  200 OK avec le résultat :
-
-.. code-block:: json
-
- {"$hits":{"total":0,"offset":0,"limit":0,"size":0},"$results":[],"$context":{}}
-
-
-9. Accès à un objet technique versé par le sip2 sur le tenant 1 (objet trouvé)
--------------------------------------------------------------------------------------
-
-
-Code : #AUOG8
-
-``API : {{accessServiceUrl}}/access-external/v1/objects/{IdObjectGroup}``
-
-
-Headers:
-
-Accept : application/json ; Content-Type : application/json ; X-Tenant-Id : 1 ; X-Http-Method-Override : GET
-
-La réponse doit être 200 OK et le résultat doit renvoyer les données relatives à l’objet demandé.
-
-
-10. Accès à un objet technique versé par le sip2 sur le tenant 0 (objet introuvable)
------------------------------------------------------------------------------------------
-
-
-Code : #AUOG9
-
-Ce test partage ses conditions et ses étapes avec #AUOG7, à la différence qu’il s’effectue sur le tenant 0.
-
-La réponse doit être  200 OK avec le résultat :
-
-.. code-block:: json
-
- {"$hits":{"total":0,"offset":0,"limit":0,"size":0},"$results":[],"$context":{}}
-
-
-11. Accès au journal du cycle de vie d’un groupe d’objet, versé par sip2 sur le tenant 1 (journal de groupe d’objet trouvé)
-------------------------------------------------------------------------------------------------------------------------------
-
-Code : #AUOG10
-
-``API testé: {{accessServiceUrl}}/access-external/v1/objectgrouplifecycles/IdObjectGroup}``
-
-Headers:
-
-Accept : application/json ; Content-Type : application/json ; X-Tenant-Id : 1
-
-La réponse doit être 200 OK et doit renvoyer une absence de résultat.
-
-
-
-12. Accès au journal du cycle de vie d’un groupe d’objet, versé par sip2 sur le tenant 0 (journal de groupe d’objet introuvable)
-----------------------------------------------------------------------------------------------------------------------------------
-
-
-Code : #AUOG11
-
-Ce test partage ses conditions et ses étapes avec #AUOG10, à la différence qu’il s’effectue sur le tenant 0.
-
-
-La réponse doit être 200 OK avec le résultat
-
-.. code-block:: json
-
- {"$hits":{"total":0,"offset":0,"limit":0,"size":0},"$results":[],"$context":{}}
-
-
-##################
-Registre des fonds
-##################
-
-1. Vérifier que le registre des fonds du tenant 0 renvoie les opérations liées au sip1
------------------------------------------------------------------------------------------------------------------
-
-
-Code : #RFOND1
-
-``API testé: {{accessServiceUrl}}/admin-external/v1/accession-registers``
-
-Requête :
-
-.. code-block:: json
-
- {"$roots":[],"$query":[],"$filter":{},"$projection":{}}
-
-
-Headers:
-
-Accept : application/json ; Content-Type : application/json ; X-Tenant-Id : 0 ; X-Http-Method-Override : GET
-
-La réponse doit être 200 OK et renvoyer le registre des fonds relatif au tenant 0
-
-
-2. Accès au détail du registre des fonds lié au *tenant 0* à partir de l'access-external (registre trouvé)
------------------------------------------------------------------------------------------------------------------
-
-Code : #RFOND2
-
-``API testé: {{accessServiceUrl}}/access-external/v1/accession-register/{idAgency}/accession-register-detail``
-
-
-.. code-block:: json
-
- {"$roots":[],"$query":[],"$filter":{},"$projection":{}}
-
-
-Headers:
-
-Accept : application/json ; Content-Type : application/json ; X-Tenant-Id : 0 ; X-Http-Method-Override : GET
-
-La réponse doit être 200 OK et renvoyer le détail du registre des fonds relatif au tenant 0
-
-3. Accès à un registre des fond lié au *deuxième tenant de test* à partir de l'access-external non trouvé
------------------------------------------------------------------------------------------------------------------
-
-Code : #RFOND3
-
-Ce test partage ses conditions et ses étapes avec #RFOND2, à la différence qu’il s’effectue sur le tenant 1.
-
-On applique le scénario de test 2 en modifiant le X-Tenant-Id à 1.
-La réponse doit être 200 OK et renvoyer une absence de résultat
-
-.. code-block:: json
-
- {"$hits":{"total":0,"offset":0,"limit":0,"size":0},"$results":[],"$context":{}}
