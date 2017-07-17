@@ -20,6 +20,7 @@
 
 <body  >
 
+
     <!--
     *
     *    #GLOBAL
@@ -64,30 +65,44 @@
     <div class="page-container" >
       <div class="page">
 
-        <div class="panel panel-default col-md-12 container" style="margin-top: 50px">
+        <!-- TODO: externalize styles -->
+        <div class="panel panel-default col-md-12 container" style="margin-top: 40px; background-color: #8A6EFF;">
+          <a class="panel-header no-toggle" href="#">
+            <h2 style="background-color: #8A6EFF; color:white;">Guide de lecture</h2>
+          </a>
+          <div class="panel-body">
+            <p class="row" style="vertical-align: middle">
+              <div class="col-md-3" style="color:white;">Guide de lecture de la documentation</div>
+              <div class="col-md-2"><a href="autres/fonctionnel/Vitam_Documentation_guide de lecture_IT20_V0.3.pdf" class="btn btn-primary btn-xs" style="color: #8A6EFF; background-color:white;">PDF</a></div>
+            </p>
+          </div>
+        </div>
+
+
+        <div class="panel panel-default col-md-12 container">
           <a class="panel-header no-toggle" href="#">
             <h2>Documentation métier</h2>
           </a>
           <div class="panel-body">
 
             <p class="row" style="vertical-align: middle">
-              <div class="col-md-3">Spécification des SIP</div>
-              <div class="col-md-2"><a href="autres/fonctionnel/20170116_Design_SIP_beta+1_V1.4.pdf" class="btn btn-primary btn-xs">PDF</a></div>
-            </p>
-
-            <p class="row" style="vertical-align: middle">
-              <div class="col-md-3">Manuel utilisateur</div>
+              <div class="col-md-3">Manuel utilisateur des IHM</div>
               <div class="col-md-2"><a href="html/manuel-utilisateur/index.html" class="btn btn-primary btn-xs">HTML</a> <a href="pdf/vitam-manuel-utilisateur.${project.version}.pdf" class="btn btn-primary btn-xs">PDF</a></div>
             </p>
 
             <p class="row" style="vertical-align: middle">
-              <div class="col-md-3">Manuel IHM Recette</div>
-              <div class="col-md-2"><a href="html/ihm-recette/index.html" class="btn btn-primary btn-xs">HTML</a> <a href="pdf/vitam-ihm-recette.${project.version}.pdf" class="btn btn-primary btn-xs">PDF</a></div>
+              <div class="col-md-3">Spécification des SIP</div>
+              <div class="col-md-2"><a href="autres/fonctionnel/Vitam_Structuration des SIP_IT20_V2.0.pdf" class="btn btn-primary btn-xs">PDF</a></div>
             </p>
 
             <p class="row" style="vertical-align: middle">
               <div class="col-md-3">Organisation de l'information</div>
-              <div class="col-md-2"><a href="autres/fonctionnel/20170116_Organisation-de-information_IT11_V1.1.pdf" class="btn btn-primary btn-xs">PDF</a></div>
+              <div class="col-md-2"><a href="autres/fonctionnel/Vitam_Organisation de l’information_IT20_V1.3.pdf" class="btn btn-primary btn-xs">PDF</a></div>
+            </p>
+
+            <p class="row">
+              <div class="col-md-3">Conservation de la valeur probante</div>
+              <div class="col-md-2"><a href="autres/fonctionnel/Vitam_Conservation de la valeur probante_V0.3.pdf" class="btn btn-primary btn-xs">PDF</a></div>
             </p>
 
             <p class="row" style="vertical-align: middle">
@@ -96,18 +111,42 @@
             </p>
 
             <p class="row">
+              <div class="col-md-3">Arbre de positionnement et plan de classement</div>
+              <div class="col-md-2"><a href="autres/fonctionnel/Vitam_Arbre de positionnement et Plan de classement_IT20_0.3.pdf" class="btn btn-primary btn-xs">PDF</a></div>
+            </p>
+
+            <p class="row">
+              <div class="col-md-3">Règles de gestion</div>
+              <div class="col-md-2"><a href="autres/fonctionnel/Vitam_Regles de gestion_IT20_V1.0.pdf" class="btn btn-primary btn-xs">PDF</a></div>
+            </p>
+
+          </div>
+        </div>
+
+        <div class="panel panel-default col-md-12 container">
+          <a class="panel-header no-toggle" href="#">
+            <h2>Documentation de tests</h2>
+          </a>
+          <div class="panel-body">
+
+            <p class="row" style="vertical-align: middle">
+              <div class="col-md-3">Manuel IHM Recette</div>
+              <div class="col-md-2"><a href="html/ihm-recette/index.html" class="btn btn-primary btn-xs">HTML</a> <a href="pdf/vitam-ihm-recette.${project.version}.pdf" class="btn btn-primary btn-xs">PDF</a></div>
+            </p>
+
+            <p class="row">
               <div class="col-md-3">Scenarii de test métier</div>
               <div class="col-md-2"><a href="html/scenario-test/index.html" class="btn btn-primary btn-xs">HTML</a> <a href="pdf/vitam-scenario-tests.${project.version}.pdf" class="btn btn-primary btn-xs">PDF</a></div>
+            </p>
+
+            <p class="row">
+              <div class="col-md-3">Cahier de test métier</div>
+              <div class="col-md-2"><a href="html/cahier-tests-api/index.html" class="btn btn-primary btn-xs">HTML</a> <a href="pdf/vitam-test-api.${project.version}.pdf" class="btn btn-primary btn-xs">PDF</a></div>
             </p>
 
             <p class="row" style="vertical-align: middle">
               <div class="col-md-3">Configuration des tests de non régression</div>
               <div class="col-md-2"><a href="html/configuration-tnr/index.html" class="btn btn-primary btn-xs">HTML</a> <a href="pdf/vitam-configuration-tnr.${project.version}.pdf" class="btn btn-primary btn-xs">PDF</a></div>
-            </p>
-
-            <p class="row">
-              <div class="col-md-3">Conservation de la valeur probante</div>
-              <div class="col-md-2"><a href="autres/fonctionnel/20170116_Valeur_probante_IT11_V1.1.pdf" class="btn btn-primary btn-xs">PDF</a></div>
             </p>
 
           </div>
