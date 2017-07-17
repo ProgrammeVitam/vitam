@@ -217,8 +217,8 @@ Cette tâche contient plusieurs traitements, chacun ayant une finalité et des p
 
 
 
-Contrôle et traitements des objets (STP_OG_CHECK_AND_TRANSFORME)
-================================================================
+Contrôle et traitements des objets (STP_OG_CHECK_AND_PROCESS)
+=============================================================
 
 Vérification de l'intégrité des objets (CHECK_DIGEST)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
