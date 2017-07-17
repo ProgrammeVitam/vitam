@@ -263,7 +263,7 @@ Cette définition des host_vars se base sur la directive ansible ``ansible_defau
 Cas 2: Machines avec plusieurs interfaces réseau
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Si les machines sur lesquelles Vitam sera déployé disposent de plusieurs interfaces, si celles ci respectent cette règle:
+Si les machines sur lesquelles Vitam sera déployé disposent de plusieurs interfaces, si celles-ci respectent cette règle:
 
     - Interface nommée eth0 = ip_service
     - Interface nommée eth1 = ip_admin
@@ -336,4 +336,4 @@ Pour éviter d'avoir à recréer les "index-pattern" définis dans l'onglet **Se
 4. Copier le fichier créé à l'étape 3 dans l'emplacement ``deployment\ansible-vitam\roles\log-server\files\kibana-objects``.
 5. Les index-pattern sont prêts à être importés.
 
-NB: Il ne faut pas oublier de selectionner l'index pattern par default avant toutes recherches ( se referer à la documention officielle de Kibana pour plus d'informations )
+NB: Il ne faut pas oublier de selectionner l'index pattern par defaut avant toutes recherches ( se referer à la documention officielle de Kibana pour plus d'informations )
