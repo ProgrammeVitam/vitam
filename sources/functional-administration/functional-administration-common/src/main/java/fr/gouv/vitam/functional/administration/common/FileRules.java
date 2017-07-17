@@ -207,4 +207,32 @@ public class FileRules extends VitamDocument<FileRules> {
         append(UPDATEDATE, updateDate);
         return this;
     }
+
+    public String getRuleid() {
+        return getString(RULEID);
+    }
+
+    public String getRuletype() {
+        return getString(RULETYPE);
+    }
+
+    public String getRulevalue() {
+        return getString(RULEVALUE);
+    }
+
+    public String getRuledescription() {
+        return getString(RULEDESCRIPTION);
+    }
+
+    public String getRuleduration() {
+        return getString(RULEDURATION);
+    }
+
+    public String getRulemeasurement() {
+        return getString(RULEMEASUREMENT);
+    }
+
+    public String getCreationdate() {
+        return getString(CREATIONDATE);
+    }
 }

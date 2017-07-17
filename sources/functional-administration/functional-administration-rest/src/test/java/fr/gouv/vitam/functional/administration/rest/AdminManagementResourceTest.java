@@ -585,7 +585,7 @@ public class AdminManagementResourceTest {
         stream = PropertiesUtils.getResourceAsStream(FILE_TEST_OK);
         given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(IMPORT_RULES_URI)
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+            .then().statusCode(Status.CREATED.getStatusCode());
     }
 
     @Test
@@ -707,7 +707,7 @@ public class AdminManagementResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, 1)
             .body(select.getFinalSelect())
             .when().post(GET_DOCUMENT_RULES_URI)
-            .then().statusCode(Status.NOT_FOUND.getStatusCode());
+            .then().statusCode(Status.OK.getStatusCode());
     }
 
     @Test
@@ -731,6 +731,6 @@ public class AdminManagementResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(select.getFinalSelect())
             .when().post(GET_DOCUMENT_RULES_URI)
-            .then().statusCode(Status.NOT_FOUND.getStatusCode());
+            .then().statusCode(Status.OK.getStatusCode());
     }
 }

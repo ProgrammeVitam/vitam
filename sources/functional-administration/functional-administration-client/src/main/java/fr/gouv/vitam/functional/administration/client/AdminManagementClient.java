@@ -111,12 +111,12 @@ public interface AdminManagementClient extends MockOrRestClient {
      * 
      * @param stream rule file inputstream to import
      * @return the response to the request
-     * @throws FileRulesException when file rules exception occurs
+     * @throws ReferentialException when file rules exception occurs
      * @throws DatabaseConflictException when Database conflict exception occurs
      * @throws AdminManagementClientServerException
      */
     Status importRulesFile(InputStream stream)
-        throws FileRulesException, DatabaseConflictException, AdminManagementClientServerException;
+        throws ReferentialException, DatabaseConflictException;
 
     /**
      *

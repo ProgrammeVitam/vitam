@@ -55,13 +55,11 @@ angular.module('ihm.demo')
 
     uploader.onSuccessItem = function(fileItem, response, status, headers) {
     	console.info('onSuccessItem', fileItem, response, status, headers);
-
     	if (uploader.queue[0].url == serviceURI + checkRules){
     		var confirm = $mdDialog.confirm()
     			.title('Fichier valide')
     			.ok('Lancer l\'import')
     			.cancel('Annuler l\'import');
-
     		$mdDialog.show(confirm).then(uploadAction, cancelAction);
     	} else if (uploader.queue[0].url == serviceURI + uploadRules) {
     		var alert = $mdDialog.alert()
@@ -82,9 +80,15 @@ angular.module('ihm.demo')
     			$route.reload();
     		});
     	} else if (uploader.queue[0].url == serviceURI + uploadRules) {
-    		var alert = $mdDialog.alert()
-				.title('Règle est déjà chargé dans la base.' + ' Si vous voulez télécharger un nouveau format, appuyez sur le bouton Supprimer.')
-				.ok("Fermer");
+    	    if (status === 403) {
+                var alert = $mdDialog.alert()
+                                .title("Un import de règles est déjà en cours, veuillez attendre qu'il se termine.")
+                                .ok("Fermer");
+    	    } else {
+                var alert = $mdDialog.alert()
+                    .title('Règle est déjà chargé dans la base.' + ' Si vous voulez télécharger un nouveau format, appuyez sur le bouton Supprimer.')
+                    .ok("Fermer");
+			}
     		$mdDialog.show(alert)
     	}
 

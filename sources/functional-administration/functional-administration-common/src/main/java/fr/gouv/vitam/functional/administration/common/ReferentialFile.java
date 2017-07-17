@@ -58,9 +58,11 @@ public interface ReferentialFile<E> {
      * @throws DatabaseConflictException when there is a database conflict
      * @throws IOException
      * @throws InvalidParseOperationException
+     * @throws InvalidCreateOperationException
      */
     void importFile(InputStream file)
-        throws ReferentialException, DatabaseConflictException, IOException, InvalidParseOperationException;
+        throws ReferentialException, DatabaseConflictException, IOException, InvalidParseOperationException,
+        InvalidCreateOperationException;
 
     /**
      * find document based on a given Id

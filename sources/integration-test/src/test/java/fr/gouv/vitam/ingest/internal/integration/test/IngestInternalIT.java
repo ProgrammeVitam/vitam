@@ -30,6 +30,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.jayway.restassured.RestAssured;
+
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -71,6 +72,9 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
+import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
+import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportInProgressException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementApplication;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
@@ -118,8 +122,12 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
+
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -177,6 +185,7 @@ public class IngestInternalIT {
     private static final String ACCESS_INTERNAL_PATH = "/access-internal/v1";
     private static final String CONTEXT_ID = "DEFAULT_WORKFLOW_RESUME";
 
+
     private static String CONFIG_WORKER_PATH = "";
     private static String CONFIG_WORKSPACE_PATH = "";
     private static String CONFIG_METADATA_PATH = "";
@@ -221,6 +230,7 @@ public class IngestInternalIT {
         "integration-processing/SIP_2467_SERVICE_LEVEL.zip";
     private static String SIP_OK_WITHOUT_SERVICE_LEVEL =
         "integration-processing/SIP_2467_WITHOUT_SERVICE_LEVEL.zip";
+    private static final String FILE_TO_TEST_OK = "jeu_donnees_OK_regles_CSV.csv";
 
     private static String SIP_OK_PHYSICAL_ARCHIVE = "integration-ingest-internal/OK_ArchivesPhysiques.zip";
 
@@ -319,11 +329,12 @@ public class IngestInternalIT {
         SystemPropertyUtil.clear("jetty.ingest-internal.port");
 
         // launch functional Admin server
+        AdminManagementClientFactory
+            .changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_FUNCTIONAL_ADMIN));
         adminApplication = new AdminManagementApplication(CONFIG_FUNCTIONAL_ADMIN_PATH);
         adminApplication.start();
 
-        AdminManagementClientFactory
-            .changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_FUNCTIONAL_ADMIN));
+
 
         SystemPropertyUtil.set("jetty.access-internal.port", Integer.toString(PORT_SERVICE_ACCESS_INTERNAL));
         accessInternalApplication =
@@ -359,20 +370,23 @@ public class IngestInternalIT {
     private void flush() {
         ProcessDataAccessImpl.getInstance().clearWorkflow();
     }
+
     private void wait(String operationId) {
         int nbTry = 0;
         ProcessingManagementClient processingClient =
             ProcessingManagementClientFactory.getInstance().getClient();
-        while (! processingClient.isOperationCompleted(operationId)) {
+        while (!processingClient.isOperationCompleted(operationId)) {
             try {
                 Thread.sleep(SLEEP_TIME);
             } catch (InterruptedException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
-            if (nbTry == NB_TRY) break;
-            nbTry ++;
+            if (nbTry == NB_TRY)
+                break;
+            nbTry++;
         }
     }
+
     private void tryImportFile() {
 
         VitamThreadUtils.getVitamSession().setContractId(contractId);
@@ -382,7 +396,7 @@ public class IngestInternalIT {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 client
                     .importFormat(
-                        PropertiesUtils.getResourceAsStream("integration-ingest-internal/DROID_SignatureFile_V88.xml"));
+                    PropertiesUtils.getResourceAsStream("integration-ingest-internal/DROID_SignatureFile_V88.xml"));
 
                 // Import Rules
                 client.importRulesFile(
@@ -1449,6 +1463,32 @@ public class IngestInternalIT {
                 LOGGER.error(JsonHandler.prettyPrint(logbookResult));
             }
             fail("should not raized an exception");
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void shouldImportRulesFile() {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        try {
+            FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK));
+            AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+            final Status status = client.importRulesFile(stream);
+            ResponseBuilder ResponseBuilder = Response.status(status);
+            Response response = ResponseBuilder.build();
+            assertEquals(response.getStatus(), Status.CREATED.getStatusCode());
+        } catch (final DatabaseConflictException e) {
+            LOGGER.error(e);
+            fail(String.format("DatabaseConflictException %s", e.getCause()));
+        } catch (final FileRulesImportInProgressException e) {
+            LOGGER.error(e);
+            fail(String.format("FileRulesImportInProgressException %s", e.getCause()));
+        } catch (final ReferentialException e) {
+            LOGGER.error(e);
+            fail(String.format("ReferentialException %s", e.getCause()));
+        } catch (FileNotFoundException e) {
+            LOGGER.error(e);
+            fail(String.format("FileNotFoundException %s", e.getCause()));
         }
     }
 

@@ -68,6 +68,7 @@ import fr.gouv.vitam.functional.administration.common.exception.AccessionRegiste
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
+import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
@@ -259,7 +260,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
     @Override
     public Status importRulesFile(InputStream stream)
-        throws FileRulesException, DatabaseConflictException, AdminManagementClientServerException {
+        throws ReferentialException, DatabaseConflictException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
         Response response = null;
         try {
@@ -279,6 +280,11 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                         : Response.Status.BAD_REQUEST.getReasonPhrase();
                     LOGGER.error(reason);
                     throw new FileRulesException(reason);
+                case FORBIDDEN:
+                    String forbiddenReason = (response.hasEntity()) ? response.readEntity(String.class)
+                        : Status.FORBIDDEN.getReasonPhrase();
+                    LOGGER.error(forbiddenReason);
+                    throw new FileRulesImportInProgressException(forbiddenReason);
                 case CONFLICT:
                     LOGGER.debug(Response.Status.CONFLICT.getReasonPhrase());
                     throw new DatabaseConflictException("Collection input conflic");
