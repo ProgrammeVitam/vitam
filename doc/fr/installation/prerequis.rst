@@ -18,7 +18,7 @@ Le déploiement est orchestré depuis un poste ou serveur d'administration ; les
 
 * packages nécessaires :
 
-  + ansible (version 2.2 minimale et conseillée)
+  + ansible (version 2.3 minimale et conseillée)
   + openssh-clients (client SSH utilisé par ansible)
   + java-1.8.0-openjdk & openssl (du fait de la génération de certificats / stores, l'utilitaire ``keytool`` est nécessaire)
 

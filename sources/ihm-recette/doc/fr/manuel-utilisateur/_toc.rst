@@ -1,5 +1,5 @@
-IHM demo
-########
+IHM recette
+###########
 
 .. toctree::
    :maxdepth: 2
