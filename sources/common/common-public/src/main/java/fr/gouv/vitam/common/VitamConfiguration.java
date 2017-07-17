@@ -73,6 +73,10 @@ public class VitamConfiguration {
      */
     private static final String VITAM_TMP_FOLDER_DEFAULT = "/vitam/data/tmp";
     /**
+     * Property Vitam Tmp Folder
+     */
+    private static final String VITAM_JUNIT_PROPERTY = "vitam.test.junit";
+    /**
      * Default Chunk Size
      */
     private static final int CHUNK_SIZE = 65536;
@@ -88,6 +92,11 @@ public class VitamConfiguration {
      * Default Read Timeout
      */
     private static final int READ_TIMEOUT = 86400000;
+
+    /**
+     *  Max shutdown timeout 2 minute
+     */
+    private final static long MAX_SHUTDOWN_TIMEOUT = 2*60*1000; 
 
     /**
      * Max total concurrent clients
@@ -514,6 +523,13 @@ public class VitamConfiguration {
     public static int getReadTimeout() {
         return READ_TIMEOUT;
     }
+    
+    /**
+     * @return the default read timeout
+     */
+    public static long getShutdownTimeout() {
+        return MAX_SHUTDOWN_TIMEOUT;
+    }
 
     /**
      * @return the maxTotalClient
@@ -660,5 +676,19 @@ public class VitamConfiguration {
      */
     public static boolean isUseNewJaxrClient() {
         return USE_NEW_JAXR_CLIENT;
+    }
+    
+    /**
+     * @return true if is integration Test
+     */
+    public static boolean isIntegrationTest() {
+        return SystemPropertyUtil.get(VITAM_JUNIT_PROPERTY, false);
+    }
+    
+    /**
+     * setIntegrationTest
+     */
+    public static void setIntegrationTest(boolean value) {
+        SystemPropertyUtil.set(VITAM_JUNIT_PROPERTY, value);
     }
 }

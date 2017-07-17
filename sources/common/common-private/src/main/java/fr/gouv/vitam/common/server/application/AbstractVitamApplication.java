@@ -33,6 +33,7 @@ import java.util.EnumSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.servlet.DispatcherType;
 
@@ -40,7 +41,8 @@ import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-
+import org.eclipse.jetty.util.component.LifeCycle;
+import org.eclipse.jetty.util.component.LifeCycle.Listener;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.message.GZipEncoder;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -91,8 +93,14 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
     private final Class<C> configurationType;
     private final String configurationFilename;
     private VitamServer vitamServer;
+    private ThreadManager threadManager;
     private final String role = ServerIdentity.getInstance().getRole();
     private boolean enableGzip = VitamConfiguration.ALLOW_GZIP_ENCODING;
+    private AtomicBoolean isShuttingDown = new AtomicBoolean(false);
+
+    public boolean getServerStatus() {
+        return isShuttingDown.get();
+    }
 
     /**
      * Protected constructor assigning application and configuration types </br>
@@ -307,11 +315,14 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
                 .register(EncodingFilter.class)
                 .register(GZipEncoder.class);
         }
+        threadManager = new ThreadManager();
+        ShutDownHookFilter shutdownFilter = new ShutDownHookFilter(this, threadManager);
         resourceConfig
             .register(JacksonJsonProvider.class)
             .register(JacksonFeature.class)
             // Register a Generic Exception Mapper
             .register(new GenericExceptionMapper())
+            .register(shutdownFilter)
             // Register container filters to copy the header's parameters (tenant_id, request_id and contract_id)
             .register(HeaderIdContainerFilter.class);
 
@@ -422,6 +433,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
     public final void run() throws VitamApplicationServerException {
         if (vitamServer != null && !vitamServer.isStarted()) {
             startMetrics();
+            registerLifeCycleListener();
             vitamServer.startAndJoin();
         } else if (vitamServer == null) {
             throw new VitamApplicationServerException("VitamServer is not ready to be started");
@@ -431,6 +443,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
     @Override
     public final void start() throws VitamApplicationServerException {
         if (vitamServer != null && !vitamServer.isStarted()) {
+            registerLifeCycleListener();
             vitamServer.start();
         } else if (vitamServer == null) {
             throw new VitamApplicationServerException("VitamServer is not ready to be started");
@@ -470,6 +483,40 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
         ParametersChecker.checkParameter("VitamMetricsType", type);
 
         return metrics.get(type);
+    }
+
+    /**
+     * register LifeCycle Listener for jetty
+     */
+    private void registerLifeCycleListener() {
+        if (!VitamConfiguration.isIntegrationTest()) {
+            vitamServer.getServer().addLifeCycleListener(new Listener() {
+                @Override
+                public void lifeCycleStopping(LifeCycle arg0) {
+                    LOGGER.warn("Vitam server is shutting down");
+                    isShuttingDown.set(true);
+                    if (threadManager != null) {
+                        threadManager.shutdownAndWait();
+                    }
+                }
+
+                @Override
+                public void lifeCycleStopped(LifeCycle arg0) {}
+
+                @Override
+                public void lifeCycleStarting(LifeCycle arg0) {
+                }
+
+                @Override
+                public void lifeCycleStarted(LifeCycle arg0) {
+                }
+
+                @Override
+                public void lifeCycleFailure(LifeCycle arg0, Throwable arg1) {
+                }
+
+            } );   
+        }
     }
 
 }
