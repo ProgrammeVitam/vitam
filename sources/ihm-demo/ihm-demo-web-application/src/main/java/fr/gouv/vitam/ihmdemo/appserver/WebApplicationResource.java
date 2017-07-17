@@ -71,6 +71,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
@@ -1997,7 +1998,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
             if (updateData.get(STATUS_FIELD_QUERY) != null &&
                 (updateData.get(ACTIVATION_DATE_FIELD_QUERY) != null ||
-                updateData.get(DEACTIVATION_DATE_FIELD_QUERY) != null)) {
+                    updateData.get(DEACTIVATION_DATE_FIELD_QUERY) != null)) {
                 actions.add(UpdateActionHelper.set(STATUS_FIELD_QUERY, updateData.get(STATUS_FIELD_QUERY)));
                 SetAction setActionDesactivationDateActive = null;
                 if (updateData.get(ACTIVATION_DATE_FIELD_QUERY) != null) {
@@ -2436,6 +2437,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * @param headers request headers
      * @param operationId the TRACEABILITY operation identifier
      * @param contractId the contractId
+     * @param tenantIdParam theTenantId
      * @param asyncResponse the async response
      */
     @GET
@@ -2443,15 +2445,19 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @RequiresPermissions("traceability:content:read")
     public void downloadTraceabilityFile(@Context HttpHeaders headers, @PathParam("idOperation") String operationId,
-        @QueryParam("contractId") String contractId,
+        @QueryParam("contractId") String contractId, @QueryParam("tenantId") String tenantIdParam,
         @Suspended final AsyncResponse asyncResponse) {
 
         // Check parameters
         ParametersChecker.checkParameter("Operation Id should be filled", operationId);
-
+        Integer tenantId;
         // Get tenantId from headers
+        if (tenantIdParam != null && StringUtils.isNumeric(tenantIdParam)) {
+            tenantId = Integer.parseInt(tenantIdParam);
+        } else {
+            tenantId = getTenantId(headers);
+        }
 
-        Integer tenantId = getTenantId(headers);
         VitamThreadUtils.getVitamSession().setContractId(contractId);
         VitamThreadPoolExecutor.getDefaultExecutor()
             .execute(() -> downloadTraceabilityFileAsync(asyncResponse, operationId, tenantId, contractId));
