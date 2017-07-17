@@ -47,7 +47,8 @@ angular.module('core').factory('downloadTraceabilityOperationResource',
 			 */
 			downloadOperationResource.result = function(idOperation) {
 				return $http.get(IHM_URLS.IHM_BASE_URL + Download_operation_ROOT + idOperation + "/content"
-						+ '?contractId=' + (authVitamService.cookieValue('X-Access-Contract-Id')), {responseType: 'arraybuffer'});
+						+ '?contractId=' + (authVitamService.cookieValue('X-Access-Contract-Id')) + 
+						'&tenantId=' + + (authVitamService.cookieValue(authVitamService.COOKIE_TENANT_ID) || 0), {responseType: 'arraybuffer'});
 			};
 
 			return downloadOperationResource;
