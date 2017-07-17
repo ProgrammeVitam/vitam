@@ -26,6 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.external.rest;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
@@ -63,6 +66,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -343,22 +347,22 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             status = Status.PRECONDITION_FAILED;
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build());
+                Response.status(status).entity(getErrorStream(status, e.getLocalizedMessage())).build());
         } catch (final AccessInternalClientServerException e) {
             LOGGER.error("Unauthorized request Exception ", e);
             status = Status.INTERNAL_SERVER_ERROR;
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build());
+                Response.status(status).entity(getErrorStream(status, e.getLocalizedMessage())).build());
         } catch (final AccessInternalClientNotFoundException e) {
             LOGGER.error("Request resources does not exits", e);
             status = Status.NOT_FOUND;
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build());
+                Response.status(status).entity(getErrorStream(status, e.getLocalizedMessage())).build());
         } catch (AccessUnauthorizedException e) {
             LOGGER.error("Contract access does not allow ", e);
             status = Status.UNAUTHORIZED;
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build());
+                Response.status(status).entity(getErrorStream(status, e.getLocalizedMessage())).build());
         }
     }
 
@@ -387,22 +391,35 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             status = Status.PRECONDITION_FAILED;
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build());
+                Response.status(status).entity(getErrorStream(status, e.getLocalizedMessage())).build());
         } catch (final AccessInternalClientServerException e) {
             LOGGER.error("Unauthorized request Exception ", e);
             status = Status.UNAUTHORIZED;
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build());
+                Response.status(status).entity(getErrorStream(status, e.getLocalizedMessage())).build());
         } catch (final AccessInternalClientNotFoundException e) {
             LOGGER.error("Request resources does not exits", e);
             status = Status.NOT_FOUND;
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build());
+                Response.status(status).entity(getErrorStream(status, e.getLocalizedMessage())).build());
         } catch (AccessUnauthorizedException e) {
             LOGGER.error("Contract access does not allow ", e);
             status = Status.UNAUTHORIZED;
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build());
+                Response.status(status).entity(getErrorStream(status, e.getLocalizedMessage())).build());
+        }
+    }
+    
+    private InputStream getErrorStream(Status status, String message) {
+        String aMessage =
+            (message != null && !message.trim().isEmpty()) ? message
+                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        try {
+            return JsonHandler.writeToInpustream(new VitamError(status.name())
+                .setHttpCode(status.getStatusCode()).setContext(ACCESS_EXTERNAL_MODULE)
+                .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage));
+        } catch (InvalidParseOperationException e) {
+            return new ByteArrayInputStream("{ 'message' : 'Invalid VitamError message' }".getBytes());
         }
     }
 
@@ -445,7 +462,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
                 if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.METHOD_OVERRIDE)) {
                     AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                         Response.status(Status.PRECONDITION_FAILED)
-                            .entity(getErrorEntity(Status.PRECONDITION_FAILED, MISSING_XHTTPOVERRIDE).toString())
+                            .entity(getErrorStream(Status.PRECONDITION_FAILED, MISSING_XHTTPOVERRIDE).toString())
                             .build());
                     return;
                 }
@@ -453,7 +470,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
                 if (!HttpMethod.GET.equalsIgnoreCase(xHttpOverride)) {
                     AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                         Response.status(Status.METHOD_NOT_ALLOWED)
-                            .entity(getErrorEntity(Status.METHOD_NOT_ALLOWED, MISSING_XHTTPOVERRIDE)
+                            .entity(getErrorStream(Status.METHOD_NOT_ALLOWED, MISSING_XHTTPOVERRIDE)
                                 .toString())
                             .build());
                     return;
@@ -465,14 +482,14 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
                     VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() + ")");
                 AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                     Response.status(Status.PRECONDITION_FAILED)
-                        .entity(getErrorEntity(Status.PRECONDITION_FAILED, "QUALIFIER or VERSION missing").toString())
+                        .entity(getErrorStream(Status.PRECONDITION_FAILED, "QUALIFIER or VERSION missing").toString())
                         .build());
                 return;
             }
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             final Response errorResponse = Response.status(Status.PRECONDITION_FAILED)
-                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getLocalizedMessage()).toString())
+                .entity(getErrorStream(Status.PRECONDITION_FAILED, e.getLocalizedMessage()).toString())
                 .build();
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
             return;
@@ -496,25 +513,25 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         } catch (final InvalidParseOperationException | IllegalArgumentException exc) {
             LOGGER.error(exc);
             final Response errorResponse = Response.status(Status.PRECONDITION_FAILED)
-                .entity(getErrorEntity(Status.PRECONDITION_FAILED, exc.getLocalizedMessage()).toString())
+                .entity(getErrorStream(Status.PRECONDITION_FAILED, exc.getLocalizedMessage()).toString())
                 .build();
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         } catch (final AccessInternalClientServerException exc) {
             LOGGER.error(exc.getMessage(), exc);
             final Response errorResponse =
                 Response.status(Status.INTERNAL_SERVER_ERROR)
-                    .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exc.getLocalizedMessage())
+                    .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, exc.getLocalizedMessage())
                         .toString())
                     .build();
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         } catch (final AccessInternalClientNotFoundException exc) {
             LOGGER.error(exc.getMessage(), exc);
             final Response errorResponse =
-                Response.status(Status.NOT_FOUND).entity(getErrorEntity(Status.NOT_FOUND, exc.getLocalizedMessage()).toString()).build();
+                Response.status(Status.NOT_FOUND).entity(getErrorStream(Status.NOT_FOUND, exc.getLocalizedMessage()).toString()).build();
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         } catch (AccessUnauthorizedException e) {
             final Response errorResponse =
-                Response.status(Status.UNAUTHORIZED).entity(getErrorEntity(Status.UNAUTHORIZED, e.getLocalizedMessage())
+                Response.status(Status.UNAUTHORIZED).entity(getErrorStream(Status.UNAUTHORIZED, e.getLocalizedMessage())
                     .toString()).build();
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         }

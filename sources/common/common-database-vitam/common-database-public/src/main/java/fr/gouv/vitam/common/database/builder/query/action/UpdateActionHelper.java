@@ -30,6 +30,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 
 /**
@@ -481,6 +483,17 @@ public class UpdateActionHelper {
     public static final SetAction set(final Map<String, ?> map)
         throws InvalidCreateOperationException {
         return new SetAction(map);
+    }
+
+    /**
+     *
+     * @param node of variableName and values
+     * @return a SetAction
+     * @throws InvalidCreateOperationException when query is invalid
+     */
+    public static final SetAction set(final ObjectNode node)
+        throws InvalidCreateOperationException {
+        return new SetAction(node);
     }
 
     /**

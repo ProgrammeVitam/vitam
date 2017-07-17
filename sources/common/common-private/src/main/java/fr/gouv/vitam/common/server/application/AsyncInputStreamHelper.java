@@ -172,7 +172,16 @@ public class AsyncInputStreamHelper {
                     return;
                 }
             }
-            asyncResponse.resume(responseBuilder.entity(new VitamStreamingOutput(inputStream)).build());
+            final VitamStreamingOutput vitamStreamingOutput = new VitamStreamingOutput(inputStream);
+            this.asyncResponse.register(new CompletionCallback() {
+
+                @Override
+                public void onComplete(Throwable throwable) {
+                    vitamStreamingOutput.close();
+                }
+            });
+
+            asyncResponse.resume(responseBuilder.entity(vitamStreamingOutput).build());
         } finally {
             DefaultClient.staticConsumeAnyEntityAndClose(receivedResponse);
         }
@@ -187,8 +196,18 @@ public class AsyncInputStreamHelper {
      * @param asyncResponse
      * @param response the fully prepared ErrorResponse
      */
-    public static void asyncResponseResume(AsyncResponse asyncResponse, Response response) {
+    public static void asyncResponseResume(AsyncResponse asyncResponse, final Response response) {
         ParametersChecker.checkParameter("ErrorResponse should not be null", response);
+        asyncResponse.register(new CompletionCallback() {
+
+            @Override
+            public void onComplete(Throwable throwable) {
+                Object entity = response.getEntity();
+                if (entity != null && entity instanceof InputStream) {
+                    StreamUtils.closeSilently((InputStream) entity);
+                }
+            }
+        });
         asyncResponse.resume(response);
     }
 
@@ -202,13 +221,17 @@ public class AsyncInputStreamHelper {
      * @param response the fully prepared ErrorResponse
      * @param stream an inputStream to close anyway
      */
-    public static void asyncResponseResume(AsyncResponse asyncResponse, Response response, final InputStream stream) {
+    public static void asyncResponseResume(AsyncResponse asyncResponse, final Response response, final InputStream stream) {
         ParametersChecker.checkParameter("ErrorResponse should not be null", response);
         asyncResponse.register(new CompletionCallback() {
-            
+
             @Override
             public void onComplete(Throwable throwable) {
                 StreamUtils.closeSilently(stream);
+                Object entity = response.getEntity();
+                if (entity != null && entity instanceof InputStream) {
+                    StreamUtils.closeSilently((InputStream) entity);
+                }
             }
         });
         asyncResponse.resume(response);

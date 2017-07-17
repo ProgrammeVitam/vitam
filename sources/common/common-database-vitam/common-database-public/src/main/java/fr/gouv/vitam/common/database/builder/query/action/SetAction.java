@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.database.builder.query.action;
 
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -71,7 +72,7 @@ public class SetAction extends Action {
         currentUPDATEACTION = UPDATEACTION.SET;
         setReady(true);
     }
-    
+
     /**
      * Set Action constructor
      *
@@ -111,6 +112,34 @@ public class SetAction extends Action {
             }
             final Object val = entry.getValue();
             node.set(name.trim(), GlobalDatas.getValueJsonNode(val));
+        }
+        currentUPDATEACTION = UPDATEACTION.SET;
+        setReady(true);
+    }
+
+    /**
+     * Set Action constructor from ObjectNode
+     *
+     * @param updateData ObjectNode natively
+     * @throws InvalidCreateOperationException when query is invalid
+     */
+    public SetAction(final ObjectNode updateData)
+        throws InvalidCreateOperationException {
+        super();
+
+        currentObject =
+            ((ObjectNode) currentObject).putObject(UPDATEACTION.SET.exactToken());
+        final ObjectNode node = (ObjectNode) currentObject;
+
+        Iterator<String> iterator = updateData.fieldNames();
+        while (iterator.hasNext()) {
+            final String key = iterator.next();
+            try {
+                GlobalDatas.sanityParameterCheck(key);
+            } catch (final InvalidParseOperationException e) {
+                throw new InvalidCreateOperationException(e);
+            }
+            node.set(key, updateData.get(key));
         }
         currentUPDATEACTION = UPDATEACTION.SET;
         setReady(true);
@@ -323,6 +352,7 @@ public class SetAction extends Action {
         ((ObjectNode) currentObject).set(variableName, GlobalDatas.getDate(value));
         return this;
     }
+
     /**
      * Add other Set sub actions to Set Query
      *
@@ -347,7 +377,7 @@ public class SetAction extends Action {
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
-            if (! values.isEmpty()) {
+            if (!values.isEmpty()) {
                 GlobalDatas.sanityValueCheck(values);
             }
         } catch (final InvalidParseOperationException e) {

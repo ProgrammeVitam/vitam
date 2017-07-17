@@ -126,9 +126,9 @@ public class TnrLaunchAllApplication {
     private static final String FUNCTIONAL_TNR_WORKSPACE_CONF = "functional-tnr/workspace.conf";
     private static final String FUNCTIONAL_TNR_METADATA_CONF = "functional-tnr/metadata.conf";
     private static final String FUNCTIONAL_TNR_STORAGE_DEFAULT_OFFER_NOSSL2_CONF =
-        "functional-tnr/storage-default-offer-nossl2.conf";
+        "functional-tnr/default-offer2.conf";
     private static final String FUNCTIONAL_TNR_STORAGE_DEFAULT_OFFER_NOSSL_CONF =
-        "functional-tnr/storage-default-offer-nossl.conf";
+        "functional-tnr/default-offer.conf";
     private static final String FUNCTIONAL_TNR_STORAGE_ENGINE_CONF = "functional-tnr/storage-engine.conf";
     /**
      * OWASP setter

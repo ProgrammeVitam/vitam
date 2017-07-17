@@ -155,6 +155,7 @@ public class ProfileResourceTest {
         final List<ElasticsearchNode> nodesEs = new ArrayList<>();
         nodesEs.add(new ElasticsearchNode("localhost", configEs.getTcpPort()));
         esClient = new ElasticsearchAccessFunctionalAdmin(CLUSTER_NAME, nodesEs);
+        LogbookOperationsClientFactory.changeMode(null);
 
 
         final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);

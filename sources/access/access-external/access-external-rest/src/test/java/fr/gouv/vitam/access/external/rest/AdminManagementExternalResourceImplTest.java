@@ -510,6 +510,7 @@ public class AdminManagementExternalResourceImplTest {
 
         given()
             .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().get(FORMAT_URI + DOCUMENT_ID)

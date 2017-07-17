@@ -268,6 +268,22 @@ public class ParserTokens extends BuilderToken {
                        return ORIGINATING_AGENCIES;
                    case "_storage":
                        return STORAGE;
+                   case "_qualifiers":
+                       return QUALIFIERS;
+                   case "_type":
+                       return TYPE;
+                   case "_nbunits":
+                       return NBUNITS;
+                   case "_nbobjects":
+                       return NBOBJECTS;
+                   case "_min":
+                       return MIN;
+                   case "_max":
+                       return MAX;
+                   case "_version":
+                       return VERSION;
+                   case "_score":
+                       return SCORE;
                    default:
                }
            } else if (name.charAt(0) == ParserTokens.DEFAULT_HASH_PREFIX_CHAR) {

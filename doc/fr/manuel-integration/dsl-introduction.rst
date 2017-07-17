@@ -128,6 +128,7 @@ Autres collections
       - **$offset**: la position de démarrage dans la liste retournée (positionné à 0 par défaut, maximum à 100000)
       
         - **IMPORTANT** : pour un champ analysé (plein texte), le tri n'est pas lexicographique mais basé sur le score de correspondance
+        - si le nom du champ est **#score**, cela permet de trier volontairement par la pertinence avant l'apparition d'une requête plein texte (par défaut, toute recherche contenant du plein texte trie sur la pertinence lors de l'apparition de la clause).
       
       - **$orderby: { fieldname: 1, fieldname: -1 }** : permet de définir un tri ascendant ou descendant
       - **$hint: "nocache"** (**UNSUPPORTED**) permet de spécifier si l'on ne veut pas bénéficier du cache (cache actif par défaut)
