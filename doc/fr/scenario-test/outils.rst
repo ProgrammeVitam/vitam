@@ -58,6 +58,17 @@ Les résultats seront ensuite retournés sous format JSON.
 .. image:: images/POSTMAN_retour.png
 
 
+Pour les tests manuels ou exploratoires, Postman est un bon choix pour tester une API.
+Avec Postman, presque toutes les données d'API Web modernes peuvent être extraites.
+
+Les 2 fonctionnalités pertinentes à retenir :
+- Ecrirure des tests booléens dans Postman Interface
+- Création de collections d'appels REST et enregistreement de chaque appel dans le cadre d'une collection à exécuter ultérieurement.
+
+Contrairement à CURL, Postman n'est pas un outil en ligne de commande, ce qui rend cet outil sans tracas dans la fenêtre de ligne de commande.
+Pour lancer les collections de postman en ligne de commande, on peut installer https://www.npmjs.com/package/newman
+
+
 
 Requêtes DSL
 ---------------
