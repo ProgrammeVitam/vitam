@@ -53,7 +53,7 @@ Détail des flux d'information métier
 
 On distingue globalement 4 types de flux de données différents :
 
-* Les flux de données d'archives : il portent les informations métiers associées aux contenu des archives (données stockées ou métadonnées associées) ;
+* Les flux de données d'archives : ils  portent les informations métiers associées aux contenu des archives (données stockées ou métadonnées associées) ;
 * Les flux de commande : ils portent les demandes d'exécution de traitement d'archives et l'état de ces exécutions (et comprennent donc notamment les notifications de fin d'exécution de ces traitements) ;
 * Les flux de journaux : ils portent les journaux d'évènements (traces probantes des actions réalisées sur les archives) ;
 * Les flux de référentiels : ils portent les informations des référentiels hébergés au sein de VITAM (référentiels des formats, des contrats, ...)

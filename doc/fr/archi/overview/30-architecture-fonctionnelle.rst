@@ -21,7 +21,7 @@ VITAM est constitué de différents composants liés aux fonctionnalités attend
 * Journalisation fonctionnelle : traçabilité fonctionnelle (dont à valeur probante)
 * IHM d’administration : interface d’administration technique et fonctionnelle
 
-Pour l’exploitabilité de la solution , on peut rajouter les composants suivants : :
+Pour l’exploitabilité de la solution , on peut rajouter les composants suivants :
 
 * Moteur de déploiement et de configuration
 * Composants d’assistances/hook à l’exploitabilité (sauvegarde, supervision, ordonnancement)
