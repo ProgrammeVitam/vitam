@@ -561,9 +561,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 final List<Object> finalResponseDetails = new ArrayList<>();
                 finalResponseDetails.add(guid);
                 finalResponseDetails.add(Status.fromStatusCode(responseStatus));
-                final String responseString = finalResponse.getHeaderString("Result");
-                if (responseString != null) {
-                    finalResponseDetails.add(responseString);
+                if (Status.SERVICE_UNAVAILABLE.getStatusCode() == finalResponse.getHttpCode()) {
+                    final String responseString = ((VitamError) finalResponse).getMessage();
+                    if (responseString != null) {
+                        finalResponseDetails.add(responseString);
+                    }
                 }
                 uploadRequestsStatus.put(operationGuidFirstLevel, finalResponseDetails);
 
