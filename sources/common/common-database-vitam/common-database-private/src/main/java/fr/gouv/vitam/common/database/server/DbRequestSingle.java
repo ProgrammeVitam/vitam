@@ -541,7 +541,7 @@ public class DbRequestSingle {
                             updatedDocument = null;
                         }
                     } catch (final MongoException e) {
-                        LOGGER.warn(e);
+                        LOGGER.warn("Update Document error : " + e.getMessage());
                         updatedDocument = null;
                     }
                 } else {

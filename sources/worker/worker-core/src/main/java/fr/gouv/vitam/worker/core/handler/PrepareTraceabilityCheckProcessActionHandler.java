@@ -40,6 +40,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Iterables;
 
 import fr.gouv.vitam.common.CommonMediaType;
+import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -65,7 +66,6 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientExceptio
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 

@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,34 +23,38 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.worker.common.utils;
+ */
+package fr.gouv.vitam.common;
 
-import java.util.Arrays;
-import java.util.List;
+import java.io.File;
+import java.io.IOException;
+
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
- * The class SedaVersion used to get the list the versions by type of Data Object from the file version.conf
+ * Seda Configuration class
  */
-public class SedaVersion {
+public class SedaConfiguration {
 
-    private List<String> binaryDataObjectVersions;
-    private List<String> physicalDataObjectVersions;
-
-    public List<String> getVersionForType(String type) {
-        if (SedaConstants.TAG_BINARY_DATA_OBJECT.equals(type)) {
-            return binaryDataObjectVersions;
-        } else if (SedaConstants.TAG_PHYSICAL_DATA_OBJECT.equals(type)) {
-            return physicalDataObjectVersions;
+    static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SedaConfiguration.class);
+    
+    private SedaConfiguration() {}
+    
+    /**
+     * @return SedaVersion supported version
+     * @throws IOException
+     */
+    public static SedaVersion getSupportedVerion() throws IOException {
+        SedaVersion sedaVersion;
+        try {
+            final File file = PropertiesUtils.findFile("version.conf");
+            sedaVersion = PropertiesUtils.readYaml(file, SedaVersion.class);
+        } catch (final IOException e) {
+            LOGGER.error("Can not get config file ", e);
+            throw e;
         }
-        return null;
-    }
-
-    public void setBinaryDataObjectVersions(String[] binaryDataObjectVersions) {
-        this.binaryDataObjectVersions = Arrays.asList(binaryDataObjectVersions);
-    }
-
-    public void setPhysicalDataObjectVersions(String[] physicalDataObjectVersions) {
-        this.physicalDataObjectVersions = Arrays.asList(physicalDataObjectVersions);
+        
+        return sedaVersion;
     }
 }

@@ -11,7 +11,21 @@
                 </span>
         <div id="boxContractsList" class="panel-collapse">
             <div id="collapse1" class="panel-body">
-                <div class="panel-body">
+                <div class=" text-right">
+                    <button class="btn " ng-click="changeEditMode()" ng-if="editMode">
+                        <i class="material-icons pull-left">edit</i>
+                        <span>Annuler</span>
+                    </button>
+                    <button class="btn btn-primary" ng-click="changeEditMode()" ng-hide="checkPermission() || editMode">
+                        <i class="material-icons pull-left">edit</i>
+                        <span>Modifier</span>
+                    </button>
+                    <button class="btn btn-primary" ng-click="saveModifs()" ng-hide="checkPermission() || !editMode">
+                        <i class="material-icons pull-left">save</i>
+                        <span>Enregistrer</span>
+                    </button>
+                </div>
+                <div class="panel-body" style="margin-top: 10px">
 
                     <form>
                         <input type="hidden" name="hiddenField"/>
@@ -22,68 +36,87 @@
                     </div>
                     <div class="form-group col-md-3">
                         <label>Date de création</label>
-                        <span>{{contract.CreationDate | vitamFormatDate}}</span>
+                        <span>{{tmpVars.CreationDate | vitamFormatDate}}</span>
                     </div>
                     <div class="form-group col-md-3">
                         <label>Date de mise à jour</label>
-                        <span>{{contract.LastUpdate | vitamFormatDate}}</span>
+                        <span>{{tmpVars.LastUpdate | vitamFormatDate}}</span>
                     </div>
                     <div class="form-group col-md-6">
-                        <label>Nom</label>
-                        <span>{{contract.Name}}</span>
+                        <div class="row simple-field">
+                            <display-single-field field-size="'11'"   field-key="'Name'"
+                                                  field-value="tmpVars" field-label="'Nom'" edit-mode="editMode">
+                            </display-single-field>
+                        </div>
                     </div>
                     <div class="form-group col-md-3">
                         <label>Statut</label>
                         <label class="switch">
-                            <input type="checkbox" ng-model="tmpVars.isActive" ng-change="updateStatus()" ng-disabled="checkPermission()">
-                            <div class="slider round" ng-class="{'disabled': checkPermission()}"></div>
+                            <input type="checkbox" ng-model="tmpVars.isActive" ng-change="updateStatus()" ng-disabled="checkPermission()  || !editMode">
+                            <div class="slider round" ng-class="{'disabled': checkPermission() || !editMode}"></div>
                         </label>
-                        <span>{{contract.Status | StrReplace}}</span>
+                        <span>{{tmpVars.Status | StrReplace}}</span>
                     </div>
                     <div class="form-group col-md-3">
-                        <label>Tenant(s)</label>
-                        <span>{{contract._tenant}}</span>
+
+                        <label>Droit d'écriture</label>
+
+                        <label class="switch">
+                            <input type="checkbox" ng-model="tmpVars.WritingPermission" ng-change="updateStatus()" ng-disabled="!editMode">
+                            <div class="slider round" ng-class="{'disabled': checkPermission() || !editMode}"></div>
+                        </label>
+                        <span>{{tmpVars.WritingPermission | StrReplace}}</span>
                     </div>
                     <div class="clearfix"></div>
 
                     <div class="form-group col-md-6">
-                        <label>Description</label>
-                        <span>{{contract.Description}}</span>
+                        <div class="row simple-field">
+                            <display-single-field field-size="'11'"   field-key="'Description'"
+                                                  field-value="tmpVars" field-label="'Description'" edit-mode="editMode">
+                            </display-single-field>
+                        </div>
                     </div>
                     <div class="form-group col-md-3">
                         <label>Service Producteur</label>
-                        <input type="radio" ng-value="true" ng-model="contract.EveryOriginatingAgency" ng-disabled="checkPermission()">Tous les services producteurs</input>
+                        <input type="radio" ng-value="true" ng-model="tmpVars.EveryOriginatingAgency" ng-disabled="checkPermission()  || !editMode">Tous les services producteurs</input>
                         <br />
-                        <input type="radio" ng-value="false" ng-model="contract.EveryOriginatingAgency" ng-disabled="checkPermission()">Liste blanche uniquement</input>
+                        <input type="radio" ng-value="false" ng-model="tmpVars.EveryOriginatingAgency" ng-disabled="checkPermission()  || !editMode">Liste blanche uniquement</input>
                         <br />
-                        <span class="overflow-break-words" ng-class="contract.EveryOriginatingAgency? 'grayColor': ''">Liste blanche: {{contract.OriginatingAgencies}}</span>
+                        <md-chips ng-model="tmpVars.OriginatingAgencies" name="OriginatingAgencies" readonly="!editMode"
+                                  md-removable="editMode" placeholder="Ajouter un service producteur ..." >
+                        </md-chips>
                     </div>
                     <div class="form-group col-md-3">
                         <label>Usage</label>
-                        <input type="radio" ng-value="true" ng-model="contract.EveryDataObjectVersion">Tous les usages</input>
+                        <input type="radio" ng-value="true" ng-model="tmpVars.EveryDataObjectVersion" ng-disabled="checkPermission()  || !editMode">Tous les usages</input>
                         <br />
-                        <input type="radio" ng-value="false" ng-model="contract.EveryDataObjectVersion">Liste blanche uniquement</input>
+                        <input type="radio" ng-value="false" ng-model="tmpVars.EveryDataObjectVersion" ng-disabled="checkPermission()  || !editMode">Liste blanche uniquement</input>
                         <br />
-                        <span class="overflow-break-words" ng-class="contract.EveryDataObjectVersion ? 'grayColor': ''">Liste blanche: {{contract.DataObjectVersion}}</span>
+                        <md-chips ng-model="tmpVars.DataObjectVersion" name="DataObjectVersion" readonly="!editMode"
+                                  md-removable="editMode" placeholder="Ajouter un usage ..." >
+                        </md-chips>
                     </div>
                     <div class="clearfix"></div>
 
                     <div class="form-group col-md-6">
-                        <label>Droit d'écriture</label>
-                        <span>{{contract.WritingPermission | StrReplace}}</span>
+
+                        <label>Tenant(s)</label>
+                        <span>{{tmpVars._tenant}}</span>
                     </div>
                     <div class="form-group col-md-3">
-                        <label>Date d'activation</label>
-                        <span>{{contract.ActivationDate | vitamFormatDate}}</span>
+                        <div class="row simple-field">
+                            <display-single-field field-size="'11'"  field-key="'ActivationDate'"
+                                                  field-value="tmpVars" field-label="'Date d\'activation'" edit-mode="editMode">
+                            </display-single-field>
+                        </div>
                     </div>
                     <div class="form-group col-md-3">
-                        <label>Date de désactivation</label>
-                        <span>{{contract.DeactivationDate | vitamFormatDate}}</span>
+                        <div class="row simple-field">
+                            <display-single-field field-size="'11'" field-key="'DeactivationDate'"
+                                                  field-value="tmpVars" field-label="'Date de désactivation'" edit-mode="editMode">
+                            </display-single-field>
+                        </div>
                     </div>
-                    <button class="btn btn-primary center-block" ng-click="saveModifs()" ng-hide="checkPermission()">
-                        <i class="material-icons pull-left">save</i>
-                        <span>Enregistrer</span>
-                    </button>
                 </div>
             </div>
         </div>

@@ -1,10 +1,12 @@
-package fr.gouv.vitam.worker.common.utils;
+package fr.gouv.vitam.common;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
+
+import fr.gouv.vitam.common.SedaVersion;
 
 public class SedaVersionTest {
     

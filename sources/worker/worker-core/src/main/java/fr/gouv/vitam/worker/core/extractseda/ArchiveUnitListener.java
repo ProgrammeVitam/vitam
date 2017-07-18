@@ -61,6 +61,7 @@ import fr.gouv.culture.archivesdefrance.seda.v2.KeywordsType;
 import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ObjectGroupRefType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
+import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -88,7 +89,6 @@ import fr.gouv.vitam.processing.common.exception.ProcessingManifestReferenceExce
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnitNotFoundException;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.worker.core.mapping.ArchiveUnitMapper;
 import fr.gouv.vitam.worker.core.mapping.DescriptiveMetadataMapper;
 import fr.gouv.vitam.worker.core.model.ArchiveUnitRoot;

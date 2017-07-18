@@ -72,6 +72,7 @@ import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.AbstractContractModel;
 import fr.gouv.vitam.common.model.ContractStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -613,7 +614,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 while (it.hasNext()) {
                     final String field = it.next();
                     final JsonNode value = fieldName.findValue(field);
-                    if ("Status".equals(field)) {
+                    if (AbstractContractModel.STATUS.equals(field)) {
                         if (!(ContractStatus.ACTIVE.name().equals(value.asText()) || ContractStatus.INACTIVE
                             .name().equals(value.asText()))) {
                             error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem())
@@ -627,8 +628,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         }
 
         try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
-            if (queryDsl.get("FilingParentId") != null) {
-                final String filingParentId = queryDsl.get("FilingParentId").asText();
+            if (queryDsl.findValue(IngestContractModel.FILING_PARENT_ID) != null) {
+                final String filingParentId = queryDsl.findValue(IngestContractModel.FILING_PARENT_ID).asText();
                 if (filingParentId != null) {
                     if (!checkIfAUInFilingSchema(metadataClient, filingParentId)) {
                         error
@@ -644,7 +645,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 }
             }
 
-            final JsonNode archiveProfilesNode = queryDsl.get("archiveProfiles");
+            final JsonNode archiveProfilesNode = queryDsl.findValue(IngestContractModel.ARCHIVE_PROFILES);
             if (archiveProfilesNode != null) {
                 final Set<String> archiveProfiles =
                     JsonHandler.getFromString(archiveProfilesNode.toString(), Set.class, String.class);

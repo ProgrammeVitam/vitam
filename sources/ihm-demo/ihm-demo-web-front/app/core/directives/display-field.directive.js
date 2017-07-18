@@ -40,8 +40,13 @@
  display-value: Allow to override the default fieldObject.fieldValue as value. As example, filtering can be used.
  field-label: Allow to override the label of the field with a specific value
  */
-angular.module('archive.unit')
+angular.module('core')
   .controller('DisplayFieldController', function($scope) {
+
+    $scope.changeEditingMode = function() {
+      $scope.isEditing = !$scope.isEditing;
+    };
+
     $scope.isDateField = function(fieldLabel, fieldName) {
       var fieldStr = !fieldLabel ? fieldName : fieldLabel;
       return fieldStr.toUpperCase().indexOf('DATE') > -1;
@@ -58,5 +63,17 @@ angular.module('archive.unit')
         fieldLabel: '=fieldLabel'
       },
       templateUrl: 'core/directives/display-field.directive.html'
+    };
+  })
+  .directive('displaySingleField', function() {
+    return {
+      scope: {
+        fieldValue: '=',
+        fieldKey: '=',
+        editMode: '=',
+        fieldSize: '=',
+        fieldLabel: '='
+      },
+      templateUrl: 'core/directives/display-single-field.directive.html'
     };
   });

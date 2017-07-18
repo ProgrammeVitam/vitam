@@ -43,6 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
@@ -80,6 +81,7 @@ import org.apache.shiro.util.ThreadContext;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Iterables;
 
 import fr.gouv.vitam.access.external.api.AdminCollections;
@@ -154,6 +156,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 @Path("/v1/api")
 public class WebApplicationResource extends ApplicationStatusResource {
 
+    private static final String IDENTIFIER = "Identifier";
     public static final String X_SIZE_TOTAL = "X-Size-Total";
     public static final String X_CHUNK_OFFSET = "X-Chunk-Offset";
 
@@ -176,13 +179,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final int COMPLETE_RESPONSE_SIZE = 3;
     private static final int GUID_INDEX = 0;
     private static final int ATR_CONTENT_INDEX = 2;
-    private static final String STATUS_FIELD_QUERY = "Status";
-    private static final String ARCHIVEPROFILES_FIELD_QUERY = "ArchiveProfiles";
-    private static final String ACTIVATION_DATE_FIELD_QUERY = "ActivationDate";
-    private static final String DEACTIVATION_DATE_FIELD_QUERY = "DeactivationDate";
-    private static final String LAST_UPDATE_FIELD_QUERY = "LastUpdate";
-    private static final String NAME_FIELD_QUERY = "Name";
-    private static final String EVERY_ORIG_AGENCY_FIELD_QUERY = "EveryOriginatingAgency";
 
     private final WebApplicationConfig webApplicationConfig;
     private Map<String, AtomicLong> uploadMap = new HashMap<>();
@@ -1802,11 +1798,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @RequiresPermissions("contracts:update")
     public Response updateEntryContracts(@Context HttpHeaders headers, @PathParam("id") String contractId,
-        Map<String, String> updateData) {
+        JsonNode updateOptions) {
         try {
             ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, contractId);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(contractId));
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(updateData));
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(updateOptions));
 
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -1814,44 +1810,15 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
 
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-            final UpdateParserSingle updateParserActive = new UpdateParserSingle(new VarNameAdapter());
-            Update updateStatusActive = new Update();
-
-
-            if (updateData.get(STATUS_FIELD_QUERY) != null) {
-                SetAction setActionStatusActive =
-                    UpdateActionHelper.set(STATUS_FIELD_QUERY, updateData.get(STATUS_FIELD_QUERY));
-
-                SetAction setActionDesactivationDateActive = null;
-                if (updateData.get(ACTIVATION_DATE_FIELD_QUERY) != null) {
-                    setActionDesactivationDateActive =
-                        UpdateActionHelper.set(ACTIVATION_DATE_FIELD_QUERY,
-                            updateData.get(ACTIVATION_DATE_FIELD_QUERY));
-                } else if (updateData.get(DEACTIVATION_DATE_FIELD_QUERY) != null) {
-                    setActionDesactivationDateActive = UpdateActionHelper.set(DEACTIVATION_DATE_FIELD_QUERY,
-                        updateData.get(DEACTIVATION_DATE_FIELD_QUERY));
-                }
-
-                updateStatusActive.addActions(setActionStatusActive, setActionDesactivationDateActive);
-
+            if (!updateOptions.isObject()) {
+                throw new InvalidCreateOperationException("Query not valid");
             }
-
-            if (updateData.get(ARCHIVEPROFILES_FIELD_QUERY) != null) {
-                SetAction updateArchiveProfiles =
-                    UpdateActionHelper.set(ARCHIVEPROFILES_FIELD_QUERY, updateData.get(ARCHIVEPROFILES_FIELD_QUERY));
-                updateStatusActive.addActions(updateArchiveProfiles);
-
-            }
-            SetAction setActionLastUpdateActive =
-                UpdateActionHelper.set(LAST_UPDATE_FIELD_QUERY, updateData.get(LAST_UPDATE_FIELD_QUERY));
-            updateStatusActive.setQuery(QueryHelper.eq(NAME_FIELD_QUERY, updateData.get(NAME_FIELD_QUERY)));
-
-
-            updateStatusActive.addActions(setActionLastUpdateActive);
-            updateParserActive.parse(updateStatusActive.getFinalUpdate());
-            JsonNode queryDsl = updateParserActive.getRequest().getFinalUpdate();
+            Update updateRequest = new Update();
+            updateRequest.setQuery(QueryHelper.eq(IDENTIFIER, contractId));
+            updateRequest.addActions(UpdateActionHelper.set((ObjectNode) updateOptions));
+            LOGGER.error("Request update " + updateRequest.getFinalUpdate().toString());
             final RequestResponse archiveDetails =
-                adminClient.updateIngestContract(contractId, queryDsl, getTenantId(headers));
+                adminClient.updateIngestContract(contractId, updateRequest.getFinalUpdate(), getTenantId(headers));
             return Response.status(Status.OK).entity(archiveDetails).build();
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
@@ -1980,11 +1947,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("accesscontracts:update")
     public Response updateAccessContracts(@Context HttpHeaders headers, @PathParam("id") String contractId,
-        Map<String, String> updateData) {
+        JsonNode updateOptions) {
         try {
             ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, contractId);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(contractId));
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(updateData));
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(updateOptions));
 
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -1992,61 +1959,15 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
 
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-            List<SetAction> actions = new ArrayList<>();
-            actions.add(UpdateActionHelper.set(LAST_UPDATE_FIELD_QUERY, updateData.get(LAST_UPDATE_FIELD_QUERY)));
-            boolean updateStatus = false;
-            boolean updateEveryOriginatingAgency = false;
-            boolean updateEveryUsage = false;
-
-            if (updateData.get(STATUS_FIELD_QUERY) != null &&
-                (updateData.get(ACTIVATION_DATE_FIELD_QUERY) != null ||
-                    updateData.get(DEACTIVATION_DATE_FIELD_QUERY) != null)) {
-                actions.add(UpdateActionHelper.set(STATUS_FIELD_QUERY, updateData.get(STATUS_FIELD_QUERY)));
-                SetAction setActionDesactivationDateActive = null;
-                if (updateData.get(ACTIVATION_DATE_FIELD_QUERY) != null) {
-                    setActionDesactivationDateActive =
-                        UpdateActionHelper.set(ACTIVATION_DATE_FIELD_QUERY,
-                            updateData.get(ACTIVATION_DATE_FIELD_QUERY));
-                } else if (updateData.get(DEACTIVATION_DATE_FIELD_QUERY) != null) {
-                    setActionDesactivationDateActive = UpdateActionHelper.set(DEACTIVATION_DATE_FIELD_QUERY,
-                        updateData.get(DEACTIVATION_DATE_FIELD_QUERY));
-                }
-                actions.add(setActionDesactivationDateActive);
-                updateStatus = true;
-            } else if (updateData.get(STATUS_FIELD_QUERY) != null ||
-                updateData.get(ACTIVATION_DATE_FIELD_QUERY) != null ||
-                updateData.get(DEACTIVATION_DATE_FIELD_QUERY) != null) {
-                return Response.status(Status.BAD_REQUEST).entity("Invalid update status query").build();
+            Update updateRequest = new Update();
+            updateRequest.setQuery(QueryHelper.eq(IDENTIFIER, contractId));
+            if (!updateOptions.isObject()) {
+                throw new InvalidCreateOperationException("Query not valid");
             }
-
-            if (updateData.get(EVERY_ORIG_AGENCY_FIELD_QUERY) != null) {
-                Boolean everyOrigAgency = BooleanUtils.toBooleanObject(updateData.get(EVERY_ORIG_AGENCY_FIELD_QUERY));
-                if (everyOrigAgency == null) {
-                    return Response.status(Status.BAD_REQUEST).entity("Invalid EveryOriginatingAgency value").build();
-                }
-                actions.add(UpdateActionHelper.set(EVERY_ORIG_AGENCY_FIELD_QUERY, everyOrigAgency));
-                updateEveryOriginatingAgency = true;
-            }
-
-            if (updateData.get(AccessContractModel.EVERY_DATA_OBJECT_VERSION) != null) {
-                Boolean everyVersion =
-                    BooleanUtils.toBooleanObject(updateData.get(AccessContractModel.EVERY_DATA_OBJECT_VERSION));
-                if (everyVersion == null) {
-                    return Response.status(Status.BAD_REQUEST).entity("Invalid EveryDataObjectVersion value").build();
-                }
-                actions.add(UpdateActionHelper.set(AccessContractModel.EVERY_DATA_OBJECT_VERSION, everyVersion));
-                updateEveryUsage = true;
-            }
-
-            if (!(updateStatus || updateEveryOriginatingAgency || updateEveryUsage)) {
-                return Response.status(Status.BAD_REQUEST).entity("Empty Query, Nothing to Update").build();
-            }
-
-            Update updateStatusActive = new Update();
-            updateStatusActive.setQuery(QueryHelper.eq(NAME_FIELD_QUERY, updateData.get(NAME_FIELD_QUERY)));
-            updateStatusActive.addActions(actions.toArray(new SetAction[actions.size()]));
+            updateRequest.addActions(UpdateActionHelper.set((ObjectNode) updateOptions));
+            LOGGER.error("Request update: " + updateRequest.getFinalUpdate().toString());
             final RequestResponse archiveDetails =
-                adminClient.updateAccessContract(contractId, updateStatusActive.getFinalUpdate(), getTenantId(headers));
+                adminClient.updateAccessContract(contractId, updateRequest.getFinalUpdate(), getTenantId(headers));
             return Response.status(Status.OK).entity(archiveDetails).build();
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);

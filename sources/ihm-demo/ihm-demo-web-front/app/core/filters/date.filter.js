@@ -38,7 +38,7 @@ angular.module('ihm.demo')
       // Test if date has an acceptable format
       var timestamp = Date.parse(theDate);
       if (isNaN(timestamp) == true) {
-        return "";
+        return theDate;
       }
 
       if (theDate.indexOf("T") == -1 && theDate.indexOf(":") == -1) {

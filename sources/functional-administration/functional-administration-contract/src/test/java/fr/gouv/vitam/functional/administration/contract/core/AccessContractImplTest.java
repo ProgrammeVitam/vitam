@@ -84,6 +84,10 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 public class AccessContractImplTest {
 
 
+    private static final String NEW_NAME = "New Name";
+
+    private static final String NAME = "Name";
+
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
         VitamThreadPoolExecutor.getDefaultExecutor());
@@ -288,7 +292,7 @@ public class AccessContractImplTest {
         final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
         final Select select = new Select();
         parser.parse(select.getFinalSelect());
-        parser.addCondition(QueryHelper.eq("Name", documentName));
+        parser.addCondition(QueryHelper.eq(NAME, documentName));
         final JsonNode queryDsl = parser.getRequest().getFinalSelect();
         final RequestResponseOK<AccessContractModel> accessContractModelList2 =
             accessContractService.findContracts(queryDsl);
@@ -304,7 +308,7 @@ public class AccessContractImplTest {
         final SetAction setActionDesactivationDateInactive = UpdateActionHelper.set("DeactivationDate", now);
         final SetAction setActionLastUpdateInactive = UpdateActionHelper.set("LastUpdate", now);
         final Update update = new Update();
-        update.setQuery(QueryHelper.eq("Name", documentName));
+        update.setQuery(QueryHelper.eq(NAME, documentName));
         update.addActions(setActionStatusInactive, setActionDesactivationDateInactive, setActionLastUpdateInactive);
         updateParser.parse(update.getFinalUpdate());
         final JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
@@ -330,7 +334,7 @@ public class AccessContractImplTest {
         final SetAction setActionDesactivationDateActive = UpdateActionHelper.set("ActivationDate", now);
         final SetAction setActionLastUpdateActive = UpdateActionHelper.set("LastUpdate", now);
         final Update updateStatusActive = new Update();
-        updateStatusActive.setQuery(QueryHelper.eq("Name", documentName));
+        updateStatusActive.setQuery(QueryHelper.eq(NAME, documentName));
         updateStatusActive.addActions(setActionStatusActive, setActionDesactivationDateActive,
             setActionLastUpdateActive);
         updateParserActive.parse(updateStatusActive.getFinalUpdate());
@@ -372,7 +376,7 @@ public class AccessContractImplTest {
         final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
         final Select select = new Select();
         parser.parse(select.getFinalSelect());
-        parser.addCondition(QueryHelper.eq("Name", documentName));
+        parser.addCondition(QueryHelper.eq(NAME, documentName));
         final JsonNode queryDsl = parser.getRequest().getFinalSelect();
         responseCast = accessContractService.findContracts(queryDsl);
         assertThat(responseCast.getResults()).isNotEmpty();
@@ -384,19 +388,22 @@ public class AccessContractImplTest {
         final String now = LocalDateUtil.now().toString();
         final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
         final SetAction setActionStatusInactive = UpdateActionHelper.set("Status", inactiveStatus);
+        final SetAction setActionName = UpdateActionHelper.set(NAME, NEW_NAME);
         final SetAction setActionDesactivationDateInactive = UpdateActionHelper.set("DeactivationDate", now);
         final SetAction setActionLastUpdateInactive = UpdateActionHelper.set("LastUpdate", now);
         final Update update = new Update();
-        update.setQuery(QueryHelper.eq("Name", documentName));
-        update.addActions(setActionStatusInactive, setActionDesactivationDateInactive, setActionLastUpdateInactive);
+        update.setQuery(QueryHelper.eq(NAME, documentName));
+        update.addActions(setActionName, setActionStatusInactive, setActionDesactivationDateInactive, setActionLastUpdateInactive);
         updateParser.parse(update.getFinalUpdate());
         JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
         RequestResponse<AccessContractModel> updateContractStatus =
             accessContractService.updateContract(accessContractModelList.get(0).getIdentifier(), queryDslForUpdate);
         assertThat(updateContractStatus).isNotExactlyInstanceOf(VitamError.class);
 
+        final Select newSelect = new Select();
+        newSelect.setQuery(QueryHelper.eq(NAME, NEW_NAME));
         final RequestResponseOK<AccessContractModel> accessContractModelListForassert =
-            accessContractService.findContracts(queryDsl);
+            accessContractService.findContracts(newSelect.getFinalSelect());
         assertThat(accessContractModelListForassert.getResults()).isNotEmpty();
         for (final AccessContractModel accessContractModel : accessContractModelListForassert.getResults()) {
             assertThat(inactiveStatus.equals(accessContractModel.getStatus())).isTrue();
@@ -411,14 +418,14 @@ public class AccessContractImplTest {
         final SetAction setActionEveryOriginatingAgency = UpdateActionHelper.set("EveryOriginatingAgency", true);
         final SetAction setActionLastUpdateActive = UpdateActionHelper.set("LastUpdate", now);
         final Update updateStatusActive = new Update();
-        updateStatusActive.setQuery(QueryHelper.eq("Name", documentName));
+        updateStatusActive.setQuery(QueryHelper.eq(NAME, NEW_NAME));
         updateStatusActive.addActions(setActionEveryOriginatingAgency, setActionLastUpdateActive);
         updateParserActive.parse(updateStatusActive.getFinalUpdate());
         JsonNode queryDslStatusActive = updateParserActive.getRequest().getFinalUpdate();
         accessContractService.updateContract(accessContractModelList.get(0).getIdentifier(), queryDslStatusActive);
 
         final RequestResponseOK<AccessContractModel> accessContractModelListForassert2 =
-            accessContractService.findContracts(queryDsl);
+            accessContractService.findContracts(newSelect.getFinalSelect());
         assertThat(accessContractModelListForassert2.getResults()).isNotEmpty();
         for (final AccessContractModel accessContractModel : accessContractModelListForassert2.getResults()) {
             assertThat(inactiveStatus.equals(accessContractModel.getStatus())).isTrue();
@@ -582,7 +589,7 @@ public class AccessContractImplTest {
         final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
         final Select select = new Select();
         parser.parse(select.getFinalSelect());
-        parser.addCondition(QueryHelper.eq("Name", name));
+        parser.addCondition(QueryHelper.eq(NAME, name));
         final JsonNode queryDsl = parser.getRequest().getFinalSelect();
 
 

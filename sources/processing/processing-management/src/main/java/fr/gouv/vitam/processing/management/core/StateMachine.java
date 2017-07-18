@@ -28,6 +28,8 @@
 package fr.gouv.vitam.processing.management.core;
 
 import com.google.common.collect.Maps;
+
+import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
@@ -59,7 +61,6 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
-import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 

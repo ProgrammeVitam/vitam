@@ -30,7 +30,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import fr.gouv.culture.archivesdefrance.seda.v2.UpdateOperationType;
-import fr.gouv.vitam.worker.common.utils.SedaConstants;
+import fr.gouv.vitam.common.SedaConstants;
 
 public class ManagementModel {
 
