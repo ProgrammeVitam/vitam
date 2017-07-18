@@ -56,6 +56,7 @@ import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -292,14 +293,21 @@ public class LogbookExternalResourceImpl {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void downloadTraceabilityFile(@PathParam("idOperation") String operationId,
         @Suspended final AsyncResponse asyncResponse) {
-
-        ParametersChecker.checkParameter("Traceability operation should be filled", operationId);
-
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-
-        VitamThreadPoolExecutor.getDefaultExecutor()
-            .execute(() -> downloadTraceabilityOperationFile(operationId, asyncResponse));
+        try {
+            ParametersChecker.checkParameter("Traceability operation should be filled", operationId);
+    
+            Integer tenantId = ParameterHelper.getTenantParameter();
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+    
+            VitamThreadPoolExecutor.getDefaultExecutor()
+                .execute(() -> downloadTraceabilityOperationFile(operationId, asyncResponse));
+        } catch (IllegalArgumentException | VitamThreadAccessException e) {
+            LOGGER.error(e);
+            final Response errorResponse = Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorStream(Status.PRECONDITION_FAILED, e.getMessage()))
+                .build();
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
+        }
     }
 
     private void downloadTraceabilityOperationFile(String operationId, final AsyncResponse asyncResponse) {

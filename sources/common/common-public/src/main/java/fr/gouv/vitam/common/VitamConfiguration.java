@@ -209,7 +209,7 @@ public class VitamConfiguration {
     /**
      * Should we export #score
      */
-    public static final boolean EXPORT_SCORE = false;
+    public static final boolean EXPORT_SCORE = true;
 
     public static final int DISTRIBUTEUR_BATCH_SIZE = 10;
 

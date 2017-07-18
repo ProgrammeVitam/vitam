@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -215,11 +216,18 @@ public class ProfileResource {
     public void downloadProfileFile(@PathParam("id") String profileMetadataId,
         @Suspended final AsyncResponse asyncResponse) {
 
-        ParametersChecker.checkParameter("Profile id should be filled", profileMetadataId);
-
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-
+        try {
+            ParametersChecker.checkParameter("Profile id should be filled", profileMetadataId);
+    
+            Integer tenantId = ParameterHelper.getTenantParameter();
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        } catch (IllegalArgumentException | VitamThreadAccessException e) {
+            LOGGER.error(e.getMessage(), e);
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build());
+            return;
+        }
         VitamThreadPoolExecutor.getDefaultExecutor()
             .execute(() -> {
                 try (ProfileService profileService = new ProfileServiceImpl(mongoAccess, workspaceClientFactory, vitamCounterService)) {

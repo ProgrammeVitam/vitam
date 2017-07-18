@@ -20,6 +20,8 @@ Si ce champ est "protégé" (préfixé par un "**\_**"), quelques règles d'usag
 - Il est préfixé d'un '**#**' pour permettre son interprétation par Vitam comme un champ protégé
 - Il cache l'implémentation réelle du champ
 
+Pour les collections "Single", les champs protégés sont explicitement indiqués dans le fichier ParserTokens et ne produireont des erreurs que dans le Back-office.
+
 Certains de ces champs sont interdits en update/insert (depuis l'extérieur),
 mais autorisés en interne.
 
@@ -46,11 +48,12 @@ La définition d'un tel champ "protégé" s'effectue ainsi :
       - **isAnArrayVariable** désigne les variables de collections Single ou Multiple
       - **isSingleNotAnalyzedVariable** désigne les variables de collections Single
 
-    - VarNameAdapter.java pour Unit/ObjectGroup
+    - VarNameAdapter.java pour Unit/ObjectGroup pour usage interne pour Unit/ObjectGroup
+    - VarNameAdapterExternnal.java pour Unit/ObjectGroup pour usage externe (sécurité) pour Unit/ObjetGroup (default si non renseigné)
     - VarNameInsertAdapter.java pour Unit/ObjectGroup
     - VarNameUpdateAdapter.java pour Unit/ObjectGroup *(devra être dupliqué en usage externe et interne : protection de certains champs)*
     - SingleVarNameAdapter.java pour les collections hors Unit/ObjectGroup pour usage interne
-    - SingleVarNameAdapterExternal.java pour usage externe pour les collections hors Unit/ObjectGroup
+    - SingleVarNameAdapterExternal.java pour usage externe (sécurité) pour les collections hors Unit/ObjectGroup (default si non renseigné)
 
 metadata-core : Unit et ObjectGroup
 -----------------------------------

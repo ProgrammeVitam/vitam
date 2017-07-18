@@ -644,7 +644,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
         } catch (final ContentAddressableStorageException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build());
+                Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
         }
 
     }

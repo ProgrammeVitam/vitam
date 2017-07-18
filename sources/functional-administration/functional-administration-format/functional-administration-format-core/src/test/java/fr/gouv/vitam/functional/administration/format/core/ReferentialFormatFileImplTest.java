@@ -169,9 +169,6 @@ public class ReferentialFormatFileImplTest {
         final String id = fileList.getResults().get(0).getString("PUID");
         final FileFormat file = formatFile.findDocumentById(id);
         assertEquals("[wps]", file.get("Extension").toString());
-        if (VitamConfiguration.EXPORT_SCORE) {
-            file.append(VitamDocument.SCORE, fileList.getResults().get(0).get(VitamDocument.SCORE));
-        }
         assertEquals(file, fileList.getResults().get(0));
         assertFalse(fileList.getResults().get(0).getBoolean("Alert"));
         assertEquals(fileList.getResults().get(0).getString("Group"), "");
