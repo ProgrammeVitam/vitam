@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.internal.upload.rest;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Queue;
@@ -317,14 +318,18 @@ public class IngestInternalResource extends ApplicationStatusResource {
         String archiveMimeType = null;
         LogbookOperationParameters parameters = null;
 
-        ParametersChecker.checkParameter("Action Id Request must not be null",
-            headers.getRequestHeader(GlobalDataRest.X_ACTION));
-        ParametersChecker.checkParameter("content Type Request must not be null",
-            headers.getRequestHeader(HttpHeaders.CONTENT_TYPE));
-        ParametersChecker.checkParameter("context Id Request must not be null",
-            headers.getRequestHeader(GlobalDataRest.X_CONTEXT_ID));
-
-
+        try {
+            ParametersChecker.checkParameter("Action Id Request must not be null",
+                headers.getRequestHeader(GlobalDataRest.X_ACTION));
+            ParametersChecker.checkParameter("content Type Request must not be null",
+                headers.getRequestHeader(HttpHeaders.CONTENT_TYPE));
+            ParametersChecker.checkParameter("context Id Request must not be null",
+                headers.getRequestHeader(GlobalDataRest.X_CONTEXT_ID));
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(getErrorStream(Status.BAD_REQUEST,
+                e.getMessage())).build();
+        }
         try (LogbookOperationsClient logbookOperationsClient =
             LogbookOperationsClientFactory.getInstance().getClient()) {
             VitamThreadUtils.getVitamSession().checkValidRequestId();
@@ -348,19 +353,19 @@ public class IngestInternalResource extends ApplicationStatusResource {
                     LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
                     status = Status.INTERNAL_SERVER_ERROR;
                     return Response.status(status)
-                        .entity(getErrorEntity(status, e.getMessage()))
+                        .entity(getErrorStream(status, e.getMessage()))
                         .build();
                 } catch (InternalServerException e) {
                     LOGGER.error(e);
                     status = Status.INTERNAL_SERVER_ERROR;
                     return Response.status(status)
-                        .entity(getErrorEntity(status, e.getMessage()))
+                        .entity(getErrorStream(status, e.getMessage()))
                         .build();
                 } catch (BadRequestException e) {
                     LOGGER.error(e);
                     status = Status.BAD_REQUEST;
                     return Response.status(status)
-                        .entity(getErrorEntity(status, e.getMessage()))
+                        .entity(getErrorStream(status, e.getMessage()))
                         .build();
                 }
             } else {
@@ -380,56 +385,60 @@ public class IngestInternalResource extends ApplicationStatusResource {
             LOGGER.error("unable to create container", e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(getErrorEntity(status, e.getMessage()))
+                .entity(getErrorStream(status, e.getMessage()))
                 .build();
 
         } catch (ContentAddressableStorageNotFoundException e) {
             LOGGER.error("unable to create container", e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(getErrorEntity(status, e.getMessage()))
+                .entity(getErrorStream(status, e.getMessage()))
                 .build();
         } catch (LogbookClientNotFoundException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+            return Response.status(Status.BAD_REQUEST).entity(getErrorStream(Status.BAD_REQUEST,
+                e.getMessage())).build();
         } catch (LogbookClientServerException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+            return Response.status(Status.BAD_REQUEST).entity(getErrorStream(Status.BAD_REQUEST,
+                e.getMessage())).build();
         } catch (LogbookClientAlreadyExistsException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+            return Response.status(Status.BAD_REQUEST).entity(getErrorStream(Status.BAD_REQUEST,
+                e.getMessage())).build();
         } catch (LogbookClientBadRequestException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+            return Response.status(Status.BAD_REQUEST).entity(getErrorStream(Status.BAD_REQUEST,
+                e.getMessage())).build();
         } catch (ContentAddressableStorageAlreadyExistException e) {
             LOGGER.error("unable to create container", e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(getErrorEntity(status, e.getMessage()))
+                .entity(getErrorStream(status, e.getMessage()))
                 .build();
         } catch (ContentAddressableStorageCompressedFileException e) {
             LOGGER.error("unable to create container", e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(getErrorEntity(status, e.getMessage()))
+                .entity(getErrorStream(status, e.getMessage()))
                 .build();
         } catch (ContentAddressableStorageException e) {
             LOGGER.error("unable to create container", e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(getErrorEntity(status, e.getMessage()))
+                .entity(getErrorStream(status, e.getMessage()))
                 .build();
         } catch (IngestInternalException e) {
             LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(getErrorEntity(status, e.getMessage()))
+                .entity(getErrorStream(status, e.getMessage()))
                 .build();
         } catch (InvalidGuidOperationException e) {
             LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(getErrorEntity(status, e.getMessage()))
+                .entity(getErrorStream(status, e.getMessage()))
                 .build();
         }
         // FIXME: 4/14/17 resp is null !!! move this to the try bloc
@@ -447,6 +456,19 @@ public class IngestInternalResource extends ApplicationStatusResource {
             .setState("code_vitam")
             .setMessage(status.getReasonPhrase())
             .setDescription(aMessage);
+    }
+
+    private InputStream getErrorStream(Status status, String message) {
+        String aMessage =
+            (message != null && !message.trim().isEmpty()) ? message
+                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        try {
+            return JsonHandler.writeToInpustream(new VitamError(status.name())
+                .setHttpCode(status.getStatusCode()).setContext(INGEST)
+                .setState("code_vitam").setMessage(status.getReasonPhrase()).setDescription(aMessage));
+        } catch (InvalidParseOperationException e) {
+            return new ByteArrayInputStream("{ 'message' : 'Invalid VitamError message' }".getBytes());
+        }
     }
 
     /**
@@ -680,15 +702,18 @@ public class IngestInternalResource extends ApplicationStatusResource {
         } catch (IllegalArgumentException e) {
             LOGGER.error("IllegalArgumentException was thrown : ", e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.BAD_REQUEST).build());
+                Response.status(Status.BAD_REQUEST).entity(getErrorStream(Status.BAD_REQUEST,
+                    e.getMessage())).build());
         } catch (StorageNotFoundException e) {
             LOGGER.error("Storage error was thrown : ", e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.NOT_FOUND).build());
+                Response.status(Status.NOT_FOUND).entity(getErrorStream(Status.NOT_FOUND,
+                    e.getMessage())).build());
         } catch (StorageServerClientException e) {
             LOGGER.error("Storage error was thrown : ", e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.INTERNAL_SERVER_ERROR).build());
+                Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorStream(Status.INTERNAL_SERVER_ERROR,
+                    e.getMessage())).build());
         }
     }
 
@@ -749,7 +774,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                         mediaType = CommonMediaType.valueOf(contentType);
                         archiveMimeType = CommonMediaType.mimeTypeOf(mediaType);
 
-                        
+
                         prepareToStartProcess(uploadedInputStream, parameters, archiveMimeType, logbookOperationsClient,
                             containerGUID);
 
@@ -823,9 +848,10 @@ public class IngestInternalResource extends ApplicationStatusResource {
         }
     }
 
-    private ProcessState startProcessing(final LogbookOperationParameters parameters, final LogbookOperationsClient client,
-        final String containerName, final String actionId, final String workflowId, LogbookTypeProcess
-        logbookTypeProcess, String contextId)
+    private ProcessState startProcessing(final LogbookOperationParameters parameters,
+        final LogbookOperationsClient client,
+        final String containerName, final String actionId, final String workflowId,
+        LogbookTypeProcess logbookTypeProcess, String contextId)
         throws IngestInternalException, ProcessingException, LogbookClientNotFoundException,
         LogbookClientBadRequestException, LogbookClientServerException, InternalServerException, VitamClientException {
 

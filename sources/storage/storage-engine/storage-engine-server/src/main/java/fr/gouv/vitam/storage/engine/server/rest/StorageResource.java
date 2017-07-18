@@ -27,6 +27,7 @@
 
 package fr.gouv.vitam.storage.engine.server.rest;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -1188,13 +1189,14 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      */
     private void buildErrorResponseAsync(VitamCode vitamCode, AsyncResponse asyncResponse) {
         AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-            Response.status(vitamCode.getStatus()).entity(new RequestResponseError().setError(
+            Response.status(vitamCode.getStatus()).entity(
+                new ByteArrayInputStream(new RequestResponseError().setError(
                 new VitamError(VitamCodeHelper.getCode(vitamCode))
                     .setContext(vitamCode.getService().getName())
                     .setState(vitamCode.getDomain().getName())
                     .setMessage(vitamCode.getMessage())
                     .setDescription(vitamCode.getMessage()))
-                .toString()).build());
+                .toString().getBytes())).build());
     }
 
     private VitamError getErrorEntity(Status status, String message) {

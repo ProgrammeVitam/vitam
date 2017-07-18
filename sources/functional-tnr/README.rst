@@ -11,9 +11,11 @@ Lancement dans Eclipse des VITAM Itests
 
 Cette fonctionnalité permet de lancer dans une seule JVM (plus MongoDB automatiquement lancé et Siegfried au choix lancé indépendemment ou avec)
 l'ensemble de Vitam et ses composants (hors IHM) et de jouer tous les TNR (ou certains). La configuration mémoire nécessaire, hors
-OS et IDE, de 4.5Go environ. Sur un Ubuntu avec Eclipse, la mémoire consommée totale est de 6.5 Go environ.
+OS et IDE, de 3 à 4Go environ. Sur un Ubuntu avec Eclipse, la mémoire consommée totale est de 6.5 Go environ.
 
 A noter que les tests antivirus sont KO car c'est un fake.
+
+La durée d'exécution est d'environ 30 à 50 minutes selon la nature du poste.
 
 Fichier de configuration pour lancement en local
 ================================================

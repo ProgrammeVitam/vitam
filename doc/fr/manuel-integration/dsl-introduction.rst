@@ -79,6 +79,7 @@ Collections Units et Objects uniquement
       - **$orderby: { fieldname: 1, fieldname: -1 }** : permet de définir un tri ascendant ou descendant
       
         - **IMPORTANT** : pour un champ analysé (plein texte), le tri n'est pas lexicographique mais basé sur le score de correspondance
+        - si le nom du champ est **#score**, cela permet de trier volontairement par la pertinence avant l'apparition d'une requête plein texte (par défaut, toute recherche contenant du plein texte trie sur la pertinence lors de l'apparition de la clause).
       
       - **$hint: "nocache"** (**UNSUPPORTED**) permet de spécifier si l'on ne veut pas bénéficier du cache (cache actif par défaut)
 
@@ -392,7 +393,7 @@ Des champs sont protégés dans les requêtes :
    - **#originating_agency** est l'OriginatingAgency su SIP d'origine
    - **#originating_agencies** est l'ensemble des OriginatingAgencies issues du SIP et des rattachements (héritage)
    - **#storage** est l'état de stockage
-   - **#score** (**UNSUPORTED**) contiendra en cas de requête avec plein texte le score de pertinence
+   - **#score** contiendra en cas de requête avec plein texte le score de pertinence (certaines collections n'auront pas ce champ)
 
 - Spécifiques pour les Units
 
