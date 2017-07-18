@@ -26,11 +26,37 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
-import static org.assertj.core.api.Assertions.assertThat;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.common.collect.Iterables;
+import cucumber.api.DataTable;
+import cucumber.api.java.en.Then;
+import cucumber.api.java.en.When;
+import fr.gouv.vitam.access.external.api.AdminCollections;
+import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
+import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
+import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
+import fr.gouv.vitam.common.FileUtil;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.functional.administration.client.model.ContextModel;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import org.assertj.core.api.AutoCloseableSoftAssertions;
+import org.assertj.core.api.Fail;
 
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,41 +73,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.sun.xml.internal.bind.v2.model.core.TypeRef;
-import org.assertj.core.api.AutoCloseableSoftAssertions;
-import org.assertj.core.api.Fail;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.google.common.collect.Iterables;
-
-import cucumber.api.DataTable;
-import cucumber.api.java.en.Then;
-import cucumber.api.java.en.When;
-import fr.gouv.vitam.access.external.api.AdminCollections;
-import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
-import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
-import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
-import fr.gouv.vitam.common.FileUtil;
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
-import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.functional.administration.client.model.ContextModel;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * step defining access glue
