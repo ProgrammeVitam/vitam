@@ -31,27 +31,57 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+
 /**
  * Data Transfer Object Model of Context
  */
 public class ContextModel {
+    private static final String DEACTIVATION_DATE = "DeactivationDate";
+
+    private static final String ACTIVATION_DATE = "ActivationDate";
+
+    private static final String LAST_UPDATE = "LastUpdate";
+
+    private static final String CREATION_DATE = "CreationDate";
+
+    public static final String NAME = "Name";
+
+    public static final String STATUS = "Status";
+
+    public static final String IDENTIFIER = "Identifier";
+
+    public static final String PERMISSIONS = "Permissions";
+
     /**
      * unique identifier
      */
-    @JsonProperty("_id")
+    @JsonProperty(VitamDocument.ID)
     private String id;
 
-    @JsonProperty("Name")
+    @JsonProperty(NAME)
     private String name;
     
-    @JsonProperty("Status")
+    @JsonProperty(STATUS)
     private boolean status;
     
-    @JsonProperty("Identifier")
+    @JsonProperty(IDENTIFIER)
     private String identifier;
 
-    @JsonProperty("Permissions")
+    @JsonProperty(PERMISSIONS)
     private List<PermissionModel> permissions = new ArrayList<>();
+    
+    @JsonProperty(CREATION_DATE)
+    private String creationdate;
+
+    @JsonProperty(LAST_UPDATE)
+    private String lastupdate;
+
+    @JsonProperty(ACTIVATION_DATE)
+    private String activationdate;
+
+    @JsonProperty(DEACTIVATION_DATE)
+    private String deactivationdate;
     
     /**
      * Constructor of ContextModel
@@ -61,11 +91,18 @@ public class ContextModel {
      * @param status
      * @param permissions
      */
-    public ContextModel(@JsonProperty("_id")String id,@JsonProperty("Name") String name,@JsonProperty("Status") boolean status,@JsonProperty("Permissions") List<PermissionModel> permissions) {
+    public ContextModel(@JsonProperty("_id")String id,@JsonProperty(NAME) String name,
+        @JsonProperty(STATUS) boolean status,@JsonProperty(PERMISSIONS) List<PermissionModel> permissions,
+        @JsonProperty(CREATION_DATE) String creationdate, @JsonProperty(LAST_UPDATE) String lastupdate,
+        @JsonProperty(ACTIVATION_DATE) String activationdate, @JsonProperty(DEACTIVATION_DATE) String deactivationdate) {
         this.id = id;
         this.name = name;
         this.status = status;
         this.permissions = permissions;
+        this.creationdate = creationdate;
+        this.lastupdate = lastupdate;
+        this.deactivationdate = deactivationdate;
+        this.activationdate = activationdate;
     }
     
     /**
@@ -145,6 +182,71 @@ public class ContextModel {
      */
     public ContextModel setIdentifier(String identifier) {
         this.identifier = identifier;
+        return this;
+    }
+
+
+    /**
+     * @return the creation date of context
+     */
+    public String getCreationdate() {
+        return this.creationdate;
+    }
+
+    /**
+     * @param creationdate to set
+     * @return this
+     */
+    public ContextModel setCreationdate(String creationdate) {
+        this.creationdate = creationdate;
+        return this;
+    }
+
+    /**
+     * @return last update of context 
+     */
+    public String getLastupdate() {
+        return this.lastupdate;
+    }
+
+    /**
+     * @param lastupdate to set
+     * @return this
+     */
+    public ContextModel setLastupdate(String lastupdate) {
+        this.lastupdate = lastupdate;
+        return this;
+    }
+
+    /**
+     * @return the activation date of context 
+     */
+    public String getActivationdate() {
+        return this.activationdate;
+    }
+
+    /**
+     * @param activationdate to set
+     * @return this
+     */
+    public ContextModel setActivationdate(String activationdate) {
+        this.activationdate = activationdate;
+        return this;
+    }
+
+    /**
+     * @return the desactivation date of context 
+     */
+    public String getDeactivationdate() {
+        return this.deactivationdate;
+    }
+
+    /**
+     * @param deactivationdate to set
+     * @return this
+     */
+    public ContextModel setDeactivationdate(String deactivationdate) {
+        this.deactivationdate = deactivationdate;
         return this;
     }
 }

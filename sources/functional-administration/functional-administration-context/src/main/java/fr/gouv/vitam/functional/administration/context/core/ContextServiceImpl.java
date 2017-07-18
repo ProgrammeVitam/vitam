@@ -30,6 +30,7 @@ import static com.mongodb.client.model.Filters.eq;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -46,6 +47,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -184,6 +186,8 @@ public class ContextServiceImpl implements ContextService {
 
                     contextsToPersist.add(contextNode);
                     final ContextModel ctxt = JsonHandler.getFromJsonNode(contextNode, ContextModel.class);
+                    ctxt.setCreationdate(new Date().toString());
+                    ctxt.setLastupdate(new Date().toString());
                     contextsListToPersist.add(ctxt);
                 }
             }
@@ -246,42 +250,31 @@ public class ContextServiceImpl implements ContextService {
             .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
 
         final ContextModel contextModel = findOneContextById(id);
-        final int permissionSize = contextModel.getPermissions().size();
         final ContextServiceImpl.ContextManager manager =
             new ContextServiceImpl.ContextManager(logBookclient, mongoAccess, vitamCounterService);
         manager.logUpdateStarted(contextModel.getId());
-        for (int i = 0; i < permissionSize - 1; i++) {
-            if (queryDsl.findValue(PERMISSIONS_TENANT) != null) {
-                final int tenantCurrent = queryDsl.findValue(PERMISSIONS_TENANT).asInt();
-                JsonNode node = queryDsl.findValue(FIELD_PERMISSION + i + FIELD_ACCESS);
-                if (node != null) {
-                    node = node.get(EACH);
-                    if (node != null && node.isArray()) {
-                        for (final JsonNode objNode : node) {
-                            if (!ContextManager.checkIdentifierOfAccessContract(objNode.asText(), tenantCurrent)) {
-                                error.addToErrors(
-                                    new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem())
-                                        .setMessage(INVALID_IDENTIFIER_OF_THE_INGEST_CONTRACT + objNode.asText()));
-                            }
-                        }
+        final JsonNode permissionsNode = queryDsl.findValue(ContextModel.PERMISSIONS);
+        if (permissionsNode != null && permissionsNode.isArray()) {
+            for (JsonNode permission : permissionsNode) {
+                PermissionModel permissionModel = JsonHandler.getFromJsonNode(permission, PermissionModel.class);
+                final int tenantId = permissionModel.getTenant();
+                for (String accessContractId : permissionModel.getAccessContract()) {
+                    if (!ContextManager.checkIdentifierOfAccessContract(accessContractId, tenantId)) {
+                        error.addToErrors(
+                            new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem())
+                                .setMessage(INVALID_IDENTIFIER_OF_THE_INGEST_CONTRACT + accessContractId));
                     }
-
                 }
 
-                node = queryDsl.findValue(FIELD_PERMISSION + i + FIELD_INGEST);
-                if (node != null) {
-                    node = node.get(EACH);
-                    if (node != null && node.isArray()) {
-                        for (final JsonNode objNode : node) {
-                            if (!ContextManager.checkIdentifierOfIngestContract(objNode.asText(), tenantCurrent)) {
-                                error.addToErrors(
-                                    new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem())
-                                        .setMessage(INVALID_IDENTIFIER_OF_THE_ACCESS_CONTRACT + objNode.asText()));
-                            }
-                        }
+                for (String ingestContractId : permissionModel.getIngestContract()) {
+                    if (!ContextManager.checkIdentifierOfIngestContract(ingestContractId, tenantId)) {
+                        error.addToErrors(
+                            new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem())
+                                .setMessage(INVALID_IDENTIFIER_OF_THE_ACCESS_CONTRACT + ingestContractId));
                     }
                 }
             }
+
         }
 
         if (error.getErrors() != null && error.getErrors().size() > 0) {
