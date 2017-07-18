@@ -37,6 +37,10 @@
 		"DeactivationDate": {
 			"type": "date",
 			"format": "strict_date_optional_time"
-		}
+		},
+        "_score": {
+           "type": "object",
+           "enabled": false
+        }
 	}
 }

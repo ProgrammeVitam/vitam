@@ -207,7 +207,7 @@ public class VitamConfiguration {
     public static final int MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER = 200;
     
     /**
-     * Should we export #score
+     * Should we export #score (only Unit and ObjectGroup)
      */
     public static final boolean EXPORT_SCORE = true;
 

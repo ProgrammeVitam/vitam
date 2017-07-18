@@ -33,6 +33,10 @@
 		},
 		"Comment": {
 			"type": "string"
-		}
+		},
+        "_score": {
+           "type": "object",
+           "enabled": false
+        }
 	}
 }
