@@ -522,7 +522,7 @@ public class MetaDataResource extends ApplicationStatusResource {
     }
 
     /**
-     * Selects unit by request and unit id
+     * Selects ObjectGroup by request and ObjectGroup id
      */
     private Response selectObjectGroupById(JsonNode selectRequest, String objectGroupId) {
         Status status;

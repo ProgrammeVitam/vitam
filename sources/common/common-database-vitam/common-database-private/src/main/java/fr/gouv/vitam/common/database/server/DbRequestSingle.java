@@ -58,7 +58,6 @@ import org.elasticsearch.search.sort.SortBuilder;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.DBObject;
 import com.mongodb.MongoBulkWriteException;
@@ -67,9 +66,8 @@ import com.mongodb.MongoWriteException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
-import com.mongodb.client.model.FindOneAndReplaceOptions;
-import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.result.DeleteResult;
+import com.mongodb.client.result.UpdateResult;
 
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.NopQuery;
@@ -205,6 +203,7 @@ public class DbRequestSingle {
         try {
             collection.insertMany(vitamDocumentList);
         } catch (final MongoException e) {
+            LOGGER.warn(e);
             throw new DatabaseException(e);
         }
         insertToElasticsearch(vitamDocumentList);
@@ -500,20 +499,20 @@ public class DbRequestSingle {
                 MongoDbInMemory mongoInMemory = new MongoDbInMemory(jsonDocument);
                 ObjectNode updatedJsonDocument =
                     (ObjectNode) mongoInMemory.getUpdateJson(request, false, vaNameAdapter);
-                final String documentAfterUpdate = JsonHandler.prettyPrint(updatedDocument);
-                if (!documentAfterUpdate.equals(documentBeforeUpdate)) {
+                updatedDocument = document.newInstance(updatedJsonDocument);
+                if (!updatedDocument.equals(document)) {
                     modified = true;
-                    updatedJsonDocument.set(VitamDocument.VERSION, new IntNode(documentVersion + 1));
-
+                    updatedDocument.put(VitamDocument.VERSION, documentVersion.intValue() + 1);
                     MongoCollection collection = vitamCollection.getCollection();
                     Bson condition = and(eq(VitamDocument.ID, documentId), eq(VitamDocument.VERSION, documentVersion));
-
-                    FindOneAndReplaceOptions options = new FindOneAndReplaceOptions();
-                    options.returnDocument(ReturnDocument.AFTER);
+                    // Note: cannot do bulk since we need to check each and every update
                     try {
-                        updatedDocument = (VitamDocument<?>) collection.findOneAndReplace(condition,
-                            document.newInstance(updatedJsonDocument), options);
+                        UpdateResult result = collection.replaceOne(condition, updatedDocument);
+                        if (result.getModifiedCount() != 1) {
+                            updatedDocument = null;
+                        }
                     } catch (final MongoException e) {
+                        LOGGER.warn(e);
                         updatedDocument = null;
                     }
                 } else {
@@ -572,6 +571,7 @@ public class DbRequestSingle {
         try {
             result = vitamCollection.getCollection().deleteMany(filter);
         } catch (final MongoException e) {
+            LOGGER.warn(e);
             throw new DatabaseException(e);
         }
         deleteToElasticsearch(ids);

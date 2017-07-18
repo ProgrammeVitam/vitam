@@ -28,6 +28,8 @@ package fr.gouv.vitam.access.internal.rest;
 
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCIES;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.Set;
 
 import javax.ws.rs.Consumes;
@@ -64,6 +66,7 @@ import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -229,7 +232,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkParameter(requestId);
             if (!VitamThreadUtils.getVitamSession().getContract().getWritingPermission()) {
                 status = Status.UNAUTHORIZED;
-                return Response.status(status).entity(getErrorEntity(status)).build();
+                return Response.status(status).entity(getErrorEntity(status, "Write permission not allowed")).build();
             }
             result = accessModule.updateUnitbyId(queryDsl, idUnit, requestId);
         } catch (final InvalidParseOperationException e) {
@@ -289,14 +292,15 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.METHOD_OVERRIDE)) {
                 AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                     Response.status(Status.PRECONDITION_FAILED)
-                        .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build());
+                        .entity(getErrorStream(Status.PRECONDITION_FAILED, "method POST without Override = GET")
+                            ).build());
                 return;
             }
             final String xHttpOverride = headers.getRequestHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE).get(0);
             if (!HttpMethod.GET.equalsIgnoreCase(xHttpOverride)) {
                 AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                    Response.status(Status.METHOD_NOT_ALLOWED).entity(getErrorEntity(Status.METHOD_NOT_ALLOWED)
-                        .toString()).build());
+                    Response.status(Status.METHOD_NOT_ALLOWED).entity(getErrorStream(Status.METHOD_NOT_ALLOWED,
+                        "method POST without Override = GET")).build());
                 return;
             }
         }
@@ -307,7 +311,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 .name() + ", " + VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() + ")");
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.PRECONDITION_FAILED)
-                    .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build());
+                    .entity(getErrorStream(Status.PRECONDITION_FAILED, 
+                        "At least one required header is missing. Required headers: (" + VitamHttpHeader.TENANT_ID
+                        .name() + ", " + VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() +
+                        ")")).build());
             return;
         }
         final String xQualifier = headers.getRequestHeader(GlobalDataRest.X_QUALIFIER).get(0);
@@ -316,7 +323,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         if (!VitamThreadUtils.getVitamSession().getContract().isEveryDataObjectVersion() &&
             !validUsage(xQualifier.split("_")[0])) {
             final Response errorResponse = Response.status(Status.UNAUTHORIZED)
-                .entity(getErrorEntity(Status.UNAUTHORIZED).toString())
+                .entity(getErrorStream(Status.UNAUTHORIZED, "Qualifier unallowed"))
                 .build();
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
             return;
@@ -332,19 +339,19 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         } catch (final InvalidParseOperationException | IllegalArgumentException exc) {
             LOGGER.error(exc);
             final Response errorResponse = Response.status(Status.PRECONDITION_FAILED)
-                .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString())
+                .entity(getErrorStream(Status.PRECONDITION_FAILED, exc.getMessage()))
                 .build();
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         } catch (final AccessInternalExecutionException exc) {
             LOGGER.error(exc.getMessage(), exc);
             final Response errorResponse =
-                Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR)
-                    .toString()).build();
+                Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorStream(Status.INTERNAL_SERVER_ERROR,
+                    exc.getMessage())).build();
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         } catch (MetaDataNotFoundException | StorageNotFoundException exc) {
             LOGGER.error(exc);
             final Response errorResponse =
-                Response.status(Status.NOT_FOUND).entity(getErrorEntity(Status.NOT_FOUND).toString()).build();
+                Response.status(Status.NOT_FOUND).entity(getErrorStream(Status.NOT_FOUND, exc.getMessage())).build();
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         }
     }
@@ -407,14 +414,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         });
     }
 
-    private VitamError getErrorEntity(Status status) {
-        return new VitamError(status.name()).setContext(ACCESS_MODULE)
-
-            .setHttpCode(status.getStatusCode()).setState(CODE_VITAM).setMessage(status.getReasonPhrase())
-            .setDescription(status.getReasonPhrase());
-    }
-
-
     private VitamError getErrorEntity(Status status, String message) {
         String aMessage =
             (message != null && !message.trim().isEmpty()) ? message
@@ -423,6 +422,20 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(ACCESS_MODULE)
             .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
+    
+    private InputStream getErrorStream(Status status, String message) {
+        String aMessage =
+            (message != null && !message.trim().isEmpty()) ? message
+                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        try {
+            return JsonHandler.writeToInpustream(new VitamError(status.name())
+                .setHttpCode(status.getStatusCode()).setContext(ACCESS_MODULE)
+                .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage));
+        } catch (InvalidParseOperationException e) {
+            return new ByteArrayInputStream("{ 'message' : 'Invalid VitamError message' }".getBytes());
+        }
+    }
+
 
     private Response buildErrorResponse(VitamCode vitamCode) {
         return Response.status(vitamCode.getStatus())

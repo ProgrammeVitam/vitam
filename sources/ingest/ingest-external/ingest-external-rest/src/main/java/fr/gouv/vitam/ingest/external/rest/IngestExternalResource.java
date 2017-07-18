@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.rest;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import javax.ws.rs.Consumes;
@@ -158,7 +159,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
                     .header(GlobalDataRest.X_REQUEST_ID, guid.getId())
                     .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED)
                     .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.FATAL)
-                    .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exc.getLocalizedMessage()))
+                    .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, exc.getLocalizedMessage()))
                     .build(), uploadedInputStream);
         }
     }
@@ -197,19 +198,23 @@ public class IngestExternalResource extends ApplicationStatusResource {
         } catch (IllegalArgumentException e) {
             LOGGER.error("IllegalArgumentException was thrown : ", e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.BAD_REQUEST).build());
+                Response.status(Status.BAD_REQUEST)
+                .entity(getErrorStream(Status.BAD_REQUEST, e.getMessage())).build());
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("Predicates Failed Exception", e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.PRECONDITION_FAILED).build());
+                Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorStream(Status.PRECONDITION_FAILED, e.getMessage())).build());
         } catch (final IngestInternalClientServerException e) {
             LOGGER.error("Internal Server Exception ", e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.INTERNAL_SERVER_ERROR).build());
+                Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build());
         } catch (final IngestInternalClientNotFoundException e) {
             LOGGER.error("Request resources does not exits", e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.NOT_FOUND).build());
+                Response.status(Status.NOT_FOUND)
+                .entity(getErrorStream(Status.NOT_FOUND, e.getMessage())).build());
         }
     }
 
@@ -273,25 +278,25 @@ public class IngestExternalResource extends ApplicationStatusResource {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
-                .entity(getErrorEntity(status, e.getLocalizedMessage()))
+                .entity(getErrorStream(status, e.getLocalizedMessage()))
                 .build();
         } catch (VitamClientException e) {
             LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(getErrorEntity(status, e.getLocalizedMessage()))
+                .entity(getErrorStream(status, e.getLocalizedMessage()))
                 .build();
         } catch (InternalServerException e) {
             LOGGER.error(e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(getErrorEntity(status, e.getLocalizedMessage()))
+                .entity(getErrorStream(status, e.getLocalizedMessage()))
                 .build();
         } catch (BadRequestException e) {
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
             return Response.status(status)
-                .entity(getErrorEntity(status, e.getLocalizedMessage()))
+                .entity(getErrorStream(status, e.getLocalizedMessage()))
                 .build();
         }
 
@@ -308,6 +313,19 @@ public class IngestExternalResource extends ApplicationStatusResource {
             .setState("code_vitam")
             .setMessage(status.getReasonPhrase())
             .setDescription(aMessage);
+    }
+    
+    private InputStream getErrorStream(Status status, String message) {
+        String aMessage =
+            (message != null && !message.trim().isEmpty()) ? message
+                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        try {
+            return JsonHandler.writeToInpustream(new VitamError(status.name())
+                .setHttpCode(status.getStatusCode()).setContext(INGEST_EXTERNAL)
+                .setState("code_vitam").setMessage(status.getReasonPhrase()).setDescription(aMessage));
+        } catch (InvalidParseOperationException e) {
+            return new ByteArrayInputStream("{ 'message' : 'Invalid VitamError message' }".getBytes());
+        }
     }
 
     /**

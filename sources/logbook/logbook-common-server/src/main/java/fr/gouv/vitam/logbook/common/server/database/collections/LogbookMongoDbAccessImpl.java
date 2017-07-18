@@ -1456,7 +1456,12 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                 ObjectNode oldEvDetData = (ObjectNode) JsonHandler.getFromString("{}");
                 Object evdevObj = oldValue.get(LogbookMongoDbName.eventDetailData.getDbname());
                 if (evdevObj != null) {
-                    String old = JsonHandler.unprettyPrint(evdevObj);
+                    String old;
+                    if (evdevObj instanceof String) {
+                        old = (String) evdevObj;
+                    } else {
+                        old = JsonHandler.unprettyPrint(evdevObj);
+                    }
                     try {
                         JsonNode node = JsonHandler.getFromString(old);
                         if (node instanceof ObjectNode) {

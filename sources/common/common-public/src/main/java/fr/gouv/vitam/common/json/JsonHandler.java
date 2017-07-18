@@ -52,6 +52,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.gc.iotools.stream.is.InputStreamFromOutputStream;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 
@@ -63,12 +64,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * JSON handler using Json format
- *
- *
- *
- */
-/**
- * @author lubla
  *
  */
 public final class JsonHandler {
@@ -479,6 +474,24 @@ public final class JsonHandler {
         }
     }
 
+    /**
+     * 
+     * @param object
+     * @return the InputStream for this object
+     * @throws InvalidParseOperationException
+     */
+    public static final InputStream writeToInpustream(final Object object) throws InvalidParseOperationException {
+        final InputStreamFromOutputStream<String> isos = new InputStreamFromOutputStream<String>() {
+
+            @Override
+            protected String produce(OutputStream sink) throws Exception {
+                JsonHandler.writeAsOutputStream(object, sink);
+                return "EOF";
+            }
+        };
+        return isos;
+    }
+    
     /**
      * Check if JsonNodes are not null and not empty
      *

@@ -152,6 +152,7 @@ public class RulesManagerFileImplTest {
         mongod = mongodExecutable.start();
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, port));
+        LogbookOperationsClientFactory.changeMode(null);
         rulesFileManager = new RulesManagerFileImpl(
             MongoDbAccessAdminFactory.create(
                 new DbConfigurationImpl(nodes, DATABASE_NAME)));

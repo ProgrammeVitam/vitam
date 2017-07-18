@@ -57,7 +57,6 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.sort.SortBuilder;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.mongodb.BasicDBObject;
@@ -914,7 +913,8 @@ public class DbRequest {
             UpdateResult result = null;
             int tries = 0;
             boolean modified = false;
-
+            MetadataDocument<?> documentFinal = null;
+            
             while (result == null && tries < 3) {
                 final JsonNode jsonDocument = JsonHandler.toJsonNode(document);
                 final String documentBeforeUpdate = JsonHandler.prettyPrint(jsonDocument);
@@ -925,10 +925,10 @@ public class DbRequest {
                 final MongoDbInMemory mongoInMemory = new MongoDbInMemory(jsonDocument);
                 requestToMongodb.getFinalUpdateActions();
                 final ObjectNode updatedJsonDocument = (ObjectNode) mongoInMemory.getUpdateJson(requestParser);
-                final String documentAfterUpdate = JsonHandler.prettyPrint(updatedJsonDocument);
-                if (! documentAfterUpdate.equals(documentBeforeUpdate)) {
+                documentFinal = (MetadataDocument<?>) document.newInstance(updatedJsonDocument);
+                if (! documentId.equals(document)) {
                     modified = true;
-                    updatedJsonDocument.set(VitamDocument.VERSION, new IntNode(documentVersion + 1));
+                    documentFinal.put(VitamDocument.VERSION, documentVersion.intValue() + 1);
     
                     if (model == FILTERARGS.UNITS) {
                         SchemaValidationStatus status = validator.validateUpdateUnit(updatedJsonDocument);
@@ -942,8 +942,10 @@ public class DbRequest {
                         and(eq(MetadataDocument.ID, documentId), eq(MetadataDocument.VERSION, documentVersion));
                     updatedJsonDocument.remove(VitamDocument.SCORE);
                     LOGGER.debug("DEBUG update {}", updatedJsonDocument);
-                    result =
-                        collection.replaceOne(condition, (MetadataDocument<?>) document.newInstance(updatedJsonDocument));
+                    result = collection.replaceOne(condition, documentFinal);
+                    if (result.getModifiedCount() != 1) {
+                        result = null;
+                    }
                     tries++;
                 } else {
                     break;
@@ -984,9 +986,11 @@ public class DbRequest {
             return;
         }
         if (last.getCurrentIds().size() == 1) {
-            finalQuery = eq(MetadataDocument.ID, last.getCurrentIds().iterator().next());
+            finalQuery = and(eq(MetadataDocument.ID, last.getCurrentIds().iterator().next()),
+                eq(MetadataDocument.TENANT_ID, tenantId));
         } else {
-            finalQuery = in(MetadataDocument.ID, last.getCurrentIds());
+            finalQuery = and(in(MetadataDocument.ID, last.getCurrentIds()),
+                eq(MetadataDocument.TENANT_ID, tenantId));
         }
         @SuppressWarnings("unchecked")
         final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper
@@ -1131,9 +1135,15 @@ public class DbRequest {
 
 
                     final Bson update = combine(updateSps, updateUp, updateOps);
-                    ObjectGroup object = (ObjectGroup) MetadataCollections.C_OBJECTGROUP.getCollection()
-                        .findOneAndUpdate(eq(ID, unit.getString(MetadataDocument.OG)),
-                            update, new FindOneAndUpdateOptions().upsert(false).returnDocument(ReturnDocument.AFTER));
+                    ObjectGroup object = null;
+                    try {
+                        object = (ObjectGroup) MetadataCollections.C_OBJECTGROUP.getCollection()
+                            .findOneAndUpdate(eq(ID, unit.getString(MetadataDocument.OG)),
+                                update, new FindOneAndUpdateOptions().upsert(false).returnDocument(ReturnDocument.AFTER));
+                    } catch (MongoException e) {
+                        LOGGER.error(e);
+                        throw new MetaDataExecutionException(e);
+                    }
                     String id = (String) object.remove(VitamDocument.ID);
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug("DEBUG: OG {}", JsonHandler.toJsonNode(object));

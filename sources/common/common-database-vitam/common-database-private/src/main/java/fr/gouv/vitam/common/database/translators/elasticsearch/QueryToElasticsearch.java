@@ -157,7 +157,16 @@ public class QueryToElasticsearch {
                 !ParserTokens.PROJECTIONARGS.isNotAnalyzed(entry.getKey())) {
                 // First time we get an analyzed sort by
                 scoreNotAdded = false;
-                sorts.add(SortBuilders.scoreSort().order(SortOrder.DESC));
+                if (entry.getKey() == "_score" || entry.getKey() == "#score") {
+                    if (entry.getValue().asInt() < 0) {
+                        sorts.add(SortBuilders.scoreSort().order(SortOrder.DESC));
+                    } else {
+                        sorts.add(SortBuilders.scoreSort().order(SortOrder.ASC));
+                    }
+                    continue;
+                } else {
+                    sorts.add(SortBuilders.scoreSort().order(SortOrder.DESC));
+                }
             }
 
             final FieldSortBuilder fieldSort = SortBuilders.fieldSort(key);

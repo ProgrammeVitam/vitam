@@ -234,7 +234,11 @@ public class DbRequestResult implements VitamAutoCloseable {
      */
     public <T extends VitamDocument<T>> RequestResponseOK<T> getRequestResponseOK(Class<T> cls) {
         final RequestResponseOK<T> response = new RequestResponseOK<>();
-        response.addAllResults(getDocuments(cls)).setHits(getDatabaseCursor());
+        // Save before addAll
+        DatabaseCursor currentCursor = getDatabaseCursor();
+        currentCursor = new DatabaseCursor(currentCursor.getTotal(), currentCursor.getOffset(), 
+            currentCursor.getLimit(), currentCursor.getLimit());
+        response.addAllResults(getDocuments(cls)).setHits(currentCursor);
         close();
         return response;
     }
@@ -252,7 +256,11 @@ public class DbRequestResult implements VitamAutoCloseable {
     public <T extends VitamDocument<T>, V> RequestResponseOK<V> getRequestResponseOK(Class<T> cls, Class<V> clsFromJson)
         throws InvalidParseOperationException {
         final RequestResponseOK<V> response = new RequestResponseOK<>();
-        response.addAllResults(getDocuments(cls, clsFromJson)).setHits(getDatabaseCursor());
+        // Save before addAll
+        DatabaseCursor currentCursor = getDatabaseCursor();
+        currentCursor = new DatabaseCursor(currentCursor.getTotal(), currentCursor.getOffset(), 
+            currentCursor.getLimit(), currentCursor.getLimit());
+        response.addAllResults(getDocuments(cls, clsFromJson)).setHits(currentCursor);
         close();
         return response;
     }

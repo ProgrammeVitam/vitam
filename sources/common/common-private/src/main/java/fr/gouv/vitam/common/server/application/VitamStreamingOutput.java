@@ -34,12 +34,13 @@ import java.io.OutputStream;
 
 import javax.ws.rs.core.StreamingOutput;
 
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.stream.StreamUtils;
 
 /**
  * Helper for Streaming to output one InputStream or File in non async mode
  */
-public class VitamStreamingOutput implements StreamingOutput {
+public class VitamStreamingOutput implements StreamingOutput, VitamAutoCloseable {
     private InputStream inputStream = null;
     private final File file;
     private final boolean toDelete;
@@ -77,6 +78,13 @@ public class VitamStreamingOutput implements StreamingOutput {
         }
         if (file != null && toDelete) {
             file.delete();
+        }
+    }
+
+    @Override
+    public void close() {
+        if (inputStream != null) {
+            StreamUtils.closeSilently(inputStream);
         }
     }
 }

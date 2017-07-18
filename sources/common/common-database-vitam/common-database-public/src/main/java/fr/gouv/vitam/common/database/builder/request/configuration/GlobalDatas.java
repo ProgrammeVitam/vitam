@@ -190,6 +190,8 @@ public class GlobalDatas {
             return node.booleanNode((Boolean) value);
         } else if (value instanceof Date) {
             return getDate((Date) value);
+        } else if (value instanceof JsonNode) {
+            return (JsonNode) value;
         } else {
             final String val = value.toString();
             try {

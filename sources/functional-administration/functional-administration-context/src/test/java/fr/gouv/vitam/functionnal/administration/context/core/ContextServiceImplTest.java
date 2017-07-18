@@ -71,6 +71,7 @@ import fr.gouv.vitam.functional.administration.contract.api.ContractService;
 import fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl;
 import fr.gouv.vitam.functional.administration.contract.core.IngestContractImpl;
 import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 
 public class ContextServiceImplTest {
 
@@ -114,6 +115,7 @@ public class ContextServiceImplTest {
         final List tenants = new ArrayList<>();
         tenants.add(new Integer(TENANT_ID));
         vitamCounterService = new VitamCounterService(dbImpl, tenants);
+        LogbookOperationsClientFactory.changeMode(null);
 
         contextService =
             new ContextServiceImpl(MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)),

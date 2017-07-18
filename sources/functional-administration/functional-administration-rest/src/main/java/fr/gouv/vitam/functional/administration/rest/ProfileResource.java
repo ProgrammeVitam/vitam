@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -68,6 +69,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
+
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.List;
 
@@ -227,14 +230,14 @@ public class ProfileResource {
                     LOGGER.error(exc.getMessage(), exc);
                     AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                         Response.status(Status.NOT_FOUND)
-                            .entity(getErrorEntity(Status.NOT_FOUND, exc.getMessage(), null).toString()
+                            .entity(getErrorStream(Status.NOT_FOUND, exc.getMessage(), null).toString()
                             ).build());
 
                 }  catch (final ReferentialException | InvalidParseOperationException exc) {
                     LOGGER.error(exc.getMessage(), exc);
                     AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                         Response.status(Status.INTERNAL_SERVER_ERROR)
-                            .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exc.getMessage(), null).toString()
+                            .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, exc.getMessage(), null).toString()
                             ).build());
                 }
             });
@@ -287,6 +290,20 @@ public class ProfileResource {
         return new VitamError(aCode).setHttpCode(status.getStatusCode())
             .setContext(FUNCTIONAL_ADMINISTRATION_MODULE)
             .setState("ko").setMessage(status.getReasonPhrase()).setDescription(aMessage);
+    }
+    
+    private InputStream getErrorStream(Status status, String message, String code) {
+        String aMessage =
+            (message != null && !message.trim().isEmpty()) ? message
+                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        String aCode = (code != null) ? code : String.valueOf(status.getStatusCode());
+        try {
+            return JsonHandler.writeToInpustream(new VitamError(aCode)
+                .setHttpCode(status.getStatusCode()).setContext(FUNCTIONAL_ADMINISTRATION_MODULE)
+                .setState("ko").setMessage(status.getReasonPhrase()).setDescription(aMessage));
+        } catch (InvalidParseOperationException e) {
+            return new ByteArrayInputStream("{ 'message' : 'Invalid VitamError message' }".getBytes());
+        }
     }
 
 

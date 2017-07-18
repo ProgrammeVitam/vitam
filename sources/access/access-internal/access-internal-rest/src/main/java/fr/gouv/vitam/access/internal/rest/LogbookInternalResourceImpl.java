@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.rest;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -313,14 +315,18 @@ public class LogbookInternalResourceImpl {
 
     /***** LIFE CYCLES - END *****/
 
-
-    private VitamError getErrorEntity(Status status) {
-        return new VitamError(status.name()).setContext(LOGBOOK_MODULE)
-
-            .setHttpCode(status.getStatusCode()).setState(CODE_VITAM).setMessage(status.getReasonPhrase())
-            .setDescription(status.getReasonPhrase());
+    private InputStream getErrorStream(Status status, String message) {
+        String aMessage =
+            (message != null && !message.trim().isEmpty()) ? message
+                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        try {
+            return JsonHandler.writeToInpustream(new VitamError(status.name())
+                .setHttpCode(status.getStatusCode()).setContext(LOGBOOK_MODULE)
+                .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage));
+        } catch (InvalidParseOperationException e) {
+            return new ByteArrayInputStream("{ 'message' : 'Invalid VitamError message' }".getBytes());
+        }
     }
-
 
     private VitamError getErrorEntity(Status status, String message) {
         String aMessage =
@@ -403,37 +409,23 @@ public class LogbookInternalResourceImpl {
                     itemStatus = new ItemStatus(checkOperationGUID.getId()).setMessage("Unknown status of the workflow");
                     status = Status.INTERNAL_SERVER_ERROR;
                 }
-                return Response.status(status).entity(new VitamError(status.name())
-                    .setDescription(JsonHandler.unprettyPrint(itemStatus)).setHttpCode(status.getStatusCode())
-                    .setContext(LOGBOOK).setState("code_vitam").setMessage(status.getReasonPhrase())).build();
+                return Response.status(status).entity(getErrorEntity(status, JsonHandler.unprettyPrint(itemStatus))).build();
             }
         } catch (BadRequestException | LogbookClientBadRequestException e) {            
             LOGGER.error(e);
             final Status status = Status.BAD_REQUEST;
-            return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                .setContext(LOGBOOK)
-                .setState("code_vitam")
-                .setMessage(status.getReasonPhrase())
-                .setDescription(e.getMessage())).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
 
         } catch (InternalServerException | VitamClientException | LogbookClientException |
             InvalidParseOperationException | ContentAddressableStorageException e) {
             LOGGER.error(e);
             final Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                .setContext(LOGBOOK)
-                .setState("code_vitam")
-                .setMessage(status.getReasonPhrase())
-                .setDescription(e.getMessage())).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
 
         } catch (WorkflowNotFoundException e) {
             LOGGER.error(e);
             final Status status = Status.NOT_FOUND;
-            return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                .setContext(LOGBOOK)
-                .setState("code_vitam")
-                .setMessage(status.getReasonPhrase())
-                .setDescription(e.getMessage())).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } finally {            
             DefaultClient.staticConsumeAnyEntityAndClose(response);
         }
@@ -461,7 +453,8 @@ public class LogbookInternalResourceImpl {
             List<ObjectNode> foundOperation = requestResponseOK.getResults();
             if (foundOperation == null || foundOperation.isEmpty() || foundOperation.size() > 1) {
                 // More than operation found return BAD_REQUEST response
-                AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.BAD_REQUEST).build());
+                AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.BAD_REQUEST)
+                    .entity(getErrorStream(Status.BAD_REQUEST, "Operation not found")).build());
                 return;
             }
 
@@ -471,13 +464,15 @@ public class LogbookInternalResourceImpl {
             // Check if it a traceability operation
             if (!LogbookTypeProcess.TRACEABILITY.equals(LogbookTypeProcess.valueOf(operationType))) {
                 // It wasn't a traceability operation
-                AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.BAD_REQUEST).build());
+                AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.BAD_REQUEST)
+                    .entity(getErrorStream(Status.BAD_REQUEST, "Not a traceability operation")).build());
                 return;
             }
         } catch (InvalidParseOperationException | LogbookClientException | IllegalArgumentException e) {
             LOGGER.error(e.getMessage(), e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.INTERNAL_SERVER_ERROR).build());
+                Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build());
             return;
         }
 
@@ -513,12 +508,14 @@ public class LogbookInternalResourceImpl {
         } catch (StorageServerClientException | StorageNotFoundException e) {
             LOGGER.error(e.getMessage(), e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.INTERNAL_SERVER_ERROR).build());
+                Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build());
             return;
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e.getMessage(), e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.INTERNAL_SERVER_ERROR).build());
+                Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build());
             return;
         }
     }
