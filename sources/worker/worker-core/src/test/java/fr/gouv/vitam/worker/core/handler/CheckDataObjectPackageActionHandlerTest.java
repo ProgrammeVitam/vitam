@@ -26,36 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -65,6 +35,8 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
@@ -79,16 +51,47 @@ import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({WorkspaceClientFactory.class, MetaDataClientFactory.class, SedaUtilsFactory.class})
+@PrepareForTest({WorkspaceClientFactory.class, MetaDataClientFactory.class, SedaUtilsFactory.class, AdminManagementClientFactory.class})
 public class CheckDataObjectPackageActionHandlerTest {
     CheckDataObjectPackageActionHandler handler = new CheckDataObjectPackageActionHandler();
     private static final String SIP_ARBORESCENCE = "SIP_Arborescence.xml";
+    private AdminManagementClient adminManagementClient;
     private WorkspaceClient workspaceClient;
     private MetaDataClient metadataClient;
     private WorkspaceClientFactory workspaceClientFactory;
+    private AdminManagementClientFactory adminManagementClientFactory;
     private MetaDataClientFactory metadataClientFactory;
     private SedaUtils sedaUtils;
     private ExtractUriResponse extractUriResponseOK;
@@ -109,9 +112,6 @@ public class CheckDataObjectPackageActionHandlerTest {
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Rule
-    public TemporaryFolder folder = new TemporaryFolder();
-
-    @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @Before
@@ -122,19 +122,26 @@ public class CheckDataObjectPackageActionHandlerTest {
 
         SystemPropertyUtil.refresh();
 
-        PowerMockito.mockStatic(WorkspaceClientFactory.class);
+        mockStatic(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
 
-        PowerMockito.mockStatic(MetaDataClientFactory.class);
+        mockStatic(AdminManagementClientFactory.class);
+        adminManagementClient = mock(AdminManagementClient.class);
+
+        adminManagementClientFactory = mock(AdminManagementClientFactory.class);
+        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
+        PowerMockito.when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
+
+        mockStatic(MetaDataClientFactory.class);
         metadataClient = mock(MetaDataClient.class);
         metadataClientFactory = mock(MetaDataClientFactory.class);
         PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(metadataClientFactory);
         PowerMockito.when(MetaDataClientFactory.getInstance().getClient()).thenReturn(metadataClient);
 
-        PowerMockito.mockStatic(SedaUtilsFactory.class);
+        mockStatic(SedaUtilsFactory.class);
         sedaUtils = mock(SedaUtils.class);
 
         action = new HandlerIOImpl("ExtractSedaActionHandlerTest", "workerId");
@@ -156,7 +163,7 @@ public class CheckDataObjectPackageActionHandlerTest {
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.VALUE, "true")));
         in.add(new IOParameter()
-                .setUri(new ProcessingUri(UriPrefix.VALUE, "INGEST")));
+            .setUri(new ProcessingUri(UriPrefix.VALUE, "INGEST")));
 
         uriListWorkspaceOK.add(new URI("content/file1.pdf"));
         uriListWorkspaceOK.add(new URI("content/file2.pdf"));
@@ -176,28 +183,31 @@ public class CheckDataObjectPackageActionHandlerTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(CheckDataObjectPackageActionHandler.getId());
         final InputStream seda_arborescence =
-            PropertiesUtils.getResourceAsStream(SIP_ARBORESCENCE);        
+            PropertiesUtils.getResourceAsStream(SIP_ARBORESCENCE);
         PowerMockito.when(SedaUtilsFactory.create(anyObject())).thenReturn(sedaUtils);
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractUriResponseOK);
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(seda_arborescence).build());
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
-        .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOK));
+            .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOK));
+
+        when(adminManagementClient.findIngestContracts(anyObject()))
+            .thenReturn(new RequestResponseOK());
         action.addOutIOParameters(out);
         action.addInIOParameters(in);
         final ItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
-        
+
         in = new ArrayList<>();
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.VALUE, "false")));
         in.add(new IOParameter()
-                .setUri(new ProcessingUri(UriPrefix.VALUE, "INGEST")));
-        action.reset();        
+            .setUri(new ProcessingUri(UriPrefix.VALUE, "INGEST")));
+        action.reset();
         action.addOutIOParameters(out);
         action.addInIOParameters(in);
-        
+
         final List<String> invalidVersionList = new ArrayList<>();
         Mockito.doReturn(invalidVersionList).when(sedaUtils).checkSupportedDataObjectVersion(anyObject());
         final ItemStatus response2 = handler.execute(params, action);

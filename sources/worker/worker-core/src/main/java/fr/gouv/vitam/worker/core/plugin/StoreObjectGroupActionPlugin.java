@@ -62,6 +62,7 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
     private static final String STORING_OBJECT_TASK_ID = "OBJECT_STORAGE_SUB_TASK";
     private static final String SIP = "SIP/";
     private HandlerIO handlerIO;
+    private boolean asyncIO = false;
 
     /**
      * Constructor
@@ -113,7 +114,7 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
             try {
                 handlerIO.transferJsonToWorkspace(StorageCollectionType.OBJECTGROUPS.getCollectionName(),
                     params.getObjectName(),
-                    mapOfObjects.jsonOG, false);
+                    mapOfObjects.jsonOG, false, asyncIO);
             } catch (ProcessingException e) {
                 LOGGER.error(params.getObjectName(), e);
                 throw e;

@@ -264,6 +264,9 @@ public class VitamConfiguration {
     private static  boolean ENABLE_DISTRIBUTOR_V2 = true;
     private static  Boolean ENABLE_JAXB_PARSER = true;
 
+    private static int ASYNC_WORKSPACE_QUEUE_SIZE = 10;
+
+
     static {
         getConfiguration().setDefault();
     }
@@ -453,6 +456,11 @@ public class VitamConfiguration {
         if (null != parameters.getChunkSize()) {
             setChunkSize(parameters.getChunkSize());
         }
+
+        if (null != parameters.getRecvBufferSize()) {
+            setRecvBufferSize(parameters.getRecvBufferSize());
+        }
+
         if (null != parameters.getRecvBufferSize()) {
             setRecvBufferSize(parameters.getRecvBufferSize());
         }
@@ -843,6 +851,15 @@ public class VitamConfiguration {
         return WAITING_DELAY;
     }
     
+
+    /**
+     * @return the size of the queue of async workspace
+     */
+    public static Integer getAsyncWorkspaceQueueSize() {
+        return ASYNC_WORKSPACE_QUEUE_SIZE;
+    }
+
+
     /**
      * @return the receive Buffer Size
      */
@@ -995,6 +1012,14 @@ public class VitamConfiguration {
     private static void setChunkSize(int chunkSize) {
         CHUNK_SIZE = chunkSize;
     }
+
+    /**
+     * @return the size of the queue of async workspace
+     */
+    public static void setAsyncWorkspaceQueueSize(int queueSize) {
+        ASYNC_WORKSPACE_QUEUE_SIZE = queueSize;
+    }
+
 
     /**
      * setter for RECV_BUFFER_SIZE

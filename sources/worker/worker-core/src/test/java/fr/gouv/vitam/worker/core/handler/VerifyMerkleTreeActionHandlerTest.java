@@ -162,7 +162,7 @@ public class VerifyMerkleTreeActionHandlerTest {
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.MEMORY, "TraceabilityOperationDetails/EVENT_DETAIL_DATA.json")));
         action.addOutIOParameters(in);
-        action.addOuputResult(0, PropertiesUtils.getResourceFile(DETAIL_EVENT_TRACEABILITY));
+        action.addOuputResult(0, PropertiesUtils.getResourceFile(DETAIL_EVENT_TRACEABILITY), false);
         action.reset();
         action.addInIOParameters(in);
 
@@ -191,7 +191,7 @@ public class VerifyMerkleTreeActionHandlerTest {
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.MEMORY, "TraceabilityOperationDetails/EVENT_DETAIL_DATA.json")));
         action.addOutIOParameters(in);
-        action.addOuputResult(0, PropertiesUtils.getResourceFile(DETAIL_EVENT_TRACEABILITY_WRONG_ROOT));
+        action.addOuputResult(0, PropertiesUtils.getResourceFile(DETAIL_EVENT_TRACEABILITY_WRONG_ROOT), false);
         action.reset();
         action.addInIOParameters(in);
 
@@ -224,7 +224,7 @@ public class VerifyMerkleTreeActionHandlerTest {
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.MEMORY, "TraceabilityOperationDetails/EVENT_DETAIL_DATA.json")));
         action.addOutIOParameters(in);
-        action.addOuputResult(0, PropertiesUtils.getResourceFile(DETAIL_EVENT_TRACEABILITY));
+        action.addOuputResult(0, PropertiesUtils.getResourceFile(DETAIL_EVENT_TRACEABILITY), false);
         action.reset();
         action.addInIOParameters(in);
 
@@ -257,7 +257,7 @@ public class VerifyMerkleTreeActionHandlerTest {
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.MEMORY, "TraceabilityOperationDetails/EVENT_DETAIL_DATA.json")));
         action.addOutIOParameters(in);
-        action.addOuputResult(0, PropertiesUtils.getResourceFile(DETAIL_EVENT_TRACEABILITY));
+        action.addOuputResult(0, PropertiesUtils.getResourceFile(DETAIL_EVENT_TRACEABILITY), false);
         action.reset();
         action.addInIOParameters(in);
 
@@ -286,7 +286,7 @@ public class VerifyMerkleTreeActionHandlerTest {
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.MEMORY, "TraceabilityOperationDetails/EVENT_DETAIL_DATA.json")));
         action.addOutIOParameters(in);
-        action.addOuputResult(0, PropertiesUtils.getResourceFile(FAKE_DETAIL_EVENT_TRACEABILITY));
+        action.addOuputResult(0, PropertiesUtils.getResourceFile(FAKE_DETAIL_EVENT_TRACEABILITY), false);
         action.reset();
         action.addInIOParameters(in);
         verifyMerkleTreeActionHandler = new VerifyMerkleTreeActionHandler();
@@ -303,7 +303,7 @@ public class VerifyMerkleTreeActionHandlerTest {
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.MEMORY, "TraceabilityOperationDetails/EVENT_DETAIL_DATA.json")));
         action.addOutIOParameters(in);
-        action.addOuputResult(0, PropertiesUtils.getResourceFile(DETAIL_EVENT_TRACEABILITY));
+        action.addOuputResult(0, PropertiesUtils.getResourceFile(DETAIL_EVENT_TRACEABILITY), false);
         action.reset();
         action.addInIOParameters(in);
 

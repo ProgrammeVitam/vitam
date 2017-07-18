@@ -81,7 +81,7 @@ public class VitamThreadPoolExecutor extends ThreadPoolExecutor implements Threa
     @Inject
     @Named("threadpool")
     public VitamThreadPoolExecutor() {
-        this(VitamConfiguration.getMinimumThreadPoolSize(), Integer.MAX_VALUE, 60L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>());
+        this(VitamConfiguration.getMinimumThreadPoolSize(), Integer.MAX_VALUE, 60L, TimeUnit.SECONDS, new SynchronousQueue<>());
     }
 
     /**

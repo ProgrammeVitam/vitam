@@ -64,7 +64,7 @@ public class HandlerIOTest {
         io.addOutIOParameters(out);
         assertEquals(0, io.getInput().size());
         assertEquals(1, io.getOutput().size());
-        io.addOuputResult(0, file);
+        io.addOuputResult(0, file, false);
         assertEquals(io.getOutput().get(0), uri);
         assertEquals(io.getOutput(0), uri);
         // Now create a Memory in similar to out
@@ -109,7 +109,7 @@ public class HandlerIOTest {
             final Object object = io.getInput(0);
             assertEquals(File.class, object.getClass());
 
-            io.addOuputResult(0, object, true);
+            io.addOuputResult(0, object, true, false);
             assertFalse(((File) object).exists());
         }
     }

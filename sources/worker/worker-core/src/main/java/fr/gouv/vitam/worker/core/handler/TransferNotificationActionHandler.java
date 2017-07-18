@@ -225,7 +225,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
             } catch (XMLStreamException e) {
                 LOGGER.error("ATR File is not a correct xml file", e);
             }
-            handler.addOuputResult(ATR_RESULT_OUT_RANK, atrFile, true);
+            handler.addOuputResult(ATR_RESULT_OUT_RANK, atrFile, true, false);
             // store data object
             final ObjectDescription description = new ObjectDescription();
             description.setWorkspaceContainerGUID(params.getContainerName());

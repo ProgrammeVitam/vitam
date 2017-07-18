@@ -109,6 +109,12 @@ public class VitamConfigurationParameters {
      * Default Chunk Size
      */
     private Integer CHUNK_SIZE;
+
+    /**
+     * Default Async Workspace Queue Size
+     */
+    private Integer ASYNC_WORKSPACE_QUEUE_SIZE;
+
     /**
      * Default Recv Buffer Size
      */
@@ -405,6 +411,22 @@ public class VitamConfigurationParameters {
     public void setChunkSize(Integer chunkSize) {
         CHUNK_SIZE = chunkSize;
     }
+
+    /**
+     * @return the size of the queue of async workspace
+     */
+    public Integer getAsyncWorkspaceQueueSize() {
+        return ASYNC_WORKSPACE_QUEUE_SIZE;
+    }
+
+
+    /**
+     * @return the size of the queue of async workspace
+     */
+    public void setAsyncWorkspaceQueueSize(int queueSize) {
+        ASYNC_WORKSPACE_QUEUE_SIZE = queueSize;
+    }
+
 
     /**
      * Getter for   RECV_BUFFER_SIZE;
