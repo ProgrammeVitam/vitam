@@ -26,6 +26,21 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.rest;
 
+import java.util.List;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriInfo;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
@@ -44,21 +59,6 @@ import fr.gouv.vitam.functional.administration.contract.api.ContractService;
 import fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl;
 import fr.gouv.vitam.functional.administration.contract.core.IngestContractImpl;
 import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriInfo;
-
-import java.util.List;
 
 /**
  * FormatManagementResourceImpl implements AccessResource
@@ -82,11 +82,13 @@ public class ContractResource {
 
     private final MongoDbAccessAdminImpl mongoAccess;
     private final VitamCounterService vitamCounterService;
+
     /**
      *
      * @param mongoAccess
      */
-    public ContractResource(MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService ) throws VitamException {
+    public ContractResource(MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService)
+        throws VitamException {
         this.mongoAccess = mongoAccess;
         this.vitamCounterService = vitamCounterService;
         LOGGER.debug("init Admin Management Resource server");
@@ -95,7 +97,8 @@ public class ContractResource {
 
     /**
      * Import a set of ingest contracts after passing the validation steps. If all the contracts are valid, they are
-     * stored in the collection and indexed. </BR> The input is invalid in the following situations : </BR>
+     * stored in the collection and indexed. </BR>
+     * The input is invalid in the following situations : </BR>
      * <ul>
      * <li>The json is invalid</li>
      * <li>The json contains 2 ore many contracts having the same name</li>
@@ -151,7 +154,8 @@ public class ContractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response findIngestContracts(JsonNode queryDsl) {
 
-        try (ContractService<IngestContractModel> ingestContract = new IngestContractImpl(mongoAccess,vitamCounterService)) {
+        try (ContractService<IngestContractModel> ingestContract =
+            new IngestContractImpl(mongoAccess, vitamCounterService)) {
 
             final RequestResponseOK<IngestContractModel> ingestContractModelList =
                 ingestContract.findContracts(queryDsl).setQuery(queryDsl);
@@ -173,7 +177,8 @@ public class ContractResource {
 
     /**
      * Import a set of contracts access after passing the validation steps. If all the contracts are valid, they are
-     * stored in the collection and indexed. </BR> The input is invalid in the following situations : </BR>
+     * stored in the collection and indexed. </BR>
+     * The input is invalid in the following situations : </BR>
      * <ul>
      * <li>The json is invalid</li>
      * <li>The json contains 2 ore many contracts having the same name</li>
@@ -272,6 +277,8 @@ public class ContractResource {
 
     /**
      * find access contracts by queryDsl
+     * 
+     * @param queryDsl
      *
      * @return Response
      */
@@ -283,14 +290,11 @@ public class ContractResource {
         try (ContractService<AccessContractModel> accessContract = new AccessContractImpl(mongoAccess,
             vitamCounterService)) {
 
-            final RequestResponseOK<AccessContractModel> accessContractModelList = accessContract.findContracts(queryDsl)
-                .setQuery(queryDsl);
-
-            return Response
-                .status(Status.OK)
-                .entity(accessContractModelList)
-                .build();
-
+            final RequestResponseOK<AccessContractModel> accessContractModelList =
+                accessContract.findContracts(queryDsl)
+                    .setQuery(queryDsl);
+            return Response.status(Status.OK)
+                .entity(accessContractModelList).build();
         } catch (ReferentialException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST)

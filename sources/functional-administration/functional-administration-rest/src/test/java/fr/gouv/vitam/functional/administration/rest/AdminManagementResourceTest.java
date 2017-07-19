@@ -395,7 +395,7 @@ public class AdminManagementResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(jsonDocument)
             .pathParam("id_format", jsonDocument.get(0).get("PUID").asText())
-            .when().post(GET_BYID_FORMAT_URI + FORMAT_ID_URI)
+            .when().get(GET_BYID_FORMAT_URI + FORMAT_ID_URI)
             .then().statusCode(Status.OK.getStatusCode());
     }
 
@@ -426,7 +426,7 @@ public class AdminManagementResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(jsonDocument)
             .pathParam("id_format", "fake_identifier")
-            .when().post(GET_BYID_FORMAT_URI + FORMAT_ID_URI)
+            .when().get(GET_BYID_FORMAT_URI + FORMAT_ID_URI)
             .then().statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
@@ -679,7 +679,7 @@ public class AdminManagementResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(jsonDocument)
             .pathParam("id_rule", jsonDocument.get(0).get("RuleId").asText())
-            .when().post(GET_BYID_RULES_URI + RULES_ID_URI)
+            .when().get(GET_BYID_RULES_URI + RULES_ID_URI)
             .then().statusCode(Status.OK.getStatusCode());
     }
 
@@ -709,7 +709,7 @@ public class AdminManagementResourceTest {
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(jsonDocument)
-            .when().post(GET_BYID_RULES_URI + "/fake_identifier")
+            .when().get(GET_BYID_RULES_URI + "/fake_identifier")
             .then().statusCode(Status.NOT_FOUND.getStatusCode());
     }
 

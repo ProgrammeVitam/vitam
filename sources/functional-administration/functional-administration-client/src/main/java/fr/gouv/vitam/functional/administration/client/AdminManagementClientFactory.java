@@ -45,10 +45,9 @@ public class AdminManagementClientFactory extends VitamClientFactory<AdminManage
         new AdminManagementClientFactory();
     private static final String CONFIGURATION_FILENAME = "functional-administration-client.conf";
     private static final String RESOURCE_PATH = "/adminmanagement/v1";
-
-
+    
     private AdminManagementClientFactory() {
-        super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH);
+        super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH, true);
     }
 
     /**

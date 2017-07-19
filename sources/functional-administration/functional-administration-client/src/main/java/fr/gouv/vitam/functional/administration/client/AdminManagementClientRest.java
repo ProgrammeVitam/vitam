@@ -174,7 +174,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         ParametersChecker.checkParameter("id is a mandatory parameter", id);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, FORMAT_URL + "/" + id, null,
+            response = performRequest(HttpMethod.GET, FORMAT_URL + "/" + id, null,
                 MediaType.APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
@@ -187,6 +187,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 default:
                     break;
             }
+
             return JsonHandler.getFromString(response.readEntity(String.class));
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
@@ -306,7 +307,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         ParametersChecker.checkParameter("id is a mandatory parameter", id);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, RULESMANAGER_URL + "/" + id, null,
+            response = performRequest(HttpMethod.GET, RULESMANAGER_URL + "/" + id, null,
                 MediaType.APPLICATION_JSON_TYPE);
 
             final Status status = Status.fromStatusCode(response.getStatus());
@@ -467,30 +468,27 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         accessionRegisterDetail.setLastUpdate(model.getLastUpdate());
 
         if (model.getTotalObjectsGroups() != null) {
-            totalObjectsGroups.setTotal(model.getTotalObjectsGroups().getTotal()).
-                setRemained(model.getTotalObjectsGroups().getRemained()).
-                setDeleted(model.getTotalObjectsGroups().getDeleted());
+            totalObjectsGroups.setTotal(model.getTotalObjectsGroups().getTotal())
+                .setRemained(model.getTotalObjectsGroups().getRemained())
+                .setDeleted(model.getTotalObjectsGroups().getDeleted());
 
             accessionRegisterDetail.setTotalObjectGroups(totalObjectsGroups);
         }
         if (model.getTotalUnits() != null) {
-            totalUnits.setTotal(model.getTotalUnits().getTotal()).
-                setRemained(model.getTotalUnits().getRemained()).
-                setDeleted(model.getTotalUnits().getDeleted());
+            totalUnits.setTotal(model.getTotalUnits().getTotal()).setRemained(model.getTotalUnits().getRemained())
+                .setDeleted(model.getTotalUnits().getDeleted());
 
             accessionRegisterDetail.setTotalUnits(totalUnits);
         }
         if (model.getTotalObjects() != null) {
-            totalObjects.setTotal(model.getTotalObjects().getTotal()).
-                setRemained(model.getTotalObjects().getRemained()).
-                setDeleted(model.getTotalObjects().getDeleted());
+            totalObjects.setTotal(model.getTotalObjects().getTotal()).setRemained(model.getTotalObjects().getRemained())
+                .setDeleted(model.getTotalObjects().getDeleted());
 
             accessionRegisterDetail.setTotalObjects(totalObjects);
         }
         if (model.getObjectSize() != null) {
-            objectSize.setTotal(model.getObjectSize().getTotal()).
-                setRemained(model.getObjectSize().getRemained()).
-                setDeleted(model.getObjectSize().getDeleted());
+            objectSize.setTotal(model.getObjectSize().getTotal()).setRemained(model.getObjectSize().getRemained())
+                .setDeleted(model.getObjectSize().getDeleted());
             accessionRegisterDetail.setObjectSize(objectSize);
         }
 
@@ -527,7 +525,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         throws InvalidParseOperationException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("The input access contracts json is mandatory", accessContractModelList);
         Response response = null;
-       
+
         try {
             response = performRequest(HttpMethod.POST, ACCESS_CONTRACTS_URI, null,
                 accessContractModelList, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE,
@@ -707,7 +705,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         ParametersChecker.checkParameter(profileMetadataId, "The profile id is mandatory");
         Response response = null;
         try {
-            response = performRequest(HttpMethod.PUT, PROFILE_URI + "/" + profileMetadataId , null,
+            response = performRequest(HttpMethod.PUT, PROFILE_URI + "/" + profileMetadataId, null,
                 stream, MediaType.APPLICATION_OCTET_STREAM_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response);
@@ -729,14 +727,14 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
         Status status = Status.BAD_REQUEST;
         try {
-            response = performRequest(HttpMethod.GET, PROFILE_URI +"/"+ profileMetadataId , null, null,
+            response = performRequest(HttpMethod.GET, PROFILE_URI + "/" + profileMetadataId, null, null,
                 null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
             status = Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
                     return response;
                 default: {
-                    String msgErr = "Error while download profile file : "+profileMetadataId;
+                    String msgErr = "Error while download profile file : " + profileMetadataId;
                     final RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
                     if (!requestResponse.isOk()) {
                         VitamError error = (VitamError) requestResponse;
@@ -869,8 +867,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public Status importContexts(List<ContextModel> ContextModelList) 
-        throws ReferentialException{
+    public Status importContexts(List<ContextModel> ContextModelList)
+        throws ReferentialException {
         ParametersChecker.checkParameter("The input ingest contracts json is mandatory", ContextModelList);
         Response response = null;
 
@@ -879,7 +877,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 ContextModelList, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE,
                 false);
             final Status status = Status.fromStatusCode(response.getStatus());
-            
+
             return status;
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
@@ -890,7 +888,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public RequestResponse<ContextModel> updateContext(String id, JsonNode queryDsl) throws AdminManagementClientServerException {
+    public RequestResponse<ContextModel> updateContext(String id, JsonNode queryDsl)
+        throws AdminManagementClientServerException {
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
         Response response = null;
         try {
@@ -913,7 +912,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public RequestResponse<ContextModel> findContexts(JsonNode queryDsl) throws InvalidParseOperationException, AdminManagementClientServerException {
+    public RequestResponse<ContextModel> findContexts(JsonNode queryDsl)
+        throws InvalidParseOperationException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
         Response response = null;
         try {
@@ -937,7 +937,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public RequestResponse<ContextModel> findContextById(String id) throws InvalidParseOperationException, ReferentialNotFoundException, AdminManagementClientServerException {
+    public RequestResponse<ContextModel> findContextById(String id)
+        throws InvalidParseOperationException, ReferentialNotFoundException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("The input documentId json is mandatory", id);
         Response response = null;
         try {

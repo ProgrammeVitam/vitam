@@ -34,13 +34,21 @@ import java.net.URLDecoder;
 import java.util.Set;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.CacheControl;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
@@ -48,6 +56,7 @@ import com.google.common.collect.Iterables;
 
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -93,7 +102,6 @@ import fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFile
 import fr.gouv.vitam.functional.administration.rules.core.RulesManagerFileImpl;
 import fr.gouv.vitam.functional.administration.rules.core.RulesSecurisator;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * FormatManagementResourceImpl implements AccessResource
@@ -111,6 +119,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     private final ElasticsearchAccessFunctionalAdmin elasticsearchAccess;
     private VitamCounterService vitamCounterService;
     private RulesSecurisator securisator = new RulesSecurisator();
+
     /**
      * Constructor
      *
@@ -225,10 +234,10 @@ public class AdminManagementResource extends ApplicationStatusResource {
      * @throws InvalidParseOperationException when transform result to json exception occurred
      * @throws IOException when error json occurs
      */
-    @POST
+    @GET
     @Path("format/{id_format:.+}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response findFileFormatByID(@PathParam("id_format") String formatId)
+    public Response findFileFormatByID(@PathParam("id_format") String formatId, @Context Request request)
         throws InvalidParseOperationException, IOException {
         ParametersChecker.checkParameter("formatId is a mandatory parameter", formatId);
         FileFormat fileFormat = null;
@@ -239,8 +248,23 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 throw new ReferentialException("NO DATA for the specified formatId");
             }
 
-            return Response.status(Status.OK).entity(new RequestResponseOK()
-                .addResult(JsonHandler.toJsonNode(fileFormat))).build();
+            CacheControl cacheControl = new CacheControl();
+            cacheControl.setMaxAge(VitamConfiguration.CACHE_CONTROL_DELAY);
+            cacheControl.setPrivate(false);
+
+            EntityTag etag = new EntityTag(Integer.toString(fileFormat.hashCode()));
+            // determine the current version has the same "ETag" value,
+            // the browser’s cached copy "Etag" value passed by If-None-Match header
+            ResponseBuilder builder = request.evaluatePreconditions(etag);
+            // did cached resource change?
+            if (builder == null) {
+                // resource is modified so server new content
+                // 200 OK status code is returned with new content
+                return Response.status(Status.OK).entity(new RequestResponseOK()
+                    .addResult(JsonHandler.toJsonNode(fileFormat))).tag(etag).cacheControl(cacheControl).build();
+            }
+
+            return builder.cacheControl(cacheControl).tag(etag).build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
             final Status status = Status.NOT_FOUND;
@@ -371,16 +395,17 @@ public class AdminManagementResource extends ApplicationStatusResource {
      * findRuleByID : find the rules details based on a given Id
      *
      * @param ruleId path param as String
+     * @param request the request
      * @return Response jersey response
      * @throws InvalidParseOperationException if exception occurred when transform json rule id
      * @throws IOException when error json occurs
      * @throws ReferentialException when the mongo search throw error or search result is null
      * @throws InvalidCreateOperationException if exception occurred when create query
      */
-    @POST
+    @GET
     @Path("rules/{id_rule}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response findRuleByID(@PathParam("id_rule") String ruleId)
+    public Response findRuleByID(@PathParam("id_rule") String ruleId, @Context Request request)
         throws InvalidParseOperationException, IOException,
         ReferentialException, InvalidCreateOperationException {
         ParametersChecker.checkParameter("ruleId is a mandatory parameter", ruleId);
@@ -393,8 +418,24 @@ public class AdminManagementResource extends ApplicationStatusResource {
             if (fileRules == null) {
                 throw new FileRulesException("NO DATA for the specified rule Value or More than one records exists");
             }
-            return Response.status(Status.OK).entity(new RequestResponseOK()
-                .addResult(JsonHandler.toJsonNode(fileRules))).build();
+
+            CacheControl cacheControl = new CacheControl();
+            cacheControl.setMaxAge(VitamConfiguration.CACHE_CONTROL_DELAY);
+            cacheControl.setPrivate(false);
+
+            EntityTag etag = new EntityTag(Integer.toString(fileRules.hashCode()));
+            // determine the current version has the same "ETag" value,
+            // the browser’s cached copy "Etag" value passed by If-None-Match header
+            ResponseBuilder builder = request.evaluatePreconditions(etag);
+            // did cached resource change?
+            if (builder == null) {
+                // resource is modified so server new content
+                // 200 OK status code is returned with new content
+                return Response.status(Status.OK).entity(new RequestResponseOK()
+                    .addResult(JsonHandler.toJsonNode(fileRules))).tag(etag).cacheControl(cacheControl).build();
+            }
+
+            return builder.cacheControl(cacheControl).tag(etag).build();
         } catch (final FileRulesException e) {
             LOGGER.error(e);
             final Status status = Status.NOT_FOUND;

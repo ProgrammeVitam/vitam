@@ -48,7 +48,6 @@ import fr.gouv.vitam.functional.administration.common.ReferentialFile;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatNotFoundException;
-import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
@@ -169,7 +168,8 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
     @Override
     public FileFormat findDocumentById(String id) throws ReferentialException {
         try {
-        	FileFormat fileFormat = (FileFormat) mongoAccess.getDocumentByUniqueId(id, FunctionalAdminCollections.FORMATS, FileFormat.PUID);
+            FileFormat fileFormat =
+                (FileFormat) mongoAccess.getDocumentByUniqueId(id, FunctionalAdminCollections.FORMATS, FileFormat.PUID);
             if (fileFormat == null) {
                 throw new FileFormatException("FileFormat Not Found");
             }

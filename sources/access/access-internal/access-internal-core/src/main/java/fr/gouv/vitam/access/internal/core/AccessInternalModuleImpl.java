@@ -308,8 +308,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         }
 
         ObjectGroupResponse objectGroupResponse =
-            JsonHandler.getFromJsonNode(jsonResponse.get(RESULTS), ObjectGroupResponse.class);
-
+            JsonHandler.getFromJsonNode(jsonResponse.get(RESULTS), ObjectGroupResponse.class);        
 
 
         VersionsJson finalversionsResponse = null;
