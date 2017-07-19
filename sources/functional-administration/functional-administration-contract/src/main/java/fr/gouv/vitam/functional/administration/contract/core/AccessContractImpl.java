@@ -29,6 +29,7 @@ package fr.gouv.vitam.functional.administration.contract.core;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -53,6 +54,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.SedaConfiguration;
+import fr.gouv.vitam.common.SedaVersion;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
@@ -96,6 +99,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 
 public class AccessContractImpl implements ContractService<AccessContractModel> {
 
+    private static final String DATA_OBJECT_VERSION_INVALID = "Data object version invalid";
     private static final String THE_ACCESS_CONTRACT_EVERY_DATA_OBJECT_VERSION_MUST_BE_TRUE_OR_FALSE_BUT_NOT = "The Access contract EveryDataObjectVersion must be true or false but not ";
     private static final String THE_ACCESS_CONTRACT_EVERY_ORIGINATING_AGENCY_MUST_BE_TRUE_OR_FALSE_BUT_NOT = "The Access contract EveryOriginatingAgency must be true or false but not ";
     private static final String THE_ACCESS_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT = "The Access contract status must be ACTIVE or INACTIVE but not ";
@@ -297,6 +301,24 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
 
         }
+        
+        /**
+        *
+        * Log validation error (business error)
+        *
+        * @param errorsDetails
+        */
+       private void logUpdateError(String errorsDetails) throws VitamException {
+           LOGGER.error("Update document error {}", errorsDetails);
+           final LogbookOperationParameters logbookParameters = LogbookParametersFactory
+               .newLogbookOperationParameters(eip, CONTRACT_UPDATE_EVENT, eip, LogbookTypeProcess.MASTERDATA,
+                   StatusCode.KO,
+                   VitamLogbookMessages.getCodeOp(CONTRACT_UPDATE_EVENT, StatusCode.KO), eip);
+           logbookMessageError(errorsDetails, logbookParameters);
+           helper.updateDelegate(logbookParameters);
+           logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
+
+       }
 
         /**
          * log fatal error (system or technical error)
@@ -489,7 +511,6 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                     if (contract.getDeactivationdate() == null || contract.getDeactivationdate().trim().isEmpty()) {
                         contract.setDeactivationdate(null);
                     } else {
-
                         contract.setDeactivationdate(
                             LocalDate.parse(contract.getDeactivationdate(), formatter).atStartOfDay().toString());
                     }
@@ -561,25 +582,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                 while (it.hasNext()) {
                     final String field = it.next();
                     final JsonNode value = fieldName.findValue(field);
-                    if (AccessContract.STATUS.equals(field)) {
-                        if (!(ContractStatus.ACTIVE.name().equals(value.asText()) || ContractStatus.INACTIVE
-                            .name().equals(value.asText()))) {
-                            error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
-                                THE_ACCESS_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT + value.asText()));
-                        }
-                    } else if (AccessContractModel.EVERY_ORIGINATINGAGENCY.equals(field)) {
-                        if (!(value instanceof BooleanNode)) {
-                            error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
-                                THE_ACCESS_CONTRACT_EVERY_ORIGINATING_AGENCY_MUST_BE_TRUE_OR_FALSE_BUT_NOT +
-                                    value.asText()));
-                        }
-                    } else if (AccessContractModel.EVERY_DATA_OBJECT_VERSION.equals(field)) {
-                        if (!(value instanceof BooleanNode)) {
-                            error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
-                                THE_ACCESS_CONTRACT_EVERY_DATA_OBJECT_VERSION_MUST_BE_TRUE_OR_FALSE_BUT_NOT +
-                                    value.asText()));
-                        }
-                    }
+                    validateUpdateAction(error, field, value);
                 }
             }
         }
@@ -587,7 +590,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
         if (error.getErrors() != null && error.getErrors().size() > 0) {
             final String errorsDetails =
                 error.getErrors().stream().map(c -> c.getMessage()).collect(Collectors.joining(","));
-            manager.logValidationError(errorsDetails);
+            manager.logUpdateError(errorsDetails);
 
             return error;
         }
@@ -607,24 +610,61 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
         return new RequestResponseOK<AccessContractModel>();
     }
 
-    /**
-     * FIXME : How to update the access contract status (?) with queryDsl or with internal DTO
-     *
-     * @return map with the parameters to update
-     */
-    private Map<String, Object> createMapForUpdate(Boolean status) {
-        final Map<String, Object> mapForUpdate = new HashMap<>();
-        final String now = LocalDateUtil.now().toString();
-        if (status != null && status) {
-            mapForUpdate.put(AccessContract.STATUS, true);
-            mapForUpdate.put(AccessContract.ACTIVATIONDATE, now);
-            mapForUpdate.put(AccessContract.LAST_UPDATE, now);
-        } else {
-            mapForUpdate.put(AccessContract.STATUS, false);
-            mapForUpdate.put(AccessContract.DEACTIVATIONDATE, now);
-            mapForUpdate.put(AccessContract.LAST_UPDATE, now);
+    private void validateUpdateAction(final VitamError error, final String field, final JsonNode value) {
+        if (AccessContract.STATUS.equals(field)) {
+            if (!(ContractStatus.ACTIVE.name().equals(value.asText()) || ContractStatus.INACTIVE
+                .name().equals(value.asText()))) {
+                error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
+                    THE_ACCESS_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT + value.asText()));
+            }
+        } 
+        
+        if (AccessContractModel.EVERY_ORIGINATINGAGENCY.equals(field)) {
+            if (!(value instanceof BooleanNode)) {
+                error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
+                    THE_ACCESS_CONTRACT_EVERY_ORIGINATING_AGENCY_MUST_BE_TRUE_OR_FALSE_BUT_NOT +
+                    value.asText()));
+            }
+        } 
+        
+        if (AccessContractModel.EVERY_DATA_OBJECT_VERSION.equals(field)) {
+            if (!(value instanceof BooleanNode)) {
+                error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
+                    THE_ACCESS_CONTRACT_EVERY_DATA_OBJECT_VERSION_MUST_BE_TRUE_OR_FALSE_BUT_NOT +
+                    value.asText()));
+            }
         }
-        return mapForUpdate;
+        
+        if (AccessContractModel.DATA_OBJECT_VERSION.equals(field)) {
+            if (!validateObjectVersion(value)) {
+                error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
+                    DATA_OBJECT_VERSION_INVALID +
+                    value.asText()));
+            }
+        }
+    }
+
+
+
+    private boolean validateObjectVersion(JsonNode value) {
+        if (!value.isArray()) {
+            return false;
+        }
+        
+        SedaVersion sedaVersion = new SedaVersion();
+        try {
+            sedaVersion = SedaConfiguration.getSupportedVerion();
+        } catch (IOException e) {
+            LOGGER.error(e);
+        }
+        for (JsonNode node : value) {
+            if (sedaVersion.isSupportedVesion(node.asText())) {
+                return false;
+            }
+        }
+        return true;
+        
+
     }
 
 }

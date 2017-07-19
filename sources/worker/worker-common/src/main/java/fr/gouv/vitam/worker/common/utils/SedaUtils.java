@@ -26,8 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.common.utils;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -57,7 +55,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.SedaConfiguration;
+import fr.gouv.vitam.common.SedaConstants;
+import fr.gouv.vitam.common.SedaVersion;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
@@ -688,21 +688,10 @@ public class SedaUtils {
     public List<String> compareVersionList(XMLEventReader eventReader)
         throws ProcessingException {
 
-        File file;
-
-        try {
-            file = PropertiesUtils.findFile("version.conf");
-        } catch (final FileNotFoundException e) {
-            LOGGER.error("Can not get config file ");
-            throw new ProcessingException(e);
-        }
-
         SedaVersion sedaVersion;
-
         try {
-            sedaVersion = PropertiesUtils.readYaml(file, SedaVersion.class);
-        } catch (final IOException e) {
-            LOGGER.error("Can not read config file");
+            sedaVersion = SedaConfiguration.getSupportedVerion();
+        } catch (IOException e) {
             LOGGER.error(e);
             throw new ProcessingException(e);
         }

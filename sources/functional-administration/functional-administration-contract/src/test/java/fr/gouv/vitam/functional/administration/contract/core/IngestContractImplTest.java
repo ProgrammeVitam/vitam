@@ -466,6 +466,7 @@ public class IngestContractImplTest {
         final SetAction setActionStatusInactive = UpdateActionHelper.set("Status", inactiveStatus);
         final SetAction setActionDesactivationDateInactive = UpdateActionHelper.set("DeactivationDate", now);
         final SetAction setActionLastUpdateInactive = UpdateActionHelper.set("LastUpdate", now);
+
         final Update update = new Update();
         update.setQuery(QueryHelper.eq("Identifier", identifier));
         update.addActions(setActionStatusInactive, setActionDesactivationDateInactive, setActionLastUpdateInactive);

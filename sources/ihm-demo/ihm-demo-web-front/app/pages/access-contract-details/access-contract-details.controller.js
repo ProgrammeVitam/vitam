@@ -28,14 +28,23 @@
 'use strict';
 
 angular.module('ihm.demo')
-    .controller('accessContractsDetailsController', function ($scope, $routeParams, accessContractResource, $mdDialog, authVitamService) {
+    .controller('accessContractsDetailsController', function ($scope, $routeParams, accessContractResource, $mdDialog, authVitamService, $filter) {
         var id = $routeParams.id;
         var ACCESS_CONTRACTS_UPDATE_PERMISSION = 'accesscontracts:update';
 
+    var self = this;
+
+    self.isEditMode = true;
+
         $scope.tmpVars = {};
         $scope.updateStatus = function() {
-            $scope.contract.Status = $scope.tmpVars.isActive? 'ACTIVE': 'INACTIVE';
+            $scope.tmpVars.Status = $scope.tmpVars.isActive ? 'ACTIVE': 'INACTIVE';
         };
+
+
+    $scope.updateWritePermission = function() {
+      $scope.contract.Status = $scope.tmpVars.isActive? 'ACTIVE': 'INACTIVE';
+    };
 
         var displayMessage = function(message, closeMessage) {
             if (!closeMessage) {
@@ -50,47 +59,66 @@ angular.module('ihm.demo')
             accessContractResource.getDetails(id, function (response) {
                 if (response.data.length !== 0) {
                     $scope.contract = response.data.$results[0];
+                    if (!$scope.contract.DataObjectVersion) {
+                      $scope.contract.DataObjectVersion = [];
+                    }
+                    if (!$scope.contract.OriginatingAgencies) {
+                      $scope.contract.OriginatingAgencies = [];
+                    }
                     $scope.tmpVars = angular.copy($scope.contract);
                     $scope.tmpVars.isActive = $scope.contract.Status === 'ACTIVE';
                 }
             });
         };
+    $scope.editMode = false;
+    $scope.changeEditMode = function() {
+      $scope.editMode = !$scope.editMode;
 
+      if ($scope.editMode == false) {
+        $scope.tmpVars = angular.copy($scope.contract);
+        $scope.tmpVars.isActive = $scope.contract.Status === 'ACTIVE';
+      }
+    };
         $scope.saveModifs = function() {
-            if (angular.equals($scope.contract, $scope.tmpVars)) {
-                displayMessage('Aucune modification effectuée');
-                return;
+
+          $scope.editMode = false;
+          if (angular.equals($scope.contract, $scope.tmpVars)) {
+              displayMessage('Aucune modification effectuée');
+              return;
+          }
+
+          var updateData = {
+              LastUpdate: new Date()
+          };
+
+          for (var key in $scope.contract) {
+            if ($scope.contract[key] == null) {
+              $scope.contract[key] = '';
             }
-
-            var updateData = {
-                Name: $scope.contract.Name,
-                LastUpdate: new Date()
-            };
-
-            if ($scope.tmpVars.oldStatus !== $scope.contract.Status) {
-                updateData.Status = $scope.contract.Status;
-                if ($scope.contract.Status === 'ACTIVE') {
-                    updateData.ActivationDate = updateData.LastUpdate;
-                } else {
-                    updateData.DeactivationDate = updateData.LastUpdate;
-                }
+            if ($scope.tmpVars[key] != null && $scope.contract[key].toString() != $scope.tmpVars[key].toString()) {
+              var updateValue = $scope.tmpVars[key];
+              if (key.toLowerCase().indexOf('date') >= 0) {
+                updateValue = new Date(updateValue);
+              }
+              updateData[key] = updateValue;
             }
+          }
 
-            if ($scope.tmpVars.EveryOriginatingAgency !== $scope.contract.EveryOriginatingAgency) {
-                updateData.EveryOriginatingAgency = '' + $scope.contract.EveryOriginatingAgency;
-            }
+          if ($scope.tmpVars.EveryOriginatingAgency !== $scope.contract.EveryOriginatingAgency) {
+              updateData.EveryOriginatingAgency = '' + $scope.contract.EveryOriginatingAgency;
+          }
 
-            if ($scope.tmpVars.EveryDataObjectVersion !== $scope.contract.EveryDataObjectVersion) {
-              updateData.EveryDataObjectVersion = '' + $scope.contract.EveryDataObjectVersion;
-            }
+          if ($scope.tmpVars.EveryDataObjectVersion !== $scope.contract.EveryDataObjectVersion) {
+            updateData.EveryDataObjectVersion = '' + $scope.contract.EveryDataObjectVersion;
+          }
 
-            accessContractResource.update(id, updateData).then(function() {
-                displayMessage('La modification a bien été enregistrée');
-                $scope.tmpVars.oldStatus = $scope.contract.Status;
-                getDetails(id);
-            }, function() {
-                displayMessage('Aucune modification effectuée');
-            });
+          accessContractResource.update(id, updateData).then(function() {
+              displayMessage('La modification a bien été enregistrée');
+              $scope.tmpVars.oldStatus = $scope.contract.Status;
+              getDetails(id);
+          }, function() {
+              displayMessage('Aucune modification effectuée');
+          });
         };
         
         getDetails(id);

@@ -31,24 +31,39 @@ angular.module('entryContracts')
 .controller('entryContractsDetailsController', function ($scope, $routeParams, entryContractResource, $mdDialog, authVitamService) {
     var id = $routeParams.id;
     var ENTRY_CONTRACTS_UPDATE_PERMISSION = 'contracts:update';
-    $scope.tmpVars = {
-        isActive: true,
-        oldStatus: ''
-    };
+
+    var self = this;
+
+    self.isEditMode = true;
     $scope.updateStatus = function() {
-        $scope.contract.Status = $scope.tmpVars.isActive? 'ACTIVE': 'INACTIVE';
+        $scope.tmpVars.Status = $scope.tmpVars.isActive? 'ACTIVE': 'INACTIVE';
     };
     
     var getDetails = function (id) {
         entryContractResource.getDetails(id, function (response) {
             if (response.data.length !== 0) {
                 $scope.contract = response.data.$results[0];
-                $scope.tmpVars.oldStatus = $scope.contract.Status;
+
+                if (!$scope.contract.ArchiveProfiles) {
+                  $scope.contract.ArchiveProfiles = [];
+                }
+                $scope.tmpVars = angular.copy($scope.contract);
                 $scope.tmpVars.isActive = $scope.contract.Status === 'ACTIVE';
             }
         });
     };
-    
+
+    $scope.editMode = false;
+    $scope.changeEditMode = function() {
+      $scope.editMode = !$scope.editMode;
+
+      console.log('');
+      if ($scope.editMode == false) {
+        $scope.tmpVars = angular.copy($scope.contract);
+        $scope.tmpVars.isActive = $scope.contract.Status === 'ACTIVE';
+      }
+    };
+
     var displayMessage = function(message, closeMessage) {
         if (!closeMessage) {
             closeMessage = 'Fermer';
@@ -59,29 +74,39 @@ angular.module('entryContracts')
     };
 
     $scope.saveModifs = function() {
-        if ($scope.tmpVars.oldStatus === $scope.contract.Status) {
-            return;
+
+      console.log($scope.contract);
+      console.log($scope.tmpVars);
+      $scope.editMode = false;
+      if (angular.equals($scope.contract, $scope.tmpVars)) {
+        displayMessage('Aucune modification effectuée');
+        return;
+      }
+
+      var updateData = {
+        LastUpdate: new Date()
+      };
+
+      for (var key in $scope.contract) {
+        if ($scope.contract[key] == null) {
+          $scope.contract[key] = '';
         }
-
-        var updateData = {
-            'Status': $scope.contract.Status,
-            'Name': $scope.contract.Name,
-            'LastUpdate': new Date()
-        };
-
-        if ($scope.contract.Status === 'ACTIVE') {
-            updateData.ActivationDate = updateData.LastUpdate;
-        } else {
-            updateData.DeactivationDate = updateData.LastUpdate;
+        if ($scope.tmpVars[key] != null && $scope.contract[key].toString() != $scope.tmpVars[key].toString()) {
+          var updateValue = $scope.tmpVars[key];
+          if (key.toLowerCase().indexOf('date') >= 0) {
+            updateValue = new Date(updateValue);
+          }
+          updateData[key] = updateValue;
         }
+      }
 
-        entryContractResource.update(id, updateData).then(function() {
-            displayMessage('La modification a bien été enregistrée');
-            $scope.tmpVars.oldStatus = $scope.contract.Status;
-            getDetails(id);
-        }, function() {
-            displayMessage('Aucune modification effectuée');
-        });
+      entryContractResource.update(id, updateData).then(function() {
+          displayMessage('La modification a bien été enregistrée');
+          $scope.tmpVars.oldStatus = $scope.contract.Status;
+          getDetails(id);
+      }, function() {
+          displayMessage('Aucune modification effectuée');
+      });
     };
     
     getDetails(id);

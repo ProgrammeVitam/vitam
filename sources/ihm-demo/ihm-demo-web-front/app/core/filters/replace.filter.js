@@ -29,6 +29,12 @@
 angular.module('ihm.demo')
   .filter('StrReplace', function () {
     return function (text) {
+      if (text === true) {
+        return 'Oui';
+      }
+      if (text === false) {
+        return 'Non';
+      }
       if (text){
         return text.toString()
           .replace("INACTIVE","Inactif")

@@ -11,8 +11,23 @@
                 </span>
         <div id="boxContractsList" class="panel-collapse">
             <div id="collapse1" class="panel-body">
-                <div class="panel-body">
+                <div class=" text-right">
+                    <button class="btn " ng-click="changeEditMode()" ng-if="editMode">
+                        <i class="material-icons pull-left">edit</i>
+                        <span>Annuler</span>
+                    </button>
 
+                    <button class="btn btn-primary" ng-click="changeEditMode()" ng-hide="checkPermission() || editMode">
+                        <i class="material-icons pull-left">edit</i>
+                        <span>Modifier</span>
+                    </button>
+                    <button class="btn btn-primary" ng-click="saveModifs()" ng-hide="checkPermission() || !editMode">
+                        <i class="material-icons pull-left">save</i>
+                        <span>Enregistrer</span>
+                    </button>
+                </div>
+
+                <div class="panel-body" style="margin-top: 10px">
                     <form>
                         <input type="hidden" name="hiddenField"/>
                     </form>
@@ -29,8 +44,11 @@
                         <span>{{contract.LastUpdate | vitamFormatDate}}</span>
                     </div>
                     <div class="form-group col-md-6">
-                        <label>Nom</label>
-                        <span>{{contract.Name}}</span>
+                        <div class="row simple-field">
+                            <display-single-field field-size="'11'"   field-key="'Name'"
+                                                  field-value="tmpVars" field-label="'Nom'" edit-mode="editMode">
+                            </display-single-field>
+                        </div>
                     </div>
                     <div class="form-group col-md-6">
                         <label>Statut</label>
@@ -42,31 +60,42 @@
                     </div>
                     <div class="clearfix"></div>
                     <div class="form-group col-md-6">
-                        <label>Description</label>
-                        <span>{{contract.Description}}</span>
+                        <div class="row simple-field">
+                            <display-single-field field-size="'11'"   field-key="'Description'"
+                                                  field-value="tmpVars" field-label="'Description'" edit-mode="editMode">
+                            </display-single-field>
+                        </div>
                     </div>
                     <div class="form-group col-md-3">
-                        <label>Date d'activation</label>
-                        <span>{{contract.ActivationDate | vitamFormatDate}}</span>
+                        <div class="row simple-field">
+                            <display-single-field field-size="'11'"  field-key="'ActivationDate'"
+                                                  field-value="tmpVars" field-label="'Date d\'activation'" edit-mode="editMode">
+                            </display-single-field>
+                        </div>
                     </div>
                     <div class="form-group col-md-3">
-                        <label>Date de désactivation</label>
-                        <span>{{contract.DeactivationDate | vitamFormatDate}}</span>
+                        <div class="row simple-field">
+                            <display-single-field field-size="'11'" field-key="'DeactivationDate'"
+                                                  field-value="tmpVars" field-label="'Date de désactivation'" edit-mode="editMode">
+                            </display-single-field>
+                        </div>
                     </div>
                     <div class="clearfix"></div>
-                    <div class="form-group col-md-12">
+                    <div class="form-group col-md-3">
                         <label>Profils d'archivage</label>
-                        <span>{{contract.ArchiveProfiles}}</span>
+                        <md-chips ng-model="tmpVars.ArchiveProfiles" name="ArchiveProfiles" readonly="!editMode"
+                                  md-removable="editMode" placeholder="Ajouter un profil ..." >
+                        </md-chips>
                     </div>
-                    <div class="form-group col-md-12">
-                        <label>Noeuds de rattachement</label>
-                        <span>{{contract.FilingParentId}}</span>
+                    <div class="form-group col-md-3">
                     </div>
-
-                    <button class="btn btn-primary center-block" ng-click="saveModifs()" ng-hide="checkPermission()">
-                        <i class="material-icons pull-left">save</i>
-                        <span>Enregistrer</span>
-                    </button>
+                    <div class="form-group col-md-3">
+                        <div class="row simple-field">
+                            <display-single-field field-size="'11'" field-key="'FilingParentId'"
+                                                  field-value="tmpVars" field-label="'Noeuds de rattachement'" edit-mode="editMode">
+                            </display-single-field>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
