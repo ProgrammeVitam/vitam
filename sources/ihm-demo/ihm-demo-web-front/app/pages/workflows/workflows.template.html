@@ -65,10 +65,15 @@
             class="material-icons pull-left">search</i><span>Effacer</span></button>
         <button class="btn btn-primary" ng-click="getList()"><i class="material-icons pull-left">search</i><span>Rechercher</span></button>
       </div>
+      <button ng-if="search.error.displayMessage" class="btn btn-danger center-block" type="button" style="margin-top: 20px">
+        {{search.error.message}}
+      </button>
     </div>
+
     <a class="panel-header" data-toggle="collapse" data-target="#boxWorkflows">
       <h2>Liste des opérations ({{search.response.data.length}})</h2>
     </a>
+
 
     <!-- Get description metadata -->
     <div class="panel-body panel-collapse collapse in" id="boxWorkflows">
