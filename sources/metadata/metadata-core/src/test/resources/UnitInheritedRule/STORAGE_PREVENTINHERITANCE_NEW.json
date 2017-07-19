@@ -1,0 +1,13 @@
+{
+	"StorageRule": {
+		"Inheritance": {
+			"PreventInheritance": "true"
+		},
+		"Rules": [
+			{
+				"Rule": "STR2",
+				"StartDate": "02/01/2019"
+			}
+		]
+	}
+}

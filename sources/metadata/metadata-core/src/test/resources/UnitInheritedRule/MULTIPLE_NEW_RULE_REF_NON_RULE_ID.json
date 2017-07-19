@@ -1,0 +1,16 @@
+{
+	"StorageRule": {
+		"Inheritance": {
+			"PreventRulesId": [
+				"STR1",
+				"STR2"
+			]
+		},
+		"Rules": [
+			{
+				"Rule": "STR2",
+				"StartDate": "02/01/2019"
+			}
+		]
+	}
+}

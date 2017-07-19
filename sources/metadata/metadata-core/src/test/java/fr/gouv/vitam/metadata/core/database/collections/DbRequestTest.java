@@ -61,10 +61,12 @@ import static org.junit.Assume.assumeTrue;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.IOUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -97,6 +99,7 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.query.PathQuery;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
@@ -232,13 +235,7 @@ public class DbRequestTest {
             "'],$query:[],$filter:{},$action:[{$set:{'date':'09/09/2015'}},{$set:{'Title':'ArchiveDoubleTest'}}]}";
     private static final String REQUEST_SELECT_TEST_ES_UPDATE =
         "{$query: { $eq : { '#id' : '" + UUID1 + "' } }}";
-    private static final String REQUEST_INSERT_TEST_ES_UPDATE =
-        "{ \"#id\": \"aeaqaaaaaaaaaaabab4roakztdjqziaaaaaq\", \"#tenant\": 0, \"Title\": \"Archive3\", "
-            +
-            "\"_mgt\": {\"StorageRule\": [{\"Rule\": \"STR001\",\"StartDate\": \"2012-11-15T14:30:23\",\"RefNonRuleId\": [],\"FinalAction\": \"Copy\"}]},"
-            +
-            " \"DescriptionLevel\": \"Item\" }";
-
+    private static final String REQUEST_INSERT_TEST_ES_UPDATE = "REQUEST_INSERT_TEST_ES_UPDATE.json";
     private static final String REQUEST_INSERT_TEST_ES_UPDATE_KO =
         "{ \"#id\": \"aeaqaaaaaagbcaacabg44ak45e54criaaaaq\", \"#tenant\": 0, \"Title\": \"Archive3\", " +
             "\"_mgt\": {\"OriginatingAgency\": \"XXXXXXX\"}," +
@@ -1696,7 +1693,8 @@ public class DbRequestTest {
         final DbRequest dbRequest = new DbRequest();
         final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
         final InsertMultiQuery insert = new InsertMultiQuery();
-        insert.parseData(REQUEST_INSERT_TEST_ES_UPDATE);
+        String requestInsertTestEsUpdate = IOUtils.toString(PropertiesUtils.getResourceAsStream(REQUEST_INSERT_TEST_ES_UPDATE), "UTF-8");
+        insert.parseData(requestInsertTestEsUpdate);
         insertParser.parse(insert.getFinalInsert());
         LOGGER.debug("InsertParser: {}", insertParser);
         dbRequest.execRequest(insertParser, null);

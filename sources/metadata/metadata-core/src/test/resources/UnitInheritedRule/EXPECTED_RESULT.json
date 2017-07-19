@@ -1,0 +1,44 @@
+{
+	"inheritedRule": {
+		"StorageRule": {
+			"R1": {
+				"AU2": {
+					"StartDate": "01/01/2017",
+					"FinalAction": "NoAccess",
+					"path": [
+						[
+							"AU2"
+						]
+					]
+				}
+			}
+		},
+		"AccessRule": {
+			"R2": {
+				"AU1": {
+					"StartDate": "01/01/2017",
+					"EndDate": "01/01/2019",
+					"FinalAction": "Access",
+					"path": [
+						[
+							"AU1",
+							"AU2"
+						]
+					]
+				}
+			},
+			"R4": {
+				"AU2": {
+					"StartDate": "01/01/2017",
+					"EndDate": "01/01/2019",
+					"FinalAction": "Access",
+					"path": [
+						[
+							"AU2"
+						]
+					]
+				}
+			}
+		}
+	}
+}

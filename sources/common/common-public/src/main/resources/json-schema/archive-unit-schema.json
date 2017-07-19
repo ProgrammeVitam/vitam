@@ -15,151 +15,173 @@
       "additionalProperties": true,
       "properties": {
         "AccessRule": {
-          "id": "http:\/\/example.com\/root.json\/ArchiveUnit\/Management\/AccessRule",
-          "items": {
-            "id": "http:\/\/example.com\/root.json\/ArchiveUnit\/Management\/Rules\/0",
-            "properties": {
-              "PreventInheritance": {
-                "description": "An explanation about the purpose of this instance.",
-                "title": "The Preventinheritance schema.",
-                "type": [
-                  "string",
-                  "boolean"
-                ]
-              },
-              "RefNonRuleId": {
-                "id": "http:\/\/example.com\/root.json\/ArchiveUnit\/Management\/Rules\/0\/RefNonRuleId",
-                "items": {
-                  "description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
-                  "title": "The 0 schema.",
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              "Rule": {
-                "description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
-                "title": "The Rule schema.",
-                "type": "string"
-              },
-              "StartDate": {
-                "title": "The Startdate schema.",
-                "description": "pattern: Date",
-                "oneOf": [
-                  {
-                    "type": "string",
-                    "pattern": "^[0-8]{1}[0-9]{3}-[0-9]{2}-[0-9]{2}"
-                  }
-                ]
-              }
-            },
-            "oneOf": [
-              {
-                "required": [
-                  "PreventInheritance"
-                ]
-              },
-              {
-                "required": [
-                  "RefNonRuleId"
-                ]
-              },
-              {
-                "not": {
-                  "oneOf": [
-                    {
-                      "required": [
-                        "PreventInheritance"
-                      ]
-                    },
-                    {
-                      "required": [
-                        "RefNonRuleId"
-                      ]
-                    }
-                  ]
-                }
-              }
-            ],
-            "type": "object"
-          },
-          "type": "array"
-        },
+			"type": "object",
+			"id": "http://example.com/root.json/ArchiveUnit/Management/AccessRule",
+			"properties": {
+				"Rules": {
+					"type": "array",
+					"id": "http://example.com/root.json/ArchiveUnit/Management/AccessRule/Rules",
+					"description": "An explanation about the purpose of this instance.",
+					"items": {
+						"id": "http://example.com/root.json/ArchiveUnit/Management/AccessRule/Rules/Item/0",
+						"type": "object",
+						"properties": {
+							"Rule": {
+								"description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
+								"title": "The Rule schema.",
+								"type": "string"
+							},
+							"StartDate": {
+								"title": "The Startdate schema.",
+								"description": "pattern: Date",
+								"oneOf": [
+									{
+										"type": "string",
+										"pattern": "^[0-8]{1}[0-9]{3}-[0-9]{2}-[0-9]{2}"
+									}
+								]
+							},
+							"EndDate": {
+								"title": "The Enddate schema.",
+								"description": "pattern: Date",
+								"oneOf": [
+									{
+										"type": "string",
+										"pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}"
+									}
+								]
+							}
+						},
+						"required": [
+							"Rule"
+						]
+					}
+				},
+				"Inheritance": {
+					"id": "http://example.com/root.json/ArchiveUnit/Management/AccessRule/Inheritance",
+					"type": "object",
+					"properties": {
+						"PreventInheritance": {
+							"id": "http://example.com/root.json/ArchiveUnit/Management/AccessRule/Inheritance/PreventInheritance",
+							"description": "An explanation about the purpose of this instance.",
+							"title": "The PreventInheritance schema.",
+							"type": [
+								"string",
+								"boolean"
+							]
+						},
+						"PreventRulesId": {
+							"type": "array",
+							"id": "http://example.com/root.json/ArchiveUnit/Management/AccessRule/Inheritance/PreventRulesId",
+							"items": {
+								"description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
+								"title": "The PreventRulesId 0 schema.",
+								"type": "string"
+							}
+						}
+					},
+					"anyOf": [
+						{
+							"required": [
+								"PreventInheritance"
+							]
+						},
+						{
+							"required": [
+								"PreventRulesId"
+							]
+						}
+					]
+				}
+			}
+		},
         "AppraisalRule": {
-          "id": "http:\/\/example.com\/root.json\/ArchiveUnit\/Management\/AppraisalRule",
-          "items": {
-            "id": "http:\/\/example.com\/root.json\/ArchiveUnit\/Management\/Rules\/0",
-            "properties": {
-              "PreventInheritance": {
-                "description": "An explanation about the purpose of this instance.",
-                "title": "The Preventinheritance schema.",
-                "type": [
-                  "string",
-                  "boolean"
-                ]
-              },
-              "RefNonRuleId": {
-                "description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
-                "items": {
-                  "description": "NonEmptyTokenType + attribute (xsd:ID)",
-                  "title": "The 0 schema.",
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              "Rule": {
-                "description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
-                "title": "The Rule schema.",
-                "type": "string"
-              },
-              "StartDate": {
-                "description": "xsd:date",
-                "title": "The Startdate schema.",
-                "anyOf": [
-                  {
-                    "type": "string",
-                    "pattern": "^[0-8]{1}[0-9]{3}-[0-9]{2}-[0-9]{2}"
-                  }
-                ]
-              },
-              "FinalAction": {
-                "enum": [
-                  "Keep",
-                  "Destroy"
-                ]
-              }
-            },
-            "oneOf": [
-              {
-                "required": [
-                  "PreventInheritance"
-                ]
-              },
-              {
-                "required": [
-                  "RefNonRuleId"
-                ]
-              },
-              {
-                "not": {
-                  "oneOf": [
-                    {
-                      "required": [
-                        "PreventInheritance"
-                      ]
-                    },
-                    {
-                      "required": [
-                        "RefNonRuleId"
-                      ]
-                    }
-                  ]
-                }
-              }
-            ],
-            "type": "object"
-          },
-          "type": "array"
-        },
+					"type": "object",
+					"id": "http://example.com/root.json/ArchiveUnit/Management/AppraisalRule",
+					"properties": {
+						"Rules": {
+							"type": "array",
+							"id": "http://example.com/root.json/ArchiveUnit/Management/AppraisalRule/Rules",
+							"description": "An explanation about the purpose of this instance.",
+							"items": {
+								"id": "http://example.com/root.json/ArchiveUnit/Management/AppraisalRule/Rules/Item/0",
+								"type": "object",
+								"properties": {
+									"Rule": {
+										"description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
+										"title": "The Rule schema.",
+										"type": "string"
+									},
+									"StartDate": {
+										"title": "The Startdate schema.",
+										"description": "pattern: Date",
+										"oneOf": [
+											{
+												"type": "string",
+												"pattern": "^[0-8]{1}[0-9]{3}-[0-9]{2}-[0-9]{2}"
+											}
+										]
+									},
+									"EndDate": {
+										"title": "The Enddate schema.",
+										"description": "pattern: Date",
+										"oneOf": [
+											{
+												"type": "string",
+												"pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}"
+											}
+										]
+									},
+									"FinalAction": {
+										"enum": [
+											"Keep",
+											"Destroy"
+										]
+									}
+								},
+								"required": [
+									"Rule"
+								]
+							}
+						},
+						"Inheritance": {
+							"id": "http://example.com/root.json/ArchiveUnit/Management/AppraisalRule/Inheritance",
+							"type": "object",
+							"properties": {
+								"PreventInheritance": {
+									"id": "http://example.com/root.json/ArchiveUnit/Management/AppraisalRule/Inheritance/PreventInheritance",
+									"description": "An explanation about the purpose of this instance.",
+									"title": "The PreventInheritance schema.",
+									"type": [
+										"string",
+										"boolean"
+									]
+								},
+								"PreventRulesId": {
+									"type": "array",
+									"id": "http://example.com/root.json/ArchiveUnit/Management/AppraisalRule/Inheritance/PreventRulesId",
+									"items": {
+										"description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
+										"title": "The PreventRulesId 0 schema.",
+										"type": "string"
+									}
+								}
+							},
+							"anyOf": [
+								{
+									"required": [
+										"PreventInheritance"
+									]
+								},
+								{
+									"required": [
+										"PreventRulesId"
+									]
+								}
+							]
+						}
+					}
+				},
         "ArchiveUnit": {
           "id": "http:\/\/example.com\/root.json\/ArchiveUnit\/Management\/ArchiveUnit",
           "properties": {
@@ -172,322 +194,364 @@
           "type": "object"
         },
         "ClassificationRule": {
-          "id": "http:\/\/example.com\/root.json\/ArchiveUnit\/Management\/ClassificationRule",
-          "items": {
-            "id": "http:\/\/example.com\/root.json\/ArchiveUnit\/Management\/Rules\/0",
-            "properties": {
-              "PreventInheritance": {
-                "description": "An explanation about the purpose of this instance.",
-                "title": "The Preventinheritance schema.",
-                "type": [
-                  "string",
-                  "boolean"
-                ]
-              },
-              "RefNonRuleId": {
-                "id": "http:\/\/example.com\/root.json\/ArchiveUnit\/Management\/Rules\/0\/RefNonRuleId",
-                "items": {
-                  "description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
-                  "title": "The 0 schema.",
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              "Rule": {
-                "description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
-                "title": "The Rule schema.",
-                "type": "string"
-              },
-              "StartDate": {
-                "description": "An explanation about the purpose of this instance.",
-                "title": "The Startdate schema.",
-                "oneOf": [
-                  {
-                    "type": "string",
-                    "pattern": "^[0-8]{1}[0-9]{3}-[0-9]{2}-[0-9]{2}"
-                  }
-                ]
-              },
-              "ClassificationLevel": {
-                "type": "string"
-              },
-              "ClassificationOwner": {
-                "type": "string"
-              },
-              "ClassificationReassessingDate": {
-                "oneOf": [
-                  {
-                    "type": "string",
-                    "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
-                  },
-                  {
-                    "type": "string",
-                    "format": "date-time"
-                  }
-                ]
-              },
-              "NeedReassessingAuthorization": {
-                "type": "boolean"
-              }
-            },
-            "oneOf": [
-              {
-                "required": [
-                  "PreventInheritance"
-                ]
-              },
-              {
-                "required": [
-                  "RefNonRuleId"
-                ]
-              },
-              {
-                "not": {
-                  "oneOf": [
-                    {
-                      "required": [
-                        "PreventInheritance"
-                      ]
-                    },
-                    {
-                      "required": [
-                        "RefNonRuleId"
-                      ]
-                    }
-                  ]
-                }
-              }
-            ],
-            "required": [
-              "ClassificationLevel",
-              "ClassificationOwner"
-            ],
-            "type": "object"
-          },
-          "type": "array"
-        },
+					"type": "object",
+					"id": "http://example.com/root.json/ArchiveUnit/Management/ClassificationRule",
+					"properties": {
+						"Rules": {
+							"type": "array",
+							"id": "http://example.com/root.json/ArchiveUnit/Management/ClassificationRule/Rules",
+							"description": "An explanation about the purpose of this instance.",
+							"items": {
+								"id": "http://example.com/root.json/ArchiveUnit/Management/ClassificationRule/Rules/Item/0",
+								"type": "object",
+								"properties": {
+									"Rule": {
+										"description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
+										"title": "The Rule schema.",
+										"type": "string"
+									},
+									"StartDate": {
+										"title": "The Startdate schema.",
+										"description": "pattern: Date",
+										"oneOf": [
+											{
+												"type": "string",
+												"pattern": "^[0-8]{1}[0-9]{3}-[0-9]{2}-[0-9]{2}"
+											}
+										]
+									},
+									"EndDate": {
+										"title": "The Enddate schema.",
+										"description": "pattern: Date",
+										"oneOf": [
+											{
+												"type": "string",
+												"pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}"
+											}
+										]
+									},
+									"ClassificationLevel": {
+										"type": "string"
+									},
+									"ClassificationOwner": {
+										"type": "string"
+									},
+									"ClassificationReassessingDate": {
+										"oneOf": [
+											{
+												"type": "string",
+												"pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+											},
+											{
+												"type": "string",
+												"format": "date-time"
+											}
+										]
+									},
+									"NeedReassessingAuthorization": {
+										"type": "boolean"
+									}
+								},
+								"required": [
+									"Rule",
+									"ClassificationLevel",
+									"ClassificationOwner"
+								]
+							}
+						},
+						"Inheritance": {
+							"id": "http://example.com/root.json/ArchiveUnit/Management/ClassificationRule/Inheritance",
+							"type": "object",
+							"properties": {
+								"PreventInheritance": {
+									"id": "http://example.com/root.json/ArchiveUnit/Management/ClassificationRule/Inheritance/PreventInheritance",
+									"description": "An explanation about the purpose of this instance.",
+									"title": "The PreventInheritance schema.",
+									"type": [
+										"string",
+										"boolean"
+									]
+								},
+								"PreventRulesId": {
+									"type": "array",
+									"id": "http://example.com/root.json/ArchiveUnit/Management/ClassificationRule/Inheritance/PreventRulesId",
+									"items": {
+										"description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
+										"title": "The PreventRulesId 0 schema.",
+										"type": "string"
+									}
+								}
+							},
+							"anyOf": [
+								{
+									"required": [
+										"PreventInheritance"
+									]
+								},
+								{
+									"required": [
+										"PreventRulesId"
+									]
+								}
+							]
+						}
+					}
+				},
         "DisseminationRule": {
-          "id": "http:\/\/example.com\/root.json\/ArchiveUnit\/Management\/DisseminationRule",
-          "items": {
-            "id": "http:\/\/example.com\/root.json\/ArchiveUnit\/Management\/Rules\/0",
-            "properties": {
-              "PreventInheritance": {
-                "description": "An explanation about the purpose of this instance.",
-                "title": "The Preventinheritance schema.",
-                "type": [
-                  "string",
-                  "boolean"
-                ]
-              },
-              "RefNonRuleId": {
-                "id": "http:\/\/example.com\/root.json\/ArchiveUnit\/Management\/Rules\/0\/RefNonRuleId",
-                "items": {
-                  "description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
-                  "title": "The 0 schema.",
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              "Rule": {
-                "description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
-                "title": "The Rule schema.",
-                "type": "string"
-              },
-              "StartDate": {
-                "description": "An explanation about the purpose of this instance.",
-                "title": "The Startdate schema.",
-                "oneOf": [
-                  {
-                    "type": "string",
-                    "pattern": "^[0-8]{1}[0-9]{3}-[0-9]{2}-[0-9]{2}"
-                  }
-                ]
-              }
-            },
-            "oneOf": [
-              {
-                "required": [
-                  "PreventInheritance"
-                ]
-              },
-              {
-                "required": [
-                  "RefNonRuleId"
-                ]
-              },
-              {
-                "not": {
-                  "oneOf": [
-                    {
-                      "required": [
-                        "PreventInheritance"
-                      ]
-                    },
-                    {
-                      "required": [
-                        "RefNonRuleId"
-                      ]
-                    }
-                  ]
-                }
-              }
-            ],
-            "type": "object"
-          },
-          "type": "array"
-        },
+			"type": "object",
+			"id": "http://example.com/root.json/ArchiveUnit/Management/DisseminationRule",
+			"properties": {
+				"Rules": {
+					"type": "array",
+					"id": "http://example.com/root.json/ArchiveUnit/Management/DisseminationRule/Rules",
+					"description": "An explanation about the purpose of this instance.",
+					"items": {
+						"id": "http://example.com/root.json/ArchiveUnit/Management/DisseminationRule/Rules/Item/0",
+						"type": "object",
+						"properties": {
+							"Rule": {
+								"description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
+								"title": "The Rule schema.",
+								"type": "string"
+							},
+							"StartDate": {
+								"title": "The Startdate schema.",
+								"description": "pattern: Date",
+								"oneOf": [
+									{
+										"type": "string",
+										"pattern": "^[0-8]{1}[0-9]{3}-[0-9]{2}-[0-9]{2}"
+									}
+								]
+							},
+							"EndDate": {
+								"title": "The Enddate schema.",
+								"description": "pattern: Date",
+								"oneOf": [
+									{
+										"type": "string",
+										"pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}"
+									}
+								]
+							}
+						},
+						"required": [
+							"Rule"
+						]
+					}
+				},
+				"Inheritance": {
+					"id": "http://example.com/root.json/ArchiveUnit/Management/DisseminationRule/Inheritance",
+					"type": "object",
+					"properties": {
+						"PreventInheritance": {
+							"id": "http://example.com/root.json/ArchiveUnit/Management/DisseminationRule/Inheritance/PreventInheritance",
+							"description": "An explanation about the purpose of this instance.",
+							"title": "The PreventInheritance schema.",
+							"type": [
+								"string",
+								"boolean"
+							]
+						},
+						"PreventRulesId": {
+							"type": "array",
+							"id": "http://example.com/root.json/ArchiveUnit/Management/DisseminationRule/Inheritance/PreventRulesId",
+							"items": {
+								"description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
+								"title": "The PreventRulesId 0 schema.",
+								"type": "string"
+							}
+						}
+					},
+					"anyOf": [
+						{
+							"required": [
+								"PreventInheritance"
+							]
+						},
+						{
+							"required": [
+								"PreventRulesId"
+							]
+						}
+					]
+				}
+			}
+		},
         "NeedAuthorization": {
           "description": "An explanation about the purpose of this instance.",
           "title": "The Needauthorization schema.",
           "type": "boolean"
         },
         "ReuseRule": {
-          "id": "http:\/\/example.com\/root.json\/ArchiveUnit\/Management\/ReuseRule",
-          "items": {
-            "id": "http:\/\/example.com\/root.json\/ArchiveUnit\/Management\/Rules\/0",
-            "properties": {
-              "PreventInheritance": {
-                "description": "An explanation about the purpose of this instance.",
-                "title": "The Preventinheritance schema.",
-                "type": [
-                  "string",
-                  "boolean"
-                ]
-              },
-              "RefNonRuleId": {
-                "id": "http:\/\/example.com\/root.json\/ArchiveUnit\/Management\/Rules\/0\/RefNonRuleId",
-                "items": {
-                  "description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
-                  "title": "The 0 schema.",
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              "Rule": {
-                "description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
-                "title": "The Rule schema.",
-                "type": "string"
-              },
-              "StartDate": {
-                "description": "An explanation about the purpose of this instance.",
-                "title": "The Startdate schema.",
-                "oneOf": [
-                  {
-                    "type": "string",
-                    "pattern": "^[0-8]{1}[0-9]{3}-[0-9]{2}-[0-9]{2}"
-                  }
-                ]
-              }
-            },
-            "oneOf": [
-              {
-                "required": [
-                  "PreventInheritance"
-                ]
-              },
-              {
-                "required": [
-                  "RefNonRuleId"
-                ]
-              },
-              {
-                "not": {
-                  "oneOf": [
-                    {
-                      "required": [
-                        "PreventInheritance"
-                      ]
-                    },
-                    {
-                      "required": [
-                        "RefNonRuleId"
-                      ]
-                    }
-                  ]
-                }
-              }
-            ],
-            "type": "object"
-          },
-          "type": "array"
-        },
+			"type": "object",
+			"id": "http://example.com/root.json/ArchiveUnit/Management/ReuseRule",
+			"properties": {
+				"Rules": {
+					"type": "array",
+					"id": "http://example.com/root.json/ArchiveUnit/Management/ReuseRule/Rules",
+					"description": "An explanation about the purpose of this instance.",
+					"items": {
+						"id": "http://example.com/root.json/ArchiveUnit/Management/ReuseRule/Rules/Item/0",
+						"type": "object",
+						"properties": {
+							"Rule": {
+								"description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
+								"title": "The Rule schema.",
+								"type": "string"
+							},
+							"StartDate": {
+								"title": "The Startdate schema.",
+								"description": "pattern: Date",
+								"oneOf": [
+									{
+										"type": "string",
+										"pattern": "^[0-8]{1}[0-9]{3}-[0-9]{2}-[0-9]{2}"
+									}
+								]
+							},
+							"EndDate": {
+								"title": "The Enddate schema.",
+								"description": "pattern: Date",
+								"oneOf": [
+									{
+										"type": "string",
+										"pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}"
+									}
+								]
+							}
+						},
+						"required": [
+							"Rule"
+						]
+					}
+				},
+				"Inheritance": {
+					"id": "http://example.com/root.json/ArchiveUnit/Management/ReuseRule/Inheritance",
+					"type": "object",
+					"properties": {
+						"PreventInheritance": {
+							"id": "http://example.com/root.json/ArchiveUnit/Management/ReuseRule/Inheritance/PreventInheritance",
+							"description": "An explanation about the purpose of this instance.",
+							"title": "The PreventInheritance schema.",
+							"type": [
+								"string",
+								"boolean"
+							]
+						},
+						"PreventRulesId": {
+							"type": "array",
+							"id": "http://example.com/root.json/ArchiveUnit/Management/ReuseRule/Inheritance/PreventRulesId",
+							"items": {
+								"description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
+								"title": "The PreventRulesId 0 schema.",
+								"type": "string"
+							}
+						}
+					},
+					"anyOf": [
+						{
+							"required": [
+								"PreventInheritance"
+							]
+						},
+						{
+							"required": [
+								"PreventRulesId"
+							]
+						}
+					]
+				}
+			}
+		},
         "StorageRule": {
-          "id": "http:\/\/example.com\/root.json\/ArchiveUnit\/Management\/StorageRule",
-          "items": {
-            "id": "http:\/\/example.com\/root.json\/ArchiveUnit\/Management\/Rules\/0",
-            "properties": {
-              "PreventInheritance": {
-                "description": "An explanation about the purpose of this instance.",
-                "title": "The Preventinheritance schema.",
-                "type": [
-                  "string",
-                  "boolean"
-                ]
-              },
-              "RefNonRuleId": {
-                "id": "http:\/\/example.com\/root.json\/ArchiveUnit\/Management\/Rules\/0\/RefNonRuleId",
-                "items": {
-                  "description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
-                  "title": "The 0 schema.",
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              "Rule": {
-                "description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
-                "title": "The Rule schema.",
-                "type": "string"
-              },
-              "StartDate": {
-                "description": "An explanation about the purpose of this instance.",
-                "title": "The Startdate schema.",
-                "oneOf": [
-                  {
-                    "type": "string",
-                    "pattern": "^[0-8]{1}[0-9]{3}-[0-9]{2}-[0-9]{2}"
-                  }
-                ]
-              },
-              "FinalAction": {
-                "enum": [
-                  "RestrictAccess",
-                  "Transfer",
-                  "Copy"
-                ]
-              }
-            },
-            "oneOf": [
-              {
-                "required": [
-                  "PreventInheritance"
-                ]
-              },
-              {
-                "required": [
-                  "RefNonRuleId"
-                ]
-              },
-              {
-                "not": {
-                  "oneOf": [
-                    {
-                      "required": [
-                        "PreventInheritance"
-                      ]
-                    },
-                    {
-                      "required": [
-                        "RefNonRuleId"
-                      ]
-                    }
-                  ]
-                }
-              }
-            ],
-            "type": "object"
-          },
-          "type": "array"
-        },
+					"type": "object",
+					"id": "http://example.com/root.json/ArchiveUnit/Management/StorageRule",
+					"properties": {
+						"Rules": {
+							"type": "array",
+							"id": "http://example.com/root.json/ArchiveUnit/Management/StorageRule/Rules",
+							"description": "An explanation about the purpose of this instance.",
+							"items": {
+								"id": "http://example.com/root.json/ArchiveUnit/Management/StorageRule/Rules/Item/0",
+								"type": "object",
+								"properties": {
+									"Rule": {
+										"description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
+										"title": "The Rule schema.",
+										"type": "string"
+									},
+									"StartDate": {
+										"title": "The Startdate schema.",
+										"description": "pattern: Date",
+										"oneOf": [
+											{
+												"type": "string",
+												"pattern": "^[0-8]{1}[0-9]{3}-[0-9]{2}-[0-9]{2}"
+											}
+										]
+									},
+									"EndDate": {
+										"title": "The Enddate schema.",
+										"description": "pattern: Date",
+										"oneOf": [
+											{
+												"type": "string",
+												"pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}"
+											}
+										]
+									},
+									"FinalAction": {
+										"enum": [
+											"RestrictAccess",
+											"Transfer",
+											"Copy"
+										]
+									}
+								},
+								"required": [
+									"Rule"
+								]
+							}
+						},
+						"Inheritance": {
+							"id": "http://example.com/root.json/ArchiveUnit/Management/StorageRule/Inheritance",
+							"type": "object",
+							"properties": {
+								"PreventInheritance": {
+									"id": "http://example.com/root.json/ArchiveUnit/Management/StorageRule/Inheritance/PreventInheritance",
+									"description": "An explanation about the purpose of this instance.",
+									"title": "The PreventInheritance schema.",
+									"type": [
+										"string",
+										"boolean"
+									]
+								},
+								"PreventRulesId": {
+									"type": "array",
+									"id": "http://example.com/root.json/ArchiveUnit/Management/StorageRule/Inheritance/PreventRulesId",
+									"items": {
+										"description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
+										"title": "The PreventRulesId 0 schema.",
+										"type": "string"
+									}
+								}
+							},
+							"anyOf": [
+								{
+									"required": [
+										"PreventInheritance"
+									]
+								},
+								{
+									"required": [
+										"PreventRulesId"
+									]
+								}
+							]
+						}
+					}
+				},
         "UpdateOperation": {
           "id": "http:\/\/example.com\/root.json\/ArchiveUnit\/Management\/UpdateOperation",
           "properties": {

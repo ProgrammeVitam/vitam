@@ -1,0 +1,12 @@
+{
+	"StorageRule": {
+		"Rules": [
+			{
+				"Rule": "R4"
+			},
+			{
+				"Rule": "R4bis"
+			}
+		]
+	}
+}

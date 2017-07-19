@@ -26,22 +26,33 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.mapping;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.xml.bind.JAXBElement;
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import com.google.common.collect.Iterables;
 
-import fr.gouv.culture.archivesdefrance.seda.v2.*;
+import fr.gouv.culture.archivesdefrance.seda.v2.AccessRuleType;
+import fr.gouv.culture.archivesdefrance.seda.v2.AppraisalRuleType;
+import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
+import fr.gouv.culture.archivesdefrance.seda.v2.ClassificationRuleType;
+import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectRefType;
+import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
+import fr.gouv.culture.archivesdefrance.seda.v2.DisseminationRuleType;
+import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
+import fr.gouv.culture.archivesdefrance.seda.v2.ReuseRuleType;
+import fr.gouv.culture.archivesdefrance.seda.v2.RuleIdType;
+import fr.gouv.culture.archivesdefrance.seda.v2.StorageRuleType;
 import fr.gouv.vitam.worker.common.CommonRule;
 import fr.gouv.vitam.worker.core.model.ArchiveUnitModel;
 import fr.gouv.vitam.worker.core.model.ArchiveUnitRoot;
 import fr.gouv.vitam.worker.core.model.DataObjectReference;
 import fr.gouv.vitam.worker.core.model.DescriptiveMetadataModel;
+import fr.gouv.vitam.worker.core.model.RuleCategoryModel;
 import fr.gouv.vitam.worker.core.model.RuleModel;
-
-import javax.xml.bind.JAXBElement;
-import javax.xml.datatype.XMLGregorianCalendar;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * map archive unit to model
@@ -97,34 +108,45 @@ public class ArchiveUnitMapper {
     }
 
     private DataObjectReference mapDataObjectReference(ArchiveUnitType archiveUnitType) {
-        List<DataObjectReference> objectReferences = archiveUnitType.getArchiveUnitOrDataObjectReferenceOrDataObjectGroup().stream()
-            .filter(item -> item instanceof JAXBElement)
-            .filter(item -> ((JAXBElement) item).getDeclaredType().equals(DataObjectRefType.class))
-            .map(item -> ((JAXBElement) item))
-            .map(JAXBElement::getValue)
-            .map(item -> ((DataObjectRefType) item))
-            .map(item -> {
-                DataObjectReference dataObjectReference = new DataObjectReference();
-                dataObjectReference.setDataObjectGroupReferenceId(item.getDataObjectGroupReferenceId());
-                return dataObjectReference;
-            })
-            .collect(Collectors.toList());
+        List<DataObjectReference> objectReferences =
+            archiveUnitType.getArchiveUnitOrDataObjectReferenceOrDataObjectGroup().stream()
+                .filter(item -> item instanceof JAXBElement)
+                .filter(item -> ((JAXBElement) item).getDeclaredType().equals(DataObjectRefType.class))
+                .map(item -> ((JAXBElement) item))
+                .map(JAXBElement::getValue)
+                .map(item -> ((DataObjectRefType) item))
+                .map(item -> {
+                    DataObjectReference dataObjectReference = new DataObjectReference();
+                    dataObjectReference.setDataObjectGroupReferenceId(item.getDataObjectGroupReferenceId());
+                    return dataObjectReference;
+                })
+                .collect(Collectors.toList());
 
         return Iterables.getOnlyElement(objectReferences, null);
     }
 
     private void fillAccessRule(ArchiveUnitType archiveUnitType, ArchiveUnitModel archiveUnit) {
-        List<RuleModel> rules = fillCommonRule(archiveUnitType.getManagement().getAccessRule());
-        archiveUnit.getManagement().getAccessRule().addAll(rules);
+        AccessRuleType accessRule = archiveUnitType.getManagement().getAccessRule();
+        RuleCategoryModel accessRuleCategory = fillCommonRule(accessRule);
+        if (archiveUnit.getManagement().getAccess() != null) {
+            archiveUnit.getManagement().getAccess().merge(accessRuleCategory);
+        } else {
+            archiveUnit.getManagement().setAccess(accessRuleCategory);
+        }
     }
 
     private void fillStorageRule(ArchiveUnitType archiveUnitType, ArchiveUnitModel archiveUnit) {
         StorageRuleType storageRule = archiveUnitType.getManagement().getStorageRule();
-        List<RuleModel> rules = fillCommonRule(storageRule);
-        archiveUnit.getManagement().getStorageRule().addAll(rules);
+        RuleCategoryModel storageRuleCategory = fillCommonRule(storageRule);
+        if (archiveUnit.getManagement().getStorage() != null) {
+            archiveUnit.getManagement().getStorage().merge(storageRuleCategory);
+        } else {
+            archiveUnit.getManagement().setStorage(storageRuleCategory);
+        }
 
-        if (rules.size() > 0) {
-            RuleModel lastRule = Iterables.getLast(archiveUnit.getManagement().getStorageRule());
+        if (archiveUnit.getManagement().getStorage() != null &&
+            archiveUnit.getManagement().getStorage().getRules().size() > 0) {
+            RuleModel lastRule = Iterables.getLast(archiveUnit.getManagement().getStorage().getRules());
             if (storageRule.getFinalAction() != null) {
                 lastRule.setFinalAction(storageRule.getFinalAction().value());
             }
@@ -133,11 +155,16 @@ public class ArchiveUnitMapper {
 
     private void fillClassificationRule(ArchiveUnitType archiveUnitType, ArchiveUnitModel archiveUnit) {
         ClassificationRuleType classificationRule = archiveUnitType.getManagement().getClassificationRule();
-        List<RuleModel> rules = fillCommonRule(classificationRule);
-        archiveUnit.getManagement().getClassificationRule().addAll(rules);
+        RuleCategoryModel classificationRuleCategory = fillCommonRule(classificationRule);
+        if (archiveUnit.getManagement().getClassification() != null) {
+            archiveUnit.getManagement().getClassification().merge(classificationRuleCategory);
+        } else {
+            archiveUnit.getManagement().setClassification(classificationRuleCategory);
+        }
 
-        if (rules.size() > 0) {
-            RuleModel lastRule = Iterables.getLast(rules);
+        if (archiveUnit.getManagement().getClassification() != null &&
+            archiveUnit.getManagement().getClassification().getRules().size() > 0) {
+            RuleModel lastRule = Iterables.getLast(archiveUnit.getManagement().getClassification().getRules());
             lastRule.setClassificationLevel(classificationRule.getClassificationLevel());
             lastRule.setClassificationOwner(classificationRule.getClassificationOwner());
             if (classificationRule.getClassificationReassessingDate() != null) {
@@ -149,23 +176,52 @@ public class ArchiveUnitMapper {
     }
 
     private void fillReuseRule(ArchiveUnitType archiveUnitType, ArchiveUnitModel archiveUnit) {
-        List<RuleModel> rules = fillCommonRule(archiveUnitType.getManagement().getReuseRule());
-        archiveUnit.getManagement().getReuseRule().addAll(rules);
+        ReuseRuleType reuseRule = archiveUnitType.getManagement().getReuseRule();
+        RuleCategoryModel reuseRuleCategory = fillCommonRule(reuseRule);
+        if (archiveUnit.getManagement().getReuse() != null) {
+            archiveUnit.getManagement().getReuse().merge(reuseRuleCategory);
+        } else {
+            archiveUnit.getManagement().setReuse(reuseRuleCategory);
+        }
     }
 
     private void fillDisseminationRule(ArchiveUnitType archiveUnitType, ArchiveUnitModel archiveUnit) {
-        List<RuleModel> rules = fillCommonRule(archiveUnitType.getManagement().getDisseminationRule());
-        archiveUnit.getManagement().getDisseminationRule().addAll(rules);
+        DisseminationRuleType disseminationRule = archiveUnitType.getManagement().getDisseminationRule();
+        RuleCategoryModel disseminationRuleCategory = fillCommonRule(disseminationRule);
+        if (archiveUnit.getManagement().getDissemination() != null) {
+            archiveUnit.getManagement().getDissemination().merge(disseminationRuleCategory);
+        } else {
+            archiveUnit.getManagement().setDissemination(disseminationRuleCategory);
+        }
     }
 
-    private List<RuleModel> fillCommonRule(CommonRule rule) {
+    private void fillAppraisalRule(ArchiveUnitType archiveUnitType, ArchiveUnitModel archiveUnit) {
+        AppraisalRuleType appraisalRule = archiveUnitType.getManagement().getAppraisalRule();
+        RuleCategoryModel appraisalRuleCategory = fillCommonRule(appraisalRule);
+        if (archiveUnit.getManagement().getAppraisal() != null) {
+            archiveUnit.getManagement().getAppraisal().merge(appraisalRuleCategory);
+        } else {
+            archiveUnit.getManagement().setAppraisal(appraisalRuleCategory);
+        }
+
+        if (archiveUnit.getManagement().getAppraisal() != null &&
+            archiveUnit.getManagement().getAppraisal().getRules().size() > 0) {
+            RuleModel lastRule = Iterables.getLast(archiveUnit.getManagement().getAppraisal().getRules());
+            lastRule.setFinalAction(appraisalRule.getFinalAction().value());
+        }
+    }
+
+    private RuleCategoryModel fillCommonRule(CommonRule rule) {
+        if (rule == null) {
+            return null;
+        }
+
+        boolean ruleUsed = false;
+        RuleCategoryModel ruleCategoryModel = new RuleCategoryModel();
         RuleModel ruleModel = null;
 
         List<RuleModel> rules = new ArrayList<>();
 
-        if (rule == null) {
-            return new ArrayList<>();
-        }
 
         for (Object ruleOrStartDate : rule.getRuleAndStartDate()) {
             if (ruleOrStartDate instanceof RuleIdType) {
@@ -180,30 +236,27 @@ public class ArchiveUnitMapper {
             }
         }
 
-        if (rule.isPreventInheritance() != null || rule.getRefNonRuleId().size() > 0) {
-            RuleModel lastRule = Iterables.getLast(rules, new RuleModel());
-            lastRule.setPreventInheritance(rule.isPreventInheritance());
+        if (!rules.isEmpty()) {
+            ruleUsed = true;
+            ruleCategoryModel.getRules().addAll(rules);
+        }
+
+        if (rule.isPreventInheritance() != null) {
+            ruleUsed = true;
+            ruleCategoryModel.setPreventInheritance(rule.isPreventInheritance());
+        }
+
+        if (rule.getRefNonRuleId().size() > 0) {
+            ruleUsed = true;
             List<String> refNonRuleId =
                 rule.getRefNonRuleId().stream().map(RuleIdType::getValue).collect(Collectors.toList());
-            lastRule.setRefNonRuleId(refNonRuleId);
-
-            if (!rules.contains(lastRule)) {
-                rules.add(lastRule);
-            }
+            ruleCategoryModel.addPreventRulesId(refNonRuleId);
         }
 
-        return rules;
-    }
-
-    private void fillAppraisalRule(ArchiveUnitType archiveUnitType, ArchiveUnitModel archiveUnit) {
-        AppraisalRuleType appraisalRule = archiveUnitType.getManagement().getAppraisalRule();
-        List<RuleModel> rules = fillCommonRule(appraisalRule);
-        archiveUnit.getManagement().getAppraisalRule().addAll(rules);
-
-        if (rules.size() > 0) {
-            RuleModel lastRule = Iterables.getLast(rules);
-            lastRule.setFinalAction(appraisalRule.getFinalAction().value());
+        if (!ruleUsed) {
+            return null;
         }
-    }
+        return ruleCategoryModel;
 
+    }
 }

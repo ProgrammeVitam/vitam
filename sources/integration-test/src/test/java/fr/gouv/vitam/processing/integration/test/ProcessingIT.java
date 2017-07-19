@@ -596,7 +596,7 @@ public class ProcessingIT {
 
             assertEquals(logbookResult.get("$results").get(0).get("events").get(0).get("outDetail").asText(),
                 "STP_INGEST_FINALISATION.OK");
-            
+
             assertEquals(logbookResult.get("$results").get(0).get("obIdIn").asText(),
                 "bug2721_2racines_meme_rattachement");
             assertEquals(logbookResult.get("$results").get(0).get("agIdOrig").asText(), "producteur1");
@@ -646,19 +646,19 @@ public class ProcessingIT {
                 processMonitoring.findOneProcessWorkflow(containerName, tenantId);
             assertNotNull(processWorkflow);
             assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-            
+
             LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
             fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
                 new fr.gouv.vitam.common.database.builder.request.single.Select();
             selectQuery.setQuery(QueryHelper.eq("evIdProc", containerName));
             JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
-            
+
             JsonNode logbookNode = logbookResult.get("$results").get(0);
             assertEquals(logbookNode.get("obIdIn").asText(),
                 "Transfert des enregistrements des délibérations de l'assemblée départementale");
             assertEquals(logbookNode.get("agIdSubm").asText(),
                 "https://demo.logilab.fr/seda/157118");
-            assertEquals(logbookNode.get("agIdOrig").asText(), 
+            assertEquals(logbookNode.get("agIdOrig").asText(),
                 "https://demo.logilab.fr/seda/157118");
             assertTrue(logbookNode.get("evDetData").asText().contains("EvDetailReq"));
             assertTrue(logbookNode.get("evDetData").asText().contains("EvDateTimeReq"));
@@ -1007,7 +1007,6 @@ public class ProcessingIT {
                     .put(GLOBAL.RULES.exactToken(), 1).put("Title", 1)
                     .put(PROJECTIONARGS.MANAGEMENT.exactToken(), 1)));
             JsonNode result = metaDataClient.selectUnits(query.getFinalSelect());
-
             assertNotNull(
                 result.get("$results").get(0).get(UnitInheritedRule.INHERITED_RULE).get("StorageRule").get("R1"));
         } catch (final Exception e) {
@@ -1788,8 +1787,9 @@ public class ProcessingIT {
         ArrayList<Document> logbookLifeCycleUnits =
             Lists.newArrayList(db.getCollection("LogbookLifeCycleUnit").find().iterator());
 
-        List<Document> currentLogbookLifeCycleUnits = logbookLifeCycleUnits.stream().filter(t -> t.get("evIdProc").equals(containerName))
-            .collect(Collectors.toList());
+        List<Document> currentLogbookLifeCycleUnits =
+            logbookLifeCycleUnits.stream().filter(t -> t.get("evIdProc").equals(containerName))
+                .collect(Collectors.toList());
 
         List<Document> events = (List<Document>) Iterables.getOnlyElement(currentLogbookLifeCycleUnits).get("events");
 
@@ -1927,7 +1927,7 @@ public class ProcessingIT {
         // re-launch worker
         workerApplication.stop();
         // FIXME Sleep to be removed when asynchronous mode is implemented
-        //Thread.sleep(8500);
+        // Thread.sleep(8500);
         SystemPropertyUtil.set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
         workerApplication = new WorkerApplication(CONFIG_BIG_WORKER_PATH);
         workerApplication.start();
@@ -2023,17 +2023,17 @@ public class ProcessingIT {
         try {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
 
-            //1. Stop the worker this will unregister the worker
+            // 1. Stop the worker this will unregister the worker
             workerApplication.stop();
             Thread.sleep(500);
 
-            //2. Start the worker this will register the worker
+            // 2. Start the worker this will register the worker
             SystemPropertyUtil.set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
             workerApplication = new WorkerApplication(CONFIG_WORKER_PATH);
             workerApplication.start();
             Thread.sleep(500);
 
-            //3. Stop processing, this will make worker retry register
+            // 3. Stop processing, this will make worker retry register
             processManagementApplication.stop();
             Thread.sleep(500);
 
@@ -2042,10 +2042,11 @@ public class ProcessingIT {
             processManagementApplication = new ProcessManagementApplication(CONFIG_PROCESSING_PATH);
             processManagementApplication.start();
             SystemPropertyUtil.clear(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT);
-            //4.Wait processing server start
+            // 4.Wait processing server start
             Thread.sleep(500);
 
-            // For test, worker.conf is modified to have registerDelay: 1 (mean every one second worker try to register it self
+            // For test, worker.conf is modified to have registerDelay: 1 (mean every one second worker try to register
+            // it self
 
         } catch (final Exception e) {
             e.printStackTrace();

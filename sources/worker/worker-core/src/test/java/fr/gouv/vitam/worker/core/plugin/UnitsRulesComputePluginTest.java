@@ -28,14 +28,16 @@
 package fr.gouv.vitam.worker.core.plugin;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doAnswer;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -45,7 +47,6 @@ import javax.xml.stream.XMLStreamException;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -61,6 +62,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -73,6 +75,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
@@ -149,6 +152,7 @@ public class UnitsRulesComputePluginTest {
 
         when(workspaceClient.getObject(anyObject(), eq("Units/objectName")))
             .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
+        saveWorkspacePutObject("Units/objectName");
         when(adminManagementClient.getRules(anyObject())).thenReturn(getRulesInReferential());
 
         final WorkerParameters params =
@@ -158,6 +162,13 @@ public class UnitsRulesComputePluginTest {
 
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
+
+        // check objectName file updated
+        JsonNode objectName = getSavedWorkspaceObject("Units/objectName");
+        JsonNode storageRule0 = objectName.get("ArchiveUnit").get("Management").get("StorageRule").get("Rules").get(0);
+        assertNotNull(storageRule0);
+        assertNotNull(storageRule0.get("EndDate"));
+        assertEquals("2016-04-10", storageRule0.get("EndDate").asText());
     }
 
     @Test
@@ -175,6 +186,7 @@ public class UnitsRulesComputePluginTest {
 
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
+
     }
 
     @Test
@@ -184,6 +196,7 @@ public class UnitsRulesComputePluginTest {
         when(workspaceClient.getObject(anyObject(), eq("Units/objectName")))
             .thenReturn(Response.status(Status.OK)
                 .entity(PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_RULE_MGT_ONLY)).build());
+        saveWorkspacePutObject("Units/objectName");
         when(adminManagementClient.getRules(anyObject())).thenReturn(getRulesInReferential());
 
         final WorkerParameters params =
@@ -193,14 +206,21 @@ public class UnitsRulesComputePluginTest {
 
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
+
+        // check objectName file updated
+        JsonNode objectName = getSavedWorkspaceObject("Units/objectName");
+        JsonNode management = objectName.get("ArchiveUnit").get("Management");
+        assertNotNull(management);
+        assertNull(management.get("StorageRule"));
     }
 
     @Test
     public void givenWorkspaceArchiveUnitFileExistWhenExecuteThenReturnResponseOK() throws Exception {
         reset(workspaceClient);
 
-        when(workspaceClient.getObject(anyObject(), eq("Units/objectName")))
+        when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json")))
             .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
+        saveWorkspacePutObject("Units/objectName.json");
         when(adminManagementClient.getRules(anyObject())).thenReturn(getRulesInReferential());
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
@@ -209,6 +229,13 @@ public class UnitsRulesComputePluginTest {
             .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
+
+        // check objectName file updated
+        JsonNode objectName = getSavedWorkspaceObject("Units/objectName.json");
+        JsonNode storageRule0 = objectName.get("ArchiveUnit").get("Management").get("StorageRule").get("Rules").get(0);
+        assertNotNull(storageRule0);
+        assertNotNull(storageRule0.get("EndDate"));
+        assertEquals("2016-04-10", storageRule0.get("EndDate").asText());
     }
 
     @Test
@@ -233,6 +260,7 @@ public class UnitsRulesComputePluginTest {
         when(workspaceClient.getObject(anyObject(), eq("Units/objectName")))
             .thenReturn(Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream(ARBO_MD_RG_COMPLEXE_ROOT))
                 .build());
+        saveWorkspacePutObject("Units/objectName");
         when(adminManagementClient.getRules(anyObject())).thenReturn(getRulesInReferentialForArboMdRgComplexe());
 
         final WorkerParameters params =
@@ -242,6 +270,13 @@ public class UnitsRulesComputePluginTest {
 
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
+
+        // check objectName file updated
+        JsonNode objectName = getSavedWorkspaceObject("Units/objectName");
+        JsonNode accessRule0 = objectName.get("ArchiveUnit").get("Management").get("AccessRule").get("Rules").get(0);
+        assertNotNull(accessRule0);
+        assertNotNull(accessRule0.get("EndDate"));
+        assertEquals("2120-01-01", accessRule0.get("EndDate").asText());
     }
 
     @Test
@@ -250,8 +285,9 @@ public class UnitsRulesComputePluginTest {
         reset(workspaceClient);
 
         when(workspaceClient.getObject(anyObject(), eq("Units/objectName")))
-            .thenReturn(Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream(ARBO_MD_NON_EXISTING_RULE))
-                .build());
+            .thenReturn(
+                Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream(ARBO_MD_NON_EXISTING_RULE))
+                    .build());
         when(adminManagementClient.getRules(anyObject())).thenReturn(getRulesInReferentialForNonExistingRule());
 
         final WorkerParameters params =
@@ -261,6 +297,8 @@ public class UnitsRulesComputePluginTest {
 
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
+
+
     }
 
     @Test
@@ -271,6 +309,7 @@ public class UnitsRulesComputePluginTest {
         when(workspaceClient.getObject(anyObject(), eq("Units/objectName")))
             .thenReturn(Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream(AU_SIP_MGT_MD_OK1))
                 .build());
+        saveWorkspacePutObject("Units/objectName");
         when(adminManagementClient.getRules(anyObject())).thenReturn(getRulesInReferentialForAuMgtMdOk());
 
         final WorkerParameters params =
@@ -280,8 +319,32 @@ public class UnitsRulesComputePluginTest {
 
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
+
+        // check objectName file updated
+        JsonNode objectName = getSavedWorkspaceObject("Units/objectName");
+        JsonNode storageRule1 = objectName.get("ArchiveUnit").get("Management").get("StorageRule").get("Rules").get(1);
+        assertNotNull(storageRule1);
+        assertNotNull(storageRule1.get("EndDate"));
+        assertEquals("2016-04-10", storageRule1.get("EndDate").asText());
     }
 
+    private void saveWorkspacePutObject(String filename) throws ContentAddressableStorageServerException {
+        doAnswer(invocation -> {
+            InputStream inputStream = invocation.getArgumentAt(2, InputStream.class);
+            java.nio.file.Path file =
+                java.nio.file.Paths.get(System.getProperty("vitam.tmp.folder") + "/" + action.getContainerName() + "_" +
+                    action.getWorkerId() + "/" + filename.replaceAll("/", "_"));
+            java.nio.file.Files.copy(inputStream, file);
+            return null;
+        }).when(workspaceClient).putObject(org.mockito.Matchers.anyString(),
+            org.mockito.Matchers.eq(filename), org.mockito.Matchers.any(InputStream.class));
+    }
+
+    private JsonNode getSavedWorkspaceObject(String filename) throws InvalidParseOperationException {
+        File objectNameFile = new File(System.getProperty("vitam.tmp.folder") + "/" + action.getContainerName() + "_" +
+            action.getWorkerId() + "/" + filename.replaceAll("/", "_"));
+        return JsonHandler.getFromFile(objectNameFile);
+    }
 
     private JsonNode getRulesInReferential() {
 

@@ -1,0 +1,14 @@
+{
+	"StorageRule": {
+		"Rules": [
+			[
+				{
+					"Rule": "R1",
+					"FinalAction": "NoAccess",
+					"StartDate": "01/01/2017",
+					"RefNonRuleId": "acc3"
+				}
+			]
+		]
+	}
+}

@@ -93,6 +93,7 @@ import fr.gouv.vitam.worker.core.mapping.ArchiveUnitMapper;
 import fr.gouv.vitam.worker.core.mapping.DescriptiveMetadataMapper;
 import fr.gouv.vitam.worker.core.model.ArchiveUnitRoot;
 import fr.gouv.vitam.worker.core.model.GotObj;
+import fr.gouv.vitam.worker.core.model.RuleCategoryModel;
 import fr.gouv.vitam.worker.core.model.RuleModel;
 import fr.gouv.vitam.worker.core.model.TextByLang;
 
@@ -269,12 +270,15 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, elementGUID, groupId);
 
             // fill list rules to map
-            fillListRulesToMap(archiveUnitId, archiveUnitRoot.getArchiveUnit().getManagement().getAccessRule());
-            fillListRulesToMap(archiveUnitId, archiveUnitRoot.getArchiveUnit().getManagement().getStorageRule());
-            fillListRulesToMap(archiveUnitId, archiveUnitRoot.getArchiveUnit().getManagement().getClassificationRule());
-            fillListRulesToMap(archiveUnitId, archiveUnitRoot.getArchiveUnit().getManagement().getAppraisalRule());
-            fillListRulesToMap(archiveUnitId, archiveUnitRoot.getArchiveUnit().getManagement().getDisseminationRule());
-            fillListRulesToMap(archiveUnitId, archiveUnitRoot.getArchiveUnit().getManagement().getReuseRule());
+            fillListRulesToMap(archiveUnitId, archiveUnitRoot.getArchiveUnit().getManagement().getAccess());
+            fillListRulesToMap(archiveUnitId, archiveUnitRoot.getArchiveUnit().getManagement().getStorage());
+            fillListRulesToMap(archiveUnitId,
+                archiveUnitRoot.getArchiveUnit().getManagement().getClassification());
+            fillListRulesToMap(archiveUnitId,
+                archiveUnitRoot.getArchiveUnit().getManagement().getAppraisal());
+            fillListRulesToMap(archiveUnitId,
+                archiveUnitRoot.getArchiveUnit().getManagement().getDissemination());
+            fillListRulesToMap(archiveUnitId, archiveUnitRoot.getArchiveUnit().getManagement().getReuse());
 
             storeArchiveUnit(elementGUID, archiveUnitRoot);
 
@@ -297,9 +301,12 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         super.afterUnmarshal(target, parent);
     }
 
-    private void fillListRulesToMap(String archiveUnitId, List<RuleModel> rules) {
+    private void fillListRulesToMap(String archiveUnitId, RuleCategoryModel ruleCategory) {
+        if (ruleCategory == null) {
+            return;
+        }
         Set<String> rulesId =
-            rules.stream()
+            ruleCategory.getRules().stream()
                 .map(RuleModel::getRule)
                 .filter(item -> !Strings.isNullOrEmpty(item))
                 .collect(
@@ -508,7 +515,8 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
 
         try {
             logbookLifeCycleClient.create(logbookLifecycleUnitParameters);
-        } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException | LogbookClientServerException e) {
+        } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
+            LogbookClientServerException e) {
             LOGGER.error("unable to create logbook lifecycle", e);
         }
 
@@ -539,7 +547,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         if (logbookLifeCycleParameters == null) {
             logbookLifeCycleParameters = isArchive ? LogbookParametersFactory.newLogbookLifeCycleUnitParameters()
                 : isObjectGroup ? LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters()
-                : LogbookParametersFactory.newLogbookOperationParameters();
+                    : LogbookParametersFactory.newLogbookOperationParameters();
 
             logbookLifeCycleParameters.putParameterValue(LogbookParameterName.objectIdentifier, guid);
         }
@@ -552,7 +560,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
      * @param archiveUnitId guid of archive unit
      * @return AU response
      * @throws ProcessingUnitNotFoundException thrown if unit not found
-     * @throws ProcessingException             thrown if a metadata exception occured
+     * @throws ProcessingException thrown if a metadata exception occured
      */
     private JsonNode loadExistingArchiveUnit(String archiveUnitId) throws ProcessingException {
 
@@ -577,7 +585,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
      * @param objectGroupId guid of archive unit
      * @return AU response
      * @throws ProcessingUnitNotFoundException thrown if unit not found
-     * @throws ProcessingException             thrown if a metadata exception occured
+     * @throws ProcessingException thrown if a metadata exception occured
      */
     private JsonNode loadExistingObjectGroup(String objectGroupId) {
 
@@ -596,7 +604,6 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
                 new ProcessingException("Existing ObjectGroup " + objectGroupId + " was not found"));
         }
     }
-
 
     private static ObjectMapper getObjectMapper() {
         ObjectMapper objectMapper = new ObjectMapper();

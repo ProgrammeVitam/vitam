@@ -1,0 +1,16 @@
+{
+	"StorageRule": {
+		"Rules": [
+			{
+				"Rule": "R1"
+			}
+		]
+	},
+	"AccessRule": {
+		"Rules": [
+			{
+				"Rule": "ACC-0001"
+			}
+		]
+	}
+}

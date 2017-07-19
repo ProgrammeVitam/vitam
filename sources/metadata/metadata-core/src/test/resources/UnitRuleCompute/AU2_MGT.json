@@ -1,0 +1,7 @@
+{
+	"AccessRule": {
+		"Inheritance": {
+			"PreventInheritance": "true"
+		}
+	}
+}

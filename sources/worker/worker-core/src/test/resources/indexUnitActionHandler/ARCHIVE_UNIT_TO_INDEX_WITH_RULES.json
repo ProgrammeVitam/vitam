@@ -7,26 +7,42 @@
 		"ArchiveUnitProfile": "PresentationType",
 		"Management": {
 			"StorageRule": {
-				"Rule": "STO-00001",
-				"StartDate": "2016-01-01",
-				"EndDate": "2017-01-01",
-				"FinalAction": ""
+				"Rules": [
+					{
+						"Rule": "STO-00001",
+						"StartDate": "2016-01-01",
+						"EndDate": "2017-01-01",
+						"FinalAction": "RestrictAccess"
+					}
+				]
 			},
 			"AppraisalRule": {
-				"Rule": "APP-00001",
-				"StartDate": "2016-01-01",
-				"EndDate": "2096-01-01",
-				"FinalAction": ""
+				"Rules": [
+					{
+						"Rule": "APP-00001",
+						"StartDate": "2016-01-01",
+						"EndDate": "2096-01-01",
+						"FinalAction": "Destroy"
+					}
+				]
 			},
 			"AccessRule": {
-				"Rule": "ACC-00001",
-				"StartDate": "2016-01-01",
-				"EndDate": "2016-01-01"
+				"Rules": [
+					{
+						"Rule": "ACC-00001",
+						"StartDate": "2016-01-01",
+						"EndDate": "2016-01-01"
+					}
+				]
 			},
 			"DisseminationRule": {
-				"Rule": "DIS-00001",
-				"StartDate": "2016-01-01",
-				"EndDate": "2041-01-01"
+				"Rules": [
+					{
+						"Rule": "DIS-00001",
+						"StartDate": "2016-01-01",
+						"EndDate": "2041-01-01"
+					}
+				]
 			},
 			"NeedAuthorization": "false"
 		},
