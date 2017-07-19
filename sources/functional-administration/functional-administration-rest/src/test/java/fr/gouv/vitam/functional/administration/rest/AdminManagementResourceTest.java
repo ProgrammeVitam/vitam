@@ -32,6 +32,7 @@ import static com.jayway.restassured.RestAssured.with;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assume.assumeTrue;
+import static org.mockito.Mockito.mock;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -42,6 +43,16 @@ import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
+import fr.gouv.vitam.functional.administration.rules.core.RulesManagerFileImpl;
+import fr.gouv.vitam.functional.administration.rules.core.RulesSecurisator;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.glassfish.jersey.server.ResourceConfig;
 import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -128,6 +139,8 @@ public class AdminManagementResourceTest {
     static MongoDbAccessReferential mongoDbAccess;
     static String DATABASE_NAME = "vitam-test";
     private static String DATABASE_HOST = "localhost";
+    private static VitamCounterService vitamCounterService;
+    private static MongoDbAccessAdminImpl dbImpl;
 
     private InputStream stream;
     private static JunitHelper junitHelper;
@@ -135,6 +148,8 @@ public class AdminManagementResourceTest {
     private static int databasePort;
     private static File adminConfigFile;
     private static AdminManagementApplication application;
+    private static WorkspaceClientFactory workspaceClientFactory;
+    private static WorkspaceClient workspaceClient;
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -196,11 +211,41 @@ public class AdminManagementResourceTest {
 
         RestAssured.port = serverPort;
         RestAssured.basePath = RESOURCE_URI;
+        workspaceClient = mock(WorkspaceClient.class);
+        workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        workspaceClient = mock(WorkspaceClient.class);
+        dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
+        List tenants = new ArrayList<>();
+        tenants.add(new Integer(TENANT_ID));
+        tenants.add(new Integer(1));
+        vitamCounterService = new VitamCounterService(dbImpl, tenants);
+        RulesSecurisator securisator = mock(RulesSecurisator.class);
+
 
         try {
-            application = new AdminManagementApplication(adminConfigFile.getAbsolutePath());
+            application = new AdminManagementApplication(adminConfigFile.getAbsolutePath()) {
+                @Override
+                protected void registerInResourceConfig(ResourceConfig resourceConfig) {
+
+                    final AdminManagementResource resource = new AdminManagementResource(getConfiguration(), securisator);
+                    final MongoDbAccessAdminImpl mongoDbAccess = resource.getLogbookDbAccess();
+                    resource.setVitamCounterService(vitamCounterService);
+
+                    final ProfileResource profileResource = new ProfileResource(getConfiguration(), mongoDbAccess,vitamCounterService);
+                    try {
+                        resourceConfig
+                            .register(resource)
+                            .register(new ContractResource(mongoDbAccess, vitamCounterService))
+                            .register(new ContextResource(mongoDbAccess, vitamCounterService))
+                            .register(profileResource);
+                    } catch (VitamException e) {
+                        e.printStackTrace();
+                    }
+                }
+            };
             application.start();
             JunitHelper.unsetJettyPortSystemProperty();
+
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException(

@@ -43,6 +43,7 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.functional.administration.counter.SequenceType;
 import org.bson.conversions.Bson;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -178,7 +179,8 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
 
             contractsToPersist = JsonHandler.createArrayNode();
             for (final AccessContractModel acm : contractModelList) {
-                final String code = vitamCounterService.getNextSequence(ParameterHelper.getTenantParameter(), "AC");
+                final String code = vitamCounterService.getNextSequenceAsString(ParameterHelper.getTenantParameter(),
+                    SequenceType.ACCESS_CONTRACT_SEQUENCE.getName());
                 acm.setIdentifier(code);
                 final JsonNode accessContractNode = JsonHandler.toJsonNode(acm);
 

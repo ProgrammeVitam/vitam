@@ -43,6 +43,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
 
 import fr.gouv.vitam.common.CharsetUtils;
@@ -90,6 +91,8 @@ import fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl;
 import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFileImpl;
 import fr.gouv.vitam.functional.administration.rules.core.RulesManagerFileImpl;
+import fr.gouv.vitam.functional.administration.rules.core.RulesSecurisator;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -107,7 +110,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     private final MongoDbAccessAdminImpl mongoAccess;
     private final ElasticsearchAccessFunctionalAdmin elasticsearchAccess;
     private VitamCounterService vitamCounterService;
-
+    private RulesSecurisator securisator = new RulesSecurisator();
     /**
      * Constructor
      *
@@ -128,7 +131,16 @@ public class AdminManagementResource extends ApplicationStatusResource {
         /// FIXME: 3/31/17 Factories mustn't be created here !!!
         elasticsearchAccess = ElasticsearchAccessAdminFactory.create(configuration);
         mongoAccess = MongoDbAccessAdminFactory.create(adminConfiguration);
+        WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl());
+
         LOGGER.debug("init Admin Management Resource server");
+    }
+
+    @VisibleForTesting
+    AdminManagementResource(AdminManagementConfiguration configuration,
+        RulesSecurisator securisator) {
+        this(configuration);
+        this.securisator = securisator;
     }
 
     MongoDbAccessAdminImpl getLogbookDbAccess() {
@@ -295,7 +307,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
         throws IOException, ReferentialException, InvalidParseOperationException, InvalidCreateOperationException {
         ParametersChecker.checkParameter("rulesStream is a mandatory parameter", rulesStream);
 
-        try (RulesManagerFileImpl rulesManagerFileImpl = new RulesManagerFileImpl(mongoAccess)) {
+        try (RulesManagerFileImpl rulesManagerFileImpl = new RulesManagerFileImpl(mongoAccess, vitamCounterService,
+            securisator)) {
             rulesManagerFileImpl.checkFile(rulesStream);
             return Response.status(Status.OK).build();
         } catch (final FileRulesException e) {
@@ -328,7 +341,9 @@ public class AdminManagementResource extends ApplicationStatusResource {
     public Response importRulesFile(InputStream rulesStream)
         throws InvalidParseOperationException, ReferentialException, IOException {
         ParametersChecker.checkParameter("rulesStream is a mandatory parameter", rulesStream);
-        try (RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess)) {
+        try (RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess, vitamCounterService,
+            securisator)) {
+
             rulesFileManagement.importFile(rulesStream);
             return Response.status(Status.CREATED).entity(Status.CREATED.getReasonPhrase()).build();
         } catch (final FileRulesImportInProgressException e) {
@@ -371,7 +386,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter("ruleId is a mandatory parameter", ruleId);
         FileRules fileRules = null;
         JsonNode result = null;
-        try (RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess)) {
+        try (RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess, vitamCounterService,
+            securisator)) {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(ruleId));
             fileRules = rulesFileManagement.findDocumentById(ruleId);
             if (fileRules == null) {
@@ -406,7 +422,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
         throws InvalidParseOperationException, IOException {
         ParametersChecker.checkParameter(SELECT_IS_A_MANDATORY_PARAMETER, select);
         RequestResponseOK<FileRules> filerulesList;
-        try (RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess)) {
+        try (RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess, vitamCounterService,
+            securisator)) {
             SanityChecker.checkJsonAll(select);
             filerulesList = rulesFileManagement.findDocuments(select).setQuery(select);
             return Response.status(Status.OK)
@@ -522,7 +539,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
     /**
      * retrieve accession register detail based on a given dsl query
-     * 
+     *
      * @param documentId
      * @param select as String the query to find the accession register
      * @return Response jersey Response
@@ -559,7 +576,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             if (!isEveryOriginatingAgency) {
                 parser.addCondition(QueryHelper.in("OriginatingAgency",
                     prodServices.stream().toArray(String[]::new)).setDepthLimit(0));
-            } 
+            }
             parser.addCondition(eq("OriginatingAgency", URLDecoder.decode(documentId, CharsetUtils.UTF_8)));
 
             accessionRegisterDetails =

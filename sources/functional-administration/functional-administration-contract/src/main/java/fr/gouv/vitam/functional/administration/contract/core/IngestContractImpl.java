@@ -85,6 +85,7 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
+import fr.gouv.vitam.functional.administration.counter.SequenceType;
 import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
@@ -209,7 +210,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
             contractsToPersist = JsonHandler.createArrayNode();
             for (final IngestContractModel acm : contractModelList) {
-                final String code = vitamCounterService.getNextSequence(ParameterHelper.getTenantParameter(), "IC");
+               final String code = vitamCounterService.getNextSequenceAsString(ParameterHelper.getTenantParameter(), SequenceType.INGEST_CONTRACT_SEQUENCE.getName());
                 acm.setIdentifier(code);
                 final JsonNode accessContractNode = JsonHandler.toJsonNode(acm);
 
@@ -594,7 +595,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         if (queryDsl == null || !queryDsl.isObject()) {
             return error;
         }
-        
+
         final IngestContractModel ingestContractModel = findOne(id);
         if (ingestContractModel == null) {
             return error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(

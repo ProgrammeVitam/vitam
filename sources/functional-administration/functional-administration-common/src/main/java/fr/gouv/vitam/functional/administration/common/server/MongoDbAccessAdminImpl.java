@@ -83,17 +83,22 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
     @Override
     public DbRequestResult insertDocuments(ArrayNode arrayNode, FunctionalAdminCollections collection)
         throws ReferentialException {
+        return insertDocuments(arrayNode, collection, 0);
+    }
+
+    @Override
+    public DbRequestResult insertDocuments(ArrayNode arrayNode, FunctionalAdminCollections collection, Integer version)
+        throws ReferentialException {
         try {
             final DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection());
             final Insert insertquery = new Insert();
             insertquery.setData(arrayNode);
-            return dbrequest.execute(insertquery);
+           return dbrequest.execute(insertquery, version);
         } catch (InvalidParseOperationException | DatabaseException | InvalidCreateOperationException e) {
             LOGGER.error("Insert Documents Exception", e);
             throw new ReferentialException(e);
         }
     }
-
     // Not check, test feature !
     @Override
     public DbRequestResult deleteCollection(FunctionalAdminCollections collection)
@@ -155,13 +160,13 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
     }
 
     @Override
-    public DbRequestResult updateData(JsonNode update, FunctionalAdminCollections collection)
+    public DbRequestResult updateData(JsonNode update, FunctionalAdminCollections collection, Integer version)
         throws ReferentialException {
         try {
             final UpdateParserSingle parser = new UpdateParserSingle(collection.getVarNameAdapater());
             parser.parse(update);
             final DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection());
-            final DbRequestResult result = dbrequest.execute(parser.getRequest());
+            final DbRequestResult result = dbrequest.execute(parser.getRequest(), version);
             if (result.getDiffs().size() == 0) {
                 throw new ReferentialException("Document is not updated");
             }
@@ -170,6 +175,12 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
             LOGGER.error("find Document Exception", e);
             throw new ReferentialException(e);
         }
+    }
+
+    @Override
+    public DbRequestResult updateData(JsonNode update, FunctionalAdminCollections collection)
+        throws ReferentialException {
+        return updateData(update, collection, 0);
     }
 
     @Override

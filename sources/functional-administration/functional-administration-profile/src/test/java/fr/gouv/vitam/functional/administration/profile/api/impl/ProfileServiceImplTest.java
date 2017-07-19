@@ -120,7 +120,6 @@ public class ProfileServiceImplTest {
         tenants.add(new Integer(TENANT_ID));
         vitamCounterService = new VitamCounterService(dbImpl, tenants);
 
-
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
         LogbookOperationsClientFactory.changeMode(null);
