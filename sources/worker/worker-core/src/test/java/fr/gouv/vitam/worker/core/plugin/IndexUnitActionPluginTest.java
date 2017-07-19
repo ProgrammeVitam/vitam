@@ -43,6 +43,7 @@ import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLStreamException;
 
 import org.assertj.core.util.Lists;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -52,6 +53,8 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import com.mongodb.connection.Stream;
+
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -59,6 +62,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -96,11 +100,11 @@ public class IndexUnitActionPluginTest {
     private static final String ATR_GLOBAL_SEDA_PARAMETERS = "globalSEDAParameters.json";  
 
     
-    private final InputStream archiveUnit;
-    private final InputStream archiveUnitWithRules;
-    private final InputStream archiveUnitChild;
-    private final InputStream archiveUnitParent;
-    private final InputStream archiveUnitWithMgtRules;
+    private InputStream archiveUnit;
+    private InputStream archiveUnitWithRules;
+    private InputStream archiveUnitChild;
+    private InputStream archiveUnitParent;
+    private InputStream archiveUnitWithMgtRules;
     private GUID guid = GUIDFactory.newGUID();
 
     @Rule
@@ -118,15 +122,15 @@ public class IndexUnitActionPluginTest {
             .setContainerName(guid.getId()).setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
     public IndexUnitActionPluginTest() throws FileNotFoundException {
+    }
+
+    @Before
+    public void setUp() throws Exception {
         archiveUnit = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT);
         archiveUnitWithRules = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_WITH_RULES);
         archiveUnitChild = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_UPDATE_GUID_CHILD);
         archiveUnitParent = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_UPDATE_GUID_PARENT);
         archiveUnitWithMgtRules = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_WITh_MGT_RULES);
-    }
-
-    @Before
-    public void setUp() throws Exception {
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         PowerMockito.mockStatic(MetaDataClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
@@ -141,6 +145,14 @@ public class IndexUnitActionPluginTest {
 
     }
 
+    @After
+    public void finish() {
+        StreamUtils.closeSilently(archiveUnit);
+        StreamUtils.closeSilently(archiveUnitWithRules);
+        StreamUtils.closeSilently(archiveUnitChild);
+        StreamUtils.closeSilently(archiveUnitParent);
+        StreamUtils.closeSilently(archiveUnitWithMgtRules);
+    }
     @Test
     public void givenWorkspaceNotExistWhenExecuteThenReturnResponseFATAL()
         throws XMLStreamException, IOException, ProcessingException {
@@ -162,7 +174,7 @@ public class IndexUnitActionPluginTest {
         final MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
         PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
         PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
-        when(handlerIO.getInputStreamNoCachedFromWorkspace(anyObject())).thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
+        when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(archiveUnit);
         
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
@@ -174,7 +186,7 @@ public class IndexUnitActionPluginTest {
         final MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
         PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);        
         PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);        
-        when(handlerIO.getInputStreamNoCachedFromWorkspace(anyObject())).thenReturn(Response.status(Status.OK).entity(archiveUnit).build());        
+        when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(archiveUnit);        
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(response.getGlobalStatus(), StatusCode.FATAL);
     }
@@ -197,13 +209,13 @@ public class IndexUnitActionPluginTest {
     public void testIndexUnitWithRulesOk()
         throws MetaDataExecutionException, MetaDataNotFoundException, MetaDataAlreadyExistException,
         MetaDataDocumentSizeException, MetaDataClientServerException, InvalidParseOperationException,
-        ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+        ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, IOException {
 
         when(metadataClient.insertUnit(anyObject())).thenReturn(JsonHandler.createObjectNode());
         final MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
         PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
         PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
-        when(handlerIO.getInputStreamNoCachedFromWorkspace(anyObject())).thenReturn(Response.status(Status.OK).entity(archiveUnitWithRules).build());
+        when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(archiveUnitWithRules);
         
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
@@ -213,13 +225,13 @@ public class IndexUnitActionPluginTest {
     public void testIndexUnitUpdateChildOk()
         throws MetaDataExecutionException, MetaDataNotFoundException, MetaDataAlreadyExistException,
         MetaDataDocumentSizeException, MetaDataClientServerException, InvalidParseOperationException,
-        ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+        ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, IOException {
 
         when(metadataClient.insertUnit(anyObject())).thenReturn(JsonHandler.createObjectNode());
         final MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
         PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
         PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);        
-        when(handlerIO.getInputStreamNoCachedFromWorkspace(anyObject())).thenReturn(Response.status(Status.OK).entity(archiveUnitChild).build());
+        when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(archiveUnitChild);
         
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
@@ -229,13 +241,13 @@ public class IndexUnitActionPluginTest {
     public void testIndexUnitUpdateParentOk()
         throws MetaDataExecutionException, MetaDataNotFoundException, MetaDataAlreadyExistException,
         MetaDataDocumentSizeException, MetaDataClientServerException, InvalidParseOperationException,
-        ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+        ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, IOException {
 
         when(metadataClient.insertUnit(anyObject())).thenReturn(JsonHandler.createObjectNode());
         final MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
         PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
         PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
-        when(handlerIO.getInputStreamNoCachedFromWorkspace(anyObject())).thenReturn(Response.status(Status.OK).entity(archiveUnitParent).build());        
+        when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(archiveUnitParent);        
 
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
@@ -245,13 +257,13 @@ public class IndexUnitActionPluginTest {
     public void testIndexWithRules()
         throws MetaDataExecutionException, MetaDataNotFoundException, MetaDataAlreadyExistException,
         MetaDataDocumentSizeException, MetaDataClientServerException, InvalidParseOperationException,
-        ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+        ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, IOException {
 
         when(metadataClient.insertUnit(anyObject())).thenReturn(JsonHandler.createObjectNode());
         final MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
         PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
         PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
-        when(handlerIO.getInputStreamNoCachedFromWorkspace(anyObject())).thenReturn(Response.status(Status.OK).entity(archiveUnitWithMgtRules).build());
+        when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(archiveUnitWithMgtRules);
 
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);

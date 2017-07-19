@@ -35,6 +35,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Properties;
 
+import fr.gouv.vitam.common.stream.StreamUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -99,12 +100,12 @@ public class FakeDriverImplTest {
         assertNotNull(getObjectResult.getGuid());
         assertNotNull(getObjectResult.getObject());
         final StoragePutRequest putObjectRequest = new StoragePutRequest(tenant, "type", "guid",
-                VitamConfiguration.getDefaultDigestType().getName(), IOUtils.toInputStream("Vitam" + " test"));
+                VitamConfiguration.getDefaultDigestType().getName(), StreamUtils.toInputStream("Vitam" + " test"));
         assertNotNull(connect.putObject(putObjectRequest));
 
         try {
             final StoragePutRequest putObjectRequest2 = new StoragePutRequest(tenant, "type", "guid", "fakeAlgorithm",
-                    IOUtils.toInputStream("Vitam test"));
+                StreamUtils.toInputStream("Vitam test"));
             connect.putObject(putObjectRequest2);
             fail("Should raized an exception");
         } catch (final StorageDriverException e) {
@@ -112,7 +113,7 @@ public class FakeDriverImplTest {
         }
 
         final StoragePutRequest putObjectRequest3 = new StoragePutRequest(tenant, "type", "digest_bad_test",
-                VitamConfiguration.getDefaultDigestType().getName(), IOUtils.toInputStream("Vitam test"));
+                VitamConfiguration.getDefaultDigestType().getName(), StreamUtils.toInputStream("Vitam test"));
         assertNotNull(connect.putObject(putObjectRequest3));
         assertNotNull(connect.countObjects(new StorageRequest(tenant, "object")));
 

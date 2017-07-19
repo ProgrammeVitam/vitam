@@ -27,6 +27,7 @@
 package fr.gouv.vitam.logbook.administration.core;
 
 import fr.gouv.vitam.common.security.merkletree.MerkleTree;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.logbook.administration.core.TraceabilityFile;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import org.apache.commons.io.IOUtils;
@@ -63,7 +64,7 @@ public class TraceabilityFileTest {
         // When
         TraceabilityFile traceabilityFile = new TraceabilityFile(destination);
         traceabilityFile.initStoreOperationLog();
-        LogbookOperation lop = new LogbookOperation(IOUtils.toString(getResourceAsStream(LOGBOOK_OPERATION)));
+        LogbookOperation lop = new LogbookOperation(StreamUtils.toString(getResourceAsStream(LOGBOOK_OPERATION)));
         traceabilityFile.storeOperationLog(lop);
         traceabilityFile.closeStoreOperationLog();
 

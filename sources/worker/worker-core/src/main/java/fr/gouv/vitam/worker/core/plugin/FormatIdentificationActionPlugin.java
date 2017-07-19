@@ -30,14 +30,12 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.gc.iotools.stream.is.InputStreamFromOutputStream;
 
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -189,20 +187,8 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
             }
 
             if (metadatasUpdated) {
-                try (final InputStreamFromOutputStream<String> isos = new InputStreamFromOutputStream<String>() {
-
-                    @Override
-                    protected String produce(OutputStream sink) throws Exception {
-                        JsonHandler.writeAsOutputStream(jsonOG, sink);
-                        return params.getObjectName();
-                    }
-                }) {
-                    handlerIO.transferInputStreamToWorkspace(
-                        IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName(),
-                        isos, null, asyncIO);
-                } catch (final IOException e) {
-                    throw new ProcessingException("Issue while reading/writing the ObjectGroup", e);
-                }
+                handlerIO.transferJsonToWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER, 
+                    params.getObjectName(), jsonOG, false, asyncIO);
 
                 if (eventDetailData!=null){
                     itemStatus.setEvDetailData(eventDetailData);

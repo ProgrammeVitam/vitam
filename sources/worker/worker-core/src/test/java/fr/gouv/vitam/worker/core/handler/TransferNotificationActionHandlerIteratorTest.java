@@ -36,6 +36,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.gouv.vitam.common.stream.StreamUtils;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.util.Lists;
 import org.junit.After;
@@ -351,7 +352,7 @@ public class TransferNotificationActionHandlerIteratorTest {
         throws IOException, InvalidParseOperationException {
         final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(1, 0, 1));
         final LogbookOperation lop =
-            new LogbookOperation(IOUtils.toString(PropertiesUtils.getResourceAsStream(LOGBOOK_OPERATION)));
+            new LogbookOperation(StreamUtils.toString(PropertiesUtils.getResourceAsStream(LOGBOOK_OPERATION)));
         response.addResult(JsonHandler.getFromString(lop.toJson()));
         return JsonHandler.toJsonNode(response);
     }
@@ -359,14 +360,14 @@ public class TransferNotificationActionHandlerIteratorTest {
     private static JsonNode getLogbookLifecycleGOT()
         throws FileNotFoundException, IOException, InvalidParseOperationException {
         return JsonHandler.getFromString(
-            new LogbookLifeCycleObjectGroup(IOUtils.toString(PropertiesUtils.getResourceAsStream(LOGBOOK_LFC_GOT)))
+            new LogbookLifeCycleObjectGroup(StreamUtils.toString(PropertiesUtils.getResourceAsStream(LOGBOOK_LFC_GOT)))
                 .toJson());
     }
 
     private static JsonNode getLogbookLifecycleAU()
         throws FileNotFoundException, IOException, InvalidParseOperationException {
         return JsonHandler.getFromString(
-            new LogbookLifeCycleUnit(IOUtils.toString(PropertiesUtils.getResourceAsStream(LOGBOOK_LFC_AU))).toJson());
+            new LogbookLifeCycleUnit(StreamUtils.toString(PropertiesUtils.getResourceAsStream(LOGBOOK_LFC_AU))).toJson());
     }
 
 }

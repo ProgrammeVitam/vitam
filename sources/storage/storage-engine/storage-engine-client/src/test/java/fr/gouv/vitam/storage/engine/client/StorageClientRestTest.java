@@ -50,6 +50,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.SingletonUtils;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Rule;
@@ -669,10 +670,10 @@ public class StorageClientRestTest extends VitamJerseyTest {
     @Test
     public void successGetContainerObjectExecutionWhenFound() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        when(mock.get()).thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("Vitam test")).build());
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(StreamUtils.toInputStream("Vitam test")).build());
         final InputStream stream = client.getContainerAsync("idStrategy", "guid", StorageCollectionType.OBJECTS)
                 .readEntity(InputStream.class);
-        final InputStream stream2 = IOUtils.toInputStream("Vitam test");
+        final InputStream stream2 = StreamUtils.toInputStream("Vitam test");
         assertNotNull(stream);
         assertTrue(IOUtils.contentEquals(stream, stream2));
     }

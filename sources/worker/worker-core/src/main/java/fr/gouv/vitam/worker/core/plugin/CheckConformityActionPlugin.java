@@ -27,26 +27,20 @@
 
 package fr.gouv.vitam.worker.core.plugin;
 
-import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import com.gc.iotools.stream.is.InputStreamFromOutputStream;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
@@ -114,21 +108,8 @@ public class CheckConformityActionPlugin extends ActionHandler {
             }
 
             if (oneOrMoreMessagesDigestUpdated) {
-
-                try (final InputStreamFromOutputStream<String> isos = new InputStreamFromOutputStream<String>() {
-
-                    @Override
-                    protected String produce(OutputStream sink) throws Exception {
-                        JsonHandler.writeAsOutputStream(jsonOG, sink);
-                        return params.getObjectName();
-                    }
-                }) {
-                    handlerIO.transferInputStreamToWorkspace(
-                        IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName(),
-                        isos, null, asyncIO);
-                } catch (final IOException e) {
-                    throw new ProcessingException("Issue while reading/writing the ObjectGroup", e);
-                }
+                handlerIO.transferJsonToWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER, 
+                    params.getObjectName(), jsonOG, false, asyncIO);
             }
 
         } catch (ProcessingException e) {
@@ -145,13 +126,10 @@ public class CheckConformityActionPlugin extends ActionHandler {
         throws ProcessingException {
         String eventDetailData;
 
-        Response response = null;
-
         try {
             final DigestType digestTypeInput = DigestType.fromValue((String) handlerIO.getInput(ALGO_RANK));
-            response = handlerIO.getInputStreamNoCachedFromWorkspace(
-                IngestWorkflowConstants.SEDA_FOLDER + "/" + binaryObject.getUri());
-            InputStream inputStream = (InputStream) response.getEntity();
+            InputStream inputStream = handlerIO.getInputStreamFromWorkspace(
+                IngestWorkflowConstants.SEDA_FOLDER + File.separator + binaryObject.getUri());
             final Digest vitamDigest = new Digest(digestTypeInput);
             Digest manifestDigest;
             boolean isVitamDigest = false;
@@ -201,8 +179,6 @@ public class CheckConformityActionPlugin extends ActionHandler {
             IOException e) {
             LOGGER.error(e);
             throw new ProcessingException(e.getMessage(), e);
-        } finally {
-            handlerIO.consumeAnyEntityAndClose(response);
         }
 
     }

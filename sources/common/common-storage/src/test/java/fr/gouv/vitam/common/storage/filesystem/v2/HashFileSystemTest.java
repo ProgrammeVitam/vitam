@@ -34,6 +34,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageTestAbstract;
 import fr.gouv.vitam.common.storage.constants.ExtendedAttributes;
@@ -41,7 +43,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class HashFileSystemTest extends ContentAddressableStorageTestAbstract {
-
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(HashFileSystemTest.class);
 
     public static final String ROOT_CONTAINER = "container";
     public static final String FILE = "test1";
@@ -77,13 +79,16 @@ public class HashFileSystemTest extends ContentAddressableStorageTestAbstract {
         Path file = path.resolve(FILE);
         Files.write(file, new byte[] {1, 2, 3, 4});
 
-        storage.computeObjectDigest(CONTAINER_NAME, FILE, DigestType.SHA512);
+        String hash = storage.computeObjectDigest(CONTAINER_NAME, FILE, DigestType.SHA512);
 
         // When
-        String hash = ((HashFileSystem) storage).readExtendedMetadata(file, ExtendedAttributes.DIGEST.getKey());
+        String hashExtendedAttribute = ((HashFileSystem) storage).readExtendedMetadata(file, ExtendedAttributes.DIGEST.getKey());
 
         // Then
-        assertThat(hash).isEqualTo(DIGEST_EXTENDED_ATTRIBUTE);
+        assertThat("SHA-512:" + hash).isEqualTo(DIGEST_EXTENDED_ATTRIBUTE);
+        if (! ("SHA-512:" + hash).equalsIgnoreCase(hashExtendedAttribute)) {
+            LOGGER.error("EXTENDED ATTRIBUTE not SUPPORTED! You should consider to use XFS filesystem");
+        }
     }
 
 }

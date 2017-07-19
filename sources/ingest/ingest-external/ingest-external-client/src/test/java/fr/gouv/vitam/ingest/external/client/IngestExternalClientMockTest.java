@@ -36,6 +36,7 @@ import java.io.InputStream;
 
 import javax.xml.stream.XMLStreamException;
 
+import fr.gouv.vitam.common.stream.StreamUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
@@ -89,7 +90,7 @@ public class IngestExternalClientMockTest {
             IngestExternalClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        final InputStream firstStream = IOUtils.toInputStream("test");
+        final InputStream firstStream = StreamUtils.toInputStream("test");
         final InputStream responseStream =
             client.downloadObjectAsync("1", IngestCollection.MANIFESTS, TENANT_ID).readEntity(InputStream.class);
 

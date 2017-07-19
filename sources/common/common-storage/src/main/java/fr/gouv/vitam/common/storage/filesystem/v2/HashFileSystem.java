@@ -86,7 +86,8 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(HashFileSystem.class);
     private final String storagePath;
     private HashFileSystemHelper fsHelper;
-    // It is not needed to have a concurrent structure (eg: ConcurrentHashMap) as long as the put is only in the unmarshall (which is static synchronized)
+    // It is not needed to have a concurrent structure (eg: ConcurrentHashMap) as long as the put is only in the
+    // unmarshall (which is static synchronized)
     private static Map<String, HashContainerMetadata> containerMetadata = new HashMap<>();
 
 
@@ -149,8 +150,9 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         }
         return containerMetadata.get(containerName).getNbObjects();
     }
+
     // FIXME : This method doesn't implement the contract of ContentAdressableStorage interface
-    // On update, it rewrites the file and doesn't throw an  ContentAddressableStorageAlreadyExistException
+    // On update, it rewrites the file and doesn't throw an ContentAddressableStorageAlreadyExistException
     // This was choosen to be coherent with existing Jclouds implementation of ContentAdressableStorage
     // This must be changed by verifying that where the call is done, it implements the contract
     @Override
@@ -281,14 +283,15 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         // See if the retrieved XATTR attribute is correct. If so, return it.
         if (digestMetadata != null) {
             String[] digestTokens = digestMetadata.split(":");
-            try{
+            try {
                 if ((digestTokens.length == 2) && DigestType.fromValue(digestTokens[0]) == algo) {
                     return digestTokens[1];
                 }
-            }catch(IllegalArgumentException e){
-                LOGGER.warn("DigestAlgorithm in the extended attribute of file "+ containerName+"/"+objectName + " is unknown : "+ digestTokens[0],e);
+            } catch (IllegalArgumentException e) {
+                LOGGER.warn("DigestAlgorithm in the extended attribute of file " + containerName + "/" + objectName +
+                    " is unknown : " + digestTokens[0], e);
             }
-            
+
         }
 
         // Calculate the digest via the common method
@@ -315,7 +318,7 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     public ContainerInformation getContainerInformation(String containerName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         // A discuter : je l'ai enlevé car les autres implémentations considère que containerName peut être null
-        //ParametersChecker.checkParameter(LOG_MESSAGE_CHECK_CONTAINER, containerName);
+        // ParametersChecker.checkParameter(LOG_MESSAGE_CHECK_CONTAINER, containerName);
         if (containerName == null) {
             containerName = "";
         }
@@ -361,7 +364,8 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     public MetadatasObject getObjectMetadatas(String containerName, String objectId)
         throws ContentAddressableStorageException, IOException {
         ParametersChecker
-            .checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName,objectId);
+            .checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName,
+                objectId);
         MetadatasStorageObject result = new MetadatasStorageObject();
         try {
             File file = fsHelper.getPathObject(containerName, objectId).toFile();
@@ -453,7 +457,12 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
 
     private void writeExtendedMetadata(UserDefinedFileAttributeView view, String name, String value)
         throws IOException {
-        view.write(name, ByteBuffer.wrap(value.getBytes()));
+        try {
+            view.write(name, ByteBuffer.wrap(value.getBytes()));
+        } catch (SecurityException | FileSystemException e) {
+            LOGGER.error("Extended attribute not supported. You should consider to use XFS filesystem.", e);
+            throw new IOException("Extended attribute not supported. You should consider to use XFS filesystem.", e);
+        }
     }
 
     @VisibleForTesting
@@ -462,11 +471,14 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     }
 
     private String readExtendedMetadata(UserDefinedFileAttributeView view, String name) throws IOException {
-        ByteBuffer bb = ByteBuffer.allocate(view.size(name));
-        view.read(name, bb);
-        bb.flip();
-
-        CharBuffer buffer = Charset.defaultCharset().decode(bb);
-        return buffer.toString();
+        try {
+            ByteBuffer bb = ByteBuffer.allocate(view.size(name));
+            view.read(name, bb);
+            CharBuffer buffer = Charset.defaultCharset().decode(bb);
+            return buffer.toString();
+        } catch (IllegalArgumentException | FileSystemException e) {
+            LOGGER.error("Extended attribute not supported. You should consider to use XFS filesystem.", e);
+            throw new IOException("Extended attribute not supported. You should consider to use XFS filesystem.", e);
+        }
     }
 }

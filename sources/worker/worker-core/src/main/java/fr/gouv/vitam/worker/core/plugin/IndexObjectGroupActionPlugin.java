@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin;
 
+
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.SedaConstants;

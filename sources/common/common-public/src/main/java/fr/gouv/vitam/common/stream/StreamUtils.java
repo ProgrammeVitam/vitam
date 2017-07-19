@@ -26,18 +26,20 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.stream;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 
+import com.google.common.base.Charsets;
+import com.google.common.io.CharStreams;
+import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.apache.commons.io.IOUtils;
 
 /**
  * This class supports Helpers on streams.
@@ -208,5 +210,31 @@ public class StreamUtils {
             }
         }
         return read;
+    }
+
+    /**
+     *
+     * @param stream
+     * @return the corresponding String from InputStream
+     */
+    public static final String toString(InputStream inputStream) throws IOException {
+        try {
+            return CharStreams.toString(new InputStreamReader(
+                inputStream, Charsets.UTF_8));
+        } catch (IOException e) {
+            LOGGER.error(e);
+            throw e;
+        } finally {
+            closeSilently(inputStream);
+        }
+    }
+
+    /**
+     *
+     * @param source
+     * @return the corresponding InputStream
+     */
+    public static InputStream toInputStream(String source) {
+        return new ByteArrayInputStream(source.getBytes(CharsetUtils.UTF8));
     }
 }

@@ -150,7 +150,7 @@ public class ProcessEngineImplTest {
     @Test
     @RunWithCustomExecutor
     public void startTestOK() throws Exception {
-
+        Thread.sleep(200);
         final ProcessWorkflow processWorkflow =
             processData.initProcessWorkflow(ProcessPopulator.populate(WORKFLOW_FILE), workParams.getContainerName(),
                 LogbookTypeProcess.INGEST, TENANT_ID);
@@ -166,7 +166,7 @@ public class ProcessEngineImplTest {
 
         // Because of start is async
         // Sleep to be sur that completableFeature is called in the Engine
-        Thread.sleep(5);
+        Thread.sleep(200);
 
         InOrder inOrders = inOrder(processDistributor, iEventsProcessEngine);
         inOrders.verify(iEventsProcessEngine).onUpdate(anyObject());

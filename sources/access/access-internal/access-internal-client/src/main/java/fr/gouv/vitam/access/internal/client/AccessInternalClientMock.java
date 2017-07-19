@@ -26,6 +26,17 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.client;
 
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+import fr.gouv.vitam.common.stream.StreamUtils;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
@@ -40,12 +51,6 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import org.apache.commons.io.IOUtils;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * Mock client implementation for access
@@ -92,7 +97,7 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     public Response getObject(JsonNode selectObjectQuery, String objectGroupId, String usage, int version)
         throws InvalidParseOperationException, AccessInternalClientServerException,
         AccessInternalClientNotFoundException {
-        return new AbstractMockClient.FakeInboundResponse(Status.OK, IOUtils.toInputStream(MOCK_GET_FILE_CONTENT),
+        return new AbstractMockClient.FakeInboundResponse(Status.OK, StreamUtils.toInputStream(MOCK_GET_FILE_CONTENT),
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
     }
 
@@ -137,7 +142,7 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     public Response downloadTraceabilityFile(String operationId)
         throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
         InvalidParseOperationException {
-        return new AbstractMockClient.FakeInboundResponse(Status.OK, IOUtils.toInputStream(MOCK_GET_FILE_CONTENT),
+        return new AbstractMockClient.FakeInboundResponse(Status.OK, StreamUtils.toInputStream(MOCK_GET_FILE_CONTENT),
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
     }
 

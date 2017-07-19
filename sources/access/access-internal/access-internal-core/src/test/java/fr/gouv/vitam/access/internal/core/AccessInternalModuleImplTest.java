@@ -43,6 +43,7 @@ import java.io.InputStream;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.common.stream.StreamUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -629,7 +630,7 @@ public class AccessInternalModuleImplTest {
         accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, fromStringToJson(QUERY), "BinaryMaster", 0);
         assertNotNull(asynResponse.getResponse());
 
-        final InputStream stream2 = IOUtils.toInputStream(FAKE_METADATA_RESULT);
+        final InputStream stream2 = StreamUtils.toInputStream(FAKE_METADATA_RESULT);
         VitamStreamingOutput entity = (VitamStreamingOutput) ((Response) asynResponse.getResponse()).getEntity();
         final ByteArrayOutputStream output = new ByteArrayOutputStream();
         entity.write(output);

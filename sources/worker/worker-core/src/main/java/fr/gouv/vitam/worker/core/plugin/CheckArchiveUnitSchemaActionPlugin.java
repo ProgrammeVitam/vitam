@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -134,7 +135,8 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
         final String objectName = params.getObjectName();
 
         try (InputStream archiveUnitToJson =
-            handlerIO.getInputStreamFromWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName)) {
+            handlerIO.getInputStreamFromWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + 
+                File.separator + objectName)) {
             SchemaValidationUtils validator = new SchemaValidationUtils();
             JsonNode archiveUnit = JsonHandler.getFromInputStream(archiveUnitToJson);
             

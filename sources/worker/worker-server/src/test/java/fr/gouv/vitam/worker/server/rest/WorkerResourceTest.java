@@ -37,6 +37,7 @@ import java.io.InputStream;
 
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.stream.StreamUtils;
 import org.apache.commons.io.IOUtils;
 import org.jhades.JHades;
 import org.junit.AfterClass;
@@ -187,7 +188,7 @@ public class WorkerResourceTest {
 
         final InputStream stream =
             PropertiesUtils.getResourceAsStream("descriptionStep.json");
-        final String body = IOUtils.toString(stream);
+        final String body = StreamUtils.toString(stream);
 
         given().contentType(ContentType.JSON).body(body).when().post(WORKER_STEP_URI).then()
             .statusCode(Status.OK.getStatusCode());
@@ -202,7 +203,7 @@ public class WorkerResourceTest {
 
         final InputStream stream =
             PropertiesUtils.getResourceAsStream("descriptionStep_wrong_handler.json");
-        final String body = IOUtils.toString(stream);
+        final String body = StreamUtils.toString(stream);
 
         given().contentType(ContentType.JSON).body(body).when().post(WORKER_STEP_URI).then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
@@ -217,7 +218,7 @@ public class WorkerResourceTest {
 
         final InputStream stream =
             PropertiesUtils.getResourceAsStream("descriptionStep_wrong_handler.json");
-        final String body = IOUtils.toString(stream);
+        final String body = StreamUtils.toString(stream);
 
         given().contentType(ContentType.JSON).body(body).when().post(WORKER_STEP_URI).then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());

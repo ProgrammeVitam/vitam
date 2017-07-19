@@ -63,6 +63,10 @@ import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+
 /**
  * IndexUnitAction Plugin
  */
@@ -129,45 +133,39 @@ public class IndexUnitActionPlugin extends ActionHandler {
         final String objectName = params.getObjectName();
         RequestMultiple query = null;
         InputStream input;
-        Response response = null;
         try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
-            response = handlerIO
-                .getInputStreamNoCachedFromWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName);
+            input = handlerIO
+                    .getInputStreamFromWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + 
+                        File.separator + objectName);
 
-            if (response != null) {
-                input = (InputStream) response.getEntity();
-                JsonNode archiveUnit = prepareArchiveUnitJson(input, containerId, objectName);
-                final ObjectNode data = (ObjectNode) archiveUnit.get(ARCHIVE_UNIT);
-                final JsonNode work = archiveUnit.get(TAG_WORK);
-                Boolean existing = false;
-                if (work != null && work.get("_existing") != null) {
-                    existing = work.get("_existing").asBoolean();
-                }
-
-                if (existing) {
-                    query = new UpdateMultiQuery();
-                } else {
-                    query = new InsertMultiQuery();
-                }
-                // Add _up to archive unit json object
-                if (work != null && work.get("_up") != null) {
-                    final ArrayNode parents = (ArrayNode) work.get("_up");
-                    query.addRoots(parents);
-                }
-                if (!Boolean.TRUE.equals(existing)) {
-                    // insert case
-                    if (handlerIO.getInput() != null && !handlerIO.getInput().isEmpty()) {
-                        String unitType = UnitType.getUnitTypeString((String) handlerIO.getInput(0));
-                        data.put(VitamFieldsHelper.unitType(), unitType);
-                    }
-                    ObjectNode finalInsert = ((InsertMultiQuery) query).addData(data).getFinalInsert();
-                    metadataClient.insertUnit(finalInsert);
-                }
-                itemStatus.increment(StatusCode.OK);
-            } else {
-                LOGGER.error("Archive unit not found");
-                throw new ProcessingException("Archive unit not found");
+            JsonNode archiveUnit = prepareArchiveUnitJson(input, containerId, objectName);
+            final ObjectNode data = (ObjectNode) archiveUnit.get(ARCHIVE_UNIT);
+            final JsonNode work = archiveUnit.get(TAG_WORK);
+            Boolean existing = false;
+            if (work != null && work.get("_existing") != null) {
+                existing = work.get("_existing").asBoolean();
             }
+
+            if (existing) {
+                query = new UpdateMultiQuery();
+            } else {
+                query = new InsertMultiQuery();
+            }
+            // Add _up to archive unit json object
+            if (work != null && work.get("_up") != null) {
+                final ArrayNode parents = (ArrayNode) work.get("_up");
+                query.addRoots(parents);
+            }
+            if (!Boolean.TRUE.equals(existing)) {
+                // insert case
+                if (handlerIO.getInput() != null && !handlerIO.getInput().isEmpty()) {
+                    String unitType = UnitType.getUnitTypeString((String) handlerIO.getInput(0));
+                    data.put(VitamFieldsHelper.unitType(), unitType);
+                }
+                ObjectNode finalInsert = ((InsertMultiQuery) query).addData(data).getFinalInsert();
+                metadataClient.insertUnit(finalInsert);
+            }
+            itemStatus.increment(StatusCode.OK);
 
         } catch (final MetaDataNotFoundException e) {
             LOGGER.error("Unit references a non existing unit " + query.toString());
@@ -179,13 +177,14 @@ public class IndexUnitActionPlugin extends ActionHandler {
             LOGGER.error("Internal Server Error", e);
             throw new ProcessingException(e);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
-            LOGGER.error("Workspace Server Error");
+            LOGGER.error("Workspace Server Error", e);
             throw new ProcessingException(e);
         } catch (IllegalArgumentException e) {
             LOGGER.error("Illegal Argument Exception for " + (query != null ? query.toString() : ""));
             throw e;
-        } finally {
-            handlerIO.consumeAnyEntityAndClose(response);
+        } catch (IOException e) {
+            LOGGER.error("Archive unit not found");
+            throw new ProcessingException("Archive unit not found");
         }
     }
 
@@ -201,11 +200,14 @@ public class IndexUnitActionPlugin extends ActionHandler {
      */
     // FIXME do we need to create a new file or not ?
     private JsonNode prepareArchiveUnitJson(InputStream input, String containerId, String objectName)
-        throws InvalidParseOperationException, ProcessingException {
-        ParametersChecker.checkParameter("Input stream is a mandatory parameter", input);
-        ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
-        ParametersChecker.checkParameter("ObjectName id is a mandatory parameter", objectName);
-
+            throws InvalidParseOperationException, ProcessingException {
+        try {
+            ParametersChecker.checkParameter("Input stream is a mandatory parameter", input);
+            ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
+            ParametersChecker.checkParameter("ObjectName id is a mandatory parameter", objectName);
+        } catch (IllegalArgumentException e) {
+            throw new ProcessingException(e);
+        }
         JsonNode archiveUnit = JsonHandler.getFromInputStream(input);
         ObjectNode archiveUnitNode = (ObjectNode) archiveUnit.get(ARCHIVE_UNIT);
 

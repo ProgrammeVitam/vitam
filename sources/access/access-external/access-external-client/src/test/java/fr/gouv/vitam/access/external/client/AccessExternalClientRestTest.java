@@ -18,6 +18,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.stream.StreamUtils;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Rule;
@@ -576,7 +577,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     @Test
     @RunWithCustomExecutor
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenOK() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("Vitam test")).build());
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity(StreamUtils.toInputStream("Vitam test")).build());
         final Response response =
             client.getObject(JsonHandler.getFromString(queryDsql), ID, USAGE, VERSION, TENANT_ID, CONTRACT);
         assertNotNull(response);

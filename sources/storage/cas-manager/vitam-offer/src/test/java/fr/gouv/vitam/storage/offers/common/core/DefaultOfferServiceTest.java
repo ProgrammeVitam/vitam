@@ -48,6 +48,7 @@ import java.util.List;
 
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.common.stream.StreamUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Ignore;
@@ -154,7 +155,7 @@ public class DefaultOfferServiceTest {
         assertNotNull(offerService);
 
         offerService.initCreateObject(CONTAINER_PATH, getObjectInit(false), OBJECT_ID_2);
-        final InputStream streamToStore = IOUtils.toInputStream(OBJECT_ID_2_CONTENT);
+        final InputStream streamToStore = StreamUtils.toInputStream(OBJECT_ID_2_CONTENT);
         offerService.createObject(CONTAINER_PATH, OBJECT_ID_2, streamToStore, true, OBJECT_TYPE);
 
         JsonNode result = offerService.countObjects(CONTAINER_PATH);
@@ -268,7 +269,7 @@ public class DefaultOfferServiceTest {
 
         offerService.initCreateObject(CONTAINER_PATH, getObjectInit(false), OBJECT_ID_2);
 
-        final InputStream streamToStore = IOUtils.toInputStream(OBJECT_ID_2_CONTENT);
+        final InputStream streamToStore = StreamUtils.toInputStream(OBJECT_ID_2_CONTENT);
         offerService.createObject(CONTAINER_PATH, OBJECT_ID_2, streamToStore, true, OBJECT_TYPE);
 
         final Response response = offerService.getObject(CONTAINER_PATH, OBJECT_ID_2, new AsyncResponseJunitTest());
@@ -327,7 +328,7 @@ public class DefaultOfferServiceTest {
         objectInit.setType(DataCategory.UNIT);
         offerService.initCreateObject(CONTAINER_PATH, objectInit, OBJECT_ID_3);
 
-        final InputStream streamToStore = IOUtils.toInputStream(OBJECT_ID_2_CONTENT);
+        final InputStream streamToStore = StreamUtils.toInputStream(OBJECT_ID_2_CONTENT);
         String digest = offerService.createObject(CONTAINER_PATH, OBJECT_ID_3, streamToStore, true, OBJECT_TYPE);
 
         assertTrue(offerService.checkObject(CONTAINER_PATH, OBJECT_ID_3, digest, VitamConfiguration.getDefaultDigestType()));
@@ -340,7 +341,7 @@ public class DefaultOfferServiceTest {
         offerService.initCreateObject(CONTAINER_PATH, getObjectInit(false), OBJECT_ID_DELETE);
 
         // creation of an object
-        final InputStream streamToStore = IOUtils.toInputStream(OBJECT_ID_2_CONTENT);
+        final InputStream streamToStore = StreamUtils.toInputStream(OBJECT_ID_2_CONTENT);
         String digest = offerService.createObject(CONTAINER_PATH, OBJECT_ID_DELETE, streamToStore, true, DataCategory.UNIT);
 
         // check if the object has been created

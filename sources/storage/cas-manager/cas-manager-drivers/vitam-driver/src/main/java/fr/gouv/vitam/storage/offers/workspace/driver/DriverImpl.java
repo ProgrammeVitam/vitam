@@ -118,38 +118,7 @@ public class DriverImpl extends AbstractDriver {
                 exception.getMessage(), exception);
         }
 
-        VitamApplicationServerException lastExc = null;
-        for (int i = 0; i < VitamConfiguration.getRetryNumber(); i++) {
-            AbstractConnection connection = factory.getClient();
-            try {
-                connection.checkStatus();
-                LOGGER.debug("Check status ok");
-                return connection;
-            } catch (final VitamApplicationServerDisconnectException e) {
-                lastExc = e;
-                connection.close();
-                // Give a chance for retry later on
-                try {
-                    Thread.sleep(5);
-                } catch (InterruptedException e1) {
-                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-                }
-                continue;
-            } catch (final VitamApplicationServerException e) {
-                lastExc = e;
-                connection.close();
-                // Give a chance for retry later on
-                try {
-                    Thread.sleep(5);
-                } catch (InterruptedException e1) {
-                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-                }
-                continue;
-            }
-        }        
-        LOGGER.error("Service unavailable for Driver {} with Offer {}", getName(), offerId, lastExc);
-        throw new StorageDriverException("Driver " + getName() + " with Offer " + offerId,
-            lastExc != null ? lastExc.getMessage() : "", lastExc);
+        return factory.getClient();
     }
 
 

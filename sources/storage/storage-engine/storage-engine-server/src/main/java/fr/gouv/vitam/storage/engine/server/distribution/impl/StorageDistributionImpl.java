@@ -52,7 +52,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
-import fr.gouv.vitam.common.stream.MultipleInputStreamHandler;
+import fr.gouv.vitam.common.stream.MultiplePipedInputStream;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -184,6 +184,7 @@ public class StorageDistributionImpl implements StorageDistribution {
      * Constructs the service with a given configuration
      *
      * @param configuration the configuration of the storage
+     * @param storageLogbookService 
      */
     public StorageDistributionImpl(StorageConfiguration configuration, StorageLogbookService storageLogbookService) {
         ParametersChecker.checkParameter("Storage service configuration is mandatory", configuration);
@@ -265,154 +266,22 @@ public class StorageDistributionImpl implements StorageDistribution {
         DataCategory category, String requester, Integer tenantId, TryAndRetryData datas, int attempt,
         StorageLogbookParameters parameters)
         throws StorageTechnicalException, StorageNotFoundException, StorageAlreadyExistsException {
-        // init thread and make future map
-        // Map here to keep offerId linked to Future
-        Map<String, Future<ThreadResponseData>> futureMap = new HashMap<>();
-        int rank = 0;
-        String offerId2 = null;
-        Map<String, Digest> globalDigestMap = new HashMap<>(datas.getKoList().size());
-        List<Response> responses = new ArrayList<>();
-        long finalTimeout = 1000;
-        try {
-            for (final String offerId : datas.getKoList()) {
-                Digest globalDigest = new Digest(digestType);
-                globalDigestMap.put(offerId, globalDigest);
-                Map<String, Object> streamAndInfos;
-                switch (category) {
-                    case UNIT:
-                    case OBJECT_GROUP:
-                        streamAndInfos = getInputStreamFromDatabase(objectId, category);
-                        break;
-                    default:
-                        streamAndInfos = getInputStreamFromWorkspace(createObjectDescription);
-                }
-                InputStream digestInputStream =
-                    globalDigest.getDigestInputStream((InputStream) streamAndInfos.get(STREAM_KEY));
-                finalTimeout = getTransferTimeout(Long.valueOf((String) streamAndInfos.get(SIZE_KEY)));
-                responses.add((Response) streamAndInfos.get(RESPONSE_KEY));
-                offerId2 = offerId;
-                OfferReference offerReference = new OfferReference();
-                offerReference.setId(offerId);
-                final Driver driver = retrieveDriverInternal(offerReference.getId());
-                StoragePutRequest request =
-                    new StoragePutRequest(tenantId, category.getFolder(), objectId, digestType.name(),
-                        digestInputStream);
-                futureMap.put(offerReference.getId(),
-                    executor.submit(new TransferThread(driver, offerReference, request, globalDigest)));
-                rank++;
-            }
-        } catch (NumberFormatException e) {
-            LOGGER.error("Wrong number on wait on offer ID " + offerId2, e);
-            parameters = setLogbookStorageParameters(parameters, offerId2, null, requester, attempt,
-                Status.INTERNAL_SERVER_ERROR);
-        } catch (StorageException e) {
-            LOGGER.error("Interrupted on offer ID " + offerId2, e);
-            parameters = setLogbookStorageParameters(parameters, offerId2, null, requester, attempt,
-                Status.INTERNAL_SERVER_ERROR);
-        }
+        Map<String, Object> streamAndInfos;
+        switch (category) {
+            case UNIT:
+            case OBJECT_GROUP:
+                // FIXME P0 This should be done in WORKER Handler not in Storage Engine Bugg #3255
+                streamAndInfos = getInputStreamFromDatabase(objectId, category);
+                break;
+            default:
 
-        // wait all tasks submission
-        try {
-            Thread.sleep(THREAD_SLEEP);
-        } catch (InterruptedException exc) {
-            for (Response response : responses) {
-                DefaultClient.staticConsumeAnyEntityAndClose(response);
-            }
-            LOGGER.warn("Thread sleep to wait all task submission interrupted !", exc);
-            for (String offerId : futureMap.keySet()) {
-                parameters = setLogbookStorageParameters(parameters, offerId, null, requester, attempt,
-                    Status.INTERNAL_SERVER_ERROR);
-            }
-            if (!datas.getKoList().isEmpty()) {
-                try {
-                    deleteObjects(datas.getOkList(), tenantId, category, objectId, globalDigestMap);
-                } catch (StorageTechnicalException e) {
-                    LOGGER.error("Cannot delete object {}", objectId, e);
-                    throw e;
-                }
-            }
-            return parameters;
+                streamAndInfos = getInputStreamFromWorkspace(createObjectDescription);
         }
-
-        // wait for all threads execution
-        // TODO: manage interruption and error execution (US #2008 && 2009)
-        for (Entry<String, Future<ThreadResponseData>> entry : futureMap.entrySet()) {
-            final Future<ThreadResponseData> future = entry.getValue();
-            String offerId = entry.getKey();
-            try {
-                ThreadResponseData threadResponseData = future.get(finalTimeout, TimeUnit.MILLISECONDS);
-                if (threadResponseData == null) {
-                    LOGGER.error("Error on offer ID " + offerId);
-                    parameters = setLogbookStorageParameters(parameters, offerId, null, requester, attempt,
-                        Status.INTERNAL_SERVER_ERROR);
-                    for (Response response : responses) {
-                        DefaultClient.staticConsumeAnyEntityAndClose(response);
-                    }
-                    throw new StorageTechnicalException("No message returned");
-                }
-                parameters = setLogbookStorageParameters(parameters, offerId, threadResponseData, requester, attempt,
-                    threadResponseData.getStatus());
-                datas.koListToOkList(offerId);
-            } catch (TimeoutException e) {
-                LOGGER.info("Timeout on offer ID {} TimeOut: {}", offerId, finalTimeout, e);
-                future.cancel(true);
-                // TODO: manage thread to take into account this interruption
-                LOGGER.error("Interrupted after timeout on offer ID " + offerId);
-                parameters = setLogbookStorageParameters(parameters, offerId, null, requester, attempt, null);
-            } catch (InterruptedException e) {
-                LOGGER.error("Interrupted on offer ID " + offerId, e);
-                parameters = setLogbookStorageParameters(parameters, offerId, null, requester, attempt, null);
-            } catch (ExecutionException e) {
-                LOGGER.error("Error on offer ID " + offerId, e);
-                Status status = Status.INTERNAL_SERVER_ERROR;
-                if (e.getCause() instanceof StorageAlreadyExistsException) {
-                    status = Status.CONFLICT;
-                    datas.changeStatus(offerId, status);
-                }
-                parameters = setLogbookStorageParameters(parameters, offerId, null, requester, attempt, status);
-                if (e.getCause() instanceof StorageDriverException ||
-                    e.getCause() instanceof StorageDriverPreconditionFailedException) {
-                    LOGGER.error("Error encountered is " + e.getCause().getClass() + ", no need to retry");
-                    attempt = NB_RETRY;
-                }
-                // TODO: review this exception to manage errors correctly
-                // Take into account Exception class
-                // For example, for particular exception do not retry (because
-                // it's useless)
-                // US : #2009
-            } catch (NumberFormatException e) {
-                future.cancel(true);
-                LOGGER.error("Wrong number on wait on offer ID " + offerId, e);
-                parameters = setLogbookStorageParameters(parameters, offerId, null, requester, attempt, null);
-            }
-        }
-        for (Response response : responses) {
-            DefaultClient.staticConsumeAnyEntityAndClose(response);
-        }
-        // ACK to prevent retry
-        if (attempt < NB_RETRY && !datas.getKoList().isEmpty()) {
-            attempt++;
-            tryAndRetry(objectId, createObjectDescription, category, requester, tenantId, datas, attempt, parameters);
-        }
-
-        // TODO : error management (US #2009)
-        if (!datas.getKoList().isEmpty()) {
-            deleteObjects(datas.getOkList(), tenantId, category, objectId, globalDigestMap);
-        }
-
-        return parameters;
-    }
-
-    private StorageLogbookParameters oldTryAndRetry(String objectId, ObjectDescription createObjectDescription,
-        DataCategory category, String requester, Integer tenantId, TryAndRetryData datas, int attempt,
-        StorageLogbookParameters parameters)
-        throws StorageTechnicalException, StorageNotFoundException, StorageAlreadyExistsException {
-        Map<String, Object> streamAndInfos = getInputStreamFromWorkspace(createObjectDescription);
         Digest globalDigest = new Digest(digestType);
         InputStream digestInputStream = globalDigest.getDigestInputStream((InputStream) streamAndInfos.get(STREAM_KEY));
         Response response = (Response) streamAndInfos.get(RESPONSE_KEY);
         Digest digest = new Digest(digestType);
-        try (MultipleInputStreamHandler streams = getMultipleInputStreamFromWorkspace(digestInputStream,
+        try (MultiplePipedInputStream streams = getMultipleInputStreamFromWorkspace(digestInputStream,
             datas.getKoList().size(),
             digest)) {
             // init thread and make future map
@@ -456,7 +325,7 @@ public class StorageDistributionImpl implements StorageDistribution {
                 }
                 if (!datas.getKoList().isEmpty()) {
                     try {
-                        oldDdeleteObjects(datas.getOkList(), tenantId, category, objectId, digest);
+                        deleteObjects(datas.getOkList(), tenantId, category, objectId, digest);
                     } catch (StorageTechnicalException e) {
                         LOGGER.error("Cannot delete object {}", objectId, e);
                         throw e;
@@ -469,6 +338,8 @@ public class StorageDistributionImpl implements StorageDistribution {
             // TODO: manage interruption and error execution (US #2008 && 2009)
             for (Entry<String, Future<ThreadResponseData>> entry : futureMap.entrySet()) {
                 final Future<ThreadResponseData> future = entry.getValue();
+                // Check if any has one IO Exception
+                streams.hasException();
                 String offerId = entry.getKey();
                 try {
                     ThreadResponseData threadResponseData = future
@@ -520,17 +391,25 @@ public class StorageDistributionImpl implements StorageDistribution {
                         null);
                 }
             }
+            // Check if any has one IO Exception
+            streams.hasException();
+        } catch (IOException e1) {
+            LOGGER.error("Cannot create multipleInputStream", e1);
+            parameters = setLogbookStorageParameters(parameters, "none", null, requester, attempt,
+                Status.INTERNAL_SERVER_ERROR);
+            DefaultClient.staticConsumeAnyEntityAndClose(response);
+            throw new StorageTechnicalException("Cannot create multipleInputStream", e1);
         }
         DefaultClient.staticConsumeAnyEntityAndClose(response);
         // ACK to prevent retry
         if (attempt < NB_RETRY && !datas.getKoList().isEmpty()) {
             attempt++;
-            oldTryAndRetry(objectId, createObjectDescription, category, requester, tenantId, datas, attempt, parameters);
+            tryAndRetry(objectId, createObjectDescription, category, requester, tenantId, datas, attempt, parameters);
         }
 
         // TODO : error management (US #2009)
         if (!datas.getKoList().isEmpty()) {
-            oldDdeleteObjects(datas.getOkList(), tenantId, category, objectId, digest);
+            deleteObjects(datas.getOkList(), tenantId, category, objectId, digest);
         }
 
         return parameters;
@@ -721,11 +600,11 @@ public class StorageDistributionImpl implements StorageDistribution {
         return jsonNode.get(0);
     }
 
-    private MultipleInputStreamHandler getMultipleInputStreamFromWorkspace(InputStream stream, int nbCopy,
+    private MultiplePipedInputStream getMultipleInputStreamFromWorkspace(InputStream stream, int nbCopy,
         Digest digest)
-        throws StorageTechnicalException, StorageNotFoundException {
+        throws StorageTechnicalException, StorageNotFoundException, IOException {
         DigestInputStream digestOriginalStream = (DigestInputStream) digest.getDigestInputStream(stream);
-        return new MultipleInputStreamHandler(digestOriginalStream, nbCopy);
+        return new MultiplePipedInputStream(digestOriginalStream, nbCopy);
     }
 
 
@@ -1189,61 +1068,6 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     private void deleteObjects(List<String> offerIdList, Integer tenantId, DataCategory category, String objectId,
-        Map<String, Digest> digests)
-        throws StorageTechnicalException {
-        // Map here to keep offerId linked to Future
-        Map<String, Future<Boolean>> futureMap = new HashMap<>();
-        for (String offerId : offerIdList) {
-            final Driver driver = retrieveDriverInternal(offerId);
-            // TODO: review if digest value is really good ?
-            StorageRemoveRequest request =
-                new StorageRemoveRequest(tenantId, category.getFolder(), objectId, digestType,
-                    digests.get(offerId).digestHex());
-            futureMap.put(offerId, executor.submit(new DeleteThread(driver, request, offerId)));
-        }
-
-        // wait all tasks submission
-        try {
-            Thread.sleep(THREAD_SLEEP, TimeUnit.MILLISECONDS.ordinal());
-        } catch (InterruptedException exc) {
-            LOGGER.warn("Thread sleep to wait all task submission interrupted !", exc);
-            throw new StorageTechnicalException("Object potentially not deleted: " + objectId, exc);
-        }
-        for (Entry<String, Future<Boolean>> entry : futureMap.entrySet()) {
-            final Future<Boolean> future = entry.getValue();
-            String offerId = entry.getKey();
-            try {
-                Boolean bool = future.get(DEFAULT_MINIMUM_TIMEOUT * 10, TimeUnit.MILLISECONDS);
-                if (!bool) {
-                    LOGGER.error("Object not deleted: {}", objectId);
-                    throw new StorageTechnicalException("Object not deleted: " + objectId);
-                }
-            } catch (TimeoutException e) {
-                LOGGER.error("Timeout on offer ID " + offerId, e);
-                future.cancel(true);
-                // TODO: manage thread to take into account this interruption
-                LOGGER.error("Interrupted after timeout on offer ID " + offerId, e);
-                throw new StorageTechnicalException("Object not deleted: " + objectId);
-            } catch (InterruptedException e) {
-                LOGGER.error("Interrupted on offer ID " + offerId, e);
-                throw new StorageTechnicalException("Object not deleted: " + objectId, e);
-            } catch (ExecutionException e) {
-                LOGGER.error("Error on offer ID " + offerId, e);
-                // TODO: review this exception to manage errors correctly
-                // Take into account Exception class
-                // For example, for particular exception do not retry (because
-                // it's useless)
-                // US : #2009
-                throw new StorageTechnicalException("Object not deleted: " + objectId, e);
-            } catch (NumberFormatException e) {
-                future.cancel(true);
-                LOGGER.error("Wrong number on wait on offer ID " + offerId, e);
-                throw new StorageTechnicalException("Object not deleted: " + objectId, e);
-            }
-        }
-    }
-
-    private void oldDdeleteObjects(List<String> offerIdList, Integer tenantId, DataCategory category, String objectId,
         Digest digest)
         throws StorageTechnicalException {
         // Map here to keep offerId linked to Future
