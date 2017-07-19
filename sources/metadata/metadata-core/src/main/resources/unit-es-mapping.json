@@ -354,18 +354,22 @@
 			"type": "long"
 		},
 		"_sp": {
-            "type": "string",
-            "index": "not_analyzed"
-        },
-        "_sps": {
-            "type": "string",
-            "index": "not_analyzed"
-        },
+			"type": "string",
+			"index": "not_analyzed"
+		},
+		"_sps": {
+			"type": "string",
+			"index": "not_analyzed"
+		},
 		"_uds": {
 			"type": "object",
 			"enabled": false
 		},
 		"_unused": {
+			"type": "object",
+			"enabled": false
+		},
+		"_score": {
 			"type": "object",
 			"enabled": false
 		},

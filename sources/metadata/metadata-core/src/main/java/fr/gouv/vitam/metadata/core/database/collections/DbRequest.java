@@ -807,8 +807,9 @@ public class DbRequest {
                 final String id = last.getCurrentIds().get(i);
                 Unit unit = units.get(id);
                 if (unit != null) {
-                    if (VitamConfiguration.EXPORT_SCORE) {
-                        if (i > nbScore) {
+                    if (VitamConfiguration.EXPORT_SCORE && MetadataCollections.C_UNIT.useScore() &&
+                        requestToMongodb.isScoreIncluded()) {
+                        if (i < nbScore) {
                             unit.append(VitamDocument.SCORE, last.scores.get(i));
                         } else {
                             unit.append(VitamDocument.SCORE, (float) 1);
@@ -842,7 +843,8 @@ public class DbRequest {
             final String id = last.getCurrentIds().get(i);
             ObjectGroup og = obMap.get(id);
             if (og != null) {
-                if (VitamConfiguration.EXPORT_SCORE) {
+                if (VitamConfiguration.EXPORT_SCORE && MetadataCollections.C_OBJECTGROUP.useScore() &&
+                    requestToMongodb.isScoreIncluded()) {
                     if (i > nbScore) {
                         og.append(VitamDocument.SCORE, last.scores.get(i));
                     } else {

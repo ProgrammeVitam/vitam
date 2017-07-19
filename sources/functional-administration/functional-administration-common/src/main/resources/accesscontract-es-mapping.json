@@ -49,6 +49,10 @@
 		},
 		"_v": {
 			"type": "integer"
-		}
+		},
+        "_score": {
+           "type": "object",
+           "enabled": false
+        }
 	}
 }

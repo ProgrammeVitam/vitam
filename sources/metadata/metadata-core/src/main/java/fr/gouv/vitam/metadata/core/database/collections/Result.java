@@ -30,6 +30,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.bson.BsonDocument;
+import org.bson.BsonInt32;
+import org.bson.BsonValue;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -257,9 +260,6 @@ public abstract class Result<T> {
             final List<MetadataDocument<?>> list = new ArrayList<>(size);
             for (int i = 0; i < size; i++) {
                 final MetadataDocument<?> metadataDocument = (MetadataDocument<?>) finalResult.get(i);
-                if (VitamConfiguration.EXPORT_SCORE) {
-                    metadataDocument.append(VitamDocument.SCORE, scores.get(i));
-                }
                 MongoDbMetadataResponseFilter.filterFinalResponse(metadataDocument);
                 list.add(metadataDocument);
             }
@@ -281,6 +281,18 @@ public abstract class Result<T> {
         nbResult = finalResult.size();
     }
 
+    private boolean isScoreIncluded(Bson projection) {
+        if (projection == null) {
+            return true;
+        }
+        BsonDocument document = (BsonDocument) projection;
+        if (document.isEmpty()) {
+            return true;
+        }
+        BsonValue value = document.get(VitamDocument.SCORE);
+        return value == null || ((BsonInt32) value).getValue() > 0;
+    }
+    
     /**
      * Build the array of result
      *
@@ -294,7 +306,8 @@ public abstract class Result<T> {
                 final Unit unit =
                     (Unit) MetadataCollections.C_UNIT.getCollection().find(new Document(MetadataDocument.ID, id))
                         .projection(projection).first();
-                if (VitamConfiguration.EXPORT_SCORE) {
+                if (VitamConfiguration.EXPORT_SCORE && MetadataCollections.C_UNIT.useScore() 
+                    && isScoreIncluded(projection)) {
                     unit.append(VitamDocument.SCORE, scores.get(i));
                 }
                 list.add((T) unit);
@@ -306,7 +319,8 @@ public abstract class Result<T> {
                     (ObjectGroup) MetadataCollections.C_OBJECTGROUP.getCollection()
                         .find(new Document(MetadataDocument.ID, id))
                         .projection(projection).first();
-                if (VitamConfiguration.EXPORT_SCORE) {
+                if (VitamConfiguration.EXPORT_SCORE && MetadataCollections.C_OBJECTGROUP.useScore()
+                    && isScoreIncluded(projection)) {
                     og.append(VitamDocument.SCORE, scores.get(i));
                 }
                 list.add((T) og);

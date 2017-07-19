@@ -35,6 +35,10 @@
 		"Extension": {
 			"type": "string",
 			"index": "not_analyzed"
-		}
+		},
+        "_score": {
+           "type": "object",
+           "enabled": false
+        }
 	}
 }

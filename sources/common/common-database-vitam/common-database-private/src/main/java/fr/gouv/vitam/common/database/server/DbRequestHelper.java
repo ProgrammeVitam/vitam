@@ -113,13 +113,12 @@ public class DbRequestHelper {
             }
         }
         final List<VitamDocument<?>> finalList = new ArrayList<>(nbFinal);
-        if (VitamConfiguration.EXPORT_SCORE) {
+        if (VitamConfiguration.EXPORT_SCORE && scores != null
+            && collection.isUseScore() && selectToMongoDb.isScoreIncluded() ) {
             for (int i = 0; i < nb; i++) {
                 VitamDocument<?> vitamDocument = firstList.get(i);
                 if (!(vitamDocument instanceof FakeVitamDocument)) {
-                    if (collection.isUseScore() && scores != null) {
-                        vitamDocument.append(VitamDocument.SCORE, scores.get(i));
-                    }
+                    vitamDocument.append(VitamDocument.SCORE, scores.get(i));
                     finalList.add(vitamDocument);
                 }
             }

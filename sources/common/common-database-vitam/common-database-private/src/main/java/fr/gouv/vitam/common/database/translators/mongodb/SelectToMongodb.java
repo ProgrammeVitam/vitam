@@ -123,6 +123,20 @@ public class SelectToMongodb extends RequestToMongodb {
         }
         return true;
     }
+    
+    /**
+     * 
+     * @return True if the score is included, or false if explicitly excluded
+     */
+    public boolean isScoreIncluded() {
+        if (requestParser.getRequest().getAllProjection()) {
+            return true;
+        }
+        final JsonNode node = requestParser.getRequest().getProjection()
+            .get(PROJECTION.FIELDS.exactToken());
+        JsonNode score = node.get(VitamDocument.SCORE);
+        return (score == null || score.asInt() > 0);
+    }
 
     /**
      * FindIterable.projection(projection)
