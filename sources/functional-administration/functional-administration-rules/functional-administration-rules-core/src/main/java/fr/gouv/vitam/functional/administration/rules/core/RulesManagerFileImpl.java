@@ -49,11 +49,15 @@ import java.util.List;
 import java.util.Set;
 
 import com.google.gson.Gson;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
+import fr.gouv.vitam.common.digest.Digest;
+import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.functional.administration.counter.SequenceType;
 import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -248,6 +252,12 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
                          boolean commitOk = commitRules(fileRulesModelToUpdate, fileRulesModelToDelete, validatedRules,
                             fileRulesModelToInsert,
                             fileRulesModelsToImport, eip);
+
+                        final DigestType digestType = VitamConfiguration.getDefaultTimestampDigestType();
+                        final Digest digest = new Digest(digestType);
+                        digest.update(new FileInputStream(file));
+
+                        store(eip, new FileInputStream(file), CSV,digest.toString());
                          // store json
                         if (commitOk) {
                             Integer sequence = vitamCounterService
@@ -257,7 +267,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
                         }
                         // else no rule modified ?
                         //store Json
-                        store(eip, new FileInputStream(file), CSV);
+
+
                         // TODO #2201 : Create Workflow for update AU linked to unit
                         final LogbookOperationParameters logbookParametersEnd = LogbookParametersFactory
                             .newLogbookOperationParameters(eip1, STP_IMPORT_RULES, eip, LogbookTypeProcess.MASTERDATA,
@@ -346,13 +357,13 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         mongoAccess.insertDocuments(validatedRules, FunctionalAdminCollections.RULES, sequence);
 
     }
-    private void store(GUID eipMaster, InputStream stream, String extension)
+    private void store(GUID eipMaster, InputStream stream, String extension, String digest)
         throws ReferentialException, InvalidParseOperationException, InvalidCreateOperationException,
         LogbookClientServerException, StorageException, LogbookClientBadRequestException,
         LogbookClientAlreadyExistsException {
         Integer sequence = vitamCounterService
             .getSequence(ParameterHelper.getTenantParameter(), SequenceType.RULES_SEQUENCE.getName());
-        securisator.secureFileRules( sequence, stream, extension, eipMaster);
+        securisator.secureFileRules( sequence, stream, extension, eipMaster, digest);
     }
     private void storeJson(GUID eipMaster, Integer sequence)
         throws ReferentialException, InvalidParseOperationException, InvalidCreateOperationException,
@@ -365,7 +376,11 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         final RequestResponseOK<FileRules> documents  = findDocuments(parser.getRequest().getFinalSelect());
         String json = new Gson().toJson(documents.getResults());
         InputStream stream = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));
-        store(eipMaster,stream, JSON);
+
+        final DigestType digestType = VitamConfiguration.getDefaultTimestampDigestType();
+        final Digest digest = new Digest(digestType);
+        digest.update(json.getBytes(StandardCharsets.UTF_8));
+        store(eipMaster,stream, JSON, digest.toString());
     }
     /**
      * Init COMMIT_RULES LogbookOperation step

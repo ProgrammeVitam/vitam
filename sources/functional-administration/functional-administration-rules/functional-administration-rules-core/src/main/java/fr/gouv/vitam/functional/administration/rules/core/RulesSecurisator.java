@@ -27,9 +27,14 @@
 package fr.gouv.vitam.functional.administration.rules.core;
 
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.digest.Digest;
+import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -41,6 +46,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -59,9 +65,13 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+
+import static fr.gouv.vitam.common.LocalDateUtil.getString;
 
 public class RulesSecurisator {
 
@@ -72,6 +82,9 @@ public class RulesSecurisator {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(RulesSecurisator.class);
 
     private static final String RULE_SECURISATION = "RULE_SECURISATION";
+    private static final String FLE_NAME = "FileName";
+    private static final String DIGEST = "Digest";
+
 
     private static final String STRATEGY_ID = "default";
     public static final String STORAGE_LOGBOOK_RULE = "StorageRule";
@@ -96,7 +109,7 @@ public class RulesSecurisator {
     /**
      * secure File rules
      */
-    public void secureFileRules(int version, InputStream stream, String extension, GUID eipMaster)
+    public void secureFileRules(int version, InputStream stream, String extension, GUID eipMaster, String digest)
 
         throws StorageException, LogbookClientServerException, LogbookClientBadRequestException,
         LogbookClientAlreadyExistsException {
@@ -144,10 +157,17 @@ public class RulesSecurisator {
                     LOGGER.error("unable to store file", e);
                     throw new StorageException(e);
                 }
+
+
                 final LogbookOperationParameters logbookParametersEnd = LogbookParametersFactory
                     .newLogbookOperationParameters(eip1, RULE_SECURISATION + "_" + extension.toUpperCase(), eipMaster, LogbookTypeProcess.STORAGE_RULE,
                         StatusCode.OK, VitamLogbookMessages.getCodeOp(RULE_SECURISATION + "_" + extension.toUpperCase(), StatusCode.OK),
                         eip1);
+                final ObjectNode evDetData = JsonHandler.createObjectNode();
+                evDetData.put(FLE_NAME, fileName);
+                evDetData.put(DIGEST, digest);
+                logbookParametersEnd.putParameterValue(LogbookParameterName.eventDetailData,
+                    JsonHandler.unprettyPrint(evDetData));
                 updateLogBookEntry(logbookParametersEnd);
             } catch (ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException e) {
                 LOGGER.error("unable to create container or store file in workspace", e);

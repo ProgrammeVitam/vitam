@@ -49,6 +49,9 @@ import java.util.regex.Pattern;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.digest.Digest;
+import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.functional.administration.rules.core.RulesSecurisator;
 import org.apache.commons.io.FileUtils;
 import org.jhades.JHades;
@@ -261,11 +264,14 @@ public class StorageTestMultiIT {
             RulesSecurisator rulesSecurisator = new RulesSecurisator();
         final GUID eipMaster = GUIDFactory.newOperationLogbookGUID(0);
 
-
-        rulesSecurisator.secureFileRules(1 , new FileInputStream(PropertiesUtils.findFile("static-offer.json")), "json",
-                eipMaster);
-            rulesSecurisator.secureFileRules(2 , new FileInputStream(PropertiesUtils.findFile("static-offer.json")), "json",
-                eipMaster);
+        File  file = PropertiesUtils.findFile("static-offer.json");
+        final DigestType digestType = VitamConfiguration.getDefaultTimestampDigestType();
+        final Digest digest = new Digest(digestType);
+        digest.update(new FileInputStream(file));
+        rulesSecurisator.secureFileRules(1 , new FileInputStream(file), "json",
+                eipMaster, digest.toString());
+            rulesSecurisator.secureFileRules(2 , new FileInputStream(file), "json",
+                eipMaster, digest.toString());
             VitamRequestIterator<JsonNode> result = storageClient.listContainer("default", DataCategory.RULES);
             TestCase.assertNotNull(result);
             Assert.assertTrue(result.hasNext());
