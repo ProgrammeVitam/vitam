@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.json;
 
 import java.io.FileNotFoundException;
+import java.util.Date;
 import java.util.Iterator;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -42,7 +43,9 @@ import com.github.fge.jsonschema.messages.JsonSchemaValidationBundle;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 import com.github.fge.msgsimple.load.MessageBundles;
 
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.SchemaValidationStatus.SchemaValidationStatusEnum;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -113,6 +116,19 @@ public class SchemaValidationUtils {
                 LOGGER.error("Archive unit is not valid : \n" + report.toString());
                 return new SchemaValidationStatus(report.toString(),
                     SchemaValidationStatusEnum.NOT_AU_JSON_VALID);
+            }
+            if (archiveUnit.get(SedaConstants.TAG_RULE_START_DATE) != null && 
+                archiveUnit.get(SedaConstants.TAG_RULE_END_DATE) != null) {
+                final Date startDate = LocalDateUtil.getDate(
+                    archiveUnit.get(SedaConstants.TAG_RULE_START_DATE).asText());
+                final Date endDate = LocalDateUtil.getDate(
+                    archiveUnit.get(SedaConstants.TAG_RULE_END_DATE).asText());
+                if (endDate.before(startDate)) {
+                    final String errorMessage = "EndDate is before StartDate, unit Title : " + archiveUnit.get("Title").asText();
+                    LOGGER.error(errorMessage);
+                    return new SchemaValidationStatus(errorMessage,
+                        SchemaValidationStatusEnum.NOT_AU_JSON_VALID);
+                }  
             }
         } catch (ProcessingException e) {
             LOGGER.error("File is not a valid json file", e);
