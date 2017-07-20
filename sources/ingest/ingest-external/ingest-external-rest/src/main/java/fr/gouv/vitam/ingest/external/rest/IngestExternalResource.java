@@ -499,6 +499,8 @@ public class IngestExternalResource extends ApplicationStatusResource {
         Status status;
         try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkParameter(id);
+            VitamThreadUtils.getVitamSession().setRequestId(id);
+
             final ItemStatus itemStatus = ingestInternalClient.cancelOperationProcessExecution(id);
             return new RequestResponseOK<ItemStatus>().addResult(itemStatus).toResponse();
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {

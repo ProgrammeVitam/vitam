@@ -138,9 +138,14 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String UNIT_COLLECTION = "UNIT";
     private static final String LOGBOOK_COLLECTION = "LOGBOOK";
     private static final String OBJECT_GROUP_COLLECTION = "OBJECTGROUP";
-    private static final String ACCESSION_REGISTERS_COLLECTION = "ACCESSIONREGISTER";
+    private static final String UNIT_LIFECYCLES = "UNITLIFECYCLES";
+    private static final String OBJECT_GROUP_LIFECYCLES = "OBJECTGROUPLIFECYCLES";
     private static final String WORKFLOW_OPERATIONS = "OPERATIONS";
+    private static final String WORKFLOWS = "WORKFLOWS";
+
     private static final String HTTP_GET = "GET";
+    private static final String HTTP_PUT = "PUT";
+    private static final String HTTP_DELETE = "DELETE";
 
     /**
      * Constructor
@@ -554,6 +559,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         String requestMethod = headers.getHeaderString(GlobalDataRest.X_HTTP_METHOD_OVERRIDE);
         String requestedCollection = headers.getHeaderString(X_REQUESTED_COLLECTION);
         String objectID = headers.getHeaderString(X_OBJECT_ID);
+        String xAction = headers.getHeaderString(GlobalDataRest.X_ACTION);
 
         try {
             pagination = new OffsetBasedPagination(headers);
@@ -580,7 +586,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             try {
                 AdminCollections requestedAdminCollection = existsInAdminCollections(requestedCollection);
                 if (requestedCollection != null && requestedAdminCollection == null) {
-                    if (!requestedCollection.equalsIgnoreCase(WORKFLOW_OPERATIONS)) {
+                    if ( !(requestedCollection.equalsIgnoreCase(WORKFLOW_OPERATIONS)
+                        || requestedCollection.equalsIgnoreCase(WORKFLOWS))) {
                         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
                             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(criteria));
                             if (requestedCollection.equalsIgnoreCase(UNIT_COLLECTION)) {
@@ -592,6 +599,14 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                         } else {
                                             result = client.selectUnitbyId(criteria, objectID, tenantId,
                                                 contractId);
+                                        }
+                                        break;
+                                    case HTTP_PUT:
+                                        if (StringUtils.isBlank(objectID)) {
+                                            throw new InvalidParseOperationException(
+                                                "Unit ID should be filled.");
+                                        } else {
+                                            result = client.updateUnitbyId(criteria, objectID, tenantId, contractId);
                                         }
                                         break;
                                     default:
@@ -633,6 +648,24 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                         throw new InvalidParseOperationException(
                                             "Request method undefined for collection " + requestedCollection);
                                 }
+                            } else if (requestedCollection.equalsIgnoreCase(UNIT_LIFECYCLES)) {
+                                switch (requestMethod) {
+                                    case HTTP_GET:
+                                        result = client.selectUnitLifeCycleById(objectID, tenantId, contractId);
+                                        break;
+                                    default:
+                                        throw new InvalidParseOperationException(
+                                            "Request method undefined for collection " + requestedCollection);
+                                }
+                            } else if (requestedCollection.equalsIgnoreCase(OBJECT_GROUP_LIFECYCLES)) {
+                                switch (requestMethod) {
+                                    case HTTP_GET:
+                                        result = client.selectObjectGroupLifeCycleById(objectID, tenantId, contractId);
+                                        break;
+                                    default:
+                                        throw new InvalidParseOperationException(
+                                            "Request method undefined for collection " + requestedCollection);
+                                }
                             } else {
                                 throw new InvalidParseOperationException("Collection unrecognized");
                             }
@@ -640,30 +673,71 @@ public class WebApplicationResource extends ApplicationStatusResource {
                     } else {
                         try (IngestExternalClient ingestExternalClient = IngestExternalClientFactory.getInstance()
                             .getClient()) {
-                            switch (requestMethod) {
-                                case HTTP_GET:
-                                    if (StringUtils.isBlank(objectID)) {
-                                        if (criteria != null) {
-                                            LOGGER.error("criteria not null");
-                                            result = ingestExternalClient.listOperationsDetails(tenantId,
-                                                JsonHandler.getFromJsonNode(criteria, ProcessQuery.class));
-                                        } else {
-                                            LOGGER.error("criteria null");
-                                            result = ingestExternalClient.listOperationsDetails(tenantId, null);
-                                        }
+                            if (requestedCollection.equalsIgnoreCase(WORKFLOW_OPERATIONS)) {
+                                switch (requestMethod) {
+                                    case HTTP_GET:
+                                        if (StringUtils.isBlank(objectID)) {
+                                            if (criteria != null) {
+                                                LOGGER.error("criteria not null");
+                                                result = ingestExternalClient.listOperationsDetails(tenantId,
+                                                    JsonHandler.getFromJsonNode(criteria, ProcessQuery.class));
+                                            } else {
+                                                LOGGER.error("criteria null");
+                                                result = ingestExternalClient.listOperationsDetails(tenantId, null);
+                                            }
 
-                                        return Response.status(Status.OK).entity(result).build();
-                                    } else {
-                                        ItemStatus itemStatus =
-                                            ingestExternalClient.getOperationProcessExecutionDetails(objectID, criteria,
+                                            return Response.status(Status.OK).entity(result).build();
+                                        } else {
+                                            ItemStatus itemStatus =
+                                                ingestExternalClient
+                                                    .getOperationProcessExecutionDetails(objectID, criteria,
+                                                        tenantId);
+                                            return Response
+                                                .status(itemStatus.getGlobalStatus().getEquivalentHttpStatus())
+                                                .entity(itemStatus).build();
+                                        }
+                                    case HTTP_PUT:
+                                        if (!StringUtils.isBlank(objectID)) {
+                                            ingestExternalClient.updateOperationActionProcess(xAction,
+                                                objectID, tenantId);
+                                            ItemStatus itemStatus =
+                                                ingestExternalClient
+                                                    .getOperationProcessExecutionDetails(objectID, criteria,
+                                                        tenantId);
+                                            return Response
+                                                .status(itemStatus.getGlobalStatus().getEquivalentHttpStatus())
+                                                .entity(itemStatus).build();
+                                        } else {
+                                            throw new InvalidParseOperationException(
+                                                "Operation ID should be filled");
+                                        }
+                                    case HTTP_DELETE:
+                                        if (!StringUtils.isBlank(objectID)) {
+//                                            requestId = GUIDFactory.newRequestIdGUID(tenantId).toString();
+                                            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId).toString());
+                                            result = ingestExternalClient.cancelOperationProcessExecution(objectID,
                                                 tenantId);
-                                        return Response.status(itemStatus.getGlobalStatus().getEquivalentHttpStatus())
-                                            .entity(itemStatus).build();
-                                    }
-                                default:
-                                    throw new InvalidParseOperationException(
-                                        "Request method undefined for collection " + requestedCollection);
+                                            break;
+                                        } else {
+                                            throw new InvalidParseOperationException(
+                                                "Operation ID should be filled");
+                                        }
+                                    default:
+                                        throw new InvalidParseOperationException(
+                                            "Request method undefined for collection " + requestedCollection);
+                                }
+                            } else if (requestedCollection.equalsIgnoreCase(WORKFLOWS)) {
+                                switch (requestMethod) {
+                                    case HTTP_GET:
+                                        result = ingestExternalClient.getWorkflowDefinitions(tenantId);
+                                        return Response.status(Status.OK).entity(result).build();
+                                    default:
+                                        throw new InvalidParseOperationException(
+                                            "Request method undefined for collection " + requestedCollection);
+                                }
                             }
+                            throw new InvalidParseOperationException(
+                                "No implementation found for collection " + requestedCollection);
                         }
                     }
                 } else {
@@ -687,8 +761,22 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                     }
                                 }
                                 break;
-                            case "PUT":
-                                result = adminExternalClient.updateContext(objectID, criteria, tenantId);
+                            case HTTP_PUT:
+                                if (!StringUtils.isBlank(objectID)) {
+                                    if (AdminCollections.CONTEXTS.equals(requestedAdminCollection)) {
+                                        result = adminExternalClient.updateContext(objectID, criteria, tenantId);
+                                    } else if (AdminCollections.ACCESS_CONTRACTS.equals(requestedAdminCollection)) {
+                                        result = adminExternalClient.updateAccessContract(objectID, criteria, tenantId);
+                                    } else if (AdminCollections.ENTRY_CONTRACTS.equals(requestedAdminCollection)) {
+                                        result = adminExternalClient.updateIngestContract(objectID, criteria, tenantId);
+                                    } else {
+                                        throw new InvalidParseOperationException(
+                                            "Request method undefined for collection " + requestedCollection);
+                                    }
+                                } else {
+                                    throw new InvalidParseOperationException(
+                                        "Unit ID should be filled.");
+                                }
                                 break;
                             default:
                                 throw new InvalidParseOperationException(
