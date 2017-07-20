@@ -414,8 +414,7 @@ public class RulesManagerFileImplTest {
             List<FileRules> fileRulesAfterInsert =
                 convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
             assertEquals(22, fileRulesAfterInsert.size());
-            int version = vitamCounterService.getNextSequence(TENANT_ID,"RULE");
-            assertEquals(rulesFileManager.findDocumentById("ACC-00006").get(VitamDocument.VERSION),1);
+
         } catch (ReferentialException | InvalidParseOperationException | IOException | InvalidCreateOperationException e) {
             fail("ReferentialException " + e.getCause());
             e.printStackTrace();
