@@ -93,7 +93,7 @@ angular.module('entryContracts')
         }
       }
 
-      entryContractResource.update(id, updateData).then(function() {
+      entryContractResource.update(id, updateData).then(function(response) {
         if (response.data.httpCode >= 300) {
           displayMessage('Erreur de modification. Aucune modification effectuée');
         } else {

@@ -41,6 +41,7 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
@@ -307,6 +308,7 @@ public class AccessContractImplTest {
         final SetAction setActionStatusInactive = UpdateActionHelper.set("Status", inactiveStatus);
         final SetAction setActionDesactivationDateInactive = UpdateActionHelper.set("DeactivationDate", now);
         final SetAction setActionLastUpdateInactive = UpdateActionHelper.set("LastUpdate", now);
+        
         final Update update = new Update();
         update.setQuery(QueryHelper.eq(NAME, documentName));
         update.addActions(setActionStatusInactive, setActionDesactivationDateInactive, setActionLastUpdateInactive);
@@ -327,6 +329,15 @@ public class AccessContractImplTest {
             assertThat(accessContractModel.getDeactivationdate()).isNotEmpty();
             assertThat(accessContractModel.getLastupdate()).isNotEmpty();
         }
+        
+        ObjectNode versionNode = JsonHandler.createObjectNode();
+        versionNode.set(AccessContractModel.DATA_OBJECT_VERSION, JsonHandler.createArrayNode().add("fjsdf"));
+        final SetAction setActionUsage = UpdateActionHelper.set(versionNode);
+        update.getActions().clear();
+        update.addActions(setActionUsage);
+        RequestResponse<AccessContractModel> updateContractStatus2 =
+            accessContractService.updateContract(accessContractModelList.get(0).getIdentifier(), queryDslForUpdate);
+        assertThat(updateContractStatus2.isOk()).isFalse();
 
         // Test update for access contract Status => Active
         final UpdateParserSingle updateParserActive = new UpdateParserSingle(new SingleVarNameAdapter());

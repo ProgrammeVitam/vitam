@@ -658,7 +658,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             LOGGER.error(e);
         }
         for (JsonNode node : value) {
-            if (sedaVersion.isSupportedVesion(node.asText())) {
+            if (!sedaVersion.isSupportedVesion(node.asText())) {
                 return false;
             }
         }
