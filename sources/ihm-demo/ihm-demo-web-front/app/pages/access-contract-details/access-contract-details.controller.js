@@ -101,15 +101,7 @@ angular.module('ihm.demo')
             }
           }
 
-          if ($scope.tmpVars.EveryOriginatingAgency !== $scope.contract.EveryOriginatingAgency) {
-              updateData.EveryOriginatingAgency = '' + $scope.contract.EveryOriginatingAgency;
-          }
-
-          if ($scope.tmpVars.EveryDataObjectVersion !== $scope.contract.EveryDataObjectVersion) {
-            updateData.EveryDataObjectVersion = '' + $scope.contract.EveryDataObjectVersion;
-          }
-
-          accessContractResource.update(id, updateData).then(function() {
+          accessContractResource.update(id, updateData).then(function(response) {
             if (response.data.httpCode >= 300) {
               displayMessage('Erreur de modification. Aucune modification effectuée');
             } else {
