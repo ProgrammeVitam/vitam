@@ -56,6 +56,7 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.UNITUPS;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.USAGE;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.VERSION;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.SCORE;
 
 
 /**
@@ -257,5 +258,13 @@ public class VitamFieldsHelper {
      */
     public static final String usage() {
         return USAGE.exactToken();
+    }
+
+    /**
+     *
+     * @return #score
+     */
+    public static final String score() {
+        return SCORE.exactToken();
     }
 }
