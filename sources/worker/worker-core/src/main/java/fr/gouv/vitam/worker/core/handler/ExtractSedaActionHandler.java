@@ -464,7 +464,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
                 if (event.isStartElement() && event.asStartElement().getName().equals(unitName)) {
 
-                    if (VitamConfiguration.ENABLE_JAXB_PARSER) {
+                    if (VitamConfiguration.isEnableJaxbParser()) {
                         try {
                             unmarshaller.unmarshal(reader, ArchiveUnitType.class);
                         } catch (RuntimeException e) {

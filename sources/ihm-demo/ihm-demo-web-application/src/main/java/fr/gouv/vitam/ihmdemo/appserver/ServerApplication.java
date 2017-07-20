@@ -122,7 +122,7 @@ public class ServerApplication extends AbstractVitamApplication<ServerApplicatio
     }
 
     @Override
-    protected void platformSecretConfiguration() {
+    protected void configureVitamParameters() {
         // No PlatformSecretConfiguration for IHM
     }
 

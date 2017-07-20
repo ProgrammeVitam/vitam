@@ -307,7 +307,8 @@ public abstract class Result<T> {
                 final Unit unit =
                     (Unit) MetadataCollections.C_UNIT.getCollection().find(new Document(MetadataDocument.ID, id))
                         .projection(projection).first();
-                if (VitamConfiguration.EXPORT_SCORE && MetadataCollections.C_UNIT.useScore() 
+
+                if (VitamConfiguration.isExportScore() && MetadataCollections.C_UNIT.useScore()
                     && isScoreIncluded(projection)) {
                     Float score = Float.valueOf(1);
                     try {
@@ -329,7 +330,7 @@ public abstract class Result<T> {
                     (ObjectGroup) MetadataCollections.C_OBJECTGROUP.getCollection()
                         .find(new Document(MetadataDocument.ID, id))
                         .projection(projection).first();
-                if (VitamConfiguration.EXPORT_SCORE && MetadataCollections.C_OBJECTGROUP.useScore()
+                if (VitamConfiguration.isExportScore() && MetadataCollections.C_OBJECTGROUP.useScore()
                     && isScoreIncluded(projection)) {
                     Float score = Float.valueOf(1);
                     try {

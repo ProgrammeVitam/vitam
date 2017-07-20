@@ -113,7 +113,7 @@ public class DbRequestHelper {
             }
         }
         final List<VitamDocument<?>> finalList = new ArrayList<>(nbFinal);
-        if (VitamConfiguration.EXPORT_SCORE && scores != null
+        if (VitamConfiguration.isExportScore() && scores != null
             && collection.isUseScore() && selectToMongoDb.isScoreIncluded() ) {
             for (int i = 0; i < nb; i++) {
                 VitamDocument<?> vitamDocument = firstList.get(i);

@@ -39,6 +39,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -105,8 +106,10 @@ public class DriverImplTest extends VitamJerseyTest {
         }
 
         @Override
-        protected void platformSecretConfiguration() {
+        protected void configureVitamParameters() {
             // None
+            VitamConfiguration.setSecret("vitamsecret");
+            VitamConfiguration.setFilterActivation(false);
         }
 
     }

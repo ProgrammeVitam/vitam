@@ -178,8 +178,10 @@ public class ConnectionImplTest extends VitamJerseyTest {
         }
 
         @Override
-        protected void platformSecretConfiguration() {
+        protected void configureVitamParameters() {
             // None
+            VitamConfiguration.setSecret("vitamsecret");
+            VitamConfiguration.setFilterActivation(false);
         }
 
     }

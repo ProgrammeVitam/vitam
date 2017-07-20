@@ -393,18 +393,18 @@ public class MultipleInputStreamHandlerTest {
 
     @Test
     public void testConcurrentMultipleIntputStreamHandler() {
-        int old = VitamConfiguration.DELAY_MULTIPLE_INPUTSTREAM;
-        VitamConfiguration.DELAY_MULTIPLE_INPUTSTREAM = 2000;
+        int old = VitamConfiguration.getDelayMultipleInputstream();
+        VitamConfiguration.setDelayMultipleInputstream(2000);
         
-        List<FakeInputStream> listStream = new ArrayList<>(VitamConfiguration.MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER + 1);
+        List<FakeInputStream> listStream = new ArrayList<>(VitamConfiguration.getMaxConcurrentMultipleInputstreamHandler() + 1);
         try {
-            List<MultipleInputStreamHandler> list = new ArrayList<>(VitamConfiguration.MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER);
+            List<MultipleInputStreamHandler> list = new ArrayList<>(VitamConfiguration.getMaxConcurrentMultipleInputstreamHandler());
             LOGGER.warn("start allocate stream {}", MultipleInputStreamHandler.getPoolAvailability());
-            for (int i = 0; i < VitamConfiguration.MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER + 1; i++) {
+            for (int i = 0; i < VitamConfiguration.getMaxConcurrentMultipleInputstreamHandler() + 1; i++) {
                 listStream.add(new FakeInputStream(INPUTSTREAM_SIZE));
             }
             LOGGER.warn("start allocate MISH {}", MultipleInputStreamHandler.getPoolAvailability());
-            for (int i = 0; i < VitamConfiguration.MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER; i++) {
+            for (int i = 0; i < VitamConfiguration.getMaxConcurrentMultipleInputstreamHandler(); i++) {
                 try {
                     MultipleInputStreamHandler mish = new MultipleInputStreamHandler(listStream.get(i), 1);
                     list.add(mish);
@@ -416,7 +416,7 @@ public class MultipleInputStreamHandlerTest {
             // Try to allocate once more but not possible
             LOGGER.warn("start allocate MISH 1 more than possible {}", MultipleInputStreamHandler.getPoolAvailability());
             try {
-                list.add(new MultipleInputStreamHandler(listStream.get(VitamConfiguration.MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER), 1));
+                list.add(new MultipleInputStreamHandler(listStream.get(VitamConfiguration.getMaxConcurrentMultipleInputstreamHandler()), 1));
                 fail("Should be interrupted");
             } catch (IllegalArgumentException e) {
                 // legal
@@ -424,7 +424,7 @@ public class MultipleInputStreamHandlerTest {
             LOGGER.warn("start free half of MISH and streams and reallocate streams {}",
                     MultipleInputStreamHandler.getPoolAvailability());
             // Now free half of the list
-            for (int i = VitamConfiguration.MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER - 1; i >= 500; i--) {
+            for (int i = VitamConfiguration.getMaxConcurrentMultipleInputstreamHandler() - 1; i >= 500; i--) {
                 MultipleInputStreamHandler mish = list.remove(i);
                 mish.close();
                 LOGGER.debug(mish.toString());
@@ -433,7 +433,7 @@ public class MultipleInputStreamHandlerTest {
             }
             // Now reallocate 500
             LOGGER.warn("start half of MISH {}", MultipleInputStreamHandler.getPoolAvailability());
-            for (int i = 500; i < VitamConfiguration.MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER; i++) {
+            for (int i = 500; i < VitamConfiguration.getMaxConcurrentMultipleInputstreamHandler(); i++) {
                 try {
                     MultipleInputStreamHandler mish = new MultipleInputStreamHandler(listStream.get(i), 1);
                     list.add(mish);
@@ -451,11 +451,11 @@ public class MultipleInputStreamHandlerTest {
                 StreamUtils.closeSilently(fakeInputStream);
             }
             LOGGER.warn("Restart from 0 with 1000 {}", MultipleInputStreamHandler.getPoolAvailability());
-            for (int i = 0; i < VitamConfiguration.MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER; i++) {
+            for (int i = 0; i < VitamConfiguration.getMaxConcurrentMultipleInputstreamHandler(); i++) {
                 listStream.add(new FakeInputStream(INPUTSTREAM_SIZE));
             }
             LOGGER.warn("Try reading {}", MultipleInputStreamHandler.getPoolAvailability());
-            for (int i = 0; i < VitamConfiguration.MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER; i++) {
+            for (int i = 0; i < VitamConfiguration.getMaxConcurrentMultipleInputstreamHandler(); i++) {
                 try {
                     MultipleInputStreamHandler mish = new MultipleInputStreamHandler(listStream.get(i), 1);
                     LOGGER.debug(mish.toString());
@@ -472,15 +472,15 @@ public class MultipleInputStreamHandlerTest {
             for (FakeInputStream fakeInputStream : listStream) {
                 StreamUtils.closeSilently(fakeInputStream);
             }
-            VitamConfiguration.DELAY_MULTIPLE_INPUTSTREAM = old;
+            VitamConfiguration.setDelayMultipleInputstream(old);
         }
     }
     @Test
     public void testConcurrentMultipleThreadIntputStreamHandler() {
-        int old = VitamConfiguration.DELAY_MULTIPLE_INPUTSTREAM;
-        VitamConfiguration.DELAY_MULTIPLE_INPUTSTREAM = 2000;
+        int old = VitamConfiguration.getDelayMultipleInputstream();
+        VitamConfiguration.setDelayMultipleInputstream( 2000);
         
-        int nb = VitamConfiguration.MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER;
+        int nb = VitamConfiguration.getMaxConcurrentMultipleInputstreamHandler();
         List<FakeInputStream> listStream = new ArrayList<>(nb + 1);
         try {
             List<MultipleInputStreamHandler> list = new ArrayList<>(nb);
@@ -532,7 +532,7 @@ public class MultipleInputStreamHandlerTest {
             for (FakeInputStream fakeInputStream : listStream) {
                 StreamUtils.closeSilently(fakeInputStream);
             }
-            VitamConfiguration.DELAY_MULTIPLE_INPUTSTREAM = old;
+            VitamConfiguration.setDelayMultipleInputstream(old);
         }
     }
 

@@ -143,8 +143,8 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
     VitamThreadPoolExecutor vitamThreadPoolExecutor = VitamThreadPoolExecutor.getDefaultExecutor();
     SSLConfiguration sslConfiguration = null;
     private boolean useAuthorizationFilter = true;
-    private boolean allowGzipEncoded = VitamConfiguration.ALLOW_GZIP_ENCODING;
-    private boolean allowGzipDecoded = VitamConfiguration.ALLOW_GZIP_DECODING;
+    private boolean allowGzipEncoded = VitamConfiguration.isAllowGzipEncoding();
+    private boolean allowGzipDecoded = VitamConfiguration.isAllowGzipDecoding();
 
     private final Map<VitamRestEasyConfiguration, Object> config = new EnumMap<>(VitamRestEasyConfiguration.class);
     private final Map<VitamRestEasyConfiguration, Object> configNotChunked =

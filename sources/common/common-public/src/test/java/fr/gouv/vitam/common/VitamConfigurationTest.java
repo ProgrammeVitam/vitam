@@ -26,20 +26,24 @@
  *******************************************************************************/
 package fr.gouv.vitam.common;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
-
+import org.assertj.core.api.Fail;
 import org.junit.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import fr.gouv.vitam.common.digest.DigestType;
+
+import javax.security.auth.login.FailedLoginException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Locale;
+
+import static org.junit.Assert.*;
 
 public class VitamConfigurationTest {
 
     private static final String SHOULD_RAIZED_AN_EXCEPTION = "Should raized an exception";
     private static final String SECRET = "vitamsecret";
+    private static final String VITAM_CONF_FILE_NAME = "vitam.conf";
 
     @Test
     public void testPojo() {
@@ -96,7 +100,7 @@ public class VitamConfigurationTest {
         assertEquals(SECRET, VitamConfiguration.getSecret());
         assertEquals(true, VitamConfiguration.isFilterActivation());
 
-        assertEquals(10, VitamConfiguration.getAcceptableRequestTime());
+        assertEquals(new Long(10), VitamConfiguration.getAcceptableRequestTime());
         assertEquals(DigestType.SHA256, VitamConfiguration.getSecurityDigestType());
         assertEquals(DigestType.SHA512, VitamConfiguration.getDefaultDigestType());
 
@@ -126,5 +130,37 @@ public class VitamConfigurationTest {
             // ignore
         }
     }
+    @Test
+    public void testInitialConfiguration(){
+        assertThat(VitamConfiguration.getVitamCleanPeriod()).isEqualTo(1);
+
+        assertThat(VitamConfiguration.getChunkSize()).isEqualTo(65536);
+        assertThat(VitamConfiguration.getThreadsAllowedToBlockForConnectionMultipliers()).isEqualTo(1500);
+        assertThat(VitamConfiguration.getDefaultDigestType()).isEqualTo(DigestType.SHA512);
+        assertThat(VitamConfiguration.getDefaultLang()).isEqualTo(Locale.FRENCH.toString());
+
+    }
+    @Test
+    public void testConfiguration(){
+        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(VITAM_CONF_FILE_NAME)) {
+            final VitamConfigurationParameters vitamConfigurationParameters =
+                PropertiesUtils.readYaml(yamlIS, VitamConfigurationParameters.class);
+
+            VitamConfiguration.setSecret(vitamConfigurationParameters.getSecret());
+            VitamConfiguration.setFilterActivation(vitamConfigurationParameters.isFilterActivation());
+
+
+            VitamConfiguration.importConfigurationParameters(vitamConfigurationParameters);
+            assertThat(VitamConfiguration.getVitamCleanPeriod()).isEqualTo(5);
+
+            assertThat(VitamConfiguration.getAcceptableRequestTime()).isEqualTo(25L);
+            assertThat(VitamConfiguration.getDefaultDigestType()).isEqualTo(DigestType.SHA384);
+
+
+        } catch (final IOException e) {
+            fail("fail"+e);
+        }
+    }
+
 
 }

@@ -40,6 +40,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.common.VitamConfiguration;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 
@@ -105,7 +106,10 @@ public class SiegfriedClientRestTest extends VitamJerseyTest {
         }
 
         @Override
-        protected void platformSecretConfiguration() {}
+        protected void configureVitamParameters() {
+            VitamConfiguration.setSecret("vitamsecret");
+            VitamConfiguration.setFilterActivation(false);
+        }
 
         @Override
         protected void registerInResourceConfig(ResourceConfig resourceConfig) {

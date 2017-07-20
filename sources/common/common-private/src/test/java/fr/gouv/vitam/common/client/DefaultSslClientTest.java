@@ -38,6 +38,7 @@ import java.util.EnumSet;
 import javax.servlet.DispatcherType;
 import javax.ws.rs.Path;
 
+import fr.gouv.vitam.common.VitamConfiguration;
 import org.apache.shiro.web.env.EnvironmentLoaderListener;
 import org.apache.shiro.web.servlet.ShiroFilter;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -94,8 +95,10 @@ public class DefaultSslClientTest {
         }
 
         @Override
-        protected void platformSecretConfiguration() {
+        protected void configureVitamParameters() {
             // Nothing
+            VitamConfiguration.setSecret("vitamsecret");
+            VitamConfiguration.setFilterActivation(false);
         }
 
         @Override

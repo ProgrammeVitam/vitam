@@ -26,7 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.mapping;
 
-import static fr.gouv.vitam.common.VitamConfiguration.DEFAULT_LANG;
+import static fr.gouv.vitam.common.VitamConfiguration.getDefaultLang;
 
 import java.util.List;
 import java.util.Objects;
@@ -105,7 +105,7 @@ public class DescriptiveMetadataMapper {
             if (Objects.isNull(textType.getLang())) {
                 return textType.getValue();
             }
-            if (DEFAULT_LANG.equals(textType.getLang().toLowerCase())) {
+            if (getDefaultLang().equals(textType.getLang().toLowerCase())) {
                 return textType.getValue();
             }
         }

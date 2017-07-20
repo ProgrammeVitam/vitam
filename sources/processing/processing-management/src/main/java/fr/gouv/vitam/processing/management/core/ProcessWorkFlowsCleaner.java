@@ -28,6 +28,7 @@ package fr.gouv.vitam.processing.management.core;
 
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessState;
@@ -49,8 +50,7 @@ public class ProcessWorkFlowsCleaner implements Runnable {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessWorkFlowsCleaner.class);
 
-    private static Integer DEFAULTSCHEDULER_PERIOD = 1;// one hour
-    private Integer period = DEFAULTSCHEDULER_PERIOD;
+    private Integer period = VitamConfiguration.getVitamCleanPeriod();
     private LocalDateTime timeLimit;
     final private ProcessManagement processManagement;
 
@@ -60,10 +60,6 @@ public class ProcessWorkFlowsCleaner implements Runnable {
         this.timeUnit = timeunit;
         this.processManagement = processManagement;
         processDataManagement = WorkspaceProcessDataManagement.getInstance();
-
-        Integer cleanPeriod = processManagement.getConfiguration().getProcessingCleanerPeriod();
-        if (cleanPeriod != null)
-            period = cleanPeriod;
         Executors
             .newScheduledThreadPool(1).scheduleAtFixedRate(this, period, period, timeUnit);
     }

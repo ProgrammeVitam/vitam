@@ -94,7 +94,7 @@ public class VitamCollection {
     }
     /**
      * 
-     * @param set if the final query contains match
+     * @param match if the final query contains match
      */
     public static void setMatch(Boolean match) {
         CONTAINS_FINALLY_MATCH.set(match);
@@ -207,7 +207,7 @@ public class VitamCollection {
         // FIXME : reflexion on readPreference must be made (load repartition between primary and secondary nodes)
         return MongoClientOptions.builder().codecRegistry(codecRegistry)
             .connectTimeout(VitamConfiguration.getConnectTimeout())
-            .minConnectionsPerHost(1).connectionsPerHost(VitamConfiguration.NUMBER_DB_CLIENT_THREAD)
+            .minConnectionsPerHost(1).connectionsPerHost(VitamConfiguration.getNumberDbClientThread())
             .maxConnectionIdleTime(VitamConfiguration.getMaxDelayUnusedConnection())
             .threadsAllowedToBlockForConnectionMultiplier(
                 VitamConfiguration.getThreadsAllowedToBlockForConnectionMultipliers())

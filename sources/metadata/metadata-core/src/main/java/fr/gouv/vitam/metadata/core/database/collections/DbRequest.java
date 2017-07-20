@@ -808,7 +808,7 @@ public class DbRequest {
                 final String id = last.getCurrentIds().get(i);
                 Unit unit = units.get(id);
                 if (unit != null) {
-                    if (VitamConfiguration.EXPORT_SCORE && MetadataCollections.C_UNIT.useScore() &&
+                    if (VitamConfiguration.isExportScore() && MetadataCollections.C_UNIT.useScore() &&
                         requestToMongodb.isScoreIncluded()) {
                         Float score = Float.valueOf(1);
                         try {
@@ -818,6 +818,7 @@ public class DbRequest {
                             }
                         } catch (IndexOutOfBoundsException e) {
                             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+
                         }
                         unit.append(VitamDocument.SCORE, score);
                     }
@@ -849,7 +850,7 @@ public class DbRequest {
             final String id = last.getCurrentIds().get(i);
             ObjectGroup og = obMap.get(id);
             if (og != null) {
-                if (VitamConfiguration.EXPORT_SCORE && MetadataCollections.C_OBJECTGROUP.useScore() &&
+                if (VitamConfiguration.isExportScore() && MetadataCollections.C_OBJECTGROUP.useScore() &&
                     requestToMongodb.isScoreIncluded()) {
                     Float score = Float.valueOf(1);
                     try {
