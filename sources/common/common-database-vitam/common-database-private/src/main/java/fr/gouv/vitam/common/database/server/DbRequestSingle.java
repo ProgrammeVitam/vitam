@@ -463,7 +463,7 @@ public class DbRequestSingle {
                 .prepareSearch(vitamCollection.getName().toLowerCase()).setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
                 .setTypes(VitamCollection.getTypeunique()).setExplain(false).setFrom(offset)
                 .setSize(GlobalDatas.LIMIT_LOAD < limit ? GlobalDatas.LIMIT_LOAD : limit)
-                .addFields(VitamDocument.ID, VitamDocument.TENANT_ID);
+                .setFetchSource(VitamDocument.ES_FILTER_OUT, null);
         if (sorts != null) {
             sorts.stream().forEach(sort -> request.addSort(sort));
         }

@@ -96,7 +96,7 @@ public abstract class MetadataDocument<E> extends VitamDocument<E> {
      * Quick projection for ID and ObjectGroup Only
      */
     public static final String[] ES_PROJECTION = {
-        MetadataDocument.ID, MetadataDocument.NBCHILD, TENANT_ID};
+        ID, MetadataDocument.NBCHILD, TENANT_ID, SCORE};
 
     /**
      * Empty constructor

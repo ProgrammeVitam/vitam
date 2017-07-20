@@ -41,6 +41,7 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
@@ -308,7 +309,16 @@ public abstract class Result<T> {
                         .projection(projection).first();
                 if (VitamConfiguration.EXPORT_SCORE && MetadataCollections.C_UNIT.useScore() 
                     && isScoreIncluded(projection)) {
-                    unit.append(VitamDocument.SCORE, scores.get(i));
+                    Float score = Float.valueOf(1);
+                    try {
+                        score = scores.get(i);
+                        if (score.isNaN()) {
+                            score = Float.valueOf(1);
+                        }
+                    } catch (IndexOutOfBoundsException e) {
+                        SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                    }
+                    unit.append(VitamDocument.SCORE, score);
                 }
                 list.add((T) unit);
             }
@@ -321,7 +331,16 @@ public abstract class Result<T> {
                         .projection(projection).first();
                 if (VitamConfiguration.EXPORT_SCORE && MetadataCollections.C_OBJECTGROUP.useScore()
                     && isScoreIncluded(projection)) {
-                    og.append(VitamDocument.SCORE, scores.get(i));
+                    Float score = Float.valueOf(1);
+                    try {
+                        score = scores.get(i);
+                        if (score.isNaN()) {
+                            score = Float.valueOf(1);
+                        }
+                    } catch (IndexOutOfBoundsException e) {
+                        SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                    }
+                    og.append(VitamDocument.SCORE, score);
                 }
                 list.add((T) og);
             }
