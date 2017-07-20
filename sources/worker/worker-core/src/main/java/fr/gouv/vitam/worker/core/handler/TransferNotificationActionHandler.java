@@ -173,12 +173,32 @@ public class TransferNotificationActionHandler extends ActionHandler {
             }
 
             File atrFile;
+
+            final LogbookOperation logbookOperation;
+            try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
+                Select select = new Select();
+                select.setQuery(QueryHelper.eq(EVENT_ID_PROCESS, params.getContainerName()));
+                final JsonNode node = client.selectOperationById(params.getContainerName(), select.getFinalSelect());
+                final JsonNode elmt = node.get("$results").get(0);
+                if (elmt == null) {
+                    LOGGER.error("Error while loading logbook operation: no result");
+                    throw new ProcessingException("Error while loading logbook operation: no result");
+                }
+                logbookOperation = new LogbookOperation(elmt);
+            } catch (final LogbookClientException e) {
+                LOGGER.error("Error while loading logbook operation", e);
+                throw new ProcessingException(e);
+            } catch (InvalidCreateOperationException e) {
+                LOGGER.error("Error while creating DSL query", e);
+                throw new ProcessingException(e);
+            }
+            
             if (workflowStatus.isGreaterOrEqualToKo()) {
-                atrFile = createATRKO(params, handlerIO);
+                atrFile = createATRKO(params, handlerIO, logbookOperation);
             } else {
                 // CHeck is only done in OK mode since all parameters are optional
                 checkMandatoryIOParameter(handler);
-                atrFile = createATROK(params, handlerIO);
+                atrFile = createATROK(params, handlerIO, logbookOperation);
             }
             // calculate digest by vitam alog
             final Digest vitamDigest = new Digest(VitamConfiguration.getDefaultDigestType());
@@ -267,7 +287,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
      * @throws IOException
      * @throws InvalidParseOperationException
      */
-    private File createATROK(WorkerParameters params, HandlerIO ioParam)
+    private File createATROK(WorkerParameters params, HandlerIO ioParam, LogbookOperation logbookOperation)
         throws ProcessingException, ContentAddressableStorageNotFoundException,
         ContentAddressableStorageServerException, URISyntaxException, ContentAddressableStorageException, IOException,
         InvalidParseOperationException {
@@ -322,7 +342,16 @@ public class TransferNotificationActionHandler extends ActionHandler {
             writeAttributeValue(xmlsw, SedaConstants.TAG_ARCHIVAL_AGREEMENT,
                 (infoATR.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT) != null)
                     ? infoATR.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT).textValue() : "");
-
+            
+            if (logbookOperation.get(LogbookMongoDbName.eventDetailData.getDbname()) != null) {
+                final JsonNode evDetDataNode = JsonHandler.getFromString(
+                    logbookOperation.get(LogbookMongoDbName.eventDetailData.getDbname()).toString());
+                if (evDetDataNode.get(SedaConstants.TAG_ARCHIVE_PROFILE) != null) {
+                    final String profilId = evDetDataNode.get(SedaConstants.TAG_ARCHIVE_PROFILE).asText();
+                    writeAttributeValue(xmlsw, SedaConstants.TAG_ARCHIVE_PROFILE, profilId);
+                }
+            }
+            
             xmlsw.writeStartElement(SedaConstants.TAG_CODE_LIST_VERSIONS);
             if (infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS) != null) {
                 writeAttributeValue(xmlsw, SedaConstants.TAG_REPLY_CODE_LIST_VERSION,
@@ -405,12 +434,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
             writeAttributeValue(xmlsw, SedaConstants.TAG_REPLY_CODE, statusPrefix + workflowStatus.name());
 
             writeAttributeValue(xmlsw, SedaConstants.TAG_MESSAGE_REQUEST_IDENTIFIER, messageIdentifier);
-
-            if (infoATR.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE) != null &&
-                infoATR.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE).get(SedaConstants.TAG_ARCHIVE_PROFILE) != null) {
-                final String profilId = infoATR.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE).get(SedaConstants.TAG_ARCHIVE_PROFILE).asText();
-                writeAttributeValue(xmlsw, SedaConstants.TAG_ARCHIVE_PROFILE, profilId);
-            }
+            
 
             if (!isBlankTestWorkflow) {
                 writeAttributeValue(xmlsw, SedaConstants.TAG_GRANT_DATE, sdfDate.format(new Date()));
@@ -459,7 +483,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
      * @throws IOException
      * @throws InvalidParseOperationException
      */
-    private File createATRKO(WorkerParameters params, HandlerIO ioParam)
+    private File createATRKO(WorkerParameters params, HandlerIO ioParam, LogbookOperation logbookOperation)
         throws ProcessingException, ContentAddressableStorageNotFoundException,
         ContentAddressableStorageServerException, URISyntaxException, ContentAddressableStorageException, IOException,
         InvalidParseOperationException {
@@ -498,16 +522,19 @@ public class TransferNotificationActionHandler extends ActionHandler {
             writeAttributeValue(xmlsw, SedaConstants.TAG_DATE, sdfDate.format(new Date()));
             writeAttributeValue(xmlsw, SedaConstants.TAG_MESSAGE_IDENTIFIER, params.getContainerName());
 
+            if (logbookOperation.get(LogbookMongoDbName.eventDetailData.getDbname()) != null) {
+                final JsonNode evDetDataNode = JsonHandler.getFromString(
+                    logbookOperation.get(LogbookMongoDbName.eventDetailData.getDbname()).toString());
+                if (evDetDataNode.get(SedaConstants.TAG_ARCHIVE_PROFILE) != null) {
+                    final String profilId = evDetDataNode.get(SedaConstants.TAG_ARCHIVE_PROFILE).asText();
+                    writeAttributeValue(xmlsw, SedaConstants.TAG_ARCHIVE_PROFILE, profilId);
+                }
+            }
+
             if (infoATR != null) {
                 writeAttributeValue(xmlsw, SedaConstants.TAG_ARCHIVAL_AGREEMENT,
                     (infoATR.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT) != null)
                         ? infoATR.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT).textValue() : "");
-
-                if (infoATR.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE) != null &&
-                    infoATR.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE).get(SedaConstants.TAG_ARCHIVE_PROFILE) != null) {
-                    final String profilId = infoATR.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE).get(SedaConstants.TAG_ARCHIVE_PROFILE).asText();
-                    writeAttributeValue(xmlsw, SedaConstants.TAG_ARCHIVE_PROFILE, profilId);
-                }
                 
                 xmlsw.writeStartElement(SedaConstants.TAG_CODE_LIST_VERSIONS);
                 if (infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS) != null) {
@@ -543,7 +570,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
             xmlsw.writeStartElement(SedaConstants.TAG_REPLY_OUTCOME);
 
-            addKOReplyOutcomeIterator(xmlsw, params.getContainerName());
+            addKOReplyOutcomeIterator(xmlsw, params.getContainerName(), logbookOperation);
 
             xmlsw.writeEndElement(); // END REPLY_OUTCOME
             xmlsw.writeEndElement(); // END MANAGEMENT_METADATA
@@ -601,28 +628,9 @@ public class TransferNotificationActionHandler extends ActionHandler {
      * @throws InvalidParseOperationException
      * @throws InvalidCreateOperationException
      */
-    private void addKOReplyOutcomeIterator(XMLStreamWriter xmlsw, String containerName)
+    private void addKOReplyOutcomeIterator(XMLStreamWriter xmlsw, String containerName, LogbookOperation logbookOperation)
         throws ProcessingException, XMLStreamException, FileNotFoundException, InvalidParseOperationException,
         InvalidCreateOperationException {
-
-        final LogbookOperation logbookOperation;
-        try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
-            Select select = new Select();
-            select.setQuery(QueryHelper.eq(EVENT_ID_PROCESS, containerName));
-            final JsonNode node = client.selectOperationById(containerName, select.getFinalSelect());
-            final JsonNode elmt = node.get("$results").get(0);
-            if (elmt == null) {
-                LOGGER.error("Error while loading logbook operation: no result");
-                throw new ProcessingException("Error while loading logbook operation: no result");
-            }
-            logbookOperation = new LogbookOperation(elmt);
-        } catch (final LogbookClientException e) {
-            LOGGER.error("Error while loading logbook operation", e);
-            throw new ProcessingException(e);
-        } catch (InvalidCreateOperationException e) {
-            LOGGER.error("Error while creating DSL query", e);
-            throw new ProcessingException(e);
-        }
 
         final List<Document> logbookOperationEvents =
             (List<Document>) logbookOperation.get(LogbookDocument.EVENTS.toString());

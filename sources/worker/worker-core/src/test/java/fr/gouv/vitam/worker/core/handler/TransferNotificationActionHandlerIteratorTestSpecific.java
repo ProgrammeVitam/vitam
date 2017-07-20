@@ -27,12 +27,13 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,7 +50,9 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -67,7 +70,6 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.IOParameter;
 import fr.gouv.vitam.processing.common.model.ProcessingUri;
 import fr.gouv.vitam.processing.common.model.UriPrefix;
@@ -84,6 +86,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 @PrepareForTest({WorkspaceClientFactory.class, LogbookLifeCyclesClientFactory.class,
     LogbookOperationsClientFactory.class, ValidationXsdUtils.class})
 public class TransferNotificationActionHandlerIteratorTestSpecific {
+    private static final String ATR_PATH = "ATR/responseReply.xml";
     private static final String ARCHIVE_ID_TO_GUID_MAP =
         "transferNotificationActionHandler/ARCHIVE_ID_TO_GUID_MAP_objKO.json";
     private static final String DATA_OBJECT_ID_TO_GUID_MAP =
@@ -156,7 +159,7 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
         action.addOuputResult(5, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP));
         action.reset();
         out = new ArrayList<>();
-        out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "ATR/responseReply.xml")));
+        out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, ATR_PATH)));
     }
 
     @After
@@ -193,6 +196,8 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
         final ItemStatus response = handler
             .execute(parameters.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name()), action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
+        File atr = action.getNewLocalFile(ATR_PATH);
+        assertTrue(FileUtil.readFile(atr).contains(SedaConstants.TAG_ARCHIVE_PROFILE));
     }
     
     @Test
@@ -223,6 +228,8 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
         final ItemStatus response = handler
             .execute(parameters.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name()), action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
+        File atr = action.getNewLocalFile(ATR_PATH);
+        assertTrue(FileUtil.readFile(atr).contains(SedaConstants.TAG_ARCHIVE_PROFILE));
     }
 
     private static JsonNode getLogbookOperation()
