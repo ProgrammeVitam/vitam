@@ -92,10 +92,7 @@ angular.module('ihm.demo')
           };
 
           for (var key in $scope.contract) {
-            if ($scope.contract[key] == null) {
-              $scope.contract[key] = '';
-            }
-            if ($scope.tmpVars[key] != null && $scope.contract[key].toString() != $scope.tmpVars[key].toString()) {
+            if (!angular.equals($scope.contract[key], $scope.tmpVars[key])) {
               var updateValue = $scope.tmpVars[key];
               if (key.toLowerCase().indexOf('date') >= 0) {
                 updateValue = new Date(updateValue);
@@ -113,9 +110,13 @@ angular.module('ihm.demo')
           }
 
           accessContractResource.update(id, updateData).then(function() {
+            if (response.data.httpCode >= 300) {
+              displayMessage('Erreur de modification. Aucune modification effectuée');
+            } else {
               displayMessage('La modification a bien été enregistrée');
-              $scope.tmpVars.oldStatus = $scope.contract.Status;
-              getDetails(id);
+            }
+            $scope.tmpVars.oldStatus = $scope.contract.Status;
+            getDetails(id);
           }, function() {
               displayMessage('Aucune modification effectuée');
           });

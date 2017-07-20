@@ -1816,7 +1816,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
             Update updateRequest = new Update();
             updateRequest.setQuery(QueryHelper.eq(IDENTIFIER, contractId));
             updateRequest.addActions(UpdateActionHelper.set((ObjectNode) updateOptions));
-            LOGGER.error("Request update " + updateRequest.getFinalUpdate().toString());
             final RequestResponse archiveDetails =
                 adminClient.updateIngestContract(contractId, updateRequest.getFinalUpdate(), getTenantId(headers));
             return Response.status(Status.OK).entity(archiveDetails).build();
@@ -1935,7 +1934,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
-     * Upload Access contracts
+     * Update Access contracts
      *
      * @param headers HTTP Headers
      * @param contractId the id of access contract
@@ -1965,7 +1964,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 throw new InvalidCreateOperationException("Query not valid");
             }
             updateRequest.addActions(UpdateActionHelper.set((ObjectNode) updateOptions));
-            LOGGER.error("Request update: " + updateRequest.getFinalUpdate().toString());
             final RequestResponse archiveDetails =
                 adminClient.updateAccessContract(contractId, updateRequest.getFinalUpdate(), getTenantId(headers));
             return Response.status(Status.OK).entity(archiveDetails).build();
@@ -1981,6 +1979,53 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
+    /**
+     * Update context
+     *
+     * @param headers HTTP Headers
+     * @param contextId the id of context
+     * @return Response
+     */
+    @POST
+    @Path("/contexts/{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("contexts:update")
+    public Response updateContexts(@Context HttpHeaders headers, @PathParam("id") String contextId,
+        JsonNode updateOptions) {
+        try {
+            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, contextId);
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(contextId));
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(updateOptions));
+
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        }
+
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+            Update updateRequest = new Update();
+            updateRequest.setQuery(QueryHelper.eq(IDENTIFIER, contextId));
+            if (!updateOptions.isObject()) {
+                throw new InvalidCreateOperationException("Query not valid");
+            }
+            updateRequest.addActions(UpdateActionHelper.set((ObjectNode) updateOptions));
+            final RequestResponse updateResponse =
+                adminClient.updateContext(contextId, updateRequest.getFinalUpdate(), getTenantId(headers));
+            LOGGER.error("update status " + updateResponse.toString());
+            return Response.status(Status.OK).entity(updateResponse).build();
+        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
+            return Response.status(Status.BAD_REQUEST).build();
+        } catch (final AccessExternalClientException e) {
+            LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
     /**
      * upload context
      *

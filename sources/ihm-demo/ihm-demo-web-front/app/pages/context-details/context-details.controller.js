@@ -29,16 +29,121 @@
 
 angular.module('ihm.demo')
     .controller('contextsDetailsController', function ($scope, $routeParams, contextResource, $mdDialog, authVitamService) {
-        var id = $routeParams.id;
+      var id = $routeParams.id;
 
-        var getDetails = function (id) {
-            contextResource.getDetails(id, function (response) {
-                if (response.data.length !== 0) {
-                    $scope.context = response.data.$results[0];
-                }
-            });
+      $scope.editMode = false;
+      $scope.changeEditMode = function() {
+        $scope.editMode = !$scope.editMode;
+
+        if ($scope.editMode == false) {
+          $scope.tmpVars = angular.copy($scope.contract);
+          $scope.tmpVars.isActive = $scope.contract.Status === 'ACTIVE';
+          getAvalableTenants();
+        }
+      };
+
+      var getAvalableTenants = function() {
+        $scope.avalableTenants = angular.copy($scope.tenants);
+        if ($scope.context.Permissions) {
+          for (var i = 0; i < $scope.context.Permissions.length; i++) {
+            var tenantToRemove = $scope.context.Permissions[i]._tenant;
+            $scope.avalableTenants.splice($scope.avalableTenants.indexOf(tenantToRemove), 1);
+          }
+        }
+      };
+      var getDetails = function (id) {
+          contextResource.getDetails(id, function (response) {
+            if (response.data.length !== 0) {
+              $scope.context = response.data.$results[0];
+              $scope.tmpVars = angular.copy($scope.context);
+              getAvalableTenants();
+              updateContextStatus();
+            }
+          });
         };
 
-        getDetails(id);
+      var updateContextStatus = function() {
+        $scope.contextStatus = $scope.tmpVars.Status ? 'Actif' : 'Inactif';
+      };
+
+      $scope.updateStatus = function() {
+        updateContextStatus();
+      };
+
+      $scope.addTenant = function() {
+        if (!$scope.tmpVars.Permissions) {
+          $scope.tmpVars.Permissions = [];
+        }
+        var newTenant = parseInt($scope.selectedTenant);
+        $scope.tmpVars.Permissions.push({
+          _tenant : newTenant,
+          AccessContracts : [],
+          IngestContracts: []
+        });
+        $scope.avalableTenants.splice($scope.avalableTenants.indexOf(newTenant), 1);
+      };
+
+      $scope.removeTenant = function(tenantId) {
+        if (!$scope.tmpVars.Permissions) {
+          $scope.tmpVars.Permissions = [];
+        }
+        $scope.tmpVars.Permissions.forEach(function(value, index) {
+          if (tenantId == value._tenant) {
+            $scope.tmpVars.Permissions.splice(index, 1);
+          }
+        });
+        $scope.avalableTenants.push(tenantId);
+        $scope.avalableTenants.sort();
+      };
+
+      $scope.changeEditMode = function() {
+        $scope.editMode = !$scope.editMode;
+        if ($scope.editMode == false) {
+          $scope.tmpVars = angular.copy($scope.context);
+          updateContextStatus();
+        }
+      };
+      var displayMessage = function(message, closeMessage) {
+        if (!closeMessage) {
+          closeMessage = 'Fermer';
+        }
+        $mdDialog.show($mdDialog.alert()
+          .title(message)
+          .ok(closeMessage));
+      };
+      $scope.saveModifs = function() {
+        $scope.editMode = false;
+        if (angular.equals($scope.context, $scope.tmpVars)) {
+          displayMessage('Aucune modification effectuée');
+          return;
+        }
+
+        var updateData = {
+          LastUpdate: new Date()
+        };
+
+        for (var key in $scope.context) {
+          console.log($scope.tmpVars[key]);
+          if (!angular.equals($scope.context[key], $scope.tmpVars[key])) {
+            var updateValue = $scope.tmpVars[key];
+            if (key.toLowerCase().indexOf('date') >= 0) {
+              updateValue = new Date(updateValue);
+            }
+            updateData[key] = updateValue;
+          }
+        }
+
+        contextResource.update(id, updateData).then(function(response) {
+          if (response.data.httpCode >= 300) {
+            displayMessage('Erreur de modification. Aucune modification effectuée');
+          } else {
+            displayMessage('La modification a bien été enregistrée');
+          }
+          getDetails(id);
+        }, function() {
+          displayMessage('Aucune modification effectuée');
+        });
+      };
+      getDetails(id);
 
     });

@@ -57,7 +57,6 @@ angular.module('entryContracts')
     $scope.changeEditMode = function() {
       $scope.editMode = !$scope.editMode;
 
-      console.log('');
       if ($scope.editMode == false) {
         $scope.tmpVars = angular.copy($scope.contract);
         $scope.tmpVars.isActive = $scope.contract.Status === 'ACTIVE';
@@ -74,9 +73,6 @@ angular.module('entryContracts')
     };
 
     $scope.saveModifs = function() {
-
-      console.log($scope.contract);
-      console.log($scope.tmpVars);
       $scope.editMode = false;
       if (angular.equals($scope.contract, $scope.tmpVars)) {
         displayMessage('Aucune modification effectuée');
@@ -88,10 +84,7 @@ angular.module('entryContracts')
       };
 
       for (var key in $scope.contract) {
-        if ($scope.contract[key] == null) {
-          $scope.contract[key] = '';
-        }
-        if ($scope.tmpVars[key] != null && $scope.contract[key].toString() != $scope.tmpVars[key].toString()) {
+        if (!angular.equals($scope.contract[key], $scope.tmpVars[key])) {
           var updateValue = $scope.tmpVars[key];
           if (key.toLowerCase().indexOf('date') >= 0) {
             updateValue = new Date(updateValue);
@@ -101,9 +94,12 @@ angular.module('entryContracts')
       }
 
       entryContractResource.update(id, updateData).then(function() {
+        if (response.data.httpCode >= 300) {
+          displayMessage('Erreur de modification. Aucune modification effectuée');
+        } else {
           displayMessage('La modification a bien été enregistrée');
-          $scope.tmpVars.oldStatus = $scope.contract.Status;
-          getDetails(id);
+        }
+        getDetails(id);
       }, function() {
           displayMessage('Aucune modification effectuée');
       });

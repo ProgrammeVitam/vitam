@@ -29,9 +29,9 @@
 angular.module('core')
     .factory('contextResource', function(ihmDemoCLient) {
 
-        var accessContractResource = {};
+        var contextResource = {};
 
-        accessContractResource.getDetails = function (id, callback) {
+        contextResource.getDetails = function (id, callback) {
             ihmDemoCLient.getClient('contexts').one(id).get().then(function (response) {
                 callback(response);
             }, function (error) {
@@ -39,9 +39,9 @@ angular.module('core')
             });
         }
 
-        accessContractResource.update = function (id, data) {
+        contextResource.update = function (id, data) {
             return ihmDemoCLient.getClient('contexts').all(id).post(data);
         };
 
-        return accessContractResource;
+        return contextResource;
     });

@@ -12,33 +12,95 @@
         <div id="boxContextsList" class="panel-collapse">
             <div id="collapse1" class="panel-body">
                 <div class="panel-body">
+                    <div class=" text-right">
+                        <button class="btn " ng-click="changeEditMode()" ng-if="editMode">
+                            <i class="material-icons pull-left">cancel</i>
+                            <span>Annuler</span>
+                        </button>
 
-                    <form>
-                        <input type="hidden" name="hiddenField"/>
-                    </form>
-                    <div class="form-group col-md-6">
-                        <label>Nom</label>
-                        <span>{{context.Name}}</span>
+                        <button class="btn btn-primary" ng-click="changeEditMode()" ng-hide="checkPermission() || editMode">
+                            <i class="material-icons pull-left">edit</i>
+                            <span>Modifier</span>
+                        </button>
+                        <button class="btn btn-primary" ng-click="saveModifs()" ng-hide="checkPermission() || !editMode">
+                            <i class="material-icons pull-left">save</i>
+                            <span>Enregistrer</span>
+                        </button>
                     </div>
+
+                    <div class="form-group col-md-8">
+                        <label>Identifiant</label>
+                        <span>{{context.Identifier}}</span>
+                    </div>
+                    <div class="col-md-4 text-right" ng-show="editMode" style="height: 40px; margin-top: 20px">
+                        Tenant
+                        <select ng-model="selectedTenant" id = "tenantId" style="margin-right: 10px">
+                            <option ng-repeat='tenant in avalableTenants' value="{{tenant}}">{{tenant}}</option>
+                        </select>
+                        <button class="btn" style="background-color: #d9d9d9" ng-click="addTenant()">
+                            <span>Ajouter </span>
+                        </button>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <div class="row simple-field">
+                            <display-single-field field-size="'11'"   field-key="'Name'"
+                                                  field-value="tmpVars" field-label="'Nom'" edit-mode="editMode">
+                            </display-single-field>
+                        </div>
+                    </div>
+
+                    <div class="form-group col-md-3" style="height: 57px">
+                        <label>Date de création</label>
+                        <span>{{tmpVars.CreationDate | vitamFormatDate}}</span>
+                    </div>
+                    <div class="form-group col-md-3" style="height: 57px">
+                        <label>Date de mise à jour</label>
+                        <span>{{tmpVars.LastUpdate | vitamFormatDate}}</span>
+                    </div>
+
                     <div class="form-group col-md-6">
                         <label>Statut</label>
-                        <span>{{context.Status}}</span>
+                        <label class="switch">
+                            <input type="checkbox" ng-model="tmpVars.Status" ng-change="updateStatus()"  ng-disabled="checkPermission()  || !editMode">
+                            <div class="slider round" ng-class="{'disabled': checkPermission() || !editMode}"></div>
+                        </label>
+                        <span>{{contextStatus}}</span>
                     </div>
-                    <br/>
-                    <div ng-repeat="permission in context.Permissions">
-                        <div class="form-group col-md-4" style="background-color: #F5F5F5; border-color: #FFFFFF; border-style: solid; border-width: 10px;">
-                            <br/>
-                            <label>tenant {{permission._tenant}}:</label>
-                            <label>Liste contrats d'accès</label>
-                            <div ng-repeat="ac in permission.AccessContracts">
-                                <span>{{ac}}</span>
+
+                    <div class="form-group col-md-3">
+                        <div class="row simple-field">
+                            <display-single-field field-size="'11'"  field-key="'ActivationDate'"
+                                                  field-value="tmpVars" field-label="'Date d\'activation'" edit-mode="editMode">
+                            </display-single-field>
+                        </div>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <div class="row simple-field">
+                            <display-single-field field-size="'11'" field-key="'DeactivationDate'"
+                                                  field-value="tmpVars" field-label="'Date de désactivation'" edit-mode="editMode">
+                            </display-single-field>
+                        </div>
+                    </div>
+
+                    <div class="form-group col-md-12">
+                        <label>Permissions</label>
+                        <div ng-repeat="permission in tmpVars.Permissions">
+                            <div class="form-group col-md-4" style="background-color: #F5F5F5; border-color: #FFFFFF; border-style: solid; border-width: 10px;">
+                                <button class="btn pull-right" ng-click="removeTenant(permission._tenant)" ng-hide="checkPermission() || !editMode">
+                                    <span>Supprimer</span>
+                                </button>
+                                <br/>
+                                <label>Tenant {{permission._tenant}} :</label>
+                                <label>Liste contrats d'accès</label>
+                                <md-chips ng-model="permission.AccessContracts" name="AccessContract" readonly="!editMode"
+                                          md-removable="editMode" placeholder="Ajouter un contrat d'accès ..." >
+                                </md-chips>
+                                <br/>
+                                <label>Liste contrats d'entrée</label>
+                                <md-chips ng-model="permission.IngestContracts" name="IngestContract" readonly="!editMode"
+                                          md-removable="editMode" placeholder="Ajouter un contrat d'entrée ..." >
+                                </md-chips>
                             </div>
-                            <br/>
-                            <label>Liste contrats d'entrée</label>
-                            <div ng-repeat="ic in permission.IngestContracts">
-                                <span>{{ic}}</span>
-                            </div>
-                            <br/>
                         </div>
                     </div>
                 </div>

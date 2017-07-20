@@ -18,6 +18,8 @@
 package fr.gouv.vitam.functionnal.administration.context.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -32,6 +34,8 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
@@ -46,6 +50,7 @@ import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.action.PushAction;
+import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
@@ -181,7 +186,13 @@ public class ContextServiceImplTest {
 
         final RequestResponse response = contextService.createContexts(ModelList);
 
-        final PushAction addIdentifierAction = UpdateActionHelper.push("Permissions.0.AccessContracts", "AC-000011");
+        final ObjectNode permissionsNode = JsonHandler.createObjectNode();
+        final ObjectNode permissionNode = JsonHandler.createObjectNode();
+        permissionNode.put("_tenant", TENANT_ID);
+        permissionNode.set("IngestContracts", JsonHandler.createArrayNode().add("IC-000001"));
+        permissionNode.set("AccessContracts", JsonHandler.createArrayNode());
+        permissionsNode.set("Permissions", JsonHandler.createArrayNode().add(permissionNode));
+        final SetAction setPermission = UpdateActionHelper.set(permissionsNode);
         final Select select = new Select();
         select.setQuery(QueryHelper.eq("Name", "My_Context_1"));
         final ContextModel context =
@@ -189,17 +200,21 @@ public class ContextServiceImplTest {
 
 
         final Update update = new Update();
-        update.addActions(addIdentifierAction);
+        update.addActions(setPermission);
         update.setQuery(QueryHelper.and().add(QueryHelper.eq("Permissions._tenant", 0))
             .add(QueryHelper.eq("#id", context.getId())));
-        update.getActions().get(0).getCurrentAction();
 
         JsonNode queryDslForUpdate = update.getFinalUpdate();
-        contextService.updateContext(context.getIdentifier(), queryDslForUpdate);
+        final RequestResponse updateResponse = contextService.updateContext(context.getIdentifier(), queryDslForUpdate);
+        assertTrue(updateResponse.isOk());
 
-
-        queryDslForUpdate = update.getFinalUpdate();
-
+        permissionNode.set("IngestContracts", JsonHandler.createArrayNode().add("IC-000001500000"));
+        permissionsNode.set("Permissions", JsonHandler.createArrayNode().add(permissionNode));
+        final SetAction setInvalidPermission = UpdateActionHelper.set(permissionsNode);
+        update.getActions().clear();
+        update.addActions(setInvalidPermission);
+        final RequestResponse updateError = contextService.updateContext(context.getIdentifier(), update.getFinalUpdate());
+        assertFalse(updateError.isOk());
     }
 
 }
