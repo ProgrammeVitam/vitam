@@ -74,6 +74,10 @@ public abstract class VitamDocument<E> extends Document {
     public static final String SCORE = "_score";
 
     /**
+     * Filter ES out
+     */
+    public static final String[] ES_FILTER_OUT = new String [] {VitamDocument.ID, VitamDocument.TENANT_ID, VitamDocument.SCORE};
+    /**
      * Empty constructor
      */
     public VitamDocument() {

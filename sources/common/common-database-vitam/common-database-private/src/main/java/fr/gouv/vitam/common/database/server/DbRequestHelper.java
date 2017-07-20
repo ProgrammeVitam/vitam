@@ -118,7 +118,16 @@ public class DbRequestHelper {
             for (int i = 0; i < nb; i++) {
                 VitamDocument<?> vitamDocument = firstList.get(i);
                 if (!(vitamDocument instanceof FakeVitamDocument)) {
-                    vitamDocument.append(VitamDocument.SCORE, scores.get(i));
+                    Float score = Float.valueOf(1);
+                    try {
+                        score = scores.get(i);
+                        if (score.isNaN()) {
+                            score = Float.valueOf(1);
+                        }
+                    } catch (IndexOutOfBoundsException e) {
+                        SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                    }
+                    vitamDocument.append(VitamDocument.SCORE, score);
                     finalList.add(vitamDocument);
                 }
             }

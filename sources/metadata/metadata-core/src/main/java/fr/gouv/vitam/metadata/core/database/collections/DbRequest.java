@@ -102,6 +102,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.json.SchemaValidationStatus;
 import fr.gouv.vitam.common.json.SchemaValidationStatus.SchemaValidationStatusEnum;
 import fr.gouv.vitam.common.json.SchemaValidationUtils;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
@@ -809,11 +810,16 @@ public class DbRequest {
                 if (unit != null) {
                     if (VitamConfiguration.EXPORT_SCORE && MetadataCollections.C_UNIT.useScore() &&
                         requestToMongodb.isScoreIncluded()) {
-                        if (i < nbScore) {
-                            unit.append(VitamDocument.SCORE, last.scores.get(i));
-                        } else {
-                            unit.append(VitamDocument.SCORE, (float) 1);
+                        Float score = Float.valueOf(1);
+                        try {
+                            score = last.scores.get(i);
+                            if (score.isNaN()) {
+                                score = Float.valueOf(1);
+                            }
+                        } catch (IndexOutOfBoundsException e) {
+                            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
                         }
+                        unit.append(VitamDocument.SCORE, score);
                     }
                     if (!isIdIncluded) {
                         unit.remove(VitamDocument.ID);
@@ -845,11 +851,16 @@ public class DbRequest {
             if (og != null) {
                 if (VitamConfiguration.EXPORT_SCORE && MetadataCollections.C_OBJECTGROUP.useScore() &&
                     requestToMongodb.isScoreIncluded()) {
-                    if (i > nbScore) {
-                        og.append(VitamDocument.SCORE, last.scores.get(i));
-                    } else {
-                        og.append(VitamDocument.SCORE, (float) 1);
+                    Float score = Float.valueOf(1);
+                    try {
+                        score = last.scores.get(i);
+                        if (score.isNaN()) {
+                            score = Float.valueOf(1);
+                        }
+                    } catch (IndexOutOfBoundsException e) {
+                        SysErrLogger.FAKE_LOGGER.ignoreLog(e);
                     }
+                    og.append(VitamDocument.SCORE, score);
                 }
                 if (!isIdIncluded) {
                     og.remove(VitamDocument.ID);
@@ -916,7 +927,7 @@ public class DbRequest {
             int tries = 0;
             boolean modified = false;
             MetadataDocument<?> documentFinal = null;
-            
+
             while (result == null && tries < 3) {
                 final JsonNode jsonDocument = JsonHandler.toJsonNode(document);
                 final String documentBeforeUpdate = JsonHandler.prettyPrint(jsonDocument);
@@ -928,17 +939,17 @@ public class DbRequest {
                 requestToMongodb.getFinalUpdateActions();
                 final ObjectNode updatedJsonDocument = (ObjectNode) mongoInMemory.getUpdateJson(requestParser);
                 documentFinal = (MetadataDocument<?>) document.newInstance(updatedJsonDocument);
-                if (! documentId.equals(document)) {
+                if (!documentId.equals(document)) {
                     modified = true;
                     documentFinal.put(VitamDocument.VERSION, documentVersion.intValue() + 1);
-    
+
                     if (model == FILTERARGS.UNITS) {
                         SchemaValidationStatus status = validator.validateUpdateUnit(updatedJsonDocument);
                         if (!SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
                             throw new MetaDataExecutionException("Unable to validate updated Unit");
                         }
                     }
-    
+
                     // Make Update
                     final Bson condition =
                         and(eq(MetadataDocument.ID, documentId), eq(MetadataDocument.VERSION, documentVersion));
@@ -959,7 +970,7 @@ public class DbRequest {
             }
             if (modified) {
                 last.addId(documentId, (float) 1);
-    
+
                 try {
                     if (model == FILTERARGS.UNITS) {
                         indexFieldsUpdated(last, tenantId);
@@ -1141,7 +1152,8 @@ public class DbRequest {
                     try {
                         object = (ObjectGroup) MetadataCollections.C_OBJECTGROUP.getCollection()
                             .findOneAndUpdate(eq(ID, unit.getString(MetadataDocument.OG)),
-                                update, new FindOneAndUpdateOptions().upsert(false).returnDocument(ReturnDocument.AFTER));
+                                update,
+                                new FindOneAndUpdateOptions().upsert(false).returnDocument(ReturnDocument.AFTER));
                     } catch (MongoException e) {
                         LOGGER.error(e);
                         throw new MetaDataExecutionException(e);

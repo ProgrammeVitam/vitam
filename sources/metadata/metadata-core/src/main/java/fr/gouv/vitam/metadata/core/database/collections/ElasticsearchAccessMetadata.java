@@ -445,7 +445,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         // types
         final SearchRequestBuilder request = client.prepareSearch(getIndexName(collection, tenantId))
             .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setTypes(type).setExplain(false)
-            .setSize(GlobalDatas.LIMIT_LOAD).addFields(MetadataDocument.ES_PROJECTION);
+            .setSize(GlobalDatas.LIMIT_LOAD).setFetchSource(MetadataDocument.ES_PROJECTION, null);
         if (offset != -1) {
             request.setFrom(offset);
         }
