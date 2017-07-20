@@ -40,6 +40,7 @@ public class SchemaValidationUtilsTest {
 
     private static final String AU_JSON_FILE = "archive-unit_OK.json";
     private static final String AU_INVALID_JSON_FILE = "archive-unit_Invalid.json";
+    private static final String AU_INVALID_DATE_JSON_FILE = "archive-unit_date_Invalid.json";
     private static final String COMPLEX_JSON_FILE = "complex_archive_unit.json";
 
     public static final String TAG_ARCHIVE_UNIT = "ArchiveUnit";
@@ -89,6 +90,15 @@ public class SchemaValidationUtilsTest {
         SchemaValidationStatus status = schemaValidation
             .validateUnit(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_INVALID_JSON_FILE)));
         assertTrue(status.getValidationStatus().equals(SchemaValidationStatusEnum.NOT_AU_JSON_VALID));
+    }
+    
+    @Test
+    public void givenInvalidDateKO() throws Exception {
+        final SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
+        SchemaValidationStatus status = schemaValidation
+            .validateUnit(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_INVALID_DATE_JSON_FILE)));
+        assertTrue(status.getValidationStatus().equals(SchemaValidationStatusEnum.NOT_AU_JSON_VALID));
+        assertTrue(status.getValidationMessage().contains("EndDate is before StartDate"));
     }
 
 }
