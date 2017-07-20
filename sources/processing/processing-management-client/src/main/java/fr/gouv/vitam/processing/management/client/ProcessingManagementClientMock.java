@@ -231,9 +231,12 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
             .setActions(actions));
 
         workflow.setId("DefaultIngestWorkflow");
+        workflow.setIdentifier("PROCESS_SIP_UNITARY");
+        workflow.setName("Default Ingest Workflow");
+        workflow.setTypeProc("INGEST");
         workflow.setComment("DefaultIngestWorkflow comment");
         workflow.setSteps(steps);
-        workflowDefinitions.put(workflow.getId(), workflow);
+        workflowDefinitions.put(workflow.getIdentifier(), workflow);
 
         try {
             return new RequestResponseOK().addResult(JsonHandler.toJsonNode(workflowDefinitions))

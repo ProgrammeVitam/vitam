@@ -43,6 +43,9 @@ import fr.gouv.vitam.common.SingletonUtils;
 public class WorkFlow {
 
     private String id;
+    private String name;
+    private String identifier;
+    private String typeProc;
     private String comment;
 
     /**
@@ -71,6 +74,72 @@ public class WorkFlow {
      */
     public WorkFlow setId(String id) {
         this.id = id;
+        return this;
+    }
+
+    /**
+     * getName, get name of workflow
+     *
+     * @return the workflowName
+     */
+    public String getName() {
+        if(name == null) {
+            return "";
+        }
+        return name;
+    }
+
+    /**
+     * setName, set the name of workflow
+     *
+     * @param name as String
+     * @return the WorkFlow instance with name setted
+     */
+    public WorkFlow setName(String name) {
+        this.name = name;
+        return this;
+    }
+
+    /**
+     * getIdentifier, get identifier of workflow
+     *
+     * @return the workflowIdentifier
+     */
+    public String getIdentifier() {
+        return identifier;
+    }
+
+    /**
+     * setIdentifier, set the identifier of workflow
+     *
+     * @param identifier as String
+     * @return the WorkFlow instance with identifier setted
+     */
+    public WorkFlow setIdentifier(String identifier) {
+        this.identifier = identifier;
+        return this;
+    }
+
+    /**
+     * getTypeProc, get category of workflow
+     *
+     * @return the workflowType
+     */
+    public String getTypeProc() {
+        if(typeProc == null) {
+            return "";
+        }
+        return typeProc;
+    }
+
+    /**
+     * setTypeProc, set the type of workflow
+     *
+     * @param typeProc as String
+     * @return the WorkFlow instance with type setted
+     */
+    public WorkFlow setTypeProc(String typeProc) {
+        this.typeProc = typeProc;
         return this;
     }
 
@@ -127,6 +196,9 @@ public class WorkFlow {
     public String toString() {
         final StringBuilder sb = new StringBuilder();
         sb.append("ID=" + getId() + "\n");
+        sb.append("name=" + getName() + "\n");
+        sb.append("identifier=" + getIdentifier() + "\n");
+        sb.append("typeProc=" + getTypeProc() + "\n");
         sb.append("comments=" + getComment() + "\n");
         return sb.toString();
     }

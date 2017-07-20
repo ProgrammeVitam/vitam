@@ -210,11 +210,11 @@ angular.module('workflows')
       for (var workProp in results) {
         if (results.hasOwnProperty(workProp)) {
           var workflow = results[workProp];
-          $scope.workflowCategories.push({name: workflow.comment, id: workflow.id});
+          $scope.workflowCategories.push({name: workflow.name, id: workflow.identifier});
           for (var stepProp in workflow.steps) {
             if (workflow.steps.hasOwnProperty(stepProp)) {
               var step = workflow.steps[stepProp];
-              $scope.workflowSteps.push({parent: workflow.id, name: step.stepName, id: step.stepName});
+              $scope.workflowSteps.push({parent: workflow.identifier, name: step.stepName, id: step.stepName});
             }
           }
         }

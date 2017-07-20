@@ -38,6 +38,8 @@ public class ServerConfiguration extends DefaultVitamApplicationConfiguration {
     private String urlMetadata;
     private String urlWorkspace;
 
+    private static Integer DEFAULTSCHEDULER_PERIOD = 1;// one hour
+    private Integer workflowRefreshPeriod = DEFAULTSCHEDULER_PERIOD;
 
     private Integer processingCleanerPeriod;
 
@@ -82,6 +84,24 @@ public class ServerConfiguration extends DefaultVitamApplicationConfiguration {
     }
 
     /**
+     * getWorkflowRefreshPeriod, getter for workflow refresh period
+     *
+     * @return workflow refresh period
+     */
+    public Integer getWorkflowRefreshPeriod() {
+        return workflowRefreshPeriod;
+    }
+
+    /**
+     * setWorkflowRefreshPeriod, setter for workflow refresh period
+     *
+     * @param workflowRefreshPeriod
+     */
+    public void setWorkflowRefreshPeriod(Integer workflowRefreshPeriod) {
+        this.workflowRefreshPeriod = workflowRefreshPeriod;
+    }
+
+    /**
      * getter  for processing cleaner period
      * @return
      */
@@ -91,7 +111,7 @@ public class ServerConfiguration extends DefaultVitamApplicationConfiguration {
 
     /**
      * setter  for processing cleaner period
-
+     *
      * @param processingCleanerPeriod
      */
     public void setProcessingCleanerPeriod(Integer processingCleanerPeriod) {

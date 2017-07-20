@@ -78,6 +78,7 @@ public class ProcessDistributorImplTest {
     private static WorkerManager workerManager = new WorkerManager();
     private static final ProcessDistributorImpl PROCESS_DISTRIBUTOR = new ProcessDistributorImpl(workerManager);
     private static final String WORKFLOW_ID = "workflowJSONv1";
+    private static final String WORKFLOW_FILE = "workflowJSONv1.json";
     private static final String CONTAINER_NAME = "containerName1";
     private ProcessMonitoringImpl processMonitoring;
     private WorkFlow worfklow;
@@ -129,7 +130,8 @@ public class ProcessDistributorImplTest {
         processData = ProcessDataAccessImpl.getInstance();
         // processData.nextStep(workParams.getContainerName());
 
-        processData.initProcessWorkflow(ProcessPopulator.populate(WORKFLOW_ID), params.getContainerName(), LogbookTypeProcess.INGEST, TENANT_ID);
+        processData.initProcessWorkflow(ProcessPopulator.populate(WORKFLOW_FILE), params.getContainerName(),
+                LogbookTypeProcess.INGEST, TENANT_ID);
 
     }
 

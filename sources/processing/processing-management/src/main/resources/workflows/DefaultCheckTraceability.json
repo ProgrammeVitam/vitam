@@ -1,5 +1,8 @@
 {
   "id": "DefaultCheckTraceability",
+  "name": "Default Check Traceability",
+  "identifier": "CHECK_LOGBOOK_OP_SECURISATION",
+  "typeProc": "CHECK",
   "comment": "Default Check logbook traceability Workflow V1",
   "steps": [
     {

@@ -221,12 +221,11 @@ public class ProcessingIT {
     private static final String WORKSPACE_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE;
     private static final String PROCESSING_URL = "http://localhost:" + PORT_SERVICE_PROCESSING;
 
-    private static String WORFKLOW_NAME_2 = "DefaultIngestWorkflow";
-    private static String WORFKLOW_NAME = "DefaultIngestWorkflow";
+    private static String WORFKLOW_NAME_2 = "PROCESS_SIP_UNITARY";
+    private static String WORFKLOW_NAME = "PROCESS_SIP_UNITARY";
+    private static String INGEST_TREE_WORFKLOW = "HOLDINGSCHEME";
+    private static String INGEST_PLAN_WORFKLOW = "FILINGSCHEME";
     private static String BIG_WORFKLOW_NAME = "BigIngestWorkflow";
-    private static String INGEST_TREE_WORFKLOW = "DefaultHoldingSchemeWorkflow";
-    private static String INGEST_PLAN_WORFKLOW = "DefaultFilingSchemeWorkflow";
-
     private static String SIP_FILE_OK_NAME = "integration-processing/SIP-test.zip";
     private static String SIP_PROFIL_OK = "integration-processing/SIP_ok_profil.zip";
     private static String SIP_FILE_OK_WITH_SYSTEMID = "integration-processing/SIP_with_systemID.zip";

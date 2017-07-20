@@ -145,6 +145,7 @@
 - hosts: hosts-processing
   roles:
     - {role: vitam, vitam_component: processing,java_args: /vitam/conf/processing/processing.conf, port_http: "{{vitam_processing_port}}", port_http_admin: "{{vitam_processing_port_admin}}", secret_platform: "true" }
+    - {role: processing_create_workflows, vitam_component: processing}
 
 - hosts: hosts-worker
   roles:

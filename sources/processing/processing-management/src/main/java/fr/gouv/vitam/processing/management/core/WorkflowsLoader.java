@@ -24,73 +24,39 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.processing.common;
+package fr.gouv.vitam.processing.management.core;
 
-import java.util.Map;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.processing.management.api.ProcessManagement;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import fr.gouv.vitam.common.ParametersChecker;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
- * The ProcessingEntry class.
- *
+ * WorkflowsLoader
  */
-public class ProcessingEntry {
+public class WorkflowsLoader implements Runnable {
 
-    @JsonProperty("container")
-    private final String container;
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkflowsLoader.class);
 
-    @JsonProperty("workflow")
-    private final String workflow;
+    final private ProcessManagement processManagement;
 
-    private Map<String, String> extraParams;
+    public WorkflowsLoader(ProcessManagement processManagement) {
+        this.processManagement = processManagement;
+        Integer period = processManagement.getConfiguration().getWorkflowRefreshPeriod();
 
-
-    /**
-     * ProcessingEntry constructor
-     *
-     * @param container : name of container in workspace as string
-     * @param workflow : workflow identifier as string
-     */
-    @JsonCreator
-    public ProcessingEntry(@JsonProperty("container") String container, @JsonProperty("workflow") String workflow) {
-        ParametersChecker.checkParameter("container is a mandatory parameter", container);
-        ParametersChecker.checkParameter("workflow is a mandatory parameter", workflow);
-        this.container = container;
-        this.workflow = workflow;
+        Executors.newScheduledThreadPool(1).scheduleWithFixedDelay(this, period, period, TimeUnit.HOURS);
     }
 
-    /**
-     * @return the name of container in workspace will be processed
-     */
-    @JsonIgnore
-    public String getContainer() {
-        return container;
+    @Override
+    public void run() {
+        this.reloadWorkflows();
     }
 
-
-    /**
-     * @return the workflow identifier
-     */
-    @JsonIgnore
-    public String getWorkflow() {
-        return workflow;
+    // reload workflows
+    private void reloadWorkflows() {
+        this.processManagement.reloadWorkflowDefinitions();
     }
 
-    /**
-     * @return the extra parameters used to create a process entry
-     */
-    public Map<String, String> getExtraParams() {
-        return extraParams;
-    }
-
-    /**
-     * @param extraParams
-     */
-    public void setExtraParams(Map<String, String> extraParams) {
-        this.extraParams = extraParams;
-    }
 }

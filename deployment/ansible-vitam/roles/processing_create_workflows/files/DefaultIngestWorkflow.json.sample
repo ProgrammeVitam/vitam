@@ -1,9 +1,12 @@
 {
-  "id": "BigIngestWorkflow",
-  "comment": "Big Ingest Workflow V6",
+  "id": "DefaultIngestWorkflow",
+  "name": "Default Ingest Workflow",
+  "identifier": "PROCESS_SIP_UNITARY",
+  "typeProc": "INGEST",
+  "comment": "Default Ingest Workflow V6",
   "steps": [
     {
-      "workerGroupId": "BigWorker",
+      "workerGroupId": "DefaultWorker",
       "stepName": "STP_INGEST_CONTROL_SIP",
       "behavior": "BLOCKING",
       "distribution": {
@@ -94,7 +97,7 @@
       ]
     },
     {
-      "workerGroupId": "BigWorker",
+      "workerGroupId": "DefaultWorker",
       "stepName": "STP_OG_CHECK_AND_TRANSFORME",
       "behavior": "BLOCKING",
       "distribution": {
@@ -123,7 +126,7 @@
       ]
     },
     {
-      "workerGroupId": "BigWorker",
+      "workerGroupId": "DefaultWorker",
       "stepName": "STP_UNIT_CHECK_AND_PROCESS",
       "behavior": "BLOCKING",
       "distribution": {
@@ -146,7 +149,7 @@
       ]
     },
     {
-      "workerGroupId": "BigWorker",
+      "workerGroupId": "DefaultWorker",
       "stepName": "STP_STORAGE_AVAILABILITY_CHECK",
       "behavior": "BLOCKING",
       "distribution": {
@@ -163,7 +166,7 @@
       ]
     },
     {
-      "workerGroupId": "BigWorker",
+      "workerGroupId": "DefaultWorker",
       "stepName": "STP_OG_STORING",
       "behavior": "BLOCKING",
       "distribution": {
@@ -182,22 +185,34 @@
             "actionKey": "OG_METADATA_INDEXATION",
             "behavior": "BLOCKING"
           }
+        },
+                {
+          "action": {
+            "actionKey": "OG_METADATA_STORAGE",
+            "behavior": "BLOCKING"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "COMMIT_LIFE_CYCLE_OBJECT_GROUP",
+            "behavior": "BLOCKING"
+          }
         }
       ]
     },
     {
-      "workerGroupId": "BigWorker",
+      "workerGroupId": "DefaultWorker",
       "stepName": "STP_UNIT_STORING",
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "LIST",
         "element": "Units"
       },
-      "actions": [        
+      "actions": [      	
         {
           "action": {
             "actionKey": "UNIT_METADATA_INDEXATION",
-            "behavior": "BLOCKING",
+            "behavior": "BLOCKING", 
 	        "in": [
 	            {
 	               "name": "UnitType",
@@ -208,13 +223,25 @@
 	              "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
 	            }
 	        ]            
-            
+          }
+        },
+        {
+          "action": {
+            "actionKey": "UNIT_METADATA_STORAGE",
+            "behavior": "BLOCKING"
+          }
+        }
+        ,
+        {
+          "action": {
+            "actionKey": "COMMIT_LIFE_CYCLE_UNIT",
+            "behavior": "BLOCKING"
           }
         }
       ]
     },
     {
-      "workerGroupId": "BigWorker",
+      "workerGroupId": "DefaultWorker",
       "stepName": "STP_ACCESSION_REGISTRATION",
       "behavior": "BLOCKING",
       "distribution": {
@@ -249,7 +276,7 @@
       ]
     },
     {
-      "workerGroupId": "BigWorker",
+      "workerGroupId": "DefaultWorker",
       "stepName": "STP_INGEST_FINALISATION",
       "behavior": "FINALLY",
       "distribution": {
@@ -260,7 +287,7 @@
         {
           "action": {
             "actionKey": "ATR_NOTIFICATION",
-            "behavior": "BLOCKING",
+            "behavior": "NOBLOCKING",
             "in": [
               {
                 "name": "mapsUnits.file",
@@ -278,7 +305,7 @@
                 "optional": true
               },
               {
-                "name": "mapsDOIdtoDODetail.file",
+                "name": "mapsDOtoVersionBDO.file",
                 "uri": "WORKSPACE:Maps/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP.json",
                 "optional": true
               },
@@ -299,6 +326,12 @@
                 "uri": "WORKSPACE:ATR/responseReply.xml"
               }
             ]
+          }
+        }, 
+        {
+          "action": {
+            "actionKey": "ROLL_BACK",
+            "behavior": "BLOCKING"
           }
         }
       ]

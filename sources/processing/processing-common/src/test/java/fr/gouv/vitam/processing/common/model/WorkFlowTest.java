@@ -48,7 +48,9 @@ public class WorkFlowTest {
         assertEquals(TEST, new WorkFlow().setComment(TEST).getComment());
         assertEquals(TEST, new WorkFlow().setId(TEST).getId());
         assertEquals(false, new WorkFlow().setSteps(steps).getSteps().isEmpty());
-        assertEquals("ID=test\ncomments=test\n", new WorkFlow().setId(TEST).setComment(TEST).toString());
+        assertEquals("ID=test\nname=test\nidentifier=test\ntypeProc=test\ncomments=test\n",
+                new WorkFlow().setId(TEST).setIdentifier(TEST).setName(TEST).
+                        setTypeProc(TEST).setComment(TEST).toString());
     }
 
 }

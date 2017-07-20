@@ -93,6 +93,15 @@ public class ResourcesPublicUtilTest {
     }
 
     /**
+     * getJsonTest1JsonInputStream
+     *
+     * @return the Json1 Stream
+     */
+    public InputStream getJsonTest1JsonInputStream() {
+        return getTestResourcesInputStream(JSON_TEST_JSON);
+    }
+
+    /**
      *
      * @return the Json3 Stream
      */

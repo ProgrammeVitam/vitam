@@ -132,6 +132,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
     private static final String XML = ".xml";
     private static final String FOLDERNAME = "ATR/";
     private static final String PROCESS_CONTEXT_FILE = "processContext.json";
+    private static final String EXTERNAL_PROCESS_CONTEXT_FILE = "ingest-internal/processContext.json";
     private static final String EXECUTION_CONTEXT = "executionContext";
     private static final String WORKFLOW_ID = "workFlowId";
     private static final String LOGBOOK_TYPE_PROCESS = "logbookTypeProcess";
@@ -337,7 +338,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
             final String xAction = headers.getRequestHeader(GlobalDataRest.X_ACTION).get(0);
             final String contentType = headers.getRequestHeader(HttpHeaders.CONTENT_TYPE).get(0);
             final String contextId = headers.getRequestHeader(GlobalDataRest.X_CONTEXT_ID).get(0);
-            ProcessContext process = createProcessContextObject(PROCESS_CONTEXT_FILE, contextId);
+            ProcessContext process = createProcessContextObject(contextId);
 
             final GUID containerGUID = GUIDReader.getGUID(VitamThreadUtils.getVitamSession().getRequestId());
             boolean isInitMode = ProcessAction.INIT.getValue().equalsIgnoreCase(xAction);
@@ -736,7 +737,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 ParametersChecker.checkParameter("contextId is a mandatory parameter", contextId);
 
                 final GUID containerGUID = GUIDReader.getGUID(VitamThreadUtils.getVitamSession().getRequestId());
-                ProcessContext process = createProcessContextObject(PROCESS_CONTEXT_FILE, contextId);
+                ProcessContext process = createProcessContextObject(contextId);
                 if (process == null) {
                     throw new IngestInternalException("Processing Context not found");
                 }
@@ -1172,33 +1173,16 @@ public class IngestInternalResource extends ApplicationStatusResource {
     /**
      * creates ProcessContext object : parse JSON file
      *
-     * @param fileName filename of Json file
      * @param contextId the context id
      * @return ProcessContext's object
      * @throws WorkflowNotFoundException if there is no workflow found
      * @throws ContextNotFoundException if context not found from file data
      */
-    public ProcessContext createProcessContextObject(String fileName, String contextId)
+    private ProcessContext createProcessContextObject(String contextId)
         throws WorkflowNotFoundException, ContextNotFoundException {
-        ParametersChecker.checkParameter("fileName is a mandatory parameter", fileName);
         ParametersChecker.checkParameter("contextId is a mandatory parameter", contextId);
-        ProcessContext processCtx = new ProcessContext();
         try {
-            final InputStream inputJSON = getFileAsInputStream(PROCESS_CONTEXT_FILE);
-            JsonNode context = JsonHandler.getFromInputStream(inputJSON);
-            if (context == null || context.get(contextId) == null) {
-                throw new ContextNotFoundException("Context id :" + contextId + " not found in " + context);
-            }
-
-            if (!context.get(contextId).isNull()) {
-                JsonNode data = context.get(contextId);
-                processCtx.setExecutionContext(data.get(EXECUTION_CONTEXT).asText());
-                processCtx.setWorkFlowId(data.get(WORKFLOW_ID).asText());
-                processCtx.setLogbookTypeProcess(LogbookTypeProcess.valueOf(data.get(LOGBOOK_TYPE_PROCESS).asText()));
-                return processCtx;
-            } else {
-                throw new WorkflowNotFoundException("WorkFlow Not Found");
-            }
+            return getProcessContext(contextId);
         } catch (IOException e) {
             LOGGER.error("IOException thrown when creating Process Context Object", e);
             throw new WorkflowNotFoundException("IOException thrown when creating Process Context Object", e);
@@ -1212,8 +1196,61 @@ public class IngestInternalResource extends ApplicationStatusResource {
         }
     }
 
-    private static InputStream getFileAsInputStream(String workflowFile) throws IOException {
-        return PropertiesUtils.getConfigAsStream(workflowFile);
+    /**
+     * getProcessContext, get ProcessContext from config files
+     *
+     * @param contextId the contextId
+     * @return ProcessContext's object
+     * @throws InvalidParseOperationException if unable to parse workflow file
+     * @throws IOException if there is no workflow found
+     * @throws ContextNotFoundException if context not found from file data
+     */
+    private ProcessContext getProcessContext(String contextId)
+            throws InvalidParseOperationException, IOException, ContextNotFoundException {
+
+        // read resource config file
+        JsonNode context;
+        InputStream extInputJSON = null;
+        try (final InputStream inputJSON = PropertiesUtils.getConfigAsStream(PROCESS_CONTEXT_FILE)) {
+
+            // read external config file if found
+            try {
+                extInputJSON = PropertiesUtils.getConfigAsStream(EXTERNAL_PROCESS_CONTEXT_FILE);
+            } catch (IOException ioe){
+                // do nothing as external config file is optional
+                LOGGER.warn("IOException thrown while loading External Process Context", ioe);
+            }
+
+            // create context node
+            context = JsonHandler.getFromInputStream(inputJSON, extInputJSON);
+        } finally {
+            // close the external config file input stream
+            try {
+                if(extInputJSON != null) {
+                    extInputJSON.close();
+                }
+            } catch(IOException e){
+                LOGGER.warn("IOException thrown while closing External Process Context file", e);
+            }
+        }
+
+        // check created context node
+        if (context == null || context.get(contextId) == null) {
+            throw new ContextNotFoundException("Context id :" + contextId + " not found in " + context);
+        }
+
+        // setup process context
+        if (!context.get(contextId).isNull()) {
+            JsonNode data = context.get(contextId);
+
+            ProcessContext processCtx = new ProcessContext();
+            processCtx.setExecutionContext(data.get(EXECUTION_CONTEXT).asText());
+            processCtx.setWorkFlowId(data.get(WORKFLOW_ID).asText());
+            processCtx.setLogbookTypeProcess(LogbookTypeProcess.valueOf(data.get(LOGBOOK_TYPE_PROCESS).asText()));
+            return processCtx;
+        } else {
+            throw new WorkflowNotFoundException("WorkFlow Not Found");
+        }
     }
 
     /**

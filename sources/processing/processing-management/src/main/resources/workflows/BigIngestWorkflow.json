@@ -1,9 +1,12 @@
 {
-  "id": "DefaultIngestBlankTestWorkflow",
-  "comment": "Default Ingest Blank Test Workflow V6",
+  "id": "BigIngestWorkflow",
+  "name": "Big Ingest Workflow",
+  "identifier": "BigIngestWorkflow",
+  "typeProc": "Ingest Workflow",
+  "comment": "Big Ingest Workflow V6",
   "steps": [
     {
-      "workerGroupId": "DefaultWorker",
+      "workerGroupId": "BigWorker",
       "stepName": "STP_INGEST_CONTROL_SIP",
       "behavior": "BLOCKING",
       "distribution": {
@@ -94,7 +97,7 @@
       ]
     },
     {
-      "workerGroupId": "DefaultWorker",
+      "workerGroupId": "BigWorker",
       "stepName": "STP_OG_CHECK_AND_TRANSFORME",
       "behavior": "BLOCKING",
       "distribution": {
@@ -123,7 +126,7 @@
       ]
     },
     {
-      "workerGroupId": "DefaultWorker",
+      "workerGroupId": "BigWorker",
       "stepName": "STP_UNIT_CHECK_AND_PROCESS",
       "behavior": "BLOCKING",
       "distribution": {
@@ -131,6 +134,12 @@
         "element": "Units"
       },
       "actions": [
+      	{
+          "action": {
+            "actionKey": "CHECK_UNIT_SCHEMA",
+            "behavior": "BLOCKING"
+          }
+        },
         {
           "action": {
             "actionKey": "UNITS_RULES_COMPUTE",
@@ -140,7 +149,7 @@
       ]
     },
     {
-      "workerGroupId": "DefaultWorker",
+      "workerGroupId": "BigWorker",
       "stepName": "STP_STORAGE_AVAILABILITY_CHECK",
       "behavior": "BLOCKING",
       "distribution": {
@@ -157,7 +166,93 @@
       ]
     },
     {
-      "workerGroupId": "DefaultWorker",
+      "workerGroupId": "BigWorker",
+      "stepName": "STP_OG_STORING",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST",
+        "element": "ObjectGroup"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "OG_STORAGE",
+            "behavior": "BLOCKING"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "OG_METADATA_INDEXATION",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "BigWorker",
+      "stepName": "STP_UNIT_STORING",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST",
+        "element": "Units"
+      },
+      "actions": [        
+        {
+          "action": {
+            "actionKey": "UNIT_METADATA_INDEXATION",
+            "behavior": "BLOCKING",
+	        "in": [
+	            {
+	               "name": "UnitType",
+	               "uri": "VALUE:INGEST"
+                },
+	            {
+	              "name": "globalSEDAParameters.file",
+	              "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
+	            }
+	        ]            
+            
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "BigWorker",
+      "stepName": "STP_ACCESSION_REGISTRATION",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": "SIP/manifest.xml"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "ACCESSION_REGISTRATION",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "mapsUnits.file",
+                "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "mapsDO.file",
+                "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "mapsDO.file",
+                "uri": "WORKSPACE:Maps/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP.json"
+              },
+              {
+                "name": "globalSEDAParameters.file",
+                "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "BigWorker",
       "stepName": "STP_INGEST_FINALISATION",
       "behavior": "FINALLY",
       "distribution": {
@@ -168,7 +263,7 @@
         {
           "action": {
             "actionKey": "ATR_NOTIFICATION",
-            "behavior": "NOBLOCKING",
+            "behavior": "BLOCKING",
             "in": [
               {
                 "name": "mapsUnits.file",
@@ -207,12 +302,6 @@
                 "uri": "WORKSPACE:ATR/responseReply.xml"
               }
             ]
-          }
-        },
-        {
-          "action": {
-            "actionKey": "ROLL_BACK",
-            "behavior": "BLOCKING"
           }
         }
       ]

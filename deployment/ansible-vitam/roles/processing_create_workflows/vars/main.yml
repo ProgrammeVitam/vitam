@@ -1,0 +1,3 @@
+---
+
+vitam_folder_conf: "{{vitam_folder_root}}/conf/{{vitam_component}}"
