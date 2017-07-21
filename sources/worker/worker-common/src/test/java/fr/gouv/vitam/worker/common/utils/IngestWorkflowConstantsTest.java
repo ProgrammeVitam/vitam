@@ -30,6 +30,8 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+import fr.gouv.vitam.common.model.IngestWorkflowConstants;
+
 public class IngestWorkflowConstantsTest {
 
     @Test

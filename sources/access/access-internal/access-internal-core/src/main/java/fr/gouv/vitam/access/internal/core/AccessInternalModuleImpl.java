@@ -82,6 +82,7 @@ import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.VitamConstants.AppraisalRuleFinalAction;
@@ -736,7 +737,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
                 try (FileInputStream inputStream = new FileInputStream(file)) {
                     workspaceClient.putObject(requestId,
-                        StorageCollectionType.UNITS.getCollectionName() + File.separator + fileName,
+                        IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + fileName,
                         inputStream);
                 } catch (final IOException e) {
                     throw new AccessInternalExecutionException(CANNOT_FOUND_OR_READ_SOURCE_FILE + file, e);
@@ -746,7 +747,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     }
                 }
                 // updates (replaces) stored object
-                storeMetaDataUnit(new ObjectDescription(StorageCollectionType.UNITS, requestId, fileName));
+                storeMetaDataUnit(new ObjectDescription(StorageCollectionType.UNITS, requestId, fileName,
+                    IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + fileName));
 
             } else {
                 LOGGER.error(ARCHIVE_UNIT_NOT_FOUND);

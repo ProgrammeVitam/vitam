@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
@@ -52,7 +53,6 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IndexObjectGroupActionPlugin.class);
     private static final String OG_INDEXATION = "OG_INDEXATION";
 
-    private static final String OBJECT_GROUP = "ObjectGroup";
     private HandlerIO handlerIO;
 
     /**
@@ -101,7 +101,8 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
         ParameterHelper.checkNullOrEmptyParameters(params);
         final String objectName = params.getObjectName();
         try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
-            final ObjectNode json = (ObjectNode) handlerIO.getJsonFromWorkspace(OBJECT_GROUP + "/" + objectName);
+            final ObjectNode json = (ObjectNode) handlerIO
+                .getJsonFromWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + objectName);
             json.remove(SedaConstants.PREFIX_WORK);
             final InsertMultiQuery insertRequest = new InsertMultiQuery().addData(json);
             metadataClient.insertObjectGroup(insertRequest.getFinalInsert());

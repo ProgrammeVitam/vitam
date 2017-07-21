@@ -65,9 +65,11 @@ public class StoredInfoResult {
 
     /**
      * @param strategy the strategy to set
+     * @return this
      */
-    public void setStrategy(String strategy) {
+    public StoredInfoResult setStrategy(String strategy) {
         this.strategy = strategy;
+        return this;
     }
 
     /**
@@ -79,9 +81,11 @@ public class StoredInfoResult {
 
     /**
      * @param nbCopy the nbCopy to set
+     * @return this
      */
-    public void setNbCopy(int nbCopy) {
+    public StoredInfoResult setNbCopy(int nbCopy) {
         this.nbCopy = nbCopy;
+        return this;
     }
 
     /**
@@ -93,9 +97,11 @@ public class StoredInfoResult {
 
     /**
      * @param offerIds the offerIds to set
+     * @return this
      */
-    public void setOfferIds(List<String> offerIds) {
+    public StoredInfoResult setOfferIds(List<String> offerIds) {
         this.offerIds = offerIds;
+        return this;
     }
 
     /**
@@ -107,9 +113,11 @@ public class StoredInfoResult {
 
     /**
      * @param id of global result
+     * @return this
      */
-    public void setId(String id) {
+    public StoredInfoResult setId(String id) {
         this.id = id;
+        return this;
     }
 
     /**
@@ -121,9 +129,11 @@ public class StoredInfoResult {
 
     /**
      * @param info of result 
+     * @return this
      */
-    public void setInfo(String info) {
+    public StoredInfoResult setInfo(String info) {
         this.info = info;
+        return this;
     }
 
     /**
@@ -135,9 +145,11 @@ public class StoredInfoResult {
 
     /**
      * @param objectGroupId of global result
+     * @return this
      */
-    public void setObjectGroupId(String objectGroupId) {
+    public StoredInfoResult setObjectGroupId(String objectGroupId) {
         this.objectGroupId = objectGroupId;
+        return this;
     }
 
     /**
@@ -149,9 +161,11 @@ public class StoredInfoResult {
 
     /**
      * @param unitIds of global result
+     * @return this
      */
-    public void setUnitIds(List<String> unitIds) {
+    public StoredInfoResult setUnitIds(List<String> unitIds) {
         this.unitIds = unitIds;
+        return this;
     }
 
     /**
@@ -163,9 +177,11 @@ public class StoredInfoResult {
 
     /**
      * @param creationTime of global result
+     * @return this
      */
-    public void setCreationTime(String creationTime) {
+    public StoredInfoResult setCreationTime(String creationTime) {
         this.creationTime = creationTime;
+        return this;
     }
 
     /**
@@ -177,9 +193,11 @@ public class StoredInfoResult {
 
     /**
      * @param lastAccessTime of global result
+     * @return this
      */
-    public void setLastAccessTime(String lastAccessTime) {
+    public StoredInfoResult setLastAccessTime(String lastAccessTime) {
         this.lastAccessTime = lastAccessTime;
+        return this;
     }
 
     /**
@@ -191,9 +209,11 @@ public class StoredInfoResult {
 
     /**
      * @param lastCheckedTime of global result
+     * @return this
      */
-    public void setLastCheckedTime(String lastCheckedTime) {
+    public StoredInfoResult setLastCheckedTime(String lastCheckedTime) {
         this.lastCheckedTime = lastCheckedTime;
+        return this;
     }
 
     /**
@@ -205,9 +225,11 @@ public class StoredInfoResult {
 
     /**
      * @param lastModifiedTime of global result
+     * @return this
      */
-    public void setLastModifiedTime(String lastModifiedTime) {
+    public StoredInfoResult setLastModifiedTime(String lastModifiedTime) {
         this.lastModifiedTime = lastModifiedTime;
+        return this;
     }
     
     @Override

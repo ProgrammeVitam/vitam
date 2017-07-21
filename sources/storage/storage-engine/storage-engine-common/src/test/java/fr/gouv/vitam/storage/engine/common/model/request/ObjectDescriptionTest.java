@@ -49,11 +49,4 @@ public class ObjectDescriptionTest {
         createObjectDescription.setWorkspaceContainerGUID("GUID");
         assertEquals("GUID", createObjectDescription.getWorkspaceContainerGUID());
     }
-
-    @Test
-    public void testConstructorWithParam() throws Exception {
-        final ObjectDescription createObjectDescription = new ObjectDescription("containerGUID", "objectURI");
-        assertEquals("containerGUID", createObjectDescription.getWorkspaceContainerGUID());
-        assertEquals("objectURI", createObjectDescription.getWorkspaceObjectURI());
-    }
 }

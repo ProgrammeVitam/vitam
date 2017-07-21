@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.worker.core.plugin;
 
+import java.io.File;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -38,6 +40,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
@@ -89,7 +92,8 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreObjectActionHandl
             final String objectNameFinal = StringUtils.substringBeforeLast(params.getObjectName(), ".");
 
             final ObjectDescription description =
-                new ObjectDescription(StorageCollectionType.OBJECTGROUPS, params.getContainerName(), objectName);
+                new ObjectDescription(StorageCollectionType.OBJECTGROUPS, params.getContainerName(), objectName,
+                    IngestWorkflowConstants.OBJECT_GROUP_FOLDER + File.separator + objectName);
             // transfer json to workspace
             StoredInfoResult result = storeObject(description, itemStatus);
             // Update OG with store information
@@ -100,7 +104,7 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreObjectActionHandl
                     LOGGER.debug("Final OG: {}", og);
                     metaDataClient.updateObjectGroupById(query.getFinalUpdate(), objectNameFinal);
                     try {
-                        handlerIO.transferJsonToWorkspace(StorageCollectionType.OBJECTGROUPS.getCollectionName(), objectName,
+                        handlerIO.transferJsonToWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER, objectName,
                             og, true, asyncIO);
                     } catch (ProcessingException e) {
                         LOGGER.error(params.getObjectName(), e);
@@ -109,6 +113,9 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreObjectActionHandl
                 } catch (InvalidCreateOperationException e) {
                     LOGGER.error(e);
                 }
+            } else {
+                // Not stored: KO or FATAL set by storage client
+                return new ItemStatus(OG_METADATA_STORAGE).setItemsStatus(OG_METADATA_STORAGE, itemStatus);
             }
 
             itemStatus.increment(StatusCode.OK);
@@ -151,16 +158,7 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreObjectActionHandl
             LOGGER.error(params.getObjectName(), e);
             throw e;
         }
-        // transfer json to workspace
-        try {
-            handlerIO.transferJsonToWorkspace(StorageCollectionType.OBJECTGROUPS.getCollectionName(),
-                params.getObjectName(),
-                jsonNode, true, asyncIO);
-            return jsonNode;
-        } catch (ProcessingException e) {
-            LOGGER.error(params.getObjectName(), e);
-            throw new WorkspaceClientServerException(e);
-        }
+        return jsonNode;
     }
 
 

@@ -235,7 +235,7 @@ public class ContextServiceImpl implements ContextService {
             mongoAccess.findDocuments(parser.getRequest().getFinalSelect(), FunctionalAdminCollections.CONTEXT)) {
             final List<ContextModel> list = result.getDocuments(Context.class, ContextModel.class);
             if (list.isEmpty()) {
-                return null;
+                throw new ReferentialException("Context not found");
             }
             return list.get(0);
         }
