@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.json;
 
 import java.io.FileNotFoundException;
+import java.text.ParseException;
 import java.util.Date;
 import java.util.Iterator;
 
@@ -130,7 +131,7 @@ public class SchemaValidationUtils {
                         SchemaValidationStatusEnum.NOT_AU_JSON_VALID);
                 }  
             }
-        } catch (ProcessingException e) {
+        } catch (ProcessingException | ParseException e) {
             LOGGER.error("File is not a valid json file", e);
             return new SchemaValidationStatus("File is not a valid json file",
                 SchemaValidationStatusEnum.NOT_JSON_FILE);

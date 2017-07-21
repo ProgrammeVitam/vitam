@@ -140,7 +140,7 @@ public class UpdateActionHelperTest {
     }
 
     @Test
-    public void testMin() {
+    public void testMin() throws Exception {
         try {
             Action action = min("var1", 5);
             assertTrue(action.getCurrentAction().size() == 1);
@@ -172,7 +172,7 @@ public class UpdateActionHelperTest {
     }
 
     @Test
-    public void testMax() {
+    public void testMax()  throws Exception {
         try {
             Action action = max("var1", 5);
             assertTrue(action.getCurrentAction().size() == 1);

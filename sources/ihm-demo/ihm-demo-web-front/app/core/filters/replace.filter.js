@@ -44,4 +44,15 @@ angular.module('ihm.demo')
       }
       return text;
     };
-  });
+  })
+    .filter('StatusFilter', function () {
+      return function (text) {
+        if (text === true) {
+          return 'Actif';
+        }
+        if (text === false) {
+          return 'Inactif';
+        }
+        return text;
+      };
+    });

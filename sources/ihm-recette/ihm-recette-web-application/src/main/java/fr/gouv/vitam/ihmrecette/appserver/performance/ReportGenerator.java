@@ -135,7 +135,7 @@ public class ReportGenerator implements AutoCloseable {
                 final Date startDateTime = LocalDateUtil.getDate(startDate);
                 final Date endDateTime = LocalDateUtil.getDate(endDate);
                 return String.valueOf(endDateTime.getTime() - startDateTime.getTime());
-            } catch (DateTimeParseException | IllegalArgumentException e) {
+            } catch (DateTimeParseException | IllegalArgumentException | ParseException e) {
                 LOGGER.error(String.format("unable to parse date: %s or %s", startDate, endDate));
                 return "";
             }

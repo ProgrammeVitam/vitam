@@ -29,6 +29,7 @@
  */
 package fr.gouv.vitam.common.database.parser.request;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -50,6 +51,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
  */
 public class GlobalDatasParser extends GlobalDatas {
 
+    private static final String DATE_INVALID = "Date invalid";
     /**
      * Default limit for Request (sanity check)
      */
@@ -133,7 +135,11 @@ public class GlobalDatasParser extends GlobalDatas {
         } else if (value.canConvertToLong()) {
             return value.asLong();
         } else if (value.has(Query.DATE)) {
-            return LocalDateUtil.getDate(value.get(Query.DATE).asText());
+            try {
+                return LocalDateUtil.getDate(value.get(Query.DATE).asText());
+            } catch (ParseException e) {
+                throw new InvalidParseOperationException(DATE_INVALID);
+            }
         } else if (value.isArray()) {
             List<Object> list = new ArrayList<>();
             for (JsonNode item : (ArrayNode) value) {
@@ -170,7 +176,11 @@ public class GlobalDatasParser extends GlobalDatas {
         } else if (value.canConvertToLong()) {
             return node.add(value.asLong());
         } else if (value.has(Query.DATE)) {
-            return node.add(LocalDateUtil.getFormattedDate(LocalDateUtil.getDate(value.get(Query.DATE).asText())));
+            try {
+                return node.add(LocalDateUtil.getFormattedDate(LocalDateUtil.getDate(value.get(Query.DATE).asText())));
+            } catch (ParseException e) {
+                throw new InvalidParseOperationException(DATE_INVALID);
+            }
         } else {
             return node.add(value.asText());
         }

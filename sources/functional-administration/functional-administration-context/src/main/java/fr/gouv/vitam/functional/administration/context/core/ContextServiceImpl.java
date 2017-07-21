@@ -175,6 +175,8 @@ public class ContextServiceImpl implements ContextService {
                 if (manager.validateContext(cm, error)) {
 
                     cm.setId(GUIDFactory.newContextGUID().getId());
+                    cm.setCreationdate(new Date().toString());
+                    cm.setLastupdate(new Date().toString());
 
                     final JsonNode contextNode = JsonHandler.toJsonNode(cm);
 
@@ -186,8 +188,6 @@ public class ContextServiceImpl implements ContextService {
 
                     contextsToPersist.add(contextNode);
                     final ContextModel ctxt = JsonHandler.getFromJsonNode(contextNode, ContextModel.class);
-                    ctxt.setCreationdate(new Date().toString());
-                    ctxt.setLastupdate(new Date().toString());
                     contextsListToPersist.add(ctxt);
                 }
             }

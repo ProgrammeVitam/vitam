@@ -33,32 +33,39 @@ angular.module('contexts')
         $scope.startFormat = resultStartService.startFormat;
 
         $scope.search = {
-            form: {
-                ContextID: '',
-                ContextName: ''
-            }, pagination: {
-                currentPage: 0,
-                resultPages: 0,
-                itemsPerPage: ITEM_PER_PAGE
-            }, error: {
-                message: '',
-                displayMessage: false
-            }, response: {
-                data: [],
-                hints: {},
-                totalResult: 0
-            }
-        };
-
-        $scope.dynamicTable = {
-            customFields: [],
+          form: {
+            ContextID: '',
+            ContextName: ''
+          }, pagination: {
+            currentPage: 0,
+            resultPages: 0,
+            itemsPerPage: ITEM_PER_PAGE
+          }, error: {
+            message: '',
+            displayMessage: false
+          }, response: {
+            data: [],
+            hints: {},
+            totalResult: 0
+          }, dynamicTable : {
+            customFields: [{ id : '_id', label : 'GUID'}, { id : 'hasAccesContract', label : 'Contrat d\'accès'}, { id : 'hasIngestContract', label : 'Contrat d\'entrée'} ],
             selectedObjects: []
+          }
         };
 
         $scope.goToDetails = function (id) {
             $window.open('#!/admin/contexts/' + id)
         };
 
+        $scope.shouldShowItem = function(name) {
+          var showItem = false;
+          $scope.search.dynamicTable.selectedObjects.forEach(function(value) {
+            if (value.id == name) {
+              showItem = true;
+            }
+          });
+          return showItem;
+        };
         function initFields(fields) {
             var result = [];
             for (var i = 0, len = fields.length; i < len; i++) {
@@ -69,14 +76,6 @@ angular.module('contexts')
             }
             return result;
         }
-
-        loadStaticValues.loadFromFile().then(
-            function onSuccess(response) {
-                var config = response.data;
-                $scope.dynamicTable.customFields = initFields(config.logbookOperationCustomFields);
-            }, function onError(error) {
-
-            });
 
         var preSearch = function () {
             var requestOptions = angular.copy($scope.search.form);
@@ -95,7 +94,23 @@ angular.module('contexts')
         };
 
         var successCallback = function () {
-            return true;
+          console.log ($scope.search.response.data);
+          $scope.search.response.data.forEach(function(value) {
+            value.hasAccesContract = false;
+            value.hasIngestContract = false;
+            if (value.Permissions != null) {
+              value.Permissions.forEach(function(permission) {
+                if (permission.IngestContracts != null && permission.IngestContracts.length > 0) {
+                  value.hasIngestContract = true;
+                }
+                if (permission.AccessContracts != null && permission.AccessContracts.length > 0) {
+                  value.hasAccesContract = true;
+                }
+              })
+            }
+          });
+
+          return true;
         };
 
         var computeErrorMessage = function () {

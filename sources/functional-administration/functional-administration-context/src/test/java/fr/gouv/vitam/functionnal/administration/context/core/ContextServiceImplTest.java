@@ -169,6 +169,8 @@ public class ContextServiceImplTest {
         assertThat(response.isOk()).isTrue();
         final RequestResponseOK<ContextModel> responseCast = (RequestResponseOK<ContextModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
+        assertThat(responseCast.getResults().get(0).getCreationdate()).isNotNull();
+        assertThat(responseCast.getResults().get(0).getLastupdate()).isNotNull();
     }
 
     @Test
