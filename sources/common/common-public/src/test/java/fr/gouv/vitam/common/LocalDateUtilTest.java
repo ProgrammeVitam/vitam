@@ -130,12 +130,13 @@ public class LocalDateUtilTest {
     }
 
     @Test
-    public void checkConversion() throws IOException {
+    public void checkConversion() throws Exception {
         final LocalDateTime ldt = LocalDateUtil.now();
         assertEquals(ldt.format(DateTimeFormatter.ISO_DATE_TIME), LocalDateUtil.getString(ldt));
         assertEquals(ldt, LocalDateUtil.fromDate(LocalDateUtil.getDate(ldt)));
         assertNotNull(LocalDateUtil.fromMillis(LocalDateUtil.getMillis(ldt)));
         assertNotNull(LocalDateUtil.getDate(ldt.toString()));
+        assertNotNull(LocalDateUtil.getDate("2017-05-12"));
         assertNotNull(LocalDateUtil.fromMillis(-1));
         assertNotNull(LocalDateUtil.fromDate((Date) null));
         assertNotNull(LocalDateUtil.fromDate((FileTime) null));

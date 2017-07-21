@@ -40,7 +40,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-
+import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
@@ -741,7 +741,12 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         actions.add(setRuleValue);
         SetAction setRuleDescription = new SetAction(RULE_DESCRIPTION, fileRulesModel.getRuleDescription());
         actions.add(setRuleDescription);
-        final Date date = LocalDateUtil.getDate(LocalDateUtil.getString(LocalDateTime.now()));
+        Date date;
+        try {
+            date = LocalDateUtil.getDate(LocalDateUtil.getString(LocalDateTime.now()));
+        } catch (ParseException e) {
+            throw new InvalidParseOperationException("Invalid date");
+        }
         final LocalDateTime localTime = LocalDateUtil.fromDate(date);
         SetAction setUpdateDate =
             new SetAction(UPDATE_DATE, localTime.toString());

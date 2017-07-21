@@ -431,7 +431,7 @@ public class InsertParserMultipleTest {
     }
 
     @Test
-    public void testGlobalDatasParser_GetValue() throws InvalidParseOperationException {
+    public void testGlobalDatasParser_GetValue() throws Exception {
         JsonNode value = JsonHandler.getFromString("true");
         assertEquals(value.asBoolean(), GlobalDatasParser.getValue(value));
         value = JsonHandler.getFromString("1.0");

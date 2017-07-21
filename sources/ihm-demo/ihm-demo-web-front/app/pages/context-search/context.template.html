@@ -45,30 +45,42 @@
         </a>
 
         <div id="boxEntriesList" class="panel-body panel-collapse collapse in">
-
+            <dynamic-table custom-fields="search.dynamicTable.customFields" selected-objects="search.dynamicTable.selectedObjects">
+            </dynamic-table>
             <div class="table-responsive">
                 <table class="table highlighted">
                     <tr>
                         <th>Nom</th>
                         <th>Identifiant</th>
-                        <th>Description</th>
                         <th>Statut</th>
                         <th>Date d'activation</th>
                         <th>Date désactivation</th>
                         <th>Date de création</th>
                         <th>Dernière modification</th>
+                        <th ng-repeat="column in search.dynamicTable.selectedObjects">{{column.label | translate}}</th>
                     </tr>
 
-                    <tbody ng-repeat="log in search.response.data | orderBy:'Name' | startFrom:startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage, search.pagination.startOffset) | limitTo:search.pagination.itemsPerPage">
-                    <tr ng-click="goToDetails(log.Identifier)">
-                        <td>{{log.Name}}</td>
-                        <td>{{log.Identifier}}</td>
-                        <td>{{log.Description}}</td>
-                        <td>{{log.Status | StrReplace }}</td>
-                        <td>{{log.ActivationDate | vitamFormatDate}}</td>
-                        <td>{{log.DeactivationDate | vitamFormatDate}}</td>
-                        <td>{{log.CreationDate | vitamFormatDate}}</td>
-                        <td>{{log.LastUpdate | vitamFormatDate}}</td>
+                    <tbody ng-repeat="context in search.response.data | orderBy:'Name' | startFrom:startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage, search.pagination.startOffset) | limitTo:search.pagination.itemsPerPage">
+                    <tr ng-click="goToDetails(context.Identifier)">
+                        <td>{{context.Name}}</td>
+                        <td>{{context.Identifier}}</td>
+                        <td>{{context.Status | StatusFilter }}</td>
+                        <td>{{context.ActivationDate | vitamFormatDate}}</td>
+                        <td>{{context.DeactivationDate | vitamFormatDate}}</td>
+                        <td>{{context.CreationDate | vitamFormatDate}}</td>
+                        <td>{{context.LastUpdate | vitamFormatDate}}</td>
+                        <!-- Dynamic columns values -->
+                        <td ng-show="shouldShowItem('_id')">
+                            {{context._id}}
+                        </td>
+                        <td ng-show="shouldShowItem('hasAccesContract')">
+                            <i ng-if="context.hasAccesContract" class="material-icons">done</i>
+                            <i ng-if="!context.hasAccesContract" class="material-icons">close</i>
+                        </td>
+                        <td ng-show="shouldShowItem('hasIngestContract')">
+                            <i ng-if="context.hasIngestContract" class="material-icons">done</i>
+                            <i ng-if="!context.hasIngestContract" class="material-icons">close</i>
+                        </td>
                     </tr>
                     </tbody>
                 </table>

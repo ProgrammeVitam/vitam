@@ -46,6 +46,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -182,7 +183,12 @@ public class LogbookAdministration {
         if (lastTraceabilityOperation == null) {
             startDate = LocalDateTime.MIN;
         } else {
-            final Date date = LocalDateUtil.getDate(lastTraceabilityOperation.getString(EVENT_DATE_TIME));
+            Date date;
+            try {
+                date = LocalDateUtil.getDate(lastTraceabilityOperation.getString(EVENT_DATE_TIME));
+            } catch (ParseException e) {
+                throw new InvalidParseOperationException("Invalid date");
+            }
             startDate = LocalDateUtil.fromDate(date);
             expectedLogbookId.add(lastTraceabilityOperation.getString(EVENT_ID));
         }
