@@ -13,7 +13,6 @@
     <packaging>pom</packaging>
 
     <modules>
-      	<module>ingest-internal-common</module>
         <module>ingest-internal-api</module>
         <module>ingest-internal-rest</module>
         <module>ingest-internal-client</module>

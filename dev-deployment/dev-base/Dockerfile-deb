@@ -83,6 +83,9 @@ RUN curl http://wwwftp.ciril.fr/pub/apache/maven/maven-3/3.3.9/binaries/apache-m
 ENV M2_HOME /opt/maven
 ENV PATH ${M2_HOME}/bin:${JAVA_HOME}/bin:${PATH}
 
+# Add golang-1.6 to PATH
+ENV PATH ${PATH}:/usr/lib/go-1.6/bin
+
 ################################  Install ansible  ###############################
 # for sudo in automatic deployment ; note : ansible needs epel repo
 
@@ -93,7 +96,7 @@ RUN apt-get update && apt-get install -y sudo net-tools \
 # Editor & unzip
 RUN apt-get install -y vim unzip wget
 
-RUN apt-get install -y golang golang-1.6 
+RUN apt-get install -y golang-1.6
 
 #RUN apt-get install -y -t jessie-backports node-gyp nodejs-dev libssl1.0.0
 
