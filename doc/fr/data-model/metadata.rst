@@ -40,14 +40,22 @@ Exemple de JSON
      ],
      "_sp": "FRAN_NP_009913",
      "_mgt": {
-        "StorageRule": [
-           {
+        "StorageRule": {
+          "Rules": [
+            {
               "Rule": "R1",
               "StartDate": "2017-05-01",
               "FinalAction": "RestrictAccess",
               "EndDate": "2018-05-01"
-           }
-        ],
+            }
+          ],
+          "Inheritance": {
+            "PreventRulesId": [
+                "R2", "R3"
+            ],
+            "PreventInheritance": true
+          }
+        },
         "OriginatingAgency": "FRAN_NP_009913"
      },
      "_ops": [
@@ -182,17 +190,26 @@ Cette transposition se fait comme suit :
   Ces informations sont réunies dans le tableau sous la forme de clef/valeur. Exemple [{GUID1 : depth1}, {GUID2 : depth2}, ... }].
   Il s'agit d'un tableau de JSON.
 
-_profil: Type de document utilisé lors de l'entrée. 
+_profil: Type de document utilisé lors de l'entrée.
   Correspond à ArchiveUnitProfile, le profil d'archivage utilisé lors de l'entrée.
   Chaîne de caractères.
 
 "_mgt": **contient les balises reprises du bloc <Management> du bordereau pour cette unité archivistique** :
   * "OriginatingAgency": service producteur déclaré dans le message ArchiveTransfer (OriginatingAgencyIdentifier)
-  * "RuleType" [] : règles de gestion appliquées à cette unité archivistiques. Chaque tableau correspond à une catégorie de règle. Pour être valide, la catégorie de règle doit être présente dans la collection FileRules. Chaque tableau, optionnel, contient une à n règles. Chaque règle est composée des champs suivants :
-    * "Rule": identifiant de la règle. Pour être valide, elle doit être contenue dans la collection FileRules, et correspondre à la valeur du champ RuleID de la collection FileRules.
-    * "StartDate": date de début du calcul de l'échéance. Cette date est déclarée dans le message ArchiveTransfert ou ajoutée *a posteriori* par une modification.
-    * "FinalAction": champ décrivant le sort final. Ce champ est disponible pour les règles de catégorie "StorageRule" et "AppraisalRule". La valeur contenue dans le champ doit être disponible soit dans l'énumération FinalActionAppraisalCodeType soit dans FinalActionStorageCodeType.
-    * "EndDate": date de fin d'application de la règle; Cette valeur est issue d'un calcul réalisé par la solution logicielle Vitam consistant en l'ajout du délai correspondant à la règle dans la collection FileRules et le champ startDate.
+  * "RuleType" : catégorie de règles de gestion appliquées à cette unité archivistiques. Chaque catégorie contient un tableau de règles de gestion et des paramétres d'héritage de règles. Pour être valide, la catégorie de règle doit être présente dans la collection FileRules.
+    * "Rules" : Tableau, optionnel, contient une à n règles. Chaque règle est composée des champs suivants :
+      * "Rule": identifiant de la règle. Pour être valide, elle doit être contenue dans la collection FileRules, et correspondre à la valeur du champ RuleID de la collection FileRules.
+      * "StartDate": date de début du calcul de l'échéance. Cette date est déclarée dans le message ArchiveTransfert ou ajoutée *a posteriori* par une modification.
+      * "FinalAction": champ décrivant le sort final. Ce champ est disponible pour les règles de catégorie "StorageRule" et "AppraisalRule". La valeur contenue dans le champ doit être disponible soit dans l'énumération FinalActionAppraisalCodeType soit dans FinalActionStorageCodeType.
+      * "ClassificationLevel" : champ référencant le niveau de classification. Ce champ est disponible pour les règles de la cétégorie "ClassificationRule".
+      * "ClassificationOwner" : champ indiquant le propriétaire de la classification. Ce champ est disponible pour les règles de la cétégorie "ClassificationRule".
+      * "ClassificationReassessingDate" : date de réévaluation de la classification. Ce champ est disponible pour les règles de la cétégorie "ClassificationRule".
+      * "NeedReassessingAuthorization" : champ booléen indiquant si une autorisation humaine est nécessaire pour réévaluer la classification. Ce champ est disponible pour les règles de la cétégorie "ClassificationRule".
+      * "EndDate": date de fin d'application de la règle; Cette valeur est issue d'un calcul réalisé par la solution logicielle Vitam consistant en l'ajout du délai correspondant à la règle dans la collection FileRules et le champ startDate.
+  * "Inheritance" : paramétres d'héritage des règles de gestion.
+    * "PreventInheritance" : champ booléan indiquant si les règles de gestion de la même catégorie ne doivent pas être héritées d'un ancêtre.
+    * "PreventRulesId" : tableau de d'identifiants de règles de gestion qui ne doivent pas être héritées d'un ancêtre.
+
 
 Collection ObjectGroup
 ======================
