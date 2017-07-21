@@ -14,9 +14,17 @@ Champs disponibles
 
 **Collection** : champ obligatoire. Liste permettant de sélectionner la collection sur laquelle la requête va être exécutée.
 
-**Action** : champ obligatoire. Liste permettant de sélectionner le type d'action à effectuer. Actuellement, il n'est possible de sélectionner que "Rechercher", sauf pour la collection "Contexte" qui a également l'option "Mise à jour".
+**Action** : champ obligatoire. Liste permettant de sélectionner le type d'action à effectuer. Il est possible de sélectionner l'action "Rechercher" pour l'ensemble des collections.
 
-**Identifiant** : champs optionnel. Permet de renseigner le GUID de l'objet recherché.
+Pour les collections suivantes, il est également possible de choisir l'action "Mise à jour" :
+
+* Unit
+* Contrat d'accès
+* Contrat d'entrée
+* Contexte
+* Opération
+
+**Identifiant** : champs optionnel. Permet de renseigner le GUID de l'objet ciblé dans la collection.
 
 **Requête DSL** : champ obligatoire. Permet de saisir la requête DSL au format Json.
 
