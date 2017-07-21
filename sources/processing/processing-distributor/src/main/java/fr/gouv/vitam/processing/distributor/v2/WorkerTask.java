@@ -106,6 +106,14 @@ public class WorkerTask implements Supplier<ItemStatus> {
 
         } catch (Exception e) {
             LOGGER.error(e);
+            if (e instanceof WorkerUnreachableException) {
+                throw e;
+            }
+
+            if (e instanceof WorkerExecutorException) {
+                throw e;
+            }
+
             throw new WorkerExecutorException(e);
         } finally {
             LOGGER.info("End executing of task number :" + descriptionStep.getStep().getStepName() + " on worker: " + workerBean.getWorkerId());

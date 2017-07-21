@@ -30,6 +30,7 @@ package fr.gouv.vitam.worker.core.plugin;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -40,6 +41,7 @@ import javax.ws.rs.core.Response;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import com.gc.iotools.stream.is.InputStreamFromOutputStream;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
@@ -69,7 +71,7 @@ public class CheckConformityActionPlugin extends ActionHandler {
     private HandlerIO handlerIO;
     private boolean oneOrMoreMessagesDigestUpdated = false;
     private static final int ALGO_RANK = 0;
-
+    private boolean asyncIO = false;
     /**
      * Constructor
      */
@@ -109,13 +111,24 @@ public class CheckConformityActionPlugin extends ActionHandler {
             }
 
             if (oneOrMoreMessagesDigestUpdated) {
-                handlerIO.transferInputStreamToWorkspace(
-                    IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName(),
-                    new ByteArrayInputStream(JsonHandler.writeAsString(jsonOG).getBytes()));
+
+                try (final InputStreamFromOutputStream<String> isos = new InputStreamFromOutputStream<String>() {
+
+                    @Override
+                    protected String produce(OutputStream sink) throws Exception {
+                        JsonHandler.writeAsOutputStream(jsonOG, sink);
+                        return params.getObjectName();
+                    }
+                }) {
+                    handlerIO.transferInputStreamToWorkspace(
+                        IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName(),
+                        isos, null, asyncIO);
+                } catch (final IOException e) {
+                    throw new ProcessingException("Issue while reading/writing the ObjectGroup", e);
+                }
             }
 
-        } catch (ProcessingException |
-            InvalidParseOperationException e) {
+        } catch (ProcessingException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
         }

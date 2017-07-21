@@ -92,6 +92,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN);
 
     private HandlerIO handlerIO;
+    private boolean asyncIO = false;
 
     /**
      * Empty constructor UnitsRulesComputePlugin
@@ -257,7 +258,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
         // Write to workspace
         try {
             handlerIO.transferFileToWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName,
-                fileWithEndDate, true);
+                fileWithEndDate, true, asyncIO);
         } catch (final ProcessingException e) {
             LOGGER.error("Can not write to workspace ", e);
             if (!fileWithEndDate.delete()) {

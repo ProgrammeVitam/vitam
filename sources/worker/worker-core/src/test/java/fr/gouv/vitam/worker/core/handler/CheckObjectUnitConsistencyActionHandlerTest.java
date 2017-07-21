@@ -118,8 +118,8 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
         action.addOutIOParameters(in);
         final Map<String, Object> map = new HashMap<>();
         map.put("id9", "id8");
-        action.addOuputResult(0, map);
-        action.addOuputResult(1, map);
+        action.addOuputResult(0, map, false);
+        action.addOuputResult(1, map, false);
         action.reset();
         action.addInIOParameters(in);
 
@@ -145,9 +145,9 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "file2")));
         action.reset();
         action.addOutIOParameters(in);
-        action.addOuputResult(0, JsonHandler.getMapFromInputStream(PropertiesUtils.getResourceAsStream(OG_AU)));
+        action.addOuputResult(0, JsonHandler.getMapFromInputStream(PropertiesUtils.getResourceAsStream(OG_AU)), false);
         action.addOuputResult(1,
-            JsonHandler.getMapFromInputStream(PropertiesUtils.getResourceAsStream(OBJECT_GROUP_ID_TO_GUID_MAP)));
+            JsonHandler.getMapFromInputStream(PropertiesUtils.getResourceAsStream(OBJECT_GROUP_ID_TO_GUID_MAP)), false);
         action.reset();
         action.addInIOParameters(in);
 

@@ -315,17 +315,18 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
         return CompletableFuture
             .supplyAsync(task, wmf)
-            .exceptionally((e) -> {
-                LOGGER.error("Exception occured when executing task", e);
-                if (e instanceof WorkerUnreachableException) {
-                    WorkerUnreachableException wue = (WorkerUnreachableException) e;
+            .exceptionally((completionException) -> {
+                LOGGER.error("Exception occured when executing task", completionException);
+                Throwable cause = completionException.getCause();
+                if (cause instanceof WorkerUnreachableException) {
+                    WorkerUnreachableException wue = (WorkerUnreachableException) cause;
                     try {
                         workerManager.unregisterWorker(step.getWorkerGroupId(), wue.getWorkerId());
                     } catch (WorkerFamilyNotFoundException | WorkerNotFoundException | InterruptedException e1) {
-                        LOGGER.error("Exception while unrigster worker " + wue.getWorkerId(), e);
+                        LOGGER.error("Exception while unrigster worker " + wue.getWorkerId(), cause);
                     }
-                } else if (e instanceof WorkerExecutorException) {
-
+                } else if (cause instanceof WorkerExecutorException) {
+                    LOGGER.error(cause);
                 } else {
 
                 }

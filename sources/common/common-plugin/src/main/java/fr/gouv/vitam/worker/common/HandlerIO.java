@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.file.Path;
 import java.util.List;
 
 import javax.ws.rs.core.Response;
@@ -16,6 +17,7 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.IOParameter;
 import fr.gouv.vitam.processing.common.model.ProcessingUri;
+import fr.gouv.vitam.worker.core.exception.WorkerspaceQueueException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -79,11 +81,12 @@ public interface HandlerIO extends VitamAutoCloseable {
      *
      * @param rank the position in the output
      * @param object the result to store (WORKSPACE to workspace and must be a File, MEMORY to memory whatever it is)
+     * @param asyncIO asynchronously send to the workspace
      * @return this
      * @throws ProcessingException
      * @throws IllegalArgumentException
      */
-    HandlerIO addOuputResult(int rank, Object object) throws ProcessingException;
+    HandlerIO addOuputResult(int rank, Object object, boolean asyncIO) throws ProcessingException;
 
     /**
      * Add one output result
@@ -91,11 +94,12 @@ public interface HandlerIO extends VitamAutoCloseable {
      * @param rank the position in the output
      * @param object the result to store (WORKSPACE to workspace and must be a File, MEMORY to memory whatever it is)
      * @param deleteLocal if true, will delete the local file in case of WORKSPACE only
+     * @param asyncIO asynchronously send to the workspace
      * @return this
      * @throws ProcessingException
      * @throws IllegalArgumentException
      */
-    HandlerIO addOuputResult(int rank, Object object, boolean deleteLocal) throws ProcessingException;
+    HandlerIO addOuputResult(int rank, Object object, boolean deleteLocal, boolean asyncIO) throws ProcessingException;
 
     /**
      *
@@ -146,9 +150,10 @@ public interface HandlerIO extends VitamAutoCloseable {
      * @param workspacePath path within the workspath, without the container (implicit)
      * @param sourceFile the source file to write
      * @param toDelete if True, will delete the local file
+     * @param asyncIO asynchronously send to the workspace
      * @throws ProcessingException
      */
-    void transferFileToWorkspace(String workspacePath, File sourceFile, boolean toDelete)
+    void transferFileToWorkspace(String workspacePath, File sourceFile, boolean toDelete, boolean asyncIO)
         throws ProcessingException;
 
     /**
@@ -158,9 +163,10 @@ public interface HandlerIO extends VitamAutoCloseable {
      *
      * @param workspacePath path within the workspath, without the container (implicit)
      * @param inputStream the source InputStream to write
+     * @param asyncIO asynchronously send to the workspace
      * @throws ProcessingException
      */
-    void transferInputStreamToWorkspace(String workspacePath, InputStream inputStream)
+    void transferInputStreamToWorkspace(String workspacePath, InputStream inputStream, Path filePath, boolean asyncIO)
         throws ProcessingException;
 
     /**
@@ -174,7 +180,7 @@ public interface HandlerIO extends VitamAutoCloseable {
      * @throws ContentAddressableStorageNotFoundException
      * @throws ContentAddressableStorageServerException
      */
-    // TODO P2: could add a sort of cache list that could be clean without cleaning other parameters (for handler
+    // TODO P2: could transfer a sort of cache list that could be clean without cleaning other parameters (for handler
     // parallel)
     File getFileFromWorkspace(String objectName)
         throws IOException, ContentAddressableStorageNotFoundException,
@@ -233,7 +239,7 @@ public interface HandlerIO extends VitamAutoCloseable {
      * @param objectName
      * @return True if deleted
      */
-    // TODO P2: could add a sort of cache list that could be clean without cleaning other parameters (for handler
+    // TODO P2: could transfer a sort of cache list that could be clean without cleaning other parameters (for handler
     // parallel)
     boolean deleteLocalFile(String objectName);
 
@@ -259,9 +265,10 @@ public interface HandlerIO extends VitamAutoCloseable {
      * @param workspacePath path within the workspacepath, without the container (implicit)
      * @param jsonNode the json file to write
      * @param toDelete if True, will delete the local file
+     * @param asyncIO asynchronously send to the workspace
      * @throws ProcessingException
      */
-    void transferJsonToWorkspace(String collectionName, String workspacePath, JsonNode jsonNode, boolean toDelete)
+    void transferJsonToWorkspace(String collectionName, String workspacePath, JsonNode jsonNode, boolean toDelete, boolean asyncIO)
         throws ProcessingException;
 
     /**
@@ -269,6 +276,7 @@ public interface HandlerIO extends VitamAutoCloseable {
      * @param folderName
      * @param archiveMimeType
      * @param uploadedInputStream
+     * @param asyncIO asynchronously send and unzip file to/in the workspace
      * @throws ContentAddressableStorageException
      * @throws ContentAddressableStorageNotFoundException
      * @throws ContentAddressableStorageAlreadyExistException
@@ -276,8 +284,14 @@ public interface HandlerIO extends VitamAutoCloseable {
      * @throws ContentAddressableStorageServerException
      */
     void unzipInputStreamOnWorkspace(String container, String folderName, String archiveMimeType,
-        InputStream uploadedInputStream)
+        InputStream uploadedInputStream, boolean asyncIO)
         throws ContentAddressableStorageException, ContentAddressableStorageNotFoundException,
         ContentAddressableStorageAlreadyExistException, ContentAddressableStorageCompressedFileException,
         ContentAddressableStorageServerException;
+
+    /**
+     * If true then start async manager, if false then waitEndOfTransfer and stop asyncManager
+     * @param asyncIo
+     */
+    void enableAsync(boolean asyncIo) throws WorkerspaceQueueException;
 }

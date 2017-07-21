@@ -33,6 +33,7 @@ import java.util.List;
 
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.worker.core.exception.WorkerspaceQueueException;
 import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -82,6 +83,7 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
     private static final String DEFAULT_STORAGE_STRATEGY = "default";
 
     private static final int TRACEABILITY_EVENT_DETAIL_RANK = 0;
+    private boolean asyncIO = false;
 
 
 
@@ -104,6 +106,9 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
         try (LogbookOperationsClient logbookOperationsClient =
             LogbookOperationsClientFactory.getInstance().getClient()) {
 
+            if (asyncIO) {
+                handler.enableAsync(asyncIO);
+            }
             RequestResponseOK requestResponseOK =
                 RequestResponseOK.getFromJsonNode(logbookOperationsClient
                     .selectOperation(
@@ -123,7 +128,7 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
                 itemStatus.increment(StatusCode.KO);
                 return itemStatus;
             }
-        } catch (InvalidParseOperationException | LogbookClientException | IllegalArgumentException e) {
+        } catch (InvalidParseOperationException | LogbookClientException | IllegalArgumentException | WorkerspaceQueueException e) {
             LOGGER.error(e.getMessage(), e);
             itemStatus.increment(StatusCode.FATAL);
             return itemStatus;
@@ -152,16 +157,20 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
             // 2- unzip file
             handler.unzipInputStreamOnWorkspace(param.getContainerName(),
                 SedaConstants.TRACEABILITY_OPERATION_DIRECTORY, CommonMediaType.ZIP,
-                response.readEntity(InputStream.class));
+                response.readEntity(InputStream.class), asyncIO);
 
             // 3- Add Output result : eventDetailData
             extractTraceabilityOperationDetails(handler, traceabilityEvent);
 
             itemStatus.increment(StatusCode.OK);
+
+            if (asyncIO)
+                handler.enableAsync(false);
+
         } catch (StorageServerClientException | StorageNotFoundException e) {
             LOGGER.error(e.getMessage(), e);
             itemStatus.increment(StatusCode.FATAL);
-        } catch (ContentAddressableStorageException e) {
+        } catch (ContentAddressableStorageException | WorkerspaceQueueException e) {
             // Decompression Exception
             LOGGER.error(e.getMessage(), e);
             itemStatus.increment(StatusCode.FATAL);
@@ -187,6 +196,6 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
         JsonHandler.writeAsFile(eventDetailData, tempFile);
 
         // Put file in workspace
-        handlerIO.addOuputResult(TRACEABILITY_EVENT_DETAIL_RANK, tempFile, true);
+        handlerIO.addOuputResult(TRACEABILITY_EVENT_DETAIL_RANK, tempFile, true, false);
     }
 }
