@@ -3,7 +3,7 @@
     "evId": "aedqaaaaacaam7mxabkxoakyj2sqiwqaaaaq",
     "evType": "STP_SANITY_CHECK_SIP",
     "evDateTime": "2016-11-10T14:29:47.226",
-    "evDetData": null,
+    "evDetData": "{\"EvDetailReq\" : \"Transfert\", \"ArchivalAgreement\" : \"ContratEntreeProfil\",  \"ArchivalProfile\" : \"PR-000001\"}",
     "evIdProc": "aedqaaaaacaam7mxabkxoakyj2sqiwqaaaaq",
     "evTypeProc": "INGEST",
     "outcome": "STARTED",
