@@ -32,7 +32,6 @@ import java.io.InputStream;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
-import javax.ws.rs.HeaderParam;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -54,6 +53,7 @@ import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
@@ -70,6 +70,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
@@ -79,7 +80,6 @@ import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.storage.engine.common.model.response.RequestResponseError;
 
 /**
  * AccessResourceImpl implements AccessResource
@@ -213,7 +213,12 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         Status status;
         JsonNode result = null;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            result = client.updateUnitbyId(queryJson, idUnit).toJsonNode().get("$results").get(0);
+            RequestResponse<JsonNode> response = client.updateUnitbyId(queryJson, idUnit);
+            if (!response.isOk() && response instanceof VitamError) {
+                VitamError error = (VitamError) response;
+                return buildErrorFromError(VitamCode.ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR, error.getMessage(), error);
+            }
+    	    result = response.toJsonNode().get("$results").get(0);
             return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
@@ -542,6 +547,19 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             .entity(new RequestResponseError().setError(new VitamError(VitamCodeHelper.getCode(vitamCode))
                 .setContext(vitamCode.getService().getName()).setState(vitamCode.getDomain().getName())
                 .setMessage(vitamCode.getMessage()).setDescription(message)).toString())
+            .build();
+    }
+
+    private Response buildErrorFromError(VitamCode vitamCode, String message, VitamError oldVitamError) {
+        LOGGER.info("Description: " + message);
+    	VitamError newVitamError = new VitamError(VitamCodeHelper.getCode(vitamCode))
+        .setContext(vitamCode.getService().getName()).setState(vitamCode.getDomain().getName())
+        .setMessage(vitamCode.getMessage()).setDescription(message);
+
+    	oldVitamError.addToErrors(newVitamError);
+
+        return Response.status(vitamCode.getStatus())
+            .entity(new RequestResponseError().setError(oldVitamError).toString())
             .build();
     }
 

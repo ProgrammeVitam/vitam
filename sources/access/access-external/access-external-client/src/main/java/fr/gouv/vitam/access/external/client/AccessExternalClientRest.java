@@ -24,6 +24,7 @@ import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -210,6 +211,11 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                         .setDescription(VitamCode.ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR.getMessage() + " Cause : " +
                             Status.NOT_FOUND.getReasonPhrase());
                 } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
+                	 // TODO Make a generic method that take entity + VitamCode and return a nex vitamError or the response vitamError ?
+                    if (requestResponse instanceof VitamError) {
+                        return requestResponse;
+                    }
+                    LOGGER.info("Return new Vitam error");
                     return  vitamError.setHttpCode(Status.BAD_REQUEST.getStatusCode())
                         .setDescription(VitamCode.ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR.getMessage() + " Cause : " +
                             Status.BAD_REQUEST.getReasonPhrase());

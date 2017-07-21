@@ -131,7 +131,7 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     public JsonNode getRuleByID(String id) throws FileRulesException, InvalidParseOperationException {
         ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, id);
         LOGGER.debug("get rule by id request:");
-        return ClientMockResultHelper.getRuleList().toJsonNode();
+        return ClientMockResultHelper.getRuleList(id).toJsonNode();
     }
 
     @Override

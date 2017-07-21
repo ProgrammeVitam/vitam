@@ -190,7 +190,7 @@ public abstract class RequestResponse<T> {
             } else if (result.contains("httpCode")) {
                 try {
                     final VitamError error = JsonHandler.getFromString(result, VitamError.class);
-                    return  error.parseHeadersFromResponse(response);
+                    return error.parseHeadersFromResponse(response);
                 } catch (final InvalidParseOperationException e) {
                     // Issue, while trying VitamError model
                     LOGGER.warn("Issue while decoding VitamError", e);

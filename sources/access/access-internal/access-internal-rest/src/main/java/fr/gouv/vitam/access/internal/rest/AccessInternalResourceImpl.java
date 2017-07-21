@@ -54,6 +54,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.api.AccessInternalResource;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
 import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
 import fr.gouv.vitam.access.internal.core.AccessInternalModuleImpl;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -69,8 +70,9 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.AccessContractModel;
+import fr.gouv.vitam.common.model.RequestResponseError;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.security.SanityChecker;
@@ -82,7 +84,6 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
-import fr.gouv.vitam.storage.engine.common.model.response.RequestResponseError;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 
@@ -160,7 +161,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (BadRequestException e) {
             LOGGER.error("Empty query is impossible", e);
-            return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY);
+            return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
         }
         LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
         return Response.status(Status.OK).entity(result).build();
@@ -240,6 +241,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
+        }  catch (final AccessInternalRuleExecutionException e) {
+            LOGGER.error(e.getMessage(), e);
+            return buildErrorResponse(VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CHECK_RULES, e.getMessage());
         } catch (final AccessInternalExecutionException e) {
             LOGGER.error(e.getMessage(), e);
             status = Status.INTERNAL_SERVER_ERROR;
@@ -437,11 +441,15 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     }
 
 
-    private Response buildErrorResponse(VitamCode vitamCode) {
+    private Response buildErrorResponse(VitamCode vitamCode, String description) {
+        if (description == null) {
+            description = vitamCode.getMessage();
+        }
+
         return Response.status(vitamCode.getStatus())
             .entity(new RequestResponseError().setError(new VitamError(VitamCodeHelper.getCode(vitamCode))
                 .setContext(vitamCode.getService().getName()).setState(vitamCode.getDomain().getName())
-                .setMessage(vitamCode.getMessage()).setDescription(vitamCode.getMessage())).toString())
+                .setMessage(vitamCode.getMessage()).setDescription(description)).toString())
             .build();
     }
 

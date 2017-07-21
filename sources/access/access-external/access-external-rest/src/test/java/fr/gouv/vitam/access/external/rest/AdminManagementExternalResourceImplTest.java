@@ -64,6 +64,8 @@ public class AdminManagementExternalResourceImplTest {
     private static final String RULES_URI = "/" + AdminCollections.RULES.getName();
 
     private static final String DOCUMENT_ID = "/1";
+    
+    private static final String RULE_ID = "/APP-00001";    
 
     private static final String WRONG_URI = "/wrong-uri";
 
@@ -296,7 +298,7 @@ public class AdminManagementExternalResourceImplTest {
             .body(select.getFinalSelect())
             .header(X_HTTP_METHOD_OVERRIDE, "GET")
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(RULES_URI + DOCUMENT_ID)
+            .when().post(RULES_URI + RULE_ID)
             .then().statusCode(Status.OK.getStatusCode());
 
         given()

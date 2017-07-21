@@ -138,7 +138,7 @@ public class AdminManagementClientMockTest {
         assertEquals("AppraisalRule",
             ((ArrayNode) objectNode.get("$results")).get(0).get("RuleType").asText());
         assertEquals("6", ((ArrayNode) objectNode.get("$results")).get(0).get("RuleDuration").asText());
-        assertEquals("Année",
+        assertEquals("year",
             ((ArrayNode) objectNode.get("$results")).get(0).get("RuleMeasurement").asText());
     }
 
