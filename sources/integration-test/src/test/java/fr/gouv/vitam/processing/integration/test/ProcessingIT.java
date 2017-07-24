@@ -264,6 +264,8 @@ public class ProcessingIT {
     private static String SIP_FILE_1791_CA1 = "integration-processing/SIP_FILE_1791_CA1.zip";
     private static String SIP_FILE_1791_CA2 = "integration-processing/SIP_FILE_1791_CA2.zip";
 
+    private static String SIP_ARBRE_3062 = "integration-processing/3062_arbre.zip";
+    
     private static ElasticsearchTestConfiguration config = null;
 
     private final static String DUMMY_REQUEST_ID = "reqId";
@@ -2417,4 +2419,49 @@ public class ProcessingIT {
         }
     }
 
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowIngestBigTreeBugFix3062() throws Exception {
+        try {
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            tryImportFile();
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+            final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
+            final String containerName = objectGuid.getId();
+            createLogbookOperation(operationGuid, objectGuid);
+
+            // workspace client dezip SIP in workspace
+            RestAssured.port = PORT_SERVICE_WORKSPACE;
+            RestAssured.basePath = WORKSPACE_PATH;
+            final InputStream zipInputStreamSipObject =
+                PropertiesUtils.getResourceAsStream(SIP_ARBRE_3062);
+            workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+            workspaceClient.createContainer(containerName);
+            workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
+                zipInputStreamSipObject);
+            // call processing
+            RestAssured.port = PORT_SERVICE_PROCESSING;
+            RestAssured.basePath = PROCESSING_PATH;
+
+            processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+            processingClient.initVitamProcess(Contexts.HOLDING_SCHEME.name(), containerName, INGEST_TREE_WORFKLOW);
+            RequestResponse<ItemStatus> ret =
+                processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
+            assertNotNull(ret);
+
+            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+            wait(containerName);
+            ProcessWorkflow processWorkflow =
+                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.OK, processWorkflow.getStatus());
+        } catch (final Exception e) {
+            e.printStackTrace();
+            fail("should not raized an exception");
+        }
+    }
+    
 }

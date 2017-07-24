@@ -1,28 +1,19 @@
 /*
- *  Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- *  <p>
- *  contact.vitam@culture.gouv.fr
- *  <p>
- *  This software is a computer program whose purpose is to implement a digital archiving back-office system managing
- *  high volumetry securely and efficiently.
- *  <p>
- *  This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
- *  software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- *  circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- *  <p>
- *  As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
- *  users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
- *  successive licensors have only limited liability.
- *  <p>
- *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
- *  developing or reproducing the software by the user in light of its specific status of free software, that may mean
- *  that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
- *  experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
- *  software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
- *  to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- *  <p>
- *  The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
- *  accept its terms.
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019) <p> contact.vitam@culture.gouv.fr <p>
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently. <p> This software is governed by the CeCILL 2.1 license under French law and
+ * abiding by the rules of distribution of free software. You can use, modify and/ or redistribute the software under
+ * the terms of the CeCILL 2.1 license as circulated by CEA, CNRS and INRIA at the following URL
+ * "http://www.cecill.info". <p> As a counterpart to the access to the source code and rights to copy, modify and
+ * redistribute granted by the license, users are provided only with a limited warranty and the software's author, the
+ * holder of the economic rights, and the successive licensors have only limited liability. <p> In this respect, the
+ * user's attention is drawn to the risks associated with loading, using, modifying and/or developing or reproducing the
+ * software by the user in light of its specific status of free software, that may mean that it is complicated to
+ * manipulate, and that also therefore means that it is reserved for developers and experienced professionals having
+ * in-depth computer knowledge. Users are therefore encouraged to load and test the software's suitability as regards
+ * their requirements in conditions enabling the security of their systems and/or data to be ensured and, more
+ * generally, to use and operate it in the same conditions as regards security. <p> The fact that you are presently
+ * reading this means that you have had knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
 package fr.gouv.vitam.processing.distributor.v2;
 
@@ -74,6 +65,7 @@ import java.util.stream.Collectors;
 /**
  * The Process Distributor call the workers and intercept the response for manage a post actions step
  * <p>
+ * 
  * <pre>
  * TODO P1:
  * - handle listing of items through a limited arraylist (memory) and through iterative (async) listing from
@@ -125,8 +117,8 @@ public class ProcessDistributorImpl implements ProcessDistributor {
     /**
      * Temporary method for distribution supporting multi-list
      *
-     * @param workParams  of type {@link WorkerParameters}
-     * @param step        the execution step
+     * @param workParams of type {@link WorkerParameters}
+     * @param step the execution step
      * @param operationId the operation id
      * @return the final step status
      */
@@ -184,8 +176,8 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                             JsonHandler.getFromStringAsTypeRefence(
                                 workspaceClient.getListUriDigitalObjectFromFolder(workParams.getContainerName(),
                                     step.getDistribution().getElement())
-                                    .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {
-                                });
+                                    .toJsonNode().get("$results").get(0).toString(),
+                                new TypeReference<List<URI>>() {});
                         for (URI uri : objectsListUri) {
                             objectsList.add(uri.getPath());
                         }
@@ -244,21 +236,26 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
         int offset = 0;
         int sizeList = objectsList.size();
-        if (sizeList >  VitamConfiguration.getDistributeurBatchSize()) {
-            try {
-                DistributorIndex index = processDataManagement.getDistributorIndex(container, DISTRIBUTOR_INDEX);
-                if (null != index) {
-                    offset = index.getOffset();
-                    step.setStepResponses(index.getItemStatus());
-                }
+        // TODO : for the moment, the restart of a workflow is not handled precisely (when dealing with list) so this
+        // code is commented, but later on, it should be used.
+        // But it has to be adapted : by adding the information about the level handled (cause now, the test on the
+        // offset is wrong if two level contains more than 10 elements or by counting the total number of object handled, and doing proper subtractions.
 
-            } catch (Exception e) {
-                LOGGER.warn("Can't get distibutor index from workspace", e);
-            }
-        }
+        // if (sizeList > VitamConfiguration.getDistributeurBatchSize()) {
+        // try {
+        // DistributorIndex index = processDataManagement.getDistributorIndex(container, DISTRIBUTOR_INDEX);
+        // if (null != index) {
+        // offset = index.getOffset();
+        // step.setStepResponses(index.getItemStatus());
+        // }
+        //
+        // } catch (Exception e) {
+        // LOGGER.warn("Can't get distibutor index from workspace", e);
+        // }
+        // }
         while (offset < sizeList) {
-            int size = sizeList > offset + VitamConfiguration.getDistributeurBatchSize() ?
-                offset + VitamConfiguration.getDistributeurBatchSize() : sizeList;
+            int size = sizeList > offset + VitamConfiguration.getDistributeurBatchSize()
+                ? offset + VitamConfiguration.getDistributeurBatchSize() : sizeList;
 
             List<String> subList = objectsList.subList(offset, size);
 
@@ -274,18 +271,18 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             CompletableFuture<List<ItemStatus>> sequence = sequence(completableFutureList);
 
             CompletableFuture<ItemStatus> reduce = sequence
-                .thenApplyAsync((List<ItemStatus> is) ->
-                    is.stream().reduce(step.getStepResponses(), (identity, iterationItemStatus) -> {
+                .thenApplyAsync((List<ItemStatus> is) -> is.stream().reduce(step.getStepResponses(),
+                    (identity, iterationItemStatus) -> {
                         return identity.setItemsStatus(iterationItemStatus);
-                    })
-                );
+                    }));
 
             try {
                 // store information
                 final ItemStatus itemStatus = reduce.get();
                 offset = offset + size;
-                if (sizeList > VitamConfiguration.getDistributeurBatchSize() ) {
-                    DistributorIndex distributorIndex = new DistributorIndex(offset, itemStatus, requestId, uniqueStepId);
+                if (sizeList > VitamConfiguration.getDistributeurBatchSize()) {
+                    DistributorIndex distributorIndex =
+                        new DistributorIndex(offset, itemStatus, requestId, uniqueStepId);
                     try {
                         processDataManagement.persistDistributorIndex(container, DISTRIBUTOR_INDEX, distributorIndex);
                         LOGGER.debug("Store for the container " + container + " the DistributorIndex offset" + offset +
@@ -329,7 +326,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     LOGGER.error(cause);
                 } else {
 
-                }
+            }
 
                 // TODO: 6/29/17 Should re-execute the step when worker becomme up
                 return new ItemStatus(step.getStepName()).increment(StatusCode.FATAL);
