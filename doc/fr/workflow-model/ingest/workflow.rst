@@ -477,7 +477,7 @@ Mise en cohérence des journaux du cycle de vie (ROLL_BACK)
 Structure du Workflow
 =====================
 
-Le workflow actuel mis en place dans la solution logicielle Vitam est défini dans l'unique fichier "DefaultIngestWorkflow.json". Ce fichier est disponible dans /sources/processing/processing-management/src/main/resources/.
+Le workflow actuel mis en place dans la solution logicielle Vitam est défini dans l'unique fichier "DefaultIngestWorkflow.json". Ce fichier est disponible dans /sources/processing/processing-management/src/main/resources/workflows.
 Il décrit le processus d'entrée (hors Ingest externe) pour entrer un SIP, indexer les métadonnées et stocker les objets contenus dans le SIP.
 
 D'une façon synthétique, le workflow est décrit de cette façon :
