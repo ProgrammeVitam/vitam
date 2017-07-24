@@ -81,7 +81,7 @@ public class RulesSecurisator {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(RulesSecurisator.class);
 
-    private static final String RULE_SECURISATION = "RULE_SECURISATION";
+    private static final String RULE_SECURISATION = "RULES_SECURISATION";
     private static final String FLE_NAME = "FileName";
     private static final String DIGEST = "Digest";
 
@@ -123,7 +123,7 @@ public class RulesSecurisator {
             final GUID eip1 = GUIDFactory.newOperationLogbookGUID(tenantId);
             final String fileName =
                 String.format("%d_" + STORAGE_RULE_NAME + "%s_%s." + extension, tenantId, version, LocalDateTime.now().format(
-                    DateTimeFormatter.ofPattern("yyyyMMddhhmm")) );
+                    DateTimeFormatter.ofPattern("yyyyMMddhhmmss")) );
             final LogbookOperationParameters logbookParametersStart = LogbookParametersFactory
                 .newLogbookOperationParameters(eip1, RULE_SECURISATION + "_" + extension.toUpperCase(), eipMaster, LogbookTypeProcess.STORAGE_RULE,
                     StatusCode.STARTED, VitamLogbookMessages.getCodeOp(RULE_SECURISATION + "_" + extension.toUpperCase(), StatusCode.STARTED),
