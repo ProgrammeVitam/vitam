@@ -63,6 +63,12 @@ Un Workflow est défini en JSON avec la structure suivante :
 
     + ``ID`` : identifiant unique du workflow,
 
+    + ``Identifier`` : clé du workflow,
+
+    + ``Name`` : nom du workflow,
+
+    + ``TypeProc`` : catégorie du workflow,
+
     + ``Comment`` : description du workflow ou toutes autres informations utiles concernant le workflow
 
 - une liste d'étapes dont la structure est la suivante :
@@ -101,7 +107,7 @@ Un Workflow est défini en JSON avec la structure suivante :
 
 
       - ``In`` : liste de paramètres d'entrées :
-      
+
         - ``Name`` : nom utilisé pour référencer cet élément entre différents handlers d'une même étape,
 
         - ``URI`` : cible comportant un schema (WORKSPACE, MEMORY, VALUE) et un path où chaque handler peut accéder à ces valeurs via le handlerIO :

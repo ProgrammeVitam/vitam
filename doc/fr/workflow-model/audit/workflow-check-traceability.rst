@@ -6,7 +6,7 @@ Introduction
 
 Cette section décrit le processus (workflow) de contrôle d'intégrité d'un journal sécurisé mis en place dans la solution logicielle Vitam.
 
-Celui-ci est défini dans le fichier “DefaultCheckTraceability.json” (situé ici : sources/processing/processing-management/src/main/resources/)
+Celui-ci est défini dans le fichier “DefaultCheckTraceability.json” (situé ici : sources/processing/processing-management/src/main/resources/workflows).
 
 Processus de contrôle d'intégrité d'un journal sécurisé (vision métier)
 =======================================================================
