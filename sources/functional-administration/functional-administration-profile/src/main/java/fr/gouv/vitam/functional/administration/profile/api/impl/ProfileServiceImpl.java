@@ -95,7 +95,6 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 /**
  * The implementation of the profile servie This implementation manage creation, update, ... profiles with any given
  * format (xsd, rng)
- *
  */
 public class ProfileServiceImpl implements ProfileService {
     private static final String PROFILE_SERVICE_ERROR = "Profile service Error";
@@ -120,7 +119,7 @@ public class ProfileServiceImpl implements ProfileService {
     /**
      * Constructor
      *
-     * @param mongoAccess MongoDB client
+     * @param mongoAccess         MongoDB client
      * @param vitamCounterService
      */
     public ProfileServiceImpl(MongoDbAccessAdminImpl mongoAccess, WorkspaceClientFactory workspaceClientFactory,
@@ -165,11 +164,22 @@ public class ProfileServiceImpl implements ProfileService {
                     continue;
                 }
 
+                // if a profile with the same identifier is already treated mark the current one as duplicated
+                if (ParametersChecker.isNotEmpty(pm.getIdentifier())) {
+                    if (profileIdentifiers.contains(pm.getIdentifier())) {
+                        error.addToErrors(
+                            getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(), "Duplicate profiles")
+                                .setMessage("Profile identifier "+pm.getIdentifier()+" already exists in the json"));
+                        continue;
+                    } else {
+                        profileIdentifiers.add(pm.getIdentifier());
+                    }
+                }
 
                 // if a profile with the same name is already treated mark the current one as duplicated
                 if (profileNames.contains(pm.getName())) {
-                    error.addToErrors(getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(), "name already exists")
-                        .setMessage(RejectionCause.rejectDuplicatedEntry(pm.getName()).getReason()));
+                    error.addToErrors(getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(), "Duplicate profiles")
+                        .setMessage("Profile name "+pm.getName()+" already exists in the json"));
                     continue;
                 }
 
@@ -189,7 +199,8 @@ public class ProfileServiceImpl implements ProfileService {
                 // log book + application log
                 // stop
                 final String errorsDetails =
-                    error.getErrors().stream().map(c -> c.getMessage()+ " : " + c.getDescription()).collect(Collectors.joining(","));
+                    error.getErrors().stream().map(c -> c.getMessage() + " : " + c.getDescription())
+                        .collect(Collectors.joining(","));
                 manager.logValidationError(PROFILES_IMPORT_EVENT, null, errorsDetails);
                 return error;
             }
@@ -197,11 +208,10 @@ public class ProfileServiceImpl implements ProfileService {
 
             profilesToPersist = JsonHandler.createArrayNode();
             for (final ProfileModel pm : profileModelList) {
-                if (pm.getIdentifier() == null) {
-                    String code = vitamCounterService.getNextSequenceAsString(ParameterHelper.getTenantParameter(), SequenceType.PROFILE_SEQUENCE.getName());
-                    pm.setIdentifier(code);
-                } else if (pm.getIdentifier().contains(PROFIL_PREFIX + "-")) {
-                    String code = vitamCounterService.getNextSequenceAsString(ParameterHelper.getTenantParameter(), SequenceType.PROFILE_SEQUENCE.getName());
+                if (!ParametersChecker.isNotEmpty(pm.getIdentifier()) ||
+                    pm.getIdentifier().startsWith(PROFIL_PREFIX + "-")) {
+                    String code = vitamCounterService.getNextSequenceAsString(ParameterHelper.getTenantParameter(),
+                        SequenceType.PROFILE_SEQUENCE.getName());
                     pm.setIdentifier(code);
                 }
 
@@ -215,7 +225,10 @@ public class ProfileServiceImpl implements ProfileService {
             // TODO: 3/28/17 create insertDocuments method that accepts VitamDocument instead of ArrayNode, so we can
             // use Profile at this point
             mongoAccess.insertDocuments(profilesToPersist, FunctionalAdminCollections.PROFILE).close();
-        } catch (final Exception exp) {
+        } catch (
+            final Exception exp)
+
+        {
             final String err = new StringBuilder("Import profiles error : ").append(exp.getMessage()).toString();
             manager.logFatalError(PROFILES_IMPORT_EVENT, null, err);
             return getVitamError(VitamCode.PROFILE_FILE_IMPORT_ERROR.getItem(), err).setHttpCode(
@@ -225,8 +238,12 @@ public class ProfileServiceImpl implements ProfileService {
         manager.logSuccess(PROFILES_IMPORT_EVENT, null, null);
 
 
-        return new RequestResponseOK<ProfileModel>().addAllResults(profileModelList)
-            .setHttpCode(Response.Status.CREATED.getStatusCode());
+        return new RequestResponseOK<ProfileModel>().
+
+            addAllResults(profileModelList)
+            .
+
+                setHttpCode(Response.Status.CREATED.getStatusCode());
     }
 
 
@@ -291,11 +308,13 @@ public class ProfileServiceImpl implements ProfileService {
         }
 
         Integer tenantId = ParameterHelper.getTenantParameter();
-        final String containerName = String.format("%d_profiles_%s_%s", tenantId, profileMetadata.getIdentifier(), now().format(
-            DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")));
+        final String containerName =
+            String.format("%d_profiles_%s_%s", tenantId, profileMetadata.getIdentifier(), now().format(
+                DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")));
 
-        final String fileName = String.format("%d_profile_%s_%s.%s", tenantId, profileMetadata.getIdentifier(), now().format(
-            DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")), extention);
+        final String fileName =
+            String.format("%d_profile_%s_%s.%s", tenantId, profileMetadata.getIdentifier(), now().format(
+                DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")), extention);
         final String uri = String.format("%s/%s", extention, fileName);
 
 
