@@ -448,7 +448,7 @@ public class ProcessingIT {
 
                 RequestResponseOK<ProfileModel> response =
                     (RequestResponseOK<ProfileModel>) client.findProfiles(new Select().getFinalSelect());
-                client.importProfileFile(response.getResults().get(0).getId(),
+                client.importProfileFile(response.getResults().get(0).getIdentifier(),
                     PropertiesUtils.getResourceAsStream("integration-processing/Profil20.rng"));
 
                 // import contract

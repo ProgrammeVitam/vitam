@@ -90,8 +90,6 @@ public class WorkspaceBatchRunner implements Runnable {
         this.queue = new LinkedBlockingQueue<>(queueSize);
         this.handlerIO = handlerAsyncIO;
         this.executor = executor;
-
-
     }
 
     @Override
