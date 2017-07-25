@@ -28,7 +28,7 @@
 // Define controller for dsl.query.test
 angular.module('dsl.query.test')
   .controller('dslQueryTestController', function($scope, tenantService, $http, dslQueryService, authVitamService) {
-    var collectionsForIdentifiant = ["CONTEXTS", "UNIT", "ENTRY_CONTRACTS", "OPERATIONS"];
+    var collectionsForIdentifiant = ["CONTEXTS", "UNIT", "ACCESS_CONTRACTS", "ENTRY_CONTRACTS", "OPERATIONS"];
     $scope.jsonInput = "";
     $scope.requestResponse = "";
     $scope.operation = {};
