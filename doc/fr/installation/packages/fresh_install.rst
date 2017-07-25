@@ -45,7 +45,7 @@ Ensuite, dans la section ``hosts:vars``, renseigner les valeurs comme décrit :
    "vitam_reverse_domain","Cas de la gestion d'un reverse proxy",""
    "consul_domain","nom de domaine consul",""
    "vitam_ihm_demo_external_dns","Déprécié ; ne pas utiliser",""
-   "package_version","Version à installer",""
+   "package_version","Version à installer","Par défaut, indiquer *"
    "days_to_delete","Période de grâce des données sous Elastricsearch avant destruction (valeur en jours)",""
    "days_to_close","Période de grâce des données sous Elastricsearch avant fermeture des index (valeur en jours)",""
    "days_to_delete_topbeat","Période de grâce des données sous Elastricsearch  - index Topbeat - avant destruction (valeur en jours)",""
@@ -95,6 +95,17 @@ Le fichier ``vault-extra.yml`` peut être également présent sous |repertoire_i
 Le déploiement s'effectue depuis la machine "ansible" et va distribuer la solution VITAM selon l'inventaire correctement renseigné.
 
 .. warning:: le playbook ``vitam.yml`` comprend des étapes avec la mention ``no_log`` afin de ne pas afficher en clair des étapes comme les mots de passe des certificats. En cas d'erreur, il est possible de retirer la ligne dans le fichier pour une analyse plus fine d'un éventuel problème sur une de ces étapes.
+
+.. _update_jvm:
+
+Tuning JVM
+-----------
+
+.. note:: Cette section est en cours de développement.
+
+Un tuning fin des paramètres JVM de chaque composant VITAM est possible ; pour cela, il faut ajouter/modifier des "hostvars" aux partitions associées.
+
+.. caution:: Limitation technique à ce jour ; il n'est pas possible de définir des variables JVM différentes pour des composants colocalisés sur une même partition.
 
 
 Paramétrage de mongoclient (administration mongoclient)
