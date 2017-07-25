@@ -64,6 +64,7 @@
     - logbook
     - masterdata
     - metadata
+    - identity
   no_log: true
 
 # Activate security on mongo instances
@@ -153,4 +154,5 @@
     - logbook
     - masterdata
     - metadata
+    - identity
   no_log: true

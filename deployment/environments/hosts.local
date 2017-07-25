@@ -71,6 +71,10 @@ hosts-functional-administration
 hosts-logbook
 hosts-workspace
 hosts-storage-engine
+hosts-security-internal
+
+[hosts-security-internal]
+localhost
 
 [hosts-logbook]
 localhost
@@ -192,12 +196,17 @@ installation_clamav=true
 http_proxy_environnement=
 
 vitam_keystone_auth_url=http://143.126.93.21:8080/auth/v1.0
-vitam_tenant_ids=[0,1,2]
+vitam_tenant_ids=[0,1,2,3,4,5,6,7,8,9]
 vitam_tests_gitrepo_protocol=https
 vitam_tests_gitrepo_baseurl=dev.programmevitam.fr
 vitam_tests_gitrepo_url={{vitam_tests_gitrepo_protocol}}://{{vitam_tests_gitrepo_baseurl}}/gitlab/vitam/vitam-itests.git
 vitam_tests_branch=master
 
+# Admin context name
+admin_context_name="admin-context"
+# Indicate certificates relative paths under {{inventory_dir}}/certs/client-external/clients
+admin_context_certs=[ "ihm-demo/ihm-demo.crt", "ihm-recette/ihm-recette.crt", "reverse/reverse.crt" ]
+admin_context_tenants={{vitam_tenant_ids}}
+
 # Trust X-SSL-CLIENT-CERT header for external api auth ? (true | false)
 vitam_ssl_user_header=true
-

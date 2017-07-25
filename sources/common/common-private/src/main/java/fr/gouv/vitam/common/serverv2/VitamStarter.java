@@ -26,23 +26,7 @@
  */
 package fr.gouv.vitam.common.serverv2;
 
-import static org.jboss.resteasy.spi.ResteasyProviderFactory.pushContext;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.EnumSet;
-
-import javax.servlet.DispatcherType;
-import javax.ws.rs.core.Application;
-
-import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.handler.ContextHandlerCollection;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher;
-
 import com.google.common.base.Strings;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -54,6 +38,18 @@ import fr.gouv.vitam.common.security.filter.AuthorizationFilter;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.common.server.application.configuration.VitamApplicationConfiguration;
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.handler.ContextHandlerCollection;
+import org.eclipse.jetty.server.handler.StatisticsHandler;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
+import org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher;
+
+import javax.servlet.DispatcherType;
+import javax.ws.rs.core.Application;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.EnumSet;
 
 /**
  * launch vitam server
@@ -171,7 +167,11 @@ public class VitamStarter {
         }
 
         context.setVirtualHosts(new String[] {"@business"});
-        return context;
+
+        StatisticsHandler stats = new StatisticsHandler();
+        stats.setHandler(context);
+
+        return stats;
     }
 
     protected Handler buildAdminHandler(String configurationFile) throws VitamApplicationServerException {
@@ -185,7 +185,10 @@ public class VitamStarter {
 
         context.setVirtualHosts(new String[] {"@admin"});
 
-        return context;
+        StatisticsHandler stats = new StatisticsHandler();
+        stats.setHandler(context);
+
+        return stats;
     }
 
     /**
