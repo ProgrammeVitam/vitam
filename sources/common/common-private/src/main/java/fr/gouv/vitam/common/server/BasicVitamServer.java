@@ -55,7 +55,7 @@ public class BasicVitamServer implements VitamServer {
     /**
      * Default TEST ONLY Jetty config file
      */
-    public static final String VITAM_JETTY_DEFAULT_CONFIG_FILE = "jetty-vitam.xml";
+
     private int port;
     private Handler handler;
     private Server server;

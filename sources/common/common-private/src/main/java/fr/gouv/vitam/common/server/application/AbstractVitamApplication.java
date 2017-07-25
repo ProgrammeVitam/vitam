@@ -159,8 +159,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
     protected final void configure(String configurationFile) {
         try {
             try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-                final C buildConfiguration = PropertiesUtils.readYaml(yamlIS,
-                    getConfigurationType());
+                final C buildConfiguration = PropertiesUtils.readYaml(yamlIS, getConfigurationType());
                 configure(buildConfiguration);
             }
         } catch (final IOException e) {

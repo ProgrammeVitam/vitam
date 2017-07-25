@@ -29,6 +29,8 @@ package fr.gouv.vitam.storage.engine.server.rest;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,6 +61,7 @@ import com.google.common.base.Strings;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
@@ -93,13 +96,13 @@ import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistribution
 import fr.gouv.vitam.storage.logbook.StorageLogException;
 import fr.gouv.vitam.storage.logbook.StorageLogbookAdministration;
 import fr.gouv.vitam.storage.logbook.StorageLogbookService;
+import fr.gouv.vitam.storage.logbook.StorageLogbookServiceImpl;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  * Storage Resource implementation
  */
 @Path("/storage/v1")
-@javax.ws.rs.ApplicationPath("webresources")
 public class StorageResource extends ApplicationStatusResource implements VitamAutoCloseable {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageResource.class);
     private static final String STORAGE_MODULE = "STORAGE";
@@ -109,9 +112,25 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
 
     private final StorageDistribution distribution;
 
-
     private StorageLogbookService storageLogbookService;
     private StorageLogbookAdministration storageLogbookAdministration;
+
+    public StorageResource(String configurationFile) {
+        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
+            final StorageConfiguration configuration = PropertiesUtils.readYaml(yamlIS, StorageConfiguration.class);
+            storageLogbookService = new StorageLogbookServiceImpl(configuration.getTenants(),
+                Paths.get(configuration.getLoggingDirectory()));
+            distribution = new StorageDistributionImpl(configuration, storageLogbookService);
+            WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace());
+            storageLogbookAdministration =
+                new StorageLogbookAdministration(storageLogbookService, configuration.getZippingDirecorty());
+            LOGGER.info("init Storage Resource server");
+        } catch (IOException e) {
+            LOGGER.error("Cannot initialize storage resource server, error when reading configuration file");
+            // FIXME: erf, not cool here
+            throw new RuntimeException(e);
+        }
+    }
 
     /**
      * Constructor
@@ -286,7 +305,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * @param type the object type to list
      * @return a response with listing elements
      */
-    @Path("/{type}")
+    @Path("/{type:UNIT|OBJECT|OBJECTGROUP|LOGBOOK|REPORT|MANIFEST|PROFILE|STORAGELOG|RULES}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -346,22 +365,20 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
     public void getObject(@Context HttpHeaders headers, @PathParam("id_object") String objectId,
         @Suspended final AsyncResponse asyncResponse) throws IOException {
+        VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+        if (vitamCode != null) {
+            buildErrorResponseAsync(vitamCode, asyncResponse);
+        }
+        String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
 
-        VitamThreadPoolExecutor.getDefaultExecutor().execute(new Runnable() {
-
-            @Override
-            public void run() {
-                getByCategoryAsync(objectId, headers, DataCategory.OBJECT, asyncResponse);
-            }
-        });
+        VitamThreadPoolExecutor.getDefaultExecutor().execute(
+            () -> getByCategoryAsync(objectId, DataCategory.OBJECT, asyncResponse, strategyId, vitamCode));
 
     }
 
-    private void getByCategoryAsync(String objectId, HttpHeaders headers, DataCategory category,
-        AsyncResponse asyncResponse) {
-        VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+    private void getByCategoryAsync(String objectId, DataCategory category,
+        AsyncResponse asyncResponse, String strategyId, VitamCode vitamCode) {
         if (vitamCode == null) {
-            final String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
             try {
                 distribution.getContainerByCategory(strategyId, objectId, category, asyncResponse);
                 return;
@@ -546,13 +563,14 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void getLogbook(@Context HttpHeaders headers, @PathParam("id_logbook") String objectId,
         @Suspended final AsyncResponse asyncResponse) throws IOException {
-        VitamThreadPoolExecutor.getDefaultExecutor().execute(new Runnable() {
+        VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+        if (vitamCode != null) {
+            buildErrorResponseAsync(vitamCode, asyncResponse);
+        }
+        String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
 
-            @Override
-            public void run() {
-                getByCategoryAsync(objectId, headers, DataCategory.LOGBOOK, asyncResponse);
-            }
-        });
+        VitamThreadPoolExecutor.getDefaultExecutor().execute(
+            () -> getByCategoryAsync(objectId, DataCategory.LOGBOOK, asyncResponse, strategyId, vitamCode));
 
     }
 
@@ -968,13 +986,15 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
     public void getReport(@Context HttpHeaders headers, @PathParam("id_report") String objectId,
         @Suspended final AsyncResponse asyncResponse) throws IOException {
-        VitamThreadPoolExecutor.getDefaultExecutor().execute(new Runnable() {
+        VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+        if (vitamCode != null) {
+            buildErrorResponseAsync(vitamCode, asyncResponse);
+        }
+        String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
 
-            @Override
-            public void run() {
-                getByCategoryAsync(objectId, headers, DataCategory.REPORT, asyncResponse);
-            }
-        });
+        VitamThreadPoolExecutor.getDefaultExecutor().execute(
+            () -> getByCategoryAsync(objectId, DataCategory.REPORT, asyncResponse,
+                strategyId, vitamCode));
 
     }
 
@@ -1054,13 +1074,14 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void getManifest(@Context HttpHeaders headers, @PathParam("id_manifest") String objectId,
         @Suspended final AsyncResponse asyncResponse) throws IOException {
-        VitamThreadPoolExecutor.getDefaultExecutor().execute(new Runnable() {
+        VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+        if (vitamCode != null) {
+            buildErrorResponseAsync(vitamCode, asyncResponse);
+        }
+        String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
 
-            @Override
-            public void run() {
-                getByCategoryAsync(objectId, headers, DataCategory.MANIFEST, asyncResponse);
-            }
-        });
+        VitamThreadPoolExecutor.getDefaultExecutor().execute(
+            () -> getByCategoryAsync(objectId, DataCategory.MANIFEST, asyncResponse, strategyId, vitamCode));
 
     }
 
@@ -1188,8 +1209,14 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
     public void downloadProfile(@Context HttpHeaders headers, @PathParam("profile_file_name") String profileFileName,
         @Suspended final AsyncResponse asyncResponse) throws IOException {
+        VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+        if (vitamCode != null) {
+            buildErrorResponseAsync(vitamCode, asyncResponse);
+        }
+        String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+
         VitamThreadPoolExecutor.getDefaultExecutor().execute(
-            () -> getByCategoryAsync(profileFileName, headers, DataCategory.PROFILE, asyncResponse));
+            () -> getByCategoryAsync(profileFileName, DataCategory.PROFILE, asyncResponse, strategyId, vitamCode));
 
     }
 

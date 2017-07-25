@@ -70,8 +70,7 @@ import fr.gouv.vitam.logbook.rest.LogbookApplication;
 import fr.gouv.vitam.metadata.rest.MetaDataApplication;
 import fr.gouv.vitam.processing.common.exception.PluginException;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementApplication;
-import fr.gouv.vitam.storage.engine.server.rest.StorageApplication;
-import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
+import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferApplication;
 import fr.gouv.vitam.worker.server.rest.WorkerApplication;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
@@ -210,7 +209,7 @@ public class TnrLaunchAllApplication {
     private static AccessInternalApplication accessInternalApplication;
     private static IngestExternalApplication ingestExternalApplication;
     private static AccessExternalApplication accessExternalApplication;
-    private static StorageApplication storageApplication;
+    private static StorageMain storageMain;
     private static DefaultOfferApplication defaultOfferApplication;
     private static DefaultOfferApplication defaultOfferApplication2;
     private static Process siegfried;
@@ -369,15 +368,12 @@ public class TnrLaunchAllApplication {
         // storage engine
         LOGGER.warn("Start Storage");
         try {
-            final StorageConfiguration serverConfiguration =
-                PropertiesUtils.readYaml(PropertiesUtils.findFile(STORAGE_CONF),
-                    StorageConfiguration.class);
             SystemPropertyUtil
                 .set(JETTY_STORAGE_PORT, Integer.toString(PORT_SERVICE_STORAGE));
-            storageApplication = new StorageApplication(serverConfiguration);
-            storageApplication.start();
+            storageMain = new StorageMain(STORAGE_CONF);
+            storageMain.start();
             SystemPropertyUtil.clear(JETTY_STORAGE_PORT);
-        } catch (final VitamApplicationServerException | IOException e) {
+        } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
             earlyShutdown();
         }
@@ -582,9 +578,9 @@ public class TnrLaunchAllApplication {
             LOGGER.error(e);
         }
         try {
-            if (storageApplication != null) {
+            if (storageMain != null) {
                 LOGGER.warn("try to shutdown STORAGE");
-                storageApplication.stop();
+                storageMain.stop();
             }
         } catch (Exception e) {
             LOGGER.error(e);
