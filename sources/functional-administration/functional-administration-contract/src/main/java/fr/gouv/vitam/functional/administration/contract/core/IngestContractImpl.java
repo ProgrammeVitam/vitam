@@ -52,14 +52,12 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
-import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.error.VitamCode;
@@ -205,7 +203,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 // stop
                 final String errorsDetails =
                     error.getErrors().stream().map(c -> c.getMessage()).collect(Collectors.joining(","));
-                manager.logValidationError(errorsDetails);
+                manager.logValidationError(errorsDetails, CONTRACTS_IMPORT_EVENT);
                 return error;
             }
 
@@ -317,12 +315,12 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
          *
          * @param errorsDetails
          */
-        private void logValidationError(String errorsDetails) throws VitamException {
+        private void logValidationError(final String errorsDetails, final String eventType) throws VitamException {
             LOGGER.error("There validation errors on the input file {}", errorsDetails);
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
-                .newLogbookOperationParameters(eip, CONTRACTS_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
+                .newLogbookOperationParameters(eip, eventType, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.KO,
-                    VitamLogbookMessages.getCodeOp(CONTRACTS_IMPORT_EVENT, StatusCode.KO), eip);
+                    VitamLogbookMessages.getCodeOp(eventType, StatusCode.KO), eip);
             logbookMessageError(errorsDetails, logbookParameters);
             helper.updateDelegate(logbookParameters);
             logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
@@ -640,7 +638,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
                         final String errorsDetails =
                             error.getErrors().stream().map(c -> c.getMessage()).collect(Collectors.joining(","));
-                        manager.logValidationError(errorsDetails);
+                        manager.logValidationError(errorsDetails, CONTRACT_UPDATE_EVENT);
                     }
                 }
             }
@@ -665,7 +663,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             if (error.getErrors() != null && error.getErrors().size() > 0) {
                 final String errorsDetails =
                     error.getErrors().stream().map(c -> c.getMessage()).collect(Collectors.joining(","));
-                manager.logValidationError(errorsDetails);
+                manager.logValidationError(errorsDetails, CONTRACT_UPDATE_EVENT);
 
                 return error;
             }
