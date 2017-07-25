@@ -552,12 +552,12 @@ angular.module('archive.unit')
     $scope.displayRule = {};
     $scope.toggleDetail = function($index, rule) {
       $scope.activePosition = $scope.activePosition == $index ? -1 : $index;
-      $scope.displayRule[rule.ruleId] = !$scope.displayRule[rule.ruleId] ;
+      $scope.displayRule[[rule.originId, rule.ruleId]] = !$scope.displayRule[[rule.originId, rule.ruleId]] ;
 
-      if (!$scope.title[rule.ruleId]) {
+      if (!$scope.title[[rule.originId, rule.ruleId]]) {
         ihmDemoFactory.getArchiveUnitDetails(rule.originId)
           .then(function (response) {
-            $scope.title[rule.ruleId] = response.data.$results[0].Title;
+            $scope.title[[rule.originId, rule.ruleId]] = response.data.$results[0].Title;
           });
       }
 
@@ -569,7 +569,7 @@ angular.module('archive.unit')
       return '';
     };
     $scope.checkUpOrDown = function(rule){
-        return !!$scope.displayRule[rule.ruleId];
+        return !!$scope.displayRule[[rule.originId, rule.ruleId]];
     };
     $scope.hasSortFinal = function(c){
       return c === 'AppraisalRule' || c === 'StorageRule';

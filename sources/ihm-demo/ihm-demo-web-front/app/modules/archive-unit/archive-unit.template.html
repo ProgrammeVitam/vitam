@@ -186,12 +186,12 @@
                                     <td style="background-color: #FFFFFF" ng-if="$ctrl.isEditMode && (rule.originId !== $ctrl.archiveId)"></td>
                                   </tr>
 
-                                  <tr class="extra-row" ng-show="displayRule[rule.ruleId]">
+                                  <tr class="extra-row" ng-show="displayRule[[rule.originId, rule.ruleId]]">
                                     <td colspan="6" style="background-color: #eeeeee; cursor: default;">
                                       <div class="form-group col-md-12" max-width="100%">
                                         <label style="display: inline">Hérité de : </label>
-                                        <a href={{getSourcePath(rule)}} ng-show="checkSource(rule.originId)">{{title[rule.ruleId]}}</a>
-                                        <span ng-show="!checkSource(rule.originId)">{{title[rule.ruleId]}}</span>
+                                        <a href={{getSourcePath(rule)}} ng-show="checkSource(rule.originId)">{{title[[rule.originId, rule.ruleId]]}}</a>
+                                        <span ng-show="!checkSource(rule.originId)">{{title[[rule.originId, rule.ruleId]]}}</span>
                                         <span ng-if="rule.path.length>1" style="font-style: italic; font-size: 0.9em;"> - Cette règle est héritée au travers de {{rule.path.length}} chemins</span>
                                       </div>
                                       <div class="form-group col-md-12" ng-if="rule.ClassificationLevel">
