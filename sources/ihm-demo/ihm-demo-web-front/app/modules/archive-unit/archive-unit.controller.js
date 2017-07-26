@@ -76,7 +76,7 @@ angular.module('archive.unit')
     var self = this;
 
     var storageKey = {
-      RestrictAccess: {id: 'RestrictAccess', label: 'Acces Réstrinct'},
+      RestrictAccess: {id: 'RestrictAccess', label: 'Accès Restreint'},
       Transfer: {id: 'Transfer', label: 'Transférer'},
       Copy: {id: 'Copy', label: 'Copier'}
     };
