@@ -139,8 +139,8 @@ public class ProcessPopulator {
         File workflowFolder = PropertiesUtils.fileFromConfigFolder(EXTERNAL_WORKFLOWS_FOLDER);
 
         if(!workflowFolder.isDirectory()){
-            LOGGER.warn("FileNotFoundException thrown by populator");
-            throw new WorkflowNotFoundException("FileNotFoundException thrown by populator");
+            LOGGER.warn("DirectoryNotFoundException thrown by populator: {}", workflowFolder);
+            throw new WorkflowNotFoundException("DirectoryNotFoundException thrown by populator");
         }
         else {
             return workflowFolder.listFiles(

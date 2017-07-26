@@ -38,6 +38,7 @@ Il faut créer un fichier **tnr-config.conf** contenant :
 
   - Un bug peut empêcher l'arrêt, il faut alors faire un "killall sf" à la fin du Junit
 
+L'Engine attend que le répertoire /vitam/conf/processing/workflows existe, même vide. Il faut donc le créer.
  
 Lancement en local (Eclipse)
 ============================
