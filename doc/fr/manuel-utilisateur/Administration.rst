@@ -8,7 +8,7 @@ Cette partie décrit les fonctionnalités d'administration proposées à l'utili
 - Import et consultation du référentiel des règles de gestion
 - Import et consultation du référentiel des contrats d'entrée
 - Import et consultation du référentiel des contrats d'accès
-- Import des contextes
+- Import et consultation du référentiel des contextes applicatifs
 - Import des profils d'archivage
 - Import de l'arbre de positionnement
 - Gestion des opérations
@@ -20,7 +20,7 @@ Journal des opérations
 Pour consulter le journal des opérations, l'utilisateur clique sur le menu "Administration", puis sur le sous-menu "Journal des opérations".
 
 .. image:: images/menu_op.png
- 
+
 Il permet à l'utilisateur d'accéder à toutes les opérations effectuées dans la solution logicielle Vitam, par type d'opération.
 
 Ces opérations sont :
@@ -401,6 +401,12 @@ La page "Détail d'un contrat d'accès" contient les informations suivantes :
 
 .. image:: images/CONTRACTS_acces_contract_detail.png
 
+**Modifier un contrat d'accès**
+Il est possible de modifier un contrat d'accès en cliquant sur le bouton "Modifier" sur l'écran de détail d'un contrat d'accès. L'interface permet la modification d'une partie des champs du contrat, ainsi que de changer ses différents statuts (actif/inactif, droit écriture ou non, listes blanches...).
+Il est possible d'ajouter ou supprimer des services producteurs au travers un système de tag : pour ajouter un nouveau producteur, il suffit de saisir son nom et de valider avec la touche entrée, un tag sera alors créé pour ce nom. Pour supprimer un producteur, il est possible de sélectionner le tag en cliquant dessus, puis d'appuyer sur la touche supprimer du clavier. Il est également possible de cliquer directement sur la croix de suppression contenue dans le tag.
+
+Pour valider les modifications du contrat d'accès, il est nécessaire de cliquer sur le bouton "Enregistrer". A l'inverse, le bouton annuler permet de retourner à l'écran du détail du contrat sans appliquer les modifications.
+
 ** Utilisation des contrats d'accès **
 
 Chaque profil utilisateur peut être relié à un ou plusieurs contrats, qui restreignent totalement, de manière partielle ou autorisent pleinement l'accès et/ou la modification d'une archive.
@@ -412,7 +418,7 @@ Une fois sélectionné, il peut opérer sa recherche d'archive. NB : les contrat
 
 Autorisation d'écriture au sein d'une archive
 
-L'utilisateur peut écrire et modifier les métadonnées d'une unitié archivistique si le contrat activé l'autorise.
+L'utilisateur peut écrire et modifier les métadonnées d'une unité archivistique si le contrat activé l'autorise.
 
 Activation / désactivation d'un contrat
 
@@ -431,6 +437,8 @@ Un contrat peut autoriser l'accès à tous ou certains usages d'objets inclus da
 
  - accès à tous les services producteurs en cliquant sur le bouton "Tous les usages"
  - accès à une sélection de services producteurs en cliquant sur le bouton "Liste blanche uniquement"
+
+ .. image:: images/CONTRACTS_acces_contract_update.png
 
 Contrats d'entrée
 -----------------
@@ -496,6 +504,20 @@ La page "Détail d'un contrat d'accès" contient les informations suivantes :
 
 .. image:: images/CONTRACTS_ingest_contract_detail.png
 
+**Modifier un contrat d'entrée**
+Il est possible de modifier un contrat d'entrée en cliquant sur le bouton "Modifier" sur l'écran de détail du contrat. L'interface permet la modification d'une partie des champs du contrat, ainsi que de changer son statut (actif/inactif)
+Il est possible d'ajouter ou supprimer des profils d'archivage au travers un système de tag : pour ajouter un nouveau profil, il suffit de saisir son identifiant et de valider avec la touche entrée, un tag sera alors créé pour ce profil. Pour supprimer un profil, il est possible de sélectionner le tag en cliquant dessus, puis d'appuyer sur la touche supprimer du clavier. Il est également possible de cliquer directement sur la croix de suppression contenue dans le tag.
+
+Pour valider les modifications du contrat d'entrée, il est nécessaire de cliquer sur le bouton "Enregistrer". A l'inverse, le bouton annuler permet de retourner à l'écran du détail du contrat sans appliquer les modifications.
+
+Activation / désactivation d'un contrat
+
+L'administrateur a la possibilité d'activer / désactiver un contrat. Un bouton permet de sélectionner le statut actif ou inactif. Un clic sur ce bouton change la valeur du statut.
+
+Noeud de rattachement
+
+Il est possible d'ajouter dans ce champ l'idenfiant (GUID) d'une unité archivistique classique, de plan de classement ou d'arbre de positionnement. Une fois validé avec le bouton enregistrer, les SIP qui utiliseront ce contrat d'entrée seront automatiquement rattaché à l'unité archivistique déclarée dans le noeud de rattachement.
+
 ** Utilisation des contrats d'entrée **
 
 Chaque SIP doit être relié à un contrat d'entrée permettant de définir des conditions de versement entre le service versant et la solution logicielle Vitam.
@@ -529,6 +551,66 @@ Une fenêtre modale s'ouvre alors pour indiquer soit :
     * Le fait que le contexte déclare des contrats d'entrée ou des contrats d'accès qui n'existent pas dans les référentiels des contrats de leur tenant.
 
 Cette opération est journalisée et disponible dans le Journal des Opérations.
+
+Rechercher un contexte
+---------------------------------
+
+Pour accéder à la recherche des contextes, l’utilisateur clique sur le menu “Administration”, puis sur le sous-menu “Contextes applicatifs”.
+
+La page affiche un formulaire de recherche composé des champs suivants :
+
+* Nom du contexte : permet d’effectuer une recherche approchante sur les noms des contextes applicatifs disponibles dans la solution logicielle Vitam.
+* Identifiant : permet d’effectuer une recherche exacte sur les identifiants des contextes applicatifs.
+
+Par défaut, la solution logicielle Vitam affiche tous les contextes disponibles dans la liste de résultats et l’affine en fonction de la recherche effectuée. La liste des résultats est composée des colonnes suivantes :
+
+* Nom
+* Identifiant
+* Statut
+* Date d'activation
+* Date de désactivation
+* Date de création
+* Date de dernière modification
+
+Il est possible d'afficher également des colonnes additionnelles :
+
+* GUID
+* Contrat d'accès, qui signale la présence ou non de contrat d'accès dans le contexte
+* Contrat d'entrée, qui signale la présence ou non de contrat d'entrée dans le contexte
+
+En cliquant sur une ligne, l’utilisateur ouvre le détail du contexte dans un nouvel onglet.
+
+.. image:: images/context_search.png
+
+Consulter le détail d'un contexte
+--------------------------------------------
+
+La page "Détail d'un contexte applicatif" contient les informations suivantes :
+
+* Identifiant
+* Nom
+* Description
+* Statut
+* Date de création
+* Date de mise à jour
+* Date de d'activation
+* Date de désactivation
+
+Puis, un bloc par tenant. Chaque bloc contenant :
+
+* Le nom du tenant
+* La liste des contrats d'accès associés à ce tenant
+* La liste des contrats d'entrée associés à ce tenant
+
+.. image:: images/context_detail.png
+
+**Modifier un contexte**
+Il est possible de modifier un contexte en cliquant sur le bouton "Modifier" sur l'écran de détail d'un contexte. L'interface permet la modification d'une partie des champs du contexte, ainsi que de changer son statut (actif/inactif).
+Il est possible d'ajouter ou supprimer des tenants concernés par le contexte en sélectionnant un nom de tenant en haut à droite et en cliquant sur "Ajouter". Il est impossible d'ajouter un tenant qui se trouve déjà dans la liste des tenants de ce contexte.
+Pour supprimer un tenant, il suffit de cliquer sur le bouton supprimer correspondant au tenant à retirer, et de valider cette suppression en utilisant le bouton "enregistrer".
+Au sein de chacun de ces tenant, il est possible d'ajouter ou supprimer des contrats d'accès ou d'entrée au travers un système de tag : pour ajouter un nouveau contrat, il suffit de saisir son identifiant et de valider avec la touche entrée, un tag sera alors créé pour ce contrat. Pour supprimer un contrat, il est possible de sélectionner le tag en cliquant dessus, puis d'appuyer sur la touche supprimer du clavier. Il est également possible de cliquer directement sur la croix de suppression contenue dans le tag.
+
+Pour valider les modifications du contexte, il est nécessaire de cliquer sur le bouton "Enregistrer". A l'inverse, le bouton annuler permet de retourner à l'écran du détail du contrat sans appliquer les modifications.
 
 
 Profils d'archivage
@@ -587,6 +669,13 @@ Par défaut, la solution logicielle Vitam affiche tous les profils d'archivage d
 * Description
 * Etat
 * Profil
+
+Il est possible d'afficher également des colonnes additionnelles :
+
+* Date de création
+* Date de dernière modification
+* Date d'activation
+* Date de désactivation
 
 En cliquant sur une ligne, l’utilisateur ouvre le détail du profil d'archivage dans un nouvel onglet.
 
