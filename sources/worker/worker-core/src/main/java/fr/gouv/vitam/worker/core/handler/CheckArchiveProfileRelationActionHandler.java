@@ -53,11 +53,11 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 
 /**
- * Check Archive Profile Relation Handler  
+ * Check Archive Profile Relation Handler
  * Verify the relation between ingest contract and profil in manifest
  */
 public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
-    
+
     private static final String UNKNOWN_TECHNICAL_EXCEPTION = "Unknown technical exception";
     private static final String CAN_NOT_GET_THE_INGEST_CONTRACT = "Can not get the ingest contract";
     private static final String PROFIL_IS_NOT_DECLARED_IN_THE_INGEST_CONTRACT = "Profil is not declared in the ingest contract";
@@ -86,10 +86,10 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
     public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO) {
         checkMandatoryParameters(params);
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
-        final String profileIdentifier = (String) handlerIO.getInput(PROFILE_IDENTIFIER_RANK); 
+        final String profileIdentifier = (String) handlerIO.getInput(PROFILE_IDENTIFIER_RANK);
         final String contractName = (String) handlerIO.getInput(CONTRACT_NAME_RANK);
         Boolean isValid = true;
-        
+
         try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
             Select select = new Select();
             select.setQuery(QueryHelper.eq(IngestContract.NAME, contractName));
@@ -101,7 +101,7 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
             } else {
                 isValid = false;
             }
-        } catch (InvalidCreateOperationException | InvalidParseOperationException | 
+        } catch (InvalidCreateOperationException | InvalidParseOperationException |
             AdminManagementClientServerException e) {
             LOGGER.error(PROFILE_NOT_FOUND, e);
             itemStatus.increment(StatusCode.KO);
@@ -112,17 +112,18 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
             itemStatus.increment(StatusCode.FATAL);
             return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
         }
-        
+
         if (isValid) {
             itemStatus.increment(StatusCode.OK);
         } else {
             itemStatus.increment(StatusCode.KO);
         }
         ObjectNode infoNode = JsonHandler.createObjectNode();
-        infoNode.put(SedaConstants.TAG_ARCHIVE_PROFILE, profileIdentifier);
-        String evdev = JsonHandler.unprettyPrint(infoNode);
-        itemStatus.setData(LogbookParameterName.eventDetailData.name(), evdev);
-        itemStatus.setMasterData(LogbookParameterName.eventDetailData.name(), evdev);
+        infoNode.put( SedaConstants.TAG_ARCHIVE_PROFILE, profileIdentifier );
+        String evdev = JsonHandler.unprettyPrint( infoNode );
+        itemStatus.setEvDetailData( evdev );
+        itemStatus.setMasterData( LogbookParameterName.eventDetailData.name(), evdev );
+
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
 
     }

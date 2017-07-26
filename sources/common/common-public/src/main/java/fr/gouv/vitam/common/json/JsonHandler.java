@@ -160,6 +160,25 @@ public final class JsonHandler {
 
     /**
      *
+     * @param value in format String to transform
+     * @return the jsonNode (ObjectNode or ArrayNode)
+     * @throws InvalidParseOperationException if parse JsonNode object exception occurred
+     */
+   public static final boolean validate(final String value)
+        throws InvalidParseOperationException {
+        try {
+            ParametersChecker.checkParameter("value", value);
+            JsonNode on = OBJECT_MAPPER.readTree( value );
+            if (!on.isObject() ) {
+                throw new InvalidParseOperationException("Invalid Json value ");
+            }
+        } catch (final IOException | IllegalArgumentException  e) {
+            throw new InvalidParseOperationException(e);
+        }
+        return true;
+    }
+    /**
+     *
      * @param file to transform
      * @return the jsonNode (ObjectNode or ArrayNode)
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred

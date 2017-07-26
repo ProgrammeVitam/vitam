@@ -27,9 +27,11 @@
 package fr.gouv.vitam.processing.management.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
@@ -348,7 +350,6 @@ public class ProcessManagementImplTest {
         ItemStatus itemStatus = new ItemStatus();
         itemStatus.setMessage("message");
         itemStatus.setItemId("itemId");
-        itemStatus.setEvDetailData("evDetailData");
         itemStatus.setGlobalState(ProcessState.COMPLETED);
         step.setStepResponses(itemStatus);
         step.setWorkerGroupId(groupId);

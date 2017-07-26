@@ -124,11 +124,9 @@ public class UnitsRulesComputePlugin extends ActionHandler {
             itemStatus.increment(StatusCode.OK);
         } catch (final ProcessingException e) {
             LOGGER.debug(e);
-            itemStatus.setEvDetailData(e.getMessage());
             final ObjectNode object = JsonHandler.createObjectNode();
             object.put("UnitRuleCompute", e.getMessage());
-            itemStatus.setData(LogbookParameterName.eventDetailData.name(),
-                JsonHandler.unprettyPrint(object));
+            itemStatus.setEvDetailData( object.toString() );
             itemStatus.increment(StatusCode.KO);
         }
 

@@ -311,7 +311,7 @@ public class FormatIdentificationActionPluginTest {
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
         assertTrue(response.getItemsStatus().get(FormatIdentificationActionPlugin.FILE_FORMAT)
-            .getEvDetailData().isEmpty());
+            .getEvDetailData().equals( "{}" ));
     }
 
     @Test

@@ -29,7 +29,9 @@ package fr.gouv.vitam.common;
 import java.nio.file.attribute.FileTime;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
@@ -84,7 +86,7 @@ public final class LocalDateUtil {
             return getSimpleFormattedDate(date);
         }
         if (date.indexOf('T') == -1) {
-            return getDate(LocalDateTime.parse(date, DateTimeFormatter.ISO_DATE));
+           return Date.from( LocalDate.parse(date, DateTimeFormatter.ISO_DATE).atStartOfDay( ZoneId.systemDefault()).toInstant());
         }
         return getDate(LocalDateTime.parse(date, DATE_FORMATTER));
     }

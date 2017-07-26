@@ -272,8 +272,12 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                     checkAndUpdateFormatIdentification(objectId, formatIdentification,
                         objectCheckFormatResult, refFormat,
                         version);
-                eventDetailData = "{\"diff\": {\"-\":" + formatIdentification + "," +
-                    "\"+\": " + newFormatIdentification + "}}";
+                ObjectNode diffObject = JsonHandler.createObjectNode();
+                diffObject.set( "-", formatIdentification );
+                diffObject.set( "+", newFormatIdentification );
+                ObjectNode object = JsonHandler.createObjectNode();
+                object.set( "diff", diffObject );
+                eventDetailData = object.toString();
                 // Reassign new format
                 ((ObjectNode) version).set(SedaConstants.TAG_FORMAT_IDENTIFICATION, newFormatIdentification);
             }

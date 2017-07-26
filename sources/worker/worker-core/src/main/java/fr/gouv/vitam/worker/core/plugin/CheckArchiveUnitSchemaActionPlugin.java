@@ -103,18 +103,18 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
                 case NOT_JSON_FILE:
                     itemStatus.setItemId(NOT_JSON_FILE);
                     itemStatus.increment(StatusCode.KO);
-                    itemStatus.setEvDetailData(schemaValidationStatus.getValidationMessage());
+                    final ObjectNode object = JsonHandler.createObjectNode();
+                    object.put( CHECK_UNIT_SCHEMA_TASK_ID, schemaValidationStatus.getValidationMessage() );
+                    itemStatus.setEvDetailData( JsonHandler.unprettyPrint( object ) );
                     return new ItemStatus(CHECK_UNIT_SCHEMA_TASK_ID).setItemsStatus(CHECK_UNIT_SCHEMA_TASK_ID,
                         itemStatus);
             }
         } catch (final ArchiveUnitContainSpecialCharactersException e) {
             itemStatus.setItemId(UNIT_SANITIZE);
             itemStatus.increment(StatusCode.KO);
-            itemStatus.setEvDetailData(e.getMessage());
             final ObjectNode object = JsonHandler.createObjectNode();
             object.put("UnitSanitize", e.getMessage());
-            itemStatus.setData(LogbookParameterName.eventDetailData.name(),
-                JsonHandler.unprettyPrint(object));
+            itemStatus.setEvDetailData( JsonHandler.unprettyPrint( object ) );
             return new ItemStatus(CHECK_UNIT_SCHEMA_TASK_ID).setItemsStatus(CHECK_UNIT_SCHEMA_TASK_ID,
                 itemStatus);
         } catch (final ProcessingException e) {

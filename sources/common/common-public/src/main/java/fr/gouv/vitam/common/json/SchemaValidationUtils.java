@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonschema.cfg.ValidationConfiguration;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
+import com.github.fge.jsonschema.core.report.ListProcessingReport;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.library.DraftV4Library;
 import com.github.fge.jsonschema.library.Library;
@@ -114,8 +115,11 @@ public class SchemaValidationUtils {
         try {
             ProcessingReport report = archiveUnitSchema.validate(archiveUnit);
             if (!report.isSuccess()) {
-                LOGGER.error("Archive unit is not valid : \n" + report.toString());
-                return new SchemaValidationStatus(report.toString(),
+                JsonNode error = (( ListProcessingReport ) report).asJson();
+                ObjectNode errorNode = JsonHandler.createObjectNode();
+                errorNode.set( "validateUnitReport",  error);
+                LOGGER.error("Archive unit is not valid : \n" + errorNode.toString());
+                return new SchemaValidationStatus(errorNode.toString(),
                     SchemaValidationStatusEnum.NOT_AU_JSON_VALID);
             }
             if (archiveUnit.get(SedaConstants.TAG_RULE_START_DATE) != null && 

@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.core.handler;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -104,9 +105,11 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
                 for (StorageInformation information : informations) {
                     ItemStatus is = new ItemStatus(HANDLER_ID);
                     // Useful information ?
-                    String eventDetailData = "{\"offerId\":" +   information.getOfferId();
-                    is.setData("offerId",eventDetailData);
-                    is.setEvDetailData(eventDetailData);
+
+                    ObjectNode info = JsonHandler.createObjectNode();
+                    info.put( "offerId", information.getOfferId() );
+                    is.setData( "offerId", info.toString() );
+                    is.setEvDetailData( info.toString() );
                     // if usable space not specified getUsableSpace() return -1
                     if (information.getUsableSpace() >= totalSizeToBeStored || information.getUsableSpace() == -1) {
                         is.increment(StatusCode.OK);
@@ -114,7 +117,7 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
                         is.increment(StatusCode.KO);
                     }
                     itemStatus.setItemsStatus(HANDLER_ID, is);
-                    itemStatus.setEvDetailData(eventDetailData);
+                    itemStatus.setEvDetailData( info.toString() );
                 }
             } else {
                 LOGGER.warn("No information found for offers");
