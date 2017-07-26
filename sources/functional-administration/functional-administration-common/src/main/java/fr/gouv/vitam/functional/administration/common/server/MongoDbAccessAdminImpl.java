@@ -29,7 +29,6 @@ package fr.gouv.vitam.functional.administration.common.server;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -41,16 +40,12 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
-import com.mongodb.client.MongoCursor;
 import com.mongodb.client.result.UpdateResult;
 
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
 import fr.gouv.vitam.common.database.builder.request.single.Insert;
-import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
@@ -86,50 +81,55 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
     }
 
     @Override
-    public void insertDocuments(ArrayNode arrayNode, FunctionalAdminCollections collection)
+    public DbRequestResult insertDocuments(ArrayNode arrayNode, FunctionalAdminCollections collection)
+        throws ReferentialException {
+        return insertDocuments(arrayNode, collection, 0);
+    }
+
+    @Override
+    public DbRequestResult insertDocuments(ArrayNode arrayNode, FunctionalAdminCollections collection, Integer version)
         throws ReferentialException {
         try {
-            DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection());
-            Insert insertquery = new Insert();
+            final DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection());
+            final Insert insertquery = new Insert();
             insertquery.setData(arrayNode);
-            dbrequest.execute(insertquery);
+           return dbrequest.execute(insertquery, version);
         } catch (InvalidParseOperationException | DatabaseException | InvalidCreateOperationException e) {
             LOGGER.error("Insert Documents Exception", e);
             throw new ReferentialException(e);
         }
     }
-
     // Not check, test feature !
     @Override
-    public void deleteCollection(FunctionalAdminCollections collection) throws DatabaseException, ReferentialException {
-        Document filter = new Document().append(VitamDocument.TENANT_ID, ParameterHelper.getTenantParameter());
+    public DbRequestResult deleteCollection(FunctionalAdminCollections collection)
+        throws DatabaseException, ReferentialException {
         long count = 0;
-        if (FunctionalAdminCollections.FORMATS.equals(collection)) {
-            count = collection.getCollection().count();
-        } else {
+        if (collection.isMultitenant()) {
+            final Document filter = new Document().append(VitamDocument.TENANT_ID, ParameterHelper.getTenantParameter());
             count = collection.getCollection().count(filter);
+        } else {
+            count = collection.getCollection().count();
         }
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(collection.getName() + " count before: " + count);
         }
         if (count > 0) {
             final Delete delete = new Delete();
-            DbRequestResult result = null;
-            DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection());
-            try {
-                delete.setQuery(QueryHelper.exists(VitamFieldsHelper.id()));
-                result = dbrequest.execute(delete);
+            final DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection());
+            try (DbRequestResult result = dbrequest.execute(delete)) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug(collection.getName() + " result.result.getDeletedCount(): " + result.getCount());
+                }
+                if (result.getCount() != count) {
+                    throw new DatabaseException(String.format("%s: Delete %s from %s elements", collection.getName(),
+                        result.getCount(), count));
+                }
+                return result;
             } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
                 throw new DatabaseException("Delete document exception");
             }
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(collection.getName() + " result.result.getDeletedCount(): " + result.getCount());
-            }
-            if (result.getCount() != count) {
-                throw new DatabaseException(String.format("%s: Delete %s from %s elements", collection.getName(),
-                    result.getCount(), count));
-            }
         }
+        return new DbRequestResult();
     }
 
     @VisibleForTesting
@@ -146,13 +146,13 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
     }
 
     @Override
-    public MongoCursor<VitamDocument<?>> findDocuments(JsonNode select, FunctionalAdminCollections collection)
+    public DbRequestResult findDocuments(JsonNode select, FunctionalAdminCollections collection)
         throws ReferentialException {
         try {
-            SelectParserSingle parser = new SelectParserSingle(new VarNameAdapter());
+            final SelectParserSingle parser = new SelectParserSingle(collection.getVarNameAdapater());
             parser.parse(select);
-            DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection());
-            return dbrequest.execute(parser.getRequest()).getCursor();
+            final DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection());
+            return dbrequest.execute(parser.getRequest());
         } catch (final DatabaseException | InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error("find Document Exception", e);
             throw new ReferentialException(e);
@@ -160,17 +160,17 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
     }
 
     @Override
-    public Map<String, List<String>> updateData(JsonNode update, FunctionalAdminCollections collection)
+    public DbRequestResult updateData(JsonNode update, FunctionalAdminCollections collection, Integer version)
         throws ReferentialException {
-        try { 
-            UpdateParserSingle parser = new UpdateParserSingle(new VarNameAdapter());
+        try {
+            final UpdateParserSingle parser = new UpdateParserSingle(collection.getVarNameAdapater());
             parser.parse(update);
-            DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection());
-            DbRequestResult result = (DbRequestResult) dbrequest.execute(parser.getRequest());
-            if (result.getDiffs().size() == 0 ) {
+            final DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection());
+            final DbRequestResult result = dbrequest.execute(parser.getRequest(), version);
+            if (result.getDiffs().size() == 0) {
                 throw new ReferentialException("Document is not updated");
             }
-            return result.getDiffs();
+            return result;
         } catch (final DatabaseException | InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error("find Document Exception", e);
             throw new ReferentialException(e);
@@ -178,7 +178,13 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
     }
 
     @Override
-    public void updateDocumentByMap(Map<String, Object> map, JsonNode objNode,
+    public DbRequestResult updateData(JsonNode update, FunctionalAdminCollections collection)
+        throws ReferentialException {
+        return updateData(update, collection, 0);
+    }
+
+    @Override
+    public void updateAccessionRegisterByMap(Map<String, Object> map, JsonNode objNode,
         FunctionalAdminCollections collection, UPDATEACTION operator)
         throws ReferentialException {
         final BasicDBObject incQuery = new BasicDBObject();
@@ -187,7 +193,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
             updateFields.append(entry.getKey(), entry.getValue());
         }
         incQuery.append(operator.exactToken(), updateFields);
-        Bson query = and(
+        final Bson query = and(
             eq(AccessionRegisterSummary.ORIGINATING_AGENCY,
                 objNode.get(AccessionRegisterSummary.ORIGINATING_AGENCY).textValue()),
             eq(VitamDocument.TENANT_ID, ParameterHelper.getTenantParameter()));
@@ -199,8 +205,9 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
     }
 
     @Override
-    public void insertDocument(JsonNode json, FunctionalAdminCollections collection) throws ReferentialException {
-        insertDocuments(JsonHandler.createArrayNode().add(json), collection);
+    public DbRequestResult insertDocument(JsonNode json, FunctionalAdminCollections collection)
+        throws ReferentialException {
+        return insertDocuments(JsonHandler.createArrayNode().add(json), collection);
     }
 
 }

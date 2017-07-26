@@ -24,8 +24,10 @@ import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
@@ -34,6 +36,8 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
  * Rest client implementation for Access External
  */
 class AccessExternalClientRest extends DefaultClient implements AccessExternalClient {
+
+    private static final String ACCESS_EXTERNAL_MODULE = "AccessExternalModule";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessExternalClientRest.class);
 
@@ -86,7 +90,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 final VitamError vitamError =  new VitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNITS_ERROR.getItem())
                     .setMessage(VitamCode.ACCESS_EXTERNAL_SELECT_UNITS_ERROR.getMessage())
                     .setState(StatusCode.KO.name())
-                    .setContext("AccessExternalModule")
+                    .setContext(ACCESS_EXTERNAL_MODULE)
                     .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_UNITS_ERROR.getMessage());
 
                 if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
@@ -142,7 +146,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 final VitamError vitamError =  new VitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR.getItem())
                     .setMessage(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR.getMessage())
                     .setState(StatusCode.KO.name())
-                    .setContext("AccessExternalModule")
+                    .setContext(ACCESS_EXTERNAL_MODULE)
                     .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR.getMessage());
 
                 if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
@@ -195,7 +199,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 final VitamError vitamError =  new VitamError(VitamCode.ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR.getItem())
                     .setMessage(VitamCode.ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR.getMessage())
                     .setState(StatusCode.KO.name())
-                    .setContext("AccessExternalModule")
+                    .setContext(ACCESS_EXTERNAL_MODULE)
                     .setDescription(VitamCode.ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR.getMessage());
 
                 if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
@@ -207,6 +211,11 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                         .setDescription(VitamCode.ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR.getMessage() + " Cause : " +
                             Status.NOT_FOUND.getReasonPhrase());
                 } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
+                	 // TODO Make a generic method that take entity + VitamCode and return a nex vitamError or the response vitamError ?
+                    if (requestResponse instanceof VitamError) {
+                        return requestResponse;
+                    }
+                    LOGGER.info("Return new Vitam error");
                     return  vitamError.setHttpCode(Status.BAD_REQUEST.getStatusCode())
                         .setDescription(VitamCode.ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR.getMessage() + " Cause : " +
                             Status.BAD_REQUEST.getReasonPhrase());
@@ -256,7 +265,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 final VitamError vitamError = new VitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR.getItem())
                     .setMessage(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR.getMessage())
                     .setState(StatusCode.KO.name())
-                    .setContext("AccessExternalModule")
+                    .setContext(ACCESS_EXTERNAL_MODULE)
                     .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR.getMessage());
 
                 if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
@@ -308,6 +317,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
         headers.add(GlobalDataRest.X_QUALIFIER, usage);
         headers.add(GlobalDataRest.X_VERSION, version);
+
         try {
             response = performRequest(HttpMethod.GET, "/units/" + unitId + "/object", headers,
                 selectObjectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE, false);
@@ -405,7 +415,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 final VitamError vitamError = new VitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_ERROR.getItem())
                     .setMessage(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_ERROR.getMessage())
                     .setState(StatusCode.KO.name())
-                    .setContext("AccessExternalModule")
+                    .setContext(ACCESS_EXTERNAL_MODULE)
                     .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_ERROR.getMessage());
 
                 if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
@@ -454,7 +464,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 final VitamError vitamError = new VitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR.getItem())
                     .setMessage(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR.getMessage())
                     .setState(StatusCode.KO.name())
-                    .setContext("AccessExternalModule")
+                    .setContext(ACCESS_EXTERNAL_MODULE)
                     .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR.getMessage());
 
                 if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
@@ -504,7 +514,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 final VitamError vitamError = new VitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR.getItem())
                     .setMessage(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR.getMessage())
                     .setState(StatusCode.KO.name())
-                    .setContext("AccessExternalModule")
+                    .setContext(ACCESS_EXTERNAL_MODULE)
                     .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR.getMessage());
 
                 if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
@@ -554,7 +564,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 final VitamError vitamError = new VitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_ERROR.getItem())
                     .setMessage(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_ERROR.getMessage())
                     .setState(StatusCode.KO.name())
-                    .setContext("AccessExternalModule")
+                    .setContext(ACCESS_EXTERNAL_MODULE)
                     .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_ERROR.getMessage());
 
                 if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
@@ -604,7 +614,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 final VitamError vitamError = new VitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR.getItem())
                     .setMessage(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR.getMessage())
                     .setState(StatusCode.KO.name())
-                    .setContext("AccessExternalModule")
+                    .setContext(ACCESS_EXTERNAL_MODULE)
                     .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR.getMessage());
 
                 if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {

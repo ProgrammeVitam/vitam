@@ -49,6 +49,7 @@ angular.module('ihm.demo', [
   'workflows',
   'accessContracts',
   'entryContracts',
+  'contexts',
   'traceability.operation.search',
   'traceability.operation.details',
   'profiles.search'

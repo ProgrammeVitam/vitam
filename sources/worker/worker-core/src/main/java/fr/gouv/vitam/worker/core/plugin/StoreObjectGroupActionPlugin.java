@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -49,7 +50,6 @@ import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
-import fr.gouv.vitam.worker.common.utils.SedaConstants;
 
 /**
  * StoreObjectGroupAction Plugin.<br>
@@ -62,6 +62,7 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
     private static final String STORING_OBJECT_TASK_ID = "OBJECT_STORAGE_SUB_TASK";
     private static final String SIP = "SIP/";
     private HandlerIO handlerIO;
+    private boolean asyncIO = false;
 
     /**
      * Constructor
@@ -113,7 +114,7 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
             try {
                 handlerIO.transferJsonToWorkspace(StorageCollectionType.OBJECTGROUPS.getCollectionName(),
                     params.getObjectName(),
-                    mapOfObjects.jsonOG, false);
+                    mapOfObjects.jsonOG, false, asyncIO);
             } catch (ProcessingException e) {
                 LOGGER.error(params.getObjectName(), e);
                 throw e;

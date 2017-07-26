@@ -56,6 +56,8 @@ Il existe des Helpers en Java pour construire les requêtes au bon format (hors 
       - **$per_page** (**UNSUPPORTED**) : le nombre maximum des premiers items retournés (limité à 100 par défaut, maximum à 100)
       - **$offset**: la position de démarrage dans la liste retournée (positionné à 0 par défaut, maximum à 100000)
       - **$orderby: { fieldname: 1, fieldname: -1 }** : permet de définir un tri ascendant ou descendant
+        - **IMPORTANT** : pour un champ analysé (plein texte), le tri n'est pas lexicographique mais basé sur le score de correspondance 
+        - si le nom du champ est **#score**, cela permet de trier volontairement par la pertinence avant l'apparition d'une requête plein texte (par défaut, toute recherche contenant du plein texte trie sur la pertinence lors de l'apparition de la clause).
       - **$hint: "nocache"** (**UNSUPPORTED**) permet de spécifier si l'on ne veut pas bénéficier du cache (cache actif par défaut)
     - Pour *POST*, *PUT* et *DELETE*
       - **$mult**: booléen où *true* signifie que l'opération peut concerner de multiples items (par défaut, positionné à *false*)
@@ -88,6 +90,8 @@ Il existe des Helpers en Java pour construire les requêtes au bon format (hors 
       - **$per_page** (**UNSUPPORTED**): le nombre maximum des premiers items retournés (limité à 100 par défaut, maximum à 100)
       - **$offset**: la position de démarrage dans la liste retournée (positionné à 0 par défaut, maximum à 100000)
       - **$orderby: { fieldname: 1, fieldname: -1 }** : permet de définir un tri ascendant ou descendant
+        - **IMPORTANT** : pour un champ analysé (plein texte), le tri n'est pas lexicographique mais basé sur le score de correspondance
+        - si le nom du champ est **#score**, cela permet de trier volontairement par la pertinence avant l'apparition d'une requête plein texte (par défaut, toute recherche contenant du plein texte trie sur la pertinence lors de l'apparition de la clause).
       - **$hint: "nocache"** (**UNSUPPORTED**) permet de spécifier si l'on ne veut pas bénéficier du cache (cache actif par défaut)
     - Pour *POST*, *PUT* et *DELETE*
       - **$mult** (**UNSUPPORTED**): booléen où *true* signifie que l'opération peut concerner de multiples items (par défaut, positionné à *false*)
@@ -122,7 +126,7 @@ Les commandes de la Query peuvent être :
 |      | $size |	Champ et taille |	Taille d'un tableau |
 |      | [n] **UNSUPPORTED** |	Position (n >= 0) |	Élément d'un tableau |
 | Textuel |	$term, $wildcard |	Champ, mot clef |	Comparaison de champs mots-clefs à valeur exacte |
-|       | $match, $matchPhrase, $matchPhrasePrefix |	Champ, phrase, $max_expansions (optionnel) | Recherche plein texte soit sur des mots, des phrases ou un préfixe de phrase |
+|       | $match, $match\_all, $match\_phrase, $match\_phrase\_prefix |	Champ, phrase, $max_expansions (optionnel) | Recherche plein texte soit sur des mots, des phrases ou un préfixe de phrase |
 |       | $regex |	Champ, Expression régulière	| Recherche via une expression régulière |
 |       | $search |	Champ, valeur	| Recherche du type moteur de recherche |
 |       | $flt, $mlt |	Champ, valeur |	Recherche « More Like This », soit par valeurs approchées |
@@ -271,7 +275,7 @@ Des champs sont protégés dans les requêtes :
   - **#originating_agency** est l'OriginatingAgency su SIP d'origine
   - **#originating_agencies** est l'ensemble des OriginatingAgencies issues du SIP et des rattachements (héritage)
   - **#storage** est l'état de stockage
-  - **#score** (**UNSUPORTED**) contiendra en cas de requête avec plein texte le score de pertinence
+  - **#score** contiendra en cas de requête avec plein texte le score de pertinence (certaines collections n'auront pas ce champ)
 - Spécifiques pour les Units
   - **#unittype** est la typologie du Unit (Arbre HOLLDING_UNIT, Plan FILING_UNIT ou ArchiveUnit INGEST)
   - **#nbunits** est le nombre de fils immédiats à un Unit donné

@@ -30,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -194,11 +195,11 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
             return expectedResponse.post();
         }
 
-        @POST
+        @GET
         @Path("/format/{id_format}")
         @Produces(MediaType.APPLICATION_JSON)
         public Response getFormatByID() {
-            return expectedResponse.post();
+            return expectedResponse.get();
         }
 
         @POST
@@ -239,11 +240,11 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
             return expectedResponse.post();
         }
 
-        @POST
+        @GET
         @Path("/rules/{id_rule}")
         @Produces(MediaType.APPLICATION_JSON)
         public Response findRuleByID() {
-            return expectedResponse.post();
+            return expectedResponse.get();
         }
 
         @POST
@@ -279,7 +280,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         }
 
         @POST
-        @Path("/contracts")
+        @Path("/entrycontracts")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response importContracts(ArrayNode contractsToImport, @Context UriInfo uri) {
@@ -287,7 +288,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         }
 
         @GET
-        @Path("/contracts")
+        @Path("/entrycontracts")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response findContracts(@Context UriInfo uri) {
@@ -395,7 +396,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     public void givenAnInvalidIDThenReturnNOTFOUND() throws Exception {
         final InputStream stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
         client.importFormat(stream);
-        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
         client.getFormatByID("HDE");
     }
 
@@ -463,12 +464,21 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
             PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         try {
             VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-            client.importRulesFile(stream);
-            final JsonNode result = client.getRuleByID("APP-00001");
+            client.importRulesFile(stream);            
         } catch (FileRulesException e) {
             assertEquals("Wrong format", e.getMessage());
             throw (e);
+        } catch (ReferentialException e) {
+            fail("May not happen here");
         }
+    }
+    
+    @Test(expected = ReferentialException.class)
+    public void givenAnInvalidIDForRuleThenReturnNotFound() throws Exception {
+        final InputStream stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
+        client.importRulesFile(stream);
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        client.getRuleByID("HDE");
     }
 
     /**
@@ -481,8 +491,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     @Test(expected = InvalidParseOperationException.class)
     @RunWithCustomExecutor
     public void givenInvalidQuerythenReturnko()
-        throws FileRulesException, InvalidParseOperationException, DatabaseConflictException, FileNotFoundException,
-        AdminManagementClientServerException {
+        throws ReferentialException, InvalidParseOperationException, DatabaseConflictException, FileNotFoundException {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
         final Select select = new Select();
         final InputStream stream =

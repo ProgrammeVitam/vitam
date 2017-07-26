@@ -29,6 +29,7 @@ package fr.gouv.vitam.metadata.core.database.collections;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 
 /**
  * Response filter changing _varname to corresponding #varname according to ParserTokens
@@ -66,7 +67,7 @@ public class MongoDbMetadataResponseFilter {
                     break;
                 case NBOBJECTS:
                     if (!isUnit) {
-                        replace(document, ObjectGroup.NB_COPY, VitamFieldsHelper.nbobjects());
+                        replace(document, ObjectGroup.NBCHILD, VitamFieldsHelper.nbobjects());
                     }
                     break;
                 case STORAGE:
@@ -110,9 +111,17 @@ public class MongoDbMetadataResponseFilter {
                     break;
                 case ORIGINATING_AGENCIES:
                     replace(document, MetadataDocument.ORIGINATING_AGENCIES, VitamFieldsHelper.originatingAgencies());
+                    break;
                 case SIZE:
-                case DUA:
+                    replace(document, ObjectGroup.OBJECTSIZE, VitamFieldsHelper.size());
+                    break;
                 case FORMAT:
+                    replace(document, ObjectGroup.OBJECTFORMAT, VitamFieldsHelper.format());
+                    break;
+                case SCORE:
+                    replace(document, VitamDocument.SCORE, ParserTokens.PROJECTIONARGS.SCORE.exactToken());
+                    break;
+                case DUA:
                 case ALL:
                 default:
                     break;

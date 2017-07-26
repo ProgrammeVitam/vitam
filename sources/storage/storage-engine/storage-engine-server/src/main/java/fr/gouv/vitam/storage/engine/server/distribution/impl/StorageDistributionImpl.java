@@ -226,7 +226,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             try {
                 logStorage(tenantId, parameters);
             } catch (IOException e) {
-                LOGGER.debug(e);
+                LOGGER.error(e);
             }
             // TODO P1 Handle Status result if different for offers
             return buildStoreDataResponse(objectId, category, strategyId, datas.getGlobalOfferResult());
@@ -615,6 +615,8 @@ public class StorageDistributionImpl implements StorageDistribution {
                 description.append("Profile ");
             case STORAGELOG:
                 description.append("Storagelog ");
+            case RULES:
+                description.append("Rules ");
                 break;
             default:
                 throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
@@ -631,7 +633,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         result.setNbCopy(offerResults.size());
         result.setStrategy(strategy);
         result.setOfferIds(Arrays.asList(offerResults.keySet().toArray(new String[0])));
-        LOGGER.warn("DEBUG result: {}", result);
+        LOGGER.debug("DEBUG result: {}", result);
         return result;
     }
 
@@ -899,6 +901,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     private StorageGetResult getGetObjectResult(Integer tenantId, String objectId, DataCategory type,
         List<OfferReference> offerReferences, AsyncResponse asyncResponse) throws StorageException {
         StorageGetResult result;
+        boolean offerOkNoBinary = false;
         for (final OfferReference offerReference : offerReferences) {
             final Driver driver = retrieveDriverInternal(offerReference.getId());
             final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
@@ -912,12 +915,20 @@ public class StorageDistributionImpl implements StorageDistribution {
                     helper.writeResponse(responseBuilder);
                     return result;
                 }
+            } catch (final fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException exc) {
+                LOGGER.warn("Error with the storage: object not found. Take next offer in strategy (by priority)" + exc);
+                offerOkNoBinary = true;
             } catch (final StorageDriverException exc) {
                 LOGGER.warn("Error with the storage, take the next offer in the strategy (by priority)", exc);
             }
         }
-        LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, objectId));
-        throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, objectId));
+        if (offerOkNoBinary) {
+            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, objectId));
+            throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, objectId));
+        } else {
+            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
+            throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
+        }
     }
 
     @Override

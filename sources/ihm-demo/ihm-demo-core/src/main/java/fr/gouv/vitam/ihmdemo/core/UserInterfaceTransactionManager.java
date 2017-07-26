@@ -171,7 +171,7 @@ public class UserInterfaceTransactionManager {
      *
      * @param asyncResponse the asynchronous response to be used
      * @param selectObjectQuery the query to be executed
-     * @param objectGroupId the Id of the ObjectGroup
+     * @param unitId the Id of the ObjectGroup
      * @param usage the requested usage
      * @param version the requested version of the usage
      * @param filename the name od the file
@@ -186,12 +186,12 @@ public class UserInterfaceTransactionManager {
     // TODO: review this return (should theoretically be a void) because we got mock issue with this class on
     // web application resource
     public static boolean getObjectAsInputStream(AsyncResponse asyncResponse, JsonNode selectObjectQuery,
-        String objectGroupId, String usage, int version, String filename, Integer tenantId, String contractId)
+        String unitId, String usage, int version, String filename, Integer tenantId, String contractId)
         throws AccessExternalClientNotFoundException, AccessExternalClientServerException,
         InvalidParseOperationException, UnsupportedEncodingException, AccessUnauthorizedException {
         Response response = null;
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            response = client.getObject(selectObjectQuery, objectGroupId, usage, version, tenantId, contractId);
+            response = client.getUnitObject(selectObjectQuery, unitId, usage, version, tenantId, contractId);
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
             final Response.ResponseBuilder responseBuilder = Response.status(Response.Status.OK)
                 .header(GlobalDataRest.X_QUALIFIER, response.getHeaderString(GlobalDataRest.X_QUALIFIER))

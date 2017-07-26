@@ -100,7 +100,6 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
         results.add(result);
         hits.setSize(hits.getSize() + 1);
         hits.setLimit(hits.getLimit() + 1);
-        // TODO: 6/20/17 total should be the global total not the size of the response
         hits.setTotal(hits.getSize());
         return this;
     }
@@ -116,7 +115,6 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
         results.addAll(resultList);
         hits.setSize(hits.getSize() + resultList.size());
         hits.setLimit(hits.getLimit() + resultList.size());
-        // TODO: 6/20/17 total should be the global total not the size of the response
         hits.setTotal(hits.getSize());
         return this;
     }

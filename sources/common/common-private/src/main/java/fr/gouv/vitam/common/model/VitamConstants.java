@@ -30,6 +30,8 @@ package fr.gouv.vitam.common.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlEnumValue;
+
 /**
  * Constants class for Vitam internal features
  */
@@ -73,16 +75,65 @@ public class VitamConstants {
     *
     * @return supported Rules type
     */
-   public static List<String> getSupportedRules() {
-       if (ruleTypes == null) {
-           ruleTypes = new ArrayList<>();
-           ruleTypes.add(TAG_RULE_ACCESS);
-           ruleTypes.add(TAG_RULE_REUSE);
-           ruleTypes.add(TAG_RULE_STORAGE);
-           ruleTypes.add(TAG_RULE_APPRAISAL);
-           ruleTypes.add(TAG_RULE_CLASSIFICATION);
-           ruleTypes.add(TAG_RULE_DISSEMINATION);
-       }
-       return ruleTypes;
-   }
+    public static List<String> getSupportedRules() {
+        if (ruleTypes == null) {
+            ruleTypes = new ArrayList<>();
+            ruleTypes.add(TAG_RULE_ACCESS);
+            ruleTypes.add(TAG_RULE_REUSE);
+            ruleTypes.add(TAG_RULE_STORAGE);
+            ruleTypes.add(TAG_RULE_APPRAISAL);
+            ruleTypes.add(TAG_RULE_CLASSIFICATION);
+            ruleTypes.add(TAG_RULE_DISSEMINATION);
+        }
+        return ruleTypes;
+    }
+
+    public enum AppraisalRuleFinalAction {
+        KEEP("Keep"),
+	    DESTROY("Destroy");
+
+	    private final String value;
+
+	    AppraisalRuleFinalAction(String v) {
+	        value = v;
+	    }
+
+	    public String value() {
+	        return value;
+	    }
+
+	    public static AppraisalRuleFinalAction fromValue(String v) throws IllegalArgumentException {
+	        for (AppraisalRuleFinalAction c: AppraisalRuleFinalAction.values()) {
+	            if (c.value.equals(v)) {
+	                return c;
+	            }
+	        }
+	        throw new IllegalArgumentException(v);
+	    }
+    }
+
+    public enum StorageRuleFinalAction {
+        RESTRICT_ACCESS("RestrictAccess"),
+	    TRANSFER("Transfer"),
+	    COPY("Copy");
+
+	    private final String value;
+
+	    StorageRuleFinalAction(String v) {
+	        value = v;
+	    }
+
+	    public String value() {
+	        return value;
+	    }
+
+	    public static StorageRuleFinalAction fromValue(String v) throws IllegalArgumentException  {
+	        for (StorageRuleFinalAction c: StorageRuleFinalAction.values()) {
+	            if (c.value.equals(v)) {
+	                return c;
+	            }
+	        }
+	        throw new IllegalArgumentException(v);
+	    }
+    }
 }

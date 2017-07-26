@@ -66,13 +66,13 @@ public class VitamMetrics {
     private boolean isReporting = false;
 
     /**
-     * A constructor to instantiate a {@see VitamMetrics} with the configuration object {@link VitamMetricConfiguration}
+     * A constructor to instantiate a {@see VitamMetrics} with the configuration object {@link VitamMetricsConfiguration}
      * . The configuration object must be returned from the method {link
      * {@link VitamMetricsConfiguration#getMetricsConfigurations()}
      *
      * @param type
      *
-     * @param configuration {@link VitamMetricConfiguration}
+     * @param configuration {@link VitamMetricsConfiguration}
      */
     public VitamMetrics(VitamMetricsType type, VitamMetricsConfiguration configuration) {
         ParametersChecker.checkParameter("VitamMetricsType", type);

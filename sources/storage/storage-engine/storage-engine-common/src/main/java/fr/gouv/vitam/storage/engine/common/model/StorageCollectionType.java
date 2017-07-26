@@ -58,6 +58,11 @@ public enum StorageCollectionType {
      * StorageLog
      */
     STORAGELOG("storagelog"),
+    /**
+     * Rules files
+     */
+    RULES("rules"),
+
 
     /**
      * ObjectGroups collection

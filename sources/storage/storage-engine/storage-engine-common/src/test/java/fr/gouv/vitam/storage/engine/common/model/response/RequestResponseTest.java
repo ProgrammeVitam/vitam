@@ -34,12 +34,13 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponseStorage;
 
 /**
  *
  */
 public class RequestResponseTest {
-    private static RequestResponse requestResponse = new RequestResponse();
+    private static RequestResponseStorage requestResponse = new RequestResponseStorage();
 
     @Test
     public void testGetSetResult() throws Exception {

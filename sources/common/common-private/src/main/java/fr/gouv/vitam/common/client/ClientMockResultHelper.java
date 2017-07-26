@@ -34,6 +34,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -110,7 +111,7 @@ public class ClientMockResultHelper {
             "\"RuleValue\":\"Pièces comptables (comptable)\", " +
             "\"RuleDescription\":\"Durée de conservation des pièces comptables pour le comptable l’échéance est calculée à partir de la date de solde comptable\", " +
             "\"RuleDuration\":\"6\", " +
-            "\"RuleMeasurement\":\"Année\", " +
+            "\"RuleMeasurement\":\"year\", " +
             "\"CreationDate\":\"2016-11-02\", " +
             "\"UpdateDate\":\"2016-11-02\"}";
 
@@ -440,10 +441,41 @@ public class ClientMockResultHelper {
      * @return a default list of Rules
      * @throws InvalidParseOperationException
      */
-    public static RequestResponse getRuleList() throws InvalidParseOperationException {
-        return createReponse(RULE);
+    public static RequestResponse getRuleList(String ruleId) throws InvalidParseOperationException {
+        ObjectNode rule = (ObjectNode) JsonHandler.getFromString(RULE);
+        String oldRuleId = rule.get("RuleId").asText();
+        rule.put("RuleId", ruleId);
+        switch(ruleId.substring(0, 3)) {
+        case "STO":
+            rule.put("RuleType", "StorageRule");
+            break;
+        case "CLA":
+            rule.put("RuleType", "ClassificationRule");
+            break;
+        case "ACC":
+            rule.put("RuleType", "AccessRule");
+            break;
+        case "APP":
+            rule.put("RuleType", "AppraisalRule");
+            break;
+        case "DIS":
+            rule.put("RuleType", "DisseminationRule");
+            break;
+        case "REU":
+            rule.put("RuleType", "ReuseRule");
+            break;
+        default:
+            rule.put("RuleId", oldRuleId);
+        }
+
+        return createReponse(rule);
     }
 
+    public static RequestResponse getRuleList() throws InvalidParseOperationException {
+        ObjectNode rule = (ObjectNode) JsonHandler.getFromString(RULE);
+        return createReponse(rule);
+    }
+    
     /**
      *
      * @return a default list of Rules

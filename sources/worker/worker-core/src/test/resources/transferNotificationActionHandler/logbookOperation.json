@@ -3,7 +3,7 @@
     "evId": "aedqaaaaacaam7mxaa3vcakx2l4lpuiaaaaq",
     "evType": "Process_SIP_unitary",
     "evDateTime": "2016-10-17T14:08:23.836",
-    "evDetData": null,
+    "evDetData": "{\"EvDetailReq\" : \"Transfert\", \"ArchivalAgreement\" : \"ContratEntreeProfil\",  \"ArchivalProfile\" : \"PR-000001\"}",
     "evIdProc": "aedqaaaaacaam7mxaa3vcakx2l4lpuiaaaaq",
     "evTypeProc": "INGEST",
     "outcome": "STARTED",

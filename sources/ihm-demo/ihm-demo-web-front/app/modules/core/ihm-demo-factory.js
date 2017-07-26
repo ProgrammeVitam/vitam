@@ -332,18 +332,4 @@ angular.module('core')
         return Result;
       }
     }
-  })
-  .factory('RuleUtils', function(){
-    return {
-      translate : function(rule){
-        var newRule = '';
-        newRule = (rule == 'AppraisalRule') ? 'Durée d\'utilité Administrative' : newRule;
-        newRule = (rule == 'AccessRule') ? 'Délai de communicabilité' : newRule;
-        newRule = (rule == 'StorageRule') ? 'Durée d\'utilité courante' : newRule;
-        newRule = (rule == 'DisseminationRule') ? 'Délai de diffusion' : newRule;
-        newRule = (rule == 'ReuseRule') ? 'Durée de réutilisation' : newRule;
-        newRule = (rule == 'ClassificationRule') ? 'Durée de classification' : newRule;
-        return newRule;
-      }
-    }
   });

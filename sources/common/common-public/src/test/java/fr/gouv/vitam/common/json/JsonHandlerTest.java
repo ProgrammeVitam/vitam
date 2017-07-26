@@ -34,6 +34,8 @@ import static org.junit.Assert.fail;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
@@ -138,6 +140,43 @@ public class JsonHandlerTest {
         final ArrayNode subArray = JsonHandler.getSubArrayNode(array, 3, 2);
         assertEquals(2, subArray.size());
         assertEquals("3", subArray.get(0).asText());
+    }
+
+    @Test
+    public final void testParseAndMergeJsonFile() throws InvalidParseOperationException, IOException {
+        // first json to node
+        final InputStream stream1 = ResourcesPublicUtilTest.getInstance().getJsonTest1JsonInputStream();
+        if (stream1 == null) {
+            LOGGER.error(ResourcesPublicUtilTest.CANNOT_FIND_RESOURCES_TEST_FILE);
+        }
+        Assume.assumeTrue(ResourcesPublicUtilTest.CANNOT_FIND_RESOURCES_TEST_FILE, stream1 != null);
+        final JsonNode node1 = JsonHandler.getFromInputStream(stream1);
+        stream1.close();
+
+        final JsonNode result1 = JsonHandler.getFromString("{ 'a' : 'val' }");
+        assertEquals(node1.toString(), result1.toString());
+
+        // second json to node
+        final InputStream stream2 = ResourcesPublicUtilTest.getInstance().getJsonTest3JsonInputStream();
+        if (stream2 == null) {
+            LOGGER.error(ResourcesPublicUtilTest.CANNOT_FIND_RESOURCES_TEST_FILE);
+        }
+        Assume.assumeTrue(ResourcesPublicUtilTest.CANNOT_FIND_RESOURCES_TEST_FILE, stream2 != null);
+        final JsonNode node2 = JsonHandler.getFromInputStream(stream2);
+        stream2.close();
+
+        final JsonNode result2 = JsonHandler.getFromString("{ 'a' : 'val1', 'b' : 'val2' }");
+        assertEquals(node2.toString(), result2.toString());
+
+        // merged node
+        final InputStream stream11 = ResourcesPublicUtilTest.getInstance().getJsonTest1JsonInputStream();
+        final InputStream stream22 = ResourcesPublicUtilTest.getInstance().getJsonTest3JsonInputStream();
+        final JsonNode mergedNode = JsonHandler.getFromInputStream(stream22, stream11);
+        stream11.close();
+        stream22.close();
+
+        final JsonNode mergedResult = JsonHandler.getFromString("{ 'a' : 'val', 'b' : 'val2' }");
+        assertEquals(mergedNode.toString(), mergedResult.toString());
     }
 
     @Test

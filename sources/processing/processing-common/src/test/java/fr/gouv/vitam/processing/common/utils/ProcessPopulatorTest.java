@@ -26,15 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.common.utils;
 
-import org.junit.Test;
-
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
+import org.junit.Test;
 
 public class ProcessPopulatorTest {
 
     @Test
     public void testPopulator() throws WorkflowNotFoundException {
-        ProcessPopulator.populate("workflowJSONv1");
+        ProcessPopulator.populate("workflowJSONv1.json");
     }
 
     @Test(expected = WorkflowNotFoundException.class)
@@ -46,5 +45,4 @@ public class ProcessPopulatorTest {
     public void testPopulatorWithNull() throws WorkflowNotFoundException {
         ProcessPopulator.populate(null);
     }
-
 }

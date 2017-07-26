@@ -298,7 +298,7 @@ public class InsertParserMultipleTest {
         request.parse(exampleMd.deepCopy());
         assertNotNull(request);
 
-        final InsertParserMultiple request2 = new InsertParserMultiple(new VarNameAdapter());
+        final InsertParserMultiple request2 = new InsertParserMultiple();
         assertNotNull(request2);
     }
 
@@ -431,7 +431,7 @@ public class InsertParserMultipleTest {
     }
 
     @Test
-    public void testGlobalDatasParser_GetValue() throws InvalidParseOperationException {
+    public void testGlobalDatasParser_GetValue() throws Exception {
         JsonNode value = JsonHandler.getFromString("true");
         assertEquals(value.asBoolean(), GlobalDatasParser.getValue(value));
         value = JsonHandler.getFromString("1.0");

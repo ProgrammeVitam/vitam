@@ -44,6 +44,7 @@ import com.mongodb.client.model.Sorts;
 
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.AbstractParser;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -66,7 +67,7 @@ public class SelectToMongodb extends RequestToMongodb {
     }
 
     /**
-     * FindIterable.sort(orderby)
+     * FindIterable.sort(orderby) for MongoDb
      *
      * @return the orderBy MongoDB command
      */
@@ -90,6 +91,54 @@ public class SelectToMongodb extends RequestToMongodb {
     }
 
     /**
+     * @return the Select Single
+     */
+    public Select getSingleSelect() {
+        return (Select) requestParser.getRequest();
+    }
+
+    /**
+     * 
+     * @return True if #id was in the primary projection or empty projection
+     */
+    public boolean idWasInProjection() {
+        if (requestParser.getRequest().getAllProjection()) {
+            return true;
+        }
+        final JsonNode node = requestParser.getRequest().getProjection()
+            .get(PROJECTION.FIELDS.exactToken());
+        if (! node.fieldNames().hasNext()) {
+            return true;
+        }
+        JsonNode value = node.get(VitamDocument.ID);
+        if (value != null && value instanceof NumericNode) {
+            if (value.asInt() > 0) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        if (requestParser.getRequest().getProjection().elements().hasNext()) {
+            return false;
+        }
+        return true;
+    }
+    
+    /**
+     * 
+     * @return True if the score is included, or false if explicitly excluded
+     */
+    public boolean isScoreIncluded() {
+        if (requestParser.getRequest().getAllProjection()) {
+            return true;
+        }
+        final JsonNode node = requestParser.getRequest().getProjection()
+            .get(PROJECTION.FIELDS.exactToken());
+        JsonNode score = node.get(VitamDocument.SCORE);
+        return (score == null || score.asInt() > 0);
+    }
+
+    /**
      * FindIterable.projection(projection)
      *
      * @return the projection
@@ -105,13 +154,20 @@ public class SelectToMongodb extends RequestToMongodb {
         final List<String> excl = new ArrayList<>();
         final Map<String, ObjectNode> sliceProjections = new HashMap<>();
         final Iterator<Entry<String, JsonNode>> iterator = node.fields();
+        boolean idFound = false;
         while (iterator.hasNext()) {
             final Entry<String, JsonNode> entry = iterator.next();
             final JsonNode value = entry.getValue();
             if (value instanceof NumericNode) {
                 if (value.asInt() > 0) {
+                    if (entry.getKey().equals(VitamDocument.ID)) {
+                        idFound = true;
+                    }
                     incl.add(entry.getKey());
                 } else {
+                    if (entry.getKey().equals(VitamDocument.ID)) {
+                        continue;
+                    }
                     excl.add(entry.getKey());
                 }
             } else if (value instanceof ObjectNode && value.has(SLICE_KEYWORD)) {
@@ -124,6 +180,9 @@ public class SelectToMongodb extends RequestToMongodb {
 
         if (incl.isEmpty() && excl.isEmpty() && sliceProjections.isEmpty()) {
             return null;
+        }
+        if (!idFound) {
+            incl.add(VitamDocument.ID);
         }
         return computeBsonProjection(incl, excl, sliceProjections);
     }

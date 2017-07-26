@@ -101,12 +101,14 @@ public class ExtractSedaActionHandlerTest {
     private static final String SIP_ARBO_RULES_MD = "extractSedaActionHandler/OK_arbo_RG_MD_complexe.xml";
     private static final String SIP_WITHOUT_ORIGINATING_AGENCY =
         "extractSedaActionHandler/manifestKO/originating_agency_not_set.xml";
-    private static final String SIP_RULES_INHERITENCE = "extractSedaActionHandler/1066_SIP_RULES_INHERITENCE.xml";
-    private static final String SIP_REFID_RULES_INHERITENCE =
+    private static final String SIP_RULES_INHERITANCE = "extractSedaActionHandler/1066_SIP_RULES_INHERITENCE.xml";
+    private static final String SIP_REFID_RULES_INHERITANCE =
         "extractSedaActionHandler/1069_SIP_REFID_RULES_INHERITENCE.xml";
-    private static final String SIP_REFNONRULEID_PREVENTINHERITENCE =
+    private static final String SIP_RULES_COMPLEXE =
+        "extractSedaActionHandler/complexe_rules_global_management.xml";
+    private static final String SIP_REFNONRULEID_PREVENTINHERITANCE =
         "extractSedaActionHandler/refnonruleid_and_preventinheritence.xml";
-    private static final String SIP_REFNONRULEID_MULT_PREVENTINHERITENCE =
+    private static final String SIP_REFNONRULEID_MULT_PREVENTINHERITANCE =
         "extractSedaActionHandler/refnonruleid_multiple_and_preventinheritence.xml";
     private static final String SIP_PHYSICAL_DATA_OBJECT = "extractSedaActionHandler/SIP_PHYSICAL_DATA_OBJECT.xml";
     private static final String SIP_WITH_SPECIAL_CHARACTERS =
@@ -663,13 +665,13 @@ public class ExtractSedaActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenManifestInheritenceExtractSedaThenReadSuccess() throws Exception {
+    public void givenManifestInheritanceExtractSedaThenReadSuccess() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
 
         AdminManagementClientFactory.changeMode(null);
         final InputStream seda_arborescence =
-            PropertiesUtils.getResourceAsStream(SIP_RULES_INHERITENCE);
+            PropertiesUtils.getResourceAsStream(SIP_RULES_INHERITANCE);
         JsonNode parent = JsonHandler
             .getFromFile(PropertiesUtils.getResourceFile("extractSedaActionHandler/addLink/_Unit_PARENT.json"));
         when(metadataClient.selectUnitbyId(any(), eq("FilingParentId"))).thenReturn(parent);
@@ -717,13 +719,13 @@ public class ExtractSedaActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenManifestRefIdInheritenceExtractSedaThenReadSuccess() throws Exception {
+    public void givenManifestRefIdInheritanceExtractSedaThenReadSuccess() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
 
         AdminManagementClientFactory.changeMode(null);
         final InputStream seda_arborescence =
-            PropertiesUtils.getResourceAsStream(SIP_REFID_RULES_INHERITENCE);
+            PropertiesUtils.getResourceAsStream(SIP_REFID_RULES_INHERITANCE);
         JsonNode parent = JsonHandler
             .getFromFile(PropertiesUtils.getResourceFile("extractSedaActionHandler/addLink/_Unit_PARENT.json"));
         when(metadataClient.selectUnitbyId(any(), eq("FilingParentId"))).thenReturn(parent);
@@ -737,13 +739,13 @@ public class ExtractSedaActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenManifestRefnonruleidPreventinheritenceExtractSedaThenReadSuccess() throws Exception {
+    public void givenManifestRefnonruleidPreventinheritanceExtractSedaThenReadSuccess() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
 
         AdminManagementClientFactory.changeMode(null);
         final InputStream seda_arborescence =
-            PropertiesUtils.getResourceAsStream(SIP_REFNONRULEID_PREVENTINHERITENCE);
+            PropertiesUtils.getResourceAsStream(SIP_REFNONRULEID_PREVENTINHERITANCE);
         JsonNode parent = JsonHandler
             .getFromFile(PropertiesUtils.getResourceFile("extractSedaActionHandler/addLink/_Unit_PARENT.json"));
         when(metadataClient.selectUnitbyId(any(), eq("FilingParentId"))).thenReturn(parent);
@@ -757,13 +759,13 @@ public class ExtractSedaActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenManifestRefnonruleidMultiplePreventinheritenceExtractSedaThenReadSuccess() throws Exception {
+    public void givenManifestRefnonruleidMultiplePreventinheritanceExtractSedaThenReadSuccess() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
 
         AdminManagementClientFactory.changeMode(null);
         final InputStream seda_arborescence =
-            PropertiesUtils.getResourceAsStream(SIP_REFNONRULEID_MULT_PREVENTINHERITENCE);
+            PropertiesUtils.getResourceAsStream(SIP_REFNONRULEID_MULT_PREVENTINHERITANCE);
         JsonNode parent = JsonHandler
             .getFromFile(PropertiesUtils.getResourceFile("extractSedaActionHandler/addLink/_Unit_PARENT.json"));
         when(metadataClient.selectUnitbyId(any(), eq("FilingParentId"))).thenReturn(parent);
@@ -775,6 +777,27 @@ public class ExtractSedaActionHandlerTest {
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void givenManifestComplexeRulesGlobalManagementExtractSedaThenReadSuccess() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        assertNotNull(ExtractSedaActionHandler.getId());
+
+        AdminManagementClientFactory.changeMode(null);
+        final InputStream seda_arborescence =
+            PropertiesUtils.getResourceAsStream(SIP_RULES_COMPLEXE);
+        JsonNode parent = JsonHandler
+            .getFromFile(PropertiesUtils.getResourceFile("extractSedaActionHandler/addLink/_Unit_PARENT.json"));
+        when(metadataClient.selectUnitbyId(any(), eq("FilingParentId"))).thenReturn(parent);
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(seda_arborescence).build());
+        handlerIO.addOutIOParameters(out);
+
+        final ItemStatus response = handler.execute(params, handlerIO);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
+    }
+    
+    
     @Test
     @RunWithCustomExecutor
     public void givenManifestWithSpecialCharactersWhenExecuteThenReturnResponseOK() throws Exception {

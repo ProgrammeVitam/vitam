@@ -63,6 +63,8 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.cache.CacheResponseStatus;
+import org.apache.http.client.cache.HttpCacheContext;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -77,6 +79,8 @@ import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.cache.CacheConfig;
+import org.apache.http.impl.client.cache.CachingHttpClientBuilder;
 import org.apache.http.message.BasicTokenIterator;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
@@ -163,8 +167,22 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
         }
 
         sslContext = (SSLContext) VitamRestEasyConfiguration.SSL_CONTEXT.getObject(config);
-        final HttpClientBuilder clientBuilder = HttpClientBuilder.create();
+
+        final HttpClientBuilder clientBuilder;
+        if (VitamRestEasyConfiguration.CACHE_ENABLED.isTrue(config)) {
+            CacheConfig cacheConfig = CacheConfig.custom()
+                .setMaxCacheEntries(VitamConfiguration.getMaxCacheEntries())
+                .setMaxObjectSize(8192)
+                .setSharedCache(true)
+                .build();
+            clientBuilder = CachingHttpClientBuilder.create()
+                .setCacheConfig(cacheConfig);
+            clientBuilder.useSystemProperties();
+        } else {
+            clientBuilder = HttpClientBuilder.create();
+        }
         clientBuilder.useSystemProperties();
+
 
         final boolean disableAutomaticRetries = VitamRestEasyConfiguration.DISABLE_AUTOMATIC_RETRIES.isTrue(config);
         if (disableAutomaticRetries) {
@@ -240,7 +258,8 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
     @Override
     public String toString() {
         return "connectTimeout: " + connectTimeout + " socketTimeout: " + socketTimeout + " bufferSize: " + bufferSize +
-            " responseBufferSize: " + responseBufferSize + " bufferingEnabled: " + bufferingEnabled + " config: " + config;
+            " responseBufferSize: " + responseBufferSize + " bufferingEnabled: " + bufferingEnabled + " config: " +
+            config;
     }
 
     private static URI getProxyUri(final Object proxy) {
@@ -270,9 +289,36 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
 
         try {
             final CloseableHttpResponse response;
-            final HttpClientContext context = HttpClientContext.create();
+            final HttpClientContext context;
+            if (VitamRestEasyConfiguration.CACHE_ENABLED.isTrue(config)) {
+                context = HttpCacheContext.create();
+            } else {
+                context = HttpClientContext.create();
+            }
+
             response = httpClient.execute(getHost(request), request, context);
 
+
+            if (VitamRestEasyConfiguration.CACHE_ENABLED.isTrue(config)) {
+                CacheResponseStatus responseStatus = ((HttpCacheContext) context).getCacheResponseStatus();
+                switch (responseStatus) {
+                    case CACHE_HIT:
+                        LOGGER.debug("A response was generated from the cache with " +
+                            "no requests sent upstream");
+                        break;
+                    case CACHE_MODULE_RESPONSE:
+                        LOGGER.debug("The response was generated directly by the " +
+                            "caching module");
+                        break;
+                    case CACHE_MISS:
+                        LOGGER.debug("The response came from an upstream server");
+                        break;
+                    case VALIDATED:
+                        LOGGER.debug("The response was generated from the cache " +
+                            "after validating the entry with the origin server");
+                        break;
+                }
+            }
 
             final Response.StatusType status = response.getStatusLine().getReasonPhrase() == null
                 ? Statuses.from(response.getStatusLine().getStatusCode())

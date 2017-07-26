@@ -43,6 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
@@ -71,6 +72,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
@@ -79,6 +81,7 @@ import org.apache.shiro.util.ThreadContext;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Iterables;
 
 import fr.gouv.vitam.access.external.api.AdminCollections;
@@ -123,6 +126,7 @@ import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
@@ -153,6 +157,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 @Path("/v1/api")
 public class WebApplicationResource extends ApplicationStatusResource {
 
+    private static final String IDENTIFIER = "Identifier";
     public static final String X_SIZE_TOTAL = "X-Size-Total";
     public static final String X_CHUNK_OFFSET = "X-Chunk-Offset";
 
@@ -165,6 +170,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String ACCESS_SERVER_EXCEPTION_MSG = "Access Server exception";
     private static final String INTERNAL_SERVER_ERROR_MSG = "INTERNAL SERVER ERROR";
     private static final String SEARCH_CRITERIA_MANDATORY_MSG = "Search criteria payload is mandatory";
+    private static final String UPDATE_RULES_KEY = "UpdatedRules";
     private static final String FIELD_ID_KEY = "fieldId";
     private static final String NEW_FIELD_VALUE_KEY = "newFieldValue";
     private static final String INVALID_ALL_PARENTS_TYPE_ERROR_MSG = "The parameter \"allParents\" is not an array";
@@ -175,13 +181,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final int COMPLETE_RESPONSE_SIZE = 3;
     private static final int GUID_INDEX = 0;
     private static final int ATR_CONTENT_INDEX = 2;
-    private static final String STATUS_FIELD_QUERY = "Status";
-    private static final String ARCHIVEPROFILES_FIELD_QUERY = "ArchiveProfiles";
-    private static final String ACTIVATION_DATE_FIELD_QUERY = "ActivationDate";
-    private static final String DEACTIVATION_DATE_FIELD_QUERY = "DeactivationDate";
-    private static final String LAST_UPDATE_FIELD_QUERY = "LastUpdate";
-    private static final String NAME_FIELD_QUERY = "Name";
-    private static final String EVERY_ORIG_AGENCY_FIELD_QUERY = "EveryOriginatingAgency";
 
     private final WebApplicationConfig webApplicationConfig;
     private Map<String, AtomicLong> uploadMap = new HashMap<>();
@@ -560,9 +559,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 final List<Object> finalResponseDetails = new ArrayList<>();
                 finalResponseDetails.add(guid);
                 finalResponseDetails.add(Status.fromStatusCode(responseStatus));
-                final String responseString = finalResponse.getHeaderString("Result");
-                if (responseString != null) {
-                    finalResponseDetails.add(responseString);
+                if (Status.SERVICE_UNAVAILABLE.getStatusCode() == finalResponse.getHttpCode()) {
+                    final String responseString = ((VitamError) finalResponse).getMessage();
+                    if (responseString != null) {
+                        finalResponseDetails.add(responseString);
+                    }
                 }
                 uploadRequestsStatus.put(operationGuidFirstLevel, finalResponseDetails);
 
@@ -739,17 +740,30 @@ public class WebApplicationResource extends ApplicationStatusResource {
         try {
             // Parse updateSet
             final Map<String, String> updateUnitIdMap = new HashMap<>();
+            final Map<String, JsonNode> updateRules = new HashMap<>();
             final JsonNode modifiedFields = JsonHandler.getFromString(updateSet);
             if (modifiedFields != null && modifiedFields.isArray()) {
                 for (final JsonNode modifiedField : modifiedFields) {
-                    updateUnitIdMap.put(modifiedField.get(FIELD_ID_KEY).textValue(),
-                        modifiedField.get(NEW_FIELD_VALUE_KEY).textValue());
+                    if (modifiedField.get(UPDATE_RULES_KEY) != null) {
+                        ArrayNode rulesCategories = (ArrayNode) modifiedField.get(UPDATE_RULES_KEY);
+                        for (JsonNode ruleCategory: rulesCategories) {
+                            for (String categoryKey: VitamConstants.getSupportedRules()) {
+                                ArrayNode rules = (ArrayNode) ruleCategory.get(categoryKey);
+                                if (rules != null) {
+                                    updateRules.put(categoryKey, rules);
+                                }
+                            }
+                        }
+                    } else {
+                        updateUnitIdMap.put(modifiedField.get(FIELD_ID_KEY).textValue(),
+                            modifiedField.get(NEW_FIELD_VALUE_KEY).textValue());
+                    }
                 }
             }
 
             // Add ID to set root part
             updateUnitIdMap.put(UiConstants.SELECT_BY_ID.toString(), unitId);
-            final JsonNode preparedQueryDsl = DslQueryHelper.createUpdateDSLQuery(updateUnitIdMap);
+            final JsonNode preparedQueryDsl = DslQueryHelper.createUpdateDSLQuery(updateUnitIdMap, updateRules);
             final RequestResponse archiveDetails =
                 UserInterfaceTransactionManager.updateUnits(preparedQueryDsl, unitId,
                     getTenantId(headers));
@@ -1017,7 +1031,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Retrieve an Object data as an input stream. Download by access.
      *
      * @param headers HTTP Headers
-     * @param objectGroupId the object group Id
+     * @param unitId the unit Id
      * @param usage additional mandatory parameters usage
      * @param filename additional mandatory parameters filename
      * @param tenantId the tenant id
@@ -1025,17 +1039,17 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * @param asyncResponse will return the inputstream
      */
     @GET
-    @Path("/archiveunit/objects/download/{idOG}")
+    @Path("/archiveunit/objects/download/{unitId}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @RequiresPermissions("archiveunit:objects:read")
-    public void getObjectAsInputStreamAsync(@Context HttpHeaders headers, @PathParam("idOG") String objectGroupId,
+    public void getObjectAsInputStreamAsync(@Context HttpHeaders headers, @PathParam("unitId") String unitId,
         @QueryParam("usage") String usage, @QueryParam("filename") String filename,
         @QueryParam("tenantId") Integer tenantId,
         @QueryParam("contractId") String contractId,
         @Suspended final AsyncResponse asyncResponse) {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         VitamThreadPoolExecutor.getDefaultExecutor()
-            .execute(() -> asyncGetObjectStream(asyncResponse, objectGroupId, usage, filename, tenantId,
+            .execute(() -> asyncGetObjectStream(asyncResponse, unitId, usage, filename, tenantId,
                 contractId));
     }
 
@@ -1105,13 +1119,13 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
-    private void asyncGetObjectStream(AsyncResponse asyncResponse, String objectGroupId, String usage, String filename,
+    private void asyncGetObjectStream(AsyncResponse asyncResponse, String unitId, String usage, String filename,
         Integer tenantId, String contractId) {
         try {
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(objectGroupId));
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(unitId));
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(usage));
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(filename));
-            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, objectGroupId);
+            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitId);
             ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, usage);
             ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, filename);
         } catch (final InvalidParseOperationException exc) {
@@ -1129,7 +1143,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             if (usageAndVersion.length != 2) {
                 throw new InvalidParameterException();
             }
-            UserInterfaceTransactionManager.getObjectAsInputStream(asyncResponse, preparedQueryDsl, objectGroupId,
+            UserInterfaceTransactionManager.getObjectAsInputStream(asyncResponse, preparedQueryDsl, unitId,
                 usageAndVersion[0], Integer.parseInt(usageAndVersion[1]), filename, tenantId, contractId);
         } catch (InvalidParseOperationException | InvalidCreateOperationException exc) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, exc);
@@ -1799,11 +1813,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @RequiresPermissions("contracts:update")
     public Response updateEntryContracts(@Context HttpHeaders headers, @PathParam("id") String contractId,
-        Map<String, String> updateData) {
+        JsonNode updateOptions) {
         try {
             ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, contractId);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(contractId));
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(updateData));
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(updateOptions));
 
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -1811,44 +1825,14 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
 
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-            final UpdateParserSingle updateParserActive = new UpdateParserSingle(new VarNameAdapter());
-            Update updateStatusActive = new Update();
-
-
-            if (updateData.get(STATUS_FIELD_QUERY) != null) {
-                SetAction setActionStatusActive =
-                    UpdateActionHelper.set(STATUS_FIELD_QUERY, updateData.get(STATUS_FIELD_QUERY));
-
-                SetAction setActionDesactivationDateActive = null;
-                if (updateData.get(ACTIVATION_DATE_FIELD_QUERY) != null) {
-                    setActionDesactivationDateActive =
-                        UpdateActionHelper.set(ACTIVATION_DATE_FIELD_QUERY,
-                            updateData.get(ACTIVATION_DATE_FIELD_QUERY));
-                } else if (updateData.get(DEACTIVATION_DATE_FIELD_QUERY) != null) {
-                    setActionDesactivationDateActive = UpdateActionHelper.set(DEACTIVATION_DATE_FIELD_QUERY,
-                        updateData.get(DEACTIVATION_DATE_FIELD_QUERY));
-                }
-
-                updateStatusActive.addActions(setActionStatusActive, setActionDesactivationDateActive);
-
+            if (!updateOptions.isObject()) {
+                throw new InvalidCreateOperationException("Query not valid");
             }
-
-            if (updateData.get(ARCHIVEPROFILES_FIELD_QUERY) != null) {
-                SetAction updateArchiveProfiles =
-                    UpdateActionHelper.set(ARCHIVEPROFILES_FIELD_QUERY, updateData.get(ARCHIVEPROFILES_FIELD_QUERY));
-                updateStatusActive.addActions(updateArchiveProfiles);
-
-            }
-            SetAction setActionLastUpdateActive =
-                UpdateActionHelper.set(LAST_UPDATE_FIELD_QUERY, updateData.get(LAST_UPDATE_FIELD_QUERY));
-            updateStatusActive.setQuery(QueryHelper.eq(NAME_FIELD_QUERY, updateData.get(NAME_FIELD_QUERY)));
-
-
-            updateStatusActive.addActions(setActionLastUpdateActive);
-            updateParserActive.parse(updateStatusActive.getFinalUpdate());
-            JsonNode queryDsl = updateParserActive.getRequest().getFinalUpdate();
+            Update updateRequest = new Update();
+            updateRequest.setQuery(QueryHelper.eq(IDENTIFIER, contractId));
+            updateRequest.addActions(UpdateActionHelper.set((ObjectNode) updateOptions));
             final RequestResponse archiveDetails =
-                adminClient.updateIngestContract(contractId, queryDsl, getTenantId(headers));
+                adminClient.updateIngestContract(contractId, updateRequest.getFinalUpdate(), getTenantId(headers));
             return Response.status(Status.OK).entity(archiveDetails).build();
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
@@ -1965,7 +1949,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
-     * Upload Access contracts
+     * Update Access contracts
      *
      * @param headers HTTP Headers
      * @param contractId the id of access contract
@@ -1977,11 +1961,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("accesscontracts:update")
     public Response updateAccessContracts(@Context HttpHeaders headers, @PathParam("id") String contractId,
-        Map<String, String> updateData) {
+        JsonNode updateOptions) {
         try {
             ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, contractId);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(contractId));
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(updateData));
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(updateOptions));
 
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -1989,61 +1973,14 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
 
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-            List<SetAction> actions = new ArrayList<>();
-            actions.add(UpdateActionHelper.set(LAST_UPDATE_FIELD_QUERY, updateData.get(LAST_UPDATE_FIELD_QUERY)));
-            boolean updateStatus = false;
-            boolean updateEveryOriginatingAgency = false;
-            boolean updateEveryUsage = false;
-
-            if (updateData.get(STATUS_FIELD_QUERY) != null &&
-                (updateData.get(ACTIVATION_DATE_FIELD_QUERY) != null ||
-                    updateData.get(DEACTIVATION_DATE_FIELD_QUERY) != null)) {
-                actions.add(UpdateActionHelper.set(STATUS_FIELD_QUERY, updateData.get(STATUS_FIELD_QUERY)));
-                SetAction setActionDesactivationDateActive = null;
-                if (updateData.get(ACTIVATION_DATE_FIELD_QUERY) != null) {
-                    setActionDesactivationDateActive =
-                        UpdateActionHelper.set(ACTIVATION_DATE_FIELD_QUERY,
-                            updateData.get(ACTIVATION_DATE_FIELD_QUERY));
-                } else if (updateData.get(DEACTIVATION_DATE_FIELD_QUERY) != null) {
-                    setActionDesactivationDateActive = UpdateActionHelper.set(DEACTIVATION_DATE_FIELD_QUERY,
-                        updateData.get(DEACTIVATION_DATE_FIELD_QUERY));
-                }
-                actions.add(setActionDesactivationDateActive);
-                updateStatus = true;
-            } else if (updateData.get(STATUS_FIELD_QUERY) != null ||
-                updateData.get(ACTIVATION_DATE_FIELD_QUERY) != null ||
-                updateData.get(DEACTIVATION_DATE_FIELD_QUERY) != null) {
-                return Response.status(Status.BAD_REQUEST).entity("Invalid update status query").build();
+            Update updateRequest = new Update();
+            updateRequest.setQuery(QueryHelper.eq(IDENTIFIER, contractId));
+            if (!updateOptions.isObject()) {
+                throw new InvalidCreateOperationException("Query not valid");
             }
-
-            if (updateData.get(EVERY_ORIG_AGENCY_FIELD_QUERY) != null) {
-                Boolean everyOrigAgency = BooleanUtils.toBooleanObject(updateData.get(EVERY_ORIG_AGENCY_FIELD_QUERY));
-                if (everyOrigAgency == null) {
-                    return Response.status(Status.BAD_REQUEST).entity("Invalid EveryOriginatingAgency value").build();
-                }
-                actions.add(UpdateActionHelper.set(EVERY_ORIG_AGENCY_FIELD_QUERY, everyOrigAgency));
-                updateEveryOriginatingAgency = true;
-            }
-
-            if (updateData.get(AccessContractModel.EVERY_DATA_OBJECT_VERSION) != null) {
-                Boolean everyVersion =
-                    BooleanUtils.toBooleanObject(updateData.get(AccessContractModel.EVERY_DATA_OBJECT_VERSION));
-                if (everyVersion == null) {
-                    return Response.status(Status.BAD_REQUEST).entity("Invalid EveryDataObjectVersion value").build();
-                }
-                actions.add(UpdateActionHelper.set(AccessContractModel.EVERY_DATA_OBJECT_VERSION, everyVersion));
-                updateEveryUsage = true;
-            }
-
-            if (!(updateStatus || updateEveryOriginatingAgency || updateEveryUsage)) {
-                return Response.status(Status.BAD_REQUEST).entity("Empty Query, Nothing to Update").build();
-            }
-
-            Update updateStatusActive = new Update();
-            updateStatusActive.setQuery(QueryHelper.eq(NAME_FIELD_QUERY, updateData.get(NAME_FIELD_QUERY)));
-            updateStatusActive.addActions(actions.toArray(new SetAction[actions.size()]));
+            updateRequest.addActions(UpdateActionHelper.set((ObjectNode) updateOptions));
             final RequestResponse archiveDetails =
-                adminClient.updateAccessContract(contractId, updateStatusActive.getFinalUpdate(), getTenantId(headers));
+                adminClient.updateAccessContract(contractId, updateRequest.getFinalUpdate(), getTenantId(headers));
             return Response.status(Status.OK).entity(archiveDetails).build();
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
@@ -2057,6 +1994,53 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
+    /**
+     * Update context
+     *
+     * @param headers HTTP Headers
+     * @param contextId the id of context
+     * @return Response
+     */
+    @POST
+    @Path("/contexts/{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("contexts:update")
+    public Response updateContexts(@Context HttpHeaders headers, @PathParam("id") String contextId,
+        JsonNode updateOptions) {
+        try {
+            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, contextId);
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(contextId));
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(updateOptions));
+
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        }
+
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+            Update updateRequest = new Update();
+            updateRequest.setQuery(QueryHelper.eq(IDENTIFIER, contextId));
+            if (!updateOptions.isObject()) {
+                throw new InvalidCreateOperationException("Query not valid");
+            }
+            updateRequest.addActions(UpdateActionHelper.set((ObjectNode) updateOptions));
+            final RequestResponse updateResponse =
+                adminClient.updateContext(contextId, updateRequest.getFinalUpdate(), getTenantId(headers));
+            LOGGER.error("update status " + updateResponse.toString());
+            return Response.status(Status.OK).entity(updateResponse).build();
+        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
+            return Response.status(Status.BAD_REQUEST).build();
+        } catch (final AccessExternalClientException e) {
+            LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
     /**
      * upload context
      *
@@ -2079,6 +2063,72 @@ public class WebApplicationResource extends ApplicationStatusResource {
             if (response != null && response instanceof VitamError) {
                 LOGGER.error(response.toString());
                 return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
+            }
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    /**
+     * Get contexts
+     * 
+     * @param headers
+     * @param select
+     * @return Response
+     */
+    @POST
+    @Path("/contexts")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("contexts:read")
+    public Response findContext(@Context HttpHeaders headers, String select) {
+        try {
+            final Map<String, Object> optionsMap = JsonHandler.getMapFromString(select);
+
+            final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+
+            try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+                RequestResponse response =
+                    adminClient.findDocuments(AdminCollections.CONTEXTS, query, getTenantId(headers));
+                if (response != null && response instanceof RequestResponseOK) {
+                    return Response.status(Status.OK).entity(response).build();
+                }
+                if (response != null && response instanceof VitamError) {
+                    LOGGER.error(response.toString());
+                    return Response.status(response.getHttpCode()).entity(response).build();
+                }
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            }
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    /**
+     * Get context by id
+     * 
+     * @param headers
+     * @param select
+     * @return Response
+     */
+    @GET
+    @Path("/contexts/{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("contexts:read")
+    public Response findContextByID(@Context HttpHeaders headers, @PathParam("id") String id) {
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+            RequestResponse response =
+                adminClient.findDocumentById(AdminCollections.CONTEXTS, id, getTenantId(headers));
+            if (response != null && response instanceof RequestResponseOK) {
+                return Response.status(Status.OK).entity(response).build();
+            }
+            if (response != null && response instanceof VitamError) {
+                LOGGER.error(response.toString());
+                return Response.status(response.getHttpCode()).entity(response).build();
             }
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         } catch (final Exception e) {
@@ -2370,6 +2420,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * @param headers request headers
      * @param operationId the TRACEABILITY operation identifier
      * @param contractId the contractId
+     * @param tenantIdParam theTenantId
      * @param asyncResponse the async response
      */
     @GET
@@ -2377,15 +2428,19 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @RequiresPermissions("traceability:content:read")
     public void downloadTraceabilityFile(@Context HttpHeaders headers, @PathParam("idOperation") String operationId,
-        @QueryParam("contractId") String contractId,
+        @QueryParam("contractId") String contractId, @QueryParam("tenantId") String tenantIdParam,
         @Suspended final AsyncResponse asyncResponse) {
 
         // Check parameters
         ParametersChecker.checkParameter("Operation Id should be filled", operationId);
-
+        Integer tenantId;
         // Get tenantId from headers
+        if (tenantIdParam != null && StringUtils.isNumeric(tenantIdParam)) {
+            tenantId = Integer.parseInt(tenantIdParam);
+        } else {
+            tenantId = getTenantId(headers);
+        }
 
-        Integer tenantId = getTenantId(headers);
         VitamThreadUtils.getVitamSession().setContractId(contractId);
         VitamThreadPoolExecutor.getDefaultExecutor()
             .execute(() -> downloadTraceabilityFileAsync(asyncResponse, operationId, tenantId, contractId));

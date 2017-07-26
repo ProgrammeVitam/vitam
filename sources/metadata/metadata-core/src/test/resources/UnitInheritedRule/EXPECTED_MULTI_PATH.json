@@ -1,0 +1,41 @@
+{
+	"inheritedRule": {
+		"StorageRule": {
+			"STR1": {
+				"AU0": {
+					"StartDate": "02/01/2019",
+					"path": [
+						[
+							"AU0",
+							"Empty1",
+							"AU2",
+							"Empty3",
+							"AU3"
+						],
+						[
+							"AU0",
+							"Empty2",
+							"AU2",
+							"Empty3",
+							"AU3"
+						],
+						[
+							"AU0",
+							"Empty1",
+							"AU2",
+							"Empty4",
+							"AU3"
+						],
+						[
+							"AU0",
+							"Empty2",
+							"AU2",
+							"Empty4",
+							"AU3"
+						]
+					]
+				}
+			}
+		}
+	}
+}

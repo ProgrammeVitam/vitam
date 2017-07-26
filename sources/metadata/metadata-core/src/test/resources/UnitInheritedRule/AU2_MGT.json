@@ -1,0 +1,21 @@
+{
+	"StorageRule": {
+		"Rules": [
+			{
+				"Rule": "R1",
+				"FinalAction": "NoAccess",
+				"StartDate": "01/01/2017"
+			}
+		]
+	},
+	"AccessRule": {
+		"Rules": [
+			{
+				"Rule": "R4",
+				"FinalAction": "Access",
+				"StartDate": "01/01/2017",
+				"EndDate": "01/01/2019"
+			}
+		]
+	}
+}

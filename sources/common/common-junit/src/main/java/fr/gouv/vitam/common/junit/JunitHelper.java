@@ -388,6 +388,11 @@ public class JunitHelper extends ExternalResource {
                 .put("transport.tcp.connect_timeout", "1s")
                 .put("transport.profiles.tcp.connect_timeout", "1s")
                 .put("watcher.http.default_read_timeout", VitamConfiguration.getReadTimeout() / 1000 + "s")
+                .put("threadpool.refresh.size", 4)
+                .put("threadpool.search.size", 4)
+                .put("threadpool.search.queue_size", VitamConfiguration.getNumberEsQueue())
+                .put("threadpool.bulk.size", 4)
+                .put("threadpool.bulk.queue_size", VitamConfiguration.getNumberEsQueue())
                 .build();
 
             config.node =

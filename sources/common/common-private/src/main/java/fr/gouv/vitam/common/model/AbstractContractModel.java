@@ -36,28 +36,40 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 
 public class AbstractContractModel {
 
+    public static final String DESCRIPTION = "Description";
+
+    public static final String NAME = "Name";
+
+    public static final String IDENTIFIER = "Identifier";
+
+    private static final String TENANT = "_tenant";
+
+    public static final String ID = "_id";
+
+    public static final String STATUS = "Status";
+
     /**
      * unique identifier
      */
-    @JsonProperty("_id")
+    @JsonProperty(ID)
     private String id;
 
     /**
      * tenant id
      */
-    @JsonProperty("_tenant")
+    @JsonProperty(TENANT)
     private int tenant;
 
-    @JsonProperty("Name")
+    @JsonProperty(NAME)
     private String name;
 
-    @JsonProperty("Identifier")
+    @JsonProperty(IDENTIFIER)
     private String identifier;
 
-    @JsonProperty("Description")
+    @JsonProperty(DESCRIPTION)
     private String description;
 
-    @JsonProperty("Status")
+    @JsonProperty(STATUS)
     private String status;
 
     @JsonProperty("CreationDate")

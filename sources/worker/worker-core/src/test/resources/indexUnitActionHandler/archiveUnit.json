@@ -2,40 +2,60 @@
 	"ArchiveUnit": {
 		"Management": {
 			"StorageRule": {
-				"Rule": "Rule0",
-        		"StartDate" : "2021-01-01",
-				"FinalAction": "RestrictAccess"
+				"Rules": [
+					{
+						"Rule": "Rule0",
+						"StartDate": "2021-01-01",
+						"FinalAction": "RestrictAccess"
+					}
+				]
 			},
 			"AppraisalRule": {
-				"Rule": "Rule2",
-				"FinalAction": "Keep"
+				"Rules": [
+					{
+						"Rule": "Rule2",
+						"FinalAction": "Keep"
+					}
+				]
 			},
 			"AccessRule": {
-				"Rule": "Rule4"
+				"Rules": [
+					{
+						"Rule": "Rule4"
+					}
+				]
 			},
 			"DisseminationRule": {
-				"Rule": "Rule6"
+				"Rules": [
+					{
+						"Rule": "Rule6"
+					}
+				]
 			},
-			"ReuseRule": [
-				{
-					"Rule": "Rule8"
-				},
-				{
-					"Rule": "Rule9"
-				}
-			],
-			"ClassificationRule": [
-				{
-					"Rule": "Rule10",
-					"ClassificationLevel": "ClassificationLevel0",
-					"ClassificationOwner": "ClassificationOwner0"
-				},
-				{
-					"Rule": "Rule11",
-					"ClassificationLevel": "ClassificationLevel0",
-					"ClassificationOwner": "ClassificationOwner0"
-				}
-			],
+			"ReuseRule": {
+				"Rules": [
+					{
+						"Rule": "Rule8"
+					},
+					{
+						"Rule": "Rule9"
+					}
+				]
+			},
+			"ClassificationRule": {
+				"Rules": [
+					{
+						"Rule": "Rule10",
+						"ClassificationLevel": "ClassificationLevel0",
+						"ClassificationOwner": "ClassificationOwner0"
+					},
+					{
+						"Rule": "Rule11",
+						"ClassificationLevel": "ClassificationLevel0",
+						"ClassificationOwner": "ClassificationOwner0"
+					}
+				]
+			},
 			"NeedAuthorization": false
 		},
 		"Content": {
@@ -56,8 +76,10 @@
 		},
 		"_id": "ID019G"
 	},
-  "_work" : {
-    "_up" : [ ],
-    "RulesToApply" : [ "Rule0;Rule;Rule4;Rule6;Rule8;Rule9,Rule10;Rule11;" ]
-  }
+	"_work": {
+		"_up": [],
+		"RulesToApply": [
+			"Rule0;Rule;Rule4;Rule6;Rule8;Rule9,Rule10;Rule11;"
+		]
+	}
 }

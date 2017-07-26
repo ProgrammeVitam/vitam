@@ -52,6 +52,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.gc.iotools.stream.is.InputStreamFromOutputStream;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 
@@ -63,12 +64,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * JSON handler using Json format
- *
- *
- *
- */
-/**
- * @author lubla
  *
  */
 public final class JsonHandler {
@@ -180,6 +175,7 @@ public final class JsonHandler {
     }
 
     /**
+     * getFromInputStream, get JsonNode from stream
      *
      * @param stream to transform
      * @return the jsonNode (ObjectNode or ArrayNode)
@@ -193,6 +189,62 @@ public final class JsonHandler {
         } catch (final IOException | IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
         }
+    }
+
+    /**
+     * getFromInputStream, get merged JsonNode from streams
+     *
+     * @param stream1 to transform
+     * @param stream2 to transform and merge with
+     * @return the jsonNode (ObjectNode or ArrayNode)
+     * @throws InvalidParseOperationException if parse JsonNode object exception occurred
+     */
+    public static final JsonNode getFromInputStream(final InputStream stream1, final InputStream stream2)
+            throws InvalidParseOperationException {
+        // if stream2 is null, forward call
+        if(stream2 == null) {
+            return getFromInputStream(stream1);
+        }
+
+        // load and merge nodes
+        ParametersChecker.checkParameter("InputStream 1", stream1);
+        //ParametersChecker.checkParameter("InputStream 2", stream2); // check already done
+
+        // JsonNode node = OBJECT_MAPPER.readValue(ByteStreams.toByteArray(stream1), JsonNode.class);
+        // ObjectReader updater = OBJECT_MAPPER.readerForUpdating(node);
+        // return updater.readValue(stream2);
+
+        // Use manual merge
+        return merge(getFromInputStream(stream1), getFromInputStream(stream2));
+    }
+
+    /**
+     * merge, Merge two jsonNode
+     *
+     * @param mainNode node to update
+     * @param updateNode note to merge with
+     * @return merged node
+     */
+    private static JsonNode merge(JsonNode mainNode, JsonNode updateNode) {
+
+        Iterator<String> fieldNames = updateNode.fieldNames();
+        while (fieldNames.hasNext()) {
+            String fieldName = fieldNames.next();
+            JsonNode jsonNode = mainNode.get(fieldName);
+            // if field exists and is an embedded object
+            if (jsonNode != null && jsonNode.isObject()) {
+                merge(jsonNode, updateNode.get(fieldName));
+            }
+            else {
+                if (mainNode instanceof ObjectNode) {
+                    // Overwrite field
+                    JsonNode value = updateNode.get(fieldName);
+                    ((ObjectNode) mainNode).put(fieldName, value);
+                }
+            }
+        }
+
+        return mainNode;
     }
 
     /**
@@ -479,6 +531,24 @@ public final class JsonHandler {
         }
     }
 
+    /**
+     * 
+     * @param object
+     * @return the InputStream for this object
+     * @throws InvalidParseOperationException
+     */
+    public static final InputStream writeToInpustream(final Object object) throws InvalidParseOperationException {
+        final InputStreamFromOutputStream<String> isos = new InputStreamFromOutputStream<String>() {
+
+            @Override
+            protected String produce(OutputStream sink) throws Exception {
+                JsonHandler.writeAsOutputStream(object, sink);
+                return "EOF";
+            }
+        };
+        return isos;
+    }
+    
     /**
      * Check if JsonNodes are not null and not empty
      *
@@ -770,16 +840,16 @@ public final class JsonHandler {
     public static JsonNode getParentNodeByPath(JsonNode node, String fieldPath, boolean deepCopy) {
 
         String[] fieldNamePath = fieldPath.split("[.]");
-        JsonNode currentLevelNode = deepCopy? node.deepCopy(): node;
+        JsonNode currentLevelNode = node;
         for (int i=0, len=fieldNamePath.length-1; i<len; i++) {
             JsonNode nextLevel = currentLevelNode.get(fieldNamePath[i]);
             if (nextLevel == null) {
                 return null;
             }
-            currentLevelNode = deepCopy? nextLevel.deepCopy(): nextLevel;
+            currentLevelNode = nextLevel;
         }
 
-        return currentLevelNode;
+        return deepCopy ? currentLevelNode.deepCopy() : currentLevelNode;
     }
 
 	/**

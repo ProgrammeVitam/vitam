@@ -27,6 +27,10 @@
 
 package fr.gouv.vitam.functional.administration.rest;
 
+import static java.lang.String.format;
+
+import org.glassfish.jersey.server.ResourceConfig;
+
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -39,8 +43,6 @@ import fr.gouv.vitam.functional.administration.common.server.AdminManagementConf
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import static java.lang.String.format;
-import org.glassfish.jersey.server.ResourceConfig;
 
 /**
  * Admin management web application
@@ -94,7 +96,7 @@ public class AdminManagementApplication
     }
 
     @Override
-    protected void registerInResourceConfig(ResourceConfig resourceConfig)  {
+    protected void registerInResourceConfig(ResourceConfig resourceConfig) {
         try {
 
             AdminManagementConfiguration configuration = getConfiguration();
@@ -115,7 +117,8 @@ public class AdminManagementApplication
             // TODO: 5/12/17 dependency to workspace, metadata, storage
 
 
-            final ProfileResource profileResource = new ProfileResource(getConfiguration(), mongoDbAccess,vitamCounterService);
+            final ProfileResource profileResource =
+                new ProfileResource(getConfiguration(), mongoDbAccess, vitamCounterService);
             resourceConfig
                 .register(resource)
                 .register(new ContractResource(mongoDbAccess, vitamCounterService))

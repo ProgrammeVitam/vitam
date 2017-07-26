@@ -45,6 +45,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Sets;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -66,7 +67,6 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
-import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -92,6 +92,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN);
 
     private HandlerIO handlerIO;
+    private boolean asyncIO = false;
 
     /**
      * Empty constructor UnitsRulesComputePlugin
@@ -157,8 +158,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
     private JsonNode findRulesValueQueryBuilders(Set<String> rulesId)
         throws InvalidCreateOperationException, InvalidParseOperationException,
         IOException, ProcessingException {
-        final Select select =
-            new Select();
+        final Select select = new Select();
         select.addOrderByDescFilter(FileRules.RULEID);
         final BooleanQuery query = or();
         for (final String ruleId : rulesId) {
@@ -229,19 +229,22 @@ public class UnitsRulesComputePlugin extends ActionHandler {
             // update all rules
             for (String ruleType : SedaConstants.getSupportedRules()) {
                 JsonNode ruleTypeNode = managementNode.get(ruleType);
-                if (ruleTypeNode == null || ruleTypeNode.size() == 0 ||
-                    ruleTypeNode.findValues(SedaConstants.TAG_RULE_RULE).size() == 0) {
+                if (ruleTypeNode == null ||
+                    ruleTypeNode.get(SedaConstants.TAG_RULES) == null ||
+                    ruleTypeNode.get(SedaConstants.TAG_RULES).size() == 0 ||
+                    ruleTypeNode.get(SedaConstants.TAG_RULES).findValues(SedaConstants.TAG_RULE_RULE).size() == 0) {
                     LOGGER.debug("no rules of type " + ruleType + " found");
                     continue;
                 }
-                if (ruleTypeNode.isArray()) {
-                    ArrayNode ruleNodes = (ArrayNode) ruleTypeNode;
+                if (ruleTypeNode.get(SedaConstants.TAG_RULES).isArray()) {
+                    ArrayNode ruleNodes = (ArrayNode) ruleTypeNode.get(SedaConstants.TAG_RULES);
                     for (JsonNode ruleNode : ruleNodes) {
                         computeRuleNode((ObjectNode) ruleNode, rulesResults, ruleType);
                     }
                 } else {
-                    LOGGER.debug("ruleTypeNode of type " + ruleType + " should be an array");
-                    throw new ProcessingException("ruleTypeNode should be an array");
+                    LOGGER.debug(
+                        "ruleTypeNode of type " + ruleType + "." + SedaConstants.TAG_RULES + " should be an array");
+                    throw new ProcessingException("ruleTypeNode.Rules should be an array");
                 }
 
             }
@@ -255,7 +258,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
         // Write to workspace
         try {
             handlerIO.transferFileToWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName,
-                fileWithEndDate, true);
+                fileWithEndDate, true, asyncIO);
         } catch (final ProcessingException e) {
             LOGGER.error("Can not write to workspace ", e);
             if (!fileWithEndDate.delete()) {

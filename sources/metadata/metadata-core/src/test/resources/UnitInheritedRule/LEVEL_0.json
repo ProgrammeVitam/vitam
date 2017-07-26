@@ -1,0 +1,10 @@
+{
+	"StorageRule": {
+		"Rules": [
+			{
+				"Rule": "STR1",
+				"StartDate": "01/01/2019"
+			}
+		]
+	}
+}

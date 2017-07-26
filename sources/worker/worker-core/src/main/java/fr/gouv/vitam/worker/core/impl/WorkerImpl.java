@@ -26,12 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.impl;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -86,6 +80,12 @@ import fr.gouv.vitam.worker.core.handler.VerifyMerkleTreeActionHandler;
 import fr.gouv.vitam.worker.core.handler.VerifyTimeStampActionHandler;
 import fr.gouv.vitam.worker.core.plugin.PluginLoader;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 
 /**

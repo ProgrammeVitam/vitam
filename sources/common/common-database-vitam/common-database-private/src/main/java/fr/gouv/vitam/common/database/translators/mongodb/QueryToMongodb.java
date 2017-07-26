@@ -41,10 +41,10 @@ import static com.mongodb.client.model.Filters.or;
 import static com.mongodb.client.model.Filters.regex;
 import static com.mongodb.client.model.Filters.size;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import org.bson.BSON;
 import org.bson.conversions.Bson;
@@ -84,7 +84,8 @@ public class QueryToMongodb {
      * @return the filter associated with the roots
      * @throws InvalidParseOperationException if field is not in roots
      */
-    public static Bson getRoots(final String field, final Set<String> roots) throws InvalidParseOperationException {
+    public static Bson getRoots(final String field, final Collection<String> roots)
+        throws InvalidParseOperationException {
         if (roots.size() == 1) {
             return eq(field, roots.iterator().next());
         }
@@ -128,6 +129,7 @@ public class QueryToMongodb {
             case FLT:
             case MLT:
             case MATCH:
+            case MATCH_ALL:
             case MATCH_PHRASE:
             case MATCH_PHRASE_PREFIX:
             case PREFIX:

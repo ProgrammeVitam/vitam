@@ -37,13 +37,17 @@ public class PerformanceModel {
 
     private int numberOfIngest;
 
+    private Integer numberOfRetry;
+
     @JsonCreator
     public PerformanceModel(@JsonProperty("fileName") String fileName,
         @JsonProperty("parallelIngest") int parallelIngest,
-        @JsonProperty("numberOfIngest") int numberOfIngest) {
+        @JsonProperty("numberOfIngest") int numberOfIngest,
+        @JsonProperty("numberOfRetry") Integer numberOfRetry) {
         this.fileName = fileName;
         this.parallelIngest = parallelIngest;
         this.numberOfIngest = numberOfIngest;
+        this.numberOfRetry = numberOfRetry;
     }
 
     public String getFileName() {
@@ -56,6 +60,10 @@ public class PerformanceModel {
 
     public int getNumberOfIngest() {
         return numberOfIngest;
+    }
+
+    public Integer getNumberOfRetry() {
+        return numberOfRetry;
     }
 
 }

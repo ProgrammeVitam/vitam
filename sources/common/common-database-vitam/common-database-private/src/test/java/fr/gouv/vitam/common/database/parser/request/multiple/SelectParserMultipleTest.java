@@ -394,19 +394,24 @@ public class SelectParserMultipleTest {
     public void testAddConditionParseSelect() throws InvalidParseOperationException, InvalidCreateOperationException {
         final SelectParserMultiple request = new SelectParserMultiple();
         final SelectMultiQuery select = new SelectMultiQuery();
-        select.addQueries(and().add(term("var01", "value1"), gte("var02", 3)));
+        select.addQueries(and().add(term("var01", "value1"), gte("var02", 3)).setDepthLimit(10));
         select.addQueries(and().add(term("var11", "value2"), gte("var12", 4)));
+        select.addQueries(and().add(term("var13", "value2"), gte("var14", 4)).setExactDepthLimit(12));
         select.addOrderByAscFilter("var1").addOrderByDescFilter("var2").addUsedProjection("var3")
             .addUnusedProjection("var4");
+        select.addRoots("id1", "id2");
+        select.addHintFilter(FILTERARGS.UNITS.exactToken(), FILTERARGS.NOCACHE.exactToken());
         request.parse(select.getFinalSelect());
         assertNotNull(request.getRequest());
         request.addCondition(eq("var5", "value"));
+
         assertEquals(
-            "{\"$roots\":[]," +
+            "{\"$roots\":[\"id2\",\"id1\"]," +
                 "\"$query\":[{\"$and\":[{\"$term\":{\"var01\":\"value1\"}},{\"$gte\":{\"var02\":3}}," +
                 "{\"$eq\":{\"var5\":\"value\"}}]}," +
-                "{\"$and\":[{\"$term\":{\"var11\":\"value2\"}},{\"$gte\":{\"var12\":4}}]}]," +
-                "\"$filter\":{\"$limit\":10000,\"$orderby\":{\"var1\":1,\"var2\":-1}}," +
+                "{\"$and\":[{\"$term\":{\"var11\":\"value2\"}},{\"$gte\":{\"var12\":4}}]}," +
+                "{\"$and\":[{\"$term\":{\"var13\":\"value2\"}},{\"$gte\":{\"var14\":4}}]}]," +
+                "\"$filter\":{\"$hint\":[\"units\",\"nocache\"],\"$limit\":10000,\"$orderby\":{\"var1\":1,\"var2\":-1}}," +
                 "\"$projection\":{\"$fields\":{\"var3\":1,\"var4\":0}}}",
             request.getRootNode().toString());
     }

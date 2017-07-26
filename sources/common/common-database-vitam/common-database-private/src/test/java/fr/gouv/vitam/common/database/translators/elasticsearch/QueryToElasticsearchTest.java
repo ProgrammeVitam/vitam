@@ -40,18 +40,22 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.mongodb.DBObject;
-import com.mongodb.util.JSON;
 
 import fr.gouv.vitam.common.database.builder.query.PathQuery;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 public class QueryToElasticsearchTest {
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(QueryToElasticsearchTest.class);
 
     private static final String exampleElasticsearch = "{ $roots : [ 'id0' ], $query : [ " +
         "{ $and : [ " + "{$exists : 'mavar1'}, " + "{$missing : 'mavar2'}, " + "{$isNull : 'mavar3'}, " +
@@ -93,12 +97,12 @@ public class QueryToElasticsearchTest {
     @AfterClass
     public static void tearDownAfterClass() throws Exception {}
 
-    private SelectMultiQuery createSelect() {
+    private SelectParserMultiple createSelect() {
         try {
             final SelectParserMultiple request1 = new SelectParserMultiple();
             request1.parse(example);
             assertNotNull(request1);
-            return request1.getRequest();
+            return request1;
         } catch (final Exception e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -109,11 +113,14 @@ public class QueryToElasticsearchTest {
     @Test
     public void testGetCommands() {
         try {
-            final SelectMultiQuery select = createSelect();
+            VitamCollection.setMatch(false);
+            final SelectParserMultiple parser = createSelect();
+            final SelectMultiQuery select = parser.getRequest();
             final QueryBuilder queryBuilderRoot = QueryToElasticsearch.getRoots("_up", select.getRoots());
-            final List<SortBuilder> sortBuilders = QueryToElasticsearch
-                .getSorts(Document.parse(JsonHandler.unprettyPrint(select.getFilter().get("$orderby"))));
-            assertEquals(3, sortBuilders.size());
+            final List<SortBuilder> sortBuilders = QueryToElasticsearch.getSorts(parser,
+                parser.hasFullTextQuery() || VitamCollection.containMatch(), true);
+            VitamCollection.setMatch(false);
+            assertEquals(4, sortBuilders.size());
 
             final List<Query> list = select.getQueries();
             for (int i = 0; i < list.size(); i++) {
@@ -129,7 +136,113 @@ public class QueryToElasticsearchTest {
         }
     }
 
-    @Test()
+    @Test
+    public void checkIdtoUid() {
+        try {
+            VitamCollection.setMatch(false);
+            final SelectParserMultiple parser;
+            try {
+                parser = new SelectParserMultiple(new FakeMetadataVarNameAdapter());
+                parser.parse(JsonHandler.getFromString("{ $roots : [ 'id0' ], $query : [ " +
+                    "{ $exists : '#id'}, " + 
+                    "{ $missing : '#id'}, " + 
+                    "{ $isNull : '#id'}, " +
+                    "{ $lt : { '#id' : '8' } }, " +
+                    "{ $eq : { '#id' : 'ab' } }, " +
+                    "{ $and : [ { $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] } ] }, " +
+                    "{ $or : [ { $or : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] } ] }, " +
+                    "{ $and : [ { $or : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] } ] }, " +
+                    "{ $or : [ { $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] } ] } " +
+                    "], " +
+                    "$filter : {$offset : 100, $limit : 1000, $hint : ['cache'], " +
+                    "$orderby : { #id : 1, maclef1 : 1 , maclef2 : -1,  maclef3 : 1 } }," +
+                    "$projection : {$fields : {#dua : 1, #all : 1}, $usage : 'abcdef1234' } }"));
+            } catch (final Exception e) {
+                e.printStackTrace();
+                fail(e.getMessage());
+                return;
+            }
+
+            final SelectMultiQuery select = parser.getRequest();
+            final QueryBuilder queryBuilderRoot = QueryToElasticsearch.getRoots("_up", select.getRoots());
+            final List<SortBuilder> sortBuilders = QueryToElasticsearch.getSorts(parser,
+                parser.hasFullTextQuery() || VitamCollection.containMatch(), true);
+            VitamCollection.setMatch(false);
+            assertEquals(4, sortBuilders.size());
+
+            final List<Query> list = select.getQueries();
+            // exists #id
+            {
+                int i = 0;
+                final QueryBuilder queryBuilderCommand = QueryToElasticsearch.getCommand(list.get(i));
+                final QueryBuilder queryBuilderseudoRequest =
+                    QueryToElasticsearch.getFullCommand(queryBuilderCommand, queryBuilderRoot);
+                assertEquals(true, ElasticsearchHelper.queryBuilderToString(queryBuilderseudoRequest).contains("_uid"));
+            }
+            // missing #id
+            {
+                int i = 1;
+                final QueryBuilder queryBuilderCommand = QueryToElasticsearch.getCommand(list.get(i));
+                final QueryBuilder queryBuilderseudoRequest =
+                    QueryToElasticsearch.getFullCommand(queryBuilderCommand, queryBuilderRoot);
+                assertEquals(true, ElasticsearchHelper.queryBuilderToString(queryBuilderseudoRequest).contains("_uid"));
+            }
+            // isNull #id
+            {
+                int i = 2;
+                final QueryBuilder queryBuilderCommand = QueryToElasticsearch.getCommand(list.get(i));
+                final QueryBuilder queryBuilderseudoRequest =
+                    QueryToElasticsearch.getFullCommand(queryBuilderCommand, queryBuilderRoot);
+                assertEquals(true, ElasticsearchHelper.queryBuilderToString(queryBuilderseudoRequest).contains("_uid"));
+            }
+            // lt #id
+            {
+                int i = 3;
+                final QueryBuilder queryBuilderCommand = QueryToElasticsearch.getCommand(list.get(i));
+                final QueryBuilder queryBuilderseudoRequest =
+                    QueryToElasticsearch.getFullCommand(queryBuilderCommand, queryBuilderRoot);
+                assertEquals(true, ElasticsearchHelper.queryBuilderToString(queryBuilderseudoRequest).contains("_uid"));
+                assertEquals(true, ElasticsearchHelper.queryBuilderToString(queryBuilderseudoRequest).contains("typeunique#8"));
+            }
+            // eq #id
+            {
+                int i = 4;
+                final QueryBuilder queryBuilderCommand = QueryToElasticsearch.getCommand(list.get(i));
+                final QueryBuilder queryBuilderseudoRequest =
+                    QueryToElasticsearch.getFullCommand(queryBuilderCommand, queryBuilderRoot);
+                assertEquals(false, ElasticsearchHelper.queryBuilderToString(queryBuilderseudoRequest).contains("_uid"));
+            }
+            // and and
+            {
+                int i = 5;
+                assertEquals(true, list.get(i).getCurrentQuery().toString().indexOf("$and") == 
+                    list.get(i).getCurrentQuery().toString().lastIndexOf("$and"));
+            }
+            // or or
+            {
+                int i = 6;
+                assertEquals(true, list.get(i).getCurrentQuery().toString().indexOf("$or") == 
+                    list.get(i).getCurrentQuery().toString().lastIndexOf("$or"));
+            }
+            // and or
+            {
+                int i = 7;
+                assertEquals(true, list.get(i).getCurrentQuery().toString().contains("$and") && 
+                    list.get(i).getCurrentQuery().toString().contains("$or"));
+            }
+            // or and
+            {
+                int i = 8;
+                assertEquals(true, list.get(i).getCurrentQuery().toString().contains("$and") && 
+                    list.get(i).getCurrentQuery().toString().contains("$or"));
+            }
+        } catch (final Exception e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+    }
+
+    @Test
     public void shouldNotRaiseException_whenPathAllowed()
         throws InvalidParseOperationException, InvalidCreateOperationException {
         final Query query = new PathQuery("id0");

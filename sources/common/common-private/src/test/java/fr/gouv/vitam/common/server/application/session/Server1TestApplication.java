@@ -30,8 +30,12 @@ package fr.gouv.vitam.common.server.application.session;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import org.junit.Assert;
 import org.slf4j.MDC;
@@ -57,6 +61,10 @@ public class Server1TestApplication extends AbstractTestApplication {
         super("session/server1.conf");
     }
 
+    public Server1TestApplication(String path) {
+        super(path);
+    }
+    
     private static LocalhostClientFactory clientFactory;
 
     public static void setServer2Port(int server2Port) {
@@ -126,6 +134,26 @@ public class Server1TestApplication extends AbstractTestApplication {
         @Path("/directResponse")
         public String directResponse() throws VitamThreadAccessException {
             return VitamThreadUtils.getVitamSession().getRequestId();
+        }
+        
+
+        
+        @GET
+        @Path("/testWaitFiveSecond")
+        @Consumes(MediaType.APPLICATION_JSON)
+        public Response wait5second() {
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+            }
+            return Response.status(Status.OK).build();
+        }
+        
+        @GET
+        @Path("/testReturnImmediately")
+        @Consumes(MediaType.APPLICATION_JSON)
+        public Response wait0second() {
+            return Response.status(Status.OK).build();
         }
     }
 }

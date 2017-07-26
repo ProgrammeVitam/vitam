@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.functional.administration.common;
 
+import java.util.Set;
+
 import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -34,13 +36,11 @@ import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.model.ContractStatus;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 
-import java.util.Set;
-
 /**
  * Defines an Ingest contract model for SIP transfer control. </BR>
  * It's an implementation of the SEDA specification and NF Z44022 MEDONA concerning the communication between a
  * TransferringAgency and an ArchivalAgency.
- * 
+ *
  */
 public class IngestContract extends VitamDocument<IngestContract> {
 
@@ -71,24 +71,21 @@ public class IngestContract extends VitamDocument<IngestContract> {
     public static final String ARCHIVEPROFILES = "ArchiveProfiles";
 
     /**
-     * the creatation date of contract 
+     * the creatation date of contract
      */
     public static final String CREATIONDATE = "CreationDate";
     /**
-     * the last update of contract 
+     * the last update of contract
      */
     public static final String LAST_UPDATE = "LastUpdate";
     /**
-     * the activation date of contract 
+     * the activation date of contract
      */
     public static final String ACTIVATIONDATE = "ActivationDate";
     /**
-     * the desactication date of contract 
+     * the desactication date of contract
      */
     public static final String DEACTIVATIONDATE = "DeactivationDate";
-
-
-    public static final String TYPEUNIQUE = "typeunique";
 
     /**
      * Empty Constructor
@@ -125,7 +122,7 @@ public class IngestContract extends VitamDocument<IngestContract> {
     }
 
     /**
-     * 
+     *
      * @param tenantId the working tenant
      */
     public IngestContract(Integer tenantId) {
@@ -148,6 +145,7 @@ public class IngestContract extends VitamDocument<IngestContract> {
 
     /**
      * Name of the contract
+     * 
      * @return name of contract
      */
     public String getName() {
@@ -156,7 +154,8 @@ public class IngestContract extends VitamDocument<IngestContract> {
 
     /**
      * Set or change the contract name
-     * @param name to set 
+     * 
+     * @param name to set
      * @return this
      */
     public IngestContract setName(String name) {
@@ -166,6 +165,7 @@ public class IngestContract extends VitamDocument<IngestContract> {
 
     /**
      * Get the contract description
+     * 
      * @return this
      */
     public String getDescription() {
@@ -174,6 +174,7 @@ public class IngestContract extends VitamDocument<IngestContract> {
 
     /**
      * Set or change the contract description
+     * 
      * @param description to set to contact
      * @return this
      */
@@ -182,9 +183,10 @@ public class IngestContract extends VitamDocument<IngestContract> {
         return this;
     }
 
-    
+
     /**
      * Get the contract status
+     * 
      * @return status of ingest contact
      */
     public ContractStatus getStatus() {
@@ -202,7 +204,8 @@ public class IngestContract extends VitamDocument<IngestContract> {
 
     /**
      * Set or change the contract status
-     * @param status to set 
+     * 
+     * @param status to set
      * @return this
      */
     public IngestContract setStatus(ContractStatus status) {
@@ -220,6 +223,7 @@ public class IngestContract extends VitamDocument<IngestContract> {
 
     /**
      * Set the collection of archive profiles
+     * 
      * @param archiveProfiles
      * @return this
      */
@@ -227,6 +231,7 @@ public class IngestContract extends VitamDocument<IngestContract> {
         append(ARCHIVEPROFILES, archiveProfiles);
         return this;
     }
+
     /**
      * @return creation date of contract
      */
@@ -251,7 +256,7 @@ public class IngestContract extends VitamDocument<IngestContract> {
     }
 
     /**
-     * @param lastupdate to set 
+     * @param lastupdate to set
      * @return this
      */
     public IngestContract setLastupdate(String lastupdate) {

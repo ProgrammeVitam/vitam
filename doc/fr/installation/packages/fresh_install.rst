@@ -45,7 +45,7 @@ Ensuite, dans la section ``hosts:vars``, renseigner les valeurs comme décrit :
    "vitam_reverse_domain","Cas de la gestion d'un reverse proxy",""
    "consul_domain","nom de domaine consul",""
    "vitam_ihm_demo_external_dns","Déprécié ; ne pas utiliser",""
-   "package_version","Version à installer",""
+   "package_version","Version à installer","Par défaut, indiquer *"
    "days_to_delete","Période de grâce des données sous Elastricsearch avant destruction (valeur en jours)",""
    "days_to_close","Période de grâce des données sous Elastricsearch avant fermeture des index (valeur en jours)",""
    "days_to_delete_topbeat","Période de grâce des données sous Elastricsearch  - index Topbeat - avant destruction (valeur en jours)",""
@@ -95,6 +95,17 @@ Le fichier ``vault-extra.yml`` peut être également présent sous |repertoire_i
 Le déploiement s'effectue depuis la machine "ansible" et va distribuer la solution VITAM selon l'inventaire correctement renseigné.
 
 .. warning:: le playbook ``vitam.yml`` comprend des étapes avec la mention ``no_log`` afin de ne pas afficher en clair des étapes comme les mots de passe des certificats. En cas d'erreur, il est possible de retirer la ligne dans le fichier pour une analyse plus fine d'un éventuel problème sur une de ces étapes.
+
+.. _update_jvm:
+
+Tuning JVM
+-----------
+
+.. note:: Cette section est en cours de développement.
+
+Un tuning fin des paramètres JVM de chaque composant VITAM est possible ; pour cela, il faut ajouter/modifier des "hostvars" aux partitions associées.
+
+.. caution:: Limitation technique à ce jour ; il n'est pas possible de définir des variables JVM différentes pour des composants colocalisés sur une même partition.
 
 
 Paramétrage de mongoclient (administration mongoclient)
@@ -243,22 +254,44 @@ Pour mettre en place ces repositories sur les machines cibles, lancer la command
 .. note:: En environnement CentOS, il est recommandé de créer des noms de repository commençant par  "vitam-".
 
 Réseaux
--------------
+-------
 
-Une fois l'étape de PKI effectuée avec succès, il convient de procéder à la définition des host_vars :
+Une fois l'étape de PKI effectuée avec succès, il convient de procéder à la génération des hostvars, qui permettent de définir quelles interfaces réseau utiliser.
+Actuellement la solution logicielle Vitam est capable de gérer 2 interfaces réseau:
 
-.. code-block:: bash
+    - Une d'administration
+    - Une de service
 
-   ansible-playbook ansible-vitam/generate_network_vars.yml -i environments/<ficher d'inventaire> --ask-vault-pass
+Cas 1: Machines avec une seule interface réseau
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Si les machines sur lesquelles Vitam sera déployé ne disposent que d'une interface réseau, ou si vous ne souhaitez en utiliser qu'une seule, il convient d'utiliser le playbook ``ansible-vitam/generate_hostvars_for_1_network_interface.yml``
+
+Cette définition des host_vars se base sur la directive ansible ``ansible_default_ipv4.address``, qui se base sur l'adresse IP associée à la route réseau définie par défaut.
+
+.. Warning:: Les communication d'administration et de service transiteront donc toutes les deux via l'unique interface réseau disponible.
+
+Cas 2: Machines avec plusieurs interfaces réseau
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Si les machines sur lesquelles Vitam sera déployé disposent de plusieurs interfaces, si celles-ci respectent cette règle:
+
+    - Interface nommée eth0 = ip_service
+    - Interface nommée eth1 = ip_admin
+
+Alors il est possible d'utiliser le playbook ``ansible-vitam-extra/generate_hostvars_for_2_network_interfaces.yml``
+
+.. Note:: Pour les autres cas de figure, il sera nécessaire de générer ces hostvars à la main ou de créer un script pour automatiser cela.
+
+Vérification de la génération des hostvars
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A l'issue, vérifier le contenu des fichiers générés sous ``environments/host_vars/`` et les adapter au besoin.
-
-.. note:: cette définition des host_vars se base sur la directive ansible ``ansible_default_ipv4.address``, qui se base sur l'adresse IP associée à la route réseau définie par défaut.
 
 Déploiement
 -------------
 
-Une fois l'étape de PKI effectuée avec succès, le déploiement est à réaliser avec la commande suivante :
+Une fois l'étape de la génération des hosts a été effectuée avec succès, le déploiement est à réaliser avec la commande suivante :
 
 .. code-block:: bash
 
@@ -313,3 +346,5 @@ Pour éviter d'avoir à recréer les "index-pattern" définis dans l'onglet **Se
 3. Copier ce tableau dans un fichier.
 4. Copier le fichier créé à l'étape 3 dans l'emplacement ``deployment\ansible-vitam\roles\log-server\files\kibana-objects``.
 5. Les index-pattern sont prêts à être importés.
+
+NB: Il ne faut pas oublier de selectionner l'index pattern par defaut avant toutes recherches ( se referer à la documention officielle de Kibana pour plus d'informations )

@@ -37,11 +37,13 @@ import java.util.Map;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import com.mongodb.MongoClient;
 
+import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -51,14 +53,20 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 
 public class ElasticsearchAccessMetadataTest {
 
-    private static final Integer TENANT_ID_0 = 0;
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DbRequestTest.class);
+
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
@@ -70,6 +78,8 @@ public class ElasticsearchAccessMetadataTest {
     private static final String SAMPLE_OBJECTGROUP_FILENAME = "sample_objectGroup_document.json";
 
     private static final int TENANT_ID = 0;
+    private static final Integer TENANT_ID_0 = new Integer(0);
+
     private static final String S1 = "{ \"title\":\"title1\", \"_max\": \"5\", \"_min\": \"2\"}";
     private static final String S1_OG =
         "{ \"Filename\":\"Vitam-Sensibilisation-API-V1.0.odp\", \"_max\": \"5\", \"_min\": \"2\"}";
@@ -121,7 +131,7 @@ public class ElasticsearchAccessMetadataTest {
         assertEquals(true, esClient.addEntryIndex(MetadataCollections.C_UNIT, TENANT_ID_0, id, S1));
         // delete unit
         try {
-            esClient.deleteEntryIndex(MetadataCollections.C_UNIT, TENANT_ID_0, Unit.TYPEUNIQUE, id);
+            esClient.deleteEntryIndex(MetadataCollections.C_UNIT, TENANT_ID_0, VitamCollection.getTypeunique(), id);
         } catch (final MetaDataExecutionException e) {
             fail(e.getMessage());
         } catch (final MetaDataNotFoundException e) {
@@ -129,7 +139,7 @@ public class ElasticsearchAccessMetadataTest {
         }
 
         try {
-            esClient.deleteEntryIndex(MetadataCollections.C_UNIT, TENANT_ID_0, Unit.TYPEUNIQUE,
+            esClient.deleteEntryIndex(MetadataCollections.C_UNIT, TENANT_ID_0, VitamCollection.getTypeunique(),
                 GUIDFactory.newUnitGUID(TENANT_ID).toString());
             fail("Unit not found");
 
@@ -139,7 +149,7 @@ public class ElasticsearchAccessMetadataTest {
         assertEquals(true, esClient.deleteIndex(MetadataCollections.C_UNIT, TENANT_ID_0));
 
         @SuppressWarnings("unchecked")
-        Map<String, String> targetMap = (Map<String, String>) ((Object) JsonHandler.getMapFromString(S1));
+        final Map<String, String> targetMap = (Map<String, String>) (Object) JsonHandler.getMapFromString(S1);
         // add entries
         esClient.addEntryIndexes(MetadataCollections.C_UNIT, TENANT_ID_0, targetMap);
         esClient.addEntryIndexesBlocking(MetadataCollections.C_UNIT, TENANT_ID_0, targetMap);
@@ -174,7 +184,7 @@ public class ElasticsearchAccessMetadataTest {
         assertEquals(true, esClient.addEntryIndex(MetadataCollections.C_OBJECTGROUP, TENANT_ID_0, id, S1_OG));
         // delete OG
 
-        esClient.deleteEntryIndex(MetadataCollections.C_OBJECTGROUP, TENANT_ID_0, ObjectGroup.TYPEUNIQUE, id);
+        esClient.deleteEntryIndex(MetadataCollections.C_OBJECTGROUP, TENANT_ID_0, VitamCollection.getTypeunique(), id);
 
         // delete index
         assertEquals(true, esClient.deleteIndex(MetadataCollections.C_OBJECTGROUP, TENANT_ID_0));
@@ -184,7 +194,7 @@ public class ElasticsearchAccessMetadataTest {
     @Test(expected = MetaDataNotFoundException.class)
     public void testElasticSearchDeleteOGAccessMetadatsNotFoundThenThrowException()
         throws MetaDataExecutionException, MetaDataNotFoundException {
-        esClient.deleteEntryIndex(MetadataCollections.C_OBJECTGROUP, TENANT_ID_0, ObjectGroup.TYPEUNIQUE,
+        esClient.deleteEntryIndex(MetadataCollections.C_OBJECTGROUP, TENANT_ID_0, VitamCollection.getTypeunique(),
             GUIDFactory.newObjectGroupGUID(TENANT_ID).toString());
     }
 
@@ -203,8 +213,9 @@ public class ElasticsearchAccessMetadataTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testElasticsearchOGAccessMetadatas() throws Exception {
-
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         // add index
         assertEquals(true, esClient.addIndex(MetadataCollections.C_OBJECTGROUP, TENANT_ID_0));
         // add OG
@@ -214,7 +225,7 @@ public class ElasticsearchAccessMetadataTest {
         // update index
         assertEquals(true, esClient.updateEntryIndex(MetadataCollections.C_OBJECTGROUP, TENANT_ID_0, id, S3));
 
-        MetadataDocument<?> doc = new ObjectGroup(go);
+        final MetadataDocument<?> doc = new ObjectGroup(go);
         assertEquals(true, esClient.addEntryIndex(doc, TENANT_ID_0));
 
     }

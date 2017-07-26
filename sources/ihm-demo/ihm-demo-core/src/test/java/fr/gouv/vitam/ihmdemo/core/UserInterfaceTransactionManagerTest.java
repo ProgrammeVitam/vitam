@@ -193,7 +193,7 @@ public class UserInterfaceTransactionManagerTest {
     public void testSuccessGetObjectAsInputStream()
         throws Exception {
         VitamThreadUtils.getVitamSession().setContractId(CONTRACT_NAME);
-        when(accessClient.getObject(JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP, "usage", 1,
+        when(accessClient.getUnitObject(JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP, "usage", 1,
             TENANT_ID, CONTRACT_NAME))
                 .thenReturn(new AbstractMockClient.FakeInboundResponse(Status.OK, IOUtils.toInputStream("Vitam Test"),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, null));

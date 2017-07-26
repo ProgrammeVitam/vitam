@@ -27,20 +27,18 @@
 package fr.gouv.vitam.functional.administration.format.core;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.mongodb.client.MongoCursor;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
@@ -50,7 +48,6 @@ import fr.gouv.vitam.functional.administration.common.ReferentialFile;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatNotFoundException;
-import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
@@ -89,7 +86,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
     @Override
     public void importFile(InputStream xmlPronom) throws ReferentialException, DatabaseConflictException {
         ParametersChecker.checkParameter("Pronom file is a mandatory parameter", xmlPronom);
-        final ArrayNode pronomList = this.checkFile(xmlPronom);
+        final ArrayNode pronomList = checkFile(xmlPronom);
         try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
             final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParametersStart = LogbookParametersFactory
@@ -107,7 +104,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
             final GUID eip1 = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             try {
                 if (mongoAccess.getMongoDatabase().getCollection(COLLECTION_NAME).count() == 0) {
-                    mongoAccess.insertDocuments(pronomList, FunctionalAdminCollections.FORMATS);
+                    mongoAccess.insertDocuments(pronomList, FunctionalAdminCollections.FORMATS).close();
 
                     final LogbookOperationParameters logbookParametersEnd = LogbookParametersFactory
                         .newLogbookOperationParameters(eip1, STP_REFERENTIAL_FORMAT_IMPORT, eip,
@@ -163,7 +160,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
          * Deserialize as json arrayNode, this operation will will ensure the format is valid first, else Exception is
          * thrown
          */
-        ArrayNode deserializeFormatsAsJson = PronomParser.getPronom(xmlPronom);
+        final ArrayNode deserializeFormatsAsJson = PronomParser.getPronom(xmlPronom);
         StreamUtils.closeSilently(xmlPronom);
         return deserializeFormatsAsJson;
     }
@@ -171,7 +168,8 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
     @Override
     public FileFormat findDocumentById(String id) throws ReferentialException {
         try {
-        	FileFormat fileFormat = (FileFormat) mongoAccess.getDocumentByUniqueId(id, FunctionalAdminCollections.FORMATS, FileFormat.PUID);
+            FileFormat fileFormat =
+                (FileFormat) mongoAccess.getDocumentByUniqueId(id, FunctionalAdminCollections.FORMATS, FileFormat.PUID);
             if (fileFormat == null) {
                 throw new FileFormatException("FileFormat Not Found");
             }
@@ -183,20 +181,15 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
     }
 
     @Override
-    public List<FileFormat> findDocuments(JsonNode select) throws FileFormatNotFoundException, ReferentialException {
-        try (final MongoCursor<VitamDocument<?>> formats = mongoAccess.findDocuments(select,
-            FunctionalAdminCollections.FORMATS)) {
-
-            final List<FileFormat> result = new ArrayList<>();
-            if (formats == null || !formats.hasNext()) {
+    public RequestResponseOK<FileFormat> findDocuments(JsonNode select)
+        throws FileFormatNotFoundException, ReferentialException {
+        try (DbRequestResult result =
+            mongoAccess.findDocuments(select, FunctionalAdminCollections.FORMATS)) {
+            final RequestResponseOK<FileFormat> list = result.getRequestResponseOK(FileFormat.class).setQuery(select);
+            if (list.isEmpty()) {
                 throw new FileFormatNotFoundException("Format not found");
             }
-
-            while (formats.hasNext()) {
-                result.add((FileFormat) formats.next());
-            }
-
-            return result;
+            return list;
         } catch (final FileFormatNotFoundException e) {
             throw e;
         } catch (final ReferentialException e) {

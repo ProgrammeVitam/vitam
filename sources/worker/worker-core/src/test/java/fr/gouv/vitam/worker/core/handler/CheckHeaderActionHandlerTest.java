@@ -55,6 +55,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -69,7 +70,6 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
@@ -191,7 +191,9 @@ public class CheckHeaderActionHandlerTest {
         assertNotNull(response.getData());
         assertNotNull(response.getData().get(SedaConstants.TAG_MESSAGE_IDENTIFIER));
         String evDetData = (String) response.getData().get(LogbookParameterName.eventDetailData.name());
+        assertTrue(evDetData.contains("ArchivalAgreement0"));
         assertTrue(evDetData.contains("English Comment"));
+        assertTrue(evDetData.contains("ArchivalProfile0"));
         action.partialClose();
 
     }

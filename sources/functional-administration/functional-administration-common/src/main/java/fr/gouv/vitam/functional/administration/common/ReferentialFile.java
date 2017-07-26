@@ -29,7 +29,6 @@ package fr.gouv.vitam.functional.administration.common;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -37,6 +36,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
@@ -58,9 +58,11 @@ public interface ReferentialFile<E> {
      * @throws DatabaseConflictException when there is a database conflict
      * @throws IOException
      * @throws InvalidParseOperationException
+     * @throws InvalidCreateOperationException
      */
     void importFile(InputStream file)
-        throws ReferentialException, DatabaseConflictException, IOException, InvalidParseOperationException;
+        throws ReferentialException, DatabaseConflictException, IOException, InvalidParseOperationException,
+        InvalidCreateOperationException;
 
     /**
      * find document based on a given Id
@@ -79,11 +81,11 @@ public interface ReferentialFile<E> {
      * @throws FileFormatNotFoundException when no results found
      * @throws ReferentialException when error occurs
      */
-    public List<E> findDocuments(JsonNode select) throws FileFormatNotFoundException, ReferentialException;
+    public RequestResponseOK<E> findDocuments(JsonNode select) throws FileFormatNotFoundException, ReferentialException;
 
     /**
      * Checks File : checks if a stream of referential data is valid
-     * 
+     *
      * @return The JsonArray containing the referential data if they are all valid
      * @param file as InputStream
      * @throws ReferentialException when there is errors import

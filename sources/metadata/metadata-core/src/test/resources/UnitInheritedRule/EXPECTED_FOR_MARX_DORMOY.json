@@ -1,0 +1,31 @@
+{
+	"inheritedRule": {
+		"DisseminationRule": {
+			"DIS-00002": {
+				"MarxDormoy": {
+					"StartDate": "2000-01-01",
+					"EndDate": "2075-01-01",
+					"path": [
+						[
+							"MarxDormoy"
+						]
+					]
+				}
+			}
+		},
+		"AccessRule": {
+			"ACC-00002": {
+				"LaChapelle": {
+					"StartDate": "2002-01-01",
+					"EndDate": "2027-01-01",
+					"path": [
+						[
+							"LaChapelle",
+							"MarxDormoy"
+						]
+					]
+				}
+			}
+		}
+	}
+}

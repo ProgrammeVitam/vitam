@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.external.rest;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -83,6 +84,7 @@ import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
+import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
@@ -131,7 +133,7 @@ public class AdminManagementExternalResourceImpl {
                     final Status status = client.checkRulesFile(document);
                     return Response.status(status).build();
                 }
-                return Response.status(Status.NOT_FOUND).entity(getErrorEntity(Status.NOT_FOUND, null, null)).build();
+                return Response.status(Status.NOT_FOUND).entity(getErrorEntity(Status.NOT_FOUND, "Collection nout found", null)).build();
             } catch (ReferentialException ex) {
                 LOGGER.error(ex);
                 return Response.status(Status.BAD_REQUEST)
@@ -208,6 +210,10 @@ public class AdminManagementExternalResourceImpl {
                 LOGGER.error(e);
                 final Status status = Status.CONFLICT;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            } catch (final FileRulesImportInProgressException e) {
+                LOGGER.warn(e);
+                return Response.status(Status.FORBIDDEN)
+                    .entity(getErrorEntity(Status.FORBIDDEN, e.getMessage(), null)).build();
             } catch (final ReferentialException e) {
                 LOGGER.error(e);
                 return Response.status(Status.BAD_REQUEST)
@@ -300,7 +306,7 @@ public class AdminManagementExternalResourceImpl {
         } else {
             LOGGER.error("Endpoint accept only profiles");
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.NOT_IMPLEMENTED)
-                .entity(getErrorEntity(Status.NOT_IMPLEMENTED, "Endpoint accept only profiles", null)).build());
+                .entity(getErrorStream(Status.NOT_IMPLEMENTED, "Endpoint accept only profiles", null)).build());
         }
     }
 
@@ -319,14 +325,14 @@ public class AdminManagementExternalResourceImpl {
                 .asyncResponseResume(
                     asyncResponse,
                     Response.status(Status.NOT_FOUND)
-                        .entity(getErrorEntity(Status.NOT_FOUND, exc.getMessage(), null).toString()).build());
+                        .entity(getErrorStream(Status.NOT_FOUND, exc.getMessage(), null).toString()).build());
         } catch (final AdminManagementClientServerException exc) {
             LOGGER.error(exc.getMessage(), exc);
             AsyncInputStreamHelper
                 .asyncResponseResume(
                     asyncResponse,
                     Response.status(Status.INTERNAL_SERVER_ERROR)
-                        .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exc.getMessage(), null).toString())
+                        .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, exc.getMessage(), null).toString())
                         .build());
         }
     }
@@ -381,7 +387,7 @@ public class AdminManagementExternalResourceImpl {
                     return Response.status(Status.OK).entity(result).build();
                 }
                 final Status status = Status.NOT_FOUND;
-                return Response.status(status).entity(getErrorEntity(status, null, null)).build();
+                return Response.status(status).entity(getErrorEntity(status, "Collection not found", null)).build();
             } catch (ReferentialNotFoundException | FileRulesNotFoundException e) {
                 final Status status = Status.NOT_FOUND;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
@@ -547,7 +553,7 @@ public class AdminManagementExternalResourceImpl {
                     return Response.status(Status.OK).entity(requestResponse).build();
                 }
                 final Status status = Status.NOT_FOUND;
-                return Response.status(status).entity(getErrorEntity(status, null, null)).build();
+                return Response.status(status).entity(getErrorEntity(status, "Collection not found", null)).build();
             } catch (ReferentialNotFoundException e) {
                 LOGGER.error(e);
                 final Status status = Status.NOT_FOUND;
@@ -643,7 +649,7 @@ public class AdminManagementExternalResourceImpl {
      * @param xhttpOverride the use of override POST method
      * @return Response
      */
-    @POST
+    @GET
     @Path(AccessExtAPI.ACCESSION_REGISTERS_API + "/{id_document}/accession-register-detail")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -652,10 +658,6 @@ public class AdminManagementExternalResourceImpl {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
-        if (xhttpOverride == null || !"GET".equalsIgnoreCase(xhttpOverride)) {
-            final Status status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase(), null)).build();
-        }
         ParametersChecker.checkParameter("accession register id is a mandatory parameter", documentId);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             RequestResponse accessionRegisterDetail =
@@ -666,11 +668,11 @@ public class AdminManagementExternalResourceImpl {
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
             final Status status = Status.BAD_REQUEST;
-            return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase(), null)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
         } catch (Exception e) {
             LOGGER.error(e);
             final Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase(), null)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
         }
     }
 
@@ -736,6 +738,21 @@ public class AdminManagementExternalResourceImpl {
             .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
 
+    
+    private InputStream getErrorStream(Status status, String message, String code) {
+        String aMessage =
+            (message != null && !message.trim().isEmpty()) ? message
+                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        String aCode = (code != null) ? code : String.valueOf(status.getStatusCode());
+        try {
+            return JsonHandler.writeToInpustream(new VitamError(aCode)
+                .setHttpCode(status.getStatusCode()).setContext(ACCESS_EXTERNAL_MODULE)
+                .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage));
+        } catch (InvalidParseOperationException e) {
+            return new ByteArrayInputStream("{ 'message' : 'Invalid VitamError message' }".getBytes());
+        }
+    }
+    
     private VitamError getErrorEntity(Status status, String message) {
         String aMessage =
             (message != null && !message.trim().isEmpty()) ? message

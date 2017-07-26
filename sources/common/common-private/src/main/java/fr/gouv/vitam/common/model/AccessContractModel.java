@@ -37,6 +37,16 @@ import java.util.Set;
 public class AccessContractModel extends AbstractContractModel {
 
     /**
+     * OriginatingAgencies
+     */
+    public static final String ORIGINATING_AGENCIES = "OriginatingAgencies";
+
+    /**
+     * DataObjectVersion
+     */
+    public static final String DATA_OBJECT_VERSION = "DataObjectVersion";
+
+    /**
      * Work for all data object version
      */
     public static final String EVERY_DATA_OBJECT_VERSION = "EveryDataObjectVersion";
@@ -46,10 +56,10 @@ public class AccessContractModel extends AbstractContractModel {
      */
     public static final String EVERY_ORIGINATINGAGENCY = "EveryOriginatingAgency";
 
-    @JsonProperty("DataObjectVersion")
+    @JsonProperty(DATA_OBJECT_VERSION)
     private Set<String> dataObjectVersion;
 
-    @JsonProperty("OriginatingAgencies")
+    @JsonProperty(ORIGINATING_AGENCIES)
     private Set<String> originatingAgencies;
     
     @JsonProperty("WritingPermission")

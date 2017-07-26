@@ -9,6 +9,9 @@ Un Workflow est défini en JSON avec la structure suivante :
 
 
 - un identifiant (id)
+- une clé (identifier)
+- un nom (name)
+- une catégorie (typeProc)
 - une liste de Steps :
 
  - un identifiant de famille de Workers (workerGroupId)
@@ -99,8 +102,8 @@ Etapes
     - Contrôle des références dans les AU des Id BDO
     - Stockage dans Workspace des BDO et AU
 
-  - CHECK_CONTRACT_INGEST : Vérification de la présence et contrôle du contrat d'entrée 
-  
+  - CHECK_CONTRACT_INGEST : Vérification de la présence et contrôle du contrat d'entrée
+
   - CHECK_CONSISTENCY : vérification de la cohérence objet/unit
 
 - **Step 2** - STP_OG_CHECK_AND_TRANSFORME : Check Objects Compliance du SIP / distribution sur LIST GUID/BinaryDataObject
@@ -114,7 +117,7 @@ Etapes
 - **Step 3** - STP_UNIT_CHECK_AND_PROCESS : Check des archive unit et de leurs règles associées
 
   - CHECK_UNIT_SCHEMA : Contrôles intelligents du Json représentant l'Archive Unit par rapport à un schéma Json
-  - UNITS_RULES_COMPUTE : Calcul des règles de gestion 
+  - UNITS_RULES_COMPUTE : Calcul des règles de gestion
 
 - **Step 4** - STP_STORAGE_AVAILABILITY_CHECK : Check Storage Availability / distribution REF GUID/SIP/manifest.xml
 

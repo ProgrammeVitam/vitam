@@ -64,6 +64,8 @@ public class AdminManagementExternalResourceImplTest {
     private static final String RULES_URI = "/" + AdminCollections.RULES.getName();
 
     private static final String DOCUMENT_ID = "/1";
+    
+    private static final String RULE_ID = "/APP-00001";    
 
     private static final String WRONG_URI = "/wrong-uri";
 
@@ -292,10 +294,11 @@ public class AdminManagementExternalResourceImplTest {
 
         given()
             .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(X_HTTP_METHOD_OVERRIDE, "GET")
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(RULES_URI + DOCUMENT_ID)
+            .when().post(RULES_URI + RULE_ID)
             .then().statusCode(Status.OK.getStatusCode());
 
         given()
@@ -333,6 +336,7 @@ public class AdminManagementExternalResourceImplTest {
 
         given()
             .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(X_HTTP_METHOD_OVERRIDE, "GET")
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -374,6 +378,7 @@ public class AdminManagementExternalResourceImplTest {
 
         given()
             .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(X_HTTP_METHOD_OVERRIDE, "GET")
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -462,7 +467,7 @@ public class AdminManagementExternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .header(X_HTTP_METHOD_OVERRIDE, "GET")
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
+            .and().header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(select.getFinalSelect())
             .when().post(ACCESSION_REGISTER_DETAIL_URI)
@@ -482,7 +487,7 @@ public class AdminManagementExternalResourceImplTest {
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
             .body(select.getFinalSelect())
             .when().post(ACCESSION_REGISTER_DETAIL_URI)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .then().statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -507,6 +512,7 @@ public class AdminManagementExternalResourceImplTest {
 
         given()
             .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().get(FORMAT_URI + DOCUMENT_ID)
@@ -557,8 +563,8 @@ public class AdminManagementExternalResourceImplTest {
 
         given()
             .contentType(ContentType.JSON)
-            .header(X_HTTP_METHOD_OVERRIDE, "GET")
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
+            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(select.getFinalSelect())
             .when().post(ACCESSION_REGISTER_DETAIL_URI)

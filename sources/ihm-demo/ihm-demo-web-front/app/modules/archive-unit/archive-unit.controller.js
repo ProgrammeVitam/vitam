@@ -40,8 +40,8 @@ angular.module('archive.unit')
     'ORIGINATING_AGENCY_FIELD':'OriginatingAgency',
     'ORIGINATING_AGENCY_IDENTIFIER_FIELD':'Identifier',
     'ORIGINATING_AGENCY_DESCRIPTION_FIELD':'OrganizationDescriptiveMetadata',
-     'ORIGINATING_AGENCY_MGT':"#originating_agency",
-     'ORIGINATING_AGENCIES_MGT':"#originating_agencies",
+    'ORIGINATING_AGENCY_MGT':"#originating_agency",
+    'ORIGINATING_AGENCIES_MGT':"#originating_agencies",
 
     'DESCIPTION_FIELD':'Description',
     'ID_KEY': '_id',
@@ -70,10 +70,52 @@ angular.module('archive.unit')
   .controller('ArchiveUnitController', function($scope, $routeParams, $filter, ihmDemoFactory, $window,
                                                 ARCHIVE_UNIT_MODULE_CONST, ARCHIVE_UNIT_MODULE_FIELD_LABEL,
                                                 ARCHIVE_UNIT_MODULE_OG_FIELD_LABEL, archiveDetailsService, $mdToast,
-                                                $mdDialog, transferToIhmResult, RuleUtils, authVitamService, accessContractResource,
-                                                uneceMappingService, $q){
+                                                $mdDialog, transferToIhmResult, authVitamService, accessContractResource,
+                                                uneceMappingService, $q, $translate){
 
     var self = this;
+
+    var storageKey = {
+      RestrictAccess: {id: 'RestrictAccess', label: 'Acces Réstrinct'},
+      Transfer: {id: 'Transfer', label: 'Transférer'},
+      Copy: {id: 'Copy', label: 'Copier'}
+    };
+    var appraisalKey = {
+      Keep: {id: 'Keep', label: 'Conserver'},
+      Destroy: {id: 'Destroy', label: 'Détruire'}
+    };
+    self.getFinalActions = function(ruleCategory) {
+      return ruleCategory === 'StorageRule'? storageKey: appraisalKey;
+    };
+    self.translateAction = function(ruleCategory, ruleAction) {
+      return ruleCategory === 'StorageRule'? storageKey[ruleAction].label: appraisalKey[ruleAction].label;
+    };
+
+    self.deleteRule = function(rule) {
+      // Handle undefined value as old false to become true
+      rule.deleted? rule.deleted=false: rule.deleted=true;
+    };
+
+    self.addRule = function(ruleCategory) {
+      ruleCategory.displayArray.push({
+        FinalAction: '',
+        StartDate: '',
+        ruleId: '',
+        originId: self.archiveId
+      });
+    };
+
+    var rulesName = {
+      'AppraisalRule': 'Durée d\'utilité Administrative',
+      'AccessRule': 'Délai de communicabilité',
+      'StorageRule': 'Durée d\'utilité courante',
+      'DisseminationRule': 'Délai de diffusion',
+      'ReuseRule': 'Durée de réutilisation',
+      'ClassificationRule': 'Durée de classification'
+    };
+    self.translateRule = function(key) {
+      return rulesName[key];
+    };
 
     self.displayLabel = function(key, parent, constants) {
       if (!constants) {
@@ -98,15 +140,32 @@ angular.module('archive.unit')
       return $scope.fieldLabel = key;
     };
 
+    self.index = 0;
+    self.editIndex = 0;
+    self.checkDisplayRuleDiv = function(category) {
+      if (category.mustBeDisplay || self.isEditMode) {
+        if (category.index === undefined) {
+          category.index = self.index;
+          self.index++;
+        }
+        if (self.isEditMode && category.editIndex === undefined) {
+          category.editIndex = self.editIndex;
+          self.editIndex++;
+        }
+        return true;
+      }
+      return false;
+    };
+
     //******************************* Alert diplayed ******************************* //
     self.showAlert = function($event, dialogTitle, message) {
       $mdDialog.show($mdDialog.alert().parent(angular.element(document.querySelector('#popupContainer')))
-          .clickOutsideToClose(true)
-          .title(dialogTitle)
-          .textContent(message)
-          .ariaLabel('Alert Dialog Demo')
-          .ok('OK')
-          .targetEvent($event)
+        .clickOutsideToClose(true)
+        .title(dialogTitle)
+        .textContent(message)
+        .ariaLabel('Alert Dialog Demo')
+        .ok('OK')
+        .targetEvent($event)
       );
     };
 
@@ -200,9 +259,9 @@ angular.module('archive.unit')
             key = fieldSet.fieldId;
           }
           if((key !== ARCHIVE_UNIT_MODULE_CONST.MGT_KEY &&
-              key !== ARCHIVE_UNIT_MODULE_CONST.ID_KEY &&
-              key.toString().charAt(0)!==ARCHIVE_UNIT_MODULE_CONST.TECH_KEY) ||
-              key === ARCHIVE_UNIT_MODULE_CONST.NBC_KEY ){
+            key !== ARCHIVE_UNIT_MODULE_CONST.ID_KEY &&
+            key.toString().charAt(0)!==ARCHIVE_UNIT_MODULE_CONST.TECH_KEY) ||
+            key === ARCHIVE_UNIT_MODULE_CONST.NBC_KEY ){
             var fieldSetSecond = buildSingleField(value, key, fieldSet.fieldId, fieldSet.parents, constants, modifAllowed);
             fieldSetSecond.isChild = true;
 
@@ -263,6 +322,43 @@ angular.module('archive.unit')
       }
     };
 
+    var getModifiedRules = function(ruleCategory, categoryName, updatedRules) {
+      var isCategoryUpdated = false;
+      var newRules = [];
+      angular.forEach(ruleCategory.displayArray, function(rule) {
+        if (rule.originId === self.archiveId) {
+          if(!rule.path && !rule.deleted) {
+            // New Rule
+            isCategoryUpdated = true;
+            newRules.push(rule.update);
+          } else if (rule.path && rule.deleted) {
+            // Deleted rule
+            isCategoryUpdated = true;
+          } else if (checkUpdate(rule)) {
+            // Updated rule
+            isCategoryUpdated = true;
+            newRules.push(rule.update);
+          } else {
+            // Keep old rule
+            newRules.push(rule.update);
+          }
+        }
+      });
+      if (isCategoryUpdated) {
+        var setAction = {};
+        setAction[categoryName] = newRules;
+        updatedRules.push(setAction);
+      }
+    };
+
+    var checkUpdate = function(rule) {
+      if (rule.ruleId !== rule.update.Rule ||
+        rule.FinalAction !== rule.update.FinalAction ||
+        rule.StartDate !== rule.update.StartDate) {
+        return true;
+      }
+      return false;
+    };
 
     //************* Save modifications *********** //
     self.saveModifications = function saveModifications($event) {
@@ -275,12 +371,20 @@ angular.module('archive.unit')
         getModifiedFields(value);
       });
 
+      var updatedRules = [];
+      angular.forEach(self.ruleDisplay, function(value, key) {
+        getModifiedRules(value, key, updatedRules);
+      });
+      if (updatedRules.length > 0) {
+        self.modifiedFields.push({'UpdatedRules': updatedRules});
+      }
+
       // Call REST service
       ihmDemoFactory.saveArchiveUnit(self.archiveId, self.modifiedFields)
         .then(function (response) {
           // SUCCESS
           // Archive unit updated: send new select query to back office
-          // Find archive unit details        	
+          // Find archive unit details
           var displayUpdatedArchiveCallBack = function (data) {
             if(data.$results == null || data.$results == undefined ||
               data.$hits == null || data.$hits == undefined || data.httpCode > 200) {
@@ -324,12 +428,26 @@ angular.module('archive.unit')
             self.showAlert($event, "Erreur", "Erreur survenue lors de la mise à jour de l'unité archivistique");
           };
           if(response.data.httpCode >= 400) {
-        	  console.log("Erreur survenue lors de la mise à jour de l'unité archivistique");
-        	  self.refreshArchiveDetails();
+            console.log('error: ', response);
+            if (response.data.description) {
+              self.refreshArchiveDetails();
+              var vitamCode = 'VITAMCODE.' + response.data.description;
+              $translate([vitamCode]).then(function (translations) {
+                var translation = translations[vitamCode];
+                if (translation.indexOf('VITAMCODE.')) {
+                  self.showAlert($event, "Erreur", translation);
+                } else {
+                  self.showAlert($event, "Erreur", "Erreur survenue lors de la mise à jour de l'unité archivistique");
+                }
+              });
+            } else {
+              console.log("Erreur survenue lors de la mise à jour de l'unité archivistique");
+              self.refreshArchiveDetails();
               self.showAlert($event, "Erreur", "Erreur survenue lors de la mise à jour de l'unité archivistique");
+            }
           }
           else {
-        	  archiveDetailsService.findArchiveUnitDetails(self.archiveId, displayUpdatedArchiveCallBack, failureUpdateDisplayCallback);
+            archiveDetailsService.findArchiveUnitDetails(self.archiveId, displayUpdatedArchiveCallBack, failureUpdateDisplayCallback);
           }
 
         }, function (error) {
@@ -409,7 +527,7 @@ angular.module('archive.unit')
       return (originId == self.archiveId) ? 'non' : 'oui';
     };
     $scope.checkSource = function(originId) {
-      return (originId == self.archiveId) ? false : true;
+      return originId !== self.archiveId;
     };
     $scope.defineStartDate = function(s){
       if (!s){
@@ -423,7 +541,7 @@ angular.module('archive.unit')
         return "Durée illimitée"
       } return e.slice(0,10);
     };
-    $scope.exitRule = function(array){
+    $scope.existRule = function(array){
       for (var i = 0; i < array.length; i++){
         if (array[i]["ruleId"])
           return true;
@@ -451,20 +569,14 @@ angular.module('archive.unit')
       return '';
     };
     $scope.checkUpOrDown = function(rule){
-      if ($scope.displayRule[rule.ruleId]) {
-        return true;
-      } else {
-        return false;
-      }
+        return !!$scope.displayRule[rule.ruleId];
     };
     $scope.hasSortFinal = function(c){
-      if (c == 'Durée d\'utilité Administrative' || c == 'Durée d\'utilité courante'){
-        return true;
-      } else return false;
+      return c === 'AppraisalRule' || c === 'StorageRule';
     };
     self.displayArchiveDetails = function(){
       self.mainFields={};
-      if(self.archiveFields == null || self.archiveFields == undefined){
+      if(self.archiveFields === null || self.archiveFields === undefined){
         // Refresh screen
         self.refreshArchiveDetails();
       } else {
@@ -480,95 +592,42 @@ angular.module('archive.unit')
 
         $scope.refNonId = {};
 
+        self.ruleDisplay = {};
+        ARCHIVE_UNIT_MODULE_CONST.RULES_CATEGORY_KEYS.forEach(function (value) {
+          self.ruleDisplay[value] = {
+            displayArray: [],
+            mustBeDisplay: false
+          };
+        });
+
         for (var key in management) {
           if(ARCHIVE_UNIT_MODULE_CONST.RULES_CATEGORY_KEYS.indexOf(key) === -1) {
             continue;
           }
-          var translateKey = RuleUtils.translate(key);
           var currentRef = [];
-          var tf = false;
-          for (var n in management[key]) {
-            var refArray = management[key][n].RefNonRuleId;
+          var preventInheritance = false;
+          if (management[key].Inheritance) {
+            var refArray = management[key].Inheritance.PreventRulesId;
             for (var ref in refArray) {
               currentRef.push(refArray[ref]);
             }
-            if (!tf) {
-              var tf = management[key][n].PreventInheritance;
+            if (!preventInheritance) {
+              preventInheritance = management[key].Inheritance.PreventInheritance;
             }
           }
+          
           if (typeof currentRef[0] !== 'undefined' && currentRef[0] !== null){
-            $scope.refNonId[translateKey] = currentRef;
+            $scope.refNonId[key] = currentRef;
+            self.ruleDisplay[key].mustBeDisplay = true;
           }
-          $scope.preventInheritance[translateKey] = tf;
+          if (preventInheritance) {
+            self.ruleDisplay[key].mustBeDisplay = true;
+          }
+          $scope.preventInheritance[key] = preventInheritance;
         }
 
-        self.ruleDisplay = {};
         var selfManagement = self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.MGT_KEY];
-        if (Array.isArray(selfManagement)) {
-          selfManagement.forEach(function (element) {
-            for (var key in element) {
-              if(ARCHIVE_UNIT_MODULE_CONST.RULES_CATEGORY_KEYS.indexOf(key) === -1) {
-                continue;
-              }
-              var translateKey = RuleUtils.translate(key);
-              var rule = selfManagement[key];
-              var displayArray = [];
-              var displayObject = {};
-              displayObject.ruleId = rule.Rule;
-              delete rule.Rule;
-              for (var detail in rule) {
-                displayObject[detail] = rule[detail];
-              }
-              displayObject.originId = idField;
-              displayArray.push(displayObject);
-              displayObject = {};
-              self.ruleDisplay[translateKey] = {};
-              self.ruleDisplay[translateKey]['displayArray'] = displayArray;
-            }
-          })
-        } else {
-          for (var key in selfManagement) {
-            if(ARCHIVE_UNIT_MODULE_CONST.RULES_CATEGORY_KEYS.indexOf(key) === -1) {
-              continue;
-            }
-            var translateKey = RuleUtils.translate(key);
-            var rule = selfManagement[key];
-            if(angular.isArray(rule)) {
-              // in case we have an array of rules
-              var displayArray = [];
-              var displayObject = {};
-              for (var ruleKey in rule) {
-                var oneRule = selfManagement[key][ruleKey];
-                displayObject.ruleId = oneRule.Rule;
-                delete oneRule.Rule;
-                for (var detail in oneRule) {
-                  displayObject[detail] = oneRule[detail];
-                }
-                displayObject.originId = idField;
-                displayArray.push(displayObject);
-                displayObject = {};
-                self.ruleDisplay[translateKey] = {};
-                self.ruleDisplay[translateKey]['displayArray'] = displayArray;
-              }
-            } else {
-              // in case we just have one rule (should not happen)
-              var displayArray = [];
-              var displayObject = {};
-              displayObject.ruleId = rule.Rule;
-              delete rule.Rule;
-              for (var detail in rule) {
-                displayObject[detail] = rule[detail];
-              }
-              displayObject.originId = idField;
-              displayArray.push(displayObject);
-              displayObject = {};
-              self.ruleDisplay[translateKey] = {};
-              self.ruleDisplay[translateKey]['displayArray'] = displayArray;
-            }
-          }
-        }
         for (var key in inheritedRule) {
-          var translateKey = RuleUtils.translate(key);
           var rule = inheritedRule[key];
           var displayArray = [];
           var displayObject = {};
@@ -588,11 +647,23 @@ angular.module('archive.unit')
               }
             }
           }
-          self.ruleDisplay[translateKey] = self.ruleDisplay[translateKey] ? self.ruleDisplay[translateKey] : {};
-          self.ruleDisplay[translateKey]['displayArray'] = displayArray;
+          self.ruleDisplay[key]['displayArray'] = displayArray;
+          self.ruleDisplay[key].mustBeDisplay = true;
         }
         delete self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.MGT_KEY];
         delete self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.STORAGE_KEY];
+
+        angular.forEach(self.ruleDisplay, function(value, key) {
+          angular.forEach(value.displayArray, function (rule) {
+            rule.update = {
+              Rule: rule.ruleId,
+              StartDate: rule.StartDate
+            };
+            if (key === 'StorageRule' || key === 'AppraisalRule') {
+              rule.update.FinalAction  = key === 'StorageRule'? storageKey[rule.FinalAction].id: appraisalKey[rule.FinalAction].id;
+            }
+          });
+        });
 
         if(idField !== self.archiveId){
           self.refreshArchiveDetails();
@@ -667,12 +738,12 @@ angular.module('archive.unit')
                 var tmpValue = value;
                 self.archiveFields[key] = tmpValue[0];
                 value = tmpValue[0];
-                  if (key == ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCY_MGT || key == ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCIES_MGT){
-                    fieldSet = buildSingleField(value, key, key, [], null, false);
-                  }
-                  else {
-                    fieldSet = buildSingleField(value, key, key, [], null, true);
-                  }
+                if (key == ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCY_MGT || key == ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCIES_MGT){
+                  fieldSet = buildSingleField(value, key, key, [], null, false);
+                }
+                else {
+                  fieldSet = buildSingleField(value, key, key, [], null, true);
+                }
                 if (mainFields.indexOf(key) >= 0) {
                   self.mainFields[key] = fieldSet;
                 } else {
@@ -708,7 +779,7 @@ angular.module('archive.unit')
                 if (mainFields.indexOf(key) >= 0 ) {
                   self.mainFields[key] = self.fieldSet;
                 } else {
-                	self.archiveArray.push(self.fieldSet);
+                  self.archiveArray.push(self.fieldSet);
                 }
               }
             }
@@ -860,13 +931,13 @@ angular.module('archive.unit')
 
     self.hasPermission = authVitamService.hasPermission;
     $scope.isPhysicalArchive = function(version){
-        return version.metadatas.PhysicalId != undefined;
-    }
+      return version.metadatas.PhysicalId != undefined;
+    };
     $scope.getClassVersion = function(version) {
       if ($scope.userContract.EveryDataObjectVersion == true) {
         return '';
       }
-      if ($scope.userContract.DataObjectVersion.indexOf(version.split('_')[0]) < 0) {
+      if ($scope.userContract.DataObjectVersion == null || $scope.userContract.DataObjectVersion.indexOf(version.split('_')[0]) < 0) {
         return 'grayColor';
       }
       return '';

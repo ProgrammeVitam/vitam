@@ -1,0 +1,224 @@
+{
+  "id": "DefaultIngestBlankTestWorkflow",
+  "name": "Default Ingest Blank Test Workflow",
+  "identifier": "PROCESS_SIP_UNITARY_TEST",
+  "typeProc": "INGEST",
+  "comment": "Default Ingest Blank Test Workflow V6",
+  "steps": [
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_INGEST_CONTROL_SIP",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": "SIP/manifest.xml"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "CHECK_SEDA",
+            "behavior": "BLOCKING"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CHECK_HEADER",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "checkContract",
+                "uri": "VALUE:true"
+              },
+              {
+                "name": "checkOriginatingAgency",
+                "uri": "VALUE:true"
+              },
+              {
+                "name": "checkProfile",
+                "uri": "VALUE:true"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CHECK_DATAOBJECTPACKAGE",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "checkNoObject",
+                "uri": "VALUE:false"
+              },
+              {
+                "name": "UnitType",
+                "uri": "VALUE:INGEST"
+              }
+            ],
+            "out": [
+              {
+                "name": "unitsLevel.file",
+                "uri": "WORKSPACE:UnitsLevel/ingestLevelStack.json"
+              },
+              {
+                "name": "mapsDOtoOG.file",
+                "uri": "WORKSPACE:Maps/DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP.json"
+              },
+              {
+                "name": "mapsDO.file",
+                "uri": "WORKSPACE:Maps/DATA_OBJECT_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "mapsObjectGroup.file",
+                "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "mapsObjectGroup.file",
+                "uri": "MEMORY:MapsMemory/OG_TO_ARCHIVE_ID_MAP.json"
+              },
+              {
+                "name": "mapsDOIdtoDODetail.file",
+                "uri": "WORKSPACE:Maps/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP.json"
+              },
+              {
+                "name": "mapsUnits.file",
+                "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "globalSEDAParameters.file",
+                "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
+              },
+              {
+                "name": "mapsObjectGroup.file",
+                "uri": "MEMORY:MapsMemory/OBJECT_GROUP_ID_TO_GUID_MAP.json"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_OG_CHECK_AND_TRANSFORME",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST",
+        "element": "ObjectGroup"
+      },
+      "actions": [
+      	{
+          "action": {
+            "actionKey": "CHECK_DIGEST",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "algo",
+                "uri": "VALUE:SHA-512"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "OG_OBJECTS_FORMAT_CHECK",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_UNIT_CHECK_AND_PROCESS",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST",
+        "element": "Units"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "UNITS_RULES_COMPUTE",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_STORAGE_AVAILABILITY_CHECK",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": "SIP/manifest.xml"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "STORAGE_AVAILABILITY_CHECK",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_INGEST_FINALISATION",
+      "behavior": "FINALLY",
+      "distribution": {
+        "kind": "REF",
+        "element": "SIP/manifest.xml"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "ATR_NOTIFICATION",
+            "behavior": "NOBLOCKING",
+            "in": [
+              {
+                "name": "mapsUnits.file",
+                "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json",
+                "optional": true
+              },
+              {
+                "name": "mapsDO.file",
+                "uri": "WORKSPACE:Maps/DATA_OBJECT_ID_TO_GUID_MAP.json",
+                "optional": true
+              },
+              {
+                "name": "mapsDOtoOG.file",
+                "uri": "WORKSPACE:Maps/DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP.json",
+                "optional": true
+              },
+              {
+                "name": "mapsDOIdtoDODetail.file",
+                "uri": "WORKSPACE:Maps/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP.json",
+                "optional": true
+              },
+              {
+                "name": "globalSEDAParameters.file",
+                "uri": "WORKSPACE:ATR/globalSEDAParameters.json",
+                "optional": true
+              },
+              {
+                "name": "mapsOG.file",
+                "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json",
+                "optional": true
+              }
+            ],
+            "out": [
+              {
+                "name": "atr.file",
+                "uri": "WORKSPACE:ATR/responseReply.xml"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "ROLL_BACK",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    }
+  ]
+}

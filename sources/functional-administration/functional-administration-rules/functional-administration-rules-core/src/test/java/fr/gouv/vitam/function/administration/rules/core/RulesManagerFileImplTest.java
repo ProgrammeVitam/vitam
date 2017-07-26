@@ -31,11 +31,16 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
 
-import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
+import fr.gouv.vitam.functional.administration.rules.core.RulesSecurisator;
 import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -43,7 +48,16 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
+import org.mockito.Matchers;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
@@ -56,11 +70,18 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
+
+import fr.gouv.vitam.common.model.RequestResponseOK;
+
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -68,18 +89,32 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.FileRules;
+import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.rules.core.RulesManagerFileImpl;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import static org.mockito.Mockito.mock;
 
+
+/**
+ * Warning : To avoid error on import rules (actually we cannot update) and to be able to test each case, the tenant ID
+ * is changed for each call.
+ */
+@RunWith(PowerMockRunner.class)
+@PowerMockRunnerDelegate(JUnit4.class)
+@PowerMockIgnore({"javax.*", "org.xml.*"})
+@PrepareForTest({LogbookOperationsClientFactory.class})
 public class RulesManagerFileImplTest {
     String FILE_TO_TEST_OK = "jeu_ok.csv";
     String FILE_TO_TEST_KO = "jeu_donnees_KO_regles_CSV_DuplicatedReference.csv";
+    private static final String FILE_TO_COMPARE = "jeu_donnees_OK_regles_CSV.csv";
+    private static final String TXT = ".txt";
+    private static final String TMP = "tmp";
     private static final Integer TENANT_ID = 0;
-
-    File rulesFile = null;
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -91,6 +126,7 @@ public class RulesManagerFileImplTest {
     private final static String CLUSTER_NAME = "vitam-cluster";
     private final static String HOST_NAME = "127.0.0.1";
     private static ElasticsearchTestConfiguration esConfig = null;
+    private static VitamCounterService vitamCounterService;
 
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
@@ -101,6 +137,7 @@ public class RulesManagerFileImplTest {
     static final String COLLECTION_NAME = "FileRules";
     static int port;
     static RulesManagerFileImpl rulesFileManager;
+    private static MongoDbAccessAdminImpl dbImpl;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -124,9 +161,21 @@ public class RulesManagerFileImplTest {
         mongod = mongodExecutable.start();
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, port));
+
+        LogbookOperationsClientFactory.changeMode(null);
+        dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
+        List<Integer> tenants = new ArrayList<>();
+        Integer tenantsList [] ={TENANT_ID,1,2,3,4,5,60,70};
+        tenants.addAll(Arrays.asList(tenantsList));
+
+
+
+        vitamCounterService = new VitamCounterService(dbImpl, tenants);
+        RulesSecurisator securisator = mock(RulesSecurisator.class);
+
         rulesFileManager = new RulesManagerFileImpl(
             MongoDbAccessAdminFactory.create(
-                new DbConfigurationImpl(nodes, DATABASE_NAME)));
+                new DbConfigurationImpl(nodes, DATABASE_NAME)), vitamCounterService, securisator);
         ElasticsearchAccessAdminFactory.create(
             new AdminManagementConfiguration(nodes, DATABASE_NAME, CLUSTER_NAME, esNodes));
 
@@ -142,10 +191,14 @@ public class RulesManagerFileImplTest {
         junitHelper.releasePort(port);
     }
 
+    /**
+     * Warning : To avoid error on import rules (actually we cannot update) and to be able to test each case, the tenant
+     * ID is changed for each call.
+     */
     @Test
     @RunWithCustomExecutor
     public void testimportRulesFile() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        VitamThreadUtils.getVitamSession().setTenantId(70);
         try {
             rulesFileManager.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
             // Nothing there
@@ -161,17 +214,246 @@ public class RulesManagerFileImplTest {
         } catch (final Exception e) {
             fail("Check file with FILE_TO_TEST_KO should not throw this exception");
         }
-
         rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
         final MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
         final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
-        assertEquals(22, collection.count());
+
+        // There are 22 rules in the file but, we don't now the order of test execution, so use the modulo to check
+        // if the number of rules in mongo is correct.
+        assertEquals(0, collection.count() % 22);
+
         final Select select = new Select();
         select.setQuery(eq("RuleId", "APP-00005"));
-        final List<FileRules> fileList = rulesFileManager.findDocuments(select.getFinalSelect());
-        final String id = fileList.get(0).getString("RuleId");
+        final RequestResponseOK<FileRules> fileList = rulesFileManager.findDocuments(select.getFinalSelect());
+        final String id = fileList.getResults().get(0).getString("RuleId");
         final FileRules file = rulesFileManager.findDocumentById(id);
-        assertEquals(file, fileList.get(0));
+
+
+        assertEquals(file.getRuleid(), fileList.getResults().get(0).getRuleid());
+
+        assertEquals(file.getVersion(),1);
         client.close();
+    }
+
+    /**
+     * Warning : To avoid error on import rules (actually we cannot update) and to be able to test each case, the tenant
+     * ID is changed for each call.
+     */
+    @Test
+    @RunWithCustomExecutor
+    public void testNoImportInProgess() throws Exception {
+        int tenantId = 1;
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        PowerMockito.mockStatic(LogbookOperationsClientFactory.class);
+        LogbookOperationsClientFactory logbookOperationsClientFactory =
+            PowerMockito.mock(LogbookOperationsClientFactory.class);
+        LogbookOperationsClient client = PowerMockito.mock(LogbookOperationsClient.class);
+        PowerMockito.when(LogbookOperationsClientFactory.getInstance()).thenReturn(logbookOperationsClientFactory);
+        PowerMockito.when(logbookOperationsClientFactory.getClient()).thenReturn(client);
+
+        PowerMockito.when(client.selectOperation(Matchers.anyObject())).thenReturn(getJsonResult(StatusCode.OK.name()
+            , tenantId));
+        rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
+
+        VitamThreadUtils.getVitamSession().setTenantId(++tenantId);
+        PowerMockito.when(client.selectOperation(Matchers.anyObject())).thenReturn(getJsonResult(StatusCode.KO.name()
+            , tenantId));
+        rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
+
+        VitamThreadUtils.getVitamSession().setTenantId(++tenantId);
+        PowerMockito.when(client.selectOperation(Matchers.anyObject())).thenReturn(getJsonResult(StatusCode.WARNING
+            .name(), tenantId));
+        rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
+
+        VitamThreadUtils.getVitamSession().setTenantId(++tenantId);
+        PowerMockito.when(client.selectOperation(Matchers.anyObject())).thenReturn(getJsonResult(StatusCode.FATAL
+            .name(), tenantId));
+        rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        PowerMockito.when(client.selectOperation(Matchers.anyObject())).thenReturn(getEmptyJsonResponse());
+        rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
+    }
+
+    /**
+     * Warning : To avoid error on import rules (actually cannot update) and to be able to test each case, the tenant ID
+     * is changed for each call.
+     */
+    @Test(expected = FileRulesImportInProgressException.class)
+    @RunWithCustomExecutor
+    public void testImportInProgess() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(60);
+        PowerMockito.mockStatic(LogbookOperationsClientFactory.class);
+        LogbookOperationsClientFactory logbookOperationsClientFactory =
+            PowerMockito.mock(LogbookOperationsClientFactory.class);
+        LogbookOperationsClient client = PowerMockito.mock(LogbookOperationsClient.class);
+        PowerMockito.when(LogbookOperationsClientFactory.getInstance()).thenReturn(logbookOperationsClientFactory);
+        PowerMockito.when(logbookOperationsClientFactory.getClient()).thenReturn(client);
+
+        PowerMockito.when(client.selectOperation(Matchers.anyObject())).thenReturn(
+            getJsonResult(StatusCode.STARTED.name
+                (), 60));
+        rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
+    }
+
+    private JsonNode getJsonResult(String outcome, int tenantId) throws Exception {
+        return JsonHandler.getFromString(String.format("{\n" +
+            "     \"httpCode\": 200,\n" +
+            "     \"$hits\": {\n" +
+            "          \"total\": 1,\n" +
+            "          \"offset\": 0,\n" +
+            "          \"limit\": 1,\n" +
+            "          \"size\": 1\n" +
+            "     },\n" +
+            "     \"$results\": [\n" +
+            "          {\n" +
+            "               \"_id\": \"aecaaaaaacgbcaacaa76eak44s3of6iaaaaq\",\n" +
+            "               \"events\": [\n" +
+            "                    {\n" +
+            "                         \"outcome\": \"%s\"\n" +
+            "                    }\n" +
+            "               ],\n" +
+            "               \"_v\": 0,\n" +
+            "               \"_tenant\": %d\n" +
+            "          }\n" +
+            "     ],\n" +
+            "     \"$context\": {\n" +
+            "          \"$query\": {\n" +
+            "               \"$eq\": {\n" +
+            "                    \"events.evType\": \"STP_IMPORT_RULES\"\n" +
+            "               }\n" +
+            "          },\n" +
+            "          \"$filter\": {\n" +
+            "               \"$limit\": 1,\n" +
+            "               \"$orderby\": {\n" +
+            "                    \"evDateTime\": -1\n" +
+            "               }\n" +
+            "          },\n" +
+            "          \"$projection\": {\n" +
+            "               \"$fields\": {\n" +
+            "                    \"#id\": 1,\n" +
+            "                    \"events.outcome\": 1\n" +
+            "               }\n" +
+            "          }\n" +
+            "     }\n" +
+            "}", outcome, tenantId));
+    }
+
+    private JsonNode getEmptyJsonResponse() throws Exception {
+        return JsonHandler.getFromString("{\n" +
+            "     \"httpCode\": 200,\n" +
+            "     \"$hits\": {\n" +
+            "          \"total\": 0,\n" +
+            "          \"offset\": 0,\n" +
+            "          \"limit\": 1,\n" +
+            "          \"size\": 0\n" +
+            "     },\n" +
+            "     \"$results\": [],\n" +
+            "     \"$context\": {\n" +
+            "          \"$query\": {\n" +
+            "               \"$eq\": {\n" +
+            "                    \"events.evType\": \"STP_IMPORT_RULES\"\n" +
+            "               }\n" +
+            "          },\n" +
+            "          \"$filter\": {\n" +
+            "               \"$limit\": 1,\n" +
+            "               \"$orderby\": {\n" +
+            "                    \"evDateTime\": -1\n" +
+            "               }\n" +
+            "          },\n" +
+            "          \"$projection\": {\n" +
+            "               \"$fields\": {\n" +
+            "                    \"#id\": 1,\n" +
+            "                    \"events.outcome\": 1\n" +
+            "               }\n" +
+            "          }\n" +
+            "     }\n" +
+            "}");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void shouldRetrieveAllRules() {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final Select select = new Select();
+        try {
+            select.setQuery(eq("#tenant", TENANT_ID));
+            List<FileRules> fileRules =
+                convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
+            if (fileRules.size() == 0) {
+                rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
+            }
+            List<FileRules> fileRulesAfter =
+                convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
+            assertEquals(fileRulesAfter.size(), 22);
+        } catch (ReferentialException | InvalidParseOperationException | IOException | InvalidCreateOperationException e) {
+            fail("ReferentialException " + e.getCause());
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void shouldInsertUpdateAndDeleteNewFileRules() {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final Select select = new Select();
+        try {
+            List<FileRules> fileRules = new ArrayList<FileRules>();
+            try {
+                select.setQuery(eq("#tenant", TENANT_ID));
+                fileRules = convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
+            } catch (ReferentialException e) {}
+            if (fileRules.size() == 0) {
+                rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
+            }
+            List<FileRules> fileRulesAfterImport =
+                convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
+            assertEquals(22, fileRulesAfterImport.size());
+            // FILE_TO_COMPARE => insert 1 rule, delete 1 rule, update 1 rule
+            rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_COMPARE)));
+            List<FileRules> fileRulesAfterInsert =
+                convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
+            assertEquals(22, fileRulesAfterInsert.size());
+
+        } catch (ReferentialException | InvalidParseOperationException | IOException | InvalidCreateOperationException e) {
+            fail("ReferentialException " + e.getCause());
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void shouldDoNothingOnFileRulesReferential() {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final Select select = new Select();
+        try {
+            List<FileRules> fileRules = new ArrayList<FileRules>();
+            select.setQuery(eq("#tenant", TENANT_ID));
+            fileRules = convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
+
+            if (fileRules.size() == 0) {
+                rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
+            }
+            List<FileRules> fileRulesAfterImport =
+                convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
+            assertEquals(22, fileRulesAfterImport.size());
+            rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
+            List<FileRules> fileRulesAfterInsert =
+                convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
+            assertEquals(22, fileRulesAfterInsert.size());
+            assertEquals(fileRulesAfterInsert.stream().findAny().get().get(VitamDocument.VERSION), vitamCounterService.getSequence(TENANT_ID,"RULE"));
+
+        } catch (ReferentialException | InvalidParseOperationException | IOException | InvalidCreateOperationException e) {
+            fail("ReferentialException " + e.getCause());
+            e.printStackTrace();
+        }
+    }
+
+    private List<FileRules> convertResponseResultToFileRules(RequestResponseOK<FileRules> response) {
+        if (response != null) {
+            return response.getResults();
+        } else {
+            return new ArrayList<FileRules>();
+        }
     }
 }

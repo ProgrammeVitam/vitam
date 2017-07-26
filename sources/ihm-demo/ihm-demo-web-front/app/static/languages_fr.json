@@ -100,5 +100,18 @@
   "archiveunit.physical.fields.Length": "Longueur",
   "archiveunit.physical.fields.Thickness": "Epaisseur",
   "archiveunit.physical.fields.Weight": "Poids",
-  "archiveunit.physical.fields.NumberOfPage": "Nombre de pages"
+  "archiveunit.physical.fields.NumberOfPage": "Nombre de pages",
+
+  "VITAMCODE.ACCESS_INTERNAL_UPDATE_UNIT_CHECK_RULES": "Erreur lors de la vérification des règles, peut-être qu'une règle est vide ou mal renseignée.",
+  "VITAMCODE.ACCESS_INTERNAL_UPDATE_UNIT_DELETE_CATEGORY_INHERITANCE": "La catégorie de règle supprimée contient des annulation d'héritage de règles.",
+  "VITAMCODE.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_END_DATE": "La règle modifiée renseigne une date de fin",
+  "VITAMCODE.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_FINAL_ACTION": "La règle modifiée renseigne un sort final erroné",
+  "VITAMCODE.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_EXIST": "La règle modifiée n'existe pas dans le référentiel",
+  "VITAMCODE.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_CATEGORY": "La règle modifiée n'est pas de la bonne catégorie",
+  "VITAMCODE.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_END_DATE": "La règle ajoutée renseigne une date de fin",
+  "VITAMCODE.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_FINAL_ACTION": "La règle ajoutée renseigne un sort final érroné",
+  "VITAMCODE.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_EXIST": "La règle ajoutée n'existe pas dans le référentiel",
+  "VITAMCODE.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_CATEGORY": "La règle ajoutée n'est pas de la bonne catégorie",
+  "VITAMCODE.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_START_DATE": "La startDate de la règle de gestion est supérieur ou égale à 9000",
+  "VITAMCODE.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_START_DATE": "La startDate de la règle de gestion est supérieur ou égale à 9000"
 }

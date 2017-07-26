@@ -1,0 +1,7 @@
+---
+### SET NETWORK CONFIGURATION ###
+- hosts: hosts
+  roles:
+    #- { role: generate_hosts_vars, when: ansible_all_ipv4_addresses|length == 1 }
+    - { role: generate_hostvars_for_1_network_interface }
+  any_errors_fatal: true

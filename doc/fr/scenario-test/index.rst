@@ -6,5 +6,6 @@
 .. toctree::
    :maxdepth: 2
 
-   introduction.rst
-   outils.rst
+   introduction
+   outils
+   scenario_ingest

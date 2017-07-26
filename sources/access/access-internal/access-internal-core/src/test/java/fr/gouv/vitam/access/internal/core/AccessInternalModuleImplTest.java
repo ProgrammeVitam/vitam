@@ -30,6 +30,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -44,10 +45,12 @@ import javax.ws.rs.core.Response;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.internal.runners.statements.Fail;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -59,9 +62,15 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
+import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserHelper;
+import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
+import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
@@ -78,8 +87,10 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
+import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClientRest;
@@ -120,6 +131,51 @@ public class AccessInternalModuleImplTest {
         "{\"$queries\": [{ \"$path\": \"aaaaa\" }],\"$filter\": { },\"$projection\": {}}";
     private static final String QUERY_UPDATE =
         "{\"$root\": { },\"$queries\": [{ \"$path\": \"aaaaa\" }],\"$filter\": { },\"$action\": {}}";
+    private static final String SELECT_AU_RESPONSE =
+        "{\"#id\": \"aeaqaaaaaagbcaacaa3woak5by7by4yaaaba\",\"#sps\": [\"RATP\"],"
+            + "\"#sp\": \"RATP\",\"#management\": {"
+            + "\"StorageRule\": {"
+            + "\"Rules\": [{"
+            + "\"Rule\": \"STO-00001\","
+            + "\"StartDate\": \"2000-01-01\","
+            + "\"FinalAction\": \"Copy\","
+            + "\"EndDate\": \"2001-01-01\"}]"
+            + "},"
+            + "\"AppraisalRule\": {"
+            + "\"Rules\": [{"
+            + "\"Rule\": \"APP-00002\","
+            + "\"StartDate\": \"2000-01-01\","
+            + "\"FinalAction\": \"Destroy\","
+            + "\"EndDate\": \"2005-01-01\""
+            + "}],"
+            + "\"Inheritance\": {"
+            + "\"PreventInheritance\":true"
+            + "}},"
+            + "\"AccessRule\": {"
+            + "\"Inheritance\": {"
+            + "\"PreventRulesId\":\"ID-NoRule\""
+            + "}},"
+            + "\"DisseminationRule\": {"
+            + "\"Rules\": [{"
+            + "\"Rule\": \"DIS-00001\","
+            + "\"StartDate\": \"2000-01-01\","
+            + "\"EndDate\": \"2025-01-01\"}]"
+            + "},"
+            + "\"ClassificationRule\": {"
+            + "\"Rules\": [{"
+            + "\"Rule\": \"CLASS-00001\","
+            + "\"StartDate\": \"2000-01-01\","
+            + "\"ClassificationLevel\": \"Secret Défense\","
+            + "\"ClassificationOwner\": \"RATP\","
+            + "\"EndDate\": \"2010-01-01\"}]"
+            + "},"
+            + "\"OriginatingAgency\": \"RATP\"},\"DescriptionLevel\": \"RecordGrp\","
+            + "\"Title\": \"Eglise de Pantin\",\"Titles\": {\"fr\": \"Eglise de Pantin\"},"
+            + "\"Description\": \"Desc\",\"Descriptions\": {\"fr\": \"Desc\"},"
+            + "\"StartDate\": \"2017-04-04T08:07:06\",\"EndDate\": \"2017-04-04T08:07:06\","
+            + "\"_ops\": [\"aedqaaaaacgbcaacabfkuak5by7buaiaaaaq\"],\"_unitType\": \"INGEST\",\"_v\": 0,\"_tenant\": 0,"
+            + "\"_max\": 2,\"_min\": 1,\"_up\": [\"aeaqaaaaaagbcaacaa3woak5by7by4aaaaba\"],\"_nbc\": 1,"
+            + "\"_us\": [\"aeaqaaaaaagbcaacaa3woak5by7by4aaaaba\"],\"_uds\": [{\"aeaqaaaaaagbcaacaa3woak5by7by4aaaaba\": 1}]}";
     // Note: this is an incorrect response since missing Qualifiers but _id is correct but within
     private static final String FAKE_METADATA_RESULT = "{$results:[{'_id':123}]}";
     private static final String TEST_MODEL_FAKE_METADATA_RESULT = "{$results:[{'_id':123}]}";
@@ -140,6 +196,55 @@ public class AccessInternalModuleImplTest {
             + "}"
             + "} ]"
             + "} ]}";
+
+    private static final String QUERY_STRING = "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{},"
+        + "\"$action\":["
+        + "{\"$set\":{\"Title\":\"Eglise de Pantin Modfii\u00E9\"}},"
+        + "{\"$set\":{\"SubmissionAgency.Identifier\":\"ServiceversantID\"}},"
+        + "{\"$set\":{\"#management.StorageRule\":[{\"Rule\":\"STO-00001\",\"StartDate\":\"2000-01-01\",\"FinalAction\":\"RestrictAccess\"}]}},"
+        + "{\"$unset\":[\"#management.DisseminationRule\"]},"
+        + "{\"$set\":{\"#management.ClassificationRule\":[{\"Rule\":\"CLASS-00002\",\"StartDate\":\"2017-07-01\"}]}}]}";
+
+    private static final String QUERY_MULTIPLE_STRING = "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{},"
+        + "\"$action\":["
+        + "{\"$set\":{\"#management.ClassificationRule\":["
+        +   "{\"Rule\":\"CLASS-00002\",\"StartDate\":\"2017-07-01\"},"
+        +   "{\"Rule\":\"CLASS-00003\",\"StartDate\":\"2017-07-01\"}"
+        + "]}}]}";
+
+    private static final String QUERY_CREATE_STRING = "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{},"
+            + "\"$action\":["
+            + "{\"$set\":{\"#management.ReuseRule\":["
+            +   "{\"Rule\":\"REU-00001\",\"StartDate\":\"2017-07-01\"}"
+            + "]}}]}";
+
+    private static final String QUERY_STRING_WITH_END = "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{},"
+        + "\"$action\":["
+        + "{\"$set\":{\"#management.StorageRule\":[{\"Rule\":\"STO-00001\",\"StartDate\":\"2000-01-01\",\"FinalAction\":\"RestrictAccess\"}]}},"
+        + "{\"$unset\":[\"#management.DisseminationRule\"]},"
+        + "{\"$set\":{\"#management.ClassificationRule\":["
+        + "{\"Rule\":\"CLASS-00002\",\"StartDate\":\"2017-07-01\",\"EndDate\":\"2017-08-02\"}]}}]}";
+
+    private static final String QUERY_STRING_WITH_PI_DELETED = "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{},"
+        + "\"$action\":["
+        + "{\"$unset\":[\"#management.AppraisalRule\"]}]}";
+
+    private static final String QUERY_STRING_WITH_RNRI_DELETED = "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{},"
+            + "\"$action\":["
+            + "{\"$unset\":[\"#management.AccessRule\"]}]}";
+
+    private static final String QUERY_STRING_WITH_WRONG_CATEGORY_FINAL_ACTION = "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{},"
+            + "\"$action\":["
+            + "{\"$set\":{\"#management.ClassificationRule\":[{\"Rule\":\"CLASS-00002\",\"StartDate\":\"2017-07-01\",\"FinalAction\":\"Keep\"}]}}]}";
+
+    private static final String QUERY_STRING_WITH_WRONG_FINAL_ACTION = "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{},"
+            + "\"$action\":["
+            + "{\"$set\":{\"#management.StorageRule\":[{\"Rule\":\"STO-00002\",\"StartDate\":\"2017-07-01\",\"FinalAction\":\"Keep\"}]}}]}";
+
+    private static final String QUERY_STRING_WITH_WRONG_CATEGORY = "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{},"
+            + "\"$action\":["
+            + "{\"$set\":{\"#management.ClassificationRule\":[{\"Rule\":\"STO-00002\",\"StartDate\":\"2017-07-01\"}]}}]}";
+
     private static final String REAL_DATA_RESULT_PATH = "sample_data_results.json";
     private static final String REAL_DATA_RESULT_MULTI_PATH = "sample_data_multi_results.json";
     private static final UpdateMultiQuery updateQuery = new UpdateMultiQuery();
@@ -222,14 +327,12 @@ public class AccessInternalModuleImplTest {
         accessModuleImpl.selectUnit(fromStringToJson(""));
     }
 
-
     @Test(expected = IllegalArgumentException.class)
     public void given_test_AccessExecutionException()
         throws Exception {
         Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient).selectUnits(anyObject());
         accessModuleImpl.selectUnit(fromStringToJson(QUERY));
     }
-
 
     @Test(expected = InvalidParseOperationException.class)
     public void given_empty_DSLWhen_select_units_ThenThrows_InvalidParseOperationException()
@@ -238,7 +341,6 @@ public class AccessInternalModuleImplTest {
         accessModuleImpl.selectUnit(fromStringToJson(QUERY));
 
     }
-
 
     @Test(expected = IllegalArgumentException.class)
     public void given__DSLWhen_select_units_ThenThrows_MetadataInvalidSelectException()
@@ -253,7 +355,6 @@ public class AccessInternalModuleImplTest {
         Mockito.doThrow(new MetaDataDocumentSizeException("")).when(metaDataClient).selectUnits(anyObject());
         accessModuleImpl.selectUnit(fromStringToJson(QUERY));
     }
-
 
     @Test(expected = AccessInternalExecutionException.class)
     public void given_clientProblem_When_select_units_ThenThrows_AccessExecutionException()
@@ -276,8 +377,6 @@ public class AccessInternalModuleImplTest {
         accessModuleImpl.selectUnitbyId(fromStringToJson(""), ID);
     }
 
-
-
     @Test(expected = IllegalArgumentException.class)
     public void given_test_AccessExecutionException_unitById()
         throws Exception {
@@ -285,15 +384,12 @@ public class AccessInternalModuleImplTest {
         accessModuleImpl.selectUnitbyId(fromStringToJson(QUERY), ID);
     }
 
-
     @Test(expected = InvalidParseOperationException.class)
     public void given_empty_DSLWhen_select_unitById_ThenThrows_InvalidParseOperationException()
         throws Exception {
         Mockito.doThrow(new InvalidParseOperationException("")).when(metaDataClient).selectUnitbyId(anyObject(),
             anyObject());
         accessModuleImpl.selectUnitbyId(fromStringToJson(QUERY), ID);
-
-
     }
 
     @Test(expected = AccessInternalExecutionException.class)
@@ -434,7 +530,6 @@ public class AccessInternalModuleImplTest {
 
     }
 
-
     @Test(expected = InvalidParseOperationException.class)
     public void given_empty_dsl_When_updateUnitById_thenTrows_IllegalArgumentException()
         throws Exception {
@@ -571,7 +666,6 @@ public class AccessInternalModuleImplTest {
                 .get("Filename").asText(), "Vitam-S\u00E9nsibilisation de l' API-V1.0.png");
     }
 
-
     @Test
     @RunWithCustomExecutor
     public void testGetOneObjectFromObjectGroupRealData_WARN() throws Exception {
@@ -621,7 +715,7 @@ public class AccessInternalModuleImplTest {
         assertNotNull(asynResponse.getResponse());
         VitamStreamingOutput entity = (VitamStreamingOutput) ((Response) asynResponse.getResponse()).getEntity();
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public void testGetOneObjectFromObjectGroup_With_ObjectMapping_Result() throws Exception {
@@ -655,6 +749,92 @@ public class AccessInternalModuleImplTest {
         when(storageClient.getContainerAsync(anyString(), anyString(), anyObject()))
             .thenThrow(new StorageServerClientException("Test wanted exception"));
         accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, fromStringToJson(QUERY), "BinaryMaster", 0);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testCheckRulesOnUpdateAU() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        when(metaDataClient.selectUnitbyId(anyObject(), anyString()))
+            .thenReturn(fromStringToJson("{\"$hits" +
+                    "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
+                    "\"$results\":[" + SELECT_AU_RESPONSE + "]}"));
+
+        RequestParserMultiple results;
+
+        results = executeCheck(QUERY_STRING);
+        assertEquals(5, results.getRequest().getActions().size());
+
+        results = executeCheck(QUERY_MULTIPLE_STRING);
+        assertEquals(1, results.getRequest().getActions().size());
+        assertEquals(2, results.getRequest().getActions().get(0).getCurrentObject().get("#management.ClassificationRule.Rules").size());
+
+        results = executeCheck(QUERY_CREATE_STRING);
+        assertEquals(1, results.getRequest().getActions().size());
+        assertEquals(1, results.getRequest().getActions().get(0).getCurrentObject().get("#management.ReuseRule.Rules").size());
+
+        try {
+            executeCheck(QUERY_STRING_WITH_END);
+            fail("Should throw exception");
+        } catch (AccessInternalRuleExecutionException e) {
+            // Should throw exception
+            assertEquals(VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_END_DATE.name(), e.getMessage());
+        }
+
+        try {
+            executeCheck(QUERY_STRING_WITH_PI_DELETED);
+            fail("Should throw exception");
+        } catch (AccessInternalRuleExecutionException e) {
+            // Should throw exception
+            assertEquals(VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_DELETE_CATEGORY_INHERITANCE.name(), e.getMessage());
+        }
+
+        try {
+            executeCheck(QUERY_STRING_WITH_RNRI_DELETED);
+            fail("Should throw exception");
+        } catch (AccessInternalRuleExecutionException e) {
+            // Should throw exception
+            assertEquals(VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_DELETE_CATEGORY_INHERITANCE.name(), e.getMessage());
+        }
+
+        try {
+            executeCheck(QUERY_STRING_WITH_WRONG_FINAL_ACTION);
+            fail("Should throw exception");
+        } catch (AccessInternalRuleExecutionException e) {
+            // Should throw exception
+            assertEquals(VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_FINAL_ACTION.name(), e.getMessage());
+        }
+
+        try {
+            executeCheck(QUERY_STRING_WITH_WRONG_CATEGORY_FINAL_ACTION);
+            fail("Should throw exception");
+        } catch (AccessInternalRuleExecutionException e) {
+            // Should throw exception
+            assertEquals(VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_FINAL_ACTION.name(), e.getMessage());
+        }
+
+        try {
+            executeCheck(QUERY_STRING_WITH_WRONG_CATEGORY);
+            fail("Should throw exception");
+        } catch (AccessInternalRuleExecutionException e) {
+            // Should throw exception
+            assertEquals(VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_CATEGORY.name(), e.getMessage());
+        }
+    }
+
+    private RequestParserMultiple executeCheck(String queryString) throws InvalidParseOperationException, AccessInternalRuleExecutionException, AccessInternalExecutionException {
+        JsonNode queryJson = JsonHandler.getFromString(queryString);
+
+        final RequestParserMultiple parser = RequestParserHelper.getParser(queryJson);
+        if (!(parser instanceof UpdateParserMultiple)) {
+            parser.getRequest().reset();
+            throw new IllegalArgumentException("Request is not an update operation");
+        }
+        
+        accessModuleImpl.checkAndUpdateRuleQuery((UpdateParserMultiple)parser);
+        
+        return parser;
     }
 
 }

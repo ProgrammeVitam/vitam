@@ -129,7 +129,7 @@ public class ProcessManagementApplication
             .registerOptional(MetaDataClientFactory.getInstance());
         // FIXME P1 worker optional register: How to do it ?
 
-        if (VitamConfiguration.ENABLE_DISTRIBUTOR_V2) {
+        if (VitamConfiguration.isEnableDistributorV2()) {
             workerManager = new fr.gouv.vitam.processing.distributor.v2.WorkerManager();
             processDistributor = new fr.gouv.vitam.processing.distributor.v2.ProcessDistributorImpl(workerManager);
         } else {

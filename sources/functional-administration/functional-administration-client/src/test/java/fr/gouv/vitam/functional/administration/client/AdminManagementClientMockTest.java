@@ -121,7 +121,7 @@ public class AdminManagementClientMockTest {
     @Test
     @RunWithCustomExecutor
     public void givenClientMockWhenWhenImportRuleThenReturnOK()
-        throws FileFormatException, FileRulesException, DatabaseConflictException, FileNotFoundException {
+        throws ReferentialException, FileRulesException, DatabaseConflictException, FileNotFoundException {
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         client.importRulesFile(stream);
@@ -138,7 +138,7 @@ public class AdminManagementClientMockTest {
         assertEquals("AppraisalRule",
             ((ArrayNode) objectNode.get("$results")).get(0).get("RuleType").asText());
         assertEquals("6", ((ArrayNode) objectNode.get("$results")).get(0).get("RuleDuration").asText());
-        assertEquals("Année",
+        assertEquals("year",
             ((ArrayNode) objectNode.get("$results")).get(0).get("RuleMeasurement").asText());
     }
 

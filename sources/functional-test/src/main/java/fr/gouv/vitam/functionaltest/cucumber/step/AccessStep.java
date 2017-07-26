@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -52,6 +53,7 @@ import javax.ws.rs.core.Response.Status;
 import org.assertj.core.api.AutoCloseableSoftAssertions;
 import org.assertj.core.api.Fail;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Iterables;
@@ -64,7 +66,6 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientExcept
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.FileUtil;
-import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
@@ -133,9 +134,54 @@ public class AccessStep {
         List<List<String>> raws = dataTable.raw();
 
         for (List<String> raw : raws) {
-            String resultValue = getResultValue(firstJsonNode, raw.get(0));
+            String key = raw.get(0);
+            boolean isArray = false;
+            boolean isOfArray = false;
+
+
+            if (null != key && key.endsWith(".array[][]")) {
+                key = key.replace(".array[][]", "");
+                isOfArray = true;
+            }
+
+            if (null != key && key.endsWith(".array[]")) {
+                key = key.replace(".array[]", "");
+                isArray = true;
+            }
+
+            String resultValue = getResultValue(firstJsonNode, key);
+            if (null != resultValue) {
+                resultValue = resultValue.replace("\n", "").replace("\\n", "");
+            }
             String resultExpected = transformToGuid(raw.get(1));
-            assertThat(resultValue).contains(resultExpected);
+            if (null != resultExpected) {
+                resultExpected = resultExpected.replace("\n", "").replace("\\n", "");
+            }
+
+            if (!isArray && !isOfArray) {
+                assertThat(resultValue).contains(resultExpected);
+            } else {
+                if (isArray) {
+                    Set<String> resultArray =
+                        JsonHandler.getFromStringAsTypeRefence(resultValue, new TypeReference<Set<String>>() {
+                        });
+
+                    Set<String> expectedrray =
+                        JsonHandler.getFromStringAsTypeRefence(resultExpected, new TypeReference<Set<String>>() {
+                        });
+                    assertThat(resultArray).isEqualTo(expectedrray);
+                } else {
+                    Set<Set<String>> resultArray =
+                        JsonHandler.getFromStringAsTypeRefence(resultValue, new TypeReference<Set<Set<String>>>() {
+                        });
+
+                    Set<Set<String>> expectedrray =
+                        JsonHandler.getFromStringAsTypeRefence(resultExpected, new TypeReference<Set<Set<String>>>() {
+                        });
+
+                    assertThat(expectedrray).isEqualTo(resultArray);
+                }
+            }
         }
     }
 
@@ -277,7 +323,6 @@ public class AccessStep {
 
         assertThat(expectedStatus).as("Invalid status %d", requestResponse.getHttpCode()).isNotNull();
         assertThat(expectedStatus.getReasonPhrase()).isEqualTo(status);
-
     }
 
     /**
@@ -290,12 +335,13 @@ public class AccessStep {
     public void the_status_of_the_update_result(String status) throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(query);
         String s = null;
-        RequestResponse<JsonNode> requestResponse;
         // get id of last result
         String unitId = getValueFromResult("#id", 0);
-        requestResponse = world.getAccessClient().updateUnitbyId(queryJSON, unitId,
+        RequestResponse<JsonNode> requestResponse = world.getAccessClient().updateUnitbyId(queryJSON, unitId,
             world.getTenantId(), world.getContractId());
-        assertThat(status).isEqualTo(Status.fromStatusCode(requestResponse.getHttpCode()).toString());
+        assertThat(requestResponse.isOk()).isFalse();
+        final VitamError vitamError = (VitamError) requestResponse;
+        assertThat(Response.Status.valueOf(status.toUpperCase()).getStatusCode()).isEqualTo(vitamError.getHttpCode());
     }
 
     /**
@@ -345,6 +391,27 @@ public class AccessStep {
             Fail.fail("request selectUnit return an error: " + vitamError.getCode());
         }
     }
+
+    @When("^je recherche les unités archivistiques pour trouver l'unite (.*)$")
+    public void search_archive_unit(String originatingSystemId) throws Throwable {
+
+
+        this.query = this.query.replace("Originating_System_Id", originatingSystemId);
+
+        JsonNode queryJSON = JsonHandler.getFromString(query);
+
+        RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnits(queryJSON,
+            world.getTenantId(), world.getContractId());
+        if (requestResponse.isOk()) {
+            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
+            results = requestResponseOK.getResults();
+        } else {
+            VitamError vitamError = (VitamError) requestResponse;
+            Fail.fail("request selectUnit return an error: " + vitamError.getCode());
+        }
+    }
+
+
 
     /**
      * search an archive unit according to the query define before
@@ -568,7 +635,7 @@ public class AccessStep {
     public void the_LFC_status_are(List<String> eventNames, String eventStatus)
         throws Throwable {
         ArrayNode actual = (ArrayNode) results.get(0).get("events");
-        List<JsonNode> list = JsonHandler.toArrayList(actual);
+        List<JsonNode> list = (List<JsonNode>) JsonHandler.toArrayList(actual);
         try (AutoCloseableSoftAssertions softly = new AutoCloseableSoftAssertions()) {
             for (String eventName : eventNames) {
                 List<JsonNode> events =
@@ -588,7 +655,8 @@ public class AccessStep {
 
 
     @When("^je télécharge le fichier binaire de l'unité archivistique nommé \"([^\"]*)\" à l'usage \"([^\"]*)\" version (\\d+)$")
-    public void je_télécharge_le_fichier_binaire_à_l_usage_version(String title, String usage, int version) throws Throwable {
+    public void je_télécharge_le_fichier_binaire_à_l_usage_version(String title, String usage, int version)
+        throws Throwable {
         final fr.gouv.vitam.common.database.builder.request.single.Select select =
             new fr.gouv.vitam.common.database.builder.request.single.Select();
         JsonNode queryDsl = select.getFinalSelect();
@@ -606,7 +674,8 @@ public class AccessStep {
     @Then("^le status de la réponse est (.*)$")
     public void checkStatut(String status) throws Throwable {
         if (status.equals("UNAUTHORIZED")) {
-            assertThat(Response.Status.UNAUTHORIZED.getStatusCode() == statusCode.getEquivalentHttpStatus().getStatusCode());
+            assertThat(
+                Response.Status.UNAUTHORIZED.getStatusCode() == statusCode.getEquivalentHttpStatus().getStatusCode());
         } else if (status.equals("OK")) {
             assertThat(Response.Status.OK.getStatusCode() == statusCode.getEquivalentHttpStatus().getStatusCode());
         }
@@ -614,7 +683,7 @@ public class AccessStep {
     }
 
     @When("^je modifie le contrat d'accès (.*) avec le fichier de requête suivant (.*)$")
-    public void je_modifie_le_contrat_d_accès(String name ,String queryFilename) throws Throwable {
+    public void je_modifie_le_contrat_d_accès(String name, String queryFilename) throws Throwable {
         Path queryFile = Paths.get(world.getBaseDirectory(), queryFilename);
         this.query = FileUtil.readFile(queryFile.toFile());
         if (world.getOperationId() != null) {
@@ -627,11 +696,11 @@ public class AccessStep {
     }
 
     private String get_contract_id_by_name(String name)
-        throws AccessExternalClientNotFoundException, AccessExternalClientException, InvalidParseOperationException{
+        throws AccessExternalClientNotFoundException, AccessExternalClientException, InvalidParseOperationException {
 
         String QUERY = "{\"$query\":{\"$and\":[{\"$eq\":{\"Name\":\"" + name +
             "\"}}]},\"$filter\":{},\"$projection\":{}}";
-        JsonNode queryDsl =JsonHandler.getFromString(QUERY);
+        JsonNode queryDsl = JsonHandler.getFromString(QUERY);
 
         RequestResponse<ContextModel> requestResponse =
             world.getAdminClient().findDocuments(AdminCollections.ACCESS_CONTRACTS, queryDsl, world.getTenantId());

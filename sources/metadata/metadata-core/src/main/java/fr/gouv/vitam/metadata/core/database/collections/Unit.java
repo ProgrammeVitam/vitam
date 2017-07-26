@@ -35,17 +35,10 @@ import static com.mongodb.client.model.Updates.addEachToSet;
 import static com.mongodb.client.model.Updates.combine;
 import static com.mongodb.client.model.Updates.set;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.json.JsonHandler;
 
 import org.bson.BSONObject;
 import org.bson.Document;
@@ -62,7 +55,7 @@ import com.mongodb.client.model.UpdateOptions;
 import fr.gouv.vitam.common.SingletonUtils;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTIONARGS;
-import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
+import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.translators.mongodb.MongoDbHelper;
 import fr.gouv.vitam.common.guid.GUIDObjectType;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -74,9 +67,8 @@ import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
  * Unit class:<br>
  *
  * @formatter:off { MD content, _id: UUID, _tenant: tenant, _profil: documentType,, _min: depthmin, _max: depthmax,
- *                _mgt. Management structure, _uds: { UUID1 : depth1, UUID2 : depth2, ... }, // not
- *                indexed and not to be in ES!
- *                _us: [ UUID1, UUID2, ... }, // indexed and equivalent to _uds _up: [ UUID1, UUID2, ... ], //
+ *                _mgt. Management structure, _uds: { UUID1 : depth1, UUID2 : depth2, ... }, // not indexed and not to
+ *                be in ES! _us: [ UUID1, UUID2, ... }, // indexed and equivalent to _uds _up: [ UUID1, UUID2, ... ], //
  *                limited to immediate parent _og: UUID, _nbc : immediateChildNb }
  * @formatter:on
  */
@@ -104,10 +96,6 @@ public class Unit extends MetadataDocument<Unit> {
      */
     public static final String MAXDEPTH = "_max";
     /**
-     * Number of Immediate child (Unit)
-     */
-    public static final String NBCHILD = "_nbc";
-    /**
      * Management : { various rules per themes }
      */
     public static final String MANAGEMENT = "_mgt";
@@ -115,11 +103,6 @@ public class Unit extends MetadataDocument<Unit> {
      * UnitType : normal or holding scheme
      */
     public static final String UNIT_TYPE = "_unitType";
-
-    /**
-     * ES Mapping
-     */
-    public static final String TYPEUNIQUE = "typeunique";
 
     @Override
     public MetadataDocument<Unit> newInstance(JsonNode content) {
@@ -132,7 +115,7 @@ public class Unit extends MetadataDocument<Unit> {
      * Quick projection for ID and ObjectGroup Only
      */
     public static final BasicDBObject UNIT_OBJECTGROUP_PROJECTION =
-            new BasicDBObject(MetadataDocument.ID, 1).append(MetadataDocument.OG, 1).append(TENANT_ID, 1);
+        new BasicDBObject(MetadataDocument.ID, 1).append(MetadataDocument.OG, 1).append(TENANT_ID, 1);
 
     /**
      * Es projection (no UPS)
@@ -143,16 +126,16 @@ public class Unit extends MetadataDocument<Unit> {
      * Unit Id, Vitam fields Only projection (no content nor management)
      */
     public static final BasicDBObject UNIT_VITAM_PROJECTION =
-            new BasicDBObject(NBCHILD, 1).append(TYPE, 1).append(UNITUPS, 1).append(UNITDEPTHS, 1)
-                    .append(MINDEPTH, 1).append(MAXDEPTH, 1)
-                    .append(TENANT_ID, 1).append(MetadataDocument.UP, 1).append(MetadataDocument.ID, 1)
-                    .append(ORIGINATING_AGENCIES, 1).append(MetadataDocument.OG, 1);
+        new BasicDBObject(NBCHILD, 1).append(TYPE, 1).append(UNITUPS, 1).append(UNITDEPTHS, 1)
+            .append(MINDEPTH, 1).append(MAXDEPTH, 1)
+            .append(TENANT_ID, 1).append(MetadataDocument.UP, 1).append(MetadataDocument.ID, 1)
+            .append(ORIGINATING_AGENCIES, 1).append(MetadataDocument.OG, 1);
     /**
      * Unit Id, Vitam and Management fields Only projection (no content)
      */
     public static final BasicDBObject UNIT_VITAM_MANAGEMENT_PROJECTION =
-            new BasicDBObject(UNIT_VITAM_PROJECTION)
-                    .append(MANAGEMENT + ".$", 1);
+        new BasicDBObject(UNIT_VITAM_PROJECTION)
+            .append(MANAGEMENT + ".$", 1);
     /**
      * Storage Rule
      */
@@ -214,26 +197,26 @@ public class Unit extends MetadataDocument<Unit> {
     public static final String CLASSIFICATIONEND = CLASSIFICATIONRULE + END;
 
     private static final BasicDBObject[] indexes = {
-            new BasicDBObject(VitamLinks.UNIT_TO_UNIT.field2to1, 1),
-            new BasicDBObject(VitamLinks.UNIT_TO_OBJECTGROUP.field1to2, 1),
-            new BasicDBObject(TENANT_ID, 1),
-            new BasicDBObject(UNITUPS, 1),
-            new BasicDBObject(MINDEPTH, 1),
-            new BasicDBObject(MAXDEPTH, 1),
-            new BasicDBObject(OPS, 1),
-            new BasicDBObject(STORAGERULES, 1),
-            new BasicDBObject(STORAGEEND, 1),
-            new BasicDBObject(APPRAISALRULES, 1),
-            new BasicDBObject(APPRAISALEND, 1),
-            new BasicDBObject(ACCESSRULES, 1),
-            new BasicDBObject(ACCESSEND, 1),
-            new BasicDBObject(DISSEMINATIONRULES, 1),
-            new BasicDBObject(DISSEMINATIONEND, 1),
-            new BasicDBObject(REUSERULES, 1),
-            new BasicDBObject(REUSERULE, 1),
-            new BasicDBObject(CLASSIFICATIONRULES, 1),
-            new BasicDBObject(CLASSIFICATIONEND, 1),
-            new BasicDBObject(TYPE, 1)};
+        new BasicDBObject(VitamLinks.UNIT_TO_UNIT.field2to1, 1),
+        new BasicDBObject(VitamLinks.UNIT_TO_OBJECTGROUP.field1to2, 1),
+        new BasicDBObject(TENANT_ID, 1),
+        new BasicDBObject(UNITUPS, 1),
+        new BasicDBObject(MINDEPTH, 1),
+        new BasicDBObject(MAXDEPTH, 1),
+        new BasicDBObject(OPS, 1),
+        new BasicDBObject(STORAGERULES, 1),
+        new BasicDBObject(STORAGEEND, 1),
+        new BasicDBObject(APPRAISALRULES, 1),
+        new BasicDBObject(APPRAISALEND, 1),
+        new BasicDBObject(ACCESSRULES, 1),
+        new BasicDBObject(ACCESSEND, 1),
+        new BasicDBObject(DISSEMINATIONRULES, 1),
+        new BasicDBObject(DISSEMINATIONEND, 1),
+        new BasicDBObject(REUSERULES, 1),
+        new BasicDBObject(REUSERULE, 1),
+        new BasicDBObject(CLASSIFICATIONRULES, 1),
+        new BasicDBObject(CLASSIFICATIONEND, 1),
+        new BasicDBObject(TYPE, 1)};
 
     /**
      * Number of Immediate child (Unit)
@@ -326,7 +309,7 @@ public class Unit extends MetadataDocument<Unit> {
              * Only parent link, not child link
              */
             BasicDBObject upd =
-                    MongoDbMetadataHelper.updateLinkset(this, vt, VitamLinks.UNIT_TO_UNIT, false);
+                MongoDbMetadataHelper.updateLinkset(this, vt, VitamLinks.UNIT_TO_UNIT, false);
             if (upd != null) {
                 listAddToSet.add(upd);
             }
@@ -335,11 +318,10 @@ public class Unit extends MetadataDocument<Unit> {
                 listset.add(upd);
             }
             // UNITDEPTHS
-            @SuppressWarnings("unchecked") final HashMap<String, Integer> vtDepths =
-                    (HashMap<String, Integer>) vt.remove(UNITDEPTHS);
-            @SuppressWarnings("unchecked")
-            HashMap<String, Integer> depthLevels =
-                    (HashMap<String, Integer>) get(UNITDEPTHS);
+            final Map<String, Integer> vtDepths =
+                (Map<String, Integer>) vt.remove(UNITDEPTHS);
+            Map<String, Integer> depthLevels =
+                (Map<String, Integer>) get(UNITDEPTHS);
             if (depthLevels == null) {
                 depthLevels = new HashMap<>();
             }
@@ -386,7 +368,8 @@ public class Unit extends MetadataDocument<Unit> {
                 listset.add(upd);
             }
             // Compute UNITUPS
-            @SuppressWarnings("unchecked") final List<String> vtUps = (List<String>) vt.remove(UNITUPS);
+            @SuppressWarnings("unchecked")
+            final List<String> vtUps = (List<String>) vt.remove(UNITUPS);
             @SuppressWarnings("unchecked")
             List<String> ups = (List<String>) get(UNITUPS);
             if (ups == null) {
@@ -398,7 +381,7 @@ public class Unit extends MetadataDocument<Unit> {
             }
             if (!ups.isEmpty()) {
                 final BasicDBObject vtDepthsBson = new BasicDBObject(UNITUPS,
-                        new BasicDBObject(UPDATEACTIONARGS.EACH.exactToken(), ups));
+                    new BasicDBObject(UPDATEACTIONARGS.EACH.exactToken(), ups));
                 listAddToSet.add(vtDepthsBson);
             }
             try {
@@ -418,7 +401,7 @@ public class Unit extends MetadataDocument<Unit> {
                     update = update.append(UPDATEACTION.SET.exactToken(), upd);
                 }
                 update = update.append(UPDATEACTION.INC.exactToken(),
-                        new BasicDBObject(NBCHILD, nb));
+                    new BasicDBObject(NBCHILD, nb));
                 nb = 0;
                 update(update);
             } catch (final MongoException e) {
@@ -432,6 +415,7 @@ public class Unit extends MetadataDocument<Unit> {
             MongoDbMetadataHelper.updateLinkset(this, null, VitamLinks.UNIT_TO_UNIT, false);
             append(NBCHILD, nb);
             append(UNITUPS, new ArrayList<>());
+            append(UNITDEPTHS, new HashMap<>());
             nb = 0;
         }
         return false;
@@ -463,26 +447,23 @@ public class Unit extends MetadataDocument<Unit> {
      *
      * @return the new unitdepth for children
      */
-    public List<Bson> getSubDepth() {
+    public Bson getSubDepth() {
         final String id = getId();
 
         // addAll to temporary ArrayList
-        @SuppressWarnings("unchecked") final ArrayList<Document> vtDomaineLevels =
-                (ArrayList<Document>) get(UNITDEPTHS);
+        final Map<String, Integer> vtDomaineLevels = getDepths();
         final int size = vtDomaineLevels != null ? vtDomaineLevels.size() + 1 : 1;
 
         // must compute depth from parent
-        final List<Bson> sublist = new ArrayList<>(size);
+        final Map<String, Integer> submap = new HashMap<>(size);
         if (vtDomaineLevels != null) {
-            for (int i = 0; i < vtDomaineLevels.size(); i++) {
-                final Document currentParent = vtDomaineLevels.get(i);
-                sublist.addAll(currentParent
-                        .entrySet().stream().map(entry -> new BasicDBObject(entry.getKey(), (Integer) entry.getValue() + 1))
-                        .collect(Collectors.toList()));
+            for (final Map.Entry<String, Integer> bson : vtDomaineLevels.entrySet()) {
+                submap.put(bson.getKey(), bson.getValue() + 1);
             }
         }
-        sublist.add(new BasicDBObject(id, 1));
-        return sublist;
+        submap.put(id, 1);
+        final Bson bson = new BasicDBObject(submap);
+        return bson;
     }
 
     /**
@@ -491,7 +472,8 @@ public class Unit extends MetadataDocument<Unit> {
      * @return the new UNITUPS
      */
     public List<String> getSubUnitUps() {
-        @SuppressWarnings("unchecked") final List<String> subids = (List<String>) get(UNITUPS);
+        @SuppressWarnings("unchecked")
+        final List<String> subids = (List<String>) get(UNITUPS);
         List<String> subids2;
         if (subids != null) {
             subids2 = new ArrayList<>(subids.size() + 1);
@@ -506,11 +488,29 @@ public class Unit extends MetadataDocument<Unit> {
     /**
      * @return the map of parent units with depth
      */
-    @SuppressWarnings("unchecked")
     public Map<String, Integer> getDepths() {
-        final Map<String, Integer> map = (Map<String, Integer>) get(UNITDEPTHS);
-        if (map == null) {
+        final Object object = get(UNITDEPTHS);
+        if (object == null) {
             return SingletonUtils.singletonMap();
+        }
+        final Map<String, Integer> map = new HashMap<>();
+        if (object instanceof List) {
+            final List<Document> list = (List<Document>) object;
+            for (final Document document : list) {
+                for (final Map.Entry<String, Object> entry : document.entrySet()) {
+                    map.put(entry.getKey(), (Integer) entry.getValue());
+                }
+            }
+        } else if (object instanceof HashMap) {
+            for (final Map.Entry<String, Integer> entry : ((HashMap<String, Integer>) object).entrySet()) {
+                map.put(entry.getKey(), entry.getValue());
+            }
+            return map;
+        } else {
+            final Document list = (Document) object;
+            for (final Map.Entry<String, Object> entry : list.entrySet()) {
+                map.put(entry.getKey(), (Integer) entry.getValue());
+            }
         }
         return map;
     }
@@ -538,7 +538,7 @@ public class Unit extends MetadataDocument<Unit> {
      */
     public int getMinDepth() {
         final Map<String, Integer> map = getDepths();
-        int depth = this.getInteger(MINDEPTH, GlobalDatasParser.MAXDEPTH);
+        int depth = this.getInteger(MINDEPTH, GlobalDatas.MAXDEPTH);
         if (map != null) {
             for (final Integer integer : map.values()) {
                 if (depth > integer) {
@@ -546,7 +546,7 @@ public class Unit extends MetadataDocument<Unit> {
                 }
             }
         }
-        if (depth == GlobalDatasParser.MAXDEPTH) {
+        if (depth == GlobalDatas.MAXDEPTH) {
             depth = 1;
         }
         put(MINDEPTH, depth);
@@ -555,8 +555,8 @@ public class Unit extends MetadataDocument<Unit> {
 
     private void updateAfterAddingSubUnit() throws MetaDataExecutionException {
         final BasicDBObject update = new BasicDBObject()
-                .append(UPDATEACTION.INC.exactToken(),
-                        new BasicDBObject(NBCHILD, nb));
+            .append(UPDATEACTION.INC.exactToken(),
+                new BasicDBObject(NBCHILD, nb));
         nb = 0;
         update(update);
     }
@@ -571,16 +571,18 @@ public class Unit extends MetadataDocument<Unit> {
     public Unit addUnit(final Unit unit) throws MetaDataExecutionException {
         Bson update = null;
         final List<String> ids = new ArrayList<>();
-        LOGGER.debug(this + "->" + unit);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(this + "->" + unit);
+        }
         final BasicDBObject update2 =
-                MongoDbMetadataHelper.addLink(this, VitamLinks.UNIT_TO_UNIT, unit);
+            MongoDbMetadataHelper.addLink(this, VitamLinks.UNIT_TO_UNIT, unit);
         if (update2 != null) {
             ids.add(unit.getId());
             update = update2;
         }
         if (!ids.isEmpty()) {
-            final List<Bson> sublist = getSubDepth();
-            final Bson updateSubDepth = addEachToSet(UNITDEPTHS, sublist);
+            final Bson sublist = getSubDepth();
+            final Bson updateSubDepth = set(UNITDEPTHS, sublist);
             final List<String> subids = getSubUnitUps();
             final Bson updateSubUnits = addEachToSet(UNITUPS, subids);
             Integer val = this.getInteger(MINDEPTH);
@@ -601,19 +603,20 @@ public class Unit extends MetadataDocument<Unit> {
                 update = combine(update, set(MAXDEPTH, max));
             }
 
-            List<String> sps = (List<String>) get(ORIGINATING_AGENCIES);
+            final List<String> sps = (List<String>) get(ORIGINATING_AGENCIES);
             if (sps != null) {
                 update = combine(update, addEachToSet(ORIGINATING_AGENCIES, sps));
             }
-
-            LOGGER.debug(this + "->" + unit + "\n" +
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug(this + "->" + unit + "\n" +
                     "\t" + MongoDbHelper.bsonToString(update, false) + "\n\t" + min + ":" + max);
+            }
             try {
                 final long nbc = getCollection().updateOne(eq(ID, ids.get(0)),
-                        update,
-                        new UpdateOptions().upsert(false)).getMatchedCount();
+                    update,
+                    new UpdateOptions().upsert(false)).getMatchedCount();
                 nb += nbc;
-                sublist.clear();
+                ((BasicDBObject) sublist).clear();
                 subids.clear();
                 updateAfterAddingSubUnit();
             } catch (final MongoException e) {
@@ -643,8 +646,8 @@ public class Unit extends MetadataDocument<Unit> {
             }
         }
         if (!ids.isEmpty()) {
-            final List<Bson> sublist = getSubDepth();
-            final Bson updateSubDepth = addEachToSet(UNITDEPTHS, sublist);
+            final Bson sublist = getSubDepth();
+            final Bson updateSubDepth = set(UNITDEPTHS, sublist);
             final List<String> subids = getSubUnitUps();
             final Bson updateSubUnits = addEachToSet(UNITUPS, subids);
             update = combine(update, updateSubDepth, updateSubUnits);
@@ -660,19 +663,19 @@ public class Unit extends MetadataDocument<Unit> {
             }
             try {
                 final long nbc = getCollection().updateMany(in(ID, ids),
-                        update,
-                        new UpdateOptions().upsert(false)).getMatchedCount();
+                    update,
+                    new UpdateOptions().upsert(false)).getMatchedCount();
                 nb += nbc;
-                sublist.clear();
+                ((BasicDBObject) sublist).clear();
                 subids.clear();
                 getCollection().updateMany(
-                        and(in(ID, ids), lt(MAXDEPTH, max)),
-                        new BasicDBObject(MAXDEPTH, max),
-                        new UpdateOptions().upsert(false));
+                    and(in(ID, ids), lt(MAXDEPTH, max)),
+                    new BasicDBObject(MAXDEPTH, max),
+                    new UpdateOptions().upsert(false));
                 getCollection().updateMany(
-                        and(in(ID, ids), gt(MINDEPTH, min)),
-                        new BasicDBObject(MINDEPTH, min),
-                        new UpdateOptions().upsert(false));
+                    and(in(ID, ids), gt(MINDEPTH, min)),
+                    new BasicDBObject(MINDEPTH, min),
+                    new UpdateOptions().upsert(false));
                 updateAfterAddingSubUnit();
             } catch (final MongoException e) {
                 LOGGER.error(EXCEPTION_FOR + update, e);
@@ -688,9 +691,10 @@ public class Unit extends MetadataDocument<Unit> {
      */
     public List<String> getChildrenUnitIdsFromParent() {
         final BasicDBObject condition = new BasicDBObject(
-                VitamLinks.UNIT_TO_UNIT.field2to1, getId());
-        @SuppressWarnings("unchecked") final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper
-                .select(getMetadataCollections(), condition, MongoDbMetadataHelper.ID_PROJECTION);
+            VitamLinks.UNIT_TO_UNIT.field2to1, getId());
+        @SuppressWarnings("unchecked")
+        final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper
+            .select(getMetadataCollections(), condition, MongoDbMetadataHelper.ID_PROJECTION);
         final List<String> ids = new ArrayList<>();
         try (final MongoCursor<Unit> iterator = iterable.iterator()) {
             while (iterator.hasNext()) {
@@ -727,7 +731,7 @@ public class Unit extends MetadataDocument<Unit> {
      * @throws MetaDataExecutionException when adding exception occurred
      */
     public Unit addObjectGroup(final ObjectGroup data)
-            throws MetaDataExecutionException {
+        throws MetaDataExecutionException {
         final String old = getObjectGroupId(false);
         final String newGOT = data.getId();
         // TODO P1 when update is ready: change Junit to reflect this case
@@ -735,7 +739,7 @@ public class Unit extends MetadataDocument<Unit> {
             throw new MetaDataExecutionException("Cannot change ObjectGroup of Unit without removing it first");
         }
         final BasicDBObject update =
-                MongoDbMetadataHelper.addLink(this, VitamLinks.UNIT_TO_OBJECTGROUP, data);
+            MongoDbMetadataHelper.addLink(this, VitamLinks.UNIT_TO_OBJECTGROUP, data);
         if (update != null) {
             data.update(update);
             updated();

@@ -30,6 +30,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -41,6 +42,7 @@ import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
@@ -48,7 +50,6 @@ import com.jayway.restassured.RestAssured;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.Digest;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -58,15 +59,14 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientExceptio
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
-import fr.gouv.vitam.storage.engine.server.rest.StorageApplication;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
+import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
-import org.junit.rules.TemporaryFolder;
 
 /**
  * !!! WARNING !!! : in case of modification of class fr.gouv.vitam.driver.fake.FakeDriverImpl, you need to recompile
@@ -84,8 +84,7 @@ public class StorageClientIT {
     private static final int workspacePort = 8987;
     private static StorageClient storageClient;
     private static WorkspaceClient workspaceClient;
-    private static StorageApplication storageApplication;
-
+    private static StorageMain storageMain;
 
     private static final String CONTAINER_1 = "aeaaaaaaaaaam7mxaaaamakwfnzbudaaaaaq";
     private static final String CONTAINER_2 = "aeaaaaaaaaaam7mxaaaamakwfnzbudaaaaaz";
@@ -115,8 +114,9 @@ public class StorageClientIT {
         workspaceApplication.start();
         RestAssured.port = serverPort;
         RestAssured.basePath = REST_URI;
+        File storageConfigurationFile = PropertiesUtils.findFile(STORAGE_CONF);
         final StorageConfiguration serverConfiguration =
-            PropertiesUtils.readYaml(PropertiesUtils.findFile(STORAGE_CONF), StorageConfiguration.class);
+            PropertiesUtils.readYaml(storageConfigurationFile, StorageConfiguration.class);
         final Pattern compiledPattern = Pattern.compile(":(\\d+)");
         final Matcher matcher = compiledPattern.matcher(serverConfiguration.getUrlWorkspace());
         if (matcher.find()) {
@@ -131,14 +131,11 @@ public class StorageClientIT {
         serverConfiguration.setTenants(tenants);
         serverConfiguration.setZippingDirecorty(TMP_FOLDER);
         serverConfiguration.setLoggingDirectory(TMP_FOLDER);
-        try {
-            storageApplication = new StorageApplication(serverConfiguration);
-            storageApplication.start();
-        } catch (final VitamApplicationServerException e) {
-            LOGGER.error(e);
-            throw new IllegalStateException(
-                "Cannot start the Composite Application Server", e);
-        }
+
+        PropertiesUtils.writeYaml(storageConfigurationFile, serverConfiguration);
+
+        storageMain = new StorageMain(STORAGE_CONF);
+        storageMain.start();
 
         storageClient = StorageClientFactory.getInstance().getClient();
 
@@ -204,7 +201,7 @@ public class StorageClientIT {
         LOGGER.debug("Ending tests");
         destroyWorkspaceFiles();
         workspaceApplication.stop();
-        storageApplication.stop();
+        storageMain.stop();
         // junitHelper.releasePort(workspacePort);
         // junitHelper.releasePort(serverPort);
     }

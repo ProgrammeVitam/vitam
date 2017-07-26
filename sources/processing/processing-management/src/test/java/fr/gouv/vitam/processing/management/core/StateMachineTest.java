@@ -74,8 +74,8 @@ public class StateMachineTest {
     private ProcessDataAccessImpl processDataAccess;
     private static WorkspaceProcessDataManagement processDataManagement;
 
-    private static final String WORKFLOW_ID = "workflowJSONv1";
-    private static final String WORKFLOW_FINALLY_STEP_ID = "workflowJSONFinallyStep";
+    private static final String WORKFLOW_FILE = "workflowJSONv1.json";
+    private static final String WORKFLOW_FINALLY_STEP_FILE = "workflowJSONFinallyStep.json";
 
 
     @Rule
@@ -240,7 +240,7 @@ public class StateMachineTest {
 
         final ProcessWorkflow processWorkflow =
             processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_ID),
+                ProcessPopulator.populate(WORKFLOW_FILE),
                 workParams.getContainerName(),
                 LogbookTypeProcess.INGEST, TENANT_ID);
 
@@ -287,7 +287,7 @@ public class StateMachineTest {
 
         final ProcessWorkflow processWorkflow =
             processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_ID),
+                ProcessPopulator.populate(WORKFLOW_FILE),
                 workParams.getContainerName(),
                 LogbookTypeProcess.INGEST, TENANT_ID);
 
@@ -336,7 +336,7 @@ public class StateMachineTest {
 
         final ProcessWorkflow processWorkflow =
             processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_ID),
+                ProcessPopulator.populate(WORKFLOW_FILE),
                 workParams.getContainerName(),
                 LogbookTypeProcess.INGEST, TENANT_ID);
 
@@ -385,7 +385,7 @@ public class StateMachineTest {
 
         final ProcessWorkflow processWorkflow =
             processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_ID),
+                ProcessPopulator.populate(WORKFLOW_FILE),
                 workParams.getContainerName(),
                 LogbookTypeProcess.INGEST, TENANT_ID);
 
@@ -421,7 +421,7 @@ public class StateMachineTest {
 
         final ProcessWorkflow processWorkflow =
             processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_ID),
+                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE),
                 workParams.getContainerName(),
                 LogbookTypeProcess.INGEST, TENANT_ID);
 
@@ -469,7 +469,7 @@ public class StateMachineTest {
 
         final ProcessWorkflow processWorkflow =
             processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_ID),
+                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE),
                 workParams.getContainerName(),
                 LogbookTypeProcess.INGEST, TENANT_ID);
 
@@ -516,7 +516,7 @@ public class StateMachineTest {
 
         final ProcessWorkflow processWorkflow =
             processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_ID),
+                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE),
                 workParams.getContainerName(),
                 LogbookTypeProcess.INGEST, TENANT_ID);
 
@@ -564,7 +564,7 @@ public class StateMachineTest {
 
         final ProcessWorkflow processWorkflow =
             processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_ID),
+                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE),
                 workParams.getContainerName(),
                 LogbookTypeProcess.INGEST, TENANT_ID);
 

@@ -1,52 +1,38 @@
 /**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- *
+ * <p>
  * contact.vitam@culture.gouv.fr
- *
+ * <p>
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
- *
+ * <p>
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
  * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- *
+ * <p>
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
- *
+ * <p>
  * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- *
+ * <p>
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
 package fr.gouv.vitam.worker.core.impl;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
-
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -60,7 +46,10 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.IOParameter;
 import fr.gouv.vitam.processing.common.model.ProcessingUri;
+import fr.gouv.vitam.processing.common.model.WorkspaceAction;
+import fr.gouv.vitam.processing.common.model.WorkspaceQueue;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.exception.WorkerspaceQueueException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -69,10 +58,26 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
+import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * Handler input and output parameter
  */
-public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
+public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(HandlerIOImpl.class);
     /**
@@ -95,11 +100,13 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
     private final LogbookLifeCyclesClient lifecyclesClient;
     private final LogbookLifeCyclesClientHelper helper;
 
+    private AsyncWorkspaceTransfer asyncWorkspaceTransfer;
+
     /**
      * Constructor with local root path
      *
      * @param containerName the container name
-     * @param workerId the worker id
+     * @param workerId      the worker id
      */
     public HandlerIOImpl(String containerName, String workerId) {
         this(WorkspaceClientFactory.getInstance().getClient(), containerName, workerId);
@@ -110,7 +117,7 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
      * he is used for test purpose
      *
      * @param containerName the container name
-     * @param workerId the worker id
+     * @param workerId      the worker id
      */
     @VisibleForTesting
     public HandlerIOImpl(WorkspaceClient workspaceClient, String containerName, String workerId) {
@@ -121,6 +128,7 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
         client = workspaceClient;
         lifecyclesClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
         helper = new LogbookLifeCyclesClientHelper();
+        this.asyncWorkspaceTransfer = new AsyncWorkspaceTransfer(this);
     }
 
 
@@ -184,9 +192,15 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
 
     @Override
     public void close() {
-        client.close();
-        lifecyclesClient.close();
-        partialClose();
+        try {
+            this.enableAsync(false);
+        } catch (WorkerspaceQueueException e) {
+            throw new RuntimeException(e);
+        } finally {
+            client.close();
+            lifecyclesClient.close();
+            partialClose();
+        }
     }
 
     /**
@@ -222,12 +236,13 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
     }
 
     @Override
-    public HandlerIO addOuputResult(int rank, Object object) throws ProcessingException {
-        return addOuputResult(rank, object, false);
+    public HandlerIO addOuputResult(int rank, Object object, boolean asyncIO) throws ProcessingException {
+        return addOuputResult(rank, object, false, asyncIO);
     }
 
     @Override
-    public HandlerIO addOuputResult(int rank, Object object, boolean deleteLocal) throws ProcessingException {
+    public HandlerIO addOuputResult(int rank, Object object, boolean deleteLocal, boolean asyncIO)
+        throws ProcessingException {
         final ProcessingUri uri = output.get(rank);
         if (uri == null) {
             throw new IllegalArgumentException(HANDLER_INPUT_NOT_FOUND + rank);
@@ -243,7 +258,7 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
                 if (!(object instanceof File)) {
                     throw new ProcessingException("Not a File but WORKSPACE out parameter: " + uri);
                 }
-                transferFileToWorkspace(uri.getPath(), (File) object, deleteLocal);
+                transferFileToWorkspace(uri.getPath(), (File) object, deleteLocal, asyncIO);
                 break;
             default:
                 throw new IllegalArgumentException(HANDLER_INPUT_NOT_FOUND + uri);
@@ -293,7 +308,7 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
     }
 
     @Override
-    public void transferFileToWorkspace(String workspacePath, File sourceFile, boolean toDelete)
+    public void transferFileToWorkspace(String workspacePath, File sourceFile, boolean toDelete, boolean asyncIO)
         throws ProcessingException {
         try {
             ParametersChecker.checkParameter("Workspace path is a mandatory parameter", workspacePath);
@@ -304,24 +319,47 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
         if (!sourceFile.canRead()) {
             throw new ProcessingException("Cannot found source file: " + sourceFile);
         }
-        try (FileInputStream inputStream = new FileInputStream(sourceFile)) {
-            transferInputStreamToWorkspace(workspacePath, inputStream);
-            if (toDelete && !sourceFile.delete()) {
-                LOGGER.warn("File could not be deleted: " + sourceFile);
-            }
+
+        try {
+            this.transferInputStreamToWorkspace(workspacePath, Files.newInputStream(sourceFile.toPath()),
+                Paths.get(sourceFile.toURI()), asyncIO);
         } catch (final IOException e) {
             throw new ProcessingException("Cannot found or read source file: " + sourceFile, e);
         }
     }
 
     @Override
-    public void transferInputStreamToWorkspace(String workspacePath, InputStream inputStream)
+    public void transferInputStreamToWorkspace(String workspacePath, InputStream inputStream, Path filePath,
+        boolean asyncIO)
         throws ProcessingException {
-        try {
-            client.putObject(containerName, workspacePath, inputStream);
-        } catch (final ContentAddressableStorageServerException e) {
-            throw new ProcessingException("Cannot write to workspace: " + containerName + "/" + workspacePath,
-                e);
+        if (!asyncIO) {
+            try {
+                client.putObject(containerName, workspacePath, inputStream);
+            } catch (final ContentAddressableStorageServerException e) {
+                throw new ProcessingException("Cannot write to workspace: " + containerName + "/" + workspacePath,
+                    e);
+            } finally {
+                try {
+                    if (null != filePath) {
+                        Files.delete(filePath);
+                    }
+                } catch (IOException e) {
+                    LOGGER.warn("File could not be deleted: " + filePath.toAbsolutePath());
+                }
+                if (null != inputStream) {
+                    try {
+                        inputStream.close();
+                    } catch (IOException e) {
+                        LOGGER.warn("InputStream close failed :", e);
+                    }
+                }
+            }
+        } else {
+            try {
+                this.asyncWorkspaceTransfer.transfer(new WorkspaceQueue(workspacePath, inputStream).setFilePath(filePath));
+            } catch (WorkerspaceQueueException e) {
+                throw new ProcessingException(e);
+            }
         }
     }
 
@@ -329,10 +367,8 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
      * Get the File associated with this filename, trying in this order: as fullpath, as in Vitam Config Folder, as
      * Resources file
      *
-     * @param containerName container name
      * @param objectName object name
-     * @param workerId worker id
-     * @param optional if file is optional
+     * @param optional   if file is optional
      * @return file if found, if not found, null if optional
      * @throws FileNotFoundException if file is not found and not optional
      */
@@ -445,7 +481,8 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
         try {
             return JsonHandler
                 .getFromStringAsTypeRefence(client.getListUriDigitalObjectFromFolder(containerName, folderName)
-                    .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {});
+                    .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {
+                });
         } catch (ContentAddressableStorageServerException | InvalidParseOperationException e) {
             LOGGER.debug("Workspace Server Error", e);
             throw new ProcessingException(e);
@@ -454,12 +491,12 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
 
     @Override
     public void transferJsonToWorkspace(String collectionName, String objectName, JsonNode jsonNode,
-        boolean toDelete)
+        boolean toDelete, boolean asyncIO)
         throws ProcessingException {
         File file = getNewLocalFile(objectName);
         try {
             JsonHandler.writeAsFile(jsonNode, file);
-            transferFileToWorkspace(collectionName + File.separator + objectName, file, toDelete);
+            transferFileToWorkspace(collectionName + File.separator + objectName, file, toDelete, asyncIO);
         } catch (final InvalidParseOperationException e) {
             throw new ProcessingException("Invalid parse Exception: " + file, e);
         }
@@ -468,7 +505,7 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
 
     @Override
     public void unzipInputStreamOnWorkspace(String container, final String folderName,
-        final String archiveMimeType, final InputStream uploadedInputStream)
+        final String archiveMimeType, final InputStream uploadedInputStream, boolean asyncIO)
         throws ContentAddressableStorageException, ContentAddressableStorageNotFoundException,
         ContentAddressableStorageAlreadyExistException, ContentAddressableStorageCompressedFileException,
         ContentAddressableStorageServerException {
@@ -478,15 +515,32 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
         }
         LOGGER.debug("Try to push stream to workspace...");
 
-        // call workspace
-        if (!client.isExistingContainer(container)) {
-            client.createContainer(container);
-            client.uncompressObject(container, folderName, archiveMimeType, uploadedInputStream);
-        } else {
-            LOGGER.error(container + "already exist");
-            throw new ContentAddressableStorageAlreadyExistException(container + "already exist");
-        }
+        if (!asyncIO) {
+            // call workspace
+            if (!client.isExistingContainer(container)) {
+                client.createContainer(container);
+                client.uncompressObject(container, folderName, archiveMimeType, uploadedInputStream);
+            } else {
+                LOGGER.error(container + "already exist");
+                throw new ContentAddressableStorageAlreadyExistException(container + "already exist");
+            }
 
-        LOGGER.debug(" -> push compressed file to workspace finished");
+            LOGGER.debug(" -> push compressed file to workspace finished");
+        } else {
+            try {
+                this.asyncWorkspaceTransfer.transfer(new WorkspaceQueue(container, uploadedInputStream, WorkspaceAction.UNZIP).setMediaType(archiveMimeType).setFolderName(folderName));
+            } catch (WorkerspaceQueueException e) {
+                new ContentAddressableStorageException(e);
+            }
+        }
+    }
+
+    @Override
+    public void enableAsync(boolean async) throws WorkerspaceQueueException {
+        if (async) {
+            this.asyncWorkspaceTransfer.startTransfer(VitamConfiguration.getAsyncWorkspaceQueueSize());
+        } else {
+            this.asyncWorkspaceTransfer.waitEndOfTransfer();
+        }
     }
 }

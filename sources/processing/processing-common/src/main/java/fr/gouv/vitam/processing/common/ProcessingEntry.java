@@ -53,7 +53,7 @@ public class ProcessingEntry {
      * ProcessingEntry constructor
      *
      * @param container : name of container in workspace as string
-     * @param workflow : workflow id as string
+     * @param workflow : workflow identifier as string
      */
     @JsonCreator
     public ProcessingEntry(@JsonProperty("container") String container, @JsonProperty("workflow") String workflow) {
@@ -73,7 +73,7 @@ public class ProcessingEntry {
 
 
     /**
-     * @return the workflow id
+     * @return the workflow identifier
      */
     @JsonIgnore
     public String getWorkflow() {

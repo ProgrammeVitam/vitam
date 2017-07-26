@@ -263,7 +263,8 @@ public class DslQueryHelperTest {
         queryMap.put("title", "Archive2");
         queryMap.put("date", "09/09/2015");
         queryMap.put(UiConstants.SELECT_BY_ID.toString(), "#id");
-        final JsonNode updateRequest = DslQueryHelper.createUpdateDSLQuery(queryMap);
+        final Map<String, JsonNode> rulesMap = new HashMap();
+        final JsonNode updateRequest = DslQueryHelper.createUpdateDSLQuery(queryMap, rulesMap);
         assertNotNull(updateRequest);
 
         final RequestParserMultiple updateParser = RequestParserHelper.getParser(updateRequest);
@@ -283,8 +284,9 @@ public class DslQueryHelperTest {
     public void testUpdateEmptyQueries() throws InvalidParseOperationException, InvalidCreateOperationException {
         final Map<String, String> queryMap = new HashMap();
         queryMap.put("title", "Mosqueteers");
+        final Map<String, JsonNode> rulesMap = new HashMap();
 
-        final JsonNode updateRequest = DslQueryHelper.createUpdateDSLQuery(queryMap);
+        final JsonNode updateRequest = DslQueryHelper.createUpdateDSLQuery(queryMap, rulesMap);
         assertNotNull(updateRequest);
 
         final RequestParserMultiple updateParser = RequestParserHelper.getParser(updateRequest);
@@ -303,7 +305,8 @@ public class DslQueryHelperTest {
         throws InvalidParseOperationException, InvalidCreateOperationException {
         final Map<String, String> queryMap = new HashMap();
         queryMap.put("", "value");
-        DslQueryHelper.createUpdateDSLQuery(queryMap);
+        final Map<String, JsonNode> rulesMap = new HashMap();
+        DslQueryHelper.createUpdateDSLQuery(queryMap, rulesMap);
     }
 
     /**

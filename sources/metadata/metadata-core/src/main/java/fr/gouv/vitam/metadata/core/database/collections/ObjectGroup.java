@@ -61,33 +61,25 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
     private static final long serialVersionUID = -1761786017392977575L;
 
     /**
-     * Number of copies
-     */
-    public static final String NB_COPY = "_nbc";
-    /**
-     * OriginatingAgency
-     */
-    public static final String ORIGINATINGAGENCY = "OriginatingAgency";
-    /**
      * Usages
      */
-    public static final String USAGES = "_qualifiers";
+    public static final String USAGES = "_qualifiers.qualifier";
     /**
      * Storage Id
      */
     public static final String STORAGE = "_storage";
-    
+
     /**
      * Unit Id, Vitam fields Only projection (no usage)
      */
     public static final BasicDBObject OBJECTGROUP_VITAM_PROJECTION =
-        new BasicDBObject(NB_COPY, 1).append(TYPE, 1).append(ORIGINATINGAGENCY, 1)
+        new BasicDBObject(NBCHILD, 1).append(TYPE, 1).append(ORIGINATING_AGENCY, 1)
             .append(TENANT_ID, 1).append(MetadataDocument.UP, 1).append(MetadataDocument.ID, 1);
     /**
      * Versions
      */
     // FIXME P2 WRONG
-    public static final String VERSIONS = USAGES + ".*." + "versions";
+    public static final String VERSIONS = "_qualifiers.versions";
     /**
      * DataObjectVersion
      */
@@ -98,9 +90,21 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
      */
     public static final String VERSIONS_STORAGE = VERSIONS + "." + "storage";
     /**
+     * Copies
+     */
+    public static final String OBJECTCOPIES = VERSIONS_STORAGE + "." + "_nbc";
+    /**
+     * Storage Id
+     */
+    public static final String OBJECTSTORAGE = VERSIONS_STORAGE + "." + "offerIds";
+    /**
+     * Storage Id
+     */
+    public static final String OBJECTSTRATEHY = VERSIONS_STORAGE + "." + "strategyId";
+    /**
      * Version
      */
-    public static final String VERSION = VERSIONS + "." + "_version";
+    public static final String OBJECTVERSION = VERSIONS + "." + "_version";
     /**
      * Object UUID
      */
@@ -129,20 +133,24 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
      * Copies
      */
     public static final String COPIES = VERSIONS + "." + "_copies";
-   
+    /**
+     * depths
+     */
+    public static final String OGDEPTHS = "_ops";
+
+
 
     private static final BasicDBObject[] indexes = {
         new BasicDBObject(VitamLinks.UNIT_TO_OBJECTGROUP.field2to1, 1),
         new BasicDBObject(TENANT_ID, 1),
-        new BasicDBObject(ORIGINATINGAGENCY, 1),
-        new BasicDBObject(VERSION, 1),
+        new BasicDBObject(OBJECTVERSION, 1),
         new BasicDBObject(OPS, 1),
         new BasicDBObject(OBJECTID, 1),
         new BasicDBObject(OBJECTSIZE, 1),
         new BasicDBObject(OBJECTFORMAT, 1),
         new BasicDBObject(OBJECTDIGEST_VALUE, 1).append(OBJECTDIGEST_TYPE, 1),
-        new BasicDBObject(STORAGE, 1),
-        new BasicDBObject(DATAOBJECTVERSION, 1).append(VERSION, 1),
+        new BasicDBObject(OBJECTSTORAGE, 1),
+        new BasicDBObject(DATAOBJECTVERSION, 1).append(OBJECTVERSION, 1),
         new BasicDBObject(VERSIONS_STORAGE, 1)};
 
     /**
@@ -150,18 +158,7 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
      */
     private int nbCopy;
 
-
-    /**
-     * ES Mapping
-     */
-    public static final String TYPEUNIQUE = "typeunique";
-
     // TODO P1 add Nested objects or Parent/child relationships
-
-    /**
-     * depths
-     */
-    public static final String OGDEPTHS = "_ops";
 
     /**
      * Empty constructor
@@ -288,13 +285,13 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
 
     @Override
     public ObjectGroup getAfterLoad() {
-        nbCopy = this.getInteger(NB_COPY, 0);
+        nbCopy = this.getInteger(NBCHILD, 0);
         return this;
     }
 
     @Override
     public ObjectGroup putBeforeSave() {
-        put(NB_COPY, nbCopy);
+        put(NBCHILD, nbCopy);
         return this;
     }
 
@@ -325,7 +322,7 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
         remove(VitamLinks.UNIT_TO_OBJECTGROUP.field2to1);
         remove(ID);
         if (all) {
-            remove(NB_COPY);
+            remove(NBCHILD);
         }
     }
 

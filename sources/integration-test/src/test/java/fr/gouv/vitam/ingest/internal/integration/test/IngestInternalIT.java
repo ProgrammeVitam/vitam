@@ -26,10 +26,41 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.internal.integration.test;
 
+import static com.jayway.restassured.RestAssured.get;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
+
+import org.bson.Document;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.jayway.restassured.RestAssured;
+
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -57,8 +88,8 @@ import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.AccessContractModel;
+import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.stream.SizedInputStream;
@@ -70,6 +101,9 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
+import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
+import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportInProgressException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementApplication;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
@@ -83,6 +117,7 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticse
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookApplication;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
@@ -100,34 +135,6 @@ import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.worker.server.rest.WorkerApplication;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
-
-import org.assertj.core.api.Assertions;
-import org.bson.Document;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.jayway.restassured.RestAssured.get;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 /**
  * Ingest Internal integration test
  */
@@ -174,6 +181,7 @@ public class IngestInternalIT {
     private static final String ACCESS_INTERNAL_PATH = "/access-internal/v1";
     private static final String CONTEXT_ID = "DEFAULT_WORKFLOW_RESUME";
 
+
     private static String CONFIG_WORKER_PATH = "";
     private static String CONFIG_WORKSPACE_PATH = "";
     private static String CONFIG_METADATA_PATH = "";
@@ -218,11 +226,9 @@ public class IngestInternalIT {
         "integration-processing/SIP_2467_SERVICE_LEVEL.zip";
     private static String SIP_OK_WITHOUT_SERVICE_LEVEL =
         "integration-processing/SIP_2467_WITHOUT_SERVICE_LEVEL.zip";
+    private static final String FILE_TO_TEST_OK = "jeu_donnees_OK_regles_CSV.csv";
 
     private static String SIP_OK_PHYSICAL_ARCHIVE = "integration-ingest-internal/OK_ArchivesPhysiques.zip";
-
-    private static String WORFKLOW_NAME = "DefaultIngestWorkflow";
-
 
     private static ElasticsearchTestConfiguration config = null;
 
@@ -316,11 +322,12 @@ public class IngestInternalIT {
         SystemPropertyUtil.clear("jetty.ingest-internal.port");
 
         // launch functional Admin server
+        AdminManagementClientFactory
+            .changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_FUNCTIONAL_ADMIN));
         adminApplication = new AdminManagementApplication(CONFIG_FUNCTIONAL_ADMIN_PATH);
         adminApplication.start();
 
-        AdminManagementClientFactory
-            .changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_FUNCTIONAL_ADMIN));
+
 
         SystemPropertyUtil.set("jetty.access-internal.port", Integer.toString(PORT_SERVICE_ACCESS_INTERNAL));
         accessInternalApplication =
@@ -356,20 +363,23 @@ public class IngestInternalIT {
     private void flush() {
         ProcessDataAccessImpl.getInstance().clearWorkflow();
     }
+
     private void wait(String operationId) {
         int nbTry = 0;
         ProcessingManagementClient processingClient =
             ProcessingManagementClientFactory.getInstance().getClient();
-        while (! processingClient.isOperationCompleted(operationId)) {
+        while (!processingClient.isOperationCompleted(operationId)) {
             try {
                 Thread.sleep(SLEEP_TIME);
             } catch (InterruptedException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
-            if (nbTry == NB_TRY) break;
-            nbTry ++;
+            if (nbTry == NB_TRY)
+                break;
+            nbTry++;
         }
     }
+
     private void tryImportFile() {
 
         VitamThreadUtils.getVitamSession().setContractId(contractId);
@@ -379,7 +389,7 @@ public class IngestInternalIT {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 client
                     .importFormat(
-                        PropertiesUtils.getResourceAsStream("integration-ingest-internal/DROID_SignatureFile_V88.xml"));
+                    PropertiesUtils.getResourceAsStream("integration-ingest-internal/DROID_SignatureFile_V88.xml"));
 
                 // Import Rules
                 client.importRulesFile(
@@ -446,8 +456,8 @@ public class IngestInternalIT {
     @RunWithCustomExecutor
     @Test
     public void testIngestInternal() throws Exception {
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         try {
-            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             // ProcessDataAccessImpl processData = ProcessDataAccessImpl.getInstance();
@@ -505,7 +515,7 @@ public class IngestInternalIT {
             // Try to check OG
             select = new SelectMultiQuery();
             select.addRoots(og);
-            select.setProjectionSliceOnQualifier("BinaryMaster", 1);
+            select.setProjectionSliceOnQualifier();
             final JsonNode jsonResponse = metadataClient.selectObjectGrouptbyId(select.getFinalSelect(), og);
             LOGGER.warn("Result: " + jsonResponse);
             final List<String> valuesAsText = jsonResponse.get("$results").findValuesAsText("_id");
@@ -548,6 +558,17 @@ public class IngestInternalIT {
 
         } catch (final Exception e) {
             LOGGER.error(e);
+            SearchResponse elasticSearchResponse =
+                esClient.search(LogbookCollections.OPERATION, tenantId, null, null, null, 0, 25);
+            LOGGER.error("Total:" + (elasticSearchResponse.getHits().getTotalHits()));
+            try (LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
+                fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
+                    new fr.gouv.vitam.common.database.builder.request.single.Select();
+                selectQuery.setQuery(QueryHelper.eq("evIdProc", operationGuid.getId()));
+                JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
+                LOGGER.error(JsonHandler.prettyPrint(logbookResult));
+            }
+
             fail("should not raized an exception");
         }
     }
@@ -556,8 +577,8 @@ public class IngestInternalIT {
     @RunWithCustomExecutor
     @Test
     public void testPhysicalArchiveIngestInternal() throws Exception {
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         try {
-            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             tryImportFile();
@@ -612,7 +633,7 @@ public class IngestInternalIT {
             // Try to check OG
             select = new SelectMultiQuery();
             select.addRoots(og);
-            select.setProjectionSliceOnQualifier("PhysicalMaster", 0);
+            select.setProjectionSliceOnQualifier();
             final JsonNode jsonResponse = metadataClient.selectObjectGrouptbyId(select.getFinalSelect(), og);
             LOGGER.warn("Result: " + jsonResponse);
             final List<String> valuesAsText = jsonResponse.get("$results").findValuesAsText("_id");
@@ -620,7 +641,14 @@ public class IngestInternalIT {
             LOGGER.warn("read: " + objectId);
 
         } catch (final Exception e) {
-            e.printStackTrace();
+            LOGGER.error(e);
+            try (LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
+                fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
+                    new fr.gouv.vitam.common.database.builder.request.single.Select();
+                selectQuery.setQuery(QueryHelper.eq("evIdProc", operationGuid.getId()));
+                JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
+                LOGGER.error(JsonHandler.prettyPrint(logbookResult));
+            }
             fail("should not raized an exception");
         }
     }
@@ -1315,8 +1343,8 @@ public class IngestInternalIT {
     @RunWithCustomExecutor
     @Test
     public void testProdServicesOK() throws Exception {
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         try {
-            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             tryImportFile();
@@ -1356,14 +1384,16 @@ public class IngestInternalIT {
             assertEquals(StatusCode.OK, processWorkflow.getStatus());
 
             SelectMultiQuery select = new SelectMultiQuery();
-            select.addQueries(QueryHelper.eq("Title", "Sensibilisation API"));
+            select.addQueries(QueryHelper.match("Title", "Sensibilisation API"));
             // Get AU
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
             RequestResponse<JsonNode> response = accessClient.selectUnits(select.getFinalSelect());
             assertTrue(response.isOk());
 
             // Get GOT
+            LOGGER.warn(response.toString());
             final JsonNode node = response.toJsonNode().get("$results").get(0);
+            LOGGER.warn(node.toString());
             final String unitId = node.get("#object").asText();
 
 
@@ -1418,8 +1448,40 @@ public class IngestInternalIT {
             assertEquals(responseTree.toJsonNode().get("$hits").get("total").asInt(), 1);
         } catch (final Exception e) {
             LOGGER.error(e);
+            try (LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
+                fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
+                    new fr.gouv.vitam.common.database.builder.request.single.Select();
+                selectQuery.setQuery(QueryHelper.eq("evIdProc", operationGuid.getId()));
+                JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
+                LOGGER.error(JsonHandler.prettyPrint(logbookResult));
+            }
             fail("should not raized an exception");
         }
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void shouldImportRulesFile() {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        try {
+            FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK));
+            AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+            final Status status = client.importRulesFile(stream);
+            ResponseBuilder ResponseBuilder = Response.status(status);
+            Response response = ResponseBuilder.build();
+            assertEquals(response.getStatus(), Status.CREATED.getStatusCode());
+        } catch (final DatabaseConflictException e) {
+            LOGGER.error(e);
+            fail(String.format("DatabaseConflictException %s", e.getCause()));
+        } catch (final FileRulesImportInProgressException e) {
+            LOGGER.error(e);
+            fail(String.format("FileRulesImportInProgressException %s", e.getCause()));
+        } catch (final ReferentialException e) {
+            LOGGER.error(e);
+            fail(String.format("ReferentialException %s", e.getCause()));
+        } catch (FileNotFoundException e) {
+            LOGGER.error(e);
+            fail(String.format("FileNotFoundException %s", e.getCause()));
+        }
+    }
 }

@@ -82,7 +82,7 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
 
 
     /**
-     * Constructor
+     * Constructor for Internal API
      */
     public RequestParserMultiple() {
         request = getNewRequest();
@@ -90,6 +90,8 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
     }
 
     /**
+     * Constructor for Metadata
+     * 
      * @param adapter VarNameAdapter
      *
      */
@@ -201,7 +203,7 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
             // Check valid variable names first
             if (rootNode.has(SELECTFILTER.ORDERBY.exactToken())) {
                 final ObjectNode node = (ObjectNode) rootNode.get(SELECTFILTER.ORDERBY.exactToken());
-
+                ObjectNode finalNode = node.deepCopy();
                 final Iterator<String> names = node.fieldNames();
                 while (names.hasNext()) {
                     final String name = names.next();
@@ -209,10 +211,12 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
 
                     // Force update rootNode with correct dbName (replace '#' by '_')
                     if (null != dbName) {
-                        final JsonNode value = node.remove(name);
-                        node.set(dbName, value);
+                        final JsonNode value = finalNode.remove(name);
+                        finalNode.set(dbName, value);
                     }
                 }
+                node.removeAll();
+                node.setAll(finalNode);
             }
 
             request.setFilter(rootNode);
@@ -285,7 +289,7 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
             if (jdepth != null) {
                 exactdepth = jdepth.asInt();
                 if (exactdepth == -1) {
-                    exactdepth = GlobalDatasParser.MAXDEPTH;
+                    exactdepth = GlobalDatas.MAXDEPTH;
                 }
                 isDepth = true;
             }
@@ -376,7 +380,7 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
      *
      * @param condition the condition to add
      * @throws InvalidCreateOperationException when invalid create query exception occurred
-     * @throws InvalidParseOperationException when invalid parse data to create query 
+     * @throws InvalidParseOperationException when invalid parse data to create query
      */
     public void addCondition(Query condition) throws InvalidCreateOperationException, InvalidParseOperationException {
         final Query srcquery = request.getNthQuery(0);

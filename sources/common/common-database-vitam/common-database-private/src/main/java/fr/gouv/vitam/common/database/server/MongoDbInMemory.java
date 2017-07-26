@@ -14,7 +14,7 @@
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
  *
- *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
@@ -40,10 +40,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.database.builder.query.action.Action;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
+import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.request.AbstractParser;
-import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
+import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
-import fr.gouv.vitam.common.database.parser.request.adapter.VarNameUpdateAdapter;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -72,8 +72,9 @@ public class MongoDbInMemory {
     }
 
     /**
-     * Update the originalDocument with the given request. If the Document is a MetadataDocument (Unit/ObjectGroup) it should use a MultipleQuery Parser
-     * 
+     * Update the originalDocument with the given request. If the Document is a MetadataDocument (Unit/ObjectGroup) it
+     * should use a MultipleQuery Parser
+     *
      * @param request The given update request
      * @param isMultiple true if the UpdateParserMultiple must be used (Unit/ObjectGroup)
      * @param varNameAdapter VarNameAdapter to use
@@ -96,7 +97,7 @@ public class MongoDbInMemory {
 
     /**
      * Update the originalDocument with the given parser (containing the request)
-     * 
+     *
      * @param requestParser The given parser containing the update request
      * @return the updated document
      * @throws InvalidParseOperationException
@@ -164,12 +165,14 @@ public class MongoDbInMemory {
 
         JsonNode actionValue = element.getValue();
         if (!actionValue.isNumber()) {
-            throw new InvalidParseOperationException("[" + "INC" + "]Action argument (" + actionValue + ") cannot be converted as number for field " + fieldName);
+            throw new InvalidParseOperationException("[" + "INC" + "]Action argument (" + actionValue +
+                ") cannot be converted as number for field " + fieldName);
         }
 
         String[] fieldNamePath = fieldName.split("[.]");
-        String lastNodeName = fieldNamePath[fieldNamePath.length-1];
-        ((ObjectNode) JsonHandler.getParentNodeByPath(updatedDocument, fieldName, false)).put(lastNodeName, element.getValue().asLong() + nodeValue);
+        String lastNodeName = fieldNamePath[fieldNamePath.length - 1];
+        ((ObjectNode) JsonHandler.getParentNodeByPath(updatedDocument, fieldName, false)).put(lastNodeName,
+            element.getValue().asLong() + nodeValue);
     }
 
     private void unset(final JsonNode content) {
@@ -179,7 +182,7 @@ public class MongoDbInMemory {
             String fieldName = element.asText();
             JsonNode node = JsonHandler.getParentNodeByPath(updatedDocument, fieldName, false);
             String[] fieldNamePath = fieldName.split("[.]");
-            String lastNodeName = fieldNamePath[fieldNamePath.length-1];
+            String lastNodeName = fieldNamePath[fieldNamePath.length - 1];
             ((ObjectNode) node).remove(lastNodeName);
         }
     }
@@ -188,7 +191,12 @@ public class MongoDbInMemory {
         final Iterator<Map.Entry<String, JsonNode>> iterator = content.fields();
         while (iterator.hasNext()) {
             final Map.Entry<String, JsonNode> element = iterator.next();
-            JsonHandler.setNodeInPath((ObjectNode) updatedDocument, element.getKey(), element.getValue(), true);
+            if (ParserTokens.PROJECTIONARGS.isAnArray(element.getKey())) {
+                ArrayNode arrayNode = GlobalDatasParser.getArray(element.getValue());
+                JsonHandler.setNodeInPath((ObjectNode) updatedDocument, element.getKey(), arrayNode, true);
+            } else {
+                JsonHandler.setNodeInPath((ObjectNode) updatedDocument, element.getKey(), element.getValue(), true);
+            }
         }
     }
 
@@ -200,12 +208,14 @@ public class MongoDbInMemory {
 
         JsonNode actionValue = element.getValue();
         if (!actionValue.isNumber()) {
-            throw new InvalidParseOperationException("[" + "MIN" + "]Action argument (" + actionValue + ") cannot be converted as number for field " + fieldName);
+            throw new InvalidParseOperationException("[" + "MIN" + "]Action argument (" + actionValue +
+                ") cannot be converted as number for field " + fieldName);
         }
 
         String[] fieldNamePath = fieldName.split("[.]");
-        String lastNodeName = fieldNamePath[fieldNamePath.length-1];
-        ((ObjectNode) JsonHandler.getParentNodeByPath(updatedDocument, fieldName, false)).put(lastNodeName, Math.min(element.getValue().asDouble(), nodeValue));
+        String lastNodeName = fieldNamePath[fieldNamePath.length - 1];
+        ((ObjectNode) JsonHandler.getParentNodeByPath(updatedDocument, fieldName, false)).put(lastNodeName,
+            Math.min(element.getValue().asDouble(), nodeValue));
     }
 
     private void max(final BuilderToken.UPDATEACTION req, final JsonNode content)
@@ -216,12 +226,14 @@ public class MongoDbInMemory {
 
         JsonNode actionValue = element.getValue();
         if (!actionValue.isNumber()) {
-            throw new InvalidParseOperationException("[" + "MAX" + "]Action argument (" + actionValue + ") cannot be converted as number for field " + fieldName);
+            throw new InvalidParseOperationException("[" + "MAX" + "]Action argument (" + actionValue +
+                ") cannot be converted as number for field " + fieldName);
         }
 
         String[] fieldNamePath = fieldName.split("[.]");
-        String lastNodeName = fieldNamePath[fieldNamePath.length-1];
-        ((ObjectNode) JsonHandler.getParentNodeByPath(updatedDocument, fieldName, false)).put(lastNodeName, Math.max(element.getValue().asDouble(), nodeValue));
+        String lastNodeName = fieldNamePath[fieldNamePath.length - 1];
+        ((ObjectNode) JsonHandler.getParentNodeByPath(updatedDocument, fieldName, false)).put(lastNodeName,
+            Math.max(element.getValue().asDouble(), nodeValue));
     }
 
     private void rename(final BuilderToken.UPDATEACTION req, final JsonNode content)
@@ -229,13 +241,14 @@ public class MongoDbInMemory {
         final Map.Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
         final String fieldName = element.getKey();
         JsonNode value = JsonHandler.getNodeByPath(updatedDocument, fieldName, false);
-        if(value == null) {
-            throw new InvalidParseOperationException("[" + "RENAME" + "]Can't rename field " + fieldName + " because it doesn't exist");
+        if (value == null) {
+            throw new InvalidParseOperationException(
+                "[" + "RENAME" + "]Can't rename field " + fieldName + " because it doesn't exist");
         }
 
         JsonNode parent = JsonHandler.getParentNodeByPath(updatedDocument, fieldName, false);
         String[] fieldNamePath = fieldName.split("[.]");
-        String lastNodeName = fieldNamePath[fieldNamePath.length-1];
+        String lastNodeName = fieldNamePath[fieldNamePath.length - 1];
         ((ObjectNode) parent).remove(lastNodeName);
 
         JsonHandler.setNodeInPath((ObjectNode)updatedDocument, element.getValue().asText(), value, true);
@@ -312,19 +325,21 @@ public class MongoDbInMemory {
 
         JsonNode actionValue = element.getValue();
         if (!actionValue.isNumber()) {
-            throw new InvalidParseOperationException("[" + req.name() + "]Action argument (" + actionValue + ") cannot be converted as number for field " + fieldName);
+            throw new InvalidParseOperationException("[" + req.name() + "]Action argument (" + actionValue +
+                ") cannot be converted as number for field " + fieldName);
         }
 
         int numberOfPop = Math.abs(actionValue.asInt());
         if (numberOfPop > node.size()) {
-            throw new InvalidParseOperationException("Cannot pop " + numberOfPop + "items from the field '" + fieldName + "' because it has less items");
+            throw new InvalidParseOperationException(
+                "Cannot pop " + numberOfPop + "items from the field '" + fieldName + "' because it has less items");
         }
         if (actionValue.asInt() < 0) {
-            for(int i=0;i<numberOfPop;i++) {
+            for (int i = 0; i < numberOfPop; i++) {
                 node.remove(0);
             }
         } else {
-            for(int i=0;i<numberOfPop;i++) {
+            for (int i = 0; i < numberOfPop; i++) {
                 node.remove(node.size() - 1);
             }
         }
@@ -334,7 +349,8 @@ public class MongoDbInMemory {
         throws InvalidParseOperationException {
         JsonNode node = JsonHandler.getNodeByPath(updatedDocument, fieldName, false);
         if (node == null || !node.isNumber()) {
-            String message = "This field '" + fieldName + "' is not a number, cannot do '" + actionName + "' action: " + node + " or unknow fieldName";
+            String message = "This field '" + fieldName + "' is not a number, cannot do '" + actionName +
+                "' action: " + node + " or unknow fieldName";
             LOGGER.error(message);
             throw new InvalidParseOperationException(message);
         }
@@ -351,7 +367,8 @@ public class MongoDbInMemory {
             return updatedDocument.get(fieldName);
         }
         if (!node.isArray()) {
-            String message = "This field '" + fieldName + "' is not an array, cannot do '" + actionName + "' action";
+            String message =
+                "This field '" + fieldName + "' is not an array, cannot do '" + actionName + "' action";
             LOGGER.error(message);
             throw new InvalidParseOperationException(message);
         }

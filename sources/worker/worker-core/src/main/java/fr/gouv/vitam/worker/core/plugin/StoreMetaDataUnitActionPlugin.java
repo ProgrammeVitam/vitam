@@ -66,6 +66,7 @@ public class StoreMetaDataUnitActionPlugin extends StoreObjectActionHandler {
     private static final String ARCHIVE_UNIT_NOT_FOUND = "Archive unit not found";
     private static final String UNIT_METADATA_STORAGE = "UNIT_METADATA_STORAGE";
     private HandlerIO handlerIO;
+    private boolean asyncIO = false;
 
     /**
      * Empty parameter Constructor
@@ -129,7 +130,7 @@ public class StoreMetaDataUnitActionPlugin extends StoreObjectActionHandler {
                 // transfer json to workspace
                 try {
                     handlerIO.transferJsonToWorkspace(StorageCollectionType.UNITS.getCollectionName(), fileName,
-                        unit, true);
+                        unit, true, asyncIO);
                 } catch (ProcessingException e) {
                     LOGGER.error(params.getObjectName(), e);
                     throw new WorkspaceClientServerException(e);
@@ -147,7 +148,7 @@ public class StoreMetaDataUnitActionPlugin extends StoreObjectActionHandler {
                         metaDataClient.updateUnitbyId(queryUpdate.getFinalUpdate(), guid);
                         try {
                             handlerIO.transferJsonToWorkspace(StorageCollectionType.UNITS.getCollectionName(), fileName,
-                                unit, true);
+                                unit, true, asyncIO);
                         } catch (ProcessingException e) {
                             LOGGER.error(params.getObjectName(), e);
                             throw new WorkspaceClientServerException(e);

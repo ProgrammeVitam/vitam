@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common;
 
 import java.nio.file.attribute.FileTime;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -42,6 +43,7 @@ public final class LocalDateUtil {
     private static final int THOUSAND = 1000;
     
     private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZZ";
+    private static final String SIMPLE_DATE_FORMAT = "yyyy-MM-dd";
 
     private LocalDateUtil() {
         // empty
@@ -67,10 +69,14 @@ public final class LocalDateUtil {
     /**
      * @param date in format String to transform
      * @return the corresponding Date from date string
+     * @throws ParseException 
      * @throws IllegalArgumentException date null or empty
      */
-    public static final Date getDate(String date) {
+    public static final Date getDate(String date) throws ParseException {
         ParametersChecker.checkParameter("Date", date);
+        if (date.length() == SIMPLE_DATE_FORMAT.length()) {
+            return getSimpleFormattedDate(date);
+        }
         if (date.indexOf('T') == -1) {
             return getDate(LocalDateTime.parse(date, DateTimeFormatter.ISO_DATE));
         }
@@ -139,5 +145,15 @@ public final class LocalDateUtil {
     public static final String getFormattedDate(Date date) {
         final SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
         return dateFormat.format(date);
+    }
+    
+    /**
+     * @param date
+     * @return formatted date
+     * @throws ParseException 
+     */
+    public static final Date getSimpleFormattedDate(final String date) throws ParseException {
+        final SimpleDateFormat dateFormat = new SimpleDateFormat(SIMPLE_DATE_FORMAT);
+        return dateFormat.parse(date);
     }
 }

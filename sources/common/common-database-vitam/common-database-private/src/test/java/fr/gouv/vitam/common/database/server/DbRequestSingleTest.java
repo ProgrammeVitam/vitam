@@ -5,7 +5,6 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assume.assumeTrue;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,7 +20,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
-import com.mongodb.client.MongoCursor;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
@@ -108,7 +106,7 @@ public class DbRequestSingleTest {
         classList.add(CollectionSample.class);
         mongoClient =
             new MongoClient(new ServerAddress(DATABASE_HOST, port), VitamCollection.getMongoClientOptions(classList));
-        vitamCollection = VitamCollectionHelper.getCollectionMultiTenant(CollectionSample.class);
+        vitamCollection = VitamCollectionHelper.getCollection(CollectionSample.class, true, false);
         vitamCollection.initialize(esClient);
         vitamCollection.initialize(mongoClient.getDatabase(DATABASE_NAME), true);
 
@@ -131,80 +129,81 @@ public class DbRequestSingleTest {
     public void testVitamCollectionRequests()
         throws InvalidParseOperationException, DatabaseException, InvalidCreateOperationException {
 
-        DbRequestSingle dbRequestSingle = new DbRequestSingle(vitamCollection);
+        final DbRequestSingle dbRequestSingle = new DbRequestSingle(vitamCollection);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         assertEquals(0, vitamCollection.getCollection().count());
 
         // init by dbRequest
-        ArrayNode datas = JsonHandler.createArrayNode();
-        datas.add(getNewDocument(GUIDFactory.newGUID().toString(), "title 1 of 2", 1));
-        datas.add(getNewDocument(GUIDFactory.newGUID().toString(), "title 2 of 2", 2));
-        Insert insert = new Insert();
+        final ArrayNode datas = JsonHandler.createArrayNode();
+        datas.add(getNewDocument(GUIDFactory.newGUID().toString(), "title one", 1));
+        datas.add(getNewDocument(GUIDFactory.newGUID().toString(), "title two", 2));
+        final Insert insert = new Insert();
         insert.setData(datas);
-        DbRequestResult insertResult = dbRequestSingle.execute(insert);
+        final DbRequestResult insertResult = dbRequestSingle.execute(insert);
         assertEquals(2, insertResult.getCount());
         assertEquals(2, vitamCollection.getCollection().count());
+        insertResult.close();
 
         // find all
         final Select select = new Select();
-        DbRequestResult selectResult = dbRequestSingle.execute(select);
-        final MongoCursor<VitamDocument<?>> selectCursor = selectResult.getCursor();
-        assertEquals(true, selectCursor.hasNext());
-        selectCursor.next();
-        assertEquals(true, selectCursor.hasNext());
-        selectCursor.next();
-        assertEquals(false, selectCursor.hasNext());
-        selectCursor.close();
+        final DbRequestResult selectResult = dbRequestSingle.execute(select);
+        final List<VitamDocument> selectCursor = selectResult.getDocuments(VitamDocument.class);
+        assertEquals(true, !selectCursor.isEmpty());
+        assertEquals(2, selectCursor.size());
+        selectCursor.clear();
+        selectResult.close();
 
         // find with sort in mongo
         final Select sortedSelect = new Select();
         sortedSelect.addOrderByDescFilter("Title");
-        DbRequestResult sortedSelectResult = dbRequestSingle.execute(sortedSelect);
-        final MongoCursor<VitamDocument<?>> sortedSelectCursor = sortedSelectResult.getCursor();
-        Document documentSorted1 = sortedSelectCursor.next();
-        Document documentSorted2 = sortedSelectCursor.next();
-        assertEquals("title 2 of 2", documentSorted1.getString("Title"));
-        assertEquals("title 1 of 2", documentSorted2.getString("Title"));
-        sortedSelectCursor.close();
+        final DbRequestResult sortedSelectResult = dbRequestSingle.execute(sortedSelect);
+        final List<VitamDocument> sortedSelectCursor = sortedSelectResult.getDocuments(VitamDocument.class);
+        final Document documentSorted1 = sortedSelectCursor.get(0);
+        final Document documentSorted2 = sortedSelectCursor.get(1);
+        assertEquals("title two", documentSorted1.getString("Title"));
+        assertEquals("title one", documentSorted2.getString("Title"));
+        sortedSelectCursor.clear();
+        sortedSelectResult.close();
 
         // find with sort in ES
         final Select sortedSelectES = new Select();
         sortedSelectES.setQuery(match("Title", "title"));
         sortedSelectES.addOrderByDescFilter("Title");
         DbRequestResult sortedSelectESResult = dbRequestSingle.execute(sortedSelectES);
-        MongoCursor<VitamDocument<?>> sortedSelectESCursor = sortedSelectESResult.getCursor();
-        Document documentSortedES1 = sortedSelectESCursor.next();
-        Document documentSortedES2 = sortedSelectESCursor.next();
-        assertEquals("title 2 of 2", documentSortedES1.getString("Title"));
-        assertEquals("title 1 of 2", documentSortedES2.getString("Title"));
-        sortedSelectESCursor.close();
+        List<VitamDocument> sortedSelectESCursor = sortedSelectESResult.getDocuments(VitamDocument.class);
+        final Document documentSortedES1 = sortedSelectESCursor.get(0);
+        final Document documentSortedES2 = sortedSelectESCursor.get(1);
+        assertEquals("title two", documentSortedES1.getString("Title"));
+        assertEquals("title one", documentSortedES2.getString("Title"));
+        sortedSelectESCursor.clear();
+        sortedSelectESResult.close();
 
         // update
         final Update update = new Update();
-        update.setQuery(eq("Title", "title 1 of 2"));
+        update.setQuery(eq("Title", "title one"));
         update.addActions(UpdateActionHelper.set("Title", "new name"));
-        DbRequestResult updateResult = dbRequestSingle.execute(update);
+        final DbRequestResult updateResult = dbRequestSingle.execute(update);
         assertEquals(1, updateResult.getCount());
+        updateResult.close();
 
         sortedSelectESResult = dbRequestSingle.execute(sortedSelectES);
-        sortedSelectESCursor = sortedSelectESResult.getCursor();
-        assertEquals(true, sortedSelectESCursor.hasNext());
-        sortedSelectESCursor.next();
-        assertEquals(false, sortedSelectESCursor.hasNext());
-        sortedSelectESCursor.close();
-        
+        sortedSelectESCursor = sortedSelectESResult.getDocuments(VitamDocument.class);
+        assertEquals(1, sortedSelectESCursor.size());
+        sortedSelectESCursor.clear();
+        sortedSelectESResult.close();
+
         // delete
         final Delete delete = new Delete();
         delete.setQuery(match("Title", "title"));
-        DbRequestResult deleteResult = dbRequestSingle.execute(delete);
+        final DbRequestResult deleteResult = dbRequestSingle.execute(delete);
         assertEquals(1, deleteResult.getCount());
         assertEquals(1, vitamCollection.getCollection().count());
-
+        deleteResult.close();
     }
 
     private ObjectNode getNewDocument(String id, String title, Integer num) {
-        ObjectNode node = JsonHandler.createObjectNode();
+        final ObjectNode node = JsonHandler.createObjectNode();
         node.put("_id", id);
         node.put("Title", title);
         node.put("Numero", num);

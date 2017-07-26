@@ -1,0 +1,12 @@
+{
+	"AccessRule": {
+		"Rules": [
+			{
+				"Rule": "ACC-00002",
+				"StartDate": "2002-01-01",
+				"EndDate": "2027-01-01"
+			}
+		]
+	},
+	"OriginatingAgency": "FRAAA"
+}

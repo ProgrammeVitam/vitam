@@ -115,7 +115,11 @@ public enum VitamRestEasyConfiguration {
     /**
      * contentCompressionEnabled
      */
-    contentCompressionEnabled;
+    contentCompressionEnabled,
+    /**
+     * Cache enable
+     */
+    CACHE_ENABLED;
     
     /**
      * Chunk mode
@@ -126,7 +130,6 @@ public enum VitamRestEasyConfiguration {
      */
     public static final String BUFFERED = "BUFFERED";
     
-
     /**
      * 
      * @param config

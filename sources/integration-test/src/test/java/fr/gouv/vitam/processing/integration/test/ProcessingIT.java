@@ -53,7 +53,6 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.bson.Document;
@@ -222,12 +221,11 @@ public class ProcessingIT {
     private static final String WORKSPACE_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE;
     private static final String PROCESSING_URL = "http://localhost:" + PORT_SERVICE_PROCESSING;
 
-    private static String WORFKLOW_NAME_2 = "DefaultIngestWorkflow";
-    private static String WORFKLOW_NAME = "DefaultIngestWorkflow";
+    private static String WORFKLOW_NAME_2 = "PROCESS_SIP_UNITARY";
+    private static String WORFKLOW_NAME = "PROCESS_SIP_UNITARY";
+    private static String INGEST_TREE_WORFKLOW = "HOLDINGSCHEME";
+    private static String INGEST_PLAN_WORFKLOW = "FILINGSCHEME";
     private static String BIG_WORFKLOW_NAME = "BigIngestWorkflow";
-    private static String INGEST_TREE_WORFKLOW = "DefaultHoldingSchemeWorkflow";
-    private static String INGEST_PLAN_WORFKLOW = "DefaultFilingSchemeWorkflow";
-
     private static String SIP_FILE_OK_NAME = "integration-processing/SIP-test.zip";
     private static String SIP_PROFIL_OK = "integration-processing/SIP_ok_profil.zip";
     private static String SIP_FILE_OK_WITH_SYSTEMID = "integration-processing/SIP_with_systemID.zip";
@@ -266,6 +264,8 @@ public class ProcessingIT {
     private static String SIP_FILE_1791_CA1 = "integration-processing/SIP_FILE_1791_CA1.zip";
     private static String SIP_FILE_1791_CA2 = "integration-processing/SIP_FILE_1791_CA2.zip";
 
+    private static String SIP_ARBRE_3062 = "integration-processing/3062_arbre.zip";
+    
     private static ElasticsearchTestConfiguration config = null;
 
     private final static String DUMMY_REQUEST_ID = "reqId";
@@ -511,15 +511,15 @@ public class ProcessingIT {
     @RunWithCustomExecutor
     @Test
     public void testWorkflow() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
+        final String containerName = objectGuid.getId();
         try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
             LogbookLifeCyclesClient logbookLFCClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
             AdminManagementClient functionalClient = AdminManagementClientFactory.getInstance().getClient()) {
-            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             tryImportFile();
             final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-            final String containerName = objectGuid.getId();
             createLogbookOperation(operationGuid, objectGuid);
 
             // workspace client dezip SIP in workspace
@@ -597,12 +597,12 @@ public class ProcessingIT {
 
             assertEquals(logbookResult.get("$results").get(0).get("events").get(0).get("outDetail").asText(),
                 "STP_INGEST_FINALISATION.OK");
-            
+
             assertEquals(logbookResult.get("$results").get(0).get("obIdIn").asText(),
                 "bug2721_2racines_meme_rattachement");
             assertEquals(logbookResult.get("$results").get(0).get("agIdOrig").asText(), "producteur1");
         } catch (final Exception e) {
-            e.printStackTrace();
+            LOGGER.error(e);
             fail("should not raized an exception");
         }
     }
@@ -647,19 +647,19 @@ public class ProcessingIT {
                 processMonitoring.findOneProcessWorkflow(containerName, tenantId);
             assertNotNull(processWorkflow);
             assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-            
+
             LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
             fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
                 new fr.gouv.vitam.common.database.builder.request.single.Select();
             selectQuery.setQuery(QueryHelper.eq("evIdProc", containerName));
             JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
-            
+
             JsonNode logbookNode = logbookResult.get("$results").get(0);
             assertEquals(logbookNode.get("obIdIn").asText(),
                 "Transfert des enregistrements des délibérations de l'assemblée départementale");
             assertEquals(logbookNode.get("agIdSubm").asText(),
                 "https://demo.logilab.fr/seda/157118");
-            assertEquals(logbookNode.get("agIdOrig").asText(), 
+            assertEquals(logbookNode.get("agIdOrig").asText(),
                 "https://demo.logilab.fr/seda/157118");
             assertTrue(logbookNode.get("evDetData").asText().contains("EvDetailReq"));
             assertTrue(logbookNode.get("evDetData").asText().contains("EvDateTimeReq"));
@@ -1008,7 +1008,6 @@ public class ProcessingIT {
                     .put(GLOBAL.RULES.exactToken(), 1).put("Title", 1)
                     .put(PROJECTIONARGS.MANAGEMENT.exactToken(), 1)));
             JsonNode result = metaDataClient.selectUnits(query.getFinalSelect());
-
             assertNotNull(
                 result.get("$results").get(0).get(UnitInheritedRule.INHERITED_RULE).get("StorageRule").get("R1"));
         } catch (final Exception e) {
@@ -1789,8 +1788,9 @@ public class ProcessingIT {
         ArrayList<Document> logbookLifeCycleUnits =
             Lists.newArrayList(db.getCollection("LogbookLifeCycleUnit").find().iterator());
 
-        List<Document> currentLogbookLifeCycleUnits = logbookLifeCycleUnits.stream().filter(t -> t.get("evIdProc").equals(containerName))
-            .collect(Collectors.toList());
+        List<Document> currentLogbookLifeCycleUnits =
+            logbookLifeCycleUnits.stream().filter(t -> t.get("evIdProc").equals(containerName))
+                .collect(Collectors.toList());
 
         List<Document> events = (List<Document>) Iterables.getOnlyElement(currentLogbookLifeCycleUnits).get("events");
 
@@ -1928,7 +1928,7 @@ public class ProcessingIT {
         // re-launch worker
         workerApplication.stop();
         // FIXME Sleep to be removed when asynchronous mode is implemented
-        //Thread.sleep(8500);
+        // Thread.sleep(8500);
         SystemPropertyUtil.set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
         workerApplication = new WorkerApplication(CONFIG_BIG_WORKER_PATH);
         workerApplication.start();
@@ -2024,17 +2024,17 @@ public class ProcessingIT {
         try {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
 
-            //1. Stop the worker this will unregister the worker
+            // 1. Stop the worker this will unregister the worker
             workerApplication.stop();
             Thread.sleep(500);
 
-            //2. Start the worker this will register the worker
+            // 2. Start the worker this will register the worker
             SystemPropertyUtil.set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
             workerApplication = new WorkerApplication(CONFIG_WORKER_PATH);
             workerApplication.start();
             Thread.sleep(500);
 
-            //3. Stop processing, this will make worker retry register
+            // 3. Stop processing, this will make worker retry register
             processManagementApplication.stop();
             Thread.sleep(500);
 
@@ -2043,10 +2043,11 @@ public class ProcessingIT {
             processManagementApplication = new ProcessManagementApplication(CONFIG_PROCESSING_PATH);
             processManagementApplication.start();
             SystemPropertyUtil.clear(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT);
-            //4.Wait processing server start
+            // 4.Wait processing server start
             Thread.sleep(500);
 
-            // For test, worker.conf is modified to have registerDelay: 1 (mean every one second worker try to register it self
+            // For test, worker.conf is modified to have registerDelay: 1 (mean every one second worker try to register
+            // it self
 
         } catch (final Exception e) {
             e.printStackTrace();
@@ -2418,4 +2419,49 @@ public class ProcessingIT {
         }
     }
 
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowIngestBigTreeBugFix3062() throws Exception {
+        try {
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            tryImportFile();
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+            final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
+            final String containerName = objectGuid.getId();
+            createLogbookOperation(operationGuid, objectGuid);
+
+            // workspace client dezip SIP in workspace
+            RestAssured.port = PORT_SERVICE_WORKSPACE;
+            RestAssured.basePath = WORKSPACE_PATH;
+            final InputStream zipInputStreamSipObject =
+                PropertiesUtils.getResourceAsStream(SIP_ARBRE_3062);
+            workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+            workspaceClient.createContainer(containerName);
+            workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
+                zipInputStreamSipObject);
+            // call processing
+            RestAssured.port = PORT_SERVICE_PROCESSING;
+            RestAssured.basePath = PROCESSING_PATH;
+
+            processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+            processingClient.initVitamProcess(Contexts.HOLDING_SCHEME.name(), containerName, INGEST_TREE_WORFKLOW);
+            RequestResponse<ItemStatus> ret =
+                processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
+            assertNotNull(ret);
+
+            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+            wait(containerName);
+            ProcessWorkflow processWorkflow =
+                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.OK, processWorkflow.getStatus());
+        } catch (final Exception e) {
+            e.printStackTrace();
+            fail("should not raized an exception");
+        }
+    }
+    
 }

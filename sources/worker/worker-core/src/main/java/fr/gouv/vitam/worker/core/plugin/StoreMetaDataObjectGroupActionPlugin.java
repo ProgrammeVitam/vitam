@@ -68,6 +68,7 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreObjectActionHandl
     private static final String OBJECT_GROUP_NOT_FOUND_EXCEPTION = "objectGroup not found Exception";
     private static final String $RESULTS = "$results";
     private HandlerIO handlerIO;
+    private boolean asyncIO = false;
 
     /**
      * StoreMetaDataObjectGroupActionPlugin constructor
@@ -100,7 +101,7 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreObjectActionHandl
                     metaDataClient.updateObjectGroupById(query.getFinalUpdate(), objectNameFinal);
                     try {
                         handlerIO.transferJsonToWorkspace(StorageCollectionType.OBJECTGROUPS.getCollectionName(), objectName,
-                            og, true);
+                            og, true, asyncIO);
                     } catch (ProcessingException e) {
                         LOGGER.error(params.getObjectName(), e);
                         throw new WorkspaceClientServerException(e);
@@ -154,7 +155,7 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreObjectActionHandl
         try {
             handlerIO.transferJsonToWorkspace(StorageCollectionType.OBJECTGROUPS.getCollectionName(),
                 params.getObjectName(),
-                jsonNode, true);
+                jsonNode, true, asyncIO);
             return jsonNode;
         } catch (ProcessingException e) {
             LOGGER.error(params.getObjectName(), e);

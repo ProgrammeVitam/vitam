@@ -36,6 +36,7 @@ import javax.servlet.DispatcherType;
 
 import org.apache.shiro.web.env.EnvironmentLoaderListener;
 import org.apache.shiro.web.servlet.ShiroFilter;
+import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.glassfish.jersey.server.ResourceConfig;
 
@@ -111,13 +112,16 @@ public class AccessExternalApplication
     @Override
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
         setServiceRegistry(new VitamServiceRegistry());
+
         serviceRegistry.register(AccessInternalClientFactory.getInstance())
             .register(AdminManagementClientFactory.getInstance());
+
         resourceConfig.register(new AccessExternalResourceImpl())
             .register(new LogbookExternalResourceImpl())
             .register(new AdminManagementExternalResourceImpl())
             .register(SanityCheckerCommonFilter.class)
-            .register(SanityDynamicFeature.class);
+            .register(SanityDynamicFeature.class)
+            .register(HttpMethodOverrideFilter.class);
     }
 
     @Override

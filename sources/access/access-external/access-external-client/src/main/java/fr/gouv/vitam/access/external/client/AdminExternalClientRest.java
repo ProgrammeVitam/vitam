@@ -24,6 +24,7 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -35,6 +36,10 @@ import fr.gouv.vitam.logbook.common.client.ErrorMessage;
  * Rest client implementation for Access External
  */
 public class AdminExternalClientRest extends DefaultClient implements AdminExternalClient {
+
+    private static final String ADMIN_EXTERNAL_MODULE = "AdminExternalModule";
+
+    private static final String ACCESS_EXTERNAL_MODULE = "AccessExternalModule";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminExternalClientRest.class);
 
@@ -88,6 +93,9 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                 throw new AccessExternalClientNotFoundException(URI_NOT_FOUND);
             }
+            if (response.getStatus() == Status.FORBIDDEN.getStatusCode()) {
+                throw new AccessExternalClientException(JsonHandler.unprettyPrint(response.readEntity(String.class)));
+            }
             final Status status = Status.fromStatusCode(response.getStatus());
             return status;
         } catch (final VitamClientInternalException e) {
@@ -122,14 +130,14 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
                 MediaType.APPLICATION_JSON_TYPE, false);
 
             RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
-            if (!requestResponse.isOk()) {
+            if (requestResponse.isOk()) {
                 return requestResponse;
             } else {
                 final VitamError vitamError =
                     new VitamError(VitamCode.ADMIN_EXTERNAL_FIND_DOCUMENT_BY_ID_ERROR.getItem())
                         .setMessage(VitamCode.ADMIN_EXTERNAL_FIND_DOCUMENT_BY_ID_ERROR.getMessage())
                         .setState(StatusCode.KO.name())
-                        .setContext("AdminExternalModule")
+                        .setContext(ADMIN_EXTERNAL_MODULE)
                         .setDescription(VitamCode.ADMIN_EXTERNAL_FIND_DOCUMENT_BY_ID_ERROR.getMessage());
 
                 if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
@@ -163,16 +171,17 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         try {
             // FIXME Why do a POST with HTTP_OVERRIDE when a GET without body is needed ?
             response = performRequest(HttpMethod.POST, documentType.getName() + "/" + documentId, headers,
+                JsonHandler.createObjectNode(), MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
 
             RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
-            if (!requestResponse.isOk()) {
+            if (requestResponse.isOk()) {
                 return requestResponse;
             } else {
                 final VitamError vitamError = new VitamError(VitamCode.ADMIN_EXTERNAL_FIND_DOCUMENT_BY_ID_ERROR.getItem())
                     .setMessage(VitamCode.ADMIN_EXTERNAL_FIND_DOCUMENT_BY_ID_ERROR.getMessage())
                     .setState(StatusCode.KO.name())
-                    .setContext("AdminExternalModule")
+                    .setContext(ADMIN_EXTERNAL_MODULE)
                     .setDescription(VitamCode.ADMIN_EXTERNAL_FIND_DOCUMENT_BY_ID_ERROR.getMessage());
 
                 if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
@@ -214,13 +223,13 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
                     query, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
                 RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
-                if (!requestResponse.isOk()) {
+                if (requestResponse.isOk()) {
                     return requestResponse;
                 } else {
                     final VitamError vitamError = new VitamError(VitamCode.ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_DETAIL_ERROR.getItem())
                         .setMessage(VitamCode.ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_DETAIL_ERROR.getMessage())
                         .setState(StatusCode.KO.name())
-                        .setContext("AccessExternalModule")
+                        .setContext(ACCESS_EXTERNAL_MODULE)
                         .setDescription(VitamCode.ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_DETAIL_ERROR.getMessage());
 
                     if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
@@ -460,7 +469,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             } else {
                 final VitamError vitamError = new VitamError(VitamCode.ACCESS_EXTERNAL_CHECK_TRACEABILITY_OPERATION_ERROR.getItem())
                     .setMessage(VitamCode.ACCESS_EXTERNAL_CHECK_TRACEABILITY_OPERATION_ERROR.getMessage())
-                    .setContext("AccessExternalModule")
+                    .setContext(ACCESS_EXTERNAL_MODULE)
                     .setDescription(VitamCode.ACCESS_EXTERNAL_CHECK_TRACEABILITY_OPERATION_ERROR.getMessage() + " Cause : " +
                         ((VitamError) requestResponse).getDescription());
 

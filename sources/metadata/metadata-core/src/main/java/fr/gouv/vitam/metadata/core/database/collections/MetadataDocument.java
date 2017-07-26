@@ -36,8 +36,7 @@ import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.UpdateOptions;
 
-import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
-import fr.gouv.vitam.common.guid.GUIDReader;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -49,31 +48,24 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
  * @param <E> Class associated with this Document
  *
  */
-public abstract class MetadataDocument<E> extends Document {
+public abstract class MetadataDocument<E> extends VitamDocument<E> {
     private static final long serialVersionUID = 7912599149562030658L;
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(MetadataDocument.class);
     /**
-     * Default ID field name
-     */
-    public static final String ID = "_id";
-    /**
-     * document version, initialised to 0
-     */
-    public static final String VERSION = "_v";
-    /**
      * Object Type (text, audio, video, document, image, ...) Unit Type (facture, paye, ...)
      */
     public static final String QUALIFIERS = "_qualifiers";
+    /**
+     * Number of copies or<br>
+     * Number of Immediate child (Unit)
+     */
+    public static final String NBCHILD = "_nbc";
 
     /**
      * Object Type (text, audio, video, document, image, ...) Unit Type (facture, paye, ...)
      */
     public static final String TYPE = "_profil";
-    /**
-     * TenantId
-     */
-    public static final String TENANT_ID = "_tenant";
     /**
      * Parents link (Units or ObjectGroup to parent Units)
      */
@@ -100,6 +92,11 @@ public abstract class MetadataDocument<E> extends Document {
      */
     public static final String ORIGINATING_AGENCIES = "_sps";
 
+    /**
+     * Quick projection for ID and ObjectGroup Only
+     */
+    public static final String[] ES_PROJECTION = {
+        ID, MetadataDocument.NBCHILD, TENANT_ID, SCORE};
 
     /**
      * Empty constructor
@@ -113,8 +110,6 @@ public abstract class MetadataDocument<E> extends Document {
      */
     public MetadataDocument(JsonNode content) {
         super(Document.parse(JsonHandler.unprettyPrint(content)));
-        initFields();
-        checkId();
     }
 
     /**
@@ -124,8 +119,6 @@ public abstract class MetadataDocument<E> extends Document {
      */
     public MetadataDocument(Document content) {
         super(content);
-        initFields();
-        checkId();
     }
 
     /**
@@ -135,28 +128,6 @@ public abstract class MetadataDocument<E> extends Document {
      */
     public MetadataDocument(String content) {
         super(Document.parse(content));
-        initFields();
-        checkId();
-    }
-
-    /**
-     * Make a new instance of the document with the given json
-     * 
-     * @param content document structure as json
-     * @return new document with the json as content
-     */
-    public abstract MetadataDocument<E> newInstance(JsonNode content);
-
-    /**
-     * Init standard values for mandatory fields (as _version)
-     *
-     * @return this
-     */
-    public MetadataDocument<E> initFields() {
-    	if (get(VERSION) == null) {
-    		append(VERSION, 0);
-    	}
-        return this;
     }
 
     /**
@@ -173,22 +144,7 @@ public abstract class MetadataDocument<E> extends Document {
      * @return this MetadataDocument
      */
     public MetadataDocument<E> checkId() {
-        final String id = getId();
-        if (id != null) {
-            try {
-                final int domainId = GUIDReader.getGUID(id).getTenantId();
-                append(TENANT_ID, domainId);
-            } catch (final InvalidGuidOperationException e) {
-                LOGGER.warn(e);
-            }
-        }
-        return this;
-    }
-
-    MetadataDocument<E> testAndCheckId() {
-        if (!containsKey(TENANT_ID)) {
-            return checkId();
-        }
+        append(TENANT_ID, getTenantFixJunit());
         return this;
     }
 
@@ -206,14 +162,6 @@ public abstract class MetadataDocument<E> extends Document {
      */
     public final int getDomainId() {
         return this.getInteger(TENANT_ID);
-    }
-
-    /**
-     *
-     * @return the version
-     */
-    public final int getVersion() {
-        return getInteger(VERSION);
     }
 
     /**
@@ -275,7 +223,7 @@ public abstract class MetadataDocument<E> extends Document {
         try {
             getCollection().updateOne(eq(ID, getId()), update);
         } catch (final MongoException e) {
-            LOGGER.debug(e);
+            LOGGER.warn(e);
             throw new MetaDataExecutionException(e);
         } catch (final IllegalArgumentException e) {
             throw new MetaDataExecutionException(e);
@@ -306,7 +254,7 @@ public abstract class MetadataDocument<E> extends Document {
      */
     @SuppressWarnings("unchecked")
     protected final MetadataDocument<E> insert() throws MetaDataExecutionException {
-        testAndCheckId();
+        checkId();
         try {
             getCollection().insertOne((E) this);
         } catch (final MongoException | IllegalArgumentException e) {
@@ -319,12 +267,12 @@ public abstract class MetadataDocument<E> extends Document {
      * Save the document if new, update it (keeping non set fields, replacing set fields)
      *
      * @return this
-     * @throws MetaDataExecutionException if mongo exception query or illegal argument of query 
+     * @throws MetaDataExecutionException if mongo exception query or illegal argument of query
      */
     @SuppressWarnings("unchecked")
     protected final MetadataDocument<E> updateOrSave()
         throws MetaDataExecutionException {
-        testAndCheckId();
+        checkId();
         final String id = this.getId();
         try {
             if (MongoDbMetadataHelper.exists(getMetadataCollections(), id)) {
@@ -346,7 +294,7 @@ public abstract class MetadataDocument<E> extends Document {
      */
     protected final MetadataDocument<E> forceSave()
         throws MetaDataExecutionException {
-        testAndCheckId();
+        checkId();
         try {
             getCollection().updateOne(eq(ID, getId()), this, new UpdateOptions().upsert(true));
         } catch (final MongoException | IllegalArgumentException e) {
@@ -376,11 +324,6 @@ public abstract class MetadataDocument<E> extends Document {
      */
     public String toStringDirect() {
         return super.toString();
-    }
-
-    @Override
-    public String toString() {
-        return this.getClass().getSimpleName() + ": " + super.toString();
     }
 
     /**

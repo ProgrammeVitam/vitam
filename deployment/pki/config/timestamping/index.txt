@@ -15,3 +15,6 @@ V	200305180417Z		B1	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=logbook.service.con
 V	270313121842Z		B2	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=CA_timestamping
 V	270313121843Z		B3	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=CA_timestamping
 V	200314121849Z		B4	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=logbook.service.consul
+V	270710142905Z		B5	unknown	/C=fr/ST=idf/L=paris/O=vitam/OU=authorities/CN=ca_root_timestamping
+V	270710142907Z		B6	unknown	/C=fr/ST=idf/L=paris/O=vitam/OU=authorities/CN=ca_intermediate_timestamping
+V	200711142954Z		B7	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=secure-logbook

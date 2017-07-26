@@ -7,12 +7,12 @@
     name: kibana
     state: latest
   notify:
-    - systemctl reload-daemon
     - restart kibana
 
 - name: Add kibana autostart at boot
-  service:
+  systemd:
     name: kibana
+    daemon_reload: yes
     enabled: yes
   notify:
     - restart kibana
@@ -60,5 +60,4 @@
     mode: "{{vitam_conf_permission}}"
   notify:
    - reload consul configuration
-
 

@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>access</artifactId>
-		<version>0.21.0-SNAPSHOT</version>
+		<version>0.22.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>access-internal</artifactId>
 	<packaging>pom</packaging>

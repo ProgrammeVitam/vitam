@@ -39,6 +39,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.gc.iotools.stream.is.InputStreamFromOutputStream;
 
+import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.error.VitamCode;
@@ -70,7 +71,6 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
-import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -110,6 +110,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
 
     private boolean metadatasUpdated = false;
     String eventDetailData;
+    private boolean asyncIO = false;
 
     /**
      * Empty constructor
@@ -198,7 +199,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                 }) {
                     handlerIO.transferInputStreamToWorkspace(
                         IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName(),
-                        isos);
+                        isos, null, asyncIO);
                 } catch (final IOException e) {
                     throw new ProcessingException("Issue while reading/writing the ObjectGroup", e);
                 }

@@ -1,0 +1,92 @@
+<div id="global" class="container-fluid">
+    <ol class="breadcrumb">
+        <li>Administration</li>
+        <li><a href="#!/admin/contexts">Contextes applicatifs</a></li>
+    </ol>
+
+    <div class="boxSearchWrapper panel panel-default col-md-12">
+        <a class="panel-header" data-target="#boxSearch" data-toggle="collapse">
+            <h2>Contextes applicatifs</h2>
+        </a>
+        <div id="boxSearch" class="panel-body panel-collapse collapse in">
+            <form id="boxEntriesSearchForm" class="panel-body panel-collapse collapse in" ng-submit="getList()">
+                <div class="row">
+                    <div class="boxSimpleSearchInput form-group col-md-12 m-b-50" style="width: 40%; margin-left: 0px">
+                        <label for="entryName">Nom du contexte</label>
+                        <input ng-model="search.form.ContextName" type="text" name="entryName" class="form-control" ng-change="onInputChange()"/>
+                    </div>
+
+                    <div class="boxSimpleSearchInput form-group col-md-4 m-b-50" style="width: 40%; margin-left: 0px">
+                        <label for="entryType">Identifiant</label>
+                        <input ng-model="search.form.ContextID" type="text" name="entryName" class="form-control" ng-change="onInputChange()"/>
+                    </div>
+                </div>
+                <div>
+                    <div class="col-md-2"><!-- Blank zone --></div>
+                    <div class="col-md-3">
+                        <button class="btn btn-default" type="reset" ng-click="reinitForm()"><i class="material-icons pull-left">clear</i><span>Effacer</span></button>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-primary" type="submit"><i class="material-icons pull-left">search</i><span>Rechercher</span></button>
+                    </div>
+                </div>
+            </form>
+            <button ng-if="search.error.displayMessage" class="btn btn-danger center-block" type="button" style="margin-top: 20px">
+                {{search.error.message}}
+            </button>
+        </div>
+    </div>
+
+    <search-pagination pagination-scope="search.pagination" search-function="getList"></search-pagination>
+
+    <div class="panel panel-default col-md-12 dynamic-table-box">
+        <a class="panel-header">
+            <h2> Résultats <span ng-if="search.response.totalResult == 0 || search.response.totalResult > 0">({{search.response.totalResult}})</span></h2>
+        </a>
+
+        <div id="boxEntriesList" class="panel-body panel-collapse collapse in">
+            <dynamic-table custom-fields="search.dynamicTable.customFields" selected-objects="search.dynamicTable.selectedObjects">
+            </dynamic-table>
+            <div class="table-responsive">
+                <table class="table highlighted">
+                    <tr>
+                        <th>Nom</th>
+                        <th>Identifiant</th>
+                        <th>Statut</th>
+                        <th>Date d'activation</th>
+                        <th>Date désactivation</th>
+                        <th>Date de création</th>
+                        <th>Dernière modification</th>
+                        <th ng-repeat="column in search.dynamicTable.selectedObjects">{{column.label | translate}}</th>
+                    </tr>
+
+                    <tbody ng-repeat="context in search.response.data | orderBy:'Name' | startFrom:startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage, search.pagination.startOffset) | limitTo:search.pagination.itemsPerPage">
+                    <tr ng-click="goToDetails(context.Identifier)">
+                        <td>{{context.Name}}</td>
+                        <td>{{context.Identifier}}</td>
+                        <td>{{context.Status | StatusFilter }}</td>
+                        <td>{{context.ActivationDate | vitamFormatDate}}</td>
+                        <td>{{context.DeactivationDate | vitamFormatDate}}</td>
+                        <td>{{context.CreationDate | vitamFormatDate}}</td>
+                        <td>{{context.LastUpdate | vitamFormatDate}}</td>
+                        <!-- Dynamic columns values -->
+                        <td ng-show="shouldShowItem('_id')">
+                            {{context._id}}
+                        </td>
+                        <td ng-show="shouldShowItem('hasAccesContract')">
+                            <i ng-if="context.hasAccesContract" class="material-icons">done</i>
+                            <i ng-if="!context.hasAccesContract" class="material-icons">close</i>
+                        </td>
+                        <td ng-show="shouldShowItem('hasIngestContract')">
+                            <i ng-if="context.hasIngestContract" class="material-icons">done</i>
+                            <i ng-if="!context.hasIngestContract" class="material-icons">close</i>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+    </div>
+
+</div>

@@ -29,6 +29,7 @@ package fr.gouv.vitam.metadata.core.database.collections;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
@@ -56,10 +57,6 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
      */
     @Override
     public String getVariableName(String name) throws InvalidParseOperationException {
-        // FIXME P1 INSERT should generate #id, #mgt, ...
-        /*
-         * final String newname = null; newname = super.getVariableName(name); if (newname != null) { return newname; }
-         */
         if (name.charAt(0) == ParserTokens.DEFAULT_HASH_PREFIX_CHAR) {
             // Check on prefix (preceding '.')
             int pos = name.indexOf('.');
@@ -80,11 +77,10 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                         return Unit.APPRAISALRULES + extension;
                     case FORMAT:
                         // Valid for OG
-                        // FIXME P2 not valid
-                        return ObjectGroup.OBJECTFORMAT + extension;
+                        return ObjectGroup.OBJECTFORMAT;
                     case ID:
                         // Valid for Unit and OG
-                        return MetadataDocument.ID;
+                        return VitamDocument.ID;
                     case QUALIFIERS:
                         // Valid for OG
                         return MetadataDocument.QUALIFIERS + extension;
@@ -93,17 +89,16 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                         return Unit.NBCHILD;
                     case NBOBJECTS:
                         // Valid for OG
-                        return ObjectGroup.NB_COPY;
+                        return ObjectGroup.NBCHILD;
                     case SIZE:
                         // Valid for OG
-                        // FIXME P2 not valid
                         return ObjectGroup.OBJECTSIZE;
                     case TYPE:
                         // Valid for Unit and OG
                         return MetadataDocument.TYPE;
                     case TENANT:
                         // Valid for Unit and OG
-                        return MetadataDocument.TENANT_ID;
+                        return VitamDocument.TENANT_ID;
                     case OBJECT:
                         // Valid for Unit
                         return MetadataDocument.OG;
@@ -140,13 +135,15 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                     case STORAGE:
                         // Valid for OG an Unit
                         return ObjectGroup.STORAGE + extension;
+                    case SCORE:
+                        return VitamDocument.SCORE;
                     case ALL:
                     default:
                         break;
                 }
 
             } catch (final IllegalArgumentException e) {
-                throw new InvalidParseOperationException(e);
+                throw new InvalidParseOperationException("Name: " + name, e);
             }
         }
         return null;

@@ -45,12 +45,13 @@ angular.module('dsl.query.test')
     	return {headers : {'X-Tenant-Id' : tenantService.getTenant()}} 
     };
 
-    var getRequestHeader = function (tenantId, contractId, requestedCollection, requestMethod, objectId) {
+    var getRequestHeader = function (tenantId, contractId, requestedCollection, requestMethod, xAction, objectId) {
       return { headers : {
         'X-Tenant-Id' : tenantId,
         'X-Access-Contract-Id' : contractId,
         'X-Requested-Collection' : requestedCollection,
         'X-Http-Method-Override' : requestMethod,
+        'X-Action' : xAction,
         'X-Object-Id': objectId
       }}
     }
@@ -59,11 +60,9 @@ angular.module('dsl.query.test')
       return $http.post(IHM_DSL_URLS.IHM_BASE_URL + "/" + IHM_DSL_URLS.ACCESS_CONTRACTS , '{ContractID: "all", ContractName: "all", orderby: {field: "Name", sortType: "ASC"}}', getTenantHeader());
     };
 
-    DslQueryResource.executeRequest = function(tenantId, contractId, requestedCollection, requestMethod, query, objectId) {
-      console.log("objectId => ", objectId);
-      console.log("getRequestHeader(tenantId, contractId, requestedCollection, requestMethod) => ", getRequestHeader(tenantId, contractId, requestedCollection, requestMethod));
+    DslQueryResource.executeRequest = function(tenantId, contractId, requestedCollection, requestMethod, xAction, query, objectId) {
       return $http.post(IHM_DSL_URLS.IHM_BASE_URL + "/" + IHM_DSL_URLS.DSL_QUERY_TEST , query,
-                               getRequestHeader(tenantId, contractId, requestedCollection, requestMethod, objectId));
+                               getRequestHeader(tenantId, contractId, requestedCollection, requestMethod, xAction, objectId));
 
     }
 

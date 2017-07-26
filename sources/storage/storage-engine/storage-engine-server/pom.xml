@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>storage-engine</artifactId>
-		<version>0.21.0-SNAPSHOT</version>
+		<version>0.22.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>storage-engine-server</artifactId>
 	<name>Storage Engine Server</name>
@@ -178,7 +178,7 @@
 					<archive>
 						<manifest>
 							<addClasspath>true</addClasspath>
-							<mainClass>fr.gouv.vitam.storage.engine.server.rest.StorageApplication</mainClass>
+							<mainClass>fr.gouv.vitam.storage.engine.server.rest.StorageMain</mainClass>
 						</manifest>
 					</archive>
 				</configuration>

@@ -369,7 +369,7 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
         client.selectObjectGrouptbyId(JsonHandler.getFromString(VALID_QUERY), "ogId");
     }
 
-    @Test(expected = MetadataInvalidSelectException.class)
+    @Test(expected = InvalidParseOperationException.class)
     public void given_InvalidRequest_When_SelectObjectGroupById_ThenReturn_PreconditionFailed() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         client.selectObjectGrouptbyId(JsonHandler.getFromString(VALID_QUERY), "ogId");

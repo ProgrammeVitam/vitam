@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>fr.gouv.vitam</groupId>
 	<artifactId>parent</artifactId>
-	<version>0.21.0-SNAPSHOT</version>
+	<version>0.22.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>vitam-parent</name>
 	<description>${project.artifactId}</description>
@@ -40,6 +40,7 @@
 		<module>storage-integration-test</module>
 		<module>storage-integration-nossl-test</module>
 		<module>functional-test</module>
+		<module>functional-tnr</module>
 	</modules>
 
 
@@ -934,6 +935,14 @@
 				<artifactId>jersey-server</artifactId>
 				<version>${jersey.version}</version>
 			</dependency>
+
+			<dependency>
+				<groupId>org.jboss.resteasy</groupId>
+				<artifactId>resteasy-jaxrs</artifactId>
+				<version>${resteasy.client.version}</version>
+			</dependency>
+
+
 			<dependency>
 				<groupId>org.jboss.resteasy</groupId>
 				<artifactId>resteasy-client</artifactId>
@@ -1021,6 +1030,11 @@
 			<dependency>
 				<groupId>org.apache.httpcomponents</groupId>
 				<artifactId>httpclient</artifactId>
+				<version>${httpclient.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+			    <artifactId>httpclient-cache</artifactId>
 				<version>${httpclient.version}</version>
 			</dependency>
 			<dependency>

@@ -26,10 +26,28 @@
  */
 package fr.gouv.vitam.functional.administration.contract.core;
 
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.in;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.UNITTYPE;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.ws.rs.core.Response;
+
+import org.bson.conversions.Bson;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.mongodb.client.MongoCursor;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -38,8 +56,9 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
-import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
+import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
+import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
@@ -51,6 +70,7 @@ import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.AbstractContractModel;
 import fr.gouv.vitam.common.model.ContractStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -64,6 +84,7 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
+import fr.gouv.vitam.functional.administration.counter.SequenceType;
 import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
@@ -78,34 +99,16 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 
-import org.bson.conversions.Bson;
-
-import javax.ws.rs.core.Response;
-
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.in;
-import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.UNITTYPE;
-
 public class IngestContractImpl implements ContractService<IngestContractModel> {
 
+    private static final String THE_INGEST_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT = "The Ingest contract status must be ACTIVE or INACTIVE but not ";
+    private static final String INGEST_CONTRACT_NOT_FIND = "Ingest contract not find";
     private static final String CONTRACT_IS_MANDATORY_PATAMETER = "The collection of ingest contracts is mandatory";
     private static final String CONTRACTS_IMPORT_EVENT = "STP_IMPORT_INGEST_CONTRACT";
     private static final String CONTRACT_UPDATE_EVENT = "STP_UPDATE_INGEST_CONTRACT";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestContractImpl.class);
     private final MongoDbAccessAdminImpl mongoAccess;
-    private LogbookOperationsClient logBookclient;
+    private final LogbookOperationsClient logBookclient;
 
     private static final String FILING_UNIT = "FILING_UNIT";
     private final VitamCounterService vitamCounterService;
@@ -119,10 +122,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
     public IngestContractImpl(MongoDbAccessAdminImpl dbConfiguration, VitamCounterService vitamCounterService) {
         mongoAccess = dbConfiguration;
         this.vitamCounterService = vitamCounterService;
-        this.logBookclient = LogbookOperationsClientFactory.getInstance().getClient();
+        logBookclient = LogbookOperationsClientFactory.getInstance().getClient();
     }
-
-
 
 
 
@@ -135,7 +136,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             return new RequestResponseOK<>();
         }
 
-        IngestContractImpl.IngestContractManager manager = new IngestContractImpl.IngestContractManager(logBookclient);
+        final IngestContractImpl.IngestContractManager manager =
+            new IngestContractImpl.IngestContractManager(logBookclient);
 
         manager.logStarted();
 
@@ -168,7 +170,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     continue;
                 }
 
-                String filingParentId = acm.getFilingParentId();
+                final String filingParentId = acm.getFilingParentId();
                 if (filingParentId != null) {
                     if (!checkIfAUInFilingSchema(metadataClient, filingParentId)) {
                         error
@@ -199,19 +201,19 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             if (null != error.getErrors() && !error.getErrors().isEmpty()) {
                 // log book + application log
                 // stop
-                String errorsDetails =
+                final String errorsDetails =
                     error.getErrors().stream().map(c -> c.getMessage()).collect(Collectors.joining(","));
-                manager.logValidationError(errorsDetails);
+                manager.logValidationError(errorsDetails, CONTRACTS_IMPORT_EVENT);
                 return error;
             }
 
             contractsToPersist = JsonHandler.createArrayNode();
             for (final IngestContractModel acm : contractModelList) {
-                String code = vitamCounterService.getNextSequence(ParameterHelper.getTenantParameter(),"IC");
+               final String code = vitamCounterService.getNextSequenceAsString(ParameterHelper.getTenantParameter(), SequenceType.INGEST_CONTRACT_SEQUENCE.getName());
                 acm.setIdentifier(code);
                 final JsonNode accessContractNode = JsonHandler.toJsonNode(acm);
 
-                    /* contract is valid, add it to the list to persist */
+                /* contract is valid, add it to the list to persist */
                 contractsToPersist.add(accessContractNode);
             }
 
@@ -220,10 +222,11 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             // contractsToPersist.values().stream().map();
             // TODO: 3/28/17 create insertDocuments method that accepts VitamDocument instead of ArrayNode, so we can
             // use IngestContract at this point
-            mongoAccess.insertDocuments(contractsToPersist, FunctionalAdminCollections.INGEST_CONTRACT);
+            mongoAccess.insertDocuments(contractsToPersist, FunctionalAdminCollections.INGEST_CONTRACT).close();
 
-        } catch (Exception exp) {
-            String err = new StringBuilder("Import ingest contracts error > ").append(exp.getMessage()).toString();
+        } catch (final Exception exp) {
+            final String err =
+                new StringBuilder("Import ingest contracts error > ").append(exp.getMessage()).toString();
             manager.logFatalError(err);
             return error.setCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem()).setDescription(err).setHttpCode(
                 Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
@@ -239,46 +242,35 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
     @Override
     public IngestContractModel findOne(String id)
         throws ReferentialException, InvalidParseOperationException {
-
-        final SelectParserSingle parser = new SelectParserSingle(new VarNameAdapter());
+        SanityChecker.checkParameter(id);
+        final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
         parser.parse(new Select().getFinalSelect());
         try {
             parser.addCondition(QueryHelper.eq("Identifier", id));
         } catch (InvalidCreateOperationException e) {
             throw new ReferentialException(e);
         }
-        JsonNode queryDsl = parser.getRequest().getFinalSelect();
 
-        MongoCursor<VitamDocument<?>> cursor =
-            mongoAccess.findDocuments(queryDsl, FunctionalAdminCollections.INGEST_CONTRACT);
-        if (null == cursor)
-            return null;
-
-        while (cursor.hasNext()) {
-            final IngestContract ingestContract = (IngestContract) cursor.next();
-            return JsonHandler.getFromString(ingestContract.toJson(), IngestContractModel.class);
+        try (DbRequestResult result =
+            mongoAccess.findDocuments(parser.getRequest().getFinalSelect(),
+                FunctionalAdminCollections.INGEST_CONTRACT)) {
+            final List<IngestContractModel> list = result.getDocuments(IngestContract.class, IngestContractModel.class);
+            if (list.isEmpty()) {
+                return null;
+            }
+            return list.get(0);
         }
-
-        return null;
     }
 
     @Override
-    public List<IngestContractModel> findContracts(JsonNode queryDsl)
+    public RequestResponseOK<IngestContractModel> findContracts(JsonNode queryDsl)
         throws ReferentialException, InvalidParseOperationException {
-        final List<IngestContractModel> ingestContractModelCollection = new ArrayList<>();
-        MongoCursor<VitamDocument<?>> cursor =
-            mongoAccess.findDocuments(queryDsl, FunctionalAdminCollections.INGEST_CONTRACT);
-
-        if (null == cursor)
-            return ingestContractModelCollection;
-
-        while (cursor.hasNext()) {
-            final IngestContract ingestContract = (IngestContract) cursor.next();
-            ingestContractModelCollection.add(JsonHandler.getFromString(ingestContract.toJson(),
-                IngestContractModel.class));
+        SanityChecker.checkJsonAll(queryDsl);
+        try (DbRequestResult result =
+            mongoAccess.findDocuments(queryDsl, FunctionalAdminCollections.INGEST_CONTRACT)) {
+            return result.getRequestResponseOK(IngestContract.class, IngestContractModel.class)
+                .setQuery(queryDsl);
         }
-
-        return ingestContractModelCollection;
     }
 
     /**
@@ -293,7 +285,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         private GUID eip = null;
 
-        private LogbookOperationsClient logBookclient;
+        private final LogbookOperationsClient logBookclient;
 
         public IngestContractManager(LogbookOperationsClient logBookclient) {
             this.logBookclient = logBookclient;
@@ -302,8 +294,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         private boolean validateContract(IngestContractModel contract, String jsonFormat,
             VitamError error) {
 
-            for (GenericContractValidator validator : validators) {
-                Optional<GenericContractValidator.GenericRejectionCause> result =
+            for (final GenericContractValidator validator : validators) {
+                final Optional<GenericContractValidator.GenericRejectionCause> result =
                     validator.validate(contract, jsonFormat);
                 if (result.isPresent()) {
                     // there is a validation error on this contract
@@ -320,15 +312,15 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
         /**
          * Log validation error (business error)
-         * 
+         *
          * @param errorsDetails
          */
-        private void logValidationError(String errorsDetails) throws VitamException {
+        private void logValidationError(final String errorsDetails, final String eventType) throws VitamException {
             LOGGER.error("There validation errors on the input file {}", errorsDetails);
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
-                .newLogbookOperationParameters(eip, CONTRACTS_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
+                .newLogbookOperationParameters(eip, eventType, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.KO,
-                    VitamLogbookMessages.getCodeOp(CONTRACTS_IMPORT_EVENT, StatusCode.KO), eip);
+                    VitamLogbookMessages.getCodeOp(eventType, StatusCode.KO), eip);
             logbookMessageError(errorsDetails, logbookParameters);
             helper.updateDelegate(logbookParameters);
             logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
@@ -336,7 +328,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
         /**
          * log fatal error (system or technical error)
-         * 
+         *
          * @param errorsDetails
          * @throws VitamException
          */
@@ -347,7 +339,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     StatusCode.FATAL,
                     VitamLogbookMessages.getCodeOp(CONTRACTS_IMPORT_EVENT, StatusCode.FATAL), eip);
             logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, CONTRACTS_IMPORT_EVENT + "." +
-                    StatusCode.FATAL);
+                StatusCode.FATAL);
             logbookMessageError(errorsDetails, logbookParameters);
             helper.updateDelegate(logbookParameters);
             logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
@@ -362,7 +354,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
                     final String wellFormedJson = SanityChecker.sanitizeJson(object);
                     logbookParameters.putParameterValue(LogbookParameterName.eventDetailData, wellFormedJson);
-                } catch (InvalidParseOperationException e) {
+                } catch (final InvalidParseOperationException e) {
                     // Do nothing
                 }
             }
@@ -370,7 +362,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
         /**
          * log start process
-         * 
+         *
          * @throws VitamException
          */
         private void logStarted() throws VitamException {
@@ -380,14 +372,14 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     StatusCode.STARTED,
                     VitamLogbookMessages.getCodeOp(CONTRACTS_IMPORT_EVENT, StatusCode.STARTED), eip);
             logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, CONTRACTS_IMPORT_EVENT + "." +
-                    StatusCode.STARTED);
+                StatusCode.STARTED);
             helper.createDelegate(logbookParameters);
 
         }
 
         /**
          * log end success process
-         * 
+         *
          * @throws VitamException
          */
         private void logSuccess() throws VitamException {
@@ -396,14 +388,14 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     StatusCode.OK,
                     VitamLogbookMessages.getCodeOp(CONTRACTS_IMPORT_EVENT, StatusCode.OK), eip);
             logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, CONTRACTS_IMPORT_EVENT + "." +
-                    StatusCode.OK);
+                StatusCode.OK);
             helper.updateDelegate(logbookParameters);
             logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
         }
 
         /**
          * log update start process
-         * 
+         *
          * @throws VitamException
          */
         private void logUpdateStarted(String id) throws VitamException {
@@ -428,7 +420,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             msg.put("oldValue", oldValue);
             msg.put("newValue", updateEventDetailData);
             evDetData.put("IngestContract", msg);
-            String wellFormedJson = SanityChecker.sanitizeJson(evDetData);
+            final String wellFormedJson = SanityChecker.sanitizeJson(evDetData);
             final LogbookOperationParameters logbookParameters =
                 LogbookParametersFactory
                     .newLogbookOperationParameters(
@@ -464,7 +456,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                         GenericContractValidator.GenericRejectionCause.rejectMandatoryMissing(IngestContract.NAME);
                 }
 
-                return (rejection == null) ? Optional.empty() : Optional.of(rejection);
+                return rejection == null ? Optional.empty() : Optional.of(rejection);
             };
         }
 
@@ -476,10 +468,10 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         private static GenericContractValidator createWrongFieldFormatValidator() {
             return (contract, inputList) -> {
                 GenericContractValidator.GenericRejectionCause rejection = null;
-                DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE.ofPattern("dd/MM/yyyy");
+                final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
 
-                String now = LocalDateUtil.now().toString();
+                final String now = LocalDateUtil.now().toString();
                 if (contract.getStatus() == null || contract.getStatus().isEmpty()) {
                     contract.setStatus(ContractStatus.INACTIVE.name());
                 }
@@ -501,7 +493,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                             LocalDate.parse(contract.getCreationdate(), formatter).atStartOfDay().toString());
                     }
 
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     LOGGER.error("Error ingest contract parse dates", e);
                     rejection = GenericContractValidator.GenericRejectionCause.rejectMandatoryMissing("Creationdate");
                 }
@@ -513,7 +505,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                             LocalDate.parse(contract.getActivationdate(), formatter).atStartOfDay().toString());
 
                     }
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     LOGGER.error("Error ingest contract parse dates", e);
                     rejection = GenericContractValidator.GenericRejectionCause.rejectMandatoryMissing("ActivationDate");
                 }
@@ -526,7 +518,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                         contract.setDeactivationdate(
                             LocalDate.parse(contract.getDeactivationdate(), formatter).atStartOfDay().toString());
                     }
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     LOGGER.error("Error ingest contract parse dates", e);
                     rejection =
                         GenericContractValidator.GenericRejectionCause.rejectMandatoryMissing("deactivationdate");
@@ -534,7 +526,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
                 contract.setLastupdate(now);
 
-                return (rejection == null) ? Optional.empty() : Optional.of(rejection);
+                return rejection == null ? Optional.empty() : Optional.of(rejection);
             };
         }
 
@@ -547,13 +539,14 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         private static GenericContractValidator createCheckDuplicateInDatabaseValidator() {
             return (contract, contractName) -> {
                 GenericContractValidator.GenericRejectionCause rejection = null;
-                int tenant = ParameterHelper.getTenantParameter();
-                Bson clause = and(eq(VitamDocument.TENANT_ID, tenant), eq(IngestContract.NAME, contract.getName()));
-                boolean exist = FunctionalAdminCollections.INGEST_CONTRACT.getCollection().count(clause) > 0;
+                final int tenant = ParameterHelper.getTenantParameter();
+                final Bson clause =
+                    and(eq(VitamDocument.TENANT_ID, tenant), eq(IngestContract.NAME, contract.getName()));
+                final boolean exist = FunctionalAdminCollections.INGEST_CONTRACT.getCollection().count(clause) > 0;
                 if (exist) {
                     rejection = GenericContractValidator.GenericRejectionCause.rejectDuplicatedInDatabase(contractName);
                 }
-                return (rejection == null) ? Optional.empty() : Optional.of(rejection);
+                return rejection == null ? Optional.empty() : Optional.of(rejection);
             };
         }
 
@@ -568,16 +561,16 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     return Optional.empty();
                 }
                 GenericContractValidator.GenericRejectionCause rejection = null;
-                int tenant = ParameterHelper.getTenantParameter();
-                Bson clause =
+                final int tenant = ParameterHelper.getTenantParameter();
+                final Bson clause =
                     and(eq(VitamDocument.TENANT_ID, tenant), in(Profile.IDENTIFIER, contract.getArchiveProfiles()));
-                long count = FunctionalAdminCollections.PROFILE.getCollection().count(clause);
+                final long count = FunctionalAdminCollections.PROFILE.getCollection().count(clause);
                 if (count != contract.getArchiveProfiles().size()) {
                     rejection =
                         GenericContractValidator.GenericRejectionCause
                             .rejectArchiveProfileNotFoundInDatabase(contractName);
                 }
-                return (rejection == null) ? Optional.empty() : Optional.of(rejection);
+                return rejection == null ? Optional.empty() : Optional.of(rejection);
             };
         }
 
@@ -601,28 +594,29 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         if (queryDsl == null || !queryDsl.isObject()) {
             return error;
         }
-        IngestContractModel ingestContractModel = findOne(id);
+
+        final IngestContractModel ingestContractModel = findOne(id);
         if (ingestContractModel == null) {
             return error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
-                "Access contract not find" + id));
+                INGEST_CONTRACT_NOT_FIND + id));
         }
         final IngestContractManager manager = new IngestContractManager(logBookclient);
         manager.logUpdateStarted(ingestContractModel.getId());
 
-        JsonNode actionNode = queryDsl.get(GLOBAL.ACTION.exactToken());
+        final JsonNode actionNode = queryDsl.get(GLOBAL.ACTION.exactToken());
         String updateStatus = null;
-        for (JsonNode fieldToSet : actionNode) {
-            JsonNode fieldName = fieldToSet.get(UPDATEACTION.SET.exactToken());
+        for (final JsonNode fieldToSet : actionNode) {
+            final JsonNode fieldName = fieldToSet.get(UPDATEACTION.SET.exactToken());
             if (fieldName != null) {
-                Iterator<String> it = fieldName.fieldNames();
+                final Iterator<String> it = fieldName.fieldNames();
                 while (it.hasNext()) {
-                    String field = it.next();
-                    JsonNode value = fieldName.findValue(field);
-                    if ("Status".equals(field)) {
+                    final String field = it.next();
+                    final JsonNode value = fieldName.findValue(field);
+                    if (AbstractContractModel.STATUS.equals(field)) {
                         if (!(ContractStatus.ACTIVE.name().equals(value.asText()) || ContractStatus.INACTIVE
                             .name().equals(value.asText()))) {
                             error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem())
-                                .setMessage("The Ingest contract status must be ACTIVE or INACTIVE but not " +
+                                .setMessage(THE_INGEST_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT +
                                     value.asText()));
                         }
                         updateStatus = value.asText();
@@ -632,8 +626,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         }
 
         try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
-            if (queryDsl.get("FilingParentId") != null) {
-                String filingParentId = queryDsl.get("FilingParentId").asText();
+            if (queryDsl.findValue(IngestContractModel.FILING_PARENT_ID) != null) {
+                final String filingParentId = queryDsl.findValue(IngestContractModel.FILING_PARENT_ID).asText();
                 if (filingParentId != null) {
                     if (!checkIfAUInFilingSchema(metadataClient, filingParentId)) {
                         error
@@ -642,20 +636,20 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                                     .rejectWrongFilingParentId(filingParentId)
                                     .getReason()));
 
-                        String errorsDetails =
+                        final String errorsDetails =
                             error.getErrors().stream().map(c -> c.getMessage()).collect(Collectors.joining(","));
-                        manager.logValidationError(errorsDetails);
+                        manager.logValidationError(errorsDetails, CONTRACT_UPDATE_EVENT);
                     }
                 }
             }
 
-            final JsonNode archiveProfilesNode = queryDsl.get("archiveProfiles");
+            final JsonNode archiveProfilesNode = queryDsl.findValue(IngestContractModel.ARCHIVE_PROFILES);
             if (archiveProfilesNode != null) {
-                Set<String> archiveProfiles =
+                final Set<String> archiveProfiles =
                     JsonHandler.getFromString(archiveProfilesNode.toString(), Set.class, String.class);
-                GenericContractValidator<IngestContractModel> validator =
-                    manager.createCheckProfilesExistsInDatabaseValidator();
-                Optional<GenericContractValidator.GenericRejectionCause> result =
+                final GenericContractValidator<IngestContractModel> validator =
+                    IngestContractManager.createCheckProfilesExistsInDatabaseValidator();
+                final Optional<GenericContractValidator.GenericRejectionCause> result =
                     validator.validate(new IngestContractModel().setArchiveProfiles(archiveProfiles),
                         "update contract ..");
                 if (result.isPresent()) {
@@ -667,16 +661,15 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             }
 
             if (error.getErrors() != null && error.getErrors().size() > 0) {
-                String errorsDetails =
+                final String errorsDetails =
                     error.getErrors().stream().map(c -> c.getMessage()).collect(Collectors.joining(","));
-                manager.logValidationError(errorsDetails);
+                manager.logValidationError(errorsDetails, CONTRACT_UPDATE_EVENT);
 
                 return error;
             }
-
-            mongoAccess.updateData(queryDsl, FunctionalAdminCollections.INGEST_CONTRACT);
+            mongoAccess.updateData(queryDsl, FunctionalAdminCollections.INGEST_CONTRACT).close();
         } catch (ReferentialException | InvalidCreateOperationException e) {
-            String err = new StringBuilder("Update ingest contracts error > ").append(e.getMessage()).toString();
+            final String err = new StringBuilder("Update ingest contracts error > ").append(e.getMessage()).toString();
             manager.logFatalError(err);
             error.setCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem())
                 .setDescription(err)
@@ -687,30 +680,13 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         manager.logUpdateSuccess(id, updateStatus, ingestContractModel.getStatus());
         return new RequestResponseOK<>();
     }
-    
-//    private String createWellFormedJson(String oldStatus, String newStatus){
-//        String wellFormedJson = null;
-//        try {
-//            final ObjectNode object = JsonHandler.createObjectNode();
-//            final ArrayNode msg = JsonHandler.createArrayNode();
-//            msg.add("AccessContract");
-//            msg.a("oldStatus", oldStatus);
-//            msg.put("newStatus", newStatus);
-//            object.put("AccessContract", msg);
-//
-//            wellFormedJson = SanityChecker.sanitizeJson(object);
-//        } catch (InvalidParseOperationException e) {
-//            //Do nothing
-//        }
-//        return wellFormedJson;
-//    }
 
     private boolean checkIfAUInFilingSchema(MetaDataClient metadataClient, String id)
         throws InvalidCreateOperationException, MetaDataExecutionException, MetaDataDocumentSizeException,
         MetaDataClientServerException, InvalidParseOperationException {
-        Select select = new Select();
+        final Select select = new Select();
         select.setQuery(QueryHelper.eq(UNITTYPE.exactToken(), FILING_UNIT).setDepthLimit(0));
-        JsonNode queryDsl = select.getFinalSelect();
+        final JsonNode queryDsl = select.getFinalSelect();
         // if the filing id is in the filing schema
         if (metadataClient.selectUnitbyId(queryDsl, id).get("$hits").get("size").asInt() == 0) {
             return false;

@@ -32,6 +32,7 @@ import static com.jayway.restassured.RestAssured.with;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assume.assumeTrue;
+import static org.mockito.Mockito.mock;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -42,6 +43,16 @@ import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
+import fr.gouv.vitam.functional.administration.rules.core.RulesManagerFileImpl;
+import fr.gouv.vitam.functional.administration.rules.core.RulesSecurisator;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.glassfish.jersey.server.ResourceConfig;
 import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -91,6 +102,7 @@ import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccess
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 
 
 public class AdminManagementResourceTest {
@@ -127,6 +139,8 @@ public class AdminManagementResourceTest {
     static MongoDbAccessReferential mongoDbAccess;
     static String DATABASE_NAME = "vitam-test";
     private static String DATABASE_HOST = "localhost";
+    private static VitamCounterService vitamCounterService;
+    private static MongoDbAccessAdminImpl dbImpl;
 
     private InputStream stream;
     private static JunitHelper junitHelper;
@@ -134,6 +148,8 @@ public class AdminManagementResourceTest {
     private static int databasePort;
     private static File adminConfigFile;
     private static AdminManagementApplication application;
+    private static WorkspaceClientFactory workspaceClientFactory;
+    private static WorkspaceClient workspaceClient;
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -169,6 +185,7 @@ public class AdminManagementResourceTest {
         final List<ElasticsearchNode> nodesEs = new ArrayList<>();
         nodesEs.add(new ElasticsearchNode("localhost", configEs.getTcpPort()));
         esClient = new ElasticsearchAccessFunctionalAdmin(CLUSTER_NAME, nodesEs);
+        LogbookOperationsClientFactory.changeMode(null);
 
         final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
         final AdminManagementConfiguration realAdminConfig =
@@ -194,11 +211,41 @@ public class AdminManagementResourceTest {
 
         RestAssured.port = serverPort;
         RestAssured.basePath = RESOURCE_URI;
+        workspaceClient = mock(WorkspaceClient.class);
+        workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        workspaceClient = mock(WorkspaceClient.class);
+        dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
+        List tenants = new ArrayList<>();
+        tenants.add(new Integer(TENANT_ID));
+        tenants.add(new Integer(1));
+        vitamCounterService = new VitamCounterService(dbImpl, tenants);
+        RulesSecurisator securisator = mock(RulesSecurisator.class);
+
 
         try {
-            application = new AdminManagementApplication(adminConfigFile.getAbsolutePath());
+            application = new AdminManagementApplication(adminConfigFile.getAbsolutePath()) {
+                @Override
+                protected void registerInResourceConfig(ResourceConfig resourceConfig) {
+
+                    final AdminManagementResource resource = new AdminManagementResource(getConfiguration(), securisator);
+                    final MongoDbAccessAdminImpl mongoDbAccess = resource.getLogbookDbAccess();
+                    resource.setVitamCounterService(vitamCounterService);
+
+                    final ProfileResource profileResource = new ProfileResource(getConfiguration(), mongoDbAccess,vitamCounterService);
+                    try {
+                        resourceConfig
+                            .register(resource)
+                            .register(new ContractResource(mongoDbAccess, vitamCounterService))
+                            .register(new ContextResource(mongoDbAccess, vitamCounterService))
+                            .register(profileResource);
+                    } catch (VitamException e) {
+                        e.printStackTrace();
+                    }
+                }
+            };
             application.start();
             JunitHelper.unsetJettyPortSystemProperty();
+
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException(
@@ -223,8 +270,8 @@ public class AdminManagementResourceTest {
 
     @After
     public void tearDown() throws Exception {
-        mongoDbAccess.deleteCollection(FunctionalAdminCollections.FORMATS);
-        mongoDbAccess.deleteCollection(FunctionalAdminCollections.RULES);
+        mongoDbAccess.deleteCollection(FunctionalAdminCollections.FORMATS).close();
+        mongoDbAccess.deleteCollection(FunctionalAdminCollections.RULES).close();
     }
 
     @Test
@@ -300,7 +347,7 @@ public class AdminManagementResourceTest {
         contractModel.setName(contractId);
         contractModel.setStatus(ContractStatus.ACTIVE.name());
 
-        mongoDbAccess.insertDocument(JsonHandler.toJsonNode(contractModel), FunctionalAdminCollections.ACCESS_CONTRACT);
+        mongoDbAccess.insertDocument(JsonHandler.toJsonNode(contractModel), FunctionalAdminCollections.ACCESS_CONTRACT).close();
 
         stream = PropertiesUtils.getResourceAsStream("accession-register.json");
         final AccessionRegisterDetail register = JsonHandler.getFromInputStream(stream, AccessionRegisterDetail.class);
@@ -348,7 +395,7 @@ public class AdminManagementResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(jsonDocument)
             .pathParam("id_format", jsonDocument.get(0).get("PUID").asText())
-            .when().post(GET_BYID_FORMAT_URI + FORMAT_ID_URI)
+            .when().get(GET_BYID_FORMAT_URI + FORMAT_ID_URI)
             .then().statusCode(Status.OK.getStatusCode());
     }
 
@@ -379,7 +426,7 @@ public class AdminManagementResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(jsonDocument)
             .pathParam("id_format", "fake_identifier")
-            .when().post(GET_BYID_FORMAT_URI + FORMAT_ID_URI)
+            .when().get(GET_BYID_FORMAT_URI + FORMAT_ID_URI)
             .then().statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
@@ -585,7 +632,7 @@ public class AdminManagementResourceTest {
         stream = PropertiesUtils.getResourceAsStream(FILE_TEST_OK);
         given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(IMPORT_RULES_URI)
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+            .then().statusCode(Status.CREATED.getStatusCode());
     }
 
     @Test
@@ -597,7 +644,7 @@ public class AdminManagementResourceTest {
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
-        mongoDbAccess.deleteCollection(FunctionalAdminCollections.RULES);
+        mongoDbAccess.deleteCollection(FunctionalAdminCollections.RULES).close();
 
         VitamThreadUtils.getVitamSession().setTenantId(1);
         stream = PropertiesUtils.getResourceAsStream(FILE_TEST_OK);
@@ -632,7 +679,7 @@ public class AdminManagementResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(jsonDocument)
             .pathParam("id_rule", jsonDocument.get(0).get("RuleId").asText())
-            .when().post(GET_BYID_RULES_URI + RULES_ID_URI)
+            .when().get(GET_BYID_RULES_URI + RULES_ID_URI)
             .then().statusCode(Status.OK.getStatusCode());
     }
 
@@ -662,8 +709,7 @@ public class AdminManagementResourceTest {
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(jsonDocument)
-            .pathParam("id_rule", "fake_identifier")
-            .when().post(GET_BYID_RULES_URI + RULES_ID_URI)
+            .when().get(GET_BYID_RULES_URI + "/fake_identifier")
             .then().statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
@@ -708,7 +754,7 @@ public class AdminManagementResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, 1)
             .body(select.getFinalSelect())
             .when().post(GET_DOCUMENT_RULES_URI)
-            .then().statusCode(Status.NOT_FOUND.getStatusCode());
+            .then().statusCode(Status.OK.getStatusCode());
     }
 
     @Test
@@ -732,6 +778,6 @@ public class AdminManagementResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(select.getFinalSelect())
             .when().post(GET_DOCUMENT_RULES_URI)
-            .then().statusCode(Status.NOT_FOUND.getStatusCode());
+            .then().statusCode(Status.OK.getStatusCode());
     }
 }

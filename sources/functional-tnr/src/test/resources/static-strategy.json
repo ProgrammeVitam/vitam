@@ -1,0 +1,9 @@
+{
+  "id" : "default",
+  "hot" : {
+    "copy" : 1,
+    "offers" : [
+      {"id" : "default"}
+    ]
+  }
+}

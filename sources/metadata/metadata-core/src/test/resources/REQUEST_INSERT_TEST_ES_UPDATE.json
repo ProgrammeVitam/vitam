@@ -1,0 +1,17 @@
+{
+	"#id": "aeaqaaaaaaaaaaabab4roakztdjqziaaaaaq",
+	"#tenant": 0,
+	"Title": "Archive3",
+	"_mgt": {
+		"StorageRule": {
+			"Rules": [
+				{
+					"Rule": "STR001",
+					"StartDate": "2012-11-15T14:30:23",
+					"FinalAction": "Copy"
+				}
+			]
+		}
+	},
+	"DescriptionLevel": "Item"
+}

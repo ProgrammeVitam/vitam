@@ -37,15 +37,18 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ser.DefaultSerializerProvider;
 import com.google.common.base.Strings;
 
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
+import fr.gouv.vitam.common.database.builder.query.action.UnsetAction;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
@@ -67,6 +70,8 @@ public final class DslQueryHelper {
     private static final String EVENT_TYPE_PROCESS = "evTypeProc";
     private static final String ALL = "All";
     private static final String EVENT_ID_PROCESS = "evIdProc";
+    private static final String CONTEXT_ID = "ContextID";
+    private static final String CONTEXT_NAME = "ContextName";
     private static final String CONTRACT_ID = "ContractID";
     private static final String CONTRACT_NAME = "ContractName";
     private static final String PROFILE_ID = "ProfileID";
@@ -111,6 +116,7 @@ public final class DslQueryHelper {
     // FIXME when id will be implemented on traceability, change me
     private static final String TRACEABILITY_FIELD_ID = "FileName";
     private static final String TRACEABILITY_FIELD_LOG_TYPE = "LogType";
+    private static final String MANAGEMENT_KEY = "#management";
 
     private static final String ASC_SORT_TYPE = "ASC";
     private static final String SORT_TYPE_ENTRY = "sortType";
@@ -285,6 +291,21 @@ public final class DslQueryHelper {
                         break;
 
                     case CONTRACT_ID:
+                        if (!"all".equals(searchValue)) {
+                            query.add(eq("Identifier", searchValue));
+                        }
+                        break;
+                        
+                    case CONTEXT_NAME:
+                        if ("all".equals(searchValue)) {
+                            query.add(exists("Name"));
+                        }
+                        else  if (!searchValue.isEmpty()) {
+                            query.add(match("Name", searchValue));
+                        }
+                        break;
+                        
+                    case CONTEXT_ID:
                         if (!"all".equals(searchValue)) {
                             query.add(eq("Identifier", searchValue));
                         }
@@ -486,11 +507,12 @@ public final class DslQueryHelper {
 
     /**
      * @param searchCriteriaMap Criteria received from The IHM screen Empty Keys or Value is not allowed
+     * @param updateRules rules that must be updated in the AU.
      * @return the JSONDSL File
      * @throws InvalidParseOperationException thrown when an error occurred during parsing
      * @throws InvalidCreateOperationException thrown when an error occurred during creation
      */
-    public static JsonNode createUpdateDSLQuery(Map<String, String> searchCriteriaMap)
+    public static JsonNode createUpdateDSLQuery(Map<String, String> searchCriteriaMap, Map<String, JsonNode> updateRules)
         throws InvalidParseOperationException, InvalidCreateOperationException {
 
         final UpdateMultiQuery update = new UpdateMultiQuery();
@@ -509,6 +531,19 @@ public final class DslQueryHelper {
             }
             // Add Actions
             update.addActions(new SetAction(searchKeys, searchValue));
+        }
+
+        for (final Entry<String, JsonNode> categoryRule: updateRules.entrySet()) {
+            final String categoryKey = categoryRule.getKey();
+            final JsonNode categoryRules = categoryRule.getValue();
+
+            if (categoryRules.isEmpty(new DefaultSerializerProvider.Impl())) {
+                update.addActions(new UnsetAction(MANAGEMENT_KEY + '.' + categoryKey));
+            } else {
+                Map<String, JsonNode> action = new HashMap<>();
+                action.put(MANAGEMENT_KEY + '.'  + categoryKey, categoryRules);
+                update.addActions(new SetAction(action));
+            }
         }
         return update.getFinalUpdate();
     }
@@ -570,12 +605,11 @@ public final class DslQueryHelper {
             // search by transacted date
             transactedDateBetween.add(gte(TRANSACTED_DATE, startDate));
             transactedDateBetween.add(lte(TRANSACTED_DATE, endDate));
-            query.add(transactedDateBetween);
             // search by begin and end date
             final BooleanQuery queryAroundDate = and();
             queryAroundDate.add(gte(END_DATE, startDate));
             queryAroundDate.add(lte(START_DATE, endDate));
-            query.add(queryAroundDate);
+            query.add(transactedDateBetween, queryAroundDate);
         }
         LOGGER.debug("in createSearchUntisQueryByDate / query:" + query.toString());
         return query;

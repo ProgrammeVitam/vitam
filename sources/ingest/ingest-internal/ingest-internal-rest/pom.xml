@@ -4,7 +4,7 @@
     <parent>
         <groupId>fr.gouv.vitam</groupId>
         <artifactId>ingest-internal</artifactId>
-        <version>0.21.0-SNAPSHOT</version>
+        <version>0.22.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>ingest-internal-rest</artifactId>
@@ -144,11 +144,6 @@
     <dependency>
         <groupId>fr.gouv.vitam</groupId>
         <artifactId>storage-engine-client</artifactId>
-        <version>${project.version}</version>
-    </dependency>
-    <dependency>
-        <groupId>fr.gouv.vitam</groupId>
-        <artifactId>ingest-internal-common</artifactId>
         <version>${project.version}</version>
     </dependency>
     <dependency>

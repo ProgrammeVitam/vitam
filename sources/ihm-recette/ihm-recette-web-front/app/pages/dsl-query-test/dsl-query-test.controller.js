@@ -28,16 +28,26 @@
 // Define controller for dsl.query.test
 angular.module('dsl.query.test')
   .controller('dslQueryTestController', function($scope, tenantService, $http, dslQueryService, authVitamService) {
+    var collectionsForIdentifiant = ["CONTEXTS", "UNIT", "ACCESS_CONTRACTS", "ENTRY_CONTRACTS", "OPERATIONS"];
     $scope.jsonInput = "";
     $scope.requestResponse = "";
+    $scope.operation = {};
+    $scope.operation.action = "";
     $scope.tenantId = tenantService.getTenant();
 
     $scope.displayIdInput = function() {
-      if ($scope.requestMethod === 'GET' || $scope.requestedCollection === 'CONTEXTS') {
+      if ($scope.requestMethod === 'GET' || collectionsForIdentifiant.indexOf($scope.requestedCollection) > -1) {
         $scope.identifierInputLabel = "Identifiant";
         if ($scope.requestedCollection === 'RULES') {
           $scope.identifierInputLabel = "RuleId";
         }
+        return true;
+      }
+      return false;
+    }
+
+    $scope.displayPutOption = function() {
+      if (collectionsForIdentifiant.indexOf($scope.requestedCollection) > -1) {
         return true;
       }
       return false;
@@ -76,7 +86,6 @@ angular.module('dsl.query.test')
       $scope.requestResponse = JSON.stringify(response.data, null, 5);
     }
     var executeRequestErrorCallback = function (error) {
-//      $scope.requestResponse = "Error " + error.status + " : " + error.statusText;
       $scope.requestResponse = error.data;
     }
 
@@ -86,9 +95,12 @@ angular.module('dsl.query.test')
       authVitamService.createCookie('tenant', $scope.tenantId);
       authVitamService.createCookie('X-Access-Contract-Id', $scope.contractId);
 
+      if ($scope.requestedCollection === 'OPERATIONS' && $scope.operation.action === 'STOP') {
+        $scope.requestMethod = 'DELETE';
+      }
       dslQueryService.executeRequest(executeRequestSuccessCallback, executeRequestErrorCallback,
                                   $scope.tenantId, $scope.contractId, $scope.requestedCollection, $scope.requestMethod,
-                                  query, $scope.objectId);
+                                  $scope.operation.action, query, $scope.objectId);
     }
 
   });

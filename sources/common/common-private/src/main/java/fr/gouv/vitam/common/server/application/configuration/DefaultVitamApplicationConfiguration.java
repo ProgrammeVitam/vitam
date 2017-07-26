@@ -61,4 +61,5 @@ public abstract class DefaultVitamApplicationConfiguration implements VitamAppli
         this.tenants = tenants;
         return this;
     }
+
 }

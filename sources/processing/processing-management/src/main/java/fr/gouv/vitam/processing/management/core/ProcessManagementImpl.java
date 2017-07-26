@@ -26,22 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.core;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.ServerIdentity;
@@ -71,17 +57,26 @@ import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
-import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
 import fr.gouv.vitam.processing.engine.core.ProcessEngineFactory;
-import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoring;
-import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.api.ProcessManagement;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+
 
 /**
  * ProcessManagementImpl implementation of ProcessManagement API
@@ -101,8 +96,6 @@ public class ProcessManagementImpl implements ProcessManagement {
     private static final String PREVIOUS_STEP = "previousStep";
     private static final String NEXT_STEP = "nextStep";
     private static final String STEP_EXECUTION_STATUS_FIELD = "stepStatus";
-
-
 
     private ServerConfiguration config;
     private final ProcessDataAccess processData;
@@ -125,13 +118,11 @@ public class ProcessManagementImpl implements ProcessManagement {
         poolWorkflow = new ConcurrentHashMap<>();
         this.processDistributor = processDistributor;
         new ProcessWorkFlowsCleaner(this, TimeUnit.HOURS);
+        new WorkflowsLoader(this);
+
         try {
-            populateWorkflow("DefaultFilingSchemeWorkflow");
-            populateWorkflow("DefaultHoldingSchemeWorkflow");
-            populateWorkflow("DefaultIngestBlankTestWorkflow");
-            populateWorkflow("DefaultIngestWorkflow");
-            populateWorkflow("DefaultCheckTraceability");
-            populateWorkflow("BigIngestWorkflow");
+            // load all workflows
+            ProcessPopulator.loadWorkflows(poolWorkflow);
         } catch (final WorkflowNotFoundException e) {
             LOGGER.error(WORKFLOW_NOT_FOUND_MESSAGE, e);
         }
@@ -182,19 +173,6 @@ public class ProcessManagementImpl implements ProcessManagement {
 
         return processWorkflow;
     }
-
-
-    /**
-     * setWorkflow : populate a workflow to the pool
-     *
-     * @param workflowId as String
-     * @throws WorkflowNotFoundException throw when workflow not found
-     */
-    public void populateWorkflow(String workflowId) throws WorkflowNotFoundException {
-        ParametersChecker.checkParameter("workflowId is a mandatory parameter", workflowId);
-        poolWorkflow.put(workflowId, ProcessPopulator.populate(workflowId));
-    }
-
 
     @Override
     public ItemStatus next(WorkerParameters workerParameters, Integer tenantId) throws ProcessingException,
@@ -307,6 +285,14 @@ public class ProcessManagementImpl implements ProcessManagement {
         return poolWorkflow;
     }
 
+    @Override
+    public void reloadWorkflowDefinitions (){
+        Integer period = this.getConfiguration().getWorkflowRefreshPeriod();
+        long fromDate = Instant.now().minus(period, ChronoUnit.HOURS).toEpochMilli();
+
+        ProcessPopulator.reloadWorkflows(poolWorkflow, fromDate);
+    }
+
     public Map<Integer, Map<String, ProcessWorkflow>>  getWorkFlowList() {
         return processData.getWorkFlowList();
     }
@@ -381,7 +367,6 @@ public class ProcessManagementImpl implements ProcessManagement {
         }
         return null;
     }
-
 
     public List<JsonNode> getFilteredProcess(ProcessQuery query, Integer tenantId) {
         List<ProcessWorkflow> listWorkflows = this.findAllProcessWorkflow(tenantId);

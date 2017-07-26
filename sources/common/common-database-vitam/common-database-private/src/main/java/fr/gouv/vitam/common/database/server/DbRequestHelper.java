@@ -35,13 +35,13 @@ import org.bson.conversions.Bson;
 import com.mongodb.ServerAddress;
 import com.mongodb.ServerCursor;
 import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
 
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.NopQuery;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.parser.request.single.RequestParserSingle;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.database.translators.mongodb.SelectToMongodb;
@@ -74,10 +74,11 @@ public class DbRequestHelper {
      */
     @SuppressWarnings("unchecked")
     public static MongoCursor<VitamDocument<?>> selectMongoDbExecuteThroughFakeMongoCursor(
-        MongoCollection<?> collection, RequestParserSingle parser, List<String> list, List<Float> scores)
+        VitamCollection collection, RequestParserSingle parser, List<String> list, List<Float> scores)
         throws InvalidParseOperationException, InvalidCreateOperationException {
         final SelectToMongodb selectToMongoDb = new SelectToMongodb(parser);
         final Bson projection = selectToMongoDb.getFinalProjection();
+        final boolean isIdIncluded = selectToMongoDb.idWasInProjection();
         Bson initialCondition = Filters.in(VitamDocument.ID, list);
         if (!(parser.getRequest().getQuery() instanceof NopQuery)) {
             try {
@@ -87,7 +88,7 @@ public class DbRequestHelper {
             }
         }
         FindIterable<VitamDocument<?>> find =
-            (FindIterable<VitamDocument<?>>) collection.find(initialCondition);
+            (FindIterable<VitamDocument<?>>) collection.getCollection().find(initialCondition);
         if (projection != null) {
             find = find.projection(projection);
         }
@@ -104,15 +105,29 @@ public class DbRequestHelper {
             while (cursor.hasNext()) {
                 final VitamDocument<?> item = cursor.next();
                 final int rank = list.indexOf(item.getId());
+                if (!isIdIncluded) {
+                    item.remove(VitamDocument.ID);
+                }
                 firstList.set(rank, item);
                 nbFinal++;
             }
         }
         final List<VitamDocument<?>> finalList = new ArrayList<>(nbFinal);
-        if (VitamConfiguration.EXPORT_SCORE) {
+        if (VitamConfiguration.isExportScore() && scores != null
+            && collection.isUseScore() && selectToMongoDb.isScoreIncluded() ) {
             for (int i = 0; i < nb; i++) {
                 VitamDocument<?> vitamDocument = firstList.get(i);
                 if (!(vitamDocument instanceof FakeVitamDocument)) {
+                    Float score = Float.valueOf(1);
+                    try {
+                        score = scores.get(i);
+                        if (score.isNaN()) {
+                            score = Float.valueOf(1);
+                        }
+                    } catch (IndexOutOfBoundsException e) {
+                        SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                    }
+                    vitamDocument.append(VitamDocument.SCORE, score);
                     finalList.add(vitamDocument);
                 }
             }

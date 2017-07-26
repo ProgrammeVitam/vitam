@@ -1,0 +1,75 @@
+{
+  "id": "DefaultCheckTraceability",
+  "name": "Default Check Traceability",
+  "identifier": "CHECK_LOGBOOK_OP_SECURISATION",
+  "typeProc": "CHECK",
+  "comment": "Default Check logbook traceability Workflow V1",
+  "steps": [
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_PREPARE_TRACEABILITY_CHECK",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "PREPARE_TRACEABILITY_CHECK",
+            "behavior": "BLOCKING",
+            "out": [
+              {
+                "name": "traceabilityevent.file",
+                "uri": "WORKSPACE:TraceabilityOperationDetails/EVENT_DETAIL_DATA.json"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_MERKLE_TREE",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "CHECK_MERKLE_TREE",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "traceabilityevent.file",
+                "uri": "WORKSPACE:TraceabilityOperationDetails/EVENT_DETAIL_DATA.json"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_VERIFY_STAMP",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "VERIFY_TIMESTAMP",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "traceabilityevent.file",
+                "uri": "WORKSPACE:TraceabilityOperationDetails/EVENT_DETAIL_DATA.json"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

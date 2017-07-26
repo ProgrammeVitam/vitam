@@ -40,10 +40,14 @@ import java.util.Set;
 
 public class IngestContractModel extends AbstractContractModel {
 
-    @JsonProperty("FilingParentId")
+    public static final String ARCHIVE_PROFILES = "ArchiveProfiles";
+
+    public static final String FILING_PARENT_ID = "FilingParentId";
+
+    @JsonProperty(FILING_PARENT_ID)
     private String filingParentId;
 
-    @JsonProperty("ArchiveProfiles")
+    @JsonProperty(ARCHIVE_PROFILES)
     private Set<String> archiveProfiles;
 
     public IngestContractModel() {

@@ -26,7 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
-import static fr.gouv.vitam.worker.common.utils.SedaConstants.DATE_TIME_FORMAT_PATERN;
+import static fr.gouv.vitam.common.SedaConstants.DATE_TIME_FORMAT_PATERN;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -44,6 +44,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
+import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -72,7 +73,6 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 
 /**

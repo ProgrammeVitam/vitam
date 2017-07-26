@@ -26,10 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.external.rest;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
-import javax.ws.rs.HeaderParam;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -51,12 +53,10 @@ import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
@@ -64,9 +64,13 @@ import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
+import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
@@ -76,7 +80,6 @@ import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.storage.engine.common.model.response.RequestResponseError;
 
 /**
  * AccessResourceImpl implements AccessResource
@@ -111,10 +114,10 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         Status status;
-        JsonNode result = null;
+        RequestResponse<JsonNode> result = null;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            result = client.selectUnits(queryJson).toJsonNode();
-            return Response.status(Status.OK).entity(result).build();
+            result = client.selectUnits(queryJson);
+            return Response.status(result.getHttpCode()).entity(result.toJsonNode()).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("Predicate Failed Exception ", e);
             status = Status.PRECONDITION_FAILED;
@@ -134,31 +137,6 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         } catch (BadRequestException e) {
             LOGGER.error("No search query specified, this is mandatory", e);
             return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, e.getLocalizedMessage());
-        }
-    }
-
-    /**
-     * get units list by query with POST method
-     *
-     * @param queryJson the query to get units
-     * @param xhttpOverride the use of override POST method
-     * @return Response
-     */
-    @POST
-    @Path("/units")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response createOrSelectUnits(JsonNode queryJson,
-        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        LOGGER.debug("Execution of DSL Vitam from Access ongoing...");
-        Status status;
-        if (xhttpOverride != null && "GET".equalsIgnoreCase(xhttpOverride)) {
-            return getUnits(queryJson);
-        } else {
-            status = Status.UNAUTHORIZED;
-            return Response.status(status).entity(getErrorEntity(status, MISSING_XHTTPOVERRIDE)).build();
         }
     }
 
@@ -219,33 +197,6 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     }
 
     /**
-     * get units list by query based on identifier
-     *
-     * @param queryJson the query to get archive unit
-     * @param xhttpOverride the use of override POST method
-     * @param idUnit the archive unit id
-     * @return Response
-     */
-    @POST
-    @Path("/units/{idu}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response createOrSelectUnitById(JsonNode queryJson,
-        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride,
-        @PathParam("idu") String idUnit) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        ParametersChecker.checkParameter("unit id is required", idUnit);
-        Status status;
-        if (xhttpOverride != null && "GET".equalsIgnoreCase(xhttpOverride)) {
-            return getUnitById(queryJson, idUnit);
-        } else {
-            status = Status.UNAUTHORIZED;
-            return Response.status(status).entity(getErrorEntity(status, MISSING_XHTTPOVERRIDE)).build();
-        }
-    }
-
-    /**
      * update archive units by Id with Json query
      *
      * @param queryJson the update query (null not allowed)
@@ -262,7 +213,12 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         Status status;
         JsonNode result = null;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            result = client.updateUnitbyId(queryJson, idUnit).toJsonNode().get("$results").get(0);
+            RequestResponse<JsonNode> response = client.updateUnitbyId(queryJson, idUnit);
+            if (!response.isOk() && response instanceof VitamError) {
+                VitamError error = (VitamError) response;
+                return buildErrorFromError(VitamCode.ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR, error.getMessage(), error);
+            }
+    	    result = response.toJsonNode().get("$results").get(0);
             return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
@@ -302,110 +258,6 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         final Status status = Status.NOT_IMPLEMENTED;
         return Response.status(status).entity(getErrorEntity(status, NOT_YET_SUPPORTED)).build();
-    }
-
-    /**
-     * get object group list by query and id
-     *
-     * @param idObjectGroup the object group id
-     * @param queryJson the query to get object
-     * @return Response
-     * @Deprecated use /units/idu/object
-     */
-    @GET
-    @Path("/objects/{ido}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Deprecated
-    public Response getObjectGroup(@PathParam("ido") String idObjectGroup, JsonNode queryJson) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        JsonNode result;
-        Status status;
-        try {
-            try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-                result = client.selectObjectbyId(queryJson, idObjectGroup).toJsonNode().get("$results").get(0);
-                return Response.status(Status.OK).entity(RequestResponseOK.getFromJsonNode(result)).build();
-            }
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.error(e);
-            status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
-        } catch (final AccessInternalClientServerException e) {
-            LOGGER.error(e);
-            status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
-        } catch (final AccessInternalClientNotFoundException e) {
-            LOGGER.error(e);
-            status = Status.NOT_FOUND;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
-        } catch (AccessUnauthorizedException e) {
-            LOGGER.error("Contract access does not allow ", e);
-            status = Status.UNAUTHORIZED;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
-        }
-    }
-
-    /**
-     * @param headers the http header defined parameters of request
-     * @param idObjectGroup the id object group
-     * @param query the query to get object
-     * @param asyncResponse the synchronized response
-     * @Deprecated use /units/idu/object
-     */
-    @GET
-    @Path("/objects/{ido}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Deprecated
-    public void getObjectIdoGet(@Context HttpHeaders headers, @PathParam("ido") String idObjectGroup,
-        JsonNode query, @Suspended final AsyncResponse asyncResponse) {
-        getObject(headers, idObjectGroup, query, asyncResponse, false);
-    }
-
-    /**
-     * @param headers the http header defined parameters of request
-     * @param idObjectGroup the id object group
-     * @param queryJson the query to get object
-     * @return Response
-     * @Deprecated use /units/idu/object
-     */
-    @POST
-    @Path("/objects/{ido}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Deprecated
-    public Response getObjectGroupPost(@Context HttpHeaders headers,
-        @PathParam("ido") String idObjectGroup, JsonNode queryJson) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        Status status;
-        final String xHttpOverride = headers.getRequestHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE).get(0);
-        if (xHttpOverride == null || !"GET".equalsIgnoreCase(xHttpOverride)) {
-            status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status, MISSING_XHTTPOVERRIDE)).build();
-        } else {
-            return getObjectGroup(idObjectGroup, queryJson);
-        }
-    }
-
-    /**
-     * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
-     *
-     * @param headers the http header defined parameters of request
-     * @param idObjectGroup the id object group
-     * @param query the query to get object
-     * @param asyncResponse the synchronized response
-     * @Deprecated use /units/idu/object
-     */
-    @POST
-    @Path("/objects/{ido}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Deprecated
-    public void getObjectIdoPost(@Context HttpHeaders headers, @PathParam("ido") String idObjectGroup,
-        JsonNode query, @Suspended final AsyncResponse asyncResponse) {
-        getObject(headers, idObjectGroup, query, asyncResponse, true);
     }
 
     /**
@@ -488,6 +340,10 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void getObject(@Context HttpHeaders headers, @PathParam("idu") String idu,
         JsonNode query, @Suspended final AsyncResponse asyncResponse) {
+
+        final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
+        VitamThreadUtils.getVitamSession().setRequestId(guid);
+
         Status status;
         try {
             String idObjectGroup = idObjectGroup(idu);
@@ -496,22 +352,22 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             status = Status.PRECONDITION_FAILED;
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build());
+                Response.status(status).entity(getErrorStream(status, e.getLocalizedMessage())).build());
         } catch (final AccessInternalClientServerException e) {
             LOGGER.error("Unauthorized request Exception ", e);
             status = Status.INTERNAL_SERVER_ERROR;
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build());
+                Response.status(status).entity(getErrorStream(status, e.getLocalizedMessage())).build());
         } catch (final AccessInternalClientNotFoundException e) {
             LOGGER.error("Request resources does not exits", e);
             status = Status.NOT_FOUND;
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build());
+                Response.status(status).entity(getErrorStream(status, e.getLocalizedMessage())).build());
         } catch (AccessUnauthorizedException e) {
             LOGGER.error("Contract access does not allow ", e);
             status = Status.UNAUTHORIZED;
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build());
+                Response.status(status).entity(getErrorStream(status, e.getLocalizedMessage())).build());
         }
     }
 
@@ -540,61 +396,36 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             status = Status.PRECONDITION_FAILED;
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build());
+                Response.status(status).entity(getErrorStream(status, e.getLocalizedMessage())).build());
         } catch (final AccessInternalClientServerException e) {
             LOGGER.error("Unauthorized request Exception ", e);
             status = Status.UNAUTHORIZED;
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build());
+                Response.status(status).entity(getErrorStream(status, e.getLocalizedMessage())).build());
         } catch (final AccessInternalClientNotFoundException e) {
             LOGGER.error("Request resources does not exits", e);
             status = Status.NOT_FOUND;
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build());
+                Response.status(status).entity(getErrorStream(status, e.getLocalizedMessage())).build());
         } catch (AccessUnauthorizedException e) {
             LOGGER.error("Contract access does not allow ", e);
             status = Status.UNAUTHORIZED;
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build());
+                Response.status(status).entity(getErrorStream(status, e.getLocalizedMessage())).build());
         }
     }
-
-    /**
-     * get object group list by query
-     *
-     * @param queryDsl the query to get list of object group
-     * @return Response
-     * @Deprecated use /units/idu/object
-     */
-    @GET
-    @Path("/objects")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Deprecated
-    public Response getObjectsList(JsonNode queryDsl) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status, NOT_YET_SUPPORTED)).build();
-    }
-
-    /**
-     * @param xhttpOverride the use of override POST method
-     * @param query the query to get object
-     * @return Response
-     * @Deprecated use /units/idu/object
-     */
-    @POST
-    @Path("/objects")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Deprecated
-    public Response getObjectListPost(@HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride,
-        JsonNode query) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status, NOT_YET_SUPPORTED)).build();
+    
+    private InputStream getErrorStream(Status status, String message) {
+        String aMessage =
+            (message != null && !message.trim().isEmpty()) ? message
+                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        try {
+            return JsonHandler.writeToInpustream(new VitamError(status.name())
+                .setHttpCode(status.getStatusCode()).setContext(ACCESS_EXTERNAL_MODULE)
+                .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage));
+        } catch (InvalidParseOperationException e) {
+            return new ByteArrayInputStream("{ 'message' : 'Invalid VitamError message' }".getBytes());
+        }
     }
 
     private VitamError getErrorEntity(Status status, String message) {
@@ -636,7 +467,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
                 if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.METHOD_OVERRIDE)) {
                     AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                         Response.status(Status.PRECONDITION_FAILED)
-                            .entity(getErrorEntity(Status.PRECONDITION_FAILED, MISSING_XHTTPOVERRIDE).toString())
+                            .entity(getErrorStream(Status.PRECONDITION_FAILED, MISSING_XHTTPOVERRIDE).toString())
                             .build());
                     return;
                 }
@@ -644,7 +475,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
                 if (!HttpMethod.GET.equalsIgnoreCase(xHttpOverride)) {
                     AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                         Response.status(Status.METHOD_NOT_ALLOWED)
-                            .entity(getErrorEntity(Status.METHOD_NOT_ALLOWED, MISSING_XHTTPOVERRIDE)
+                            .entity(getErrorStream(Status.METHOD_NOT_ALLOWED, MISSING_XHTTPOVERRIDE)
                                 .toString())
                             .build());
                     return;
@@ -656,14 +487,14 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
                     VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() + ")");
                 AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                     Response.status(Status.PRECONDITION_FAILED)
-                        .entity(getErrorEntity(Status.PRECONDITION_FAILED, "QUALIFIER or VERSION missing").toString())
+                        .entity(getErrorStream(Status.PRECONDITION_FAILED, "QUALIFIER or VERSION missing").toString())
                         .build());
                 return;
             }
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             final Response errorResponse = Response.status(Status.PRECONDITION_FAILED)
-                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getLocalizedMessage()).toString())
+                .entity(getErrorStream(Status.PRECONDITION_FAILED, e.getLocalizedMessage()).toString())
                 .build();
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
             return;
@@ -687,25 +518,25 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         } catch (final InvalidParseOperationException | IllegalArgumentException exc) {
             LOGGER.error(exc);
             final Response errorResponse = Response.status(Status.PRECONDITION_FAILED)
-                .entity(getErrorEntity(Status.PRECONDITION_FAILED, exc.getLocalizedMessage()).toString())
+                .entity(getErrorStream(Status.PRECONDITION_FAILED, exc.getLocalizedMessage()).toString())
                 .build();
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         } catch (final AccessInternalClientServerException exc) {
             LOGGER.error(exc.getMessage(), exc);
             final Response errorResponse =
                 Response.status(Status.INTERNAL_SERVER_ERROR)
-                    .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exc.getLocalizedMessage())
+                    .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, exc.getLocalizedMessage())
                         .toString())
                     .build();
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         } catch (final AccessInternalClientNotFoundException exc) {
             LOGGER.error(exc.getMessage(), exc);
             final Response errorResponse =
-                Response.status(Status.NOT_FOUND).entity(getErrorEntity(Status.NOT_FOUND, exc.getLocalizedMessage()).toString()).build();
+                Response.status(Status.NOT_FOUND).entity(getErrorStream(Status.NOT_FOUND, exc.getLocalizedMessage()).toString()).build();
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         } catch (AccessUnauthorizedException e) {
             final Response errorResponse =
-                Response.status(Status.UNAUTHORIZED).entity(getErrorEntity(Status.UNAUTHORIZED, e.getLocalizedMessage())
+                Response.status(Status.UNAUTHORIZED).entity(getErrorStream(Status.UNAUTHORIZED, e.getLocalizedMessage())
                     .toString()).build();
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         }
@@ -716,6 +547,19 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             .entity(new RequestResponseError().setError(new VitamError(VitamCodeHelper.getCode(vitamCode))
                 .setContext(vitamCode.getService().getName()).setState(vitamCode.getDomain().getName())
                 .setMessage(vitamCode.getMessage()).setDescription(message)).toString())
+            .build();
+    }
+
+    private Response buildErrorFromError(VitamCode vitamCode, String message, VitamError oldVitamError) {
+        LOGGER.info("Description: " + message);
+    	VitamError newVitamError = new VitamError(VitamCodeHelper.getCode(vitamCode))
+        .setContext(vitamCode.getService().getName()).setState(vitamCode.getDomain().getName())
+        .setMessage(vitamCode.getMessage()).setDescription(message);
+
+    	oldVitamError.addToErrors(newVitamError);
+
+        return Response.status(vitamCode.getStatus())
+            .entity(new RequestResponseError().setError(oldVitamError).toString())
             .build();
     }
 

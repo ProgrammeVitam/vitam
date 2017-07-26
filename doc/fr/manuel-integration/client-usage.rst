@@ -28,6 +28,8 @@ La configuration du client est à réaliser conformément au paragraphe `Configu
    :language: yaml
    :linenos:
 
+Le fichier définitif doit s'appeler ``ingest-external-client.conf`` et placé dans le répertoire ``/vitam/conf`` ou le répertoire définit par la surconfiguration
+du chemin de configuration par l'argument passé à la JVM ``-Dvitam.config.folder=/monchemin`` où ``monchemin`` est le lieu où se trouve ce fichier de configuration.
 
 
 Une instance de client se récupère grâce au code suivant :
@@ -59,6 +61,8 @@ La configuration du client est à réaliser conformément au paragraphe `Configu
    :language: yaml
    :linenos:
 
+Le fichier définitif doit s'appeler ``access-external-client.conf`` et placé dans le répertoire par défaut ``/vitam/conf`` ou le répertoire définit par la surconfiguration
+du chemin de configuration par l'argument passé à la JVM ``-Dvitam.config.folder=/monchemin`` où ``monchemin`` est le lieu où se trouve ce fichier de configuration.
 
 Une instance de client se récupère grâce au code suivant :
 
@@ -69,6 +73,7 @@ Une instance de client se récupère grâce au code suivant :
 
 Pour la suite, se référer à la javadoc de la classe ``AccessExternalClient``.
 
+Le même ficher est utilisé pour la factory ``AdminExternalClientFactory`` et son client ``AdminExternalClient``.
 
 
 Configuration d'un client externe
@@ -76,7 +81,7 @@ Configuration d'un client externe
 
 La configuration du client prend en compte les paramètres et fichiers suivants :
 
-* La propriété système Java ``vitam.conf.dir`` : elle indique le répertoire dans laquelle les fichiers de configuration des clients seront recherchés (ex de déclaration en ligne de commande: ``-Dvitam.config.folder=/vitam/conf/clientvitam``) ;
+* La propriété système Java ``vitam.config.folder`` : elle indique le répertoire dans laquelle les fichiers de configuration des clients seront recherchés (ex de déclaration en ligne de commande: ``-Dvitam.config.folder=/vitam/conf/clientvitams/``) ;
 * Le fichier de configuration (``<api>-client.conf``) : il doit être présent dans le répertoire défini précédemment ; c'est un fichier de configuration qui contient notamment les éléments de configuration suivants :
 
 	- ``serverHost`` et ``serverPort`` permettent d'indiquer l'hôte et le port du serveur hébergeant l'API externe ;

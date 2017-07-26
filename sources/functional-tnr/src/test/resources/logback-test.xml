@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- Send debug messages to System.out -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- By default, encoders are assigned the type ch.qos.logback.classic.encoder.PatternLayoutEncoder -->
+        <encoder>
+            <pattern>%d{ISO8601} [[%thread]] [%X{X-REQUEST-ID}]  %-5level %logger - %replace(%caller{1..2}){'Caller\+1   at |\n',''} : %msg %rootException%n</pattern>
+        </encoder>
+    </appender>
+    <!-- <appender name="FILE" class="ch.qos.logback.core.FileAppender"> -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>/vitam/log/tnr-eclipse.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>  
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>5GB</totalSizeCap>
+        </rollingPolicy>
+
+        <!-- TODO : replace with rolling file appender -->
+        <!-- <file>/vitam/log/ihm-demo/ihm-demo.log</file>
+        <append>true</append> -->
+        <encoder>
+            <pattern>%d{ISO8601} [[%thread]] [%X{X-REQUEST-ID}] %-5level %logger - %replace(%caller{1..2}){'Caller\+1     at |\n',''} : %msg %rootException%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- By default, the level of the root level is set to TRACE -->
+    <root level="WARN">
+        <!-- <appender-ref ref="STDOUT" /> -->
+        <appender-ref ref="FILE" />
+    </root>
+
+    <logger name="org.eclipse.jetty" level="WARN"/>
+    <logger name="fr.gouv.vitam.common" level="ERROR" />
+</configuration>

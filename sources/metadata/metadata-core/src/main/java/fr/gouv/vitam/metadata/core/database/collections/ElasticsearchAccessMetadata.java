@@ -31,12 +31,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import org.bson.json.JsonMode;
 import org.bson.json.JsonWriterSettings;
 import org.elasticsearch.action.ListenableActionFuture;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
+import org.elasticsearch.action.admin.indices.flush.FlushRequest;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -48,21 +48,20 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.IdsQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.TermsQueryBuilder;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.sort.SortBuilder;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.DBObject;
 import com.mongodb.client.MongoCursor;
 
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchUtil;
@@ -108,6 +107,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
                     LOGGER.error("Error on index delete");
                 }
             }
+            refreshIndex(collection, tenantId);
             return true;
         } catch (final Exception e) {
             LOGGER.error("Error while deleting index", e);
@@ -123,12 +123,12 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @return True if ok
      */
     public final boolean addIndex(final MetadataCollections collection, Integer tenantId) {
-        LOGGER.debug("addIndex: " + getIndexName(collection, tenantId));
+        LOGGER.debug("addIndex: {}", getIndexName(collection, tenantId));
         if (!client.admin().indices().prepareExists(getIndexName(collection, tenantId)).get().isExists()) {
             try {
                 LOGGER.debug("createIndex");
                 final String mapping = getMapping(collection);
-                final String type = getTypeUnique(collection);
+                final String type = VitamCollection.getTypeunique();
                 LOGGER.debug("setMapping: " + getIndexName(collection, tenantId) + " type: " + type + "\n\t" + mapping);
                 final CreateIndexResponse response = client.admin().indices()
                     .prepareCreate(getIndexName(collection, tenantId))
@@ -153,8 +153,10 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @param tenantId the tenant for operation
      */
     public final void refreshIndex(final MetadataCollections collection, Integer tenantId) {
-        LOGGER.debug("refreshIndex: " + collection.getName().toLowerCase() + "_" + tenantId);
-        client.admin().indices().prepareRefresh(getIndexName(collection, tenantId)).execute().actionGet();
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("refreshIndex: " + collection.getName().toLowerCase() + "_" + tenantId);
+        }
+        client.admin().indices().flush(new FlushRequest(getIndexName(collection, tenantId)).force(true)).actionGet();
 
     }
 
@@ -169,7 +171,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      */
     final boolean addEntryIndex(final MetadataCollections collection, final Integer tenantId, final String id,
         final String json) {
-        final String type = collection == MetadataCollections.C_UNIT ? Unit.TYPEUNIQUE : ObjectGroup.TYPEUNIQUE;
+        final String type = VitamCollection.getTypeunique();
         return client.prepareIndex(getIndexName(collection, tenantId), type, id).setSource(json)
             .setOpType(OpType.INDEX)
             .get().getVersion() > 0;
@@ -189,7 +191,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         final BulkRequestBuilder bulkRequest = client.prepareBulk();
         // either use client#prepare, or use Requests# to directly build
         // index/delete requests
-        final String type = collection == MetadataCollections.C_UNIT ? Unit.TYPEUNIQUE : ObjectGroup.TYPEUNIQUE;
+        final String type = VitamCollection.getTypeunique();
         for (final Entry<String, String> val : mapIdJson.entrySet()) {
             bulkRequest.add(client.prepareIndex(getIndexName(collection, tenantId), type, val.getKey())
                 .setSource(val.getValue()));
@@ -224,6 +226,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
     private static final Unit getFiltered(final Unit unit) {
         final Unit eunit = new Unit(unit);
         eunit.remove(VitamLinks.UNIT_TO_UNIT.field1to2);
+        eunit.remove(VitamDocument.SCORE);
         return eunit;
     }
 
@@ -295,7 +298,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      */
     final boolean updateEntryIndex(final MetadataCollections collection, final Integer tenantId, final String id,
         final String json) throws Exception {
-        final String type = collection == MetadataCollections.C_UNIT ? Unit.TYPEUNIQUE : ObjectGroup.TYPEUNIQUE;
+        final String type = VitamCollection.getTypeunique();
         return client.prepareUpdate(getIndexName(collection, tenantId), type, id).setDoc(json).setRefresh(true)
             .execute().actionGet().getVersion() > 1;
     }
@@ -314,11 +317,14 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             LOGGER.error("ES insert in error since no results to insert");
             throw new MetaDataExecutionException("No result to insert");
         }
-        final BulkRequestBuilder bulkRequest = client.prepareBulk();
+        BulkRequestBuilder bulkRequest = client.prepareBulk();
+        int max = VitamConfiguration.getMaxElasticsearchBulk();
         while (cursor.hasNext()) {
+            max--;
             final Unit unit = getFiltered(cursor.next());
             final String id = unit.getId();
             unit.remove(VitamDocument.ID);
+            LOGGER.debug("DEBUG insert {}", unit);
 
             final String mongoJson = unit.toJson(new JsonWriterSettings(JsonMode.STRICT));
             // TODO Empty variable (null) might be ignore here
@@ -329,21 +335,40 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
                 throw new MetaDataExecutionException("Result to insert is empty");
             }
             bulkRequest.add(client
-                .prepareIndex(getIndexName(MetadataCollections.C_UNIT, tenantId), Unit.TYPEUNIQUE, id)
+                .prepareIndex(getIndexName(MetadataCollections.C_UNIT, tenantId), VitamCollection.getTypeunique(), id)
                 .setSource(toInsert));
-        }
-        final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
-        // thread
-        if (bulkResponse.hasFailures()) {
-            int duplicates = 0;
-            for (BulkItemResponse bulkItemResponse : bulkResponse) {
-                if (bulkItemResponse.getVersion() > 1) {
-                    duplicates++;
+            if (max == 0) {
+                max = VitamConfiguration.getMaxElasticsearchBulk();
+                final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
+                // thread
+                if (bulkResponse.hasFailures()) {
+                    int duplicates = 0;
+                    for (final BulkItemResponse bulkItemResponse : bulkResponse) {
+                        if (bulkItemResponse.getVersion() > 1) {
+                            duplicates++;
+                        }
+                    }
+                    LOGGER.error("ES insert in error with possible duplicates {}: {}", duplicates,
+                        bulkResponse.buildFailureMessage());
+                    throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
                 }
+                bulkRequest = client.prepareBulk();
             }
-            LOGGER.error("ES insert in error with possible duplicates {}: {}", duplicates,
-                bulkResponse.buildFailureMessage());
-            throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
+        }
+        if (bulkRequest.numberOfActions() > 0) {
+            final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
+            // thread
+            if (bulkResponse.hasFailures()) {
+                int duplicates = 0;
+                for (final BulkItemResponse bulkItemResponse : bulkResponse) {
+                    if (bulkItemResponse.getVersion() > 1) {
+                        duplicates++;
+                    }
+                }
+                LOGGER.error("ES insert in error with possible duplicates {}: {}", duplicates,
+                    bulkResponse.buildFailureMessage());
+                throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
+            }
         }
     }
 
@@ -361,8 +386,10 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             LOGGER.error("ES update in error since no results to update");
             throw new MetaDataExecutionException("No result to update");
         }
-        final BulkRequestBuilder bulkRequest = client.prepareBulk();
+        BulkRequestBuilder bulkRequest = client.prepareBulk();
+        int max = VitamConfiguration.getMaxElasticsearchBulk();
         while (cursor.hasNext()) {
+            max --;
             final Unit unit = getFiltered(cursor.next());
             final String id = unit.getId();
             unit.remove(VitamDocument.ID);
@@ -377,195 +404,27 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             }
 
             bulkRequest
-                .add(client.prepareUpdate(getIndexName(MetadataCollections.C_UNIT, tenantId), Unit.TYPEUNIQUE, id)
+                .add(client.prepareUpdate(getIndexName(MetadataCollections.C_UNIT, tenantId), VitamCollection.getTypeunique(), id)
                     .setDoc(toUpdate));
-        }
-        final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
-        // thread
-        if (bulkResponse.hasFailures()) {
-            LOGGER.error("ES update in error: " + bulkResponse.buildFailureMessage());
-            throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
-        }
-    }
-
-    /**
-     *
-     * @param collection the working medatadata collection
-     * @param currentNodes current parent nodes
-     * @param subdepth where subdepth >= 1
-     * @param condition the query
-     * @param tenantId the tenant for operation
-     * @param filterCond the filter query
-     * @return the Result associated with this request. Note that the exact depth is not checked, so it must be checked
-     *         after (using MongoDB)
-     * @throws MetaDataExecutionException if query operation exception occurred
-     */
-    public final Result getSubDepth(final MetadataCollections collection, Integer tenantId,
-        final Set<String> currentNodes, final int subdepth, final QueryBuilder condition,
-        final QueryBuilder filterCond) throws MetaDataExecutionException {
-        QueryBuilder query = null;
-        QueryBuilder filter = null;
-        if (GlobalDatasDb.USE_FILTER) {
-            filter = getSubDepthFilter(filterCond, currentNodes, subdepth);
-            query = condition;
-        } else {
-            /*
-             * filter where _ud (currentNodes as (grand)parents, depth<=subdepth)
-             */
-            QueryBuilder domdepths = null;
-            if (subdepth == 1) {
-                domdepths = QueryBuilders.boolQuery()
-                    .should(QueryBuilders.termsQuery(VitamLinks.UNIT_TO_UNIT.field2to1, currentNodes));
-            } else {
-                domdepths = QueryBuilders.termsQuery(Unit.UNITUPS, currentNodes);
-            }
-            /*
-             * Condition query
-             */
-            query = QueryBuilders.boolQuery().must(domdepths).must(condition);
-            filter = filterCond;
-        }
-
-        final String type = collection == MetadataCollections.C_UNIT ? Unit.TYPEUNIQUE : ObjectGroup.TYPEUNIQUE;
-        return search(collection, tenantId, type, query, filter, null);
-    }
-
-    /**
-     * Build the filter for subdepth and currentNodes
-     *
-     * @param filterCond
-     * @param currentNodes
-     * @param key
-     * @param subdepth where subdepth >= 1
-     * @return the associated filter
-     */
-    private final QueryBuilder getSubDepthFilter(final QueryBuilder filterCond, final Set<String> currentNodes,
-        final int subdepth) {
-        /*
-         * filter where domdepths (currentNodes as (grand)parents, depth<=subdepth)
-         */
-        QueryBuilder domdepths = null;
-        QueryBuilder filter = null;
-        if (subdepth == 1) {
-            filter = QueryBuilders.boolQuery()
-                .should(QueryBuilders.termsQuery(VitamLinks.UNIT_TO_UNIT.field2to1, currentNodes));
-            if (GlobalDatasDb.PRINT_REQUEST) {
-                LOGGER.debug("Filter: terms {} = {}", VitamLinks.UNIT_TO_OBJECTGROUP.field2to1, currentNodes);
-            }
-        } else {
-            filter = QueryBuilders.termsQuery(Unit.UNITUPS, currentNodes);
-            if (GlobalDatasDb.PRINT_REQUEST) {
-                LOGGER.debug("ESReq: terms {} = {}", Unit.UNITUPS, currentNodes);
+            if (max == 0) {
+                max = VitamConfiguration.getMaxElasticsearchBulk();
+                final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
+                // thread
+                if (bulkResponse.hasFailures()) {
+                    LOGGER.error("ES update in error: " + bulkResponse.buildFailureMessage());
+                    throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
+                }
+                bulkRequest = client.prepareBulk();
             }
         }
-        if (filterCond != null) {
-            domdepths = QueryBuilders.boolQuery().must(filter).must(filterCond);
-        } else {
-            domdepths = filter;
-        }
-        return domdepths;
-    }
-
-    /**
-     * Build the filter for depth = 0
-     *
-     * @param collection the working collection
-     * @param tenantId the tenant for opeation
-     * @param currentNodes current parent nodes
-     * @param condition the query
-     * @param filterCond the filter query
-     * @return the Result associated with this request. Note that the exact depth is not checked, so it must be checked
-     *         after (using MongoDb)
-     * @throws MetaDataExecutionException if query operation exception occurred
-     */
-    public final Result getStart(final MetadataCollections collection, final Integer tenantId,
-        final Set<String> currentNodes, final QueryBuilder condition, final QueryBuilder filterCond)
-        throws MetaDataExecutionException {
-        QueryBuilder query = null;
-        QueryBuilder filter = null;
-        if (GlobalDatasDb.USE_FILTER) {
-            filter = getFilterStart(filterCond, currentNodes);
-            query = condition;
-        } else {
-            /*
-             * filter where _id in (currentNodes as list of ids)
-             */
-            final QueryBuilder domdepths = QueryBuilders.idsQuery((String[]) currentNodes.toArray());
-            /*
-             * Condition query
-             */
-            query = QueryBuilders.boolQuery().must(domdepths).must(condition);
-            filter = filterCond;
-        }
-        final String type = collection == MetadataCollections.C_UNIT ? Unit.TYPEUNIQUE : ObjectGroup.TYPEUNIQUE;
-        return search(collection, tenantId, type, query, filter, null);
-    }
-
-    /**
-     * Build the filter for depth = 0
-     *
-     * @param filterCond
-     * @param currentNodes
-     * @param key
-     * @return the associated filter
-     */
-    private final QueryBuilder getFilterStart(final QueryBuilder filterCond, final Set<String> currentNodes) {
-        /*
-         * filter where _id in (currentNodes as list of ids)
-         */
-        QueryBuilder domdepths = null;
-        IdsQueryBuilder filter = QueryBuilders.idsQuery((String[]) currentNodes.toArray(new String[currentNodes.size()]));
-        if (filterCond != null) {
-            domdepths = QueryBuilders.boolQuery().must(filter).must(filterCond);
-        } else {
-            domdepths = filter;
-        }
-        return domdepths;
-    }
-
-    /**
-     * Build the filter for negative depth
-     *
-     * @param collection the working collection
-     * @param tenantId the tenant for operation
-     * @param subset subset of valid nodes in the negative depth
-     * @param condition the query
-     * @param filterCond the filter query
-     * @return the Result associated with this request. The final result should be checked using MongoDb.
-     * @throws MetaDataExecutionException if query operation exception occurred
-     */
-    public final Result getNegativeSubDepth(final MetadataCollections collection, final Integer tenantId,
-        final Set<String> subset, final QueryBuilder condition, final QueryBuilder filterCond)
-        throws MetaDataExecutionException {
-        QueryBuilder query = null;
-        QueryBuilder filter = null;
-
-        if (GlobalDatasDb.USE_FILTER) {
-            /*
-             * filter where id from subset
-             */
-            TermsQueryBuilder filterTerms = null;
-            filterTerms = QueryBuilders.termsQuery(MetadataDocument.ID, subset);
-            if (filterCond != null) {
-                filter = QueryBuilders.boolQuery().must(filterTerms).must(filterCond);
-            } else {
-                filter = filterTerms;
+        if (bulkRequest.numberOfActions() > 0) {
+            final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
+            // thread
+            if (bulkResponse.hasFailures()) {
+                LOGGER.error("ES update in error: " + bulkResponse.buildFailureMessage());
+                throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
             }
-            query = condition;
-        } else {
-            /*
-             * filter where id from subset
-             */
-            QueryBuilder domdepths = null;
-            domdepths = QueryBuilders.termsQuery(MetadataDocument.ID, subset);
-            /*
-             * Condition query
-             */
-            query = QueryBuilders.boolQuery().must(domdepths).must(condition);
-            filter = filterCond;
         }
-        final String type = collection == MetadataCollections.C_UNIT ? Unit.TYPEUNIQUE : ObjectGroup.TYPEUNIQUE;
-        return search(collection, tenantId, type, query, filter, null);
     }
 
     /**
@@ -580,19 +439,25 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @throws MetaDataExecutionException
      */
     protected final Result search(final MetadataCollections collection, final Integer tenantId, final String type,
-        final QueryBuilder query, final QueryBuilder filter, final List<SortBuilder> sorts)
+        final QueryBuilder query, final QueryBuilder filter, final List<SortBuilder> sorts, int offset, int limit)
         throws MetaDataExecutionException {
         // Note: Could change the code to allow multiple indexes and multiple
         // types
         final SearchRequestBuilder request = client.prepareSearch(getIndexName(collection, tenantId))
             .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setTypes(type).setExplain(false)
-            .setSize(GlobalDatas.LIMIT_LOAD);
+            .setSize(GlobalDatas.LIMIT_LOAD).setFetchSource(MetadataDocument.ES_PROJECTION, null);
+        if (offset != -1) {
+            request.setFrom(offset);
+        }
+        if (limit != -1) {
+            request.setSize(limit);
+        }
         if (sorts != null) {
             sorts.stream().forEach(sort -> request.addSort(sort));
         }
         if (filter != null) {
             if (GlobalDatasDb.USE_FILTERED_REQUEST) {
-                final BoolQueryBuilder filteredQueryBuilder = QueryBuilders.boolQuery().must(query).filter(filter);
+                final BoolQueryBuilder filteredQueryBuilder = QueryBuilders.boolQuery().must(query).must(filter);
                 request.setQuery(filteredQueryBuilder);
             } else {
                 request.setQuery(query).setPostFilter(filter);
@@ -614,20 +479,24 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         }
         if (response.status() != RestStatus.OK) {
             LOGGER.error("Error " + response.status() + " from : " + request + ":" + query + " # " + filter);
-            return null;
+            throw new MetaDataExecutionException("Error " + response.status());
         }
         final SearchHits hits = response.getHits();
-        if (hits.getTotalHits() > GlobalDatas.LIMIT_LOAD) {
+        if (hits.getHits().length > GlobalDatas.LIMIT_LOAD) {
             LOGGER.warn("Warning, more than " + GlobalDatas.LIMIT_LOAD + " hits: " + hits.getTotalHits());
         }
         if (hits.getTotalHits() == 0) {
             LOGGER.error("No result from : " + request);
-            return null;
+            final boolean isUnit = collection == MetadataCollections.C_UNIT;
+            return isUnit ? MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS)
+                : MongoDbMetadataHelper.createOneResult(FILTERARGS.OBJECTGROUPS);
         }
+        // TODO to return the number of Units immediately below
         long nb = 0;
         final boolean isUnit = collection == MetadataCollections.C_UNIT;
-        final Result resultRequest = isUnit ? MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS)
-            : MongoDbMetadataHelper.createOneResult(FILTERARGS.OBJECTGROUPS);
+        final Result<MetadataDocument<?>> resultRequest =
+            isUnit ? MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS)
+                : MongoDbMetadataHelper.createOneResult(FILTERARGS.OBJECTGROUPS);
         final Iterator<SearchHit> iterator = hits.iterator();
         while (iterator.hasNext()) {
             final SearchHit hit = iterator.next();
@@ -646,12 +515,12 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
                     LOGGER.error("Not Integer: " + val.getClass().getName());
                 }
             }
-            resultRequest.addId(id);
+            resultRequest.addId(id, hit.getScore());
         }
-        resultRequest.setNbResult(nb);
         if (GlobalDatasDb.PRINT_REQUEST) {
             LOGGER.debug("FinalEsResult: {} : {}", resultRequest.getCurrentIds(), resultRequest.getNbResult());
         }
+        resultRequest.setTotal(hits.getTotalHits());
         return resultRequest;
     }
 
@@ -681,7 +550,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
 
     /**
      * create indexes during Object group insert
-     * 
+     *
      * @param cursor the {@link MongoCursor} of ObjectGroup
      * @param tenantId the tenant for operation
      * @throws MetaDataExecutionException when insert exception
@@ -692,11 +561,14 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             LOGGER.error("ES insert in error since no results to insert");
             throw new MetaDataExecutionException("No result to insert");
         }
-        final BulkRequestBuilder bulkRequest = client.prepareBulk();
+        BulkRequestBuilder bulkRequest = client.prepareBulk();
+        int max = VitamConfiguration.getMaxElasticsearchBulk();
         while (cursor.hasNext()) {
+            max--;
             final ObjectGroup og = cursor.next();
             final String id = og.getId();
             og.remove(VitamDocument.ID);
+            og.remove(VitamDocument.SCORE);
 
             final String mongoJson = og.toJson(new JsonWriterSettings(JsonMode.STRICT));
             // TODO Empty variable (null) might be ignore here
@@ -707,21 +579,40 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
                 throw new MetaDataExecutionException("Result to insert is empty");
             }
             bulkRequest.add(client
-                .prepareIndex(getIndexName(MetadataCollections.C_OBJECTGROUP, tenantId), ObjectGroup.TYPEUNIQUE, id)
+                .prepareIndex(getIndexName(MetadataCollections.C_OBJECTGROUP, tenantId), VitamCollection.getTypeunique(), id)
                 .setSource(toInsert));
-        }
-        final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
-        // thread
-        if (bulkResponse.hasFailures()) {
-            int duplicates = 0;
-            for (BulkItemResponse bulkItemResponse : bulkResponse) {
-                if (bulkItemResponse.getVersion() > 1) {
-                    duplicates++;
+            if (max == 0) {
+                max = VitamConfiguration.getMaxElasticsearchBulk();
+                final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
+                // thread
+                if (bulkResponse.hasFailures()) {
+                    int duplicates = 0;
+                    for (final BulkItemResponse bulkItemResponse : bulkResponse) {
+                        if (bulkItemResponse.getVersion() > 1) {
+                            duplicates++;
+                        }
+                    }
+                    LOGGER.error("ES insert in error with possible duplicates {}: {}", duplicates,
+                        bulkResponse.buildFailureMessage());
+                    throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
                 }
+                bulkRequest = client.prepareBulk();
             }
-            LOGGER.error("ES insert in error with possible duplicates {}: {}", duplicates,
-                bulkResponse.buildFailureMessage());
-            throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
+        }
+        if (bulkRequest.numberOfActions() > 0) {
+            final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
+            // thread
+            if (bulkResponse.hasFailures()) {
+                int duplicates = 0;
+                for (final BulkItemResponse bulkItemResponse : bulkResponse) {
+                    if (bulkItemResponse.getVersion() > 1) {
+                        duplicates++;
+                    }
+                }
+                LOGGER.error("ES insert in error with possible duplicates {}: {}", duplicates,
+                    bulkResponse.buildFailureMessage());
+                throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
+            }
         }
     }
 
@@ -739,12 +630,14 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             LOGGER.error("ES update in error since no results to update");
             throw new MetaDataExecutionException("No result to update");
         }
-        final BulkRequestBuilder bulkRequest = client.prepareBulk();
+        BulkRequestBuilder bulkRequest = client.prepareBulk();
+        int max = VitamConfiguration.getMaxElasticsearchBulk();
         while (cursor.hasNext()) {
+            max--;
             final ObjectGroup og = cursor.next();
             final String id = og.getId();
             og.remove(VitamDocument.ID);
-
+            og.remove(VitamDocument.SCORE);
             final String mongoJson = og.toJson(new JsonWriterSettings(JsonMode.STRICT));
             // TODO Empty variable (null) might be ignore here
             final DBObject dbObject = (DBObject) com.mongodb.util.JSON.parse(mongoJson);
@@ -755,13 +648,25 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             }
 
             bulkRequest.add(client.prepareUpdate(getIndexName(MetadataCollections.C_OBJECTGROUP, tenantId),
-                ObjectGroup.TYPEUNIQUE, id).setDoc(toUpdate));
+                VitamCollection.getTypeunique(), id).setDoc(toUpdate));
+            if (max == 0) {
+                max = VitamConfiguration.getMaxElasticsearchBulk();
+                final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
+                // thread
+                if (bulkResponse.hasFailures()) {
+                    LOGGER.error("ES update in error: " + bulkResponse.buildFailureMessage());
+                    throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
+                }
+                bulkRequest = client.prepareBulk();
+            }
         }
-        final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
-        // thread
-        if (bulkResponse.hasFailures()) {
-            LOGGER.error("ES update in error: " + bulkResponse.buildFailureMessage());
-            throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
+        if (bulkRequest.numberOfActions() > 0) {
+            final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
+            // thread
+            if (bulkResponse.hasFailures()) {
+                LOGGER.error("ES update in error: " + bulkResponse.buildFailureMessage());
+                throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
+            }
         }
         return true;
     }
@@ -774,9 +679,15 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @param object full object
      * @return True if updated
      */
-    public boolean updateFullOneDocument(MetadataCollections collection, Integer tenantId, String id, ObjectNode object) {
-        UpdateResponse response = client.prepareUpdate(getIndexName(collection, tenantId), ObjectGroup.TYPEUNIQUE, id)
-            .setDoc(object).setRefresh(true).execute().actionGet();
+    public boolean updateFullOneOG(MetadataCollections collection, Integer tenantId, String id, ObjectGroup og) {
+        og.remove(VitamDocument.ID);
+        og.remove(VitamDocument.SCORE);
+        final String mongoJson = og.toJson(new JsonWriterSettings(JsonMode.STRICT));
+        // TODO Empty variable (null) might be ignore here
+        final DBObject dbObject = (DBObject) com.mongodb.util.JSON.parse(mongoJson);
+        final String toUpdate = dbObject.toString().trim();
+        UpdateResponse response = client.prepareUpdate(getIndexName(MetadataCollections.C_OBJECTGROUP, tenantId),
+            VitamCollection.getTypeunique(), id).setDoc(toUpdate).setRefresh(true).execute().actionGet();
         return response.getId().equals(id);
     }
 
@@ -784,31 +695,42 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * deleteBulkOGEntriesIndexes
      * <p>
      * Bulk to delete entry indexes
-     * 
-     * @param cursor the {@link MongoCursor} of ObjectGroup
+     *
+     * @param ids list of ids of OG
      * @param tenantId the tenant for operation
      * @return boolean true if delete ok
      * @throws MetaDataExecutionException when delete index exception occurred
      */
-    public boolean deleteBulkOGEntriesIndexes(MongoCursor<ObjectGroup> cursor, final Integer tenantId)
+    public boolean deleteBulkOGEntriesIndexes(List<String> ids, final Integer tenantId)
         throws MetaDataExecutionException {
-        if (!cursor.hasNext()) {
+        if (ids.isEmpty()) {
             LOGGER.error("ES delete in error since no results to delete");
             throw new MetaDataExecutionException("No result to delete");
         }
-        final BulkRequestBuilder bulkRequest = client.prepareBulk();
-        while (cursor.hasNext()) {
-            final ObjectGroup og = cursor.next();
-            final String id = og.getId();
-            og.remove(VitamDocument.ID);
+        BulkRequestBuilder bulkRequest = client.prepareBulk();
+        int max = VitamConfiguration.getMaxElasticsearchBulk();
+        for (String id : ids) {
+            max--;
             bulkRequest.add(client.prepareDelete(getIndexName(MetadataCollections.C_OBJECTGROUP, tenantId),
-                ObjectGroup.TYPEUNIQUE, id));
+                VitamCollection.getTypeunique(), id));
+            if (max == 0) {
+                max = VitamConfiguration.getMaxElasticsearchBulk();
+                final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
+                // thread
+                if (bulkResponse.hasFailures()) {
+                    LOGGER.error("ES delete in error: " + bulkResponse.buildFailureMessage());
+                    throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
+                }
+                bulkRequest = client.prepareBulk();
+            }
         }
-        final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
-        // thread
-        if (bulkResponse.hasFailures()) {
-            LOGGER.error("ES delete in error: " + bulkResponse.buildFailureMessage());
-            throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
+        if (bulkRequest.numberOfActions() > 0) {
+            final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
+            // thread
+            if (bulkResponse.hasFailures()) {
+                LOGGER.error("ES delete in error: " + bulkResponse.buildFailureMessage());
+                throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
+            }
         }
         return true;
 
@@ -818,30 +740,41 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * deleteBulkUnitEntriesIndexes
      * <p>
      * Bulk to delete entry indexes
-     * 
-     * @param cursor the {@link MongoCursor} of Unit, containing all Unit to be delete
+     *
+     * @param ids containing all Unit to be delete
      * @param tenantId the tenant of operation
      * @throws MetaDataExecutionException when delete exception occurred
      */
-    public void deleteBulkUnitsEntriesIndexes(MongoCursor<Unit> cursor, final Integer tenantId)
+    public void deleteBulkUnitsEntriesIndexes(List<String> ids, final Integer tenantId)
         throws MetaDataExecutionException {
-        if (!cursor.hasNext()) {
+        if (ids.isEmpty()) {
             LOGGER.error("ES delete in error since no results to delete");
             throw new MetaDataExecutionException("No result to delete");
         }
-        final BulkRequestBuilder bulkRequest = client.prepareBulk();
-        while (cursor.hasNext()) {
-            final Unit unit = cursor.next();
-            final String id = unit.getId();
-            unit.remove(VitamDocument.ID);
+        BulkRequestBuilder bulkRequest = client.prepareBulk();
+        int max = VitamConfiguration.getMaxElasticsearchBulk();
+        for (String id : ids) {
+            max--;
             bulkRequest
-                .add(client.prepareDelete(getIndexName(MetadataCollections.C_UNIT, tenantId), Unit.TYPEUNIQUE, id));
+                .add(client.prepareDelete(getIndexName(MetadataCollections.C_UNIT, tenantId), VitamCollection.getTypeunique(), id));
+            if (max == 0) {
+                max = VitamConfiguration.getMaxElasticsearchBulk();
+                final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
+                // thread
+                if (bulkResponse.hasFailures()) {
+                    LOGGER.error("ES delete in error: " + bulkResponse.buildFailureMessage());
+                    throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
+                }
+                bulkRequest = client.prepareBulk();
+            }
         }
-        final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
-        // thread
-        if (bulkResponse.hasFailures()) {
-            LOGGER.error("ES delete in error: " + bulkResponse.buildFailureMessage());
-            throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
+        if (bulkRequest.numberOfActions() > 0) {
+            final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
+            // thread
+            if (bulkResponse.hasFailures()) {
+                LOGGER.error("ES delete in error: " + bulkResponse.buildFailureMessage());
+                throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
+            }
         }
     }
 
@@ -855,15 +788,6 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         } else if (collection == MetadataCollections.C_OBJECTGROUP) {
             return ElasticsearchUtil
                 .transferJsonToMapping(ObjectGroup.class.getResourceAsStream(MAPPING_OBJECT_GROUP_FILE));
-        }
-        return "";
-    }
-
-    private String getTypeUnique(MetadataCollections collection) {
-        if (collection.equals(MetadataCollections.C_UNIT)) {
-            return Unit.TYPEUNIQUE;
-        } else if (collection.equals(MetadataCollections.C_OBJECTGROUP)) {
-            return ObjectGroup.TYPEUNIQUE;
         }
         return "";
     }

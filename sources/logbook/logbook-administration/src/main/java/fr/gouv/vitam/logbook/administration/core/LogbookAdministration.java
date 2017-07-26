@@ -46,6 +46,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -64,6 +65,7 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -181,7 +183,12 @@ public class LogbookAdministration {
         if (lastTraceabilityOperation == null) {
             startDate = LocalDateTime.MIN;
         } else {
-            final Date date = LocalDateUtil.getDate(lastTraceabilityOperation.getString(EVENT_DATE_TIME));
+            Date date;
+            try {
+                date = LocalDateUtil.getDate(lastTraceabilityOperation.getString(EVENT_DATE_TIME));
+            } catch (ParseException e) {
+                throw new InvalidParseOperationException("Invalid date");
+            }
             startDate = LocalDateUtil.fromDate(date);
             expectedLogbookId.add(lastTraceabilityOperation.getString(EVENT_ID));
         }
@@ -207,6 +214,7 @@ public class LogbookAdministration {
             while (traceabilityIterator.hasNext()) {
 
                 final LogbookOperation logbookOperation = traceabilityIterator.next();
+                logbookOperation.remove(VitamDocument.SCORE);
                 final String logbookOperationStr = JsonHandler.unprettyPrint(logbookOperation);
                 traceabilityFile.storeOperationLog(logbookOperation);
                 merkleTreeAlgo.addLeaf(logbookOperationStr);

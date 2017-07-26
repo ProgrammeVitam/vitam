@@ -65,11 +65,6 @@ public class WorkerExecutor implements Runnable {
                 LOGGER.info("Start task run on worker: " + workerBean.getName());
                 try {
                     task.run();
-                } catch (Exception e) {
-                    if (e instanceof WorkerExecutorException) {
-                        throw e;
-                    }
-                    throw new WorkerExecutorException(e);
                 } finally {
                     LOGGER.info("End task run on worker: " + workerBean.getName());
 

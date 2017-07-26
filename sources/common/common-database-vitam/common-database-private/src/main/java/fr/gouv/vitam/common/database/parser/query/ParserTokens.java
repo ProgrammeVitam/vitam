@@ -30,8 +30,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * Main language definition
@@ -39,7 +40,8 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
  *
  */
 public class ParserTokens extends BuilderToken {
-
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ParserTokens.class);
+    
     /**
      * Default prefix for internal variable
      */
@@ -113,12 +115,10 @@ public class ParserTokens extends BuilderToken {
         /**
          * Object size
          */
-        // FIXME P2 not valid
         SIZE("size"),
         /**
          * Object format
          */
-        // FIXME P2 not valid
         FORMAT("format"),
         /**
          * Unit/ObjectGroup type
@@ -268,6 +268,22 @@ public class ParserTokens extends BuilderToken {
                        return ORIGINATING_AGENCIES;
                    case "_storage":
                        return STORAGE;
+                   case "_qualifiers":
+                       return QUALIFIERS;
+                   case "_type":
+                       return TYPE;
+                   case "_nbunits":
+                       return NBUNITS;
+                   case "_nbobjects":
+                       return NBOBJECTS;
+                   case "_min":
+                       return MIN;
+                   case "_max":
+                       return MAX;
+                   case "_version":
+                       return VERSION;
+                   case "_score":
+                       return SCORE;
                    default:
                }
            } else if (name.charAt(0) == ParserTokens.DEFAULT_HASH_PREFIX_CHAR) {
@@ -428,6 +444,7 @@ public class ParserTokens extends BuilderToken {
             return ParserTokens.isSingleProtectedVariable(name);
         }
     }
+
     /**
      * 
      * @param name

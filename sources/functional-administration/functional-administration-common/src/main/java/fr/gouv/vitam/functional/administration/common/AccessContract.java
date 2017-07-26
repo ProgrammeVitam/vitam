@@ -38,7 +38,7 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 
 /**
  * Defines an Access contract model for SIP transfer control. </BR>
- * 
+ *
  */
 public class AccessContract extends VitamDocument<AccessContract> {
     /**
@@ -79,9 +79,6 @@ public class AccessContract extends VitamDocument<AccessContract> {
      * the desactication date of contract
      */
     public static final String DEACTIVATIONDATE = "DeactivationDate";
-
-
-    public static final String TYPEUNIQUE = "typeunique";
 
 
     /**
@@ -142,6 +139,7 @@ public class AccessContract extends VitamDocument<AccessContract> {
 
     /**
      * Name of the contract
+     * 
      * @return name of contract
      */
     public String getName() {
@@ -150,7 +148,8 @@ public class AccessContract extends VitamDocument<AccessContract> {
 
     /**
      * Set or change the contract name
-     * @param name to set 
+     * 
+     * @param name to set
      * @return this
      */
     public AccessContract setName(String name) {
@@ -160,6 +159,7 @@ public class AccessContract extends VitamDocument<AccessContract> {
 
     /**
      * Get the contract description
+     * 
      * @return this
      */
     public String getDescription() {
@@ -168,6 +168,7 @@ public class AccessContract extends VitamDocument<AccessContract> {
 
     /**
      * Set or change the contract description
+     * 
      * @param description to set to contact
      * @return this
      */
@@ -176,9 +177,10 @@ public class AccessContract extends VitamDocument<AccessContract> {
         return this;
     }
 
-    
+
     /**
      * Get the contract status
+     * 
      * @return status of access contact
      */
     public ContractStatus getStatus() {
@@ -196,7 +198,8 @@ public class AccessContract extends VitamDocument<AccessContract> {
 
     /**
      * Set or change the contract status
-     * @param status to set 
+     * 
+     * @param status to set
      * @return this
      */
     public AccessContract setStatus(ContractStatus status) {
@@ -215,6 +218,7 @@ public class AccessContract extends VitamDocument<AccessContract> {
 
     /**
      * Set the collection of originating agencies
+     * 
      * @param originatingAgencies
      * @return this
      */
@@ -247,7 +251,7 @@ public class AccessContract extends VitamDocument<AccessContract> {
     }
 
     /**
-     * @param lastupdate to set 
+     * @param lastupdate to set
      * @return this
      */
     public AccessContract setLastupdate(String lastupdate) {

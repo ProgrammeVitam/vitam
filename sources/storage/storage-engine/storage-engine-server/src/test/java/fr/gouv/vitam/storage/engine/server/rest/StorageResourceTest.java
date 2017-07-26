@@ -26,11 +26,33 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.server.rest;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.jayway.restassured.RestAssured;
 import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.servlet.ServletConfig;
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
+
+import org.jhades.JHades;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
+
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.digest.DigestType;
@@ -40,12 +62,13 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.common.server.BasicVitamServer;
 import fr.gouv.vitam.common.server.HeaderIdContainerFilter;
-import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
+import fr.gouv.vitam.common.server.application.GenericExceptionMapper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
+import fr.gouv.vitam.common.serverv2.ConfigurationApplication;
+import fr.gouv.vitam.common.serverv2.VitamStarter;
+import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
@@ -54,27 +77,7 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
-import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.handler.HandlerList;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.servlet.ServletContainer;
-import org.jhades.JHades;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
+import fr.gouv.vitam.storage.engine.server.registration.StorageLogSecurisationListener;
 
 /**
  *
@@ -83,7 +86,7 @@ public class StorageResourceTest {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageResourceTest.class);
 
-    private static VitamServer vitamServer;
+    private static VitamStarter vitamStarter;
 
     private static int serverPort;
 
@@ -102,7 +105,11 @@ public class StorageResourceTest {
     private static final String STATUS_URI = "/status";
     private static final String MANIFESTS_URI = "/manifests";
     private static final String STORAGELOG = "/storagelog";
+    private static final String STORAGERULE = "/rules";
+
     private static final String STORAGELOG_ID_URI = "/{storagelogname}";
+    private static final String STORAGERULE_ID_URI = "/{rulefile}";
+
     private static final String MANIFEST_ID_URI = "/{id_manifest}";
 
     private static final String ID_O1 = "idO1";
@@ -128,8 +135,8 @@ public class StorageResourceTest {
         RestAssured.basePath = REST_URI;
 
         try {
-            vitamServer = buildTestServer();
-            ((BasicVitamServer) vitamServer).start();
+            vitamStarter = buildTestServer();
+            vitamStarter.start();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException("Cannot start the Storage Application Server", e);
@@ -138,7 +145,7 @@ public class StorageResourceTest {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        ((BasicVitamServer) vitamServer).stop();
+        vitamStarter.stop();
         junitHelper.releasePort(serverPort);
     }
 
@@ -366,6 +373,11 @@ public class StorageResourceTest {
                 TENANT_ID_E)
             .body(createObjectDescription).when().post(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
+        given().contentType(ContentType.JSON)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
+                TENANT_ID_E)
+            .body(createObjectDescription).when().post(STORAGERULE + STORAGERULE_ID_URI, ID_O1).then()
+            .statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
     @Test
@@ -381,7 +393,7 @@ public class StorageResourceTest {
     }
 
     @Test
-    public final void tesLogStorage() {
+    public final void testLogStorage() {
         final ObjectDescription createObjectDescription = new ObjectDescription();
 
         createObjectDescription.setWorkspaceObjectURI("dd");
@@ -403,6 +415,33 @@ public class StorageResourceTest {
         given().contentType(ContentType.JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
             .when().post(STORAGELOG + STORAGELOG_ID_URI, ID_O1).then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+
+    @Test
+    public final void testruleStorage() {
+        final ObjectDescription createObjectDescription = new ObjectDescription();
+
+        createObjectDescription.setWorkspaceObjectURI("dd");
+        createObjectDescription.setWorkspaceContainerGUID("dd");
+        given().contentType(ContentType.JSON)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .body(createObjectDescription).when().post(STORAGERULE + STORAGERULE_ID_URI, ID_O1).then()
+            .statusCode(Status.CREATED.getStatusCode());
+        given().contentType(ContentType.JSON).body(createObjectDescription).when()
+            .post(STORAGERULE + STORAGERULE_ID_URI, ID_O1).then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given().contentType(ContentType.JSON)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
+                TENANT_ID_Ardyexist)
+            .body(createObjectDescription).when().post(STORAGERULE + STORAGERULE_ID_URI, ID_O1).then()
+            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+
+        given().contentType(ContentType.JSON)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .when().post(STORAGERULE + STORAGERULE_ID_URI, ID_O1).then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
@@ -895,29 +934,44 @@ public class StorageResourceTest {
 
     }
 
-    private static VitamServer buildTestServer() throws VitamApplicationServerException {
-        final VitamServer vitamServer = VitamServerFactory.newVitamServer(serverPort);
-
-        final ResourceConfig resourceConfig = new ResourceConfig();
-        final StorageResourceTest outer = new StorageResourceTest();
-        resourceConfig.register(JacksonFeature.class);
-        final StorageDistributionInnerClass storage = outer.new StorageDistributionInnerClass();
-        resourceConfig.register(new StorageResource(storage));
-        resourceConfig.register(HeaderIdContainerFilter.class);
-
-        final ServletContainer servletContainer = new ServletContainer(resourceConfig);
-        final ServletHolder sh = new ServletHolder(servletContainer);
-        final ServletContextHandler contextHandler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
-        contextHandler.setContextPath("/");
-        contextHandler.addServlet(sh, "/*");
-
-        final HandlerList handlers = new HandlerList();
-        handlers.setHandlers(new Handler[] {contextHandler});
-        vitamServer.configure(contextHandler);
-        return vitamServer;
+    private static VitamStarter buildTestServer() throws VitamApplicationServerException {
+        return new VitamStarter(StorageConfiguration.class, "storage-engine.conf",
+            BusinessApplicationInner.class, AdminApplication.class);
     }
 
-    private class StorageDistributionInnerClass implements StorageDistribution {
+    public static class BusinessApplicationInner extends ConfigurationApplication {
+
+        private Set<Object> singletons;
+        private Set<Class<?>> classes;
+        private String configurationFile;
+
+        public BusinessApplicationInner(@Context ServletConfig servletConfig) {
+            classes = new HashSet<>();
+            classes.add(HeaderIdContainerFilter.class);
+            this.configurationFile = servletConfig.getInitParameter("vitam.configurationFile");
+        }
+
+
+        @Override
+        public Set<Class<?>> getClasses() {
+            return classes;
+        }
+
+        @Override
+        public Set<Object> getSingletons() {
+            // Cannot use public constructor here because VitamApplicationConfiguration is needed in context
+            if (singletons == null) {
+                singletons = new HashSet<>();
+                singletons.add(new GenericExceptionMapper());
+                StorageResource storageResource = new StorageResource(new StorageDistributionInnerClass());
+                singletons.add(storageResource);
+                singletons.add(new StorageLogSecurisationListener(storageResource, configurationFile));
+            }
+            return singletons;
+        }
+    }
+
+    public static class StorageDistributionInnerClass implements StorageDistribution {
 
         @Override
         public StoredInfoResult storeData(String strategyId, String objectId,

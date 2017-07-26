@@ -27,9 +27,15 @@
 
 package fr.gouv.vitam.storage.engine.client;
 
+import static fr.gouv.vitam.common.PropertiesUtils.readYaml;
+import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +51,10 @@ import java.util.regex.Pattern;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.digest.Digest;
+import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.functional.administration.rules.core.RulesSecurisator;
 import org.apache.commons.io.FileUtils;
 import org.jhades.JHades;
 import org.junit.AfterClass;
@@ -60,7 +70,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.FakeInputStream;
@@ -77,8 +86,8 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
-import fr.gouv.vitam.storage.engine.server.rest.StorageApplication;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
+import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferApplication;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -96,7 +105,7 @@ public class StorageTestMultiIT {
     private static final String DEFAULT_OFFER_CONF = "storage-test/storage-default-offer-ssl.conf";
     private static final String OFFER_FOLDER = "offer";
 
-    private static StorageApplication storageApplication;
+    private static StorageMain storageMain;
     private static StorageClient storageClient;
     private static final String STORAGE_CONF = "storage-test/storage-engine.conf";
 
@@ -128,16 +137,15 @@ public class StorageTestMultiIT {
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
 
         // first offer
-        final fr.gouv.vitam.common.storage.StorageConfiguration offerConfiguration = PropertiesUtils
-            .readYaml(PropertiesUtils.findFile(DEFAULT_OFFER_CONF),
+        final fr.gouv.vitam.common.storage.StorageConfiguration offerConfiguration =
+                readYaml(PropertiesUtils.findFile(DEFAULT_OFFER_CONF),
                 fr.gouv.vitam.common.storage.StorageConfiguration.class);
         defaultOfferApplication = new DefaultOfferApplication(offerConfiguration);
         defaultOfferApplication.start();
 
         // storage engine
-        final StorageConfiguration serverConfiguration =
-            PropertiesUtils.readYaml(PropertiesUtils.findFile(STORAGE_CONF),
-                StorageConfiguration.class);
+        File storageConfigurationFile = PropertiesUtils.findFile(STORAGE_CONF);
+        final StorageConfiguration serverConfiguration = readYaml(storageConfigurationFile, StorageConfiguration.class);
         final Pattern compiledPattern = Pattern.compile(":(\\d+)");
         final Matcher matcher = compiledPattern.matcher(serverConfiguration.getUrlWorkspace());
         if (matcher.find()) {
@@ -151,13 +159,10 @@ public class StorageTestMultiIT {
         serverConfiguration.setZippingDirecorty(folder.newFolder().getAbsolutePath());
         serverConfiguration.setLoggingDirectory(folder.newFolder().getAbsolutePath());
 
-        try {
-            storageApplication = new StorageApplication(serverConfiguration);
-            storageApplication.start();
-        } catch (final VitamApplicationServerException e) {
-            LOGGER.error(e);
-            throw new IllegalStateException("Cannot start the Composite Application Server", e);
-        }
+        writeYaml(storageConfigurationFile, serverConfiguration);
+
+        storageMain = new StorageMain(STORAGE_CONF);
+        storageMain.start();
 
         StorageClientFactory.getInstance().setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);
         storageClient = StorageClientFactory.getInstance().getClient();
@@ -201,7 +206,7 @@ public class StorageTestMultiIT {
         }
         storageClient.close();
         defaultOfferApplication.stop();
-        storageApplication.stop();
+        storageMain.stop();
         folder.delete();
     }
 
@@ -240,12 +245,44 @@ public class StorageTestMultiIT {
             } catch (ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException e) {
                 // nothing
             }
-    
+
             try (FakeInputStream fis = new FakeInputStream(size, true, true)) {
                 workspaceClient.putObject(CONTAINER, OBJECT_ID, fis);
             }
         }
     }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testRulesSecurisator () throws Exception {
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0));
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+
+        RulesSecurisator rulesSecurisator = new RulesSecurisator();
+        final GUID eipMaster = GUIDFactory.newOperationLogbookGUID(0);
+
+        File  file = PropertiesUtils.findFile("static-offer.json");
+        final DigestType digestType = VitamConfiguration.getDefaultTimestampDigestType();
+        final Digest digest = new Digest(digestType);
+        digest.update(new FileInputStream(file));
+        rulesSecurisator.secureFileRules(1 , new FileInputStream(file), "json", eipMaster,
+                digest.toString());
+        rulesSecurisator.secureFileRules(2 , new FileInputStream(file), "json",eipMaster,
+                digest.toString());
+        VitamRequestIterator<JsonNode> result = storageClient.listContainer("default", DataCategory.RULES);
+
+        TestCase.assertNotNull(result);
+
+        Assert.assertTrue(result.hasNext());
+        JsonNode node = result.next();
+        TestCase.assertNotNull(node);
+
+        //    assertEquals(node.get("objectId").asText()., "0_RULES-1.json");
+        assertTrue(node.get("objectId").asText().startsWith("0_RULES-1"));
+        assertTrue(node.get("objectId").asText().endsWith(".json"));
+
+    }
+
 
     @RunWithCustomExecutor
     //@Test
@@ -275,7 +312,7 @@ public class StorageTestMultiIT {
                 LOGGER.error("Size: " + size, e);
                 assert (false);
             }
-    
+
             // see other test for full listing, here, we only have one object !
             try {
                 VitamRequestIterator<JsonNode> result = storageClient.listContainer("default", DataCategory.OBJECT);
@@ -303,7 +340,7 @@ public class StorageTestMultiIT {
             assert (false);
         }
     }
-    
+
     @RunWithCustomExecutor
     @Test
     public void test() {
@@ -358,8 +395,8 @@ public class StorageTestMultiIT {
             size *= 2;
         }
     }
-    
-   
+
+
     @RunWithCustomExecutor
     @Test
     public void testParallel() throws InterruptedException {

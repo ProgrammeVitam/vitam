@@ -28,24 +28,24 @@
 // Define controller for workflows
 angular.module('workflows')
   .constant('WORKFLOWS_MODULE_CONST', {
-    'COMPLETED' : 'Terminé',
-    'FAILED' : 'Terminé en erreur',
-    'PAUSE' : 'En attente',
-    'CANCELLED' : 'Annulé',
-    'RUNNING' : 'En cours d\'exécution',
-    'STARTED' : 'En cours',
-    'UNKNOWN' : 'Inconnu',
-    'INIT' : 'Initialisation',
-    '200' : 'OK',
-    '500' : 'FATAL',
-    '404' : 'KO',
-    '400' : 'KO',
-    '206' : 'WARNING',
-    'RESUME' : 'Continu',
-    'NEXT' : 'Pas à pas'
+    'COMPLETED': 'Terminé',
+    'FAILED': 'Terminé en erreur',
+    'PAUSE': 'En attente',
+    'CANCELLED': 'Annulé',
+    'RUNNING': 'En cours d\'exécution',
+    'STARTED': 'En cours',
+    'UNKNOWN': 'Inconnu',
+    'INIT': 'Initialisation',
+    '200': 'OK',
+    '500': 'FATAL',
+    '404': 'KO',
+    '400': 'KO',
+    '206': 'WARNING',
+    'RESUME': 'Continu',
+    'NEXT': 'Pas à pas'
   })
   .controller('workflowsController', function($scope, ihmDemoFactory, $mdDialog, WORKFLOWS_MODULE_CONST, ITEM_PER_PAGE,
-                                              $filter, processSearchService, resultStartService, _) {
+                                              $filter, processSearchService, resultStartService, _, responseValidator) {
 
     $scope.statuses = [{
       id: '', name: 'Tous'
@@ -112,16 +112,16 @@ angular.module('workflows')
     $scope.orderByField = 'processDate';
     $scope.reverseSort = false;
 
-    $scope.getTranslatedText = function (key) {
+    $scope.getTranslatedText = function(key) {
       return WORKFLOWS_MODULE_CONST[key];
     };
 
-    var customPost = function (criteria, headers) {
+    var customPost = function(criteria, headers) {
       console.log(criteria, headers);
       return ihmDemoFactory.getWorkflows(criteria);
     };
 
-    var preSearch = function () {
+    var preSearch = function() {
       var requestOptions = angular.copy($scope.search.form);
 
       console.log(requestOptions);
@@ -179,35 +179,42 @@ angular.module('workflows')
       return requestOptions;
     };
 
-    var successCallback = function (response) {
-      $scope.search.response.data = response.data.$results;
-      $scope.search.response.totalResult = $scope.search.response.data.length;
-      $scope.search.pagination.resultPages = Math.ceil($scope.search.response.totalResult / $scope.search.pagination.itemsPerPage);
-      if ($scope.search.pagination.resultPages > 0) {
-        $scope.search.pagination.currentPage = Math.floor($scope.search.pagination.startOffset / $scope.search.pagination.itemsPerPage) + 1;
+    var successCallback = function(response) {
+      if (!responseValidator.validateReceivedResponse(response) || response.data.$hits.total === 0) {
+        return false;
       } else {
-        $scope.search.pagination.currentPage = 0;
+        $scope.search.response.data = response.data.$results;
+        $scope.search.response.totalResult = $scope.search.response.data.length;
+        $scope.search.pagination.resultPages =
+          Math.ceil($scope.search.response.totalResult / $scope.search.pagination.itemsPerPage);
+        if ($scope.search.pagination.resultPages > 0) {
+          $scope.search.pagination.currentPage =
+            Math.floor($scope.search.pagination.startOffset / $scope.search.pagination.itemsPerPage) + 1;
+        } else {
+          $scope.search.pagination.currentPage = 0;
+        }
+        return true;
       }
-      return true;
     };
-    var computeErrorMessage = function () {
+    var computeErrorMessage = function() {
       return 'Il n\'y a aucun résultat pour votre recherche';
     };
 
-    var searchService = processSearchService.initAndServe(customPost, preSearch, successCallback, computeErrorMessage, $scope.search, true, null, null, null, true);
+    var searchService = processSearchService.initAndServe(customPost, preSearch, successCallback, computeErrorMessage,
+      $scope.search, true, null, null, null, true);
     $scope.getList = searchService.processSearch;
     $scope.reset = searchService.processReinit;
 
-    var initWorkflowCategories = function (results) {
+    var initWorkflowCategories = function(results) {
       $scope.workflowCategories = [{name: 'Tous', id: ''}];
       for (var workProp in results) {
         if (results.hasOwnProperty(workProp)) {
           var workflow = results[workProp];
-          $scope.workflowCategories.push({name: workflow.comment, id: workflow.id});
+          $scope.workflowCategories.push({name: workflow.name, id: workflow.identifier});
           for (var stepProp in workflow.steps) {
             if (workflow.steps.hasOwnProperty(stepProp)) {
               var step = workflow.steps[stepProp];
-              $scope.workflowSteps.push({parent: workflow.id, name: step.stepName, id: step.stepName});
+              $scope.workflowSteps.push({parent: workflow.identifier, name: step.stepName, id: step.stepName});
             }
           }
         }
@@ -217,7 +224,7 @@ angular.module('workflows')
     $scope.updateSelectableSteps = function(categories) {
       var selectableSteps = [{name: 'Tous', id: ''}];
       var categoriesId = _.map(categories, 'id');
-      for (var i= 0, len = $scope.workflowSteps.length; i < len; i++) {
+      for (var i = 0, len = $scope.workflowSteps.length; i < len; i++) {
         var step = $scope.workflowSteps[i];
         if (categoriesId[0] !== '' && categoriesId.indexOf(step.parent) === -1) {
           continue;
@@ -247,31 +254,33 @@ angular.module('workflows')
     //******************************* Display an alert ******************************* //
     $scope.showAlert = function($event, dialogTitle, message) {
       $mdDialog.show($mdDialog.alert().parent(angular.element(document.querySelector('#popupContainer')))
-        .clickOutsideToClose(true)
-        .title(dialogTitle)
-        .textContent(message)
-        .ariaLabel('Alert Dialog Demo')
-        .ok('OK')
-        .targetEvent($event)
+          .clickOutsideToClose(true)
+          .title(dialogTitle)
+          .textContent(message)
+          .ariaLabel('Alert Dialog Demo')
+          .ok('OK')
+          .targetEvent($event)
       );
     };
     // **************************************************************************** //
 
-    function downloadATR(response){
+    function downloadATR(response) {
       var a = document.createElement("a");
       document.body.appendChild(a);
-      var url = URL.createObjectURL(new Blob([response.data], { type: 'application/xml' }));
+      var url = URL.createObjectURL(new Blob([response.data], {type: 'application/xml'}));
       a.href = url;
 
-      if(response.headers('content-disposition')!== undefined && response.headers('content-disposition')!== null){
+      if (response.headers('content-disposition') !== undefined && response.headers('content-disposition') !== null) {
         a.download = response.headers('content-disposition').split('filename=')[1];
         a.click();
       }
     }
 
-    $scope.executeAction = function($event, operationId, action, $index){
+    $scope.executeAction = function($event, operationId, action, $index) {
       $scope.$index = $index;
-      var a = _.find( $scope.search.response.data, function(o) { return o.operation_id === operationId;  });
+      var a = _.find($scope.search.response.data, function(o) {
+        return o.operation_id === operationId;
+      });
       a.inProgress = true;
       ihmDemoFactory.executeAction(a.operation_id, action)
         .then(function(response) {
@@ -285,10 +294,10 @@ angular.module('workflows')
 
           // IF Completed process download ATR
           downloadATR(response);
-        }, function (error) {
+        }, function(error) {
           // Display error message
           console.log(error);
-          if(error.status === 401){
+          if (error.status === 401) {
             a.inProgress = false;
             $scope.showAlert($event, "Erreur", "Action non autorisée");
           } else {
@@ -300,23 +309,23 @@ angular.module('workflows')
         });
     };
 
-    $scope.stopProcess = function($event, operationId, $index){
+    $scope.stopProcess = function($event, operationId, $index) {
       $scope.$index = $index;
       ihmDemoFactory.stopProcess(operationId)
         .then(function(response) {
-            // Update operation status
-            $scope.search.response.data[$index].stepStatus = response.status;
-            $scope.search.response.data[$index].globalStatus = response.headers('x-global-execution-status');
-          },
-          function (error) {
-            // Display error message
-            console.log(error);
-            if(error.status === 401){
-              $scope.showAlert($event, "Erreur", "Action non autorisée");
-            } else{
-              $scope.showAlert($event, "Erreur", "Une erreur est survenue lors de cette action.");
-            }
-          });
+          // Update operation status
+          $scope.search.response.data[$index].stepStatus = response.status;
+          $scope.search.response.data[$index].globalStatus = response.headers('x-global-execution-status');
+        },
+        function(error) {
+          // Display error message
+          console.log(error);
+          if (error.status === 401) {
+            $scope.showAlert($event, "Erreur", "Action non autorisée");
+          } else {
+            $scope.showAlert($event, "Erreur", "Une erreur est survenue lors de cette action.");
+          }
+        });
     };
 
     $scope.orderByFunction = function(operation) {

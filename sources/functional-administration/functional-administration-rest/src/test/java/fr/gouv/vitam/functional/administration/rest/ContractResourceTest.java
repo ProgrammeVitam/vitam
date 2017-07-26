@@ -71,7 +71,7 @@ import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
-import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
+import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
@@ -93,6 +93,7 @@ import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccess
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 
 
@@ -107,7 +108,7 @@ public class ContractResourceTest {
 
     private static final String RESOURCE_URI = "/adminmanagement/v1";
     private static final String STATUS_URI = "/status";
-    private static final String UPDATE_ACCESS_CONTRACT_URI = "/accesscontract";
+    private static final String UPDATE_ACCESS_CONTRACT_URI = "/accesscontracts";
 
 
     private static final int TENANT_ID = 0;
@@ -155,6 +156,7 @@ public class ContractResourceTest {
         final List<ElasticsearchNode> nodesEs = new ArrayList<>();
         nodesEs.add(new ElasticsearchNode("localhost", configEs.getTcpPort()));
         esClient = new ElasticsearchAccessFunctionalAdmin(CLUSTER_NAME, nodesEs);
+        LogbookOperationsClientFactory.changeMode(null);
 
 
         final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
@@ -214,7 +216,7 @@ public class ContractResourceTest {
 
     @After
     public void tearDown() throws Exception {
-        mongoDbAccess.deleteCollection(FunctionalAdminCollections.ACCESS_CONTRACT);
+        mongoDbAccess.deleteCollection(FunctionalAdminCollections.ACCESS_CONTRACT).close();
     }
 
     @Test
@@ -324,7 +326,7 @@ public class ContractResourceTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         // Test update for access contract Status => inactive
         String now = LocalDateUtil.now().toString();
-        final UpdateParserSingle updateParser = new UpdateParserSingle(new VarNameAdapter());
+        final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
         SetAction setActionStatusInactive;
         try {
             setActionStatusInactive = UpdateActionHelper.set("Status", "INACTIVE");
@@ -345,7 +347,7 @@ public class ContractResourceTest {
     }
 
     private List<String> selectContractByName(String name, String resource) throws Exception {
-        final SelectParserSingle parser = new SelectParserSingle(new VarNameAdapter());
+        final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
         Select select = new Select();
         parser.parse(select.getFinalSelect());
         parser.addCondition(QueryHelper.eq("Name", name));
@@ -373,7 +375,7 @@ public class ContractResourceTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         // Test update for access contract Status => inactive
         String now = LocalDateUtil.now().toString();
-        final UpdateParserSingle updateParser = new UpdateParserSingle(new VarNameAdapter());
+        final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
         SetAction setActionStatusInactive;
         try {
             setActionStatusInactive = UpdateActionHelper.set("Status", "INACTIVE");
@@ -411,7 +413,7 @@ public class ContractResourceTest {
             .when().post(ContractResource.ACCESS_CONTRACTS_URI)
             .then().statusCode(Status.CREATED.getStatusCode()).extract().body().jsonPath();
 
-        List<String> names = body.get("$results.Name");
+        List<String> names = body.get("$results.Identifier");
 
         assertThat(names).isNotEmpty();
 
@@ -419,10 +421,10 @@ public class ContractResourceTest {
         String name = names.get(0);
         assertThat(name).isNotNull();
 
-        final SelectParserSingle parser = new SelectParserSingle(new VarNameAdapter());
+        final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
         Select select = new Select();
         parser.parse(select.getFinalSelect());
-        parser.addCondition(QueryHelper.eq("Name", name));
+        parser.addCondition(QueryHelper.eq("Identifier", name));
         JsonNode queryDsl = parser.getRequest().getFinalSelect();
 
 
@@ -434,8 +436,7 @@ public class ContractResourceTest {
             .get(ContractResource.ACCESS_CONTRACTS_URI)
             .then().statusCode(Status.OK.getStatusCode()).extract().body().jsonPath();
 
-        names = body.get("$results.Name");
-
+        names = body.get("$results.Identifier");
         assertThat(names).hasSize(1);
 
         // We juste test the first contract

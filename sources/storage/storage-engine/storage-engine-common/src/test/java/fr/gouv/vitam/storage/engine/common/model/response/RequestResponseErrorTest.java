@@ -32,6 +32,7 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.model.RequestResponseError;
 
 /**
  *

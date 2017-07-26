@@ -43,6 +43,7 @@ import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.json.JsonHandler;
 import org.bson.Document;
+import org.elasticsearch.ElasticsearchParseException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -72,6 +73,9 @@ import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImp
 @Path("/metadata/v1")
 @javax.ws.rs.ApplicationPath("webresources")
 public class MetaDataResource extends ApplicationStatusResource {
+
+    private static final String METADATA = "METADATA";
+
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetaDataResource.class);
 
@@ -119,7 +123,7 @@ public class MetaDataResource extends ApplicationStatusResource {
                     .setContext(INGEST)
                     .setState(CODE_VITAM)
                     .setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase()))
+                    .setDescription(e.getMessage()))
                 .build();
         } catch (final MetaDataNotFoundException e) {
             LOGGER.error(e);
@@ -129,7 +133,7 @@ public class MetaDataResource extends ApplicationStatusResource {
                     .setContext(INGEST)
                     .setState(CODE_VITAM)
                     .setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase()))
+                    .setDescription(e.getMessage()))
                 .build();
         } catch (final MetaDataAlreadyExistException e) {
             LOGGER.error(e);
@@ -139,7 +143,7 @@ public class MetaDataResource extends ApplicationStatusResource {
                     .setContext(INGEST)
                     .setState(CODE_VITAM)
                     .setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase()))
+                    .setDescription(e.getMessage()))
                 .build();
         } catch (final MetaDataExecutionException e) {
             LOGGER.error(e);
@@ -149,7 +153,7 @@ public class MetaDataResource extends ApplicationStatusResource {
                     .setContext(INGEST)
                     .setState(CODE_VITAM)
                     .setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase()))
+                    .setDescription(e.getMessage()))
                 .build();
         } catch (final MetaDataDocumentSizeException e) {
             LOGGER.error(e);
@@ -159,7 +163,7 @@ public class MetaDataResource extends ApplicationStatusResource {
                     .setContext(INGEST)
                     .setState(CODE_VITAM)
                     .setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase()))
+                    .setDescription(e.getMessage()))
                 .build();
         }
         return Response.status(Status.CREATED)
@@ -202,7 +206,7 @@ public class MetaDataResource extends ApplicationStatusResource {
                     .setContext(ACCESS)
                     .setState(CODE_VITAM)
                     .setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase()))
+                    .setDescription(e.getMessage()))
                 .build();
 
         } catch (final MetaDataExecutionException e) {
@@ -215,7 +219,7 @@ public class MetaDataResource extends ApplicationStatusResource {
                     .setContext(ACCESS)
                     .setState(CODE_VITAM)
                     .setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase()))
+                    .setDescription(e.getMessage()))
                 .build();
 
         } catch (MetaDataNotFoundException e) {
@@ -226,7 +230,7 @@ public class MetaDataResource extends ApplicationStatusResource {
                     .setContext(ACCESS)
                     .setState(CODE_VITAM)
                     .setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase()))
+                    .setDescription(e.getMessage()))
                 .build();
         }
 
@@ -275,7 +279,7 @@ public class MetaDataResource extends ApplicationStatusResource {
                     .setContext(ACCESS)
                     .setState(CODE_VITAM)
                     .setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase()))
+                    .setDescription(e.getMessage()))
                 .build();
         } catch (final MetaDataExecutionException e) {
             return metadataExecutionExceptionTrace(e);
@@ -286,7 +290,7 @@ public class MetaDataResource extends ApplicationStatusResource {
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext(ACCESS)
                     .setState(CODE_VITAM)
-                    .setMessage(status.getReasonPhrase())
+                    .setMessage(e.getMessage())
                     .setDescription(status.getReasonPhrase()))
                 .build();
         }
@@ -310,7 +314,7 @@ public class MetaDataResource extends ApplicationStatusResource {
                     .setContext(ACCESS)
                     .setState(CODE_VITAM)
                     .setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase()))
+                    .setDescription(e.getMessage()))
                 .build();
         } catch (final MetaDataExecutionException e) {
             return metadataExecutionExceptionTrace(e);
@@ -322,7 +326,7 @@ public class MetaDataResource extends ApplicationStatusResource {
                     .setContext(ACCESS)
                     .setState(CODE_VITAM)
                     .setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase()))
+                    .setDescription(e.getMessage()))
                 .build();
         } catch (MetaDataNotFoundException e) {
             LOGGER.error(e);
@@ -331,7 +335,7 @@ public class MetaDataResource extends ApplicationStatusResource {
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext(ACCESS)
                     .setState(CODE_VITAM)
-                    .setMessage(status.getReasonPhrase())
+                    .setMessage(e.getMessage())
                     .setDescription(status.getReasonPhrase()))
                 .build();
         }
@@ -343,12 +347,18 @@ public class MetaDataResource extends ApplicationStatusResource {
         Status status;
         LOGGER.error(e);
         status = Status.INTERNAL_SERVER_ERROR;
+        Throwable e2 = e.getCause();
+        if (e2 !=null && e2 instanceof IllegalArgumentException || e2 instanceof ElasticsearchParseException) {
+            status = Status.PRECONDITION_FAILED;
+        } else {
+            e2 = e;
+        }
         return Response.status(status)
             .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                 .setContext(ACCESS)
                 .setState(CODE_VITAM)
                 .setMessage(status.getReasonPhrase())
-                .setDescription(status.getReasonPhrase()))
+                .setDescription(e2.getMessage()))
             .build();
     }
 
@@ -378,7 +388,7 @@ public class MetaDataResource extends ApplicationStatusResource {
                     .setContext(INGEST)
                     .setState(CODE_VITAM)
                     .setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase()))
+                    .setDescription(e.getMessage()))
                 .build();
         } catch (final MetaDataNotFoundException e) {
             LOGGER.error(e);
@@ -388,7 +398,7 @@ public class MetaDataResource extends ApplicationStatusResource {
                     .setContext(INGEST)
                     .setState(CODE_VITAM)
                     .setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase()))
+                    .setDescription(e.getMessage()))
                 .build();
         } catch (final MetaDataAlreadyExistException e) {
             LOGGER.error(e);
@@ -398,7 +408,7 @@ public class MetaDataResource extends ApplicationStatusResource {
                     .setContext(INGEST)
                     .setState(CODE_VITAM)
                     .setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase()))
+                    .setDescription(e.getMessage()))
                 .build();
         } catch (final MetaDataExecutionException e) {
             LOGGER.error(e);
@@ -408,7 +418,7 @@ public class MetaDataResource extends ApplicationStatusResource {
                     .setContext(INGEST)
                     .setState(CODE_VITAM)
                     .setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase()))
+                    .setDescription(e.getMessage()))
                 .build();
         } catch (final MetaDataDocumentSizeException e) {
             LOGGER.error(e);
@@ -418,7 +428,7 @@ public class MetaDataResource extends ApplicationStatusResource {
                     .setContext(INGEST)
                     .setState(CODE_VITAM)
                     .setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase()))
+                    .setDescription(e.getMessage()))
                 .build();
         }
 
@@ -448,10 +458,10 @@ public class MetaDataResource extends ApplicationStatusResource {
             status = Status.PRECONDITION_FAILED;
             return Response.status(Status.PRECONDITION_FAILED).entity(
                 new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext("METADATA")
+                    .setContext(METADATA)
                     .setState(CODE_VITAM)
                     .setMessage(Status.PRECONDITION_FAILED.getReasonPhrase())
-                    .setDescription(Status.PRECONDITION_FAILED.getReasonPhrase()))
+                    .setDescription(exc.getMessage()))
                 .build();
         }
         return selectObjectGroupById(selectRequest, objectGroupId);
@@ -478,10 +488,10 @@ public class MetaDataResource extends ApplicationStatusResource {
             status = Status.PRECONDITION_FAILED;
             return Response.status(Status.PRECONDITION_FAILED).entity(
                 new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext("METADATA")
+                    .setContext(METADATA)
                     .setState(CODE_VITAM)
                     .setMessage(Status.PRECONDITION_FAILED.getReasonPhrase())
-                    .setDescription(Status.PRECONDITION_FAILED.getReasonPhrase()))
+                    .setDescription(exc.getMessage()))
                 .build();
         }
         try {
@@ -491,20 +501,20 @@ public class MetaDataResource extends ApplicationStatusResource {
             status = Status.BAD_REQUEST;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext("METADATA")
+                    .setContext(METADATA)
                     .setState(CODE_VITAM)
                     .setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase()))
+                    .setDescription(e.getMessage()))
                 .build();
         } catch (MetaDataExecutionException e) {
             LOGGER.error(e);
             status = Status.EXPECTATION_FAILED;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext("METADATA")
+                    .setContext(METADATA)
                     .setState(CODE_VITAM)
                     .setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase()))
+                    .setDescription(e.getMessage()))
                 .build();
         }
         return Response.status(Status.CREATED).entity(new RequestResponseOK().addResult(objectGroupId)).build();
@@ -512,7 +522,7 @@ public class MetaDataResource extends ApplicationStatusResource {
     }
 
     /**
-     * Selects unit by request and unit id
+     * Selects ObjectGroup by request and ObjectGroup id
      */
     private Response selectObjectGroupById(JsonNode selectRequest, String objectGroupId) {
         Status status;
@@ -525,10 +535,10 @@ public class MetaDataResource extends ApplicationStatusResource {
             status = Status.BAD_REQUEST;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext("METADATA")
+                    .setContext(METADATA)
                     .setState(CODE_VITAM)
                     .setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase()))
+                    .setDescription(e.getMessage()))
                 .build();
         } catch (final MetaDataExecutionException e) {
             return metadataExecutionExceptionTrace(e);
@@ -537,20 +547,20 @@ public class MetaDataResource extends ApplicationStatusResource {
             status = Status.REQUEST_ENTITY_TOO_LARGE;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext("METADATA")
+                    .setContext(METADATA)
                     .setState(CODE_VITAM)
                     .setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase()))
+                    .setDescription(e.getMessage()))
                 .build();
         } catch (MetaDataNotFoundException e) {
             LOGGER.error(e);
             status = Status.NOT_FOUND;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext("METADATA")
+                    .setContext(METADATA)
                     .setState(CODE_VITAM)
                     .setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase()))
+                    .setDescription(e.getMessage()))
                 .build();
         }
 

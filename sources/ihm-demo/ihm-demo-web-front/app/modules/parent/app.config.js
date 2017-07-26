@@ -94,6 +94,18 @@ config(['$locationProvider' ,'$routeProvider',
       title: 'Référentiel des Règles de gestion',
       permission: 'admin:rules:read'
     }).
+    when('/admin/contexts', {
+          templateUrl: 'pages/context-search/context.template.html',
+          controller: 'contextsController',
+          title: 'Contextes applicatifs',
+          permission: 'contexts:read'
+    }).
+    when('/admin/contexts/:id', {
+          templateUrl: 'pages/context-details/context-details.template.html',
+          controller: 'contextsDetailsController',
+          title: 'Détail d\'un context applicatif',
+          permission: 'contexts:read'
+    }).
     when('/admin/profiles', {
       templateUrl: 'pages/profiles-search/profiles-search.template.html',
       controller: 'profilesSearchController',

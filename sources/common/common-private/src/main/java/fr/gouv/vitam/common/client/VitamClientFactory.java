@@ -44,6 +44,7 @@ import org.apache.http.config.Registry;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.plugins.interceptors.AcceptEncodingGZIPFilter;
 import org.jboss.resteasy.plugins.interceptors.GZIPDecodingInterceptor;
@@ -129,6 +130,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
     private String serviceUrl;
 
     private String resourcePath;
+    private boolean cacheable;
     protected ClientConfiguration clientConfiguration;
     private boolean chunkedMode;
     private Client givenClient;
@@ -141,8 +143,8 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
     VitamThreadPoolExecutor vitamThreadPoolExecutor = VitamThreadPoolExecutor.getDefaultExecutor();
     SSLConfiguration sslConfiguration = null;
     private boolean useAuthorizationFilter = true;
-    private boolean allowGzipEncoded = VitamConfiguration.ALLOW_GZIP_ENCODING;
-    private boolean allowGzipDecoded = VitamConfiguration.ALLOW_GZIP_DECODING;
+    private boolean allowGzipEncoded = VitamConfiguration.isAllowGzipEncoding();
+    private boolean allowGzipDecoded = VitamConfiguration.isAllowGzipDecoding();
 
     private final Map<VitamRestEasyConfiguration, Object> config = new EnumMap<>(VitamRestEasyConfiguration.class);
     private final Map<VitamRestEasyConfiguration, Object> configNotChunked =
@@ -156,7 +158,18 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
      * @throws UnsupportedOperationException HTTPS not implemented yet
      */
     protected VitamClientFactory(ClientConfiguration configuration, String resourcePath) {
-        this(configuration, resourcePath, true);
+        this(configuration, resourcePath, true, false);
+    }
+    
+    /**
+     * Constructor with standard configuration
+     *
+     * @param configuration The client configuration
+     * @param resourcePath the resource path of the server for the client calls
+     * @throws UnsupportedOperationException HTTPS not implemented yet
+     */
+    protected VitamClientFactory(ClientConfiguration configuration, String resourcePath, boolean cacheable) {
+        this(configuration, resourcePath, true, cacheable);
     }
 
     /**
@@ -168,9 +181,10 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
      * @throws UnsupportedOperationException HTTPS not implemented yet
      */
     protected VitamClientFactory(ClientConfiguration configuration, String resourcePath,
-        boolean chunkedMode) {
+        boolean chunkedMode, boolean cacheable) {
         initialisation(configuration, resourcePath);
         this.chunkedMode = chunkedMode;
+        this.cacheable = cacheable;
         givenClient = null;
         givenClientNotChunked = null;
         if (STATIC_IDLE_MONITOR.compareAndSet(false, true)) {
@@ -475,7 +489,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
             idleMonitor.start();
         }
     }
-
+       
     /**
      * 
      * @param config
@@ -483,7 +497,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
      * @return the ResteasyClientBuilder
      */
     private ResteasyClientBuilder configureRestEasy(Map<VitamRestEasyConfiguration, Object> config,
-        VitamApacheHttpClientEngine engine) {
+        ClientHttpEngine engine) {
         ResteasyClientBuilder clientBuilder = new ResteasyClientBuilder();
         clientBuilder.httpEngine(engine);
         clientBuilder.connectionCheckoutTimeout(
@@ -532,6 +546,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
             config.put(VitamRestEasyConfiguration.CHUNKED_ENCODING_SIZE, 0);
             config.put(VitamRestEasyConfiguration.REQUEST_ENTITY_PROCESSING, VitamRestEasyConfiguration.BUFFERED);
         }
+        config.put(VitamRestEasyConfiguration.CACHE_ENABLED, cacheable);
         config.put(VitamRestEasyConfiguration.RECV_BUFFER_SIZE, VitamConfiguration.getRecvBufferSize());
         config.put(VitamRestEasyConfiguration.CONNECTION_MANAGER_SHARED, true);
         config.put(VitamRestEasyConfiguration.DISABLE_AUTOMATIC_RETRIES, true);

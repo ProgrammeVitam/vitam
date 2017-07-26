@@ -32,7 +32,9 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -68,6 +70,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
+
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.List;
 
@@ -79,6 +83,7 @@ import java.util.List;
 public class ProfileResource {
 
 
+    private static final String FUNCTIONAL_ADMINISTRATION_MODULE = "FUNCTIONAL_ADMINISTRATION_MODULE";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProfileResource.class);
     private static final String PROFILE_JSON_IS_MANDATORY_PATAMETER =
         "The json input of profile is mandatory";
@@ -211,11 +216,18 @@ public class ProfileResource {
     public void downloadProfileFile(@PathParam("id") String profileMetadataId,
         @Suspended final AsyncResponse asyncResponse) {
 
-        ParametersChecker.checkParameter("Profile id should be filled", profileMetadataId);
-
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-
+        try {
+            ParametersChecker.checkParameter("Profile id should be filled", profileMetadataId);
+    
+            Integer tenantId = ParameterHelper.getTenantParameter();
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        } catch (IllegalArgumentException | VitamThreadAccessException e) {
+            LOGGER.error(e.getMessage(), e);
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build());
+            return;
+        }
         VitamThreadPoolExecutor.getDefaultExecutor()
             .execute(() -> {
                 try (ProfileService profileService = new ProfileServiceImpl(mongoAccess, workspaceClientFactory, vitamCounterService)) {
@@ -226,14 +238,14 @@ public class ProfileResource {
                     LOGGER.error(exc.getMessage(), exc);
                     AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                         Response.status(Status.NOT_FOUND)
-                            .entity(getErrorEntity(Status.NOT_FOUND, exc.getMessage(), null).toString()
+                            .entity(getErrorStream(Status.NOT_FOUND, exc.getMessage(), null).toString()
                             ).build());
 
                 }  catch (final ReferentialException | InvalidParseOperationException exc) {
                     LOGGER.error(exc.getMessage(), exc);
                     AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                         Response.status(Status.INTERNAL_SERVER_ERROR)
-                            .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exc.getMessage(), null).toString()
+                            .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, exc.getMessage(), null).toString()
                             ).build());
                 }
             });
@@ -254,11 +266,10 @@ public class ProfileResource {
 
         try (ProfileService profileService = new ProfileServiceImpl(mongoAccess, workspaceClientFactory, vitamCounterService)) {
 
-            final List<ProfileModel> profileModelList = profileService.findProfiles(queryDsl);
+            final RequestResponseOK<ProfileModel> profileModelList = profileService.findProfiles(queryDsl).setQuery(queryDsl);
 
             return Response.status(Status.OK)
-                .entity(
-                    new RequestResponseOK<ProfileModel>(queryDsl).addAllResults(profileModelList))
+                .entity(profileModelList)
                 .build();
 
         } catch (ReferentialException e) {
@@ -285,8 +296,22 @@ public class ProfileResource {
                 : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
         String aCode = (code != null) ? code : String.valueOf(status.getStatusCode());
         return new VitamError(aCode).setHttpCode(status.getStatusCode())
-            .setContext("FUNCTIONAL_ADMINISTRATION_MODULE")
+            .setContext(FUNCTIONAL_ADMINISTRATION_MODULE)
             .setState("ko").setMessage(status.getReasonPhrase()).setDescription(aMessage);
+    }
+    
+    private InputStream getErrorStream(Status status, String message, String code) {
+        String aMessage =
+            (message != null && !message.trim().isEmpty()) ? message
+                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        String aCode = (code != null) ? code : String.valueOf(status.getStatusCode());
+        try {
+            return JsonHandler.writeToInpustream(new VitamError(aCode)
+                .setHttpCode(status.getStatusCode()).setContext(FUNCTIONAL_ADMINISTRATION_MODULE)
+                .setState("ko").setMessage(status.getReasonPhrase()).setDescription(aMessage));
+        } catch (InvalidParseOperationException e) {
+            return new ByteArrayInputStream("{ 'message' : 'Invalid VitamError message' }".getBytes());
+        }
     }
 
 
