@@ -20,6 +20,7 @@ package fr.gouv.vitam.functionnal.administration.context.core;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -29,12 +30,13 @@ import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
@@ -49,13 +51,15 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.query.action.PushAction;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.model.AccessContractModel;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -68,6 +72,10 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.model.ContextModel;
 import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.common.Context;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
+import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.context.api.ContextService;
@@ -84,6 +92,9 @@ public class ContextServiceImplTest {
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
         VitamThreadPoolExecutor.getDefaultExecutor());
 
+    @ClassRule
+    public static TemporaryFolder tempFolder = new TemporaryFolder();
+    
     private static final Integer TENANT_ID = 0;
 
     static JunitHelper junitHelper;
@@ -96,9 +107,14 @@ public class ContextServiceImplTest {
     private static VitamCounterService vitamCounterService;
     private static MongoDbAccessAdminImpl dbImpl;
 
+    private static ElasticsearchTestConfiguration esConfig = null;
+    private final static String HOST_NAME = "127.0.0.1";
+    private final static String CLUSTER_NAME = "vitam-cluster";
+
     static ContextService contextService;
-    static ContractService ingestContractService;
-    static ContractService accessContractService;
+    
+    static ContractService<IngestContractModel> ingestContractService;
+    static ContractService<AccessContractModel> accessContractService;
     static int mongoPort;
 
     @BeforeClass
@@ -117,6 +133,17 @@ public class ContextServiceImplTest {
         nodes.add(new MongoDbNode(DATABASE_HOST, mongoPort));
 
         dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
+        try {
+            esConfig = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
+        } catch (final VitamApplicationServerException e1) {
+            assumeTrue(false);
+        }
+
+        final List<ElasticsearchNode> esNodes = new ArrayList<>();
+        esNodes.add(new ElasticsearchNode(HOST_NAME, esConfig.getTcpPort()));
+        ElasticsearchAccessAdminFactory.create(CLUSTER_NAME, esNodes);
+        
+        
         final List tenants = new ArrayList<>();
         tenants.add(new Integer(TENANT_ID));
         vitamCounterService = new VitamCounterService(dbImpl, tenants);
@@ -140,42 +167,14 @@ public class ContextServiceImplTest {
     }
 
     @After
-    public void afterTest() {
+    public void afterTest() throws ReferentialException {
         final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
         collection.deleteMany(new Document());
     }
 
     @Test
     @RunWithCustomExecutor
-    public void givenTestWellFormedContextThenImportSuccessfully() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-
-        final File fileIngest = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
-        final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileIngest, new TypeReference<List<IngestContractModel>>() {});
-        ingestContractService.createContracts(IngestContractModelList);
-
-        final File fileAccess = PropertiesUtils.getResourceFile("contracts_access_ok.json");
-        final List<AccessContractModel> accessContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileAccess, new TypeReference<List<AccessContractModel>>() {});
-        accessContractService.createContracts(accessContractModelList);
-
-        final File fileContexts = PropertiesUtils.getResourceFile("contexts_ok.json");
-        final List<ContextModel> ModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {});
-
-        final RequestResponse response = contextService.createContexts(ModelList);
-
-        assertThat(response.isOk()).isTrue();
-        final RequestResponseOK<ContextModel> responseCast = (RequestResponseOK<ContextModel>) response;
-        assertThat(responseCast.getResults()).hasSize(2);
-        assertThat(responseCast.getResults().get(0).getCreationdate()).isNotNull();
-        assertThat(responseCast.getResults().get(0).getLastupdate()).isNotNull();
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void givenContextUpdateTest() throws Exception {
+    public void givenContextImportAndUpdateTest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileIngest = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
         final List<IngestContractModel> IngestContractModelList =
@@ -186,7 +185,7 @@ public class ContextServiceImplTest {
         final List<ContextModel> ModelList =
             JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {});
 
-        final RequestResponse response = contextService.createContexts(ModelList);
+        contextService.createContexts(ModelList);
 
         final ObjectNode permissionsNode = JsonHandler.createObjectNode();
         final ObjectNode permissionNode = JsonHandler.createObjectNode();
@@ -207,7 +206,7 @@ public class ContextServiceImplTest {
             .add(QueryHelper.eq("#id", context.getId())));
 
         JsonNode queryDslForUpdate = update.getFinalUpdate();
-        final RequestResponse updateResponse = contextService.updateContext(context.getIdentifier(), queryDslForUpdate);
+        final RequestResponse<ContextModel> updateResponse = contextService.updateContext(context.getIdentifier(), queryDslForUpdate);
         assertTrue(updateResponse.isOk());
 
         permissionNode.set("IngestContracts", JsonHandler.createArrayNode().add("IC-000001500000"));
@@ -215,7 +214,7 @@ public class ContextServiceImplTest {
         final SetAction setInvalidPermission = UpdateActionHelper.set(permissionsNode);
         update.getActions().clear();
         update.addActions(setInvalidPermission);
-        final RequestResponse updateError = contextService.updateContext(context.getIdentifier(), update.getFinalUpdate());
+        final RequestResponse<ContextModel> updateError = contextService.updateContext(context.getIdentifier(), update.getFinalUpdate());
         assertFalse(updateError.isOk());
     }
 

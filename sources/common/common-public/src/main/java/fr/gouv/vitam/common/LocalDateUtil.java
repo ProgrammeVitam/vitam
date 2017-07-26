@@ -32,6 +32,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.Date;
 
 /**
@@ -44,6 +45,11 @@ public final class LocalDateUtil {
     
     private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZZ";
     private static final String SIMPLE_DATE_FORMAT = "yyyy-MM-dd";
+
+    public static final DateTimeFormatter DATE_FORMATTER = new DateTimeFormatterBuilder().parseCaseInsensitive()
+        .append(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+        .appendPattern("[zz]")
+        .toFormatter();
 
     private LocalDateUtil() {
         // empty
@@ -80,7 +86,7 @@ public final class LocalDateUtil {
         if (date.indexOf('T') == -1) {
             return getDate(LocalDateTime.parse(date, DateTimeFormatter.ISO_DATE));
         }
-        return getDate(LocalDateTime.parse(date));
+        return getDate(LocalDateTime.parse(date, DATE_FORMATTER));
     }
 
     /**

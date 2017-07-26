@@ -15,8 +15,7 @@
   </textarea>
 
   <div ng-if="editMode && isEditing && isDateField(fieldKey)" class="col-md-10 input-group">
-    <input ng-model="fieldValue[fieldKey]" date-picker=""  type="text" class="form-control input-sm"/>
-    <div class="input-group-addon"><i class="material-icons">date_range</i></div>
+      <md-datepicker ng-model="fieldValue[fieldKey]" ng-change="pickDate(fieldValue[fieldKey])" md-placeholder="Choisir une date"></md-datepicker>
   </div>
 
     <span class="overflow-break-words" ng-if="!(isEditing && editMode) && isDateField(fieldKey)" >{{fieldValue[fieldKey] | vitamFormatDate}}</span>

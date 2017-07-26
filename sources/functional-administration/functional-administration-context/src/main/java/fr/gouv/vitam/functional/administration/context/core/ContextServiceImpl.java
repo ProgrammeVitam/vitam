@@ -39,15 +39,14 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response;
 
-import fr.gouv.vitam.functional.administration.counter.SequenceType;
 import org.bson.conversions.Bson;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -85,6 +84,7 @@ import fr.gouv.vitam.functional.administration.context.core.ContextValidator.Con
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
 import fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl;
 import fr.gouv.vitam.functional.administration.contract.core.IngestContractImpl;
+import fr.gouv.vitam.functional.administration.counter.SequenceType;
 import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
@@ -99,10 +99,6 @@ public class ContextServiceImpl implements ContextService {
 
     private static final String INVALID_IDENTIFIER_OF_THE_INGEST_CONTRACT = "Invalid identifier of the ingest contract:";
 
-    private static final String PERMISSIONS_TENANT = "Permissions._tenant";
-
-    private static final String EACH = "$each";
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ContextServiceImpl.class);
 
     private static final String CONTEXT_IS_MANDATORY_PATAMETER = "contexts parameter is mandatory";
@@ -110,9 +106,6 @@ public class ContextServiceImpl implements ContextService {
     private static final String CONTEXTS_UPDATE_EVENT = "STP_UPDATE_CONTEXT";
     private static final String IDENTIFIER = "Identifier";
     private static final String UPDATE_CONTEXT_MANDATORY_PATAMETER = "context is mandatory";
-    private static final String FIELD_PERMISSION = "Permissions.";
-    private static final String FIELD_INGEST = ".IngestContracts";
-    private static final String FIELD_ACCESS = ".AccessContracts";
 
     private final MongoDbAccessAdminImpl mongoAccess;
     private final LogbookOperationsClient logBookclient;
@@ -175,8 +168,8 @@ public class ContextServiceImpl implements ContextService {
                 if (manager.validateContext(cm, error)) {
 
                     cm.setId(GUIDFactory.newContextGUID().getId());
-                    cm.setCreationdate(new Date().toString());
-                    cm.setLastupdate(new Date().toString());
+                    cm.setCreationdate(LocalDateUtil.getString(LocalDateUtil.now()));
+                    cm.setLastupdate(LocalDateUtil.getString(LocalDateUtil.now()));
 
                     final JsonNode contextNode = JsonHandler.toJsonNode(cm);
 

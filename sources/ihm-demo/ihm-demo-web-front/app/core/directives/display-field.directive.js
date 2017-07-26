@@ -41,7 +41,7 @@
  field-label: Allow to override the label of the field with a specific value
  */
 angular.module('core')
-  .controller('DisplayFieldController', function($scope) {
+  .controller('DisplayFieldController', function($scope, $filter) {
 
     $scope.changeEditingMode = function() {
       $scope.isEditing = !$scope.isEditing;
@@ -50,7 +50,13 @@ angular.module('core')
     $scope.isDateField = function(fieldLabel, fieldName) {
       var fieldStr = !fieldLabel ? fieldName : fieldLabel;
       return fieldStr.toUpperCase().indexOf('DATE') > -1;
-    }
+    };
+
+    $scope.pickDate = function(date) {
+      date.setHours(new Date().getHours());
+      date.setMinutes(new Date().getMinutes());
+      date = $filter('date')(date, 'dd-MM-yyyy HH:mm');
+    };
   })
   .directive('displayField', function() {
     return {
