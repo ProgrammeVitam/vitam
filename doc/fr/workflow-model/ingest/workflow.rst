@@ -186,7 +186,7 @@ Cette tâche contient plusieurs traitements, chacun ayant une finalité et des p
 
       - OK : le nombre d'objets reçus dans la solution logicielle Vitam est strictement égal au nombre d'objets déclaré dans le manifeste du SIP (CHECK_MANIFEST_OBJECTNUMBER.OK=Succès de la vérification du nombre d'objets)
 
-      - KO : le nombre d'objets reçus dans la solution logicielle Vitam est inférieur ou supérieur au nombre d'objets déclaré dans le manifeste du SIP (CHECK_MANIFEST_OBJECTNUMBER.KO=Échec de la vérification du nombre d'objets)
+      - KO : le nombre d'objets reçus dans la solution logicielle Vitam est inférieur ou supérieur au nombre d'objets déclaré dans le manifeste du SIP, ou les balises URI du manifeste ne déclarent pas le bon chemin vers les objets (CHECK_MANIFEST_OBJECTNUMBER.KO=Échec de la vérification du nombre d'objets)
 
       - FATAL : une erreur technique est survenue lors de la vérification du nombre d'objets (CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST_OBJECTNUMBER.FATAL=Erreur fatale lors de la vérification du nombre dobjets)
 
