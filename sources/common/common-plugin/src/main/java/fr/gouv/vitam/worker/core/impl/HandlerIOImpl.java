@@ -448,19 +448,28 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         Response response = null;
         InputStream is = null;
         try {
-            response = client.getObject(containerName, jsonFilePath);
-            is = (InputStream) response.getEntity();
-            if (is != null) {
-                return JsonHandler.getFromInputStream(is);
-            } else {
-                LOGGER.error("Json not found");
-                throw new ProcessingException("Json not found");
+            final File file = getNewLocalFile(jsonFilePath);
+            if (!file.exists()) {
+                response = client.getObject(containerName, jsonFilePath);
+                is = (InputStream) response.getEntity();
+                if (is != null) {
+                    try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+                        StreamUtils.copy(is, fileOutputStream);
+                    }
+                } else {
+                    LOGGER.error("Json not found");
+                    throw new ProcessingException("Json not found");
+                }
             }
+            return JsonHandler.getFromFile(file);
         } catch (final InvalidParseOperationException e) {
             LOGGER.debug("Json wrong format", e);
             throw new ProcessingException(e);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
             LOGGER.debug("Workspace Server Error", e);
+            throw new ProcessingException(e);
+        } catch (IOException e) {
+            LOGGER.debug("Local Worker Storage Error", e);
             throw new ProcessingException(e);
         } finally {
             DefaultClient.staticConsumeAnyEntityAndClose(response);
@@ -493,12 +502,19 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
     public void transferJsonToWorkspace(String collectionName, String objectName, JsonNode jsonNode,
         boolean toDelete, boolean asyncIO)
         throws ProcessingException {
-        File file = getNewLocalFile(objectName);
+        String path = collectionName + File.separator + objectName;
         try {
-            JsonHandler.writeAsFile(jsonNode, file);
-            transferFileToWorkspace(collectionName + File.separator + objectName, file, toDelete, asyncIO);
+            File file = getNewLocalFile(path);
+            if (toDelete) {
+                transferInputStreamToWorkspace(path, 
+                    JsonHandler.writeToInpustream(jsonNode), null, asyncIO);
+                file.delete();
+            } else {
+                JsonHandler.writeAsFile(jsonNode, file);
+                transferFileToWorkspace(path, file, toDelete, asyncIO);
+            }
         } catch (final InvalidParseOperationException e) {
-            throw new ProcessingException("Invalid parse Exception: " + file, e);
+            throw new ProcessingException("Invalid parse Exception: " + path, e);
         }
 
     }

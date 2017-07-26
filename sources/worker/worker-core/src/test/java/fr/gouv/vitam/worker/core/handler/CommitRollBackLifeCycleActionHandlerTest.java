@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.guid.GUID;
@@ -12,6 +13,8 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.BusinessObjectType;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.model.IOParameter;
 import fr.gouv.vitam.processing.common.model.ProcessingUri;
 import fr.gouv.vitam.processing.common.model.UriPrefix;
@@ -30,6 +33,12 @@ public class CommitRollBackLifeCycleActionHandlerTest {
     private static final String WORKSPACE_URL = "http://localhost:8083";
     private static final String METADATA_URL = "http://localhost:8084";
     private static final String COMMIT_STEP = "COMMIT_STEP";
+
+    @Before
+    public void before() {
+        LogbookOperationsClientFactory.changeMode(null);
+        LogbookLifeCyclesClientFactory.changeMode(null);
+    }
 
     @Test
     public void givenOperationIdObjectIdThenReturnCommitOk() {

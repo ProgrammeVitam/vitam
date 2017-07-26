@@ -30,6 +30,7 @@ import java.io.IOException;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -150,6 +151,9 @@ public final class LogbookOperationsClientFactory extends VitamClientFactory<Log
         if (configuration == null) {
             LOGGER.error("Error when retrieving configuration file {}, using mock",
                 configurationPath);
+        } else if (configuration.getServerHost() == null || configuration.getServerHost().trim().isEmpty()
+            || configuration.getServerPort() <= 0) {
+            configuration = null;
         }
         return configuration;
     }

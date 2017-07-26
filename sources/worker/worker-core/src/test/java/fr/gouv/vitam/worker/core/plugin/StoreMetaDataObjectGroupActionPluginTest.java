@@ -8,6 +8,8 @@ import static org.mockito.Mockito.when;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -25,6 +27,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -32,6 +35,8 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
@@ -42,6 +47,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -85,6 +91,8 @@ public class StoreMetaDataObjectGroupActionPluginTest {
 
     @Before
     public void setUp() throws Exception {
+        LogbookOperationsClientFactory.changeMode(null);
+        LogbookLifeCyclesClientFactory.changeMode(null);
         workspaceClient = mock(WorkspaceClient.class);
         metadataClient = mock(MetaDataClient.class);
         storageClient = mock(StorageClient.class);
@@ -152,7 +160,8 @@ public class StoreMetaDataObjectGroupActionPluginTest {
 
         when(storageClientFactory.getClient()).thenReturn(storageClient);
         when(StorageClientFactory.getInstance()).thenReturn(storageClientFactory);
-
+        when(storageClient.storeFileFromWorkspace(anyObject(), anyObject(), anyObject(), anyObject()))
+            .thenReturn(getStoredInfoResult());
         plugin = new StoreMetaDataObjectGroupActionPlugin();
 
         final ItemStatus response = plugin.execute(params, action);
@@ -181,6 +190,9 @@ public class StoreMetaDataObjectGroupActionPluginTest {
 
         when(storageClientFactory.getClient()).thenReturn(storageClient);
         when(StorageClientFactory.getInstance()).thenReturn(storageClientFactory);
+        
+        when(storageClient.storeFileFromWorkspace(anyObject(), anyObject(), anyObject(), anyObject()))
+            .thenReturn(getStoredInfoResult());
 
         plugin = new StoreMetaDataObjectGroupActionPlugin();
 
@@ -188,6 +200,14 @@ public class StoreMetaDataObjectGroupActionPluginTest {
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
+    private StoredInfoResult getStoredInfoResult() {
+        StoredInfoResult result = new StoredInfoResult();
+        result.setNbCopy(1).setCreationTime(LocalDateUtil.now().toString()).setId("id")
+            .setLastAccessTime(LocalDateUtil.now().toString()).setLastModifiedTime(LocalDateUtil.now().toString())
+            .setObjectGroupId("id").setOfferIds(Arrays.asList("id1")).setStrategy("default");
+        return result;
+    }
+    
     @Test
     public void givenMetadataClientWhensearchOGThenThrowsException() throws Exception {
         final WorkerParameters params =

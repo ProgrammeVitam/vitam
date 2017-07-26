@@ -30,7 +30,6 @@ package fr.gouv.vitam.storage.engine.common.model.request;
 import java.io.File;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 
 /**
@@ -50,29 +49,19 @@ public class ObjectDescription {
     }
 
     /**
-     * Constructor.
-     *
-     * @param workspaceContainerGUID
-     *            workspace container id
-     * @param workspaceObjectURI
-     *            workspace object URI
-     */
-    public ObjectDescription(String workspaceContainerGUID, String workspaceObjectURI) {
-        this.workspaceContainerGUID = workspaceContainerGUID;
-        this.workspaceObjectURI = workspaceObjectURI;
-    }
-
-    /**
-     * Constructor with StorageCollectionType parameter
+     * Constructor with StorageCollectionType parameter<br/>
      * 
      * @param type the collection tyoe
      * @param workspaceContainerGUID the container guid in workspace
      * @param objectName the object name
+     * @param workspaceObjectUri the workspace uri of the object
      */
-    public ObjectDescription(StorageCollectionType type, String workspaceContainerGUID, String objectName) {
+    public ObjectDescription(StorageCollectionType type, String workspaceContainerGUID, String objectName,
+        String workspaceObjectUri) {
         this.type = type;
         this.workspaceContainerGUID = workspaceContainerGUID;
         this.objectName = objectName;
+        this.workspaceObjectURI = workspaceObjectUri;
     }
 
     /**

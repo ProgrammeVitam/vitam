@@ -39,6 +39,7 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
@@ -49,7 +50,6 @@ import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
 
 /**
  * StoreObjectGroupAction Plugin.<br>
@@ -112,7 +112,7 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
             ((ObjectNode) mapOfObjects.jsonOG).remove(SedaConstants.PREFIX_WORK);
             LOGGER.debug("Pre Final OG: {}", JsonHandler.prettyPrint(mapOfObjects.jsonOG));
             try {
-                handlerIO.transferJsonToWorkspace(StorageCollectionType.OBJECTGROUPS.getCollectionName(),
+                handlerIO.transferJsonToWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER,
                     params.getObjectName(),
                     mapOfObjects.jsonOG, false, asyncIO);
             } catch (ProcessingException e) {
@@ -176,9 +176,9 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
                     mapOfObjects.binaryObjectsToStore.put(id,
                         binaryObject.get(SedaConstants.TAG_URI).asText());
                     for (final JsonNode version2 : originalVersions) {
-                        for (final JsonNode binaryObject2 : version) {
-                            if (binaryObject.get(SedaConstants.TAG_PHYSICAL_ID) == null
-                                && binaryObject.get(SedaConstants.PREFIX_ID).asText().equals(id)) {
+                        for (final JsonNode binaryObject2 : version2) {
+                            if (binaryObject2.get(SedaConstants.TAG_PHYSICAL_ID) == null
+                                && binaryObject2.get(SedaConstants.PREFIX_ID).asText().equals(id)) {
                                 mapOfObjects.objectJsonMap.put(id, binaryObject2);
                             }
                         }

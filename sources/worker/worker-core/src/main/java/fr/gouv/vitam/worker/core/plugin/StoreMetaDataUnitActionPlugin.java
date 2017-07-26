@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.worker.core.plugin;
 
+import java.io.File;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -38,6 +40,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
@@ -129,7 +132,7 @@ public class StoreMetaDataUnitActionPlugin extends StoreObjectActionHandler {
                 unit = unit.get(0);
                 // transfer json to workspace
                 try {
-                    handlerIO.transferJsonToWorkspace(StorageCollectionType.UNITS.getCollectionName(), fileName,
+                    handlerIO.transferJsonToWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER, fileName,
                         unit, true, asyncIO);
                 } catch (ProcessingException e) {
                     LOGGER.error(params.getObjectName(), e);
@@ -137,7 +140,8 @@ public class StoreMetaDataUnitActionPlugin extends StoreObjectActionHandler {
                 }
                 // object Description
                 final ObjectDescription description =
-                    new ObjectDescription(StorageCollectionType.UNITS, params.getContainerName(), fileName);
+                    new ObjectDescription(StorageCollectionType.UNITS, params.getContainerName(), fileName,
+                        IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + fileName);
                 // store metadata object from workspace
                 StoredInfoResult result = storeObject(description, itemStatus);
                 // Update unit with store information
