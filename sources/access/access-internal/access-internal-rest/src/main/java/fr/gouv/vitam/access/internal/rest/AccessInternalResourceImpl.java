@@ -300,13 +300,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                             ).build());
                 return;
             }
-            final String xHttpOverride = headers.getRequestHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE).get(0);
-            if (!HttpMethod.GET.equalsIgnoreCase(xHttpOverride)) {
-                AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                    Response.status(Status.METHOD_NOT_ALLOWED).entity(getErrorStream(Status.METHOD_NOT_ALLOWED,
-                        "method POST without Override = GET")).build());
-                return;
-            }
         }
         if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.TENANT_ID) ||
             !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.QUALIFIER) ||
@@ -315,7 +308,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 .name() + ", " + VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() + ")");
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.PRECONDITION_FAILED)
-                    .entity(getErrorStream(Status.PRECONDITION_FAILED, 
+                    .entity(getErrorStream(Status.PRECONDITION_FAILED,
                         "At least one required header is missing. Required headers: (" + VitamHttpHeader.TENANT_ID
                         .name() + ", " + VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() +
                         ")")).build());
@@ -426,7 +419,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(ACCESS_MODULE)
             .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
-    
+
     private InputStream getErrorStream(Status status, String message) {
         String aMessage =
             (message != null && !message.trim().isEmpty()) ? message

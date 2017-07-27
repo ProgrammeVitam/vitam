@@ -422,67 +422,63 @@ public class AdminManagementExternalResourceImpl {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createOrfindDocuments(@PathParam("collection") String collection, JsonNode select,
-        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) throws DatabaseConflictException {
+    public Response createOrfindDocuments(@PathParam("collection") String collection, JsonNode select)
+        throws DatabaseConflictException {
 
-        if (xhttpOverride != null && "GET".equalsIgnoreCase(xhttpOverride)) {
-            return findDocuments(null, collection, select);
-        } else {
-            Integer tenantId = ParameterHelper.getTenantParameter();
-            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-            ParametersChecker.checkParameter("Json select is a mandatory parameter", select);
-            ParametersChecker.checkParameter(collection, "The collection is mandatory");
-            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-                Object respEntity = null;
-                Status status = Status.CREATED;
-                if (AdminCollections.ENTRY_CONTRACTS.compareTo(collection)) {
-                    SanityChecker.checkJsonAll(select);
-                    status =
-                        client.importIngestContracts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
-                            new TypeReference<List<IngestContractModel>>() {}));
-                }
-                if (AdminCollections.ACCESS_CONTRACTS.compareTo(collection)) {
-                    SanityChecker.checkJsonAll(select);
-                    status = client.importAccessContracts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
-                        new TypeReference<List<AccessContractModel>>() {}));
-                }
-                if (AdminCollections.PROFILE.compareTo(collection)) {
-                    SanityChecker.checkJsonAll(select);
-                    RequestResponse requestResponse =
-                        client.createProfiles(JsonHandler.getFromStringAsTypeRefence(select.toString(),
-                            new TypeReference<List<ProfileModel>>() {}));
-                    return Response.status(requestResponse.getStatus())
-                        .entity(requestResponse).build();
-                }
-                if (AdminCollections.CONTEXTS.compareTo(collection)) {
-                    SanityChecker.checkJsonAll(select);
-                    status = client.importContexts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
-                        new TypeReference<List<ContextModel>>() {}));
-                }
-
-                if (AdminCollections.ACCESSION_REGISTERS.compareTo(collection)) {
-                    SanityChecker.checkJsonAll(select);
-                    RequestResponse requestResponse =
-                        client.createorUpdateAccessionRegister(JsonHandler.getFromStringAsTypeRefence(select.toString(),
-                            new TypeReference<AccessionRegisterDetailModel>() {}));
-
-                    return Response.status(requestResponse.getStatus())
-                        .entity(requestResponse).build();
-
-                }
-
-                // Send the http response with the entity and the status got from internalService;
-                ResponseBuilder ResponseBuilder = Response.status(status)
-                    .entity(respEntity != null ? respEntity : "Successfully imported");
-                return ResponseBuilder.build();
-            } catch (final ReferentialException e) {
-                LOGGER.error(e);
-                return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
-            } catch (InvalidParseOperationException e) {
-                return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        ParametersChecker.checkParameter("Json select is a mandatory parameter", select);
+        ParametersChecker.checkParameter(collection, "The collection is mandatory");
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            Object respEntity = null;
+            Status status = Status.CREATED;
+            if (AdminCollections.ENTRY_CONTRACTS.compareTo(collection)) {
+                SanityChecker.checkJsonAll(select);
+                status =
+                    client.importIngestContracts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
+                        new TypeReference<List<IngestContractModel>>() {}));
             }
+            if (AdminCollections.ACCESS_CONTRACTS.compareTo(collection)) {
+                SanityChecker.checkJsonAll(select);
+                status = client.importAccessContracts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
+                    new TypeReference<List<AccessContractModel>>() {}));
+            }
+            if (AdminCollections.PROFILE.compareTo(collection)) {
+                SanityChecker.checkJsonAll(select);
+                RequestResponse requestResponse =
+                    client.createProfiles(JsonHandler.getFromStringAsTypeRefence(select.toString(),
+                        new TypeReference<List<ProfileModel>>() {}));
+                return Response.status(requestResponse.getStatus())
+                    .entity(requestResponse).build();
+            }
+            if (AdminCollections.CONTEXTS.compareTo(collection)) {
+                SanityChecker.checkJsonAll(select);
+                status = client.importContexts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
+                    new TypeReference<List<ContextModel>>() {}));
+            }
+
+            if (AdminCollections.ACCESSION_REGISTERS.compareTo(collection)) {
+                SanityChecker.checkJsonAll(select);
+                RequestResponse requestResponse =
+                    client.createorUpdateAccessionRegister(JsonHandler.getFromStringAsTypeRefence(select.toString(),
+                        new TypeReference<AccessionRegisterDetailModel>() {}));
+
+                return Response.status(requestResponse.getStatus())
+                    .entity(requestResponse).build();
+
+            }
+
+            // Send the http response with the entity and the status got from internalService;
+            ResponseBuilder ResponseBuilder = Response.status(status)
+                .entity(respEntity != null ? respEntity : "Successfully imported");
+            return ResponseBuilder.build();
+        } catch (final ReferentialException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST)
+                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+        } catch (InvalidParseOperationException e) {
+            return Response.status(Status.BAD_REQUEST)
+                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
         }
     }
 
@@ -491,23 +487,17 @@ public class AdminManagementExternalResourceImpl {
      *
      * @param collection
      * @param documentId
-     * @param xhttpOverride
      * @return Response
      */
     @Path("/{collection}/{id_document:.+}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     public Response findDocumentByID(@PathParam("collection") String collection,
-        @PathParam("id_document") String documentId,
-        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
-        if (xhttpOverride != null && "GET".equalsIgnoreCase(xhttpOverride)) {
-            return findDocumentByID(collection, documentId, JsonHandler.createObjectNode());
-        } else {
-            Integer tenantId = ParameterHelper.getTenantParameter();
-            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, "Method not yet implemented", null)).build();
-        }
+        @PathParam("id_document") String documentId) {
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        return Response.status(Status.BAD_REQUEST)
+            .entity(getErrorEntity(Status.BAD_REQUEST, "Method not yet implemented", null)).build();
     }
 
     /**
@@ -646,15 +636,13 @@ public class AdminManagementExternalResourceImpl {
      *
      * @param documentId the document id of accession register to get
      * @param select the query to get document
-     * @param xhttpOverride the use of override POST method
      * @return Response
      */
     @GET
     @Path(AccessExtAPI.ACCESSION_REGISTERS_API + "/{id_document}/accession-register-detail")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response findAccessionRegisterDetail(@PathParam("id_document") String documentId, JsonNode select,
-        @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
+    public Response findAccessionRegisterDetail(@PathParam("id_document") String documentId, JsonNode select) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 

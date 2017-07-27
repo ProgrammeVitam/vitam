@@ -317,13 +317,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         Status status;
-        final String xHttpOverride = headers.getRequestHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE).get(0);
-        if (xHttpOverride == null || !"GET".equalsIgnoreCase(xHttpOverride)) {
-            status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status, MISSING_XHTTPOVERRIDE)).build();
-        } else {
-            return getObjectGroupMetadatas(headers, idu, queryJson);
-        }
+        return getObjectGroupMetadatas(headers, idu, queryJson);
     }
 
     /**
@@ -414,7 +408,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
                 Response.status(status).entity(getErrorStream(status, e.getLocalizedMessage())).build());
         }
     }
-    
+
     private InputStream getErrorStream(Status status, String message) {
         String aMessage =
             (message != null && !message.trim().isEmpty()) ? message

@@ -1254,12 +1254,12 @@ public class AccessExternalResourceImplTest {
             .when().get("/units/" + OBJECT_ID + "/object").then()
             .statusCode(Status.OK.getStatusCode());
 
-        // POST (PUT override isn't filtered) precondition failed
+        // POST (PUT override isn't filtered) ok
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(BODY_TEST)
             .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
                 "PUT")
             .when().post("/units/" + OBJECT_ID + "/object").then()
-            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .statusCode(Status.OK.getStatusCode());
 
         // applicative error 500
         reset(clientAccessInternal);
