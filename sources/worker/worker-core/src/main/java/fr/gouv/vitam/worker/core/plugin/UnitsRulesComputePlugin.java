@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin;
 
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
 
@@ -35,9 +36,12 @@ import java.io.InputStream;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -49,6 +53,7 @@ import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -56,7 +61,11 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.UnitType;
+import fr.gouv.vitam.common.model.objectgroup.ObjectGroup;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
@@ -64,16 +73,19 @@ import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.RuleMeasurementEnum;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.worker.core.model.ManagementModel;
+import fr.gouv.vitam.worker.core.model.RuleCategoryModel;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.mozilla.javascript.UniqueTag;
 
 /**
  * UnitsRulesCompute Plugin.<br>
- *
  */
 
 public class UnitsRulesComputePlugin extends ActionHandler {
@@ -96,7 +108,6 @@ public class UnitsRulesComputePlugin extends ActionHandler {
 
     /**
      * Empty constructor UnitsRulesComputePlugin
-     *
      */
     public UnitsRulesComputePlugin() {
         // Empty
@@ -113,6 +124,11 @@ public class UnitsRulesComputePlugin extends ActionHandler {
             itemStatus.increment(StatusCode.OK);
         } catch (final ProcessingException e) {
             LOGGER.debug(e);
+            itemStatus.setEvDetailData(e.getMessage());
+            final ObjectNode object = JsonHandler.createObjectNode();
+            object.put("UnitRuleCompute", e.getMessage());
+            itemStatus.setData(LogbookParameterName.eventDetailData.name(),
+                JsonHandler.unprettyPrint(object));
             itemStatus.increment(StatusCode.KO);
         }
 
@@ -176,9 +192,9 @@ public class UnitsRulesComputePlugin extends ActionHandler {
 
     /**
      * Check archiveUnit json file and add end date for rules.
-     * 
-     * @param input archiveUnit json file
-     * @param objectName json file name
+     *
+     * @param input         archiveUnit json file
+     * @param objectName    json file name
      * @param containerName
      * @throws IOException
      * @throws ProcessingException
@@ -195,6 +211,14 @@ public class UnitsRulesComputePlugin extends ActionHandler {
             JsonNode workNode = archiveUnit.get(SedaConstants.PREFIX_WORK);
             JsonNode managementNode = archiveUnitNode.get(SedaConstants.TAG_MANAGEMENT);
 
+
+            JsonNode unitTileNode = archiveUnitNode.get("Title");
+            String unitTile = "";
+            if (null != unitTileNode) {
+                unitTile = archiveUnitNode.asText();
+            }
+
+            validatePreventRuleCategory(unitTile, managementNode);
             // temp data
             JsonNode rulesResults;
 
@@ -268,12 +292,127 @@ public class UnitsRulesComputePlugin extends ActionHandler {
         }
     }
 
+    private void validatePreventRuleCategory(String unit, JsonNode managementNode)
+        throws InvalidParseOperationException, ProcessingException, IOException, InvalidCreateOperationException {
+
+
+        if (null == managementNode || !managementNode.elements().hasNext()) {
+            return;
+        }
+        final StringBuffer report = new StringBuffer();
+        ManagementModel managementModel = JsonHandler.getFromJsonNode(managementNode, ManagementModel.class);
+        try (AdminManagementClient adminManagementClient = AdminManagementClientFactory.getInstance().getClient()) {
+            if (null != managementModel.getAccess()) {
+                if (null != managementModel.getAccess().getInheritance() &&
+                    null != managementModel.getAccess().getInheritance().getPreventRulesId()) {
+                    validatePreventRuleCategory(unit, SedaConstants.TAG_RULE_ACCESS, report,
+                        managementModel.getAccess().getInheritance().getPreventRulesId(), adminManagementClient);
+                }
+            }
+
+            if (null != managementModel.getAppraisal()) {
+                if (null != managementModel.getAppraisal().getInheritance() &&
+                    null != managementModel.getAppraisal().getInheritance().getPreventRulesId()) {
+                    validatePreventRuleCategory(unit, SedaConstants.TAG_RULE_APPRAISAL, report,
+                        managementModel.getAppraisal().getInheritance().getPreventRulesId(), adminManagementClient);
+                }
+            }
+
+            if (null != managementModel.getDissemination()) {
+                if (null != managementModel.getDissemination().getInheritance() &&
+                    null != managementModel.getDissemination().getInheritance().getPreventRulesId()) {
+                    validatePreventRuleCategory(unit, SedaConstants.TAG_RULE_DISSEMINATION, report,
+                        managementModel.getDissemination().getInheritance().getPreventRulesId(), adminManagementClient);
+                }
+            }
+
+            if (null != managementModel.getStorage()) {
+                if (null != managementModel.getStorage().getInheritance() &&
+                    null != managementModel.getStorage().getInheritance().getPreventRulesId()) {
+                    validatePreventRuleCategory(unit, SedaConstants.TAG_RULE_STORAGE, report,
+                        managementModel.getStorage().getInheritance().getPreventRulesId(), adminManagementClient);
+                }
+            }
+
+            if (null != managementModel.getReuse()) {
+                if (null != managementModel.getReuse().getInheritance() &&
+                    null != managementModel.getReuse().getInheritance().getPreventRulesId()) {
+                    validatePreventRuleCategory(unit, SedaConstants.TAG_RULE_REUSE, report,
+                        managementModel.getReuse().getInheritance().getPreventRulesId(),
+                        adminManagementClient);
+                }
+            }
+
+            if (null != managementModel.getClassification()) {
+                if (null != managementModel.getClassification().getInheritance() &&
+                    null != managementModel.getClassification().getInheritance().getPreventRulesId()) {
+                    validatePreventRuleCategory(unit, SedaConstants.TAG_RULE_CLASSIFICATION, report,
+                        managementModel.getClassification().getInheritance().getPreventRulesId(),
+                        adminManagementClient);
+                }
+            }
+
+        } catch (final VitamException e) {
+            throw new ProcessingException(e);
+        }
+
+        final String errors = report.toString();
+        if (ParametersChecker.isNotEmpty(errors)) {
+            throw new ProcessingException(errors);
+        }
+    }
+
+    private void validatePreventRuleCategory(String unit, String ruleType, StringBuffer report,
+        Collection<String> ruleIds,
+        AdminManagementClient adminManagementClient)
+        throws FileRulesException, InvalidParseOperationException, AdminManagementClientServerException {
+
+        if (null == ruleIds) {
+            return;
+        }
+
+        for (String ruleId : ruleIds) {
+            JsonNode rulesInDB = adminManagementClient.getRuleByID(ruleId);
+            if (null == rulesInDB) {
+                report.append("In the unit ").append(unit).append(" the rule id ").append(ruleId)
+                    .append(" in the RuleType ").append(ruleType).append(" is not found in db ; ");
+                continue;
+            }
+
+            RequestResponse<FileRules> fr = JsonHandler.getFromStringAsTypeRefence(rulesInDB.toString(),
+                new TypeReference<RequestResponseOK<FileRules>>() {
+                });
+            if (fr.isOk()) {
+                RequestResponseOK<FileRules> frok = (RequestResponseOK<FileRules>) fr;
+                Iterator<FileRules> it = frok.getResults().iterator();
+
+                if (it.hasNext()) {
+                    String rr = it.next().getRuletype();
+                    if (!ruleType.equals(rr)) {
+                        report.append("In the unit ").append(unit).append(" the rule id ").append(ruleId)
+                            .append(" is in the wrong RuleType ").append(" it should be in the RuleType ")
+                            .append(ruleType).append(" ; ");
+                    }
+                } else {
+                    report.append("In the unit ").append(unit).append(" the rule id ").append(ruleId)
+                        .append(" not found in db").append(" ; ");
+                }
+            } else {
+                VitamError vr = (VitamError) fr;
+                report.append("In the unit ").append(unit).append(" error while getting rule id : ").append(ruleId)
+                    .append(" : ").append(vr.getMessage()).append(" : ").append(vr.getDescription()).append(" ; ");
+            }
+
+
+        }
+    }
+
     /**
      * Compute enddate for rule node
-     * 
-     * @param ruleNode current ruleNode from archive unit
+     *
+     * @param ruleNode     current ruleNode from archive unit
      * @param rulesResults rules referential
-     * @param ruleType current rule type
+     * @param ruleType     current rule type
      * @throws FileRulesException
      * @throws InvalidParseOperationException
      * @throws ProcessingException

@@ -26,21 +26,26 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class RuleModel {
 
     /**
      * rule id
      */
+    @JsonProperty("Rule")
     private String rule;
 
     /**
      * start date
      */
+    @JsonProperty("StartDate")
     private String startDate;
 
     /**
      * final action
      */
+    @JsonProperty("FinalAction")
     private String finalAction;
 
     /**

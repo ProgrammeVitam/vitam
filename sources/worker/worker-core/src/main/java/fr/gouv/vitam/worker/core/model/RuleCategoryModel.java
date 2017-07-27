@@ -30,11 +30,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class RuleCategoryModel {
 
+    @JsonProperty("Rules")
     private List<RuleModel> rules;
 
+    @JsonProperty("Inheritance")
     private InheritanceModel inheritance;
 
     public RuleCategoryModel() {

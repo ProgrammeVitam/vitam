@@ -45,6 +45,11 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLStreamException;
 
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.worker.core.model.ArchiveUnitModel;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -84,6 +89,12 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 @PrepareForTest({WorkspaceClientFactory.class, AdminManagementClientFactory.class})
 public class UnitsRulesComputePluginTest {
 
+
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+
+
     UnitsRulesComputePlugin plugin = new UnitsRulesComputePlugin();
 
     private WorkspaceClient workspaceClient;
@@ -102,6 +113,7 @@ public class UnitsRulesComputePluginTest {
 
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
+    private Integer tenantId = 0;
 
     @Before
     public void setUp() throws Exception {
@@ -146,13 +158,20 @@ public class UnitsRulesComputePluginTest {
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
     }
 
+    @RunWithCustomExecutor
     @Test
     public void givenWorkspaceExistWhenExecuteThenReturnResponseOK() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         reset(workspaceClient);
 
         when(workspaceClient.getObject(anyObject(), eq("Units/objectName")))
             .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
         saveWorkspacePutObject("Units/objectName");
+        when(adminManagementClient.getRuleByID("ID100")).thenReturn(getRulesInReferential("ID100", "StorageRule"));
+        when(adminManagementClient.getRuleByID("ID101"))
+            .thenReturn(getRulesInReferential("ID101", "ClassificationRule"));
+        when(adminManagementClient.getRuleByID("ID102")).thenReturn(getRulesInReferential("ID102", "AccessRule"));
+
         when(adminManagementClient.getRules(anyObject())).thenReturn(getRulesInReferential());
 
         final WorkerParameters params =
@@ -214,13 +233,20 @@ public class UnitsRulesComputePluginTest {
         assertNull(management.get("StorageRule"));
     }
 
+    @RunWithCustomExecutor
     @Test
     public void givenWorkspaceArchiveUnitFileExistWhenExecuteThenReturnResponseOK() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         reset(workspaceClient);
 
         when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json")))
             .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
         saveWorkspacePutObject("Units/objectName.json");
+        when(adminManagementClient.getRuleByID("ID100")).thenReturn(getRulesInReferential("ID100", "StorageRule"));
+        when(adminManagementClient.getRuleByID("ID101"))
+            .thenReturn(getRulesInReferential("ID101", "ClassificationRule"));
+        when(adminManagementClient.getRuleByID("ID102")).thenReturn(getRulesInReferential("ID102", "AccessRule"));
+
         when(adminManagementClient.getRules(anyObject())).thenReturn(getRulesInReferential());
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
@@ -298,11 +324,40 @@ public class UnitsRulesComputePluginTest {
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
 
-
     }
 
+
+
+    @RunWithCustomExecutor
+    @Test
+    public void givenWrongRuleTypeWhenExecuteThenReturnResponseKO() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        reset(workspaceClient);
+
+        when(workspaceClient.getObject(anyObject(), eq("Units/objectName")))
+            .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
+        saveWorkspacePutObject("Units/objectName");
+        when(adminManagementClient.getRuleByID("ID100")).thenReturn(getRulesInReferential("ID100", "StorageRule"));
+        when(adminManagementClient.getRuleByID("ID101"))
+            .thenReturn(getRulesInReferential("ID101", "ClassificationRule"));
+        // Should be AccessRule
+        when(adminManagementClient.getRuleByID("ID102")).thenReturn(getRulesInReferential("ID102", "StorageRule"));
+
+        when(adminManagementClient.getRules(anyObject())).thenReturn(getRulesInReferential());
+
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL)
+                .setUrlMetadata("http://localhost:8083")
+                .setObjectName("objectName").setCurrentStep("currentStep").setContainerName("containerName");
+
+        final ItemStatus response = plugin.execute(params, action);
+        assertEquals(response.getGlobalStatus(), StatusCode.KO);
+    }
+
+    @RunWithCustomExecutor
     @Test
     public void givenArchiveUnitMgtMdOk1WhenExecuteThenReturnResponseOK() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         reset(adminManagementClient);
         reset(workspaceClient);
 
@@ -310,6 +365,14 @@ public class UnitsRulesComputePluginTest {
             .thenReturn(Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream(AU_SIP_MGT_MD_OK1))
                 .build());
         saveWorkspacePutObject("Units/objectName");
+
+        when(adminManagementClient.getRuleByID("ID100")).thenReturn(getRulesInReferential("ID100", "StorageRule"));
+        when(adminManagementClient.getRuleByID("ID101"))
+            .thenReturn(getRulesInReferential("ID101", "DisseminationRule"));
+        when(adminManagementClient.getRuleByID("ID102")).thenReturn(getRulesInReferential("ID102", "ReuseRule"));
+        when(adminManagementClient.getRuleByID("ID103"))
+            .thenReturn(getRulesInReferential("ID103", "ClassificationRule"));
+
         when(adminManagementClient.getRules(anyObject())).thenReturn(getRulesInReferentialForAuMgtMdOk());
 
         final WorkerParameters params =
@@ -344,6 +407,15 @@ public class UnitsRulesComputePluginTest {
         File objectNameFile = new File(System.getProperty("vitam.tmp.folder") + "/" + action.getContainerName() + "_" +
             action.getWorkerId() + "/" + filename.replaceAll("/", "_"));
         return JsonHandler.getFromFile(objectNameFile);
+    }
+
+    private JsonNode getRulesInReferential(String ruleId, String ruleType) {
+
+        final ArrayNode root = JsonHandler.createArrayNode();
+        root.add(createRule(ruleId, ruleType, "3", RuleMeasurementEnum.MONTH.getType()));
+        final ObjectNode rule = JsonHandler.createObjectNode();
+        rule.set("$results", root);
+        return rule;
     }
 
     private JsonNode getRulesInReferential() {

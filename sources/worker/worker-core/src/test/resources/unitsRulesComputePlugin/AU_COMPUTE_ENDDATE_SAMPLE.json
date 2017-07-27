@@ -32,7 +32,7 @@
 				"Inheritance": {
 					"PreventInheritance": true,
 					"PreventRulesId": [
-						"ID100"
+						"ID101"
 					]
 				}
 			},
@@ -46,7 +46,7 @@
 				"Inheritance": {
 					"PreventInheritance": true,
 					"PreventRulesId": [
-						"ID100"
+						"ID102"
 					]
 				}
 			}
