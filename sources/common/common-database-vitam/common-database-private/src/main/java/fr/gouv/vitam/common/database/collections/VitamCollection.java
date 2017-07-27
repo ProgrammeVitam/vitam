@@ -202,9 +202,6 @@ public class VitamCollection {
         final CodecRegistry codecRegistry =
             CodecRegistries.fromRegistries(MongoClient.getDefaultCodecRegistry(), vitamCodecRegistry);
 
-        // See
-        // http://stackoverflow.com/questions/6520439/how-to-configure-mongodb-java-driver-mongooptions-for-production-use
-        // FIXME : reflexion on readPreference must be made (load repartition between primary and secondary nodes)
         return getMongoClientOptions(codecRegistry);
     }
 
@@ -212,23 +209,21 @@ public class VitamCollection {
     public static MongoClientOptions getMongoClientOptions() {
 
         final CodecRegistry codecRegistry = CodecRegistries.fromRegistries(MongoClient.getDefaultCodecRegistry());
-        // See
-        // http://stackoverflow.com/questions/6520439/how-to-configure-mongodb-java-driver-mongooptions-for-production-use
-        // FIXME : reflexion on readPreference must be made (load repartition between primary and secondary nodes)
+
         return getMongoClientOptions(codecRegistry);
     }
 
     private static MongoClientOptions getMongoClientOptions(CodecRegistry codecRegistry) {
         return MongoClientOptions.builder().codecRegistry(codecRegistry)
-                .connectTimeout(VitamConfiguration.getConnectTimeout())
-                .minConnectionsPerHost(1).connectionsPerHost(VitamConfiguration.getNumberDbClientThread())
-                .maxConnectionIdleTime(VitamConfiguration.getMaxDelayUnusedConnection())
-                .threadsAllowedToBlockForConnectionMultiplier(
-                        VitamConfiguration.getThreadsAllowedToBlockForConnectionMultipliers())
-                .socketKeepAlive(true).socketTimeout(VitamConfiguration.getReadTimeout())
-                .writeConcern(WriteConcern.ACKNOWLEDGED).readConcern(ReadConcern.DEFAULT)
-                .readPreference(ReadPreference.primaryPreferred())
-                .build();
+            .connectTimeout(VitamConfiguration.getConnectTimeout())
+            .minConnectionsPerHost(1).connectionsPerHost(VitamConfiguration.getNumberDbClientThread())
+            .maxConnectionIdleTime(VitamConfiguration.getMaxDelayUnusedConnection())
+            .threadsAllowedToBlockForConnectionMultiplier(
+                VitamConfiguration.getThreadsAllowedToBlockForConnectionMultipliers())
+            .socketKeepAlive(true).socketTimeout(VitamConfiguration.getReadTimeout())
+            .writeConcern(WriteConcern.MAJORITY)
+            .readConcern(ReadConcern.MAJORITY)
+            .build();
     }
 
     /**

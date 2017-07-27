@@ -57,6 +57,7 @@ public class MongoRule extends ExternalResource {
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         try {
             MongodExecutable mongodExecutable = starter.prepare(new MongodConfigBuilder()
+                .withLaunchArgument("--enableMajorityReadConcern")
                 .version(Version.Main.PRODUCTION)
                 .net(new Net(dataBasePort, Network.localhostIsIPv6()))
                 .build());

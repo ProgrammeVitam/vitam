@@ -30,30 +30,29 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assume.assumeTrue;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.mongodb.MongoClient;
+
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
+import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 
 
@@ -61,7 +60,6 @@ public class MongoDbAccessFactoryTest {
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
-    private static File elasticsearchHome;
 
     private final static String CLUSTER_NAME = "vitam-cluster";
     private final static String HOST_NAME = "127.0.0.1";
@@ -69,73 +67,68 @@ public class MongoDbAccessFactoryTest {
     private static List<ElasticsearchNode> nodes;
 
     private static final String DATABASE_HOST = "localhost";
-    private static final String JETTY_CONFIG = "jetty-config-test.xml";
     static MongoDbAccessMetadataImpl mongoDbAccess;
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
-    private static JunitHelper junitHelper;
-    private static int port;
     private static ElasticsearchTestConfiguration config = null;
     static final int tenantId = 0;
     static final List tenantList = new ArrayList() {
-        /**
-        * 
-        */
-        private static final long serialVersionUID = 2226897691699344963L;
-
         {
             add(tenantId);
         }
     };
 
+    private static ElasticsearchAccessMetadata esClient;
+
+    @Rule
+    public MongoRule mongoRule =
+        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), "vitam-test", "Unit", "ObjectGroup");
+
+    private MongoClient mongoClient = mongoRule.getMongoClient();
+
     @BeforeClass
-    public static void setup() throws IOException {
-        // ES
+    public static void beforeClass() throws Exception {
         try {
             config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
         } catch (final VitamApplicationServerException e1) {
             assumeTrue(false);
         }
-        junitHelper = JunitHelper.getInstance();
 
         nodes = new ArrayList<>();
         nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
+    }
 
-        // MongoDB
-        port = junitHelper.findAvailablePort();
-        final MongodStarter starter = MongodStarter.getDefaultInstance();
-        mongodExecutable = starter.prepare(new MongodConfigBuilder()
-            .version(Version.Main.PRODUCTION)
-            .net(new Net(port, Network.localhostIsIPv6()))
-            .build());
-        mongod = mongodExecutable.start();
+    /**
+     * @throws java.lang.Exception
+     */
+    @Before
+    public void setUp() throws Exception {
+        final List<ElasticsearchNode> nodes = new ArrayList<>();
+        nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
+
+        esClient = new ElasticsearchAccessMetadata(CLUSTER_NAME, nodes);
     }
 
     /**
      * @throws java.lang.Exception
      */
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
+    public static void tearDown() throws Exception {
         if (config == null) {
             return;
         }
-        mongod.stop();
-        mongodExecutable.stop();
-        junitHelper.releasePort(port);
+
         JunitHelper.stopElasticsearchForTest(config);
+        esClient.close();
     }
 
     @Test
     public void testCreateFn() {
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
-        mongo_nodes.add(new MongoDbNode(DATABASE_HOST, port));
-        new MongoDbAccessMetadataFactory();
-        final MetaDataConfiguration config =
-            new MetaDataConfiguration(mongo_nodes, "vitam-test", CLUSTER_NAME, nodes);
+        mongo_nodes.add(new MongoDbNode(DATABASE_HOST, mongoClient.getAddress().getPort()));
+        final MetaDataConfiguration config = new MetaDataConfiguration(mongo_nodes, "vitam-test", CLUSTER_NAME, nodes);
         config.setTenants(tenantList);
-
-        mongoDbAccess = MongoDbAccessMetadataFactory
-            .create(config);
+        mongoDbAccess = MongoDbAccessMetadataFactory.create(config);
         assertNotNull(mongoDbAccess);
         assertEquals("vitam-test", mongoDbAccess.getMongoDatabase().getName());
         mongoDbAccess.close();

@@ -10,6 +10,7 @@ import java.util.List;
 
 import org.bson.Document;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -18,16 +19,9 @@ import org.junit.rules.TemporaryFolder;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Lists;
 import com.mongodb.MongoClient;
-import com.mongodb.ServerAddress;
 
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
@@ -47,6 +41,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
+import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -61,9 +56,6 @@ public class DbRequestSingleTest {
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
-    static MongodExecutable mongodExecutable;
-    static MongodProcess mongod;
-    static MongoClient mongoClient;
     static JunitHelper junitHelper;
     static final String DATABASE_HOST = "localhost";
     static final String DATABASE_NAME = "vitam-test";
@@ -78,50 +70,53 @@ public class DbRequestSingleTest {
 
     private static final Integer TENANT_ID = 0;
 
+    @Rule
+    public MongoRule mongoRule =
+        new MongoRule(VitamCollection.getMongoClientOptions(Lists.newArrayList(CollectionSample.class)), "vitam-test",
+            "Unit", "ObjectGroup");
+
+    private MongoClient mongoClient = mongoRule.getMongoClient();
+
+
     @BeforeClass
-    @RunWithCustomExecutor
-    public static void setUpBeforeClass() throws Exception {
-        junitHelper = JunitHelper.getInstance();
-        // ES
+    public static void beforeClass() throws Exception {
         try {
             config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
         } catch (final VitamApplicationServerException e1) {
             assumeTrue(false);
         }
+    }
+
+    /**
+     * @throws java.lang.Exception
+     */
+    @Before
+    public void setUp() throws Exception {
+
 
         final List<ElasticsearchNode> nodes = new ArrayList<>();
         nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
 
         esClient = new ElasticsearchAccess(CLUSTER_NAME, nodes);
 
-        final MongodStarter starter = MongodStarter.getDefaultInstance();
-        port = junitHelper.findAvailablePort();
-        mongodExecutable = starter.prepare(new MongodConfigBuilder()
-            .version(Version.Main.PRODUCTION)
-            .net(new Net(port, Network.localhostIsIPv6()))
-            .build());
-        mongod = mongodExecutable.start();
-
-        final List<Class<?>> classList = new ArrayList<>();
-        classList.add(CollectionSample.class);
-        mongoClient =
-            new MongoClient(new ServerAddress(DATABASE_HOST, port), VitamCollection.getMongoClientOptions(classList));
         vitamCollection = VitamCollectionHelper.getCollection(CollectionSample.class, true, false);
         vitamCollection.initialize(esClient);
         vitamCollection.initialize(mongoClient.getDatabase(DATABASE_NAME), true);
 
+
     }
 
+    /**
+     * @throws java.lang.Exception
+     */
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
+    public static void tearDown() throws Exception {
         if (config == null) {
             return;
         }
-        mongoClient.close();
-        mongod.stop();
-        mongodExecutable.stop();
-        junitHelper.releasePort(port);
+
         JunitHelper.stopElasticsearchForTest(config);
+        esClient.close();
     }
 
     @Test

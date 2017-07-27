@@ -12,6 +12,10 @@ rs.initiate(
         {% if i < groups['mongod']|length %},{% endif %}
         {% endif %}
         {% endfor %}
-        ]
+        ],
+        settings: {
+    		getLastErrorDefaults : { w: "majority"}
+		}
     }
 )
+

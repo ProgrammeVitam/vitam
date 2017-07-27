@@ -120,6 +120,7 @@ public class ReferentialFormatFileImplTest {
 
         port = junitHelper.findAvailablePort();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
+            .withLaunchArgument("--enableMajorityReadConcern")
             .version(Version.Main.PRODUCTION)
             .net(new Net(port, Network.localhostIsIPv6()))
             .build());

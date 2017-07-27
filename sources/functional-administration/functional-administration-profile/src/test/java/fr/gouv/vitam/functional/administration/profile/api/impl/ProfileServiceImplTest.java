@@ -75,9 +75,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
-
 public class ProfileServiceImplTest {
-
 
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
@@ -106,6 +104,7 @@ public class ProfileServiceImplTest {
         junitHelper = JunitHelper.getInstance();
         mongoPort = junitHelper.findAvailablePort();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
+            .withLaunchArgument("--enableMajorityReadConcern")
             .version(Version.Main.PRODUCTION)
             .net(new Net(mongoPort, Network.localhostIsIPv6()))
             .build());
@@ -187,7 +186,7 @@ public class ProfileServiceImplTest {
         assertThat(responseCast.getResults()).hasSize(2);
         assertThat(responseCast.getResults().get(0).getIdentifier()).contains("PR-000");
         assertThat(responseCast.getResults().get(1).getIdentifier()).contains("aIdentifier");
-        final ProfileModel profileModel= responseCast.getResults().get(1);
+        final ProfileModel profileModel = responseCast.getResults().get(1);
         InputStream xsdProfile = new FileInputStream(PropertiesUtils.getResourceFile("profile_ok.rng"));
 
 
@@ -396,18 +395,12 @@ public class ProfileServiceImplTest {
         String id1 = acm.getIdentifier();
         assertThat(id1).isNotNull();
 
-
         ProfileModel one = profileService.findByIdentifier(id1);
-
         assertThat(one).isNotNull();
-
         assertThat(one.getName()).isEqualTo(acm.getName());
-
         assertThat(one.getTenant()).isNotNull();
         assertThat(one.getTenant()).isEqualTo(Integer.valueOf(TENANT_ID));
-
     }
-
 
     /**
      * Profile of tenant 1, try to get the same profile with id mongo but with tenant 2 This sgould not return the
@@ -435,13 +428,9 @@ public class ProfileServiceImplTest {
         final String id1 = acm.getId();
         assertThat(id1).isNotNull();
 
-
         VitamThreadUtils.getVitamSession().setTenantId(2);
-
         final ProfileModel one = profileService.findByIdentifier(id1);
-
         assertThat(one).isNull();
-
     }
 
     @Test
@@ -510,7 +499,6 @@ public class ProfileServiceImplTest {
         final RequestResponseOK<ProfileModel> responseCast = (RequestResponseOK<ProfileModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
 
-
         final ProfileModel acm = profileModelList.iterator().next();
         assertThat(acm).isNotNull();
 
@@ -520,13 +508,11 @@ public class ProfileServiceImplTest {
         final String identifier = acm.getIdentifier();
         assertThat(identifier).isNotNull();
 
-
         final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
         final Select select = new Select();
         parser.parse(select.getFinalSelect());
         parser.addCondition(QueryHelper.eq("Identifier", identifier));
         final JsonNode queryDsl = parser.getRequest().getFinalSelect();
-
 
         final RequestResponseOK<ProfileModel> profileModelListFound = profileService.findProfiles(queryDsl);
         assertThat(profileModelListFound.getResults()).hasSize(1);
@@ -534,10 +520,8 @@ public class ProfileServiceImplTest {
         final ProfileModel acmFound = profileModelListFound.getResults().iterator().next();
         assertThat(acmFound).isNotNull();
 
-
         assertThat(acmFound.getId()).isEqualTo(id1);
         assertThat(acmFound.getIdentifier()).isEqualTo(identifier);
-
     }
 
 }

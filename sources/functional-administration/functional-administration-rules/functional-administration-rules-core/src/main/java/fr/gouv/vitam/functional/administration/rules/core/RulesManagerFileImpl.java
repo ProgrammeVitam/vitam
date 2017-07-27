@@ -48,16 +48,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.google.gson.Gson;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
-import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
-import fr.gouv.vitam.common.digest.Digest;
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.functional.administration.counter.SequenceType;
-import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
-import fr.gouv.vitam.storage.engine.common.exception.StorageException;
-import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -65,8 +55,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.gson.Gson;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -79,10 +69,14 @@ import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
+import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
+import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.DbRequestSingle;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.digest.Digest;
+import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -107,6 +101,8 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportI
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.counter.SequenceType;
+import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -125,6 +121,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 
 /**
  * RulesManagerFileImpl
@@ -388,6 +385,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         parser.parse(select.getFinalSelect());
         parser.addCondition(eq("#version", sequence.toString()));
         final RequestResponseOK<FileRules> documents = findDocuments(parser.getRequest().getFinalSelect());
+        // FIXME use JsonHandler
         String json = new Gson().toJson(documents.getResults());
         InputStream stream = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));
 
@@ -793,6 +791,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         try {
             delete.setQuery(eq(RULE_ID, fileRulesModel.getRuleId()));
             result = dbrequest.execute(delete);
+            result.close();
         } catch (InvalidParseOperationException | InvalidCreateOperationException | DatabaseException e) {
             LOGGER.error(e);
         }

@@ -65,7 +65,6 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -75,7 +74,6 @@ import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.DbRequestSingle;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -169,6 +167,7 @@ public class MongoDbAccessAdminImplTest {
         // FunctionalAdminCollections.INGEST_CONTRACT.initialize(esClient);
         port = junitHelper.findAvailablePort();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
+            .withLaunchArgument("--enableMajorityReadConcern")
             .version(Version.Main.PRODUCTION)
             .net(new Net(port, Network.localhostIsIPv6()))
             .build());
@@ -439,11 +438,7 @@ public class MongoDbAccessAdminImplTest {
         final MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
         final MongoCollection<Document> collection =
             client.getDatabase(DATABASE_NAME).getCollection(FunctionalAdminCollections.INGEST_CONTRACT.getName());
-        for (final String c : client.getDatabase(DATABASE_NAME).listCollectionNames()) {
-            System.out.println(c);
-        }
         mongoAccess.insertDocuments(arrayNode, contractCollection).close();
-        System.out.println(arrayNode.toString());
         assertEquals(1, collection.count());
         mongoAccess.deleteCollection(contractCollection).close();
         assertEquals(0, collection.count());
@@ -464,11 +459,7 @@ public class MongoDbAccessAdminImplTest {
         final MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
         final MongoCollection<Document> collection =
             client.getDatabase(DATABASE_NAME).getCollection(FunctionalAdminCollections.ACCESS_CONTRACT.getName());
-        for (final String c : client.getDatabase(DATABASE_NAME).listCollectionNames()) {
-            System.out.println(c);
-        }
         mongoAccess.insertDocuments(arrayNode, contractCollection).close();
-        System.out.println(arrayNode.toString());
         assertEquals(1, collection.count());
         mongoAccess.deleteCollection(contractCollection).close();
         assertEquals(0, collection.count());
@@ -488,11 +479,7 @@ public class MongoDbAccessAdminImplTest {
         final MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
         final MongoCollection<Document> collection =
             client.getDatabase(DATABASE_NAME).getCollection(FunctionalAdminCollections.PROFILE.getName());
-        for (final String c : client.getDatabase(DATABASE_NAME).listCollectionNames()) {
-            System.out.println(c);
-        }
         mongoAccess.insertDocuments(arrayNode, profileCollection).close();
-        System.out.println(arrayNode.toString());
         assertEquals(1, collection.count());
         mongoAccess.deleteCollection(profileCollection).close();
         assertEquals(0, collection.count());

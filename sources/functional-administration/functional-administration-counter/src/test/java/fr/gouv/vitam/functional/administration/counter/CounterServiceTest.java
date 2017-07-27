@@ -85,6 +85,7 @@ public class CounterServiceTest {
         junitHelper = JunitHelper.getInstance();
         mongoPort = junitHelper.findAvailablePort();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
+            .withLaunchArgument("--enableMajorityReadConcern")
             .version(Version.Main.PRODUCTION)
             .net(new Net(mongoPort, Network.localhostIsIPv6()))
             .build());

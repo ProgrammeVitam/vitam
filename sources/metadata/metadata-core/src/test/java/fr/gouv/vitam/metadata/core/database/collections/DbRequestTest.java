@@ -26,12 +26,70 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gt;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.isNull;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lt;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.missing;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.ne;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.nin;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.path;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.range;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.size;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.term;
+import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.all;
+import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.id;
+import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.tenant;
+import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.add;
+import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.inc;
+import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.min;
+import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.push;
+import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.set;
+import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.unset;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.io.IOUtils;
+import org.bson.Document;
+import org.bson.conversions.Bson;
+import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.search.SearchType;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoDatabase;
+
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.query.PathQuery;
@@ -69,62 +127,6 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
-import org.apache.commons.io.IOUtils;
-import org.bson.Document;
-import org.bson.conversions.Bson;
-import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchType;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHits;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gt;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.isNull;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lt;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.missing;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.ne;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.nin;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.path;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.range;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.size;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.term;
-import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.all;
-import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.id;
-import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.tenant;
-import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.add;
-import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.inc;
-import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.min;
-import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.push;
-import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.set;
-import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.unset;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
 
 
 public class DbRequestTest {
@@ -149,7 +151,6 @@ public class DbRequestTest {
     private static ElasticsearchAccessMetadata esClient;
     private static ElasticsearchAccess esClientWithoutVitambBehavior;
 
-    private static final String DATABASE_HOST = "localhost";
     private static final boolean CREATE = false;
     private static final boolean DROP = false;
     private static final String MY_INT = "MyInt";
@@ -160,7 +161,6 @@ public class DbRequestTest {
     private static final String MY_FLOAT = "MyFloat";
     private static final String UNKNOWN_VAR = "unknown";
     private static final String VALUE_MY_TITLE = "MyTitle";
-    private static final String VALUE_TENANT = "MyTitle";
     private static final String ARRAY_VAR = "ArrayVar";
     private static final String ARRAY2_VAR = "Array2Var";
     private static final String EMPTY_VAR = "EmptyVar";
