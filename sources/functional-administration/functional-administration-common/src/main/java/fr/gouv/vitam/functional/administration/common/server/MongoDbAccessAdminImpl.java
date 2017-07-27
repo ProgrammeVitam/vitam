@@ -142,6 +142,11 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
     @Override
     public VitamDocument<?> getDocumentByUniqueId(String id, FunctionalAdminCollections collection, String field)
         throws ReferentialException {
+        if (collection.isMultitenant()) {
+            Integer tenantId = ParameterHelper.getTenantParameter();
+            return (VitamDocument<?>) collection.getCollection().find(and(eq(field, id),
+                eq(VitamDocument.TENANT_ID, tenantId))).first();
+        }
         return (VitamDocument<?>) collection.getCollection().find(eq(field, id)).first();
     }
 
