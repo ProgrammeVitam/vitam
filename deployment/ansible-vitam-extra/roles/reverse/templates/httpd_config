@@ -14,6 +14,7 @@
     SSLProxyCheckPeerCN off
     # Don't check the hostname of the server
     SSLProxyCheckPeerName off
+    KeepAlive Off
 
     <Directory "/var/www/html-{{environnement}}">
         #
