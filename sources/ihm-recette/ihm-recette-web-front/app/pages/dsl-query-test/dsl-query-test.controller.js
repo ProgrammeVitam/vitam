@@ -86,7 +86,11 @@ angular.module('dsl.query.test')
       $scope.requestResponse = JSON.stringify(response.data, null, 5);
     }
     var executeRequestErrorCallback = function (error) {
-      $scope.requestResponse = error.data;
+      if (typeof error.data === 'object') {
+        $scope.requestResponse = JSON.stringify(error.data, null, 5);
+      } else {
+        $scope.requestResponse = error.data;
+      }
     }
 
     $scope.getRequestResults = function(query) {
