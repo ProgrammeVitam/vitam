@@ -34,6 +34,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.attribute.FileTime;
+import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -55,7 +56,7 @@ public class LocalDateUtilTest {
         VitamLoggerFactory.getInstance(LocalDateUtilTest.class);
 
     @Test
-    public void check1970() {
+    public void check1970() throws ParseException {
         LocalDateTime dt = LocalDateTime.of(1970, 1, 1, 0, 0);
         LocalDateTime dt0 = LocalDateUtil.fromMillis(0);
         LOGGER.info(dt + " vs " + dt0);
@@ -70,6 +71,11 @@ public class LocalDateUtilTest {
         assertEquals(dt.toEpochSecond(ZoneOffset.UTC), dt0.toEpochSecond(ZoneOffset.UTC));
         date.setTime(dt.toEpochSecond(ZoneOffset.UTC));
         assertEquals(dt.toEpochSecond(ZoneOffset.UTC), date.getTime());
+        assertNotNull(LocalDateUtil.getDate("2016-06-07T07:00"));
+        assertNotNull(LocalDateUtil.getDate("2016-06-07T07:00:14"));
+        assertNotNull(LocalDateUtil.getDate("2016-06-07T07:00:14.14"));
+        assertNotNull(LocalDateUtil.getDate("2017-04-23T15:01:03.43Z"));
+        assertNotNull(LocalDateUtil.getDate("2017-04-23T15:01:03.430PST"));
     }
 
     @Test

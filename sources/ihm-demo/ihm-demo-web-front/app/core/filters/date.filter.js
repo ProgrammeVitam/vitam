@@ -35,11 +35,15 @@ angular.module('ihm.demo')
       if (!theDate) {
         return "";
       }
+      if (theDate instanceof Date) {
+        return angularDateFilter(theDate, 'dd-MM-yyyy HH:mm');
+      }
       // Test if date has an acceptable format
       var timestamp = Date.parse(theDate);
       if (isNaN(timestamp) == true) {
         return theDate;
       }
+
 
       if (theDate.indexOf("T") == -1 && theDate.indexOf(":") == -1) {
         if (theDate.indexOf("00:00") < 0) {

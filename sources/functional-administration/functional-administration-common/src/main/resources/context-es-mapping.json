@@ -10,6 +10,14 @@
 		"Status": {
 			"type": "boolean"
 		},
+		"LastUpdate": {
+			"type": "date",
+			"format": "strict_date_optional_time||epoch_millis"
+		},
+		"CreationDate": {
+			"type": "date",
+			"format": "strict_date_optional_time||epoch_millis"
+		},
 		"Permissions": {
 			"type": "object",
 			"properties": {
@@ -23,9 +31,9 @@
 				}
 			}
 		},
-        "_score": {
-           "type": "object",
-           "enabled": false
-        }
+		"_score": {
+			"type": "object",
+			"enabled": false
+		}
 	}
 }
