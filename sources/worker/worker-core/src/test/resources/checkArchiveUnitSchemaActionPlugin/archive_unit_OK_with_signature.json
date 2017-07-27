@@ -1,0 +1,134 @@
+{
+  "ArchiveUnit" : {
+    "Management" : {
+      "AccessRule" : {
+        "Rules" : [ {
+          "Rule" : "ACC-00001",
+          "StartDate" : "1915-12-31"
+        } ]
+      },
+      "OriginatingAgency" : "Identifier0"
+    },
+    "DataObjectReference" : {
+      "DataObjectGroupReferenceId" : "ID52"
+    },
+    "_id" : "aeaqaaaaaaag6rt6abzugak5ql2f7lyaaaaq",
+    "_og" : "aebaaaaaaaag6rt6abzugak5ql2f6vqaaaaq",
+    "DescriptionLevel" : "Item",
+    "Title" : "Chemin des dames - The Castle of La Motte",
+    "Titles" : {
+      "fre" : "Chemin des dames - Le ch\u00E2teau de la Motte",
+      "en" : "Chemin des dames - The Castle of La Motte"
+    },
+    "FilePlanPosition" : "/content",
+    "SystemId" : "ID01",
+    "OriginatingSystemId" : "ID01",
+    "ArchivalAgencyArchiveUnitIdentifier" : "1 Num 1/204-3",
+    "OriginatingAgencyArchiveUnitIdentifier" : "CP1",
+    "TransferringAgencyArchiveUnitIdentifier" : "CP1",
+    "Description" : "Allemant. - Au chemin des Dames : le ch\u00E2teau et la ferme de la Motte totalement d\u00E9truits.",
+    "Descriptions" : {
+      "fr" : "L\u00E9gendes traduites en anglais."
+    },
+    "CustodialHistory" : {
+      "CustodialHistoryItem" : [ "La collection de cartes postales pr\u00E9sent\u00E9e ici provient des nombreux pr\u00EAts qui ont \u00E9t\u00E9 propos\u00E9s\n                            aux Archives de la Vend\u00E9e lors de la Grande Collecte 1914-1918.", "Ces cartes postales, \u00E9crites pour la plupart, ont \u00E9t\u00E9 dans bien des cas num\u00E9ris\u00E9es recto verso,\n                            sauf avis contraire des pr\u00EAteurs ou lorsqu'il s'agit d'une s\u00E9rie. La date de la correspondance, ou\n                            plus rarement celle de l'oblit\u00E9ration, est pr\u00E9cis\u00E9e en pr\u00E9sentation du contenu, ainsi que le nom\n                            de son auteur si son t\u00E9moignage apporte un \u00E9clairage nouveau (une mention permet de\n                            retrouver ses autres \u00E9crits).", "A noter : les cartes repr\u00E9sentant des p\u00E9riodes de manoeuvres ou des armes proviennent de\n                            clich\u00E9s pris avant le conflit.", "Dans le cas pr\u00E9sent : Collecte 14-18. Pr\u00EAt Herv\u00E9, 2014" ]
+    },
+    "Type" : "Information de repr\u00E9sentation",
+    "DocumentType" : "Carte postale",
+    "Language" : "french",
+    "DescriptionLanguage" : "french",
+    "Status" : "Pr\u00EAt",
+    "Version" : "Copie num\u00E9ris\u00E9e",
+    "Tag" : [ "Grande Collecte" ],
+    "Keyword" : [ {
+      "KeywordContent" : "Aisne (d\u00E9partement)",
+      "KeywordType" : "geogname"
+    }, {
+      "KeywordContent" : "Guerre 1914-1918",
+      "KeywordType" : "subject"
+    }, {
+      "KeywordContent" : "Dommages de guerre",
+      "KeywordType" : "subject"
+    }, {
+      "KeywordContent" : "Carte postale",
+      "KeywordType" : "genreform"
+    } ],
+    "Coverage" : {
+      "Spatial" : [ "Aisne (France)" ],
+      "Temporal" : [ "Guerre 1914-1918", "XX\u00E8me si\u00E8cle" ],
+      "Juridictional" : [ "Aisne (D\u00E9partement)" ]
+    },
+    "OriginatingAgency" : {
+      "Identifier" : "Famille HERVE"
+    },
+    "SubmissionAgency" : {
+      "Identifier" : "Famille HERVE"
+    },
+    "Writer" : [ {
+      "FirstName" : "Fils",
+      "BirthName" : "HERVE",
+      "GivenName" : "HERVE",
+      "Gender" : "M",
+      "Identifier" : [ "Matricule XXXXXX" ],
+      "Function" : [ "Guerre" ],
+      "Activity" : [ "Militaire" ],
+      "Position" : [ "Soldat" ],
+      "Role" : [ ]
+    } ],
+    "Addressee" : [ {
+      "FirstName" : "Papa",
+      "BirthName" : "HERVE",
+      "GivenName" : "HERVE",
+      "Gender" : "M",
+      "Identifier" : "ID02"
+    } ],
+    "Recipient" : [ {
+      "FirstName" : "Maman",
+      "BirthName" : "HERVE",
+      "GivenName" : "HERVE",
+      "Gender" : "F",
+      "Identifier" : "ID03"
+    } ],
+    "Source" : "Famille Herv\u00E9, CP1",
+    "CreatedDate" : "2014-06-12T09:31:00",
+    "TransactedDate" : "2014-06-12T09:31:00",
+    "AcquiredDate" : "2014-06-12T09:31:00",
+    "SentDate" : "2014-06-12T09:31:00",
+    "ReceivedDate" : "2014-06-12T09:31:00",
+    "RegisteredDate" : "2014-06-12T09:31:00",
+    "StartDate" : "1914-01-01T09:31:00",
+    "EndDate" : "1918-12-31T19:06:44",
+    "Event" : [ {
+      "EventIdentifier" : "ID01",
+      "EventType" : "Envoi d'une carte postale",
+      "EventDateTime" : "1915-06-12T09:31:00",
+      "EventDetail" : "Envoi d'une carte postale depuis le front."
+    } ],
+    "Signature" : {
+      "DateSignature" : "2017-11-13T17:28:40",
+      "Signer" : {
+        "Corpname" : "Service d'archives 2",
+        "SigningTime" : "2017-11-13T19:28:40"
+      },
+      "Validator" : {
+        "FirstName" : "Laurent",
+        "BirthName" : "Dupois",
+        "ValidationTime" : "2016-10-12T16:28:40"
+      },
+      "ReferencedObject" : {
+        "SignedObjectDigest" : {
+          "Value" : "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
+          "Algorithm" : "SHA-512"
+        }
+      }
+    },
+    "Gps" : {
+      "GpsLatitude" : "49.4769199",
+      "GpsLongitude" : "3.4417368"
+    }
+  },
+  "_work" : {
+    "_up" : [ ],
+    "RulesToApply" : [ "ACC-00001;" ]
+  }
+}

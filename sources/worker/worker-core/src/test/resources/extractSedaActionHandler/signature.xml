@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<ArchiveTransfer xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 ../../Bureau/BA/Formation/Exercices/Schemas/seda-2.0-main.xsd"
+ xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0">
+    <Comment>Cartes postales (Grande Collecte)</Comment>
+    <Date>2016-10-12T16:28:40</Date>
+    <MessageIdentifier>20161012002</MessageIdentifier>
+    <ArchivalAgreement>ArchivalAgreement0</ArchivalAgreement>
+    <CodeListVersions>
+        <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
+        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion>
+        <MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
+        <EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion>
+        <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
+        <CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
+        <DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
+        <StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
+        <AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
+        <AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
+        <DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
+        <ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
+        <ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
+        <AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
+        <RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
+    </CodeListVersions>
+
+    <DataObjectPackage>
+        
+        <BinaryDataObject id="ID1">
+            <DataObjectGroupId>ID52</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/CP1.pdf</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7</MessageDigest>
+            <Size>29403</Size>
+            <FormatIdentification>
+                <FormatLitteral>Acrobat PDF 1.4 - Portable Document Format</FormatLitteral>
+                <MimeType>application/pdf</MimeType>
+                <FormatId>fmt/18</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>CP1.pdf</Filename>
+            </FileInfo>         
+        </BinaryDataObject>
+        
+        <!-- 1 Num 1/204-3 - http://recherche-archives.vendee.fr/archives/archives/fonds/FRAD085_cartespostales14-18/view:all -->
+        <DescriptiveMetadata>
+            <ArchiveUnit id="ID01">
+                <!-- 1.1 -->
+                <Content>
+                    <!-- Groupe 1 : Niveau de description -->
+                    <DescriptionLevel>Item</DescriptionLevel>
+
+                    <!-- Groupe 2 : Titre -->
+                    <Title xml:lang="fre">Chemin des dames - Le château de la Motte</Title>
+                    <Title xml:lang="en">Chemin des dames - The Castle of La Motte</Title>
+
+                    <!-- Groupe 4 : Identification -->
+                    <FilePlanPosition>/content</FilePlanPosition>
+                    <SystemId>ID01</SystemId>
+                    <OriginatingSystemId>ID01</OriginatingSystemId>
+                    <ArchivalAgencyArchiveUnitIdentifier>1 Num
+                        1/204-3</ArchivalAgencyArchiveUnitIdentifier>
+                    <OriginatingAgencyArchiveUnitIdentifier>CP1</OriginatingAgencyArchiveUnitIdentifier>
+                    <TransferringAgencyArchiveUnitIdentifier>CP1</TransferringAgencyArchiveUnitIdentifier>
+
+                    <!-- Groupe 3 : Description -->
+                    <Description>Allemant. - Au chemin des Dames : le château et la ferme de la Motte totalement détruits.</Description>
+                    <Description>2 cartes postales anciennes, noir et blanc</Description>
+                    <Description>Légendes traduites en anglais.</Description>
+
+                    <!-- Groupe 5 : Historique de la conservation -->
+                    <CustodialHistory>
+                        <CustodialHistoryItem>La collection de cartes postales présentée ici provient des nombreux prêts qui ont été proposés
+                            aux Archives de la Vendée lors de la Grande Collecte 1914-1918.</CustodialHistoryItem>
+                        <CustodialHistoryItem>Ces cartes postales, écrites pour la plupart, ont été dans bien des cas numérisées recto verso,
+                            sauf avis contraire des prêteurs ou lorsqu'il s'agit d'une série. La date de la correspondance, ou
+                            plus rarement celle de l'oblitération, est précisée en présentation du contenu, ainsi que le nom
+                            de son auteur si son témoignage apporte un éclairage nouveau (une mention permet de
+                            retrouver ses autres écrits).</CustodialHistoryItem>
+                        <CustodialHistoryItem>A noter : les cartes représentant des périodes de manoeuvres ou des armes proviennent de
+                            clichés pris avant le conflit.</CustodialHistoryItem>
+                        <CustodialHistoryItem>Dans le cas présent : Collecte 14-18. Prêt Hervé, 2014</CustodialHistoryItem>
+                    </CustodialHistory>
+
+                    <!-- Groupe 6 : Type OAIS -->
+                    <Type>Information de représentation</Type>
+
+                    <!-- Groupe 7 : Document type -->
+                    <DocumentType xml:lang="fre">Carte postale</DocumentType>
+                    <!--<DocumentType xml:lang="en">Postcard</DocumentType>-->
+
+                    <!-- Groupe 8 : Langage -->
+                    <Language>french</Language>
+                    <DescriptionLanguage>french</DescriptionLanguage>
+
+                    <!-- Groupe 9 : Statut -->
+                    <Status>Prêt</Status>
+
+                    <!-- Groupe 10 : Version -->
+                    <Version>Copie numérisée</Version>
+
+                    <!-- Groupe 11 : Mots clés -->
+                    <Tag>Grande Collecte</Tag>
+
+                    <Keyword>
+                        <KeywordContent>Aisne (département)</KeywordContent>
+                <!--        <KeywordReference>Index géographique des Archives départementales de la
+                            Vendée</KeywordReference>-->
+                        <KeywordType>geogname</KeywordType>
+                    </Keyword>
+                    <Keyword>
+                        <KeywordContent>Guerre 1914-1918</KeywordContent>
+                        <!--         <KeywordReference>Thésaurus pour la description et l'indexation des archives
+                            locales</KeywordReference>-->
+                        <KeywordType>subject</KeywordType>
+                    </Keyword>
+                    <Keyword>
+                        <KeywordContent>Dommages de guerre</KeywordContent>
+                        <!--         <KeywordReference>Thésaurus pour la description et l'indexation des archives
+                            locales</KeywordReference>-->
+                        <KeywordType>subject</KeywordType>
+                    </Keyword>
+                    <Keyword>
+                        <KeywordContent>Carte postale</KeywordContent>
+                        <!--           <KeywordReference>Thésaurus pour la description et l'indexation des archives
+                            locales</KeywordReference>-->
+                        <KeywordType>genreform</KeywordType>
+                    </Keyword>
+
+                    <!-- Groupe 12 : Couverture -->
+                    <Coverage>
+                        <Spatial>Aisne (France)</Spatial>
+                        <Temporal>Guerre 1914-1918</Temporal>
+                        <Temporal>XXème siècle</Temporal>
+                        <Juridictional>Aisne (Département)</Juridictional>
+                    </Coverage>
+
+                    <!-- Groupe 13 : Service producteur -->
+                    <OriginatingAgency>
+                        <Identifier>Famille HERVE</Identifier>
+                    </OriginatingAgency>
+
+                    <!-- Groupe 14 : Service versant -->
+                    <SubmissionAgency>
+                        <Identifier>Famille HERVE</Identifier>
+                    </SubmissionAgency>
+
+                    <!-- Groupe 15 : Titulaire des droits de propriété intellectuelle -->
+              <!--      <AuthorizedAgent>
+                        <Corpname>Archvies départementales de la Vendée</Corpname>
+                        <Identifier>FRAD085</Identifier>
+                    </AuthorizedAgent>-->
+
+                    <!-- Rédacteur du document -->
+                    <Writer>
+                        <FirstName>Fils</FirstName>
+                        <BirthName>HERVE</BirthName>
+                        <GivenName>HERVE</GivenName>
+                        <Gender>M</Gender>
+                        <!--<Nationality>Français</Nationality>-->
+                        <Identifier>Matricule XXXXXX</Identifier>
+                        <Function xml:lang="">Guerre</Function>
+                        <Activity xml:lang="">Militaire</Activity>
+                        <Position xml:lang="">Soldat</Position>
+                        <Role xml:lang=""/>
+                    </Writer>
+
+                    <!-- Groupe 16 : Destinataires -->
+                    <Addressee>
+                        <FirstName>Papa</FirstName>
+                        <BirthName>HERVE</BirthName>
+                        <GivenName>HERVE</GivenName>
+                        <Gender>M</Gender>
+                        <!-- <BirthDate></BirthDate>
+                        <BirthPlace></BirthPlace>
+                        <DeathDate></DeathDate>
+                        <DeathPlace></DeathPlace> -->
+                 <!--       <Nationality/>-->
+                        <Identifier>ID02</Identifier>
+                    </Addressee>
+                    <Recipient>
+                        <FirstName>Maman</FirstName>
+                        <BirthName>HERVE</BirthName>
+                        <GivenName>HERVE</GivenName>
+                        <Gender>F</Gender>
+                        <!--<BirthDate></BirthDate>
+                        <BirthPlace></BirthPlace>
+                        <DeathDate></DeathDate>
+                        <DeathPlace></DeathPlace>-->
+           <!--             <Nationality/>-->
+                        <Identifier>ID03</Identifier>
+                    </Recipient>
+
+                    <!-- Groupe 17 : Source -->
+                    <Source>Famille Hervé, CP1</Source>
+
+                    <!-- Groupe 18 : Relations -->
+                    <!--
+                    <RelatedObjectReference>
+                        <IsVersionOf></IsVersionOf>
+                        <Replaces></Replaces>
+                        <Requires></Requires>
+                        <IsPartOf></IsPartOf>
+                        <References></References>
+                    </RelatedObjectReference>
+                    -->
+
+                    <!-- Groupe 19 : Dates -->
+                    <CreatedDate>2014-06-12T09:31:00</CreatedDate>
+                    <TransactedDate>2014-06-12T09:31:00</TransactedDate>
+                    <AcquiredDate>2014-06-12T09:31:00</AcquiredDate>
+                    <SentDate>2014-06-12T09:31:00</SentDate>
+                    <ReceivedDate>2014-06-12T09:31:00</ReceivedDate>
+                    <RegisteredDate>2014-06-12T09:31:00</RegisteredDate>
+                    <StartDate>1914-01-01T09:31:00</StartDate>
+                    <EndDate>1918-12-31T19:06:44</EndDate>
+
+                    <!-- Groupe 20 : Evenements -->
+                    <Event>
+                        <EventIdentifier>ID01</EventIdentifier>
+                        <EventType>Envoi d'une carte postale</EventType>
+                        <EventDateTime>1915-06-12T09:31:00</EventDateTime>
+                        <EventDetail>Envoi d'une carte postale depuis le front.</EventDetail>
+                    </Event>
+                    <Signature>
+                        <DateSignature>2017-11-13T17:28:40</DateSignature>
+                        <Signer>
+                            <Corpname>Service d'archives</Corpname>
+                            <SigningTime>2017-11-13T19:28:40</SigningTime>
+                        </Signer>
+                        <Signer>
+                            <Corpname>Service d'archives 2</Corpname>
+                            <SigningTime>2017-11-13T19:28:40</SigningTime>
+                        </Signer>
+                        <Validator>
+                            <FirstName>Laurent</FirstName>
+                            <BirthName>Dupois</BirthName>
+                            <ValidationTime>2016-10-12T16:28:40</ValidationTime>
+                        </Validator>
+                        <ReferencedObject>
+                            <SignedObjectId>ID1</SignedObjectId>
+                            <SignedObjectDigest algorithm="SHA-512">942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7</SignedObjectDigest>
+                        </ReferencedObject>
+                    </Signature>
+                    <!-- Groupe 21 : Signature 
+                    <Signature>
+                        <DateSignature>1915-06-12T09:31:00</DateSignature>
+                        <Signer>
+                            <FirstName>Fils</FirstName>
+                            <BirthName>HERVE</BirthName>
+                            <GivenName>HERVE</GivenName>
+                            <Gender>M</Gender>
+                            <Nationality>Français</Nationality>
+                            <Identifier>Matricule XXXXXX</Identifier>
+                            <SigningTime>1915-06-12T09:31:00</SigningTime>
+                        </Signer>
+                        <Validator>
+                            <FirstName>Fils</FirstName>
+                            <BirthName>HERVE</BirthName>
+                            <GivenName>HERVE</GivenName>
+                            <Gender>M</Gender>
+                            <Nationality>Français</Nationality>
+                            <Identifier>Matricule XXXXXX</Identifier>
+                            <ValidationTime>1915-06-12T09:31:00</ValidationTime>
+                        </Validator>
+                        <Masterdata languageID="" listAgencyID="" listAgencyName="" listID="" listName="" listSchemeURI="" listURI="" listVersionID="" name="">{0,1}</Masterdata>
+                        <ReferencedObject></ReferencedObject>
+                    </Signature>-->
+
+                    <!-- Groupe 22 : GPS-->
+                    <Gps>
+                        <GpsLatitude>49.4769199</GpsLatitude>
+                        <GpsLongitude>3.4417368</GpsLongitude>
+                    </Gps>
+
+                </Content>
+                
+                <DataObjectReference id="ID0290">
+                    <DataObjectGroupReferenceId>ID52</DataObjectGroupReferenceId>
+                </DataObjectReference>
+                
+            </ArchiveUnit>
+            <!-- fin AU -->
+        </DescriptiveMetadata>
+
+        <ManagementMetadata>
+            
+            <AccessRule>
+                <Rule>ACC-00001</Rule>
+                <StartDate>1915-12-31</StartDate>
+            </AccessRule>
+            <OriginatingAgencyIdentifier>Identifier0</OriginatingAgencyIdentifier>
+        </ManagementMetadata>
+    </DataObjectPackage>
+
+    <ArchivalAgency>
+        <Identifier>ARCHIVES DEPARTEMENTALES DE LA VENDEE</Identifier>
+    </ArchivalAgency>
+    <TransferringAgency>
+        <Identifier>FAMILLE HERVE</Identifier>
+    </TransferringAgency>
+
+</ArchiveTransfer>
