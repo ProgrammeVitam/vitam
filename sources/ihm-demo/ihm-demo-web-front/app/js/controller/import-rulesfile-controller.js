@@ -86,7 +86,7 @@ angular.module('ihm.demo')
                                 .ok("Fermer");
     	    } else {
                 var alert = $mdDialog.alert()
-                    .title('Règle est déjà chargé dans la base.' + ' Si vous voulez télécharger un nouveau format, appuyez sur le bouton Supprimer.')
+                    .title("Echec de l'import du référentiel des règles de gestion.")
                     .ok("Fermer");
 			}
     		$mdDialog.show(alert)
