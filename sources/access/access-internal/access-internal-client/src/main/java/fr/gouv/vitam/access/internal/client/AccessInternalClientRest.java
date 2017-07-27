@@ -150,7 +150,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                 throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
             }
 
-            return new RequestResponseOK().addResult(response.readEntity(JsonNode.class));
+            return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
         } finally {
@@ -192,7 +192,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
                 throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
             }
-            return new RequestResponseOK().addResult(response.readEntity(JsonNode.class));
+            return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
         } finally {
@@ -228,7 +228,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                 throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
             }
 
-            return new RequestResponseOK().addResult(response.readEntity(JsonNode.class));
+            return RequestResponse.parseFromResponse(response);
 
         } catch (final VitamClientInternalException e) {
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
@@ -304,7 +304,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                 throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
             }
 
-            return new RequestResponseOK().addResult(JsonHandler.getFromString(response.readEntity(String.class)));
+            return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
@@ -332,7 +332,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                 throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
             }
 
-            return new RequestResponseOK().addResult(JsonHandler.getFromString(response.readEntity(String.class)));
+            return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
@@ -361,7 +361,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                 throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
             }
 
-            return new RequestResponseOK().addResult(JsonHandler.getFromString(response.readEntity(String.class)));
+            return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
@@ -390,7 +390,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                 throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
             }
 
-            return new RequestResponseOK().addResult(JsonHandler.getFromString(response.readEntity(String.class)));
+            return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
@@ -420,7 +420,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                 throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
             }
 
-            return new RequestResponseOK().addResult(JsonHandler.getFromString(response.readEntity(String.class)));
+            return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);

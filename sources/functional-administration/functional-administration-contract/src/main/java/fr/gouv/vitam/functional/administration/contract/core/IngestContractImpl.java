@@ -268,8 +268,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         SanityChecker.checkJsonAll(queryDsl);
         try (DbRequestResult result =
             mongoAccess.findDocuments(queryDsl, FunctionalAdminCollections.INGEST_CONTRACT)) {
-            return result.getRequestResponseOK(IngestContract.class, IngestContractModel.class)
-                .setQuery(queryDsl);
+            return result.getRequestResponseOK(queryDsl, IngestContract.class, IngestContractModel.class);
         }
     }
 
@@ -689,9 +688,9 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         final JsonNode queryDsl = select.getFinalSelect();
         // if the filing id is in the filing schema
         if (metadataClient.selectUnitbyId(queryDsl, id).get("$hits").get("size").asInt() == 0) {
-            return false;
-        } else {
-            return true;
-        }
+                return false;
+            } else {
+                return true;
+            }
     }
 }

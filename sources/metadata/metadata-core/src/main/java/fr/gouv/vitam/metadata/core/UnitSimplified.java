@@ -139,7 +139,7 @@ public class UnitSimplified {
      * @param unitList list of units as ArrayNode
      * @return a map of unitId and UnitSimplified
      */
-    public static Map<String, UnitSimplified> getUnitIdMap(ArrayNode unitList) {    
+    public static Map<String, UnitSimplified> getUnitIdMap(Iterable<JsonNode> unitList) {
         Map<String, UnitSimplified> unitSimplifiedMap = new HashedMap<>();
         for (JsonNode unit : unitList) {
             UnitSimplified unitSimplified = new UnitSimplified((ObjectNode) unit);

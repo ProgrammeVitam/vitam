@@ -18,6 +18,7 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.model.RequestResponse;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -544,6 +545,10 @@ public class AdminManagementExternalResourceImplTest {
             .when().get(FORMAT_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
 
+        RequestResponse rsp = new RequestResponseOK<>().setHttpCode(Status.OK.getStatusCode());
+        when(adminCLient.getAccessionRegister(anyObject())).thenReturn(rsp);
+        when(adminCLient.getAccessionRegisterDetail(anyObject(), anyObject())).thenReturn(rsp);
+
         given()
             .contentType(ContentType.JSON)
             .header(X_HTTP_METHOD_OVERRIDE, "GET")
@@ -600,9 +605,9 @@ public class AdminManagementExternalResourceImplTest {
             .when().post(ACCESSION_REGISTER_DETAIL_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
 
-        PowerMockito.doThrow(new IllegalArgumentException("")).when(adminCLient)
+        doThrow(new IllegalArgumentException("")).when(adminCLient)
             .getAccessionRegister(anyObject());
-        PowerMockito.doThrow(new IllegalArgumentException("")).when(adminCLient)
+        doThrow(new IllegalArgumentException("")).when(adminCLient)
             .getAccessionRegisterDetail(anyString(), anyObject());
 
         given()

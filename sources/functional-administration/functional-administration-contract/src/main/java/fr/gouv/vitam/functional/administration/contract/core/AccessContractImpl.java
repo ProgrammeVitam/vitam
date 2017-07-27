@@ -240,7 +240,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
         SanityChecker.checkJsonAll(queryDsl);
         try (DbRequestResult result =
             mongoAccess.findDocuments(queryDsl, FunctionalAdminCollections.ACCESS_CONTRACT)) {
-            return result.getRequestResponseOK(AccessContract.class, AccessContractModel.class).setQuery(queryDsl);
+            return result.getRequestResponseOK(queryDsl, AccessContract.class, AccessContractModel.class);
         }
     }
 

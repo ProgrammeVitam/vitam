@@ -261,7 +261,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 // resource is modified so server new content
                 // 200 OK status code is returned with new content
                 return Response.status(Status.OK).entity(new RequestResponseOK()
-                    .addResult(JsonHandler.toJsonNode(fileFormat))).tag(etag).cacheControl(cacheControl).build();
+                    .addResult(JsonHandler.toJsonNode(fileFormat)).setHttpCode(Status.OK.getStatusCode())).tag(etag).cacheControl(cacheControl).build();
             }
 
             return builder.cacheControl(cacheControl).tag(etag).build();
@@ -301,7 +301,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (FileFormatNotFoundException e) {
-            return Response.status(Status.OK).entity(new RequestResponseOK(select)).build();
+            return Response.status(Status.OK).entity(new RequestResponseOK(select).setHttpCode(Status.OK.getStatusCode())).build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
             final Status status = Status.NOT_FOUND;
@@ -432,7 +432,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 // resource is modified so server new content
                 // 200 OK status code is returned with new content
                 return Response.status(Status.OK).entity(new RequestResponseOK()
-                    .addResult(JsonHandler.toJsonNode(fileRules))).tag(etag).cacheControl(cacheControl).build();
+                    .addResult(JsonHandler.toJsonNode(fileRules)).setHttpCode(Status.OK.getStatusCode())).tag(etag).cacheControl(cacheControl).build();
             }
 
             return builder.cacheControl(cacheControl).tag(etag).build();

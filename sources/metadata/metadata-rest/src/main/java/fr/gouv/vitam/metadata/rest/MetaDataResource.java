@@ -26,33 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
-import static fr.gouv.vitam.common.json.JsonHandler.toArrayList;
-
-import java.util.List;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.common.json.JsonHandler;
-import org.bson.Document;
-import org.elasticsearch.ElasticsearchParseException;
-
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.metadata.api.MetaData;
@@ -66,6 +46,20 @@ import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
+import org.bson.Document;
+import org.elasticsearch.ElasticsearchParseException;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.util.List;
 
 /**
  * Units resource REST API
@@ -168,7 +162,8 @@ public class MetaDataResource extends ApplicationStatusResource {
         }
         return Response.status(Status.CREATED)
             .entity(new RequestResponseOK(insertRequest)
-                .setHits(1, 0, 1))
+                .setHits(1, 0, 1)
+                .setHttpCode(Status.CREATED.getStatusCode()))
             .build();
     }
 
@@ -194,10 +189,11 @@ public class MetaDataResource extends ApplicationStatusResource {
      */
     private Response selectUnitsByQuery(JsonNode selectRequest) {
         Status status;
-        final JsonNode copy = selectRequest.deepCopy();
-        ArrayNode arrayNodeResults;
         try {
-            arrayNodeResults = metaDataImpl.selectUnitsByQuery(selectRequest);
+            RequestResponse<JsonNode> result = metaDataImpl.selectUnitsByQuery(selectRequest);
+            int st = result.isOk() ? Status.FOUND.getStatusCode() : result.getHttpCode();
+            return Response.status(st).entity(result.setHttpCode(st)).build();
+
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
@@ -233,9 +229,6 @@ public class MetaDataResource extends ApplicationStatusResource {
                     .setDescription(e.getMessage()))
                 .build();
         }
-
-        return Response.status(Status.FOUND).entity(new RequestResponseOK(selectRequest)
-            .addAllResults(JsonHandler.toArrayList(arrayNodeResults)).setQuery(copy)).build();
     }
 
     /**
@@ -268,9 +261,11 @@ public class MetaDataResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateUnitbyId(JsonNode updateRequest, @PathParam("id_unit") String unitId) {
         Status status;
-        ArrayNode arrayNodeResults;
         try {
-            arrayNodeResults = metaDataImpl.updateUnitbyId(updateRequest, unitId);
+            RequestResponse<JsonNode> result = metaDataImpl.updateUnitbyId(updateRequest, unitId);
+            int st = result.isOk() ? Status.FOUND.getStatusCode() : result.getHttpCode();
+            return Response.status(st).entity(result.setHttpCode(st)).build();
+
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
@@ -294,8 +289,6 @@ public class MetaDataResource extends ApplicationStatusResource {
                     .setDescription(status.getReasonPhrase()))
                 .build();
         }
-        return Response.status(Status.FOUND).entity(new RequestResponseOK(updateRequest)
-            .addAllResults(JsonHandler.toArrayList(arrayNodeResults))).build();
     }
 
     /**
@@ -303,9 +296,11 @@ public class MetaDataResource extends ApplicationStatusResource {
      */
     private Response selectUnitById(JsonNode selectRequest, String unitId) {
         Status status;
-        ArrayNode arrayNodeResults;
         try {
-            arrayNodeResults = metaDataImpl.selectUnitsById(selectRequest, unitId);
+            RequestResponse<JsonNode> result = metaDataImpl.selectUnitsById(selectRequest, unitId);
+            int st = result.isOk() ? Status.FOUND.getStatusCode() : result.getHttpCode();
+            return Response.status(st).entity(result.setHttpCode(st)).build();
+
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
@@ -339,8 +334,6 @@ public class MetaDataResource extends ApplicationStatusResource {
                     .setDescription(status.getReasonPhrase()))
                 .build();
         }
-        return Response.status(Status.FOUND).entity(new RequestResponseOK(selectRequest)
-            .addAllResults(JsonHandler.toArrayList(arrayNodeResults))).build();
     }
 
     private Response metadataExecutionExceptionTrace(final MetaDataExecutionException e) {
@@ -348,7 +341,7 @@ public class MetaDataResource extends ApplicationStatusResource {
         LOGGER.error(e);
         status = Status.INTERNAL_SERVER_ERROR;
         Throwable e2 = e.getCause();
-        if (e2 !=null && e2 instanceof IllegalArgumentException || e2 instanceof ElasticsearchParseException) {
+        if (e2 != null && e2 instanceof IllegalArgumentException || e2 instanceof ElasticsearchParseException) {
             status = Status.PRECONDITION_FAILED;
         } else {
             e2 = e;
@@ -433,8 +426,9 @@ public class MetaDataResource extends ApplicationStatusResource {
         }
 
         return Response.status(Status.CREATED)
-            .entity(new RequestResponseOK(insertRequest)
-                .setHits(1, 0, 1))
+            .entity(new RequestResponseOK<JsonNode>(insertRequest)
+                .setHits(1, 0, 1)
+                .setHttpCode(Status.CREATED.getStatusCode()))
             .build();
     }
 
@@ -517,7 +511,9 @@ public class MetaDataResource extends ApplicationStatusResource {
                     .setDescription(e.getMessage()))
                 .build();
         }
-        return Response.status(Status.CREATED).entity(new RequestResponseOK().addResult(objectGroupId)).build();
+        return Response.status(Status.CREATED)
+            .entity(new RequestResponseOK<String>(updateRequest).addResult(objectGroupId)
+            .setHttpCode(Status.CREATED.getStatusCode())).build();
 
     }
 
@@ -526,10 +522,11 @@ public class MetaDataResource extends ApplicationStatusResource {
      */
     private Response selectObjectGroupById(JsonNode selectRequest, String objectGroupId) {
         Status status;
-        final JsonNode copy = selectRequest.deepCopy();
-        ArrayNode arrayNodeResults;
         try {
-            arrayNodeResults = metaDataImpl.selectObjectGroupById(selectRequest, objectGroupId);
+            RequestResponse<JsonNode> result = metaDataImpl.selectObjectGroupById(selectRequest, objectGroupId);
+            int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+            return Response.status(st).entity(result.setHttpCode(Status.OK.getStatusCode())).build();
+
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
@@ -563,9 +560,6 @@ public class MetaDataResource extends ApplicationStatusResource {
                     .setDescription(e.getMessage()))
                 .build();
         }
-
-        return Response.status(Status.OK).entity(new RequestResponseOK(selectRequest)
-            .addAllResults(toArrayList(arrayNodeResults)).setQuery(copy)).build();
     }
 
     @Path("accession-registers/units/{operationId}")
@@ -575,7 +569,7 @@ public class MetaDataResource extends ApplicationStatusResource {
         List<Document> documents = metaDataImpl.selectAccessionRegisterOnUnitByOperationId(operationId);
 
         RequestResponseOK<UnitPerOriginatingAgency> responseOK = new RequestResponseOK<>();
-        responseOK.setHttpCode(200);
+        responseOK.setHttpCode(Status.OK.getStatusCode());
         for (Document doc : documents) {
             UnitPerOriginatingAgency upoa = new UnitPerOriginatingAgency();
             upoa.setId(doc.getString("_id"));
@@ -593,7 +587,7 @@ public class MetaDataResource extends ApplicationStatusResource {
         List<Document> documents = metaDataImpl.selectAccessionRegisterOnObjectGroupByOperationId(operationId);
 
         RequestResponseOK<ObjectGroupPerOriginatingAgency> responseOK = new RequestResponseOK<>();
-        responseOK.setHttpCode(200);
+        responseOK.setHttpCode(Status.OK.getStatusCode());
         for (Document doc : documents) {
             ObjectGroupPerOriginatingAgency ogpoa = new ObjectGroupPerOriginatingAgency();
             ogpoa.setOriginatingAgency(doc.getString("_id"));

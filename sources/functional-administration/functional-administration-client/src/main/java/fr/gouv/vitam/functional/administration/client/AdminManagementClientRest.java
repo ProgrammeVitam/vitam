@@ -831,7 +831,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                return new RequestResponseOK<AccessContractModel>();
+                return new RequestResponseOK<AccessContractModel>().setHttpCode(Status.OK.getStatusCode());
             }
 
             return RequestResponse.parseFromResponse(response, AccessContractModel.class);
@@ -855,7 +855,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                return new RequestResponseOK<IngestContractModel>();
+                return new RequestResponseOK<IngestContractModel>().setHttpCode(Status.OK.getStatusCode());
             }
             return RequestResponse.parseFromResponse(response, IngestContractModel.class);
         } catch (VitamClientInternalException e) {
@@ -898,7 +898,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                return new RequestResponseOK<ContextModel>();
+                return new RequestResponseOK<ContextModel>().setHttpCode(Status.OK.getStatusCode());
             }
 
             return RequestResponse.parseFromResponse(response, ContextModel.class);

@@ -169,7 +169,8 @@ public class ProfileServiceImpl implements ProfileService {
                     if (profileIdentifiers.contains(pm.getIdentifier())) {
                         error.addToErrors(
                             getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(), "Duplicate profiles")
-                                .setMessage("Profile identifier "+pm.getIdentifier()+" already exists in the json"));
+                                .setMessage(
+                                    "Profile identifier " + pm.getIdentifier() + " already exists in the json"));
                         continue;
                     } else {
                         profileIdentifiers.add(pm.getIdentifier());
@@ -179,7 +180,7 @@ public class ProfileServiceImpl implements ProfileService {
                 // if a profile with the same name is already treated mark the current one as duplicated
                 if (profileNames.contains(pm.getName())) {
                     error.addToErrors(getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(), "Duplicate profiles")
-                        .setMessage("Profile name "+pm.getName()+" already exists in the json"));
+                        .setMessage("Profile name " + pm.getName() + " already exists in the json"));
                     continue;
                 }
 
@@ -238,12 +239,8 @@ public class ProfileServiceImpl implements ProfileService {
         manager.logSuccess(PROFILES_IMPORT_EVENT, null, null);
 
 
-        return new RequestResponseOK<ProfileModel>().
-
-            addAllResults(profileModelList)
-            .
-
-                setHttpCode(Response.Status.CREATED.getStatusCode());
+        return new RequestResponseOK<ProfileModel>().addAllResults(profileModelList)
+            .setHttpCode(Response.Status.CREATED.getStatusCode());
     }
 
 
@@ -505,7 +502,7 @@ public class ProfileServiceImpl implements ProfileService {
         throws ReferentialException, InvalidParseOperationException {
         try (DbRequestResult result =
             mongoAccess.findDocuments(queryDsl, FunctionalAdminCollections.PROFILE)) {
-            return result.getRequestResponseOK(Profile.class, ProfileModel.class).setQuery(queryDsl);
+            return result.getRequestResponseOK(queryDsl, Profile.class, ProfileModel.class);
         }
     }
 

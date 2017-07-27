@@ -27,6 +27,7 @@
 package fr.gouv.vitam.metadata.core;
 
 
+import static fr.gouv.vitam.common.json.JsonHandler.toArrayList;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ID;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OPS;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ORIGINATING_AGENCIES;
@@ -41,6 +42,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -94,7 +97,7 @@ public class MetaDataImpl implements MetaData {
     /**
      * MetaDataImpl constructor
      *
-     * @param configuration of mongoDB access
+     * @param configuration        of mongoDB access
      * @param mongoDbAccessFactory
      */
     private MetaDataImpl(MetaDataConfiguration configuration, MongoDbAccessMetadataFactory mongoDbAccessFactory) {
@@ -102,7 +105,6 @@ public class MetaDataImpl implements MetaData {
     }
 
     /**
-     * 
      * @param mongoDbAccess
      */
     public MetaDataImpl(MongoDbAccessMetadataImpl mongoDbAccess) {
@@ -119,7 +121,7 @@ public class MetaDataImpl implements MetaData {
     /**
      * Get a new MetaDataImpl instance
      *
-     * @param configuration of mongoDB access
+     * @param configuration        of mongoDB access
      * @param mongoDbAccessFactory factory creating MongoDbAccessMetadata
      * @return a new instance of MetaDataImpl
      */
@@ -174,7 +176,8 @@ public class MetaDataImpl implements MetaData {
     @Override
     public List<Document> selectAccessionRegisterOnUnitByOperationId(String operationId) {
         AggregateIterable<Document> aggregate = MetadataCollections.C_UNIT.getCollection().aggregate(Arrays.asList(
-            new Document("$match", new Document("$and", Arrays.asList(new Document(OPS, operationId), new Document(Unit.UNIT_TYPE, new Document("$ne", UnitType.HOLDING_UNIT.name()))))),
+            new Document("$match", new Document("$and", Arrays.asList(new Document(OPS, operationId),
+                new Document(Unit.UNIT_TYPE, new Document("$ne", UnitType.HOLDING_UNIT.name()))))),
             new Document("$unwind", "$" + ORIGINATING_AGENCIES),
             new Document("$group",
                 new Document(ID, "$" + ORIGINATING_AGENCIES).append("count", new Document("$sum", 1)))
@@ -196,12 +199,12 @@ public class MetaDataImpl implements MetaData {
                     .append("listGOT", new Document("$addToSet", "$_id"))),
                 new Document("$project", new Document("_id", 1).append("totalSize", 1).append("totalObject", 1)
                     .append("totalGOT", new Document("$size", "$listGOT")))
-                ), Document.class);
+            ), Document.class);
         return Lists.newArrayList(aggregate.iterator());
     }
 
     @Override
-    public ArrayNode selectUnitsByQuery(JsonNode selectQuery)
+    public RequestResponse<JsonNode> selectUnitsByQuery(JsonNode selectQuery)
         throws MetaDataExecutionException, InvalidParseOperationException,
         MetaDataDocumentSizeException, MetaDataNotFoundException {
         LOGGER.debug("SelectUnitsByQuery/ selectQuery: " + selectQuery);
@@ -210,7 +213,7 @@ public class MetaDataImpl implements MetaData {
     }
 
     @Override
-    public ArrayNode selectUnitsById(JsonNode selectQuery, String unitId)
+    public RequestResponse<JsonNode> selectUnitsById(JsonNode selectQuery, String unitId)
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataDocumentSizeException, MetaDataNotFoundException {
         LOGGER.debug("SelectUnitsById/ selectQuery: " + selectQuery);
@@ -218,7 +221,7 @@ public class MetaDataImpl implements MetaData {
     }
 
     @Override
-    public ArrayNode selectObjectGroupById(JsonNode selectQuery, String objectGroupId)
+    public RequestResponse<JsonNode> selectObjectGroupById(JsonNode selectQuery, String objectGroupId)
         throws InvalidParseOperationException, MetaDataDocumentSizeException, MetaDataExecutionException,
         MetaDataNotFoundException {
         LOGGER.debug("SelectObjectGroupById - objectGroupId : " + objectGroupId);
@@ -228,15 +231,19 @@ public class MetaDataImpl implements MetaData {
     }
 
 
-    private ArrayNode selectMetadataObject(JsonNode selectQuery, String unitOrObjectGroupId,
+    private RequestResponseOK<JsonNode> selectMetadataObject(JsonNode selectQuery, String unitOrObjectGroupId,
         List<BuilderToken.FILTERARGS> filters)
         throws MetaDataExecutionException, InvalidParseOperationException,
         MetaDataDocumentSizeException, MetaDataNotFoundException {
+
         Result result = null;
         ArrayNode arrayNodeResponse;
         if (selectQuery.isNull()) {
             throw new InvalidParseOperationException(REQUEST_IS_NULL);
         }
+
+        final JsonNode queryCopy = selectQuery.deepCopy();
+
         try {
             // parse Select request
             final RequestParserMultiple selectRequest = new SelectParserMultiple(DEFAULT_VARNAME_ADAPTER);
@@ -281,9 +288,13 @@ public class MetaDataImpl implements MetaData {
             LOGGER.error(e);
             throw new MetaDataExecutionException(e);
         }
-        return arrayNodeResponse;
+        List res = toArrayList(arrayNodeResponse);
+        Long total = result != null ? result.getTotal() : res.size();
+        return new RequestResponseOK<JsonNode>(queryCopy)
+            .addAllResults(toArrayList(arrayNodeResponse))
+            .setTotal(total);
     }
-    
+
     // TODO : handle version
     @Override
     public void updateObjectGroupId(JsonNode updateQuery, String objectId)
@@ -321,13 +332,15 @@ public class MetaDataImpl implements MetaData {
 
     // TODO : in order to deal with selection (update from the root) in the query, the code should be modified
     @Override
-    public ArrayNode updateUnitbyId(JsonNode updateQuery, String unitId)
+    public RequestResponse<JsonNode> updateUnitbyId(JsonNode updateQuery, String unitId)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataDocumentSizeException {
         Result result = null;
         ArrayNode arrayNodeResponse;
         if (updateQuery.isNull()) {
             throw new InvalidParseOperationException(REQUEST_IS_NULL);
         }
+        JsonNode queryCopy = updateQuery.deepCopy();
+
         try {
             // parse Update request
             final RequestParserMultiple updateRequest = new UpdateParserMultiple(DEFAULT_VARNAME_ADAPTER);
@@ -361,10 +374,14 @@ public class MetaDataImpl implements MetaData {
             LOGGER.error(e);
             throw new MetaDataExecutionException(e);
         }
-        return arrayNodeResponse;
+        List res = toArrayList(arrayNodeResponse);
+        Long total = result != null ? result.getTotal() : res.size();
+        return new RequestResponseOK<JsonNode>(queryCopy)
+            .addAllResults(toArrayList(arrayNodeResponse))
+            .setTotal(total);
     }
 
-    private JsonNode getUnitById(String id)
+    private RequestResponse getUnitById(String id)
         throws MetaDataDocumentSizeException, MetaDataExecutionException, InvalidParseOperationException,
         MetaDataNotFoundException {
         final SelectMultiQuery select = new SelectMultiQuery();
@@ -401,9 +418,10 @@ public class MetaDataImpl implements MetaData {
             unitParentIdList.add(unitId);
         }
         SelectMultiQuery newSelectQuery = createSearchParentSelect(unitParentIdList);
-        ArrayNode unitParents = selectMetadataObject(newSelectQuery.getFinalSelect(), null, 
+        RequestResponseOK unitParents = selectMetadataObject(newSelectQuery.getFinalSelect(), null,
             Collections.singletonList(BuilderToken.FILTERARGS.UNITS));
-        Map<String, UnitSimplified> unitMap = UnitSimplified.getUnitIdMap(unitParents);
+
+        Map<String, UnitSimplified> unitMap = UnitSimplified.getUnitIdMap(unitParents.getResults());
         UnitRuleCompute unitNode = new UnitRuleCompute(unitMap.get(unitId));
         unitNode.buildAncestors(unitMap, allUnitNode, rootList);
         unitNode.computeRule();

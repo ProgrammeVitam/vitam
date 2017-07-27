@@ -69,6 +69,7 @@ import fr.gouv.vitam.common.json.Views;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.metrics.LogbackReporter;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
@@ -187,7 +188,8 @@ public class LogbookResource extends ApplicationStatusResource {
                 final LogbookOperation result = logbookOperation.getById(id);
                 return Response.status(Status.OK)
                     .entity(
-                        new RequestResponseOK(queryDsl).addResult(JsonHandler.getFromString(result.toJson())))
+                        new RequestResponseOK<LogbookOperation>(queryDsl).addResult(result)
+                            .setHttpCode(Status.OK.getStatusCode()))
                     .build();
 
             } else {
@@ -197,8 +199,9 @@ public class LogbookResource extends ApplicationStatusResource {
                     throw new LogbookDatabaseException("Result size different than 1.");
                 }
                 return Response.status(Status.OK)
-                    .entity(new RequestResponseOK(queryDsl)
-                        .addResult(JsonHandler.getFromString(result.get(0).toJson())))
+                    .entity(new RequestResponseOK<LogbookOperation>(queryDsl)
+                        .addResult(result.iterator().next())
+                        .setHttpCode(Status.OK.getStatusCode()))
                     .build();
             }
 
@@ -333,14 +336,16 @@ public class LogbookResource extends ApplicationStatusResource {
             return Response.status(Status.OK)
                 .entity(new RequestResponseOK<String>()
                     .addAllResults(resultAsJson)
-                    .setHits(1, 0, 1))
+                    .setHits(1, 0, 1)
+                    .setHttpCode(Status.OK.getStatusCode()))
                 .build();
 
         } catch (TraceabilityException | LogbookNotFoundException | LogbookDatabaseException |
             InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error("unable to generate traceability log", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(new RequestResponseOK())
+                .entity(new RequestResponseOK()
+                .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()))
                 .build();
         }
     }
@@ -406,7 +411,8 @@ public class LogbookResource extends ApplicationStatusResource {
 
             return Response.status(Status.OK)
                 .entity(new RequestResponseOK<LogbookOperation>(query)
-                    .addAllResults(result))
+                    .addAllResults(result)
+                .setHttpCode(Status.OK.getStatusCode()))
                 .build();
         } catch (final LogbookNotFoundException exc) {
             LOGGER.error(exc);
@@ -499,20 +505,21 @@ public class LogbookResource extends ApplicationStatusResource {
                 cursorId = logbookLifeCycle.createCursorUnit(operationId, query,
                     fromLifeCycleStatusToUnitCollection(lifeCycleStatus));
             }
-            final RequestResponseOK responseOK = new RequestResponseOK(nodeQuery);
+            final RequestResponseOK<LogbookLifeCycle> responseOK = new RequestResponseOK<>(nodeQuery);
             int nb = 0;
             try {
                 for (; nb < MAX_NB_PART_ITERATOR; nb++) {
                     final LogbookLifeCycle lcUnit = logbookLifeCycle.getCursorUnitNext(cursorId);
-                    responseOK.addResult(JsonHandler.toJsonNode(lcUnit));
+                    responseOK.addResult(lcUnit);
                 }
             } catch (final LogbookNotFoundException e) {
                 // Ignore
                 LOGGER.debug(e);
             }
+            Status sts = nb < MAX_NB_PART_ITERATOR ? Status.OK : Status.PARTIAL_CONTENT;
             final ResponseBuilder builder =
-                Response.status(nb < MAX_NB_PART_ITERATOR ? Status.OK : Status.PARTIAL_CONTENT)
-                    .entity(responseOK);
+                Response.status(sts)
+                    .entity(responseOK.setHttpCode(sts.getStatusCode()));
             return VitamRequestIterator.setHeaders(builder, xcursor, cursorId).build();
         } catch (final LogbookDatabaseException exc) {
             LOGGER.error(exc);
@@ -523,7 +530,7 @@ public class LogbookResource extends ApplicationStatusResource {
                     .setMessage(status.getReasonPhrase())
                     .setDescription(exc.getMessage()));
             return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
-        } catch (final IllegalArgumentException | InvalidParseOperationException exc) {
+        } catch (final IllegalArgumentException exc) {
             LOGGER.error(exc);
             status = Status.BAD_REQUEST;
             final ResponseBuilder builder = Response.status(status)
@@ -847,17 +854,19 @@ public class LogbookResource extends ApplicationStatusResource {
                 logbookLifeCycle.getUnitById(queryDsl, fromLifeCycleStatusToUnitCollection(lifeCycleStatusCode));
 
             return Response.status(Status.OK)
-                .entity(new RequestResponseOK(queryDsl)
-                    .addResult(JsonHandler.getFromString(result.toJson())))
+                .entity(new RequestResponseOK<LogbookLifeCycle>(queryDsl)
+                    .addResult(result)
+                    .setHttpCode(Status.OK.getStatusCode()))
                 .build();
         } catch (final LogbookNotFoundException exc) {
             LOGGER.debug(exc);
             return Response.status(Status.NOT_FOUND)
                 .entity(new RequestResponseOK()
                     .addResult(JsonHandler.createArrayNode())
-                    .setHits(0, 0, 1))
+                    .setHits(0, 0, 1)
+                    .setHttpCode(Status.NOT_FOUND.getStatusCode()))
                 .build();
-        } catch (final LogbookException | InvalidParseOperationException exc) {
+        } catch (final LogbookException exc) {
             LOGGER.error(exc);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
@@ -908,7 +917,8 @@ public class LogbookResource extends ApplicationStatusResource {
             return Response.status(Status.NOT_FOUND)
                 .entity(new RequestResponseOK()
                     .addResult(JsonHandler.createArrayNode())
-                    .setHits(0, 0, 1))
+                    .setHits(0, 0, 1)
+                    .setHttpCode(Status.NOT_FOUND.getStatusCode()))
                 .build();
         } catch (final LogbookDatabaseException exc) {
             LOGGER.error(exc);
@@ -943,7 +953,8 @@ public class LogbookResource extends ApplicationStatusResource {
 
             return Response.status(Status.OK)
                 .entity(new RequestResponseOK<LogbookLifeCycle>(queryDsl)
-                    .addAllResults(result))
+                    .addAllResults(result)
+                    .setHttpCode(Status.OK.getStatusCode()))
                 .build();
 
         } catch (final LogbookNotFoundException exc) {
@@ -951,7 +962,8 @@ public class LogbookResource extends ApplicationStatusResource {
             return Response.status(Status.NOT_FOUND)
                 .entity(new RequestResponseOK()
                     .addResult(JsonHandler.createArrayNode())
-                    .setHits(0, 0, 1))
+                    .setHits(0, 0, 1)
+                    .setHttpCode(Status.NOT_FOUND.getStatusCode()))
                 .build();
         } catch (final LogbookException | InvalidParseOperationException exc) {
             LOGGER.error(exc);
@@ -1019,20 +1031,21 @@ public class LogbookResource extends ApplicationStatusResource {
                 cursorId = logbookLifeCycle.createCursorObjectGroup(operationId, query,
                     fromLifeCycleStatusToObjectGroupCollection(lifeCycleStatus));
             }
-            final RequestResponseOK responseOK = new RequestResponseOK(nodeQuery);
+            final RequestResponseOK<LogbookLifeCycle> responseOK = new RequestResponseOK<>(nodeQuery);
             int nb = 0;
             try {
                 for (; nb < MAX_NB_PART_ITERATOR; nb++) {
                     final LogbookLifeCycle lcObjectGroup = logbookLifeCycle.getCursorObjectGroupNext(cursorId);
-                    responseOK.addResult(JsonHandler.toJsonNode(lcObjectGroup));
+                    responseOK.addResult(lcObjectGroup);
                 }
-            } catch (final LogbookNotFoundException | InvalidParseOperationException e) {
+            } catch (final LogbookNotFoundException e) {
                 // Ignore
                 LOGGER.debug(e);
             }
+            Status sts = nb < MAX_NB_PART_ITERATOR ? Status.OK : Status.PARTIAL_CONTENT;
             final ResponseBuilder builder =
-                Response.status(nb < MAX_NB_PART_ITERATOR ? Status.OK : Status.PARTIAL_CONTENT)
-                    .entity(responseOK);
+                Response.status(sts)
+                    .entity(responseOK.setHttpCode(sts.getStatusCode()));
             return VitamRequestIterator.setHeaders(builder, xcursor, cursorId).build();
         } catch (final LogbookDatabaseException exc) {
             LOGGER.error(exc);
@@ -1372,13 +1385,15 @@ public class LogbookResource extends ApplicationStatusResource {
                 throw new LogbookDatabaseException("Result size different than 1.");
             }
             return Response.status(Status.OK)
-                .entity(new RequestResponseOK(queryDsl)
-                    .addResult(JsonHandler.getFromString(result.get(0).toJson())))
+                .entity(new RequestResponseOK<LogbookLifeCycle>(queryDsl)
+                    .addResult(result.iterator().next())
+                .setHttpCode(Status.OK.getStatusCode()))
                 .build();
         } catch (final LogbookNotFoundException exc) {
             LOGGER.debug(exc);
             return Response.status(Status.NOT_FOUND)
-                .entity(new RequestResponseOK(queryDsl))
+                .entity(new RequestResponseOK(queryDsl)
+                    .setHttpCode(Status.NOT_FOUND.getStatusCode()))
                 .build();
         } catch (final LogbookException | InvalidParseOperationException exc) {
             LOGGER.error(exc);
@@ -1430,7 +1445,8 @@ public class LogbookResource extends ApplicationStatusResource {
             return Response.status(Status.NOT_FOUND)
                 .entity(new RequestResponseOK()
                     .addResult(JsonHandler.createArrayNode())
-                    .setHits(0, 0, 1))
+                    .setHits(0, 0, 1)
+                    .setHttpCode(Status.NOT_FOUND.getStatusCode()))
                 .build();
         } catch (final LogbookDatabaseException exc) {
             LOGGER.error(exc);
