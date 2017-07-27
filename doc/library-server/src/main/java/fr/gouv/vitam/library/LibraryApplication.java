@@ -94,7 +94,7 @@ public class LibraryApplication extends AbstractVitamApplication<LibraryApplicat
     }
 
     @Override
-    protected void platformSecretConfiguration() {
+    protected void configureVitamParameters() {
         // No PlatformSecretConfiguration for IHM
     }
 
