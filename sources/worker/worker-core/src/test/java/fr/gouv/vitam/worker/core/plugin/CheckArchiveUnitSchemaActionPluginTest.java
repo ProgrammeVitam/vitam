@@ -83,12 +83,18 @@ public class CheckArchiveUnitSchemaActionPluginTest {
         "checkArchiveUnitSchemaActionPlugin/archive-unit_Invalid.xml";
     private static final String ARCHIVE_UNIT_INVALID_CONTENT =
         "checkArchiveUnitSchemaActionPlugin/archive-unit_KO_with_content.json";
+    
+    private static final String ARCHIVE_UNIT_SIGNATURE_CONTENT =
+        "checkArchiveUnitSchemaActionPlugin/archive_unit_OK_with_signature.json";
+    
     private static final String ARCHIVE_UNIT_FINAL = "checkArchiveUnitSchemaActionPlugin/archive-unit_OK_final.json";
     private static final String ARCHIVE_UNIT_INVALID_DESC_LEVEL = "checkArchiveUnitSchemaActionPlugin/archive-unit_KO_DescriptionLevel.json";
     
     private final InputStream archiveUnit;
     private final InputStream archiveUnitNumber;
     private final InputStream archiveUnitFinal;
+    private final InputStream archiveUnitWithSignature;
+    
     private final InputStream archiveUnitInvalid;
     private final InputStream archiveUnitInvalidChar;
     private final InputStream archiveUnitInvalidDate;
@@ -115,6 +121,7 @@ public class CheckArchiveUnitSchemaActionPluginTest {
         archiveUnitInvalidXml = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_INVALID_XML);
         archiveUnitInvalidContent = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_INVALID_CONTENT);
         archiveUnitInvalidDescLevel = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_INVALID_DESC_LEVEL);
+        archiveUnitWithSignature = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_SIGNATURE_CONTENT);
         
     }
 
@@ -157,6 +164,14 @@ public class CheckArchiveUnitSchemaActionPluginTest {
     public void givenFinalArchiveUnitJsonWhenExecuteThenReturnResponseOK() throws Exception {
         when(workspaceClient.getObject(anyObject(), eq("Units/archiveUnit.json")))
             .thenReturn(Response.status(Status.OK).entity(archiveUnitFinal).build());
+        final ItemStatus response = plugin.execute(params, action);
+        assertEquals(response.getGlobalStatus(), StatusCode.OK);
+    }
+    
+    @Test
+    public void givenArchiveUnitWithSignatureJsonWhenExecuteThenReturnResponseOK() throws Exception {
+        when(workspaceClient.getObject(anyObject(), eq("Units/archiveUnit.json")))
+            .thenReturn(Response.status(Status.OK).entity(archiveUnitWithSignature).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
     }

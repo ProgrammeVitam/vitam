@@ -117,6 +117,7 @@ public class ExtractSedaActionHandlerTest {
         "extractSedaActionHandler/SIP_WITH_SPECIAL_CHARACTERS.xml";
     private static final String SIP_ARBORESCENCE = "SIP_Arborescence.xml";
     private static final String OK_MULTI_COMMENT = "extractSedaActionHandler/OK_multi_comment.xml";
+    private static final String OK_SIGNATURE = "extractSedaActionHandler/signature.xml";    
     private WorkspaceClient workspaceClient;
     private MetaDataClient metadataClient;
     private WorkspaceClientFactory workspaceClientFactory;
@@ -835,6 +836,21 @@ public class ExtractSedaActionHandlerTest {
         assertEquals(
             "Ceci est le premier commentaire_Voici le deuxi\u00E8me commentaire_Exemple de 3\u00E8me commentaire",
             evDetData.get("EvDetailReq").asText());
+    }
+    
+    @Test
+    @RunWithCustomExecutor
+    public void givenManifestWithSignatureWhenExecuteThenReturnResponseOK() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        assertNotNull(ExtractSedaActionHandler.getId());
+        final InputStream seda_arborescence =
+            PropertiesUtils.getResourceAsStream(OK_SIGNATURE);
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(seda_arborescence).build());
+        handlerIO.addOutIOParameters(out);
+
+        final ItemStatus response = handler.execute(params, handlerIO);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
 }
