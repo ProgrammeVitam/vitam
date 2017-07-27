@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -26,26 +26,14 @@
  */
 package fr.gouv.vitam.common.client;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FilterInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URI;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.core.Response;
-
-import org.apache.commons.httpclient.HeaderElement;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.Header;
+import org.apache.http.HeaderElement;
+import org.apache.http.HeaderElementIterator;
 import org.apache.http.HeaderIterator;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
@@ -81,6 +69,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.cache.CacheConfig;
 import org.apache.http.impl.client.cache.CachingHttpClientBuilder;
+import org.apache.http.message.BasicHeaderElementIterator;
 import org.apache.http.message.BasicTokenIterator;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
@@ -95,14 +84,25 @@ import org.jboss.resteasy.client.jaxrs.internal.ClientResponse;
 import org.jboss.resteasy.util.CaseInsensitiveMap;
 import org.jboss.resteasy.util.DelegatingOutputStream;
 
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.stream.StreamUtils;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.core.Response;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FilterInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URI;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Vtam Specific Apache Http Client Engine
- * 
+ *
  * In particular, handle chunk mode
  */
 public class VitamApacheHttpClientEngine implements ClientHttpEngine {
@@ -110,26 +110,26 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
 
     private static final ConnectionKeepAliveStrategy MY_KEEP_ALIVE_STRATEGY;
     private static final VitamConnectionReuseStrategy MY_CONNECTION_REUSE_STRATEGY = new VitamConnectionReuseStrategy();
-    static {
-        MY_KEEP_ALIVE_STRATEGY = new ConnectionKeepAliveStrategy() {
 
-            @Override
-            public long getKeepAliveDuration(HttpResponse response, HttpContext context) {
-                // Honor 'keep-alive' header
-                HeaderIterator iterator = response.headerIterator(HTTP.CONN_KEEP_ALIVE);
-                while (iterator.hasNext()) {
-                    HeaderElement he = (HeaderElement) iterator.next();
-                    String param = he.getName();
-                    String value = he.getValue();
-                    if (value != null && "timeout".equalsIgnoreCase(param)) {
-                        try {
-                            return Long.parseLong(value) * 1000;
-                        } catch (NumberFormatException ignore) {}
+    static {
+        MY_KEEP_ALIVE_STRATEGY = (response, context) -> {
+            // Honor 'keep-alive' header
+            final HeaderElementIterator it =
+                new BasicHeaderElementIterator(response.headerIterator(HTTP.CONN_KEEP_ALIVE));
+            while (it.hasNext()) {
+                final HeaderElement he = it.nextElement();
+                final String param = he.getName();
+                final String value = he.getValue();
+
+                if (value != null && "timeout".equalsIgnoreCase(param)) {
+                    try {
+                        return Long.parseLong(value) * 1000;
+                    } catch (NumberFormatException ignore) {
                     }
                 }
-                // otherwise keep alive for 60 seconds
-                return VitamConfiguration.getMaxDelayUnusedConnection();
             }
+            // otherwise keep alive for 60 seconds
+            return VitamConfiguration.getMaxDelayUnusedConnection();
         };
     }
 
@@ -149,7 +149,7 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
 
     /**
      * Default constructor
-     * 
+     *
      * @param config
      */
     public VitamApacheHttpClientEngine(Map<VitamRestEasyConfiguration, Object> config) {
@@ -326,6 +326,7 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
 
             final ClientResponse responseContext = new ClientResponse(clientInvocation.getClientConfiguration()) {
                 InputStream stream = getNativeInputStream(response);
+
                 // Bad Way but no other way to do it !
                 {
                     setEntity(stream);
@@ -672,7 +673,6 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
          * of the token iterator.
          *
          * @param hit the header iterator
-         *
          * @return the token iterator
          */
         protected TokenIterator createTokenIterator(final HeaderIterator hit) {
