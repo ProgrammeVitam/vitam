@@ -109,7 +109,7 @@ Concernant les services producteurs, il faut différencier :
  - Service producteur de l'entrée, l'information correspondant à la valeur de l'OriginatingAgencyIdentifier déclarée dans le SIP
  - Services producteurs ayant des droits sur l'entrée, correspondants au service producteur de l'entrée et à ceux des entrées des parents auxquels des unités archivistiques ont été rattachées
 
-La plupart des métadonnées descriptives, peuvent être modifiées en cliquant sur le bouton "Modifier".
+La plupart des métadonnées descriptives peuvent être modifiées en cliquant sur le bouton "Modifier".
 
 .. image:: images/detail_modification.png
 
@@ -146,6 +146,25 @@ Le fait qu'une ou plusieurs règles soient bloquées est affiché au travers deu
 
 Chaque règle possède un détail qu'il est possible de consulter en cliquant sur la ligne de la règle en question. Ce détail reprend l'ensemble des valeurs déclarées pour la règle.
 La ligne "hérité de" indique quelle unité archivistique est à l'origine de l'application de la règle sur l'unité consultée. Cette origine est cliquable et mène sur le détail de l'unité mentionnée.
+
+Les règles de gestion non héritées peuvent être modifiées ou surpprimées en cliquant sur le bouton "Modifier".
+
+.. image:: images/detail_modification.png
+
+Il est possible d'ajouter une ou plusieurs règles de gestion à toutes les catégories disponibles.
+
+.. image:: images/AU_RGupdate.png
+
+Dans cet exemple, une règle est héritée et donc non modifiable, tandis que la seconde est modifiable.
+
+.. image:: images/AU_RGupdate_new.png
+
+Un clic sur le bouton "ajouter règle" crée une nouvelle ligne permettant la création d'une règle de gestion.
+
+.. image:: images/AU_RGupdate_delete.png
+
+Il est possible d'annuler l'action de supression avant la validation des modifications en cliquant sur le pictogramme "+" situé à droite.
+
 
 Si des objets sont disponibles, le bloc "Groupe d'objets" affiche le ou les objets présents dans le groupe d'objets ainsi que les métadonnées associées pour cette unité archivistique.
 
