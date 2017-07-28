@@ -39,6 +39,7 @@ import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 public class AdminManagementConfiguration extends DbConfigurationImpl {
 
     private String workspaceUrl;
+    private String processingUrl;
 
     private String clusterName;
     private List<ElasticsearchNode> elasticsearchNodes;
@@ -76,6 +77,20 @@ public class AdminManagementConfiguration extends DbConfigurationImpl {
      */
     public void setWorkspaceUrl(String workspaceUrl) {
         this.workspaceUrl = workspaceUrl;
+    }
+    
+    /**
+     * @return processing Url
+     */
+    public String getProcessingUrl() {
+        return processingUrl;
+    }
+
+    /**
+     * @param processingUrl to set
+     */
+    public void setProcessingUrl(String processingUrl) {
+        this.processingUrl = processingUrl;
     }
 
     /**

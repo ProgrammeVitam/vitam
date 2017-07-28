@@ -919,7 +919,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         Set<String> updatedCategories = updatedCategoryRules.keySet();
         for (String category: VitamConstants.getSupportedRules()) {
             ArrayNode rulesForCategory = null;
-            JsonNode categoryNode = management.get(category);
+            JsonNode categoryNode = management.get(category);            
             if (categoryNode != null) {
                 rulesForCategory = (ArrayNode) categoryNode.get(RULES_KEY);
             }

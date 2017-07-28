@@ -414,7 +414,7 @@ public final class JsonHandler {
      */
     public static final <T> T getFromJsonNode(JsonNode jsonNode, Class<T> clasz)
         throws InvalidParseOperationException {
-        try {
+        try {            
             ParametersChecker.checkParameter("JsonNode or class", jsonNode, clasz);
             return OBJECT_MAPPER.treeToValue(jsonNode, clasz);
         } catch (final JsonProcessingException e) {

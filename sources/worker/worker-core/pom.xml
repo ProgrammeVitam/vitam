@@ -54,7 +54,12 @@
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>functional-administration-client</artifactId>
 			<version>${project.version}</version>
-		</dependency>		
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>processing-management-client</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -76,10 +81,10 @@
 			<artifactId>logbook-common-server</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-        <dependency>
-            <groupId>net.sf.jsignature.io-tools</groupId>
-            <artifactId>easystream</artifactId>
-        </dependency>
+		<dependency>
+			<groupId>net.sf.jsignature.io-tools</groupId>
+			<artifactId>easystream</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.powermock</groupId>
 			<artifactId>powermock-api-mockito</artifactId>

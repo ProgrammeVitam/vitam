@@ -13,6 +13,7 @@ dbPassword: {{mongoFunctionalAdminPassword}}
 jettyConfig: jetty-config.xml
 tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]
 workspaceUrl: {{vitam_workspace_baseurl}}
+processingUrl: {{vitam_processing_baseurl}}
 
 # ElasticSearch
 clusterName: {{cluster_name}}

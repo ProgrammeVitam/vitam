@@ -177,7 +177,7 @@ public class IndexUnitActionPlugin extends ActionHandler {
         } finally {
             handlerIO.consumeAnyEntityAndClose(response);
         }
-    }
+    }    
 
     /**
      * Convert xml archive unit to json node for insert/update.

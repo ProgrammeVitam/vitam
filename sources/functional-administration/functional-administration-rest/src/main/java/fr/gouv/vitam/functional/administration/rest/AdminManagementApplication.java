@@ -44,6 +44,7 @@ import fr.gouv.vitam.functional.administration.common.server.AdminManagementConf
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 
 /**
  * Admin management web application
@@ -114,6 +115,7 @@ public class AdminManagementApplication
 
             serviceRegistry
                 .register(LogbookOperationsClientFactory.getInstance())
+                .register(ProcessingManagementClientFactory.getInstance())
                 .register(resource.getLogbookDbAccess());
             // TODO: 5/12/17 dependency to workspace, metadata, storage
 

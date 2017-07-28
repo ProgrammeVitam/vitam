@@ -1,0 +1,57 @@
+{
+  "httpCode": 0,
+  "$hits": {
+    "total": 1,
+    "offset": 0,
+    "limit": 1,
+    "size": 1
+  },
+  "$results": [
+    {
+      "#id": "aeaqaaaaaaagwmb5aajf4ak5ujrmnkiaaaba",
+      "#diff": "-        EndDate : 2025-01-01\n+        EndDate : 2030-01-01\n-  #operations : [ aedaaaaaacagwmb5aajf4ak5ujrluraaaaba ]\n+  #operations : [ aedaaaaaacagwmb5aajf4ak5ujrluraaaaba, aeaaaaaaaaagwmb5aajf4ak5ujryxgaaaaaq ]\n-  #version : \n+  #version : "
+    }
+  ],
+  "$context": {
+    "$roots": [
+      
+    ],
+    "$query": [
+      
+    ],
+    "$filter": {
+      
+    },
+    "$action": [
+      {
+        "$set": {
+          "#management.AccessRule.Rules": [
+            {
+              "Rule": "ACC-00003",
+              "StartDate": "2000-01-01",
+              "EndDate": "2030-01-01"
+            }
+          ]
+        },
+        "$set": {
+          "#management.AccessRule.Rules": [
+            {
+              "Rule": "ACC-00001",
+              "StartDate": "2000-01-01",
+              "EndDate": "2030-01-01"
+            }
+          ]
+        }
+      },
+      {
+        "$push": {
+          "#operations": {
+            "$each": [
+              "aeaaaaaaaaagwmb5aajf4ak5ujryxgaaaaaq"
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

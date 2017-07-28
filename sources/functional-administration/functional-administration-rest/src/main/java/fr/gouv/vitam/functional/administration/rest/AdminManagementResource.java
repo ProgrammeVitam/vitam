@@ -101,6 +101,7 @@ import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFileImpl;
 import fr.gouv.vitam.functional.administration.rules.core.RulesManagerFileImpl;
 import fr.gouv.vitam.functional.administration.rules.core.RulesSecurisator;
+import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
@@ -141,7 +142,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         elasticsearchAccess = ElasticsearchAccessAdminFactory.create(configuration);
         mongoAccess = MongoDbAccessAdminFactory.create(adminConfiguration);
         WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl());
-
+        ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getProcessingUrl());
         LOGGER.debug("init Admin Management Resource server");
     }
 
