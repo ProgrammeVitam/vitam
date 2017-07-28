@@ -71,15 +71,26 @@ angular.module('accession.register.search')
       return requestOptions;
     };
 
-    var successCallback = function() {
-      return true;
+    var successCallback = function(response) {
+        // FIXME #3023 Ugly fix that replace total by size in validation. If total well corrected in backend, no need to keep that solution
+        // (This function should only return true or shouldn't be declared)
+        if (!responseValidator.validateReceivedResponse(response) || response.data.$hits.size === 0) {
+          return false;
+        }
+        $scope.search.response.data = response.data.$results;
+        $scope.search.response.totalResult = response.data.$results.length;
+        $scope.search.pagination.resultPages = Math.ceil($scope.search.response.totalResult / $scope.search.pagination.itemsPerPage);
+        $scope.search.pagination.currentPage = Math.floor($scope.search.pagination.startOffset / $scope.search.pagination.itemsPerPage) + 1;
+        return true;
     };
 
     var computeErrorMessage = function() {
       return 'Il n\'y a aucun résultat pour votre recherche';
     };
 
-    var searchService = processSearchService.initAndServe(ihmDemoFactory.getAccessionRegisters, preSearch, successCallback, computeErrorMessage, $scope.search, true);
+    // FIXME #3023 Ugly fix that override successCallback validation. If total well corrected in backend, no need to keep that solution.
+    // (all 4 null/true at the end in param should be removed)
+    var searchService = processSearchService.initAndServe(ihmDemoFactory.getAccessionRegisters, preSearch, successCallback, computeErrorMessage, $scope.search, true, null, null, null, true);
     $scope.searchRegistersByCriteria = searchService.processSearch;
     $scope.reinitForm = searchService.processReinit;
     $scope.onInputChange = searchService.onInputChange;
