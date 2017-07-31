@@ -1,0 +1,48 @@
+---
+# tasks file for kibana_data_dashboards
+
+#### Kibana dashboards configuration ####
+
+# We have a specific task for index pattern to add the "*" at the end of the url
+- name: load index patterns into Elasticsearch data .kibana index
+  when: "{{ (groups['hosts-kibana-data'] | length) > 0 }}"
+  tags: load_kibana_data
+  run_once: true
+  uri:
+    url: 'http://{{elasticsearch_data_host}}:{{elasticsearch_data_http_port}}/.kibana/{{ item.split(".")[0] }}*'
+    method: PUT
+    body: "{{ lookup('file', '{{role_path}}/files/kibana-data-configuration/{{item}}') }}"
+    body_format: json
+    status_code: 200, 201
+  with_lines: find {{ index_pattern_dir }} -name '*.json' -type f | awk -F '/' '{print $(NF-1)"/"$NF}'
+  vars:
+    index_pattern_dir: "{{role_path}}/files/kibana-data-configuration/index-pattern"
+
+- name: load dasboards into Elasticsearch data .kibana index
+  when: "{{ (groups['hosts-kibana-data'] | length) > 0 }}"
+  run_once: true
+  tags: load_kibana_data
+  uri:
+    url: 'http://{{elasticsearch_data_host}}:{{elasticsearch_data_http_port}}/.kibana/{{ item.split(".")[0] }}'
+    method: PUT
+    body: "{{ lookup('file', '{{role_path}}/files/kibana-data-configuration/{{item}}') }}"
+    body_format: json
+    status_code: 200, 201
+  with_lines: find {{ search_dir }} {{ dashboard_dir }} {{ visualization_dir }} -name '*.json' -type f | awk -F '/' '{print $(NF-1)"/"$NF}'
+  vars:
+    search_dir: "{{role_path}}/files/kibana-data-configuration/search"
+    dashboard_dir: "{{role_path}}/files/kibana-data-configuration/dashboard"
+    visualization_dir: "{{role_path}}/files/kibana-data-configuration/visualization"
+
+# TODO Get Kibana version dynamically and put it in the URL
+- name: set logbookoperation_* as kibana default index pattern
+  when: "{{ (groups['hosts-kibana-data'] | length) > 0}}"
+  tags: load_kibana_data
+  run_once: true
+  uri:
+    url: 'http://{{elasticsearch_data_host}}:{{elasticsearch_data_http_port}}/.kibana/config/4.6.1'
+    method: PUT
+    body: '{"defaultIndex": "logbookoperation_*", "buildNum": 10229}'
+    body_format: json
+    status_code: 200, 201
+
