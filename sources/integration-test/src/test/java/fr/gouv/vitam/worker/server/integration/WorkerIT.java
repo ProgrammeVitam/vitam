@@ -40,6 +40,7 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.stream.FactoryConfigurationError;
 import javax.xml.transform.TransformerFactoryConfigurationError;
 
+import fr.gouv.vitam.metadata.rest.MetadataMain;
 import org.apache.commons.io.IOUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -82,7 +83,6 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookApplication;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.metadata.rest.MetaDataApplication;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
@@ -141,7 +141,7 @@ public class WorkerIT {
     private static String CONFIG_METADATA_PATH = "";
     private static String CONFIG_PROCESSING_PATH = "";
     private static String CONFIG_LOGBOOK_PATH = "";
-    private static MetaDataApplication metadataApplication;
+    private static MetadataMain metadataApplication;
     private static WorkerApplication wkrapplication;
     private static WorkspaceApplication workspaceApplication;
     private static ProcessManagementApplication processManagementApplication;
@@ -185,11 +185,11 @@ public class WorkerIT {
         mongod = mongodExecutable.start();
 
         // launch metadata
-        SystemPropertyUtil.set(MetaDataApplication.PARAMETER_JETTY_SERVER_PORT,
+        SystemPropertyUtil.set(MetadataMain.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_METADATA));
-        metadataApplication = new MetaDataApplication(CONFIG_METADATA_PATH);
+        metadataApplication = new MetadataMain(CONFIG_METADATA_PATH);
         metadataApplication.start();
-        SystemPropertyUtil.clear(MetaDataApplication.PARAMETER_JETTY_SERVER_PORT);
+        SystemPropertyUtil.clear(MetadataMain.PARAMETER_JETTY_SERVER_PORT);
         MetaDataClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_METADATA));
 
         // launch logbook

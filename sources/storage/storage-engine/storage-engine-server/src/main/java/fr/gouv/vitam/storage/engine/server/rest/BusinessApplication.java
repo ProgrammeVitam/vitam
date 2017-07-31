@@ -53,7 +53,6 @@ public class BusinessApplication extends Application {
 
     @Override
     public Set<Object> getSingletons() {
-        // Cannot use public constructor because VitamApplicationConfiguration have to be in context
         if (singletons == null) {
             singletons = new HashSet<>();
 
