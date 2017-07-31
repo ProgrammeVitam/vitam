@@ -1,5 +1,22 @@
 [
   {
+    "Name": "admin-context",
+    "Status": true,
+    "SecurityProfile" : "SEC_PROFILE-000001",
+    "Permissions": [
+      {
+        "_tenant": 0,
+        "AccessContracts": [],
+        "IngestContracts": []
+      },
+      {
+        "_tenant": 1,
+        "AccessContracts": [],
+        "IngestContracts": []
+      }
+    ]
+  },
+  {
     "Name": "My_Context_1",
     "Status": true,
     "SecurityProfile" : "SEC_PROFILE-000001",

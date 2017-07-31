@@ -217,6 +217,7 @@ pki_logger "Génération des certificats serveurs"
 generateHostCertAndStorePassphrase          ingest-external          hosts-ingest-external
 generateHostCertAndStorePassphrase          access-external          hosts-access-external
 generateHostCertAndStorePassphrase          offer                    hosts-storage-offer-default
+generateHostCertAndStorePassphrase          ihm-recette              hosts-ihm-recette
 
 # Generate timestamp certificates
 pki_logger "Génération des certificats timestamping"

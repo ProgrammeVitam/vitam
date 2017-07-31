@@ -38,3 +38,15 @@ V	270710142900Z		C8	unknown	/C=fr/ST=idf/L=paris/O=vitam/OU=authorities/CN=ca_in
 V	200711142948Z		C9	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ingest-external.service.consul
 V	200711142950Z		CA	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=access-external.service.consul
 V	200711142952Z		CB	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=offer.service.consul
+V	270806093254Z		CC	unknown	/C=fr/ST=idf/L=paris/O=vitam/OU=authorities/CN=ca_root_server
+V	270806093254Z		CD	unknown	/C=fr/ST=idf/L=paris/O=vitam/OU=authorities/CN=ca_intermediate_server
+V	200807093423Z		CE	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ingest-external.service.consul
+V	200807093426Z		CF	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=access-external.service.consul
+V	200807093428Z		D0	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=offer.service.consul
+V	200807093430Z		D1	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ihm-recette.service.consul
+V	270807160402Z		D2	unknown	/C=fr/ST=idf/L=paris/O=vitam/OU=authorities/CN=ca_root_server
+V	270807160403Z		D3	unknown	/C=fr/ST=idf/L=paris/O=vitam/OU=authorities/CN=ca_intermediate_server
+V	200808160443Z		D4	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ingest-external.service.consul
+V	200808160445Z		D5	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=access-external.service.consul
+V	200808160447Z		D6	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=offer.service.consul
+V	200808160449Z		D7	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ihm-recette.service.consul

@@ -29,6 +29,7 @@ package fr.gouv.vitam.ihmrecette.appserver;
 
 import static com.jayway.restassured.RestAssured.given;
 import static fr.gouv.vitam.ihmrecette.appserver.WebApplicationResource.DEFAULT_CONTRACT_NAME;
+import static org.hamcrest.Matchers.equalTo;
 
 import java.io.File;
 
@@ -162,6 +163,11 @@ public class WebApplicationResourceTest {
     @Test
     public void testMessagesLogbook() {
         given().expect().statusCode(Status.OK.getStatusCode()).when().get("/messages/logbook");
+    }
+
+    @Test
+    public void testSecureMode() {
+        given().expect().statusCode(Status.OK.getStatusCode()).when().get("/securemode").then().body(equalTo("x509"));
     }
 
     @Test

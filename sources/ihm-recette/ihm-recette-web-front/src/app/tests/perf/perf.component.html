@@ -1,0 +1,28 @@
+<div class="ui-g-12">
+  <h2>TEST DE PERFORMANCES </h2>
+
+  <div class="ui-g-12 pad-b-10">Liste des SIP :
+    <p-dropdown [options]="sipList" [(ngModel)]="selectedSIP" [style]="{'width':'30%'}"
+                placeholder="Sélectionner un SIP"></p-dropdown>
+  </div>
+  <div class="ui-g-3"></div>
+  <div class="ui-g-3 pad-b-10"> Nombre de Thread :
+    <input [(ngModel)]="parallelIngest" type="number" min="1" max="100" style="width:40px">
+  </div>
+  <div class="ui-g-3 pad-b-20"> Nombre d'ingest:
+    <input pInputText [(ngModel)]="numberOfIngest" type="number" min="1" max="100" style="width:40px">
+  </div>
+  <div class="ui-g-12">
+    <button  type="button" label='Lancer les tests' pButton (click)="uploadSelectedSip()">
+    </button>
+  </div>
+  <br/>
+</div>
+<div class="ui-g-12">
+  <div class="col-md-12">
+  <h2>Résultats</h2>
+
+    <vitam-generic-table [items]="reportsList" [cols]="cols" [actionOnIcon]="downloadReport" [colsWithIcon]="colsWithIcon" [service]="service">
+    </vitam-generic-table>
+  </div>
+</div>

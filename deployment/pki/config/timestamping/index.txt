@@ -18,3 +18,9 @@ V	200314121849Z		B4	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=logbook.service.con
 V	270710142905Z		B5	unknown	/C=fr/ST=idf/L=paris/O=vitam/OU=authorities/CN=ca_root_timestamping
 V	270710142907Z		B6	unknown	/C=fr/ST=idf/L=paris/O=vitam/OU=authorities/CN=ca_intermediate_timestamping
 V	200711142954Z		B7	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=secure-logbook
+V	270806093258Z		B8	unknown	/C=fr/ST=idf/L=paris/O=vitam/OU=authorities/CN=ca_root_timestamping
+V	270806093258Z		B9	unknown	/C=fr/ST=idf/L=paris/O=vitam/OU=authorities/CN=ca_intermediate_timestamping
+V	200807093432Z		BA	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=secure-logbook
+V	270807160407Z		BB	unknown	/C=fr/ST=idf/L=paris/O=vitam/OU=authorities/CN=ca_root_timestamping
+V	270807160408Z		BC	unknown	/C=fr/ST=idf/L=paris/O=vitam/OU=authorities/CN=ca_intermediate_timestamping
+V	200808160450Z		BD	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=secure-logbook

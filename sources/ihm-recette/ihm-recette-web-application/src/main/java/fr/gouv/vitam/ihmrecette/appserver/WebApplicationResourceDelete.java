@@ -90,6 +90,7 @@ public class WebApplicationResourceDelete {
     private static final String STP_DELETE_MASTERDATA_INGEST_CONTRACT = "STP_DELETE_MASTERDATA_INGEST_CONTRACT";
     private static final String STP_DELETE_MASTERDATA_ACCESS_CONTRACT = "STP_DELETE_MASTERDATA_ACCESS_CONTRACT";
     private static final String STP_DELETE_MASTERDATA_PROFILE = "STP_DELETE_MASTERDATA_PROFILE";
+    private static final String STP_DELETE_MASTERDATA_CONTEXT = "STP_DELETE_MASTERDATA_CONTEXT";
 
     private static final String STP_DELETE_ALL = "STP_DELETE_ALL";
     private static final String CANNOT_UPDATE_DELEGATE_LOGBOOK_OPERATION = "Cannot update delegate logbook operation";
@@ -561,15 +562,29 @@ public class WebApplicationResourceDelete {
     }
 
     /**
-     * Delete the masterdata for ingestContract in database
+     * Delete the masterdata for profile in database
      *
      * @return Response
      */
     @Path("masterdata/profile")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    public Response deleteMasterdaProfile() {
+    public Response deleteMasterdataProfile() {
         return deleteMasterDataCollection(FunctionalAdminCollections.PROFILE);
+
+    }
+
+    /**
+     * Delete all entries for the context collection
+     * except the "admin" context
+     *
+     * @return Response
+     */
+    @Path("masterdata/context")
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteMasterdataContext() {
+        return deleteMasterDataCollection(FunctionalAdminCollections.CONTEXT);
 
     }
 
@@ -578,10 +593,10 @@ public class WebApplicationResourceDelete {
         if (!(collection.equals(FunctionalAdminCollections.ACCESS_CONTRACT) ||
             collection.equals(FunctionalAdminCollections.INGEST_CONTRACT) ||
             collection.equals(FunctionalAdminCollections.PROFILE) ||
-            collection.equals(FunctionalAdminCollections.AGENCIES)
-
+            collection.equals(FunctionalAdminCollections.AGENCIES) ||
+            collection.equals(FunctionalAdminCollections.CONTEXT)
         )) {
-            throw new IllegalArgumentException("unsuported collection");
+            throw new IllegalArgumentException("unsupported collection");
         }
 
         final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
@@ -640,7 +655,9 @@ public class WebApplicationResourceDelete {
         response.close();
         response = deleteFormats();
         response.close();
-        response = deleteMasterdaProfile();
+        response = deleteMasterdataProfile();
+        response.close();
+        response = deleteMasterdataContext();
         response.close();
         return Response.status(Status.OK).build();
     }
@@ -855,6 +872,24 @@ public class WebApplicationResourceDelete {
             }
             LOGGER.error(e);
             collectionKO.add(FunctionalAdminCollections.ACCESS_CONTRACT.name());
+        }
+
+        parameters.putParameterValue(LogbookParameterName.eventType,
+            VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_CONTEXT, StatusCode.STARTED))
+            .setStatus(StatusCode.OK).putParameterValue(LogbookParameterName.outcomeDetailMessage,
+            VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_CONTEXT, StatusCode.OK));
+        try (DbRequestResult result = mongoDbAccessAdmin.deleteCollection(FunctionalAdminCollections.CONTEXT)) {
+            helper.updateDelegate(parameters);
+        } catch (final Exception e) {
+            parameters.setStatus(StatusCode.KO).putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_CONTEXT, StatusCode.OK));
+            try {
+                helper.updateDelegate(parameters);
+            } catch (final LogbookClientNotFoundException exc) {
+                LOGGER.error("Cannot update delegate logbook operation", exc);
+            }
+            LOGGER.error(e);
+            collectionKO.add(FunctionalAdminCollections.CONTEXT.name());
         }
 
         parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_ALL).setStatus(StatusCode.OK)

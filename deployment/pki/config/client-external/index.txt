@@ -43,3 +43,13 @@ V	270710142902Z		EC	unknown	/C=fr/ST=idf/L=paris/O=vitam/OU=authorities/CN=ca_in
 V	200711142956Z		ED	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ihm-demo
 V	200711142958Z		EE	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ihm-recette
 V	200711143000Z		EF	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=reverse
+V	270806093255Z		F0	unknown	/C=fr/ST=idf/L=paris/O=vitam/OU=authorities/CN=ca_root_client-external
+V	270806093256Z		F1	unknown	/C=fr/ST=idf/L=paris/O=vitam/OU=authorities/CN=ca_intermediate_client-external
+V	200807093433Z		F2	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ihm-demo
+V	200807093434Z		F3	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ihm-recette
+V	200807093436Z		F4	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=reverse
+V	270807160403Z		F5	unknown	/C=fr/ST=idf/L=paris/O=vitam/OU=authorities/CN=ca_root_client-external
+V	270807160404Z		F6	unknown	/C=fr/ST=idf/L=paris/O=vitam/OU=authorities/CN=ca_intermediate_client-external
+V	200808160452Z		F7	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ihm-demo
+V	200808160453Z		F8	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ihm-recette
+V	200808160456Z		F9	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=reverse

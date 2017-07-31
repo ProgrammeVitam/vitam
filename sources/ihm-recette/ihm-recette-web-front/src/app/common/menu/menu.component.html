@@ -1,0 +1,21 @@
+<p-growl [(value)]="msgs" life="2000"></p-growl>
+<p-menubar [model]="items">
+  <div class="fixed">
+    <a routerLink="/admin/collection">
+      <!-- FIXME may be missed in dev build -->
+      <img src="assets/images/logoIHMRougeRelease4.png"
+           class="logo" alt="Vitam Beta" title="Vitam"/>
+      <span class="title">vitam</span>
+    </a>
+  </div>
+  <div *ngIf="isAuthenticated">
+    Tenant: <b>{{tenantChosen ? tenantChosen : '-'}}</b> | Sélection:
+    <select [(ngModel)]="tenantId" #ctrl="ngModel" style="display: inline; margin: 0 0 0 10px">
+        <option *ngFor='let tenant of tenants' value="{{tenant}}">{{tenant}}</option>
+    </select>
+    <button pButton type="button" (click)="setCurrentTenant(tenantId)" label="Acceder"></button>
+      <i class="fa fa-power-off logout-icon" (click)="logOut()">
+        <a id="logout-text">Déconnexion</a>
+      </i>
+  </div>
+</p-menubar>

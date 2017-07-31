@@ -47,7 +47,7 @@ class ServerApplicationWithoutMongo extends ServerApplication {
 
     @Override
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-        final WebApplicationResource resource = new WebApplicationResource(getConfiguration().getTenants()  );
+        final WebApplicationResource resource = new WebApplicationResource(getConfiguration().getTenants(), getConfiguration().getSecureMode() );
         resourceConfig.register(resource);
     }
 }

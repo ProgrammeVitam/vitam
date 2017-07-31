@@ -43,6 +43,7 @@ public class WebApplicationConfig extends MetaDataConfiguration {
     private String baseUrl;
     private String staticContent;
     private boolean secure;
+    private String secureMode;
     private String sipDirectory;
     private String performanceReportDirectory;
     private String masterdataDbName;
@@ -245,4 +246,18 @@ public class WebApplicationConfig extends MetaDataConfiguration {
         this.performanceReportDirectory = performanceReportDirectory;
     }
 
+    /**
+     * get secure mode
+     * @return secure mode
+     */
+    public String getSecureMode() {
+        return secureMode;
+    }
+
+    /**
+     * @param secureMode
+     */
+    public void setSecureMode(String secureMode) {
+        this.secureMode = secureMode;
+    }
 }
