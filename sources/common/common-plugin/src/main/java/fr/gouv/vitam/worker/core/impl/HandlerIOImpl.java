@@ -356,7 +356,8 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
             }
         } else {
             try {
-                this.asyncWorkspaceTransfer.transfer(new WorkspaceQueue(workspacePath, inputStream).setFilePath(filePath));
+                this.asyncWorkspaceTransfer
+                    .transfer(new WorkspaceQueue(workspacePath, inputStream).setFilePath(filePath));
             } catch (WorkerspaceQueueException e) {
                 throw new ProcessingException(e);
             }
@@ -505,13 +506,11 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         String path = collectionName + File.separator + objectName;
         try {
             File file = getNewLocalFile(path);
+            JsonHandler.writeAsFile(jsonNode, file);
+            transferFileToWorkspace(path, file, toDelete, asyncIO);
+
             if (toDelete) {
-                transferInputStreamToWorkspace(path, 
-                    JsonHandler.writeToInpustream(jsonNode), null, asyncIO);
                 file.delete();
-            } else {
-                JsonHandler.writeAsFile(jsonNode, file);
-                transferFileToWorkspace(path, file, toDelete, asyncIO);
             }
         } catch (final InvalidParseOperationException e) {
             throw new ProcessingException("Invalid parse Exception: " + path, e);
@@ -544,7 +543,9 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
             LOGGER.debug(" -> push compressed file to workspace finished");
         } else {
             try {
-                this.asyncWorkspaceTransfer.transfer(new WorkspaceQueue(container, uploadedInputStream, WorkspaceAction.UNZIP).setMediaType(archiveMimeType).setFolderName(folderName));
+                this.asyncWorkspaceTransfer.transfer(
+                    new WorkspaceQueue(container, uploadedInputStream, WorkspaceAction.UNZIP)
+                        .setMediaType(archiveMimeType).setFolderName(folderName));
             } catch (WorkerspaceQueueException e) {
                 new ContentAddressableStorageException(e);
             }

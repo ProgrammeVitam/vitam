@@ -65,7 +65,7 @@ import java.util.stream.Collectors;
 /**
  * The Process Distributor call the workers and intercept the response for manage a post actions step
  * <p>
- * 
+ *
  * <pre>
  * TODO P1:
  * - handle listing of items through a limited arraylist (memory) and through iterative (async) listing from
@@ -254,10 +254,10 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         // }
         // }
         while (offset < sizeList) {
-            int size = sizeList > offset + VitamConfiguration.getDistributeurBatchSize()
+            int nextOffset = sizeList > offset + VitamConfiguration.getDistributeurBatchSize()
                 ? offset + VitamConfiguration.getDistributeurBatchSize() : sizeList;
 
-            List<String> subList = objectsList.subList(offset, size);
+            List<String> subList = objectsList.subList(offset, nextOffset);
 
             List<CompletableFuture<ItemStatus>> completableFutureList = new ArrayList<>();
             subList.forEach(objectUri -> {
@@ -272,14 +272,12 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
             CompletableFuture<ItemStatus> reduce = sequence
                 .thenApplyAsync((List<ItemStatus> is) -> is.stream().reduce(step.getStepResponses(),
-                    (identity, iterationItemStatus) -> {
-                        return identity.setItemsStatus(iterationItemStatus);
-                    }));
+                    ItemStatus::setItemsStatus));
 
             try {
                 // store information
                 final ItemStatus itemStatus = reduce.get();
-                offset = offset + size;
+                offset = nextOffset;
                 if (sizeList > VitamConfiguration.getDistributeurBatchSize()) {
                     DistributorIndex distributorIndex =
                         new DistributorIndex(offset, itemStatus, requestId, uniqueStepId);
@@ -325,8 +323,8 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 } else if (cause instanceof WorkerExecutorException) {
                     LOGGER.error(cause);
                 } else {
-
-            }
+                    // FIXME: 7/31/17 treat this kind of exception
+                }
 
                 // TODO: 6/29/17 Should re-execute the step when worker becomme up
                 return new ItemStatus(step.getStepName()).increment(StatusCode.FATAL);
