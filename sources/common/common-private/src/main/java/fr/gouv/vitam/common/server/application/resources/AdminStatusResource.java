@@ -60,8 +60,8 @@ public class AdminStatusResource implements VitamResource {
     /**
      * Autotest for Administration resource path
      */
-    public static final String AUTOTEST_URL = "/autotest";
-    public static final String VERSION_URL = "/version";
+    public static final String AUTOTEST_URL = VitamConfiguration.AUTOTEST_URL;
+    public static final String VERSION_URL = VitamConfiguration.VERSION_URL;
     private final VitamStatusService statusService;
     private final VitamServiceRegistry autotestService;
 

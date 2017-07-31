@@ -24,32 +24,19 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.exception;
+package fr.gouv.vitam.common.external.client;
 
-import javax.ws.rs.ProcessingException;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.client.MockOrRestClient;
 
 /**
- * Workflow not found exception throws by engine
- *
+ * Basic client api for vitam client
  */
-public class WorkflowNotFoundException extends ProcessingException {
-    private static final long serialVersionUID = -5651787421624064080L;
+public interface BasicClient extends MockOrRestClient {
 
     /**
-     *
-     * @param message to be set
-     * @param cause to be set
+     * Global status url for Application and Admin Status
      */
-    public WorkflowNotFoundException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    /**
-     *
-     * @param message to be set
-     */
-    public WorkflowNotFoundException(String message) {
-        super(message);
-    }
+    String STATUS_URL = VitamConfiguration.STATUS_URL;
 
 }

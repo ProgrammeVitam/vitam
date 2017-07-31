@@ -5,13 +5,9 @@ package fr.gouv.vitam.common.exception;
  * InternalServerException : manage Internal Server Exception
  */
 public class InternalServerException extends VitamException {
-
-
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -632934116167401414L;
 
     /**
-     * 
-     * 
      * @param message
      */
     public InternalServerException(String message) {
@@ -19,8 +15,6 @@ public class InternalServerException extends VitamException {
     }
 
     /**
-     * 
-     * 
      * @param message
      * @param cause
      */
