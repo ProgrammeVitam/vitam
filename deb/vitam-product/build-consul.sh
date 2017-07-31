@@ -1,6 +1,6 @@
 #!/bin/bash
 WORKING_FOLDER=$(dirname $0)
-CONSUL_VERSION="0.8.3"
+CONSUL_VERSION="0.9.0"
 
 if [ ! -d ${WORKING_FOLDER}/target ]; then
 	mkdir ${WORKING_FOLDER}/target

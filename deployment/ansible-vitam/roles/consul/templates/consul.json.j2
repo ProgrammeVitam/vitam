@@ -4,6 +4,7 @@
   "log_level": "INFO",
   "enable_syslog": true,
   "advertise_addr": "{{ip_admin}}",
+  "enable_script_checks": true,
 
 
   {% if inventory_hostname in groups['hosts-consul-server'] %}
