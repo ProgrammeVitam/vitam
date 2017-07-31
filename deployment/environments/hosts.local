@@ -144,6 +144,7 @@ hosts-mongoclient
 localhost
 
 [hosts-kibana-data]
+localhost
 
 [log-servers:children]
 hosts-kibana-log
