@@ -125,6 +125,7 @@ angular.module('ihm.demo')
     };
 
     var successCallback = function(response) {
+      $scope.prepareSortField('RuleValue', true);
       return true;
     };
 
