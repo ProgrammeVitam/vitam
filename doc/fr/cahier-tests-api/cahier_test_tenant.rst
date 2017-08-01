@@ -4,9 +4,9 @@ Cahier des API externes multi-tenant
 Introduction
 ============
 
-L'objectif de cette documentation est d‘élaborer le cahier de test multi-tenant des API external (ingest, referentiel, logbook, access et accession-registre) via postman. On va lister tous les APIs testés, les réponses, les pré-requis et les différents cas téstés avec les différents requêtes utilisés.
+L'objectif de cette documentation est d‘élaborer le cahier de test multi-tenant des API external (ingest, referentiel, logbook, access et accession-registre). On va lister toutes les APIs testées, les réponses, les pré-requis et les différents cas testés avec les différentes requêtes utilisées.
 
-**A propos des pré-requis et stratégie de tests**
+**A propos des pré-requis et des stratégies de tests**
 
 
 

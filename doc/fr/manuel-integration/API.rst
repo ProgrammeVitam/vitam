@@ -65,18 +65,6 @@ Les réponses HTTP de VITAM ont en commun les attributs suivants :
 .. image:: images/API_reponses_elements_communs.png
 
 
-Utilisation de PostMan
-----------------------
-
-Possibilité de gestion des collections
-
-.. image:: images/API_postman_collections.png
-
-Exemples d'élements à renseigner pour une requête, ici ``POST /ingest-external/v1/ingests`` :
-
-.. image:: images/API_exemple_requete_body_postman.png
-
-
 Ingest
 ======
 
