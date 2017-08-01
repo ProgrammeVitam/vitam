@@ -37,12 +37,14 @@ import java.util.Set;
 import javax.servlet.ServletConfig;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.serverv2.application.ApplicationParameter;
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -66,7 +68,6 @@ import fr.gouv.vitam.common.server.HeaderIdContainerFilter;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.GenericExceptionMapper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
-import fr.gouv.vitam.common.serverv2.ConfigurationApplication;
 import fr.gouv.vitam.common.serverv2.VitamStarter;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
@@ -939,7 +940,7 @@ public class StorageResourceTest {
             BusinessApplicationInner.class, AdminApplication.class);
     }
 
-    public static class BusinessApplicationInner extends ConfigurationApplication {
+    public static class BusinessApplicationInner extends Application {
 
         private Set<Object> singletons;
         private Set<Class<?>> classes;
@@ -948,7 +949,7 @@ public class StorageResourceTest {
         public BusinessApplicationInner(@Context ServletConfig servletConfig) {
             classes = new HashSet<>();
             classes.add(HeaderIdContainerFilter.class);
-            this.configurationFile = servletConfig.getInitParameter("vitam.configurationFile");
+            this.configurationFile = servletConfig.getInitParameter(ApplicationParameter.CONFIGURATION_FILE_APPLICATION);
         }
 
 

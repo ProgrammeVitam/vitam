@@ -27,6 +27,8 @@
 
 package fr.gouv.vitam.storage.engine.server.rest;
 
+import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -48,7 +50,7 @@ public class BusinessApplication extends Application {
 
     public BusinessApplication(@Context ServletConfig servletConfig) {
         commonBusinessApplication = new CommonBusinessApplication();
-        configurationFile = servletConfig.getInitParameter("vitam.configurationFile");
+        configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
     }
 
     @Override

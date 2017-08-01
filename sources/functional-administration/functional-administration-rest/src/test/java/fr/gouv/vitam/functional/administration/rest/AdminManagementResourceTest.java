@@ -26,14 +26,18 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.rest;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.with;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assume.assumeTrue;
-import static org.mockito.Mockito.mock;
 
+import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -41,32 +45,14 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
-import fr.gouv.vitam.functional.administration.rules.core.RulesManagerFileImpl;
-import fr.gouv.vitam.functional.administration.rules.core.RulesSecurisator;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.jhades.JHades;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.fasterxml.jackson.databind.JsonNode;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
-
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -79,7 +65,6 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -101,8 +86,18 @@ import fr.gouv.vitam.functional.administration.common.server.AdminManagementConf
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import org.jhades.JHades;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 
 public class AdminManagementResourceTest {
@@ -139,21 +134,27 @@ public class AdminManagementResourceTest {
     static MongoDbAccessReferential mongoDbAccess;
     static String DATABASE_NAME = "vitam-test";
     private static String DATABASE_HOST = "localhost";
-    private static VitamCounterService vitamCounterService;
+
     private static MongoDbAccessAdminImpl dbImpl;
 
     private InputStream stream;
-    private static JunitHelper junitHelper;
+    private static JunitHelper junitHelper = JunitHelper.getInstance();
     private static int serverPort;
     private static int databasePort;
     private static File adminConfigFile;
-    private static AdminManagementApplication application;
-    private static WorkspaceClientFactory workspaceClientFactory;
-    private static WorkspaceClient workspaceClient;
+    private static AdminManagementMain application;
 
+    private static int workspacePort = junitHelper.findAvailablePort();
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+
+    @ClassRule
+    public static WireMockClassRule wireMockRule = new WireMockClassRule(workspacePort);
+
+    @Rule
+    public WireMockClassRule instanceRule = wireMockRule;
+
     private static ElasticsearchTestConfiguration configEs = null;
 
     @ClassRule
@@ -167,7 +168,6 @@ public class AdminManagementResourceTest {
     public static void setUpBeforeClass() throws Exception {
         new JHades().overlappingJarsReport();
 
-        junitHelper = JunitHelper.getInstance();
         databasePort = junitHelper.findAvailablePort();
 
         // ES
@@ -193,6 +193,8 @@ public class AdminManagementResourceTest {
         realAdminConfig.getMongoDbNodes().get(0).setDbPort(databasePort);
         realAdminConfig.setElasticsearchNodes(nodesEs);
         realAdminConfig.setClusterName(CLUSTER_NAME);
+        realAdminConfig.setWorkspaceUrl("http://localhost:" + workspacePort);
+
         adminConfigFile = File.createTempFile("test", ADMIN_MANAGEMENT_CONF, adminConfig.getParentFile());
         PropertiesUtils.writeYaml(adminConfigFile, realAdminConfig);
 
@@ -211,38 +213,10 @@ public class AdminManagementResourceTest {
 
         RestAssured.port = serverPort;
         RestAssured.basePath = RESOURCE_URI;
-        workspaceClient = mock(WorkspaceClient.class);
-        workspaceClientFactory = mock(WorkspaceClientFactory.class);
-        workspaceClient = mock(WorkspaceClient.class);
         dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
-        List tenants = new ArrayList<>();
-        tenants.add(new Integer(TENANT_ID));
-        tenants.add(new Integer(1));
-        vitamCounterService = new VitamCounterService(dbImpl, tenants);
-        RulesSecurisator securisator = mock(RulesSecurisator.class);
-
 
         try {
-            application = new AdminManagementApplication(adminConfigFile.getAbsolutePath()) {
-                @Override
-                protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-
-                    final AdminManagementResource resource = new AdminManagementResource(getConfiguration(), securisator);
-                    final MongoDbAccessAdminImpl mongoDbAccess = resource.getLogbookDbAccess();
-                    resource.setVitamCounterService(vitamCounterService);
-
-                    final ProfileResource profileResource = new ProfileResource(getConfiguration(), mongoDbAccess,vitamCounterService);
-                    try {
-                        resourceConfig
-                            .register(resource)
-                            .register(new ContractResource(mongoDbAccess, vitamCounterService))
-                            .register(new ContextResource(mongoDbAccess, vitamCounterService))
-                            .register(profileResource);
-                    } catch (VitamException e) {
-                        e.printStackTrace();
-                    }
-                }
-            };
+            application = new AdminManagementMain(adminConfigFile.getAbsolutePath());
             application.start();
             JunitHelper.unsetJettyPortSystemProperty();
 
@@ -266,6 +240,14 @@ public class AdminManagementResourceTest {
         mongodExecutable.stop();
         junitHelper.releasePort(databasePort);
         junitHelper.releasePort(serverPort);
+    }
+
+    @Before
+    public void setUp() throws Exception {
+        instanceRule.stubFor(WireMock.post(urlMatching("/workspace/v1/containers/(.*)"))
+            .willReturn(aResponse().withStatus(201).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
+        instanceRule.stubFor(WireMock.delete(urlMatching("/workspace/v1/containers/(.*)"))
+            .willReturn(aResponse().withStatus(204).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
     }
 
     @After

@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.common.serverv2;
 
+import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
+
 import com.google.common.base.Strings;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
@@ -153,7 +155,7 @@ public class VitamStarter {
         final ServletHolder servletHolder = new ServletHolder(new HttpServletDispatcher());
 
         servletHolder.setInitParameter("javax.ws.rs.Application", businessApplication.getName());
-        servletHolder.setInitParameter("vitam.configurationFile", configurationFile);
+        servletHolder.setInitParameter(CONFIGURATION_FILE_APPLICATION, configurationFile);
 
         final ServletContextHandler context = new ServletContextHandler(getSession());
 
@@ -178,7 +180,7 @@ public class VitamStarter {
         final ServletHolder servletHolder = new ServletHolder(new HttpServletDispatcher());
 
         servletHolder.setInitParameter("javax.ws.rs.Application", adminApplication.getName());
-        servletHolder.setInitParameter("vitam.configurationFile", configurationFile);
+        servletHolder.setInitParameter(CONFIGURATION_FILE_APPLICATION, configurationFile);
 
         final ServletContextHandler context = new ServletContextHandler(getSession());
         context.addServlet(servletHolder, "/*");

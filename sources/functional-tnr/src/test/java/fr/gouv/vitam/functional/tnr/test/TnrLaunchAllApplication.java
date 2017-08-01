@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import fr.gouv.vitam.metadata.rest.MetadataMain;
+import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -201,7 +202,7 @@ public class TnrLaunchAllApplication {
     // private static VitamServer workerApplication;
     private static MetadataMain medtadataApplication;
     private static WorkerApplication wkrapplication;
-    private static AdminManagementApplication adminApplication;
+    private static AdminManagementMain adminApplication;
     private static LogbookApplication lgbapplication;
     private static WorkspaceApplication workspaceApplication;
     private static ProcessManagementApplication processManagementApplication;
@@ -396,7 +397,7 @@ public class TnrLaunchAllApplication {
         // launch functional Admin server
         LOGGER.warn("Start Functional Admin");
         SystemPropertyUtil.set(JETTY_FUNCTIONAL_ADMIN_PORT, Integer.toString(PORT_SERVICE_FUNCTIONAL_ADMIN));
-        adminApplication = new AdminManagementApplication(CONFIG_FUNCTIONAL_ADMIN_PATH);
+        adminApplication = new AdminManagementMain(CONFIG_FUNCTIONAL_ADMIN_PATH);
         try {
             adminApplication.start();
         } catch (VitamApplicationServerException e) {
