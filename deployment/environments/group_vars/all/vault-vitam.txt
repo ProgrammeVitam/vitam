@@ -8,6 +8,8 @@ mongoLogbookUser: logbook
 mongoLogbookPassword: qwertz
 mongoFunctionalAdminUser: functional-admin
 mongoFunctionalAdminPassword: qwertz
+mongoSecurityInternalUser: security-internal
+mongoSecurityInternalPassword: qwertz
 mongoClientUser: mongoclient
 mongoClientPassword: qwertz
 mongoPassPhrase: mongogogo

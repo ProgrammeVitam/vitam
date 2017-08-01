@@ -96,6 +96,10 @@ vitam_functional_administration_port_admin: 18004
 vitam_functional_administration_baseurl: "http://{{vitam_functional_administration_host}}:{{vitam_functional_administration_port}}"
 vitam_functional_administration_baseuri: "/functional-administration"
 
+vitam_security_internal_port: 8005
+vitam_security_internal_port_admin: 28005
+vitam_security_internal_baseuri: "/security-internal"
+
 # Normally no need for the host ? Maybe use the same strategy as data ?
 elasticsearch_log_host: "elasticsearch-log.service.{{consul_domain}}"
 elasticsearch_log_http_port: "9201"

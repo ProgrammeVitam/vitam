@@ -35,9 +35,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import fr.gouv.vitam.common.mongo.MongoRule;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -97,7 +99,7 @@ public class MongoDbAccessMetadataImplTest {
 
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
-    static MongoClient mongoClient;
+
     static JunitHelper junitHelper;
     static final String DATABASE_HOST = "localhost";
     static final String DATABASE_NAME = "vitam-test";
@@ -107,8 +109,14 @@ public class MongoDbAccessMetadataImplTest {
     static MongoDbAccessMetadataFactory mongoDbAccessFactory;
     private static ElasticsearchTestConfiguration config = null;
 
+    @Rule
+    public MongoRule
+        mongoRule = new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), "vitam-test",  "ObjectGroup", "Unit");
+    private MongoClient mongoClient = mongoRule.getMongoClient();
+
+
     @BeforeClass
-    public static void setup() throws IOException, VitamException {
+    public static void setupOne() throws IOException, VitamException {
         try {
             config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
         } catch (final VitamApplicationServerException e1) {
@@ -121,27 +129,6 @@ public class MongoDbAccessMetadataImplTest {
 
         esClient = new ElasticsearchAccessMetadata(CLUSTER_NAME, nodes);
 
-        // MongoDB
-        final MongodStarter starter = MongodStarter.getDefaultInstance();
-        port = junitHelper.findAvailablePort();
-        mongodExecutable = starter.prepare(new MongodConfigBuilder()
-            .version(Version.Main.PRODUCTION)
-            .net(new Net(port, Network.localhostIsIPv6()))
-            .build());
-        mongod = mongodExecutable.start();
-        mongoDbAccessFactory = new MongoDbAccessMetadataFactory();
-
-        final List<MongoDbNode> mongo_nodes = new ArrayList<>();
-        mongo_nodes.add(new MongoDbNode(DATABASE_HOST, port));
-        final MetaDataConfiguration config =
-            new MetaDataConfiguration(mongo_nodes, DATABASE_NAME, CLUSTER_NAME, nodes);
-        config.setTenants(tenantList);
-
-        mongoDbAccess = MongoDbAccessMetadataFactory.create(config);
-
-        final MongoClientOptions options = MongoDbAccessMetadataImpl.getMongoClientOptions();
-        mongoClient = new MongoClient(new ServerAddress(DATABASE_HOST, port), options);
-
     }
 
     @AfterClass
@@ -149,21 +136,7 @@ public class MongoDbAccessMetadataImplTest {
         if (config == null) {
             return;
         }
-        mongoDbAccess.close();
-        mongod.stop();
-        mongodExecutable.stop();
-        junitHelper.releasePort(port);
         JunitHelper.stopElasticsearchForTest(config);
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        for (final MetadataCollections col : MetadataCollections.values()) {
-            if (col.getCollection() != null) {
-                col.getCollection().drop();
-            }
-        }
-        mongoDbAccess.getMongoDatabase().drop();
     }
 
     @Test

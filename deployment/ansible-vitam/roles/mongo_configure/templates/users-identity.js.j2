@@ -1,0 +1,32 @@
+
+// Switch to identity database
+db = db.getSiblingDB('identity')
+
+// Create security-internal user
+
+if (! db.getUser("{{mongoSecurityInternalUser}}")) {
+    db.createUser(
+        {
+            user: "{{mongoSecurityInternalUser}}",
+            pwd: "{{mongoSecurityInternalPassword}}",
+            roles: [
+                { role: "readWrite", db: "identity" }
+            ]
+        }
+    )
+}
+
+// Create admin user
+
+if (! db.getUser("{{mongoAdminUser}}")) {
+    db.createUser(
+        {
+            user: "{{mongoAdminUser}}",
+            pwd: "{{mongoAdminPassword}}",
+            roles: [
+                { role: "readWrite", db: "identity" },
+                { role: "dbAdmin", db: "identity" }
+            ]
+        }
+    )
+}

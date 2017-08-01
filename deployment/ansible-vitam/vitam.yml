@@ -115,7 +115,7 @@
        pwd: "{{mongoClientPassword}}"
 
 
-## VITAM ##################################################################""
+## VITAM ####################################################################
 
 - hosts: hosts-storage-offer-default
   roles:
@@ -138,6 +138,11 @@
 - hosts: hosts-functional-administration
   roles:
     - {role: vitam, vitam_component: functional-administration, java_args: /vitam/conf/functional-administration/functional-administration.conf, port_http: "{{vitam_functional_administration_port}}", port_http_admin: "{{vitam_functional_administration_port_admin}}", secret_platform: "true", cluster_name: elasticsearch-data }
+
+- hosts: hosts-security-internal
+  roles:
+    - {role: vitam, vitam_component: security-internal, java_args: /vitam/conf/security-internal/security-internal.conf, port_http: "{{vitam_security_internal_port}}", port_http_admin: "{{vitam_security_internal_port_admin}}", secret_platform: "true" }
+    - init_contexts
 
 - hosts: hosts-workspace
   roles:

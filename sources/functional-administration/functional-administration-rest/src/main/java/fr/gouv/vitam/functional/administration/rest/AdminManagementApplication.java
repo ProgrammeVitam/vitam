@@ -29,6 +29,7 @@ package fr.gouv.vitam.functional.administration.rest;
 
 import static java.lang.String.format;
 
+import fr.gouv.vitam.common.exception.VitamException;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import fr.gouv.vitam.common.ServerIdentity;
@@ -133,6 +134,27 @@ public class AdminManagementApplication
     @Override
     protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
         resourceConfig.register(new AdminStatusResource(serviceRegistry));
+
+        try {
+            AdminManagementConfiguration configuration = getConfiguration();
+            setServiceRegistry(new VitamServiceRegistry());
+
+            final AdminManagementResource resource = new AdminManagementResource(configuration);
+
+            final MongoDbAccessAdminImpl mongoDbAccess = resource.getLogbookDbAccess();
+
+            final VitamCounterService vitamCounterService = new VitamCounterService(mongoDbAccess, configuration.getTenants());
+
+            ContextResource contextResource = new ContextResource(mongoDbAccess, vitamCounterService);
+
+            AdminContextResource adminContextResource = new AdminContextResource(contextResource);
+            resourceConfig.register(adminContextResource);
+
+        } catch (VitamException e) {
+            LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
+            System.exit(1);
+        }
+
         return true;
 
     }

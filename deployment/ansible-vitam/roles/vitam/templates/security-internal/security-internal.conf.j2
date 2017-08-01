@@ -1,0 +1,14 @@
+
+# Configuration MongoDB
+mongoDbNodes:
+{% for host in groups['mongos'] %}
+- dbHost: {{hostvars[host]['ip_service']}}
+  dbPort: {{vitam_mongodb_port}}
+{% endfor %}
+dbName: identity
+dbAuthentication: {{mongo_authentication}}
+dbUserName: {{mongoSecurityInternalUser}}
+dbPassword: {{mongoSecurityInternalPassword}}
+
+jettyConfig: jetty-config.xml
+tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]
