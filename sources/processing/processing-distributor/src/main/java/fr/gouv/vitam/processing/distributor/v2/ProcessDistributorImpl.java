@@ -19,14 +19,12 @@ package fr.gouv.vitam.processing.distributor.v2;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.DistributorIndex;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -35,6 +33,9 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
 import fr.gouv.vitam.processing.common.exception.WorkerNotFoundException;
 import fr.gouv.vitam.processing.common.model.DistributionKind;
+import fr.gouv.vitam.processing.common.model.DistributorIndex;
+import fr.gouv.vitam.processing.common.model.PauseOrCancelAction;
+import fr.gouv.vitam.processing.common.model.PauseRecover;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
@@ -45,7 +46,7 @@ import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
 import fr.gouv.vitam.processing.distributor.api.IWorkerManager;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
-import fr.gouv.vitam.worker.client.exception.WorkerExecutorException;
+import fr.gouv.vitam.worker.client.exception.PauseCancelException;
 import fr.gouv.vitam.worker.client.exception.WorkerUnreachableException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -55,9 +56,13 @@ import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -90,18 +95,13 @@ import java.util.stream.Collectors;
 public class ProcessDistributorImpl implements ProcessDistributor {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessDistributorImpl.class);
-    private static final String UNITS_LEVEL = "UnitsLevel";
-    private static final String JSON_EXTENSION = ".json";
-    private static final String EXCEPTION_MESSAGE =
-        "runtime exceptions thrown by the Process distributor during runnig...";
-    private static final String INGEST_LEVEL_STACK = "ingestLevelStack.json";
-    private static final String OBJECTS_LIST_EMPTY = "OBJECTS_LIST_EMPTY";
-    private static final String ELEMENT_UNITS = "Units";
-    public static final String DISTRIBUTOR_INDEX = "distributorIndex";
 
     private final ProcessDataAccess processDataAccess;
     private ProcessDataManagement processDataManagement;
     private final IWorkerManager workerManager;
+
+    private Map<String, Step> currentSteps = new HashMap<>();
+    private WorkspaceClientFactory workspaceClientFactory;
 
     /**
      * Empty constructor
@@ -109,38 +109,85 @@ public class ProcessDistributorImpl implements ProcessDistributor {
      * @param workerManager
      */
     public ProcessDistributorImpl(IWorkerManager workerManager) {
+        this(workerManager, ProcessDataAccessImpl.getInstance(), WorkspaceProcessDataManagement.getInstance(),
+            WorkspaceClientFactory.getInstance());
+    }
+
+
+    @VisibleForTesting
+    public ProcessDistributorImpl(IWorkerManager workerManager, ProcessDataAccess processDataAccess,
+        ProcessDataManagement processDataManagement, WorkspaceClientFactory workspaceClientFactory) {
         this.workerManager = workerManager;
-        processDataAccess = ProcessDataAccessImpl.getInstance();
-        processDataManagement = WorkspaceProcessDataManagement.getInstance();
+        this.processDataAccess = processDataAccess;
+        this.processDataManagement = processDataManagement;
+        this.workspaceClientFactory = workspaceClientFactory;
+        ParametersChecker
+            .checkParameter("Parameters are required.", workerManager, processDataAccess, processDataManagement,
+                workspaceClientFactory);
+    }
+
+
+    @Override
+    synchronized public boolean pause(String operationId) {
+        ParametersChecker.checkParameter("The parameter operationId is required", operationId);
+        final Step step = currentSteps.get(operationId);
+        if (null != step) {
+            step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_PAUSE);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    synchronized public boolean cancel(String operationId) {
+        ParametersChecker.checkParameter("The parameter operationId is required", operationId);
+        final Step step = currentSteps.get(operationId);
+        if (null != step) {
+            step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_CANCEL);
+            return true;
+        }
+        return false;
     }
 
     /**
      * Temporary method for distribution supporting multi-list
      *
-     * @param workParams of type {@link WorkerParameters}
-     * @param step the execution step
-     * @param operationId the operation id
+     * @param workParams   of type {@link WorkerParameters}
+     * @param step         the execution step
+     * @param operationId  the operation id
+     * @param pauseRecover prevent recover from pause action
      * @return the final step status
      */
     @Override
-    public ItemStatus distribute(WorkerParameters workParams, Step step, String operationId) {
+    public ItemStatus distribute(WorkerParameters workParams, Step step, String operationId,
+        PauseRecover pauseRecover) {
 
         ParametersChecker.checkParameter("WorkParams is a mandatory parameter", workParams);
         ParametersChecker.checkParameter("Step is a mandatory parameter", step);
         ParametersChecker.checkParameter("workflowId is a mandatory parameter", operationId);
+        ParametersChecker.checkParameter("pauseRecover is a mandatory parameter", pauseRecover);
+
+        /**
+         * use index only if pauseRecover of the processWorkflow
+         * is PauseRecover.RECOVER_FROM_API_PAUSE or PauseRecover.RECOVER_FROM_SERVER_PAUSE
+         * and pauseCancelAction of the step is PauseOrCancelAction.ACTION_RECOVER
+         */
+        boolean useDistributorIndex = !PauseRecover.NO_RECOVER.equals(pauseRecover) &&
+            PauseOrCancelAction.ACTION_RECOVER.equals(step.getPauseOrCancelAction());
 
         final int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
 
         step.setStepResponses(new ItemStatus(step.getStepName()));
 
         try {
+            currentSteps.put(operationId, step);
             // update workParams
             workParams.putParameterValue(WorkerParameterName.workflowStatusKo,
                 processDataAccess.findOneProcessWorkflow(operationId, tenantId).getStatus().name());
 
             List<String> objectsList = new ArrayList<>();
             if (step.getDistribution().getKind().equals(DistributionKind.LIST)) {
-                try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
+                try (final WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
 
 
                     // Test regarding Unit to be indexed                    
@@ -159,13 +206,24 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
                         while (iteratorLevelFile.hasNext()) {
                             final Entry<String, JsonNode> guidFieldList = iteratorLevelFile.next();
+                            final String level = guidFieldList.getKey();
                             final JsonNode guid = guidFieldList.getValue();
                             if (guid != null && guid.size() > 0) {
                                 for (final JsonNode _idGuid : guid) {
                                     // include the GUID in the new URI
                                     objectsList.add(_idGuid.asText() + JSON_EXTENSION);
                                 }
-                                distributeOnList(workParams, step, objectsList, tenantId);
+                                boolean distributorIndexUsed =
+                                    distributeOnList(workParams, step, level, objectsList, useDistributorIndex,
+                                        tenantId);
+
+                                /**
+                                 * If the distributorIndex is used in the previous level
+                                 * Then do not use index in the next level
+                                 */
+                                if (useDistributorIndex && distributorIndexUsed) {
+                                    useDistributorIndex = false;
+                                }
                                 objectsList.clear();
                             }
                         }
@@ -177,12 +235,13 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                                 workspaceClient.getListUriDigitalObjectFromFolder(workParams.getContainerName(),
                                     step.getDistribution().getElement())
                                     .toJsonNode().get("$results").get(0).toString(),
-                                new TypeReference<List<URI>>() {});
+                                new TypeReference<List<URI>>() {
+                                });
                         for (URI uri : objectsListUri) {
                             objectsList.add(uri.getPath());
                         }
                         // Iterate over Objects List
-                        distributeOnList(workParams, step, objectsList, tenantId);
+                        distributeOnList(workParams, step, NOLEVEL, objectsList, useDistributorIndex, tenantId);
                     }
                 }
             } else {
@@ -194,7 +253,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     objectsList.add(step.getDistribution().getElement());
                 }
 
-                distributeOnList(workParams, step, objectsList, tenantId);
+                distributeOnList(workParams, step, NOLEVEL, objectsList, useDistributorIndex, tenantId);
             }
         } catch (final IllegalArgumentException e) {
             step.getStepResponses().increment(StatusCode.FATAL);
@@ -202,105 +261,243 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         } catch (final HandlerNotFoundException e) {
             step.getStepResponses().increment(StatusCode.FATAL);
             LOGGER.error("Handler Not Found Exception", e);
-
+        } catch (final PauseCancelException e) {
+            // Pause or Cancel occurred
+            return step.getStepResponses();
         } catch (final Exception e) {
             step.getStepResponses().increment(StatusCode.FATAL);
             LOGGER.error(EXCEPTION_MESSAGE, e);
+        } finally {
+            currentSteps.remove(operationId);
         }
 
-        return step.getStepResponses();
+        return step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_COMPLETE).getStepResponses();
     }
 
     /**
+     * The returned boolean is used in case where useDistributorIndex is true
+     * if the returned boolean false, means that we want that useDistributorIndex should keep true
+     * Else if the returned boolean true, means we have already used the distibutorIndex,
+     * Then in case of multi-level for the next level do not use the distributorIndex
+     *
      * @param workerParameters
      * @param step
      * @param objectsList
      * @param tenantId
+     * @return return true if distributor index is used false else
      * @throws ProcessingException
      */
-    private void distributeOnList(WorkerParameters workerParameters, Step step, List<String> objectsList,
-        Integer tenantId)
+    private boolean distributeOnList(WorkerParameters workerParameters, Step step, String level,
+        List<String> objectsList,
+        boolean initFromDistributorIndex, Integer tenantId)
         throws ProcessingException {
 
-        final String container = workerParameters.getContainerName();
+        final String operationId = workerParameters.getContainerName();
         final String requestId = VitamThreadUtils.getVitamSession().getRequestId();
         final String uniqueStepId = step.getId();
+
 
         if (objectsList == null || objectsList.isEmpty()) {
             step.getStepResponses().setItemsStatus(OBJECTS_LIST_EMPTY,
                 new ItemStatus(OBJECTS_LIST_EMPTY).increment(StatusCode.WARNING));
-            return;
+            return false;
         }
-        // update the number of element to process before start
-        processDataAccess.updateStep(container, uniqueStepId, objectsList.size(), false, tenantId);
 
         int offset = 0;
         int sizeList = objectsList.size();
-        // TODO : for the moment, the restart of a workflow is not handled precisely (when dealing with list) so this
-        // code is commented, but later on, it should be used.
-        // But it has to be adapted : by adding the information about the level handled (cause now, the test on the
-        // offset is wrong if two level contains more than 10 elements or by counting the total number of object handled, and doing proper subtractions.
 
-        // if (sizeList > VitamConfiguration.getDistributeurBatchSize()) {
-        // try {
-        // DistributorIndex index = processDataManagement.getDistributorIndex(container, DISTRIBUTOR_INDEX);
-        // if (null != index) {
-        // offset = index.getOffset();
-        // step.setStepResponses(index.getItemStatus());
-        // }
-        //
-        // } catch (Exception e) {
-        // LOGGER.warn("Can't get distibutor index from workspace", e);
-        // }
-        // }
+        boolean updateElementToProcess = true;
+        DistributorIndex distributorIndex = null;
+
+        final List<String> remainingElementsFromRecover = new ArrayList<>();
+        /**
+         * initFromDistributorIndex true if start after stop
+         *
+         * Get the distributor Index from the workspace
+         * the current step id should be equals to the step id int the distributorIndex
+         * else the current step is not correctly initialized in th state machine
+         *
+         * In the current step in case of the multiple level,
+         * if the current level is not equals to the level in the initFromDistributorIndex
+         * Then return false to passe to the next step
+         */
+        if (initFromDistributorIndex) {
+            try {
+                distributorIndex = processDataManagement.getDistributorIndex(DISTRIBUTOR_INDEX, operationId);
+                if (null != distributorIndex) {
+                    if (!distributorIndex.getStepId().equals(step.getId())) {
+                        throw new ProcessingException(
+                            "You run the wrong step " + step.getId() + ". The step from saved distributor index is : " +
+                                distributorIndex.getStepId());
+                    }
+
+                    /**
+                     * Handle the next level if the current level is not equals to the distributorIndex level
+                     * This mean that the current level us already treated
+                     */
+                    if (!distributorIndex.getLevel().equals(level)) {
+                        return false;
+                    }
+
+                    /**
+                     * If all elements of the step are treated then response with the ItemStatus of the distributorIndex
+                     */
+                    if (distributorIndex.isLevelFinished()) {
+                        step.setStepResponses(distributorIndex.getItemStatus());
+                        return true;
+                    } else {
+                        /**
+                         * Initialize from distributor index
+                         */
+                        offset = distributorIndex.getOffset();
+                        distributorIndex.getItemStatus().getItemsStatus().remove(PauseOrCancelAction.ACTION_PAUSE.name());
+                        step.setStepResponses(distributorIndex.getItemStatus());
+
+                        /**
+                         * As elements to process are calculated before stop of the server,
+                         * do not recalculate then after restart
+                         */
+                        updateElementToProcess = false;
+                        if (null != distributorIndex.getRemainingElements()) {
+                            remainingElementsFromRecover.addAll(distributorIndex.getRemainingElements());
+                        }
+                    }
+                } else {
+                    throw new ProcessingException("DistributorIndex not found for the operation" + operationId);
+                }
+
+            } catch (ProcessingException e) {
+                throw e;
+            } catch (Exception e) {
+                LOGGER.error("Can't get distibutor index from workspace", e);
+                throw new ProcessingException("Can't get distibutor index from workspace", e);
+            }
+        }
+
+        /**
+         * Update only if level is finished in the distributorIndex
+         * In the cas of multiple level, we add the size of each level
+         * Prevent adding twice the size of the current executing level
+         */
+        if (updateElementToProcess) {
+            // update the number of element to process before start
+            processDataAccess.updateStep(operationId, uniqueStepId, sizeList, false, tenantId);
+        }
+
+        final Set<ItemStatus> cancelled = new HashSet<>();
+        final Set<ItemStatus> paused = new HashSet<>();
+
         while (offset < sizeList) {
             int nextOffset = sizeList > offset + VitamConfiguration.getDistributeurBatchSize()
                 ? offset + VitamConfiguration.getDistributeurBatchSize() : sizeList;
 
             List<String> subList = objectsList.subList(offset, nextOffset);
 
-            List<CompletableFuture<ItemStatus>> completableFutureList = new ArrayList<>();
-            subList.forEach(objectUri -> {
-                workerParameters.setObjectName(objectUri);
-                final WorkerTask task = new WorkerTask(
-                    new DescriptionStep(step, ((DefaultWorkerParameters) workerParameters).newInstance()),
-                    tenantId, requestId);
-                completableFutureList.add(prepare(task));
 
-            });
+            List<CompletableFuture<ItemStatus>> completableFutureList = new ArrayList<>();
+            List<WorkerTask> currentWorkerTaskList = new ArrayList<>();
+
+            /**
+             * When server stop and in the batch of elements we have remaining elements (not yet treated)
+             * Then after restart we treat only those not yet treated elements of this batch
+             * If all elements of the batch were treated,
+             * then at this point, we are automatically in the new batch
+             * and we have to treat all elements of this batch
+             */
+            boolean emptyRemainingElements = remainingElementsFromRecover.isEmpty();
+
+            for (String uri : subList) {
+                /**
+                 * If no remaining elements then treat all the subList
+                 * Else treat only remaining elements
+                 */
+                if (emptyRemainingElements || remainingElementsFromRecover.remove(uri)) {
+                    workerParameters.setObjectName(uri);
+                    final WorkerTask task = new WorkerTask(
+                        new DescriptionStep(step, ((DefaultWorkerParameters) workerParameters).newInstance()),
+                        tenantId, requestId);
+                    currentWorkerTaskList.add(task);
+                    completableFutureList.add(prepare(task, operationId, tenantId));
+                }
+
+            }
+
             CompletableFuture<List<ItemStatus>> sequence = sequence(completableFutureList);
 
             CompletableFuture<ItemStatus> reduce = sequence
                 .thenApplyAsync((List<ItemStatus> is) -> is.stream().reduce(step.getStepResponses(),
-                    ItemStatus::setItemsStatus));
+                    (identity, iterationItemStatus) -> {
+                        if (PauseOrCancelAction.ACTION_CANCEL.name().equals(iterationItemStatus.getItemId()) &&
+                            iterationItemStatus.getGlobalStatus().equals(StatusCode.UNKNOWN)) {
+                            cancelled.add(iterationItemStatus);
+                        }
+                        if (PauseOrCancelAction.ACTION_PAUSE.name().equals(iterationItemStatus.getItemId()) &&
+                            iterationItemStatus.getGlobalStatus().equals(StatusCode.UNKNOWN)) {
+                            paused.add(iterationItemStatus);
+                        }
+                        return identity.setItemsStatus(iterationItemStatus);
+                    }));
 
             try {
                 // store information
                 final ItemStatus itemStatus = reduce.get();
-                offset = nextOffset;
-                if (sizeList > VitamConfiguration.getDistributeurBatchSize()) {
-                    DistributorIndex distributorIndex =
-                        new DistributorIndex(offset, itemStatus, requestId, uniqueStepId);
+
+                if (sizeList > 1) {
+                    /**
+                     * As pause can occurs on not started WorkerTask,
+                     * so we have to get the corresponding elements in order to execute them after restart
+                     */
+                    List<String> remainingElements = new ArrayList<>();
+                    currentWorkerTaskList.forEach(e -> {
+                        if (!e.isCompleted()) {
+                            remainingElements.add(e.getObjectName());
+                        }
+                    });
+                    if (remainingElements.isEmpty()) {
+                        offset = nextOffset;
+                    }
+
+                    distributorIndex =
+                        new DistributorIndex(level, offset, itemStatus, requestId, uniqueStepId, remainingElements);
+
+                    // All elements of the current level are treated so finish it
+                    if (offset >= sizeList) {
+                        distributorIndex.setLevelFinished(true);
+                    }
+
                     try {
-                        processDataManagement.persistDistributorIndex(container, DISTRIBUTOR_INDEX, distributorIndex);
-                        LOGGER.debug("Store for the container " + container + " the DistributorIndex offset" + offset +
-                            " GlobalStatus " + itemStatus.getGlobalStatus());
+                        processDataManagement.persistDistributorIndex(DISTRIBUTOR_INDEX, operationId, distributorIndex);
+                        LOGGER
+                            .debug("Store for the container " + operationId + " the DistributorIndex offset" + offset +
+                                " GlobalStatus " + itemStatus.getGlobalStatus());
                     } catch (Exception e) {
                         LOGGER.error("Error while persist DistributorIndex", e);
+                        throw new ProcessingException("Error while persist DistributorIndex", e);
                     }
+                } else {
+                    offset = nextOffset;
                 }
 
+                if (cancelled.size() > 0) {
+                    throw new PauseCancelException(PauseOrCancelAction.ACTION_CANCEL);
+                }
+
+
+                if (paused.size() > 0) {
+                    throw new PauseCancelException(PauseOrCancelAction.ACTION_PAUSE);
+                }
             } catch (InterruptedException | ExecutionException e) {
                 throw new RuntimeException(e);
             }
+
         }
 
-        // update the number of element to process at the end
-        processDataAccess.updateStep(container, step.getId(), 0, true, tenantId);
+        return true;
+
     }
 
 
-    private CompletableFuture<ItemStatus> prepare(WorkerTask task) {
+    private CompletableFuture<ItemStatus> prepare(WorkerTask task, String operationId, int tenantId) {
         Step step = task.getStep();
         final WorkerFamilyManager wmf = workerManager.findWorkerBy(step.getWorkerGroupId());
         if (null == wmf) {
@@ -320,14 +517,20 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     } catch (WorkerFamilyNotFoundException | WorkerNotFoundException | InterruptedException e1) {
                         LOGGER.error("Exception while unrigster worker " + wue.getWorkerId(), cause);
                     }
-                } else if (cause instanceof WorkerExecutorException) {
-                    LOGGER.error(cause);
-                } else {
-                    // FIXME: 7/31/17 treat this kind of exception
                 }
 
-                // TODO: 6/29/17 Should re-execute the step when worker becomme up
-                return new ItemStatus(step.getStepName()).increment(StatusCode.FATAL);
+                return new ItemStatus(WORKER_CALL_EXCEPTION)
+                    .setItemsStatus(WORKER_CALL_EXCEPTION,
+                        new ItemStatus(WORKER_CALL_EXCEPTION).increment(StatusCode.FATAL));
+            })
+            .thenApply(is -> {
+                //Do not update processed if pause or cancel occurs
+                if (StatusCode.UNKNOWN.equals(is.getGlobalStatus())) {
+                    return is;
+                }
+                // update processed elements
+                processDataAccess.updateStep(operationId, step.getId(), 0, true, tenantId);
+                return is;
             });
     }
 

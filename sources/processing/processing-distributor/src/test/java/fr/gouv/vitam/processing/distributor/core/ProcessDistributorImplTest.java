@@ -26,26 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.distributor.core;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -60,9 +45,11 @@ import fr.gouv.vitam.processing.common.model.ActionDefinition;
 import fr.gouv.vitam.processing.common.model.Distribution;
 import fr.gouv.vitam.processing.common.model.DistributionKind;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
+import fr.gouv.vitam.processing.common.model.PauseRecover;
 import fr.gouv.vitam.processing.common.model.ProcessBehavior;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
+import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.model.WorkFlow;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -71,6 +58,17 @@ import fr.gouv.vitam.processing.common.utils.ProcessPopulator;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccess;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class ProcessDistributorImplTest {
     private WorkerParameters params;
@@ -172,7 +170,7 @@ public class ProcessDistributorImplTest {
             fail("Incorrect worker description");
         }
 
-        PROCESS_DISTRIBUTOR.distribute(params, processStep, WORKFLOW_ID);
+        PROCESS_DISTRIBUTOR.distribute(params, processStep, WORKFLOW_ID, PauseRecover.NO_RECOVER);
     }
 
 
@@ -191,7 +189,7 @@ public class ProcessDistributorImplTest {
         actions.add(a);
         step.setActions(actions);
 
-        PROCESS_DISTRIBUTOR.distribute(params, step, WORKFLOW_ID);
+        PROCESS_DISTRIBUTOR.distribute(params, step, WORKFLOW_ID, PauseRecover.NO_RECOVER);
     }
 
     @Test
@@ -210,7 +208,7 @@ public class ProcessDistributorImplTest {
 
         final ProcessStep processStep = new ProcessStep(step, 0, 0, "id");
 
-        PROCESS_DISTRIBUTOR.distribute(params, processStep, WORKFLOW_ID);
+        PROCESS_DISTRIBUTOR.distribute(params, processStep, WORKFLOW_ID, PauseRecover.NO_RECOVER);
     }
 
     @Test
@@ -229,7 +227,7 @@ public class ProcessDistributorImplTest {
 
         final ProcessStep processStep = new ProcessStep(step, 0, 0, "id");
 
-        PROCESS_DISTRIBUTOR.distribute(params, processStep, WORKFLOW_ID);
+        PROCESS_DISTRIBUTOR.distribute(params, processStep, WORKFLOW_ID, PauseRecover.NO_RECOVER);
     }
 
     @Test
@@ -245,7 +243,7 @@ public class ProcessDistributorImplTest {
         final Step step = worfklow.getSteps().get(0);
         final ProcessStep processStep = new ProcessStep(step, 0, 0, "id");
 
-        PROCESS_DISTRIBUTOR.distribute(params, processStep, WORKFLOW_ID);
+        PROCESS_DISTRIBUTOR.distribute(params, processStep, WORKFLOW_ID, PauseRecover.NO_RECOVER);
 
 
         ProcessWorkflow processWorkflow =

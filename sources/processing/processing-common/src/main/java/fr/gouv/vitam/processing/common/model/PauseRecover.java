@@ -24,75 +24,41 @@
  *  The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  *  accept its terms.
  */
-package fr.gouv.vitam.common.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.base.Strings;
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.SysErrLogger;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
+package fr.gouv.vitam.processing.common.model;
 
 /**
- * Composite Item Status
  */
-@JsonIgnoreProperties(ignoreUnknown = false)
-public class DistributorIndex {
+public enum PauseRecover {
+    /**
+     * The default processWorkflow pauseRecover
+     */
+    NO_RECOVER,
 
-    private int offset;
-    private ItemStatus itemStatus;
-    private String requestId;
-    private String stepId;
+    /**
+     * The processWorkflow will be marked RECOVER_FROM_API_PAUSE when pause action origin is API
+     * The processWorkflow will be paused as soon as possible without waiting the end of the step.
+     * If the current step ends correctly (pauseCancelAction of the current step is PauseOrCancelAction.ACTION_COMPLETE)
+     * then the processWorkflow will be in pause state and the next step will be executed normally
+     * 
+     * If the current step ends with pauseCancelAction equals to PauseOrCancelAction.ACTION_PAUSE
+     * this means that all elements of the current steps are not finished and state of the step should be saved in distributorIndex
+     * When next or resume action occurs on the processWorkflow :  
+     * The processWorkflow will starts from the step marked PauseOrCancelAction.ACTION_PAUSE
+     * After the execution of doRunning method in th state machine, 
+     * the pauseRecover of the processWorkflow must be updated to be NO_RECOVER
+     * 
+     * And the distributorIndex will be used to initialize the last offset and ItemStatus before pause
+     * Then the processWorkflow continue to be executed normally
+     * 
+     */
+    RECOVER_FROM_API_PAUSE,
 
-    public DistributorIndex() {
-    }
-
-    public DistributorIndex(int offset, ItemStatus itemStatus, String requestId, String stepId) {
-        this.offset = offset;
-        this.itemStatus = itemStatus;
-        this.requestId = requestId;
-        this.stepId = stepId;
-    }
-
-    public int getOffset() {
-        return offset;
-    }
-
-    public void setOffset(int offset) {
-        this.offset = offset;
-    }
-
-    public ItemStatus getItemStatus() {
-        return itemStatus;
-    }
-
-    public void setItemStatus(ItemStatus itemStatus) {
-        this.itemStatus = itemStatus;
-    }
-
-    public String getRequestId() {
-        return requestId;
-    }
-
-    public void setRequestId(String requestId) {
-        this.requestId = requestId;
-    }
-
-    public String getStepId() {
-        return stepId;
-    }
-
-    public void setStepId(String stepId) {
-        this.stepId = stepId;
-    }
+    /**
+     * The processWorkflow will be marked RECOVER_FROM_SERVER_PAUSE when pause action origin is server stop
+     * The scenario is the same like RECOVER_FROM_API_PAUSE
+     * The only difference is that when the server restarts, 
+     * only processWorkflow marked RECOVER_FROM_SERVER_PAUSE will be started automatically
+     */
+    RECOVER_FROM_SERVER_PAUSE
 }

@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
@@ -41,6 +42,7 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.common.automation.IEventsState;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
@@ -49,6 +51,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceExcep
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.common.model.WorkFlow;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.common.utils.ProcessPopulator;
@@ -68,12 +71,11 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
@@ -105,7 +107,7 @@ public class ProcessManagementImpl implements ProcessManagement {
     /**
      * constructor of ProcessManagementImpl
      *
-     * @param config configuration of process engine server
+     * @param config             configuration of process engine server
      * @param processDistributor
      * @throws ProcessingStorageWorkspaceException thrown when error occurred on loading paused process
      */
@@ -130,6 +132,72 @@ public class ProcessManagementImpl implements ProcessManagement {
         loadProcessFromWorkSpace(config.getUrlMetadata(), config.getUrlWorkspace());
     }
 
+    @Override
+    public void startProcess() {
+
+        /**
+         *  Do not start process in test mode
+         *  Before test you should add SystemPropertyUtil.set("vitam.test.junit", "true");
+         */
+        if (VitamConfiguration.isIntegrationTest()) {
+            return;
+        }
+        for (String operationId : PROCESS_MONITORS.keySet()) {
+            final IEventsState stateMachine = PROCESS_MONITORS.get(operationId);
+
+            if (!stateMachine.isRecover()) {
+                continue;
+            }
+
+            try {
+
+                VitamThreadUtils.getVitamSession().setTenantId(stateMachine.getTenant());
+                VitamThreadUtils.getVitamSession().setRequestId(operationId);
+
+                final WorkerParameters workerParameters =
+                    WorkerParametersFactory.newWorkerParameters()
+                        .setUrlMetadata(config.getUrlMetadata())
+                        .setUrlWorkspace(config.getUrlWorkspace())
+                        .setLogbookTypeProcess(stateMachine.getLogbookTypeProcess())
+                        .setContainerName(operationId)
+                        .putParameterValue(WorkerParameterName.context, stateMachine.getWorkflowId());
+
+                if (stateMachine.isStepByStep()) {
+                    stateMachine.next(workerParameters);
+                } else {
+                    stateMachine.resume(workerParameters);
+                }
+            } catch (StateNotAllowedException | ProcessingException e) {
+                LOGGER.error("Error while pause the processWorkflow : " + operationId, e);
+            }
+        }
+    }
+
+    /**
+     * This method is used to properly stop all processworklfow
+     * Call stop on all running process workflow and propagate this stop to the distributor
+     * The distributor should :
+     * - Unregister all worker and complete all opened connections to the workers
+     * - Stop properly waiting tasks
+     * - Save index of element to be used in the next start
+     */
+    @Override
+    public void stopProcess() {
+        for (String operationId : PROCESS_MONITORS.keySet()) {
+            final IEventsState stateMachine = PROCESS_MONITORS.get(operationId);
+
+            if (stateMachine.isDone()) {
+                continue;
+            }
+
+            try {
+                stateMachine.shutdown();
+            } catch (StateNotAllowedException e) {
+                LOGGER.error("Error while pause the processWorkflow : " + operationId, e);
+            }
+        }
+        PROCESS_MONITORS.clear();
+    }
 
     @Override
     public ProcessWorkflow init(WorkerParameters workerParameters, String workflowId,
@@ -221,7 +289,8 @@ public class ProcessManagementImpl implements ProcessManagement {
             .setLogbookTypeProcess(processWorkflow.getLogbookTypeProcess().toString());
     }
 
-    @Override public ItemStatus pause(String operationId, Integer tenantId)
+    @Override
+    public ItemStatus pause(String operationId, Integer tenantId)
         throws ProcessingException, StateNotAllowedException {
 
         final IEventsState stateMachine = PROCESS_MONITORS.get(operationId);
@@ -286,21 +355,24 @@ public class ProcessManagementImpl implements ProcessManagement {
     }
 
     @Override
-    public void reloadWorkflowDefinitions (){
+    public void reloadWorkflowDefinitions() {
         Integer period = this.getConfiguration().getWorkflowRefreshPeriod();
         long fromDate = Instant.now().minus(period, ChronoUnit.HOURS).toEpochMilli();
 
         ProcessPopulator.reloadWorkflows(poolWorkflow, fromDate);
     }
 
-    public Map<Integer, Map<String, ProcessWorkflow>>  getWorkFlowList() {
+    public Map<Integer, Map<String, ProcessWorkflow>> getWorkFlowList() {
         return processData.getWorkFlowList();
     }
 
     @Override
-    public Map<String, IEventsState> getProcessMonitorList() { return PROCESS_MONITORS; }
+    public Map<String, IEventsState> getProcessMonitorList() {
+        return PROCESS_MONITORS;
+    }
 
-    private Map<String, IEventsState> loadProcessFromWorkSpace(String urlMetadata, String urlWorkspace) throws ProcessingStorageWorkspaceException {
+    private Map<String, IEventsState> loadProcessFromWorkSpace(String urlMetadata, String urlWorkspace)
+        throws ProcessingStorageWorkspaceException {
         if (!PROCESS_MONITORS.isEmpty()) {
             return PROCESS_MONITORS;
         }
@@ -323,8 +395,8 @@ public class ProcessManagementImpl implements ProcessManagement {
                         .setUrlMetadata(urlMetadata)
                         .setUrlWorkspace(urlWorkspace)
                         .setLogbookTypeProcess(processWorkflow.getLogbookTypeProcess())
-                        .setContainerName(operationId);
-
+                        .setContainerName(operationId)
+                        .putParameterValue(WorkerParameterName.context, processWorkflow.getWorkflowId());
 
                 final ProcessEngine processEngine = ProcessEngineFactory.get().create(workerParameters,
                     this.processDistributor);
@@ -485,6 +557,7 @@ public class ProcessManagementImpl implements ProcessManagement {
         }
         return workflow;
     }
+
     @Override
     public ServerConfiguration getConfiguration() {
         return config;

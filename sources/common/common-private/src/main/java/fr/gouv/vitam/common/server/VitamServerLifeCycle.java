@@ -25,52 +25,49 @@
  *  accept its terms.
  */
 
-package fr.gouv.vitam.processing.common.automation;
+package fr.gouv.vitam.common.server;
 
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.model.PauseOrCancelAction;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.lifecycle.ProcessLifeCycle;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import org.eclipse.jetty.util.component.LifeCycle;
+import org.eclipse.jetty.util.component.LifeCycle.Listener;
+
+import java.util.concurrent.CountDownLatch;
 
 /**
- * This implemented by the state machine and passed to the ProcessEngine
- * ProcessEngine can with this callback the state machine and update it with the information about the execution of step with her status code
+ * VitamServerLifeCycle is used to be able to do actions when server is going to stop or when started
+ * This implementation is for jetty server.
+ * Add this listener using the method addLifeCycleListener of jetty server
  */
-public interface IEventsProcessEngine {
+public class VitamServerLifeCycle implements Listener {
 
-    /**
-     * Update the current step status code
-     * @param statusCode
-     */
-    void onUpdate(StatusCode statusCode);
+    private ProcessLifeCycle processLifeCycle;
 
-    /**
-     * @param messageIdentifier
-     * @param prodService
-     */
-    void onUpdate(String messageIdentifier, String prodService);
-
-    /**
-     * The ProcessEngine callback on complete step (for any status code)
-     *
-     * @param itemStatus
-     * @param workerParameters
-     */
-    void onComplete(ItemStatus itemStatus, WorkerParameters workerParameters);
+    public VitamServerLifeCycle(ProcessLifeCycle processLifeCycle) {
+        ParametersChecker.checkParameter("The parameter processLifeCycle is required", processLifeCycle);
+        this.processLifeCycle = processLifeCycle;
+    }
 
 
-    /**
-     * The ProcessEngine callback onPauseOrCancel when the step is paused or cancelled
-     * @param pauseOrCancelAction
-     * @param workerParameters
-     */
-    void onPauseOrCancel(PauseOrCancelAction pauseOrCancelAction, WorkerParameters workerParameters);
+    @Override
+    public void lifeCycleStarting(LifeCycle event) {}
 
-    /**
-     * The ProcessEngine callback on system error occurred
-     *
-     * @param throwable
-     * @param workerParameters
-     */
-    void onError(Throwable throwable, WorkerParameters workerParameters);
+    @Override
+    public void lifeCycleStarted(LifeCycle event) {
+        VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> processLifeCycle.startProcess());
+    }
+
+    @Override
+    public void lifeCycleFailure(LifeCycle event, Throwable cause) {
+    }
+
+    @Override
+    public void lifeCycleStopping(LifeCycle event) {
+        processLifeCycle.stopProcess();
+    }
+
+    @Override
+    public void lifeCycleStopped(LifeCycle event) {
+    }
 }

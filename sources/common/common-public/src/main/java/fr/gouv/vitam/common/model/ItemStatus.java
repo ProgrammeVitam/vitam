@@ -55,6 +55,7 @@ public class ItemStatus {
 
     @JsonProperty("itemsStatus")
     private LinkedHashMap<String, ItemStatus> itemsStatus = new LinkedHashMap<>();
+    @JsonProperty("subTaskStatus")
     private LinkedHashMap<String, ItemStatus> subTaskStatus = new LinkedHashMap<>();
 
 
@@ -356,10 +357,10 @@ public class ItemStatus {
     public ItemStatus setItemsStatus(ItemStatus compositeItemStatus) {
 
         ParametersChecker.checkParameter(MANDATORY_PARAMETER, compositeItemStatus);
-        if (compositeItemStatus.getItemsStatus() != null && !compositeItemStatus.getItemsStatus().isEmpty()) {
-            // update statusMeter, globalStatus
-            increment(compositeItemStatus.getGlobalStatus());
+        // update statusMeter, globalStatus
+        increment(compositeItemStatus.getGlobalStatus());
 
+        if (compositeItemStatus.getItemsStatus() != null && !compositeItemStatus.getItemsStatus().isEmpty()) {
             // update itemStatus
             for (final Entry<String, ItemStatus> itemStatus : compositeItemStatus.getItemsStatus()
                 .entrySet()) {

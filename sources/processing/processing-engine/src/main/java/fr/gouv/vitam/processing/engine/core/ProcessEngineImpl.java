@@ -26,14 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.engine.core;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -61,15 +56,20 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.automation.IEventsProcessEngine;
 import fr.gouv.vitam.processing.common.exception.ProcessingEngineException;
 import fr.gouv.vitam.processing.common.model.Action;
+import fr.gouv.vitam.processing.common.model.PauseOrCancelAction;
+import fr.gouv.vitam.processing.common.model.PauseRecover;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+
 /**
  * ProcessEngineImpl class manages the context and call a process distributor
- *
  */
 public class ProcessEngineImpl implements ProcessEngine {
 
@@ -93,18 +93,35 @@ public class ProcessEngineImpl implements ProcessEngine {
         this.workerParameters.setProcessId(processId.getId());
     }
 
-    @Override public void setCallback(IEventsProcessEngine callback) {
+    @Override
+    public void setCallback(IEventsProcessEngine callback) {
         this.callback = callback;
     }
 
+    @Override
+    public boolean pause(String operationId) {
+        ParametersChecker.checkParameter("The parameter operationId is required", operationId);
+        return this.processDistributor.pause(operationId);
+    }
 
+    @Override
+    public boolean cancel(String operationId) {
+        ParametersChecker.checkParameter("The parameter operationId is required", operationId);
+        return this.processDistributor.cancel(operationId);
+    }
 
-    @Override public void start(ProcessStep step, WorkerParameters workerParameters, Map<String, String> params)
+    @Override
+    public void start(ProcessStep step, WorkerParameters workerParameters, Map<String, String> params,
+        PauseRecover pauseRecover)
         throws ProcessingEngineException {
-        if (null == callback) throw new ProcessingEngineException("IEventsProcessEngine is required");
-        if (null == step) throw new ProcessingEngineException("The paramter step cannot be null");;
+        if (null == callback)
+            throw new ProcessingEngineException("IEventsProcessEngine is required");
+        if (null == step)
+            throw new ProcessingEngineException("The paramter step cannot be null");
+        ;
 
-        if (null != params) this.engineParams = params;
+        if (null != params)
+            this.engineParams = params;
         if (null != workerParameters) {
             for (final WorkerParameterName key : workerParameters.getMapParameters().keySet()) {
                 if (this.workerParameters.getParameterValue(key) == null) {
@@ -115,9 +132,9 @@ public class ProcessEngineImpl implements ProcessEngine {
 
         // if the current state is completed or pause, do not start the step
         final String operationId = this.workerParameters.getContainerName();
-
-        LOGGER.info("Start Workflow: " + step.getId() + " Step:" + step.getStepName());
-
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Start Workflow: " + step.getId() + " Step:" + step.getStepName());
+        }
         final int tenantId = ParameterHelper.getTenantParameter();
         final LogbookTypeProcess logbookTypeProcess = this.workerParameters.getLogbookTypeProcess();
 
@@ -137,7 +154,9 @@ public class ProcessEngineImpl implements ProcessEngine {
         final LogbookOperationParameters logbookParameter = parameters;
 
         // update the process monitoring for this step
-        callback.onUpdate(StatusCode.STARTED);
+        if (!PauseOrCancelAction.ACTION_RECOVER.equals(step.getPauseOrCancelAction())) {
+            callback.onUpdate(StatusCode.STARTED);
+        }
 
         this.workerParameters.setCurrentStep(step.getStepName());
 
@@ -145,7 +164,7 @@ public class ProcessEngineImpl implements ProcessEngine {
             // call distributor in async mode
             .supplyAsync(() -> {
                 try {
-                    return callDistributor(step, this.workerParameters, operationId);
+                    return callDistributor(step, this.workerParameters, operationId, pauseRecover);
 
                 } catch (Exception e) {
                     throw new RuntimeException(e);
@@ -154,7 +173,21 @@ public class ProcessEngineImpl implements ProcessEngine {
             // When the distributor responds, finalize the logbook persistence
             .thenApply(distributorResponse -> {
                 try {
-                    logbookAfterDistributorCall(step, this.workerParameters, tenantId, logbookTypeProcess, logbookParameter, distributorResponse);
+                    //Do not log if stop or cancel occurs
+
+                    ItemStatus pauseCancel =
+                        distributorResponse.getItemsStatus().get(PauseOrCancelAction.ACTION_PAUSE.name());
+                    if (null != pauseCancel) {
+                        return distributorResponse;
+                    }
+
+                    pauseCancel = distributorResponse.getItemsStatus().get(PauseOrCancelAction.ACTION_CANCEL.name());
+                    if (null != pauseCancel) {
+                        return distributorResponse;
+                    }
+
+                    logbookAfterDistributorCall(step, this.workerParameters, tenantId, logbookTypeProcess,
+                        logbookParameter, distributorResponse);
                     return distributorResponse;
                 } catch (Exception e) {
                     throw new RuntimeException(e);
@@ -162,6 +195,19 @@ public class ProcessEngineImpl implements ProcessEngine {
             })
             // Finally handle event of evaluation (state and status and persistence/remove to/from workspace
             .thenApply(distributorResponse -> {
+                ItemStatus pauseCancel =
+                    distributorResponse.getItemsStatus().get(PauseOrCancelAction.ACTION_PAUSE.name());
+                if (null != pauseCancel) {
+                    callback.onPauseOrCancel(PauseOrCancelAction.ACTION_PAUSE, this.workerParameters);
+                    return distributorResponse;
+                }
+
+                pauseCancel = distributorResponse.getItemsStatus().get(PauseOrCancelAction.ACTION_CANCEL.name());
+                if (null != pauseCancel) {
+                    callback.onPauseOrCancel(PauseOrCancelAction.ACTION_CANCEL, this.workerParameters);
+                    return distributorResponse;
+                }
+
                 callback.onComplete(distributorResponse, this.workerParameters);
                 return distributorResponse;
             })
@@ -173,19 +219,9 @@ public class ProcessEngineImpl implements ProcessEngine {
             });
     }
 
-
-    @Override public void pause() {
-        // TODO: 5/31/17 When start save the current step to use in pause and call distributor to pause the step
-        throw new RuntimeException("Method not yet implemented");
-    }
-
-    @Override public void cancel() {
-        // TODO: 5/31/17 When start save the current step to use in cancel and call distributor to cancel the step
-        throw new RuntimeException("Method not yet implemented");
-    }
-
     /**
      * Log operation before calling the distributor
+     *
      * @param step
      * @param workParams
      * @param tenantId
@@ -213,6 +249,12 @@ public class ProcessEngineImpl implements ProcessEngine {
         parameters.putParameterValue(
             LogbookParameterName.outcomeDetail,
             messageLogbookEngineHelper.getOutcomeDetail(step.getStepName(), StatusCode.STARTED));
+
+        // do not re-save the logbook as saved before stop
+        if (PauseOrCancelAction.ACTION_RECOVER.equals(step.getPauseOrCancelAction())) {
+            return parameters;
+        }
+
         try (final LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
             logbookClient.update(parameters);
         }
@@ -223,14 +265,17 @@ public class ProcessEngineImpl implements ProcessEngine {
 
     /**
      * Call distributor to start the given step
+     *
      * @param step
      * @param workParams
      * @param operationId
+     * @param recoverFromStop should be true only for the first step to be executed after stop of the process workflow
      * @return
      */
-    private ItemStatus callDistributor(ProcessStep step, WorkerParameters workParams, String operationId) {
+    private ItemStatus callDistributor(ProcessStep step, WorkerParameters workParams, String operationId,
+        PauseRecover pauseRecover) {
 
-        final ItemStatus stepResponse = processDistributor.distribute(workParams, step, operationId);
+        final ItemStatus stepResponse = processDistributor.distribute(workParams, step, operationId, pauseRecover);
         try {
             processDistributor.close();
         } catch (final Exception exc) {
@@ -241,6 +286,7 @@ public class ProcessEngineImpl implements ProcessEngine {
 
     /**
      * Log operation after distributor response
+     *
      * @param step
      * @param workParams
      * @param tenantId
@@ -251,8 +297,8 @@ public class ProcessEngineImpl implements ProcessEngine {
      * @throws LogbookClientNotFoundException
      * @throws LogbookClientBadRequestException
      * @throws LogbookClientServerException
-     * @throws JsonProcessingException 
-     * @throws InvalidParseOperationException 
+     * @throws JsonProcessingException
+     * @throws InvalidParseOperationException
      */
     private void logbookAfterDistributorCall(ProcessStep step, WorkerParameters workParams, int tenantId,
         LogbookTypeProcess logbookTypeProcess, LogbookOperationParameters parameters, ItemStatus stepResponse)
@@ -277,7 +323,7 @@ public class ProcessEngineImpl implements ProcessEngine {
                 actionParameters.putParameterValue(
                     LogbookParameterName.outcomeDetail, messageLogbookEngineHelper
                         .getOutcomeDetail(handlerId, StatusCode
-                        .STARTED));
+                            .STARTED));
                 helper.updateDelegate(actionParameters);
                 if (itemStatus instanceof ItemStatus) {
                     final ItemStatus actionStatus = itemStatus;
@@ -294,7 +340,8 @@ public class ProcessEngineImpl implements ProcessEngine {
                                 GUIDReader.getGUID(workParams.getContainerName()));
 
                         startParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                            messageLogbookEngineHelper.getOutcomeDetail(handlerId, sub.getItemId(), StatusCode.STARTED));
+                            messageLogbookEngineHelper
+                                .getOutcomeDetail(handlerId, sub.getItemId(), StatusCode.STARTED));
                         helper.updateDelegate(startParameters);
 
                         final LogbookOperationParameters sublogbook =
@@ -326,8 +373,8 @@ public class ProcessEngineImpl implements ProcessEngine {
                         GUIDReader.getGUID(workParams.getContainerName()));
                 if (itemStatus.getMasterData() != null) {
                     JsonNode value = JsonHandler.toJsonNode(itemStatus.getMasterData());
-                    sublogbook.putParameterValue(LogbookParameterName.masterData, JsonHandler.writeAsString(value));                    
-                }               
+                    sublogbook.putParameterValue(LogbookParameterName.masterData, JsonHandler.writeAsString(value));
+                }
                 if (itemStatus.getEvDetailData() != null) {
                     final String eventDetailData =
                         itemStatus.getEvDetailData().toString();
@@ -346,7 +393,8 @@ public class ProcessEngineImpl implements ProcessEngine {
                     GUIDReader.getGUID(workParams.getContainerName()),
                     logbookTypeProcess,
                     itemStatusObjectListEmpty.getGlobalStatus(),
-                    messageLogbookEngineHelper.getLabelOp(OBJECTS_LIST_EMPTY, itemStatusObjectListEmpty.getGlobalStatus()),
+                    messageLogbookEngineHelper
+                        .getLabelOp(OBJECTS_LIST_EMPTY, itemStatusObjectListEmpty.getGlobalStatus()),
                     GUIDReader.getGUID(workParams.getContainerName()));
             helper.updateDelegate(actionParameters);
         }
@@ -363,7 +411,8 @@ public class ProcessEngineImpl implements ProcessEngine {
         String prodService = prodserviceMap.get(processId);
         if (prodService == null) {
             if (stepResponse.getData(LogbookParameterName.agentIdentifierOriginating.name()) != null) {
-                prodService = (String)stepResponse.getData(LogbookParameterName.agentIdentifierOriginating.name().toString());
+                prodService =
+                    (String) stepResponse.getData(LogbookParameterName.agentIdentifierOriginating.name().toString());
                 prodserviceMap.put(processId.getId(), prodService);
             }
         }
@@ -404,7 +453,9 @@ public class ProcessEngineImpl implements ProcessEngine {
 
         // update the process with the final status
         callback.onUpdate(stepResponse.getGlobalStatus());
-        LOGGER.info("End Workflow: " + step.getId() + " Step:" + step.getStepName());
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("End Workflow: " + step.getId() + " Step:" + step.getStepName());
+        }
     }
 }
 

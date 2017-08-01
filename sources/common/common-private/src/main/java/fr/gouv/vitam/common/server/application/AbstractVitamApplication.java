@@ -199,6 +199,12 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
         try {
             configureVitamParameters();
             setConfiguration(configuration);
+
+            final String jettyConfig = getConfiguration().getJettyConfig();
+
+            LOGGER.info(role + " Starts with jetty config");
+            vitamServer = VitamServerFactory.newVitamServerByJettyConf(jettyConfig);
+            registerLifeCycleListener();
             applicationHandlers = new ContextHandlerCollection();
             /*
              * Order is important, first add buildApplicationHandler, then add buildAdminHandler In most sub-classes, an
@@ -214,10 +220,6 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
                 applicationHandlers.addHandler(adminHandler);
             }
 
-            final String jettyConfig = getConfiguration().getJettyConfig();
-
-            LOGGER.info(role + " Starts with jetty config");
-            vitamServer = VitamServerFactory.newVitamServerByJettyConf(jettyConfig);
             if (vitamServer != null) {
                 vitamServer.configure(applicationHandlers);
             }
@@ -435,7 +437,6 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
     public final void run() throws VitamApplicationServerException {
         if (vitamServer != null && !vitamServer.isStarted()) {
             startMetrics();
-            registerLifeCycleListener();
             vitamServer.startAndJoin();
         } else if (vitamServer == null) {
             throw new VitamApplicationServerException("VitamServer is not ready to be started");
@@ -445,7 +446,6 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
     @Override
     public final void start() throws VitamApplicationServerException {
         if (vitamServer != null && !vitamServer.isStarted()) {
-            registerLifeCycleListener();
             vitamServer.start();
         } else if (vitamServer == null) {
             throw new VitamApplicationServerException("VitamServer is not ready to be started");
@@ -490,7 +490,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
     /**
      * register LifeCycle Listener for jetty
      */
-    private void registerLifeCycleListener() {
+    protected void registerLifeCycleListener() {
         if (!VitamConfiguration.isIntegrationTest()) {
             vitamServer.getServer().addLifeCycleListener(new Listener() {
                 @Override

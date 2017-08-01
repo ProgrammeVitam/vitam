@@ -26,6 +26,7 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
+import fr.gouv.vitam.common.lifecycle.ProcessLifeCycle;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
@@ -45,7 +46,8 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
  * This service will be invoked by Ingest Module
  *
  */
-public interface ProcessManagement extends VitamAutoCloseable {
+public interface ProcessManagement extends ProcessLifeCycle, VitamAutoCloseable {
+
 
 
     /**

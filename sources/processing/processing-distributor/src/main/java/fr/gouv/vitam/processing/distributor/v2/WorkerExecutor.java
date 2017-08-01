@@ -61,12 +61,15 @@ public class WorkerExecutor implements Runnable {
                 if (checkIfWorkerThreadIsAlive(task)) {
                     break;
                 }
-
-                LOGGER.info("Start task run on worker: " + workerBean.getName());
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Start task run on worker: " + workerBean.getName());
+                }
                 try {
                     task.run();
                 } finally {
-                    LOGGER.info("End task run on worker: " + workerBean.getName());
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("End task run on worker: " + workerBean.getName());
+                    }
 
                 }
             }

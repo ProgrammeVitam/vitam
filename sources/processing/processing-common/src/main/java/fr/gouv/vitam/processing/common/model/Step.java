@@ -26,25 +26,19 @@
  ******************************************************************************/
 package fr.gouv.vitam.processing.common.model;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import fr.gouv.vitam.common.SingletonUtils;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+
+import java.util.List;
 
 /**
  * Step Object in process workflow
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Step {
-    @JsonIgnore
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(Step.class);
-
 
     private String id;
 
@@ -56,6 +50,8 @@ public class Step {
     private List<Action> actions;
     @JsonIgnore
     private ItemStatus stepResponses;
+
+    private volatile PauseOrCancelAction pauseOrCancelAction = PauseOrCancelAction.ACTION_RUN;
 
 
     public String getId() {
@@ -79,7 +75,6 @@ public class Step {
     }
 
     /**
-     *
      * @param actions the list of actions
      * @return the updated Step object
      */
@@ -89,7 +84,6 @@ public class Step {
     }
 
     /**
-     *
      * @return workerGroupId the id of the WorkerGroup for the step
      */
     public String getWorkerGroupId() {
@@ -100,7 +94,6 @@ public class Step {
     }
 
     /**
-     *
      * @param workerGroupId the id of the WorkerGroup for the step
      * @return the updated Step object
      */
@@ -176,7 +169,6 @@ public class Step {
 
     /**
      * @param stepResponses the stepResponses to set
-     *
      * @return this
      */
     public Step setStepResponses(ItemStatus stepResponses) {
@@ -194,13 +186,21 @@ public class Step {
         }
         return false;
     }
-    
+
     /**
-     * 
      * @return True if this step is blocking
      */
     @JsonIgnore
     public boolean isBlocking() {
         return getBehavior().equals(ProcessBehavior.BLOCKING);
+    }
+
+    public PauseOrCancelAction getPauseOrCancelAction() {
+        return pauseOrCancelAction;
+    }
+
+    public Step setPauseOrCancelAction(PauseOrCancelAction pauseOrCancelAction) {
+        this.pauseOrCancelAction = pauseOrCancelAction;
+        return this;
     }
 }

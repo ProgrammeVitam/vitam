@@ -81,7 +81,7 @@ public class ServerApplicationTest {
         new ServerApplication("ihm-demo-test-noPort.conf");
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = IllegalStateException.class)
     public void givenConfigFileWithoutJettyConfigThenRaiseAnException() throws Exception {
         new ServerApplication(new WebApplicationConfig());
     }

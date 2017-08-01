@@ -26,22 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.engine.core;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyObject;
-
-import fr.gouv.vitam.common.model.ProcessState;
-import fr.gouv.vitam.processing.common.automation.IEventsState;
-import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
-import fr.gouv.vitam.processing.engine.api.ProcessEngine;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.Matchers;
-import org.mockito.Mockito;
-
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -51,14 +35,33 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.processing.common.automation.IEventsProcessEngine;
+import fr.gouv.vitam.processing.common.automation.IEventsState;
+import fr.gouv.vitam.processing.common.exception.ProcessingEngineException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.model.PauseRecover;
+import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.common.utils.ProcessPopulator;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccess;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
+import fr.gouv.vitam.processing.engine.api.ProcessEngine;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.InOrder;
+
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Do not forget init method on test method !
@@ -84,61 +87,98 @@ public class ProcessEngineImplTest {
     @Before
     public void init() throws WorkflowNotFoundException, ProcessingException {
         workParams = WorkerParametersFactory.newWorkerParameters();
-        workParams.setWorkerGUID(GUIDFactory.newGUID()).setUrlMetadata("http://localhost:8083")
+        workParams.setWorkerGUID(GUIDFactory.newGUID())
+            .setUrlMetadata("http://localhost:8083")
             .setUrlWorkspace("http://localhost:8083")
-            .setContainerName(GUIDFactory.newGUID().getId());
+            .setContainerName(GUIDFactory.newGUID().getId())
+            .setLogbookTypeProcess(LogbookTypeProcess.INGEST_TEST);
 
-        processDistributor = Mockito.mock(ProcessDistributor.class);
+        processDistributor = mock(ProcessDistributor.class);
         processMonitoring = ProcessMonitoringImpl.getInstance();
 
         processData = ProcessDataAccessImpl.getInstance();
+        processEngine =
+            ProcessEngineFactory.get().create(workParams, processDistributor);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void pauseTestParamRequiredKO() throws Exception {
+        processEngine.pause(null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void cancelTestParamRequiredKO() throws Exception {
+        processEngine.cancel(null);
+    }
+
+
+    @Test
+    public void pauseTestOK() throws Exception {
+        processEngine.pause("fakeOperationId");
+        verify(processDistributor).pause(anyString());
+    }
+
+    @Test
+    public void cancelTestOK() throws Exception {
+        processEngine.cancel("fakeOperationId");
+        verify(processDistributor).cancel(anyString());
     }
 
     @Test
     @RunWithCustomExecutor
-    public void processEngineTest() throws Exception {
+    public void startTestKO() throws Exception {
 
         final ProcessWorkflow processWorkflow =
             processData.initProcessWorkflow(ProcessPopulator.populate(WORKFLOW_FILE), workParams.getContainerName(),
-                    LogbookTypeProcess.INGEST, TENANT_ID);
-
-        processEngine = ProcessEngineFactory.get().create(WorkerParametersFactory.newWorkerParameters(), processDistributor);
+                LogbookTypeProcess.INGEST, TENANT_ID);
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        Mockito.when(processDistributor.distribute(anyObject(), anyObject(), anyObject()))
+        when(processDistributor.distribute(anyObject(), anyObject(), anyObject(), anyObject()))
             .thenReturn(new ItemStatus().increment(StatusCode.OK));
 
-
-        processEngine.start(processWorkflow.getSteps().iterator().next(), workParams, null);
-        // TODO: 5/27/17  complete test
-
-        assertTrue(processWorkflow.getSteps().size() == 1);
-
+        IEventsProcessEngine iEventsProcessEngine = mock(IEventsProcessEngine.class);
+        processEngine.setCallback(iEventsProcessEngine);
+        processEngine.start(processWorkflow.getSteps().iterator().next(), workParams, null, PauseRecover.NO_RECOVER);
+        InOrder inOrders = inOrder(processDistributor, iEventsProcessEngine);
+        inOrders.verify(iEventsProcessEngine).onUpdate(anyObject());
+        inOrders.verify(processDistributor).distribute(anyObject(), anyObject(), anyObject(), anyObject());
+        inOrders.verify(iEventsProcessEngine).onComplete(anyObject(), anyObject());
     }
 
     @Test
     @RunWithCustomExecutor
-    public void processEngineTestWithFinallyStep() throws Exception {
+    public void startTestOK() throws Exception {
 
         final ProcessWorkflow processWorkflow =
-            processData.initProcessWorkflow(ProcessPopulator.populate(WORKFLOW_WITH_FINALLY_STEP),
-                workParams.getContainerName(), LogbookTypeProcess.INGEST, TENANT_ID);
-
-        processEngine = ProcessEngineFactory.get().create(WorkerParametersFactory.newWorkerParameters(), processDistributor);
-
+            processData.initProcessWorkflow(ProcessPopulator.populate(WORKFLOW_FILE), workParams.getContainerName(),
+                LogbookTypeProcess.INGEST, TENANT_ID);
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        final ItemStatus responses = new ItemStatus("stepName");
-        responses.increment(StatusCode.OK);
+        when(processDistributor.distribute(anyObject(), anyObject(), anyObject(), anyObject()))
+            .thenReturn(new ItemStatus().increment(StatusCode.OK));
 
-        Mockito.when(processDistributor.distribute(Matchers.anyObject(), Matchers.anyObject(), Matchers.anyObject()))
-            .thenReturn(responses);
+        IEventsProcessEngine iEventsProcessEngine = mock(IEventsProcessEngine.class);
+        processEngine.setCallback(iEventsProcessEngine);
+        processEngine.start(processWorkflow.getSteps().iterator().next(), workParams, null, PauseRecover.NO_RECOVER);
 
-        processEngine.start(processWorkflow.getSteps().iterator().next(), workParams, null);
+        // Because of start is async
+        // Sleep to be sur that completableFeature is called in the Engine
+        Thread.sleep(5);
 
-        // TODO: 5/27/17 complete test
-        assertTrue(processWorkflow.getSteps().size() == 2);
+        InOrder inOrders = inOrder(processDistributor, iEventsProcessEngine);
+        inOrders.verify(iEventsProcessEngine).onUpdate(anyObject());
+        inOrders.verify(processDistributor).distribute(anyObject(), anyObject(), anyObject(), anyObject());
+        inOrders.verify(iEventsProcessEngine).onComplete(anyObject(), anyObject());
+    }
+
+    @Test(expected = ProcessingEngineException.class)
+    @RunWithCustomExecutor
+    public void startTestIEventsProcessEngineRequiredKO() throws Exception {
+        final ProcessWorkflow processWorkflow =
+            processData.initProcessWorkflow(ProcessPopulator.populate(WORKFLOW_FILE), workParams.getContainerName(),
+                LogbookTypeProcess.INGEST, TENANT_ID);
+        processEngine.start(processWorkflow.getSteps().iterator().next(), workParams, null, PauseRecover.NO_RECOVER);
     }
 }

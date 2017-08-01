@@ -26,34 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.rest;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
-
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.codahale.metrics.Gauge;
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.common.lifecycle.ProcessLifeCycle;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -70,8 +50,8 @@ import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.model.WorkFlow;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
@@ -79,6 +59,25 @@ import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoring;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.api.ProcessManagement;
 import fr.gouv.vitam.processing.management.core.ProcessManagementImpl;
+
+import javax.ws.rs.ApplicationPath;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 
 /**
@@ -100,32 +99,33 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     private final ProcessManagement processManagement;
     private final ProcessMonitoring processMonitoring;
     private final AtomicLong runningWorkflows = new AtomicLong(0L);
-    private ProcessDistributor processDistributor;
+
+
+
+    public ProcessLifeCycle getProcessLifeCycle() {
+        return processManagement;
+    }
 
     /**
      * ProcessManagementResource : initiate the ProcessManagementResource resources
      *
      * @param configuration the server configuration to be applied
      */
-    public ProcessManagementResource(ServerConfiguration configuration, ProcessDistributor processDistributor) throws ProcessingStorageWorkspaceException {
+    public ProcessManagementResource(ServerConfiguration configuration, ProcessDistributor processDistributor)
+        throws ProcessingStorageWorkspaceException {
         config = configuration;
         processManagement = new ProcessManagementImpl(config, processDistributor);
 
         processMonitoring = ProcessMonitoringImpl.getInstance();
         LOGGER.info("init Process Management Resource server");
         AbstractVitamApplication.getBusinessMetricsRegistry().register("Running workflows",
-            new Gauge<Long>() {
-                @Override
-                public Long getValue() {
-                    return runningWorkflows.get();
-                }
-            });
+            (Gauge<Long>) () -> runningWorkflows.get());
     }
 
     /**
      * For test purpose
      *
-     * @param pManagement the processManagement to mock
+     * @param pManagement   the processManagement to mock
      * @param configuration the configuration
      */
     ProcessManagementResource(ProcessManagement pManagement, ServerConfiguration configuration) {
@@ -143,7 +143,6 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     }
 
     /**
-     *
      * @param status
      * @param entity
      * @return
@@ -154,7 +153,6 @@ public class ProcessManagementResource extends ApplicationStatusResource {
 
     /**
      * Resume the asynchronous response following a given status and entity
-     *
      */
     private Response buildResponse(ItemStatus itemStatus) {
         return Response.status(itemStatus.getGlobalState().getEquivalentHttpStatus())
@@ -188,7 +186,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
      *
      * @param headers contain X-Action and X-Context-ID
      * @param process as Json of type ProcessingEntry, indicate the container and workflowId
-     * @param id operation identifier
+     * @param id      operation identifier
      * @throws ProcessingException if error in start a workflow
      */
     @Path("operations/{id}")
@@ -295,7 +293,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     /**
      * get the workflow status
      *
-     * @param id operation identifier
+     * @param id    operation identifier
      * @param query the query
      * @return http response
      */
@@ -342,7 +340,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
      * Update the status of an operation.
      *
      * @param headers contain X-Action and X-Context-ID
-     * @param id operation identifier
+     * @param id      operation identifier
      */
     @Path("operations/{id}")
     @PUT
@@ -493,7 +491,6 @@ public class ProcessManagementResource extends ApplicationStatusResource {
      * get the process workflow
      *
      * @param query the filter query
-     * 
      * @return the workflow in response
      */
     @GET

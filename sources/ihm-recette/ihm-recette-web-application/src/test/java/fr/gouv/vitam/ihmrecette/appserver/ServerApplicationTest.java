@@ -79,7 +79,7 @@ public class ServerApplicationTest {
         junitHelper.releasePort(port);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = IllegalStateException.class)
     public void givenConfigFileWithoutJettyConfigThenRaiseAnException() throws Exception {
         WebApplicationConfig config = new WebApplicationConfig();
         config.setMongoDbNodes(new ArrayList<MongoDbNode>());

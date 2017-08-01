@@ -32,9 +32,12 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.processing.common.model.PauseOrCancelAction;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
+import fr.gouv.vitam.processing.common.model.WorkerTaskState;
 import fr.gouv.vitam.worker.client.WorkerClient;
 import fr.gouv.vitam.worker.client.WorkerClientConfiguration;
 import fr.gouv.vitam.worker.client.WorkerClientFactory;
@@ -54,6 +57,7 @@ public class WorkerTask implements Supplier<ItemStatus> {
     private final DescriptionStep descriptionStep;
     private final int tenantId;
     private final String requestId;
+    private volatile WorkerTaskState workerTaskState = WorkerTaskState.PENDING;
 
     public WorkerTask(DescriptionStep descriptionStep, int tenantId, String requestId) {
         ParametersChecker.checkParameter("Params are required", descriptionStep, requestId);
@@ -68,7 +72,10 @@ public class WorkerTask implements Supplier<ItemStatus> {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
 
         final WorkerBean workerBean = WorkerInformation.getWorkerThreadLocal().get().getWorkerBean();
-        LOGGER.info("Start executing of task number :" + descriptionStep.getStep().getStepName() + " on worker: " + workerBean.getWorkerId());
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Start executing of task number :" + descriptionStep.getStep().getStepName() + " on worker: " +
+                workerBean.getWorkerId());
+        }
         try {
 
             final WorkerClientConfiguration configuration = new WorkerClientConfiguration(
@@ -78,7 +85,30 @@ public class WorkerTask implements Supplier<ItemStatus> {
             WorkerClientFactory.changeMode(configuration);
 
             try (WorkerClient workerClient = WorkerClientFactory.getInstance(configuration).getClient()) {
-                return workerClient.submitStep(descriptionStep);
+
+                switch (descriptionStep.getStep().getPauseOrCancelAction()) {
+                    case ACTION_RUN:
+                    case ACTION_RECOVER:
+                        workerTaskState = WorkerTaskState.RUNNING;
+                        return workerClient.submitStep(descriptionStep);
+                    case ACTION_PAUSE:
+                        // The current elements will be persisted in the distributorIndex in the remaining elements
+                        workerTaskState = WorkerTaskState.PAUSE;
+                        return new ItemStatus(PauseOrCancelAction.ACTION_PAUSE.name())
+                            .setItemsStatus(PauseOrCancelAction.ACTION_PAUSE.name(),
+                                new ItemStatus(PauseOrCancelAction.ACTION_PAUSE.name())
+                                    .increment(StatusCode.UNKNOWN));
+                    case ACTION_COMPLETE:
+                        throw new WorkerExecutorException("Step already completed");
+                    case ACTION_CANCEL:
+                        workerTaskState = WorkerTaskState.CANCEL;
+                        return new ItemStatus(PauseOrCancelAction.ACTION_CANCEL.name())
+                            .setItemsStatus(PauseOrCancelAction.ACTION_CANCEL.name(),
+                                new ItemStatus(PauseOrCancelAction.ACTION_CANCEL.name())
+                                    .increment(StatusCode.UNKNOWN));
+                    default:
+                        throw new WorkerExecutorException("The default case should not be handled");
+                }
             } catch (WorkerNotFoundClientException | WorkerServerClientException e) {
                 // check status
                 boolean checkStatus = false;
@@ -92,20 +122,17 @@ public class WorkerTask implements Supplier<ItemStatus> {
                         try {
                             this.wait(1000);
                         } catch (final InterruptedException e1) {
-                            LOGGER.error(e);
+                            LOGGER.warn(e);
                         }
                     }
                 }
                 if (!checkStatus) {
-                    LOGGER.error(e);
                     throw new WorkerUnreachableException(workerBean.getWorkerId(), e);
                 }
-                LOGGER.error(e);
                 throw new WorkerExecutorException(e);
             }
 
         } catch (Exception e) {
-            LOGGER.error(e);
             if (e instanceof WorkerUnreachableException) {
                 throw e;
             }
@@ -116,7 +143,14 @@ public class WorkerTask implements Supplier<ItemStatus> {
 
             throw new WorkerExecutorException(e);
         } finally {
-            LOGGER.info("End executing of task number :" + descriptionStep.getStep().getStepName() + " on worker: " + workerBean.getWorkerId());
+            if (!WorkerTaskState.PAUSE.equals(workerTaskState) && !WorkerTaskState.CANCEL.equals(workerTaskState)) {
+                workerTaskState = WorkerTaskState.COMPLETED;
+            }
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER
+                    .debug("End executing of task number :" + descriptionStep.getStep().getStepName() + " on worker: " +
+                        workerBean.getWorkerId());
+            }
         }
     }
 
@@ -136,5 +170,13 @@ public class WorkerTask implements Supplier<ItemStatus> {
 
     public Step getStep() {
         return descriptionStep.getStep();
+    }
+
+    public String getObjectName() {
+        return descriptionStep.getWorkParams().getObjectName();
+    }
+
+    public boolean isCompleted() {
+        return WorkerTaskState.COMPLETED.equals(workerTaskState);
     }
 }

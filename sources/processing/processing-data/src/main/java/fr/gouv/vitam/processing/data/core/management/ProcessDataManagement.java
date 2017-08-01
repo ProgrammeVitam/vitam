@@ -27,13 +27,12 @@
 
 package fr.gouv.vitam.processing.data.core.management;
 
-import java.util.Map;
-
-import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.model.DistributorIndex;
 import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
+import fr.gouv.vitam.processing.common.model.DistributorIndex;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
+
+import java.util.Map;
 
 /**
  * Interface for process datas management service

@@ -26,11 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.data.core;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.ServerIdentity;
@@ -39,7 +34,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
@@ -48,6 +42,11 @@ import fr.gouv.vitam.processing.common.model.WorkFlow;
 import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * ProcessMonitoringImpl class implementing the ProcessMonitoring
@@ -105,8 +104,7 @@ public class ProcessDataAccessImpl implements ProcessDataAccess {
 
     @Override
     public void updateStep(String operationId, String uniqueStepId, long elementToProcess, boolean elementProcessed,
-        Integer tenantId)
-        throws ProcessingException {
+        Integer tenantId) {
 
         ProcessWorkflow processWorkflow = this.findOneProcessWorkflow(operationId, tenantId);
         for (ProcessStep step : processWorkflow.getSteps()) {
@@ -114,7 +112,7 @@ public class ProcessDataAccessImpl implements ProcessDataAccess {
                 if (elementProcessed) {
                     step.setElementProcessed(step.getElementProcessed() + 1);
                 } else {
-                    step.setElementToProcess(elementToProcess);
+                    step.setElementToProcess(step.getElementToProcess() + elementToProcess);
                 }
                 break;
             }

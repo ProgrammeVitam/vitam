@@ -28,8 +28,12 @@
 package fr.gouv.vitam.processing.common.automation;
 
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.model.PauseRecover;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * This interface expose the action to be executed by the ProcessManager
@@ -42,8 +46,82 @@ public interface IEventsState {
      * @param workerParameters
      * @throws StateNotAllowedException
      */
-    public void resume(WorkerParameters workerParameters) throws StateNotAllowedException, ProcessingException;
-    public void next(WorkerParameters workerParameters) throws StateNotAllowedException, ProcessingException;
-    public void pause() throws StateNotAllowedException;
-    public void cancel() throws StateNotAllowedException, ProcessingException;
+    void resume(WorkerParameters workerParameters) throws StateNotAllowedException, ProcessingException;
+
+    /**
+     * Like a resume but pause at the next step
+     * @param workerParameters
+     * @throws StateNotAllowedException
+     * @throws ProcessingException
+     */
+    void next(WorkerParameters workerParameters) throws StateNotAllowedException, ProcessingException;
+
+    /**
+     * Pause the processWorkflow,
+     * If the last step the just wait the finally step
+     * Else pause the processWorkflow as soon as possible
+     * Do not wait all elements of the current step to be executed
+     * The step pauseCancelAction will be updated to PauseOrCancelAction.ACTION_PAUSE
+     * If all elements of the current step are executed then stop correctly
+     * and step pauseCancelAction will be updated to PauseOrCancelAction.ACTION_COMPLETE
+     *
+     * After next or resume occurs on paused processWorkflow,
+     * It will starts from the step pauseCancelAction equals to PauseOrCancelAction.ACTION_PAUSE if exists
+     * and update pauseCancelAction to be PauseOrCancelAction.ACTION_RECOVER
+     * Else starts normally from the next step
+     * @throws StateNotAllowedException
+     */
+    void pause() throws StateNotAllowedException;
+
+    /**
+     * Should used only when server is shutting down
+     *
+     * To prevent deadlock, this method is not synchronized,
+     * Because onComplete and onPauseOrCancel are synchronized and called from ProcessEngine
+     * @throws StateNotAllowedException
+     */
+    void shutdown() throws StateNotAllowedException;
+
+    /**
+     * Cancel as soon as possible the processWorkflow,
+     * To do that, the step pauseCancelAction is updated to be PauseOrCancelAction.ACTION_CANCEL
+     * Unlike pause,
+     * - The finally step should be executed,
+     * - PauseOrCancelAction.ACTION_CANCEL have no impact on the finally step
+     * - The finally step cannot be cancelled
+     * @throws StateNotAllowedException
+     * @throws ProcessingException
+     */
+    void cancel() throws StateNotAllowedException, ProcessingException;
+
+    /**
+     * @return true is processWorkflow is completed or Pause
+     */
+    boolean isDone();
+
+    /**
+     * @return true is processWorkflow is Pause
+     */
+    boolean isRecover();
+
+    /**
+     * @return true if processWorkflow is running in stepByStep (next) mode or in continue mode (resume)
+     */
+    boolean isStepByStep();
+
+
+    /**
+     * @return The LogbookTypeProcess
+     */
+    LogbookTypeProcess getLogbookTypeProcess();
+
+    /**
+     * @return The tenantId of the processWorkflow
+     */
+    int getTenant();
+
+    /**
+     * @return The workflow Id
+     */
+    String getWorkflowId();
 }
