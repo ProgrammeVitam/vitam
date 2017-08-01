@@ -215,6 +215,7 @@ Pré-requis
 * OS récent (des problèmes ont été rencontrés avec Ubuntu 12.04)
 * Répertoire contenant un clone du dépôt git vitam/vitam
 * Utilisateur autre que root, soit appartenant au group  docker, soit ayant des capacités de sudo
+* Le répertoire ${HOME}/.m2 existe et accessible en écriture
 * Les ports "classiques" MongoDB (27017), Elasticsearch (9200, 9201), apache (80), SSL (8443) ne sont pas déjà attribués sur l'hôte
 
 Procédure
