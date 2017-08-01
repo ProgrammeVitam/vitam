@@ -2,8 +2,11 @@
 VITAM
 #####
 
-
 .. section-numbering::
+
+For a quick presentation in english, please follow `this link <README.en.rst>`_.
+
+
 
 .. image:: doc/fr/LogoVitamGrand2.png
         :alt: Logo Vitam (Bêta)
@@ -134,7 +137,7 @@ Instructions
 ************
 
 CentOS
--------
+------
 
 Pour construire les packages rpm dédiés :
 
@@ -149,7 +152,7 @@ Pour construire le cache des packages externes :
     ./rpm/vitam-external/build_repo.sh
 
 Debian
--------
+------
 
 Pour construire les packages deb dédiés :
 

@@ -63,7 +63,9 @@
                             <serverId>vitam</serverId>
 
                             <!-- This is not a mirror of node, if you update the version, please contact integration team -->
-                            <downloadRoot>https://dev.programmevitam.fr/nexus/content/sites/node-dist-mirror/</downloadRoot>
+                            <!--<downloadRoot>https://dev.programmevitam.fr/nexus/content/sites/node-dist-mirror/
+                            </downloadRoot> -->
+                            <downloadRoot>${nodeDownloadRoot}</downloadRoot>
                         </configuration>
                     </execution>
 
@@ -130,7 +132,7 @@
                     <distribution>Vitam Project</distribution>
                     <group>Application/Archiving</group>
                     <packager>Vitam Package Team</packager>
-                    <defineStatements />
+                    <defineStatements/>
                     <targetOS>linux</targetOS>
                     <requires>
                         <require>systemd</require>
