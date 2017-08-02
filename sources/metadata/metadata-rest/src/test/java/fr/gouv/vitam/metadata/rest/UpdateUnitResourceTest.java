@@ -30,11 +30,13 @@ import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.with;
 import static org.junit.Assume.assumeTrue;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.PropertiesUtils;
 import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -119,7 +121,7 @@ public class UpdateUnitResourceTest {
     private static int serverPort;
     private static int dataBasePort;
 
-    private static MetaDataApplication application;
+    private static MetadataMain application;
 
     private static ElasticsearchTestConfiguration config = null;
     private static ElasticsearchAccessMetadata esClient;
@@ -157,8 +159,12 @@ public class UpdateUnitResourceTest {
         configuration.setJettyConfig(JETTY_CONFIG);
         configuration.setTenants(tenantList);
         serverPort = junitHelper.findAvailablePort();
+        File configurationFile = tempFolder.newFile();
 
-        application = new MetaDataApplication(configuration);
+        PropertiesUtils.writeYaml(configurationFile, configuration);
+
+        application = new MetadataMain(configurationFile.getAbsolutePath());
+
         application.start();
         JunitHelper.unsetJettyPortSystemProperty();
 

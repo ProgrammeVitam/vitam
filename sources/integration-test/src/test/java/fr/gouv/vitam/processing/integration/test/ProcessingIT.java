@@ -34,6 +34,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -53,18 +54,6 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import javax.ws.rs.core.Response.Status;
-
-import org.bson.Document;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assume;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -76,7 +65,6 @@ import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.MongoIterable;
 import com.mongodb.client.model.Filters;
-
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -138,7 +126,7 @@ import fr.gouv.vitam.logbook.rest.LogbookApplication;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.UnitInheritedRule;
-import fr.gouv.vitam.metadata.rest.MetaDataApplication;
+import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
@@ -152,6 +140,15 @@ import fr.gouv.vitam.worker.server.rest.WorkerApplication;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
+import org.bson.Document;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assume;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 /**
  * Processing integration test
@@ -208,7 +205,7 @@ public class ProcessingIT {
     private static String CONFIG_SIEGFRIED_PATH = "";
 
     // private static VitamServer workerApplication;
-    private static MetaDataApplication metadataApplication;
+    private static MetadataMain metadataMain;
     private static WorkerApplication workerApplication;
     private static AdminManagementApplication adminApplication;
     private static LogbookApplication lgbapplication;
@@ -312,11 +309,11 @@ public class ProcessingIT {
 
         mongoClient = new MongoClient(new ServerAddress("localhost", DATABASE_PORT));
         // launch metadata
-        SystemPropertyUtil.set(MetaDataApplication.PARAMETER_JETTY_SERVER_PORT,
+        SystemPropertyUtil.set(MetadataMain.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_METADATA));
-        metadataApplication = new MetaDataApplication(CONFIG_METADATA_PATH);
-        metadataApplication.start();
-        SystemPropertyUtil.clear(MetaDataApplication.PARAMETER_JETTY_SERVER_PORT);
+        metadataMain = new MetadataMain(CONFIG_METADATA_PATH);
+        metadataMain.start();
+        SystemPropertyUtil.clear(MetadataMain.PARAMETER_JETTY_SERVER_PORT);
 
         MetaDataClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_METADATA));
 
@@ -384,7 +381,7 @@ public class ProcessingIT {
             workerApplication.stop();
             lgbapplication.stop();
             processManagementApplication.stop();
-            metadataApplication.stop();
+            metadataMain.stop();
             mongoClient.close();
         } catch (final Exception e) {
             LOGGER.error(e);

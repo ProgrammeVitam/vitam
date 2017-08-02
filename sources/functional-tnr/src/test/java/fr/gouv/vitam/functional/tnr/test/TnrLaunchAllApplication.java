@@ -33,6 +33,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.gouv.vitam.metadata.rest.MetadataMain;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -67,7 +68,6 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticse
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookApplication;
-import fr.gouv.vitam.metadata.rest.MetaDataApplication;
 import fr.gouv.vitam.processing.common.exception.PluginException;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementApplication;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
@@ -199,7 +199,7 @@ public class TnrLaunchAllApplication {
     private static String STORAGE_CONF = "";
 
     // private static VitamServer workerApplication;
-    private static MetaDataApplication medtadataApplication;
+    private static MetadataMain medtadataApplication;
     private static WorkerApplication wkrapplication;
     private static AdminManagementApplication adminApplication;
     private static LogbookApplication lgbapplication;
@@ -302,16 +302,16 @@ public class TnrLaunchAllApplication {
 
         // launch metadata
         LOGGER.warn("Start Metadata");
-        SystemPropertyUtil.set(MetaDataApplication.PARAMETER_JETTY_SERVER_PORT,
+        SystemPropertyUtil.set(MetadataMain.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_METADATA));
-        medtadataApplication = new MetaDataApplication(CONFIG_METADATA_PATH);
+        medtadataApplication = new MetadataMain(CONFIG_METADATA_PATH);
         try {
             medtadataApplication.start();
         } catch (VitamApplicationServerException e1) {
             LOGGER.error(e1);
             earlyShutdown();
         }
-        SystemPropertyUtil.clear(MetaDataApplication.PARAMETER_JETTY_SERVER_PORT);
+        SystemPropertyUtil.clear(MetadataMain.PARAMETER_JETTY_SERVER_PORT);
 
         // launch workspace
         LOGGER.warn("Start Workspace");

@@ -42,6 +42,8 @@ import java.util.List;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.bind.MarshalException;
 
+import com.google.common.collect.Lists;
+import fr.gouv.vitam.common.PropertiesUtils;
 import org.bson.Document;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -116,15 +118,11 @@ public class MetaDataResourceTest {
     private static int dataBasePort;
     private static int serverPort;
 
-    private static File newMetadataConf;
-    private static MetaDataApplication application;
+    private static MetadataMain application;
     private static ElasticsearchTestConfiguration config = null;
     static final int tenantId = 0;
-    static final List tenantList = new ArrayList() {{
-        add(tenantId);
-    }};
+    static final List tenantList = Lists.newArrayList(tenantId);
     private static final Integer TENANT_ID = 0;
-
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -159,7 +157,11 @@ public class MetaDataResourceTest {
         configuration.setTenants(tenantList);
         serverPort = junitHelper.findAvailablePort();
 
-        application = new MetaDataApplication(configuration);
+        File configurationFile = tempFolder.newFile();
+
+        PropertiesUtils.writeYaml(configurationFile, configuration);
+
+        application = new MetadataMain(configurationFile.getAbsolutePath());
         application.start();
         JunitHelper.unsetJettyPortSystemProperty();
 

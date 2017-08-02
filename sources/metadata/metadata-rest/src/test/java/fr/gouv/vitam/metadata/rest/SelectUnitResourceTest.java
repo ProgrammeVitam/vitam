@@ -31,11 +31,14 @@ import static com.jayway.restassured.RestAssured.with;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static org.junit.Assume.assumeTrue;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
+import com.google.common.collect.Lists;
+import fr.gouv.vitam.common.PropertiesUtils;
 import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -125,8 +128,7 @@ public class SelectUnitResourceTest {
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
     private static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
-    static final List tenantList =  new ArrayList(){{add(TENANT_ID);}};
-
+    static final List tenantList = Lists.newArrayList(TENANT_ID);
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
@@ -149,7 +151,7 @@ public class SelectUnitResourceTest {
     private static int serverPort;
     private static int dataBasePort;
 
-    private static MetaDataApplication application;
+    private static MetadataMain application;
 
     private static ElasticsearchTestConfiguration config = null;
 
@@ -186,7 +188,11 @@ public class SelectUnitResourceTest {
         configuration.setJettyConfig(JETTY_CONFIG);
         serverPort = junitHelper.findAvailablePort();
 
-        application = new MetaDataApplication(configuration);
+        File configurationFile = tempFolder.newFile();
+
+        PropertiesUtils.writeYaml(configurationFile, configuration);
+        application = new MetadataMain(configurationFile.getAbsolutePath());
+
         application.start();
         JunitHelper.unsetJettyPortSystemProperty();
 

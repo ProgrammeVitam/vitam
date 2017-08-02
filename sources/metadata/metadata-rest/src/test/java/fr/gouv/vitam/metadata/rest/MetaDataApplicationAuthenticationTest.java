@@ -80,7 +80,7 @@ public class MetaDataApplicationAuthenticationTest {
     public void testLauchApplication() throws Exception {
         final File newConf = File.createTempFile("test", METADATA_CONF, metadata.getParentFile());
         PropertiesUtils.writeYaml(newConf, metadataConfig);
-        final MetaDataApplication application = new MetaDataApplication(newConf.getAbsolutePath());
+        final MetadataMain application = new MetadataMain(newConf.getAbsolutePath());
         newConf.delete();
         application.stop();
     }

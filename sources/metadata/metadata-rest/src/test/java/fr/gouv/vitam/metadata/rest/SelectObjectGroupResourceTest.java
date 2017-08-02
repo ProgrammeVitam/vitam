@@ -30,11 +30,13 @@ import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.with;
 import static org.junit.Assume.assumeTrue;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.PropertiesUtils;
 import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -103,7 +105,7 @@ public class SelectObjectGroupResourceTest {
     private final static String HOST_NAME = "127.0.0.1";
     private static final Integer TENANT_ID = 0;
 
-    private static MetaDataApplication application;
+    private static MetadataMain application;
 
     private static final String BAD_QUERY_TEST =
         "{ \"$or\" : " + "[ " + "   {\"$exists\" : \"#id\"}, " + "   {\"$missing\" : \"mavar2\"}, " +
@@ -155,8 +157,13 @@ public class SelectObjectGroupResourceTest {
         configuration.setTenants(tenantList);
         serverPort = junitHelper.findAvailablePort();
 
-        application = new MetaDataApplication(configuration);
+        File configurationFile = tempFolder.newFile();
+
+        PropertiesUtils.writeYaml(configurationFile, configuration);
+
+        application = new MetadataMain(configurationFile.getAbsolutePath());
         application.start();
+
         JunitHelper.unsetJettyPortSystemProperty();
 
         RestAssured.port = serverPort;

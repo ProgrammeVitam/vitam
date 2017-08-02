@@ -29,9 +29,12 @@ package fr.gouv.vitam.metadata.rest;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.gouv.vitam.common.PropertiesUtils;
 import org.junit.AfterClass;
 import org.junit.Assume;
 import org.junit.Before;
@@ -64,7 +67,7 @@ public class MetaDataApplicationTest {
     private static int port;
     static final int tenantId = 0;
     static final List tenantList =  new ArrayList(){{add(tenantId);}};
-    
+
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
@@ -104,7 +107,7 @@ public class MetaDataApplicationTest {
         config = new MetaDataConfiguration(mongo_nodes, "vitam-test", CLUSTER_NAME, nodes);
         config.setTenants(tenantList);
         config.setJettyConfig(JETTY_CONFIG);
-        
+
     }
 
     @AfterClass
@@ -124,17 +127,18 @@ public class MetaDataApplicationTest {
     }
 
     @Test
-    public final void testFictiveLaunch() {
+    public final void testFictiveLaunch() throws IOException {
         try {
-            new MetaDataApplication(config);
+            File configurationFile = tempFolder.newFile();
+            PropertiesUtils.writeYaml(configurationFile, config);
+            new MetadataMain(configurationFile.getAbsolutePath());
         } catch (final IllegalStateException e) {
             fail("should not raized an exception");
         }
     }
 
-
-    @Test(expected = IllegalStateException.class)
+    @Test(expected = IllegalArgumentException.class)
     public final void shouldRaiseException() throws VitamException {
-        new MetaDataApplication((String) null);
+        new MetadataMain((String) null);
     }
 }
