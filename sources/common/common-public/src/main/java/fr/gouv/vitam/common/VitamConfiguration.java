@@ -44,6 +44,14 @@ public class VitamConfiguration {
      */
     public static final String ADMIN_PATH = "/admin/v1";
     /**
+     * General admin auto test path
+     */
+    public static final String AUTOTEST_URL = "/autotest";
+    /**
+     * General admin version path
+     */
+    public static final String VERSION_URL = "/version";
+    /**
      * General status path
      */
     public static final String STATUS_URL = "/status";

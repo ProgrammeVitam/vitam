@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.client.configuration;
+package fr.gouv.vitam.common.external.client.configuration;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

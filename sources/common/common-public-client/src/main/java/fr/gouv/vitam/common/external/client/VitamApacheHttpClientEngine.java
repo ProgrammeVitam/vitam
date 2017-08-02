@@ -24,12 +24,24 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common.client;
+package fr.gouv.vitam.common.external.client;
 
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.stream.StreamUtils;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FilterInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URI;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.ws.rs.ProcessingException;
+
 import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
@@ -75,7 +87,6 @@ import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpCoreContext;
 import org.apache.http.util.Args;
-import org.glassfish.jersey.message.internal.Statuses;
 import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
 import org.jboss.resteasy.client.jaxrs.engines.SelfExpandingBufferredInputStream;
 import org.jboss.resteasy.client.jaxrs.internal.ClientInvocation;
@@ -84,21 +95,11 @@ import org.jboss.resteasy.client.jaxrs.internal.ClientResponse;
 import org.jboss.resteasy.util.CaseInsensitiveMap;
 import org.jboss.resteasy.util.DelegatingOutputStream;
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.core.Response;
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FilterInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URI;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.client.VitamRestEasyConfiguration;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.stream.StreamUtils;
 
 /**
  * Vtam Specific Apache Http Client Engine
@@ -320,10 +321,7 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
                 }
             }
 
-            // FIXME P0 : remove jersey dependancy in vitam client
-            final Response.StatusType status = response.getStatusLine().getReasonPhrase() == null
-                ? Statuses.from(response.getStatusLine().getStatusCode())
-                : Statuses.from(response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase());
+            final int statusCode = response.getStatusLine().getStatusCode();
 
             final ClientResponse responseContext = new ClientResponse(clientInvocation.getClientConfiguration()) {
                 InputStream stream = getNativeInputStream(response);
@@ -361,7 +359,7 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
                 }
             };
             responseContext.setProperties(clientInvocation.getMutableProperties());
-            responseContext.setStatus(status.getStatusCode());
+            responseContext.setStatus(statusCode);
             responseContext.setHeaders(extractHeaders(response));
             responseContext.setClientConfiguration(clientInvocation.getClientConfiguration());
             return responseContext;

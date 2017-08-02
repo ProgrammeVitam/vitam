@@ -22,5 +22,6 @@
 		<module>common-storage</module>
 		<module>common-plugin</module>
 		<module>fake-storage-drivers</module>
+		<module>common-public-client</module>
 	</modules>
 </project>
