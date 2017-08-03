@@ -147,6 +147,7 @@
 		<skipITs>false</skipITs>
 		<!-- Json Validation -->
 		<json-schema-validator.version>2.2.6</json-schema-validator.version>
+		<nodeDownloadRoot/>
 	</properties>
 
 
@@ -193,6 +194,11 @@
 					</snapshots>
 				</pluginRepository>
 			</pluginRepositories>
+
+			<properties>
+				<nodeDownloadRoot>https://dev.programmevitam.fr/nexus/content/sites/node-dist-mirror/</nodeDownloadRoot>
+			</properties>
+
 		</profile>
 
 		<profile>

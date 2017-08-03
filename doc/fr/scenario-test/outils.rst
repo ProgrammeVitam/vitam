@@ -23,7 +23,6 @@ Tests Manuels
 
 Les tests manuels peuvent être effectués :
  * A l'aide du cahier de tests manuels
- * Via Postman, qui permet de lancer des tests sur l'API
  * Via l'IHM recette, qui permet de lancer des requêtes DSL
 
 
@@ -43,32 +42,6 @@ Cahier de tests manuels
   - Le Code Story Map, c'est-à-dire le code attribué à ce sujet (entrée, accès, stockage, etc.)
   - Le Use Case ou déroulement du test étape par étape
   - Le ou les jeux de tests associés
-
-Postman
----------
-
-Postman est un plugin disponible via Google Chrome et peut être utilisé pour tester les services API. Il s’agit en réalité d’un client HTTP puissant pour tester les services Web. Suite à l'installation d'un certificat, propre à la solution logicielle Vitam, des requêtes DSL peuvent être lancées en GET ou POST.
-
-.. image:: images/POSTMAN_requete.png
-
-.. image:: images/POSTMAN_requete2.png
-
-Les résultats seront ensuite retournés sous format JSON.
-
-.. image:: images/POSTMAN_retour.png
-
-
-Pour les tests manuels ou exploratoires, Postman est un bon choix pour tester une API.
-Avec Postman, presque toutes les données d'API Web modernes peuvent être extraites.
-
-Les 2 fonctionnalités pertinentes à retenir :
-- Ecrirure des tests booléens dans Postman Interface
-- Création de collections d'appels REST et enregistreement de chaque appel dans le cadre d'une collection à exécuter ultérieurement.
-
-Contrairement à CURL, Postman n'est pas un outil en ligne de commande, ce qui rend cet outil sans tracas dans la fenêtre de ligne de commande.
-Pour lancer les collections de postman en ligne de commande, on peut installer https://www.npmjs.com/package/newman
-
-
 
 Requêtes DSL
 ---------------
