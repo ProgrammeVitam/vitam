@@ -124,7 +124,7 @@ public class ContractResourceTest {
     private static int serverPort;
     private static int databasePort;
     private static File adminConfigFile;
-    private static AdminManagementApplication application;
+    private static AdminManagementMain application;
 
 
     @Rule
@@ -185,7 +185,7 @@ public class ContractResourceTest {
         RestAssured.basePath = RESOURCE_URI;
 
         try {
-            application = new AdminManagementApplication(adminConfigFile.getAbsolutePath());
+            application = new AdminManagementMain(adminConfigFile.getAbsolutePath());
             application.start();
             JunitHelper.unsetJettyPortSystemProperty();
         } catch (final VitamApplicationServerException e) {

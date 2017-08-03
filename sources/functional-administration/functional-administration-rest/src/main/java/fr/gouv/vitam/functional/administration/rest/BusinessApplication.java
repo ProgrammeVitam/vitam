@@ -1,4 +1,4 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,67 +23,58 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
-
-package fr.gouv.vitam.security.internal.rest.server;
+ *******************************************************************************/
+package fr.gouv.vitam.functional.administration.rest;
 
 import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
 
-import com.fasterxml.jackson.jaxrs.base.JsonParseExceptionMapper;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientOptions;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
-import fr.gouv.vitam.common.server.HeaderIdContainerFilter;
-import fr.gouv.vitam.common.serverv2.ConfigurationApplication;
-import fr.gouv.vitam.security.internal.rest.SimpleMongoDBAccess;
-import fr.gouv.vitam.security.internal.rest.mapper.CertificateExceptionMapper;
-import fr.gouv.vitam.security.internal.rest.mapper.IllegalArgumentExceptionMapper;
-import fr.gouv.vitam.security.internal.rest.repository.IdentityRepository;
-import fr.gouv.vitam.security.internal.rest.resource.IdentityResource;
-import fr.gouv.vitam.security.internal.rest.service.IdentityService;
-
 import javax.servlet.ServletConfig;
+import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * module declaring business resource
- */
-public class BusinessApplication extends ConfigurationApplication {
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
+import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
+
+public class BusinessApplication extends Application {
 
     private Set<Object> singletons;
 
-    private String configurationFile;
-
     public BusinessApplication(@Context ServletConfig servletConfig) {
-        this.configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
+        String configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
+        CommonBusinessApplication commonBusinessApplication = new CommonBusinessApplication();
 
         singletons = new HashSet<>();
+        singletons.addAll(commonBusinessApplication.getResources());
 
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-            final InternalSecurityConfiguration configuration =
-                PropertiesUtils.readYaml(yamlIS, InternalSecurityConfiguration.class);
+            final AdminManagementConfiguration
+                configuration = PropertiesUtils.readYaml(yamlIS, AdminManagementConfiguration.class);
 
-            MongoClientOptions mongoClientOptions = VitamCollection.getMongoClientOptions();
-            MongoClient mongoClient = MongoDbAccess.createMongoClient(configuration, mongoClientOptions);
-            SimpleMongoDBAccess mongoDbAccess = new SimpleMongoDBAccess(mongoClient, configuration.getDbName());
+            final AdminManagementResource resource = new AdminManagementResource(configuration);
 
-            IdentityRepository identityRepository = new IdentityRepository(mongoDbAccess);
-            IdentityService identityService = new IdentityService(identityRepository);
+            final MongoDbAccessAdminImpl mongoDbAccess = resource.getLogbookDbAccess();
 
-            singletons.add(new IdentityResource(identityService));
+            final VitamCounterService vitamCounterService =
+                new VitamCounterService(mongoDbAccess, configuration.getTenants());
 
-            singletons.add(new CertificateExceptionMapper());
-            singletons.add(new IllegalArgumentExceptionMapper());
-            singletons.add(new HeaderIdContainerFilter());
-            singletons.add(new JsonParseExceptionMapper());
+            resource.setVitamCounterService(vitamCounterService);
 
-        } catch (IOException e) {
+            final ProfileResource profileResource =
+                new ProfileResource(configuration, mongoDbAccess, vitamCounterService);
+            singletons.add(resource);
+            singletons.add(new ContractResource(mongoDbAccess, vitamCounterService));
+            singletons.add(new ContextResource(mongoDbAccess, vitamCounterService));
+            singletons.add(profileResource);
+
+        } catch (IOException | VitamException e) {
             throw new RuntimeException(e);
         }
     }
@@ -92,5 +83,4 @@ public class BusinessApplication extends ConfigurationApplication {
     public Set<Object> getSingletons() {
         return singletons;
     }
-
 }

@@ -109,7 +109,7 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
-import fr.gouv.vitam.functional.administration.rest.AdminManagementApplication;
+import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -207,7 +207,7 @@ public class ProcessingIT {
     // private static VitamServer workerApplication;
     private static MetadataMain metadataMain;
     private static WorkerApplication workerApplication;
-    private static AdminManagementApplication adminApplication;
+    private static AdminManagementMain adminApplication;
     private static LogbookApplication lgbapplication;
     private static WorkspaceApplication workspaceApplication;
     private static ProcessManagementApplication processManagementApplication;
@@ -354,7 +354,7 @@ public class ProcessingIT {
         FormatIdentifierFactory.getInstance().changeConfigurationFile(CONFIG_SIEGFRIED_PATH);
 
         // launch functional Admin server
-        adminApplication = new AdminManagementApplication(CONFIG_FUNCTIONAL_ADMIN_PATH);
+        adminApplication = new AdminManagementMain(CONFIG_FUNCTIONAL_ADMIN_PATH);
         adminApplication.start();
 
         AdminManagementClientFactory

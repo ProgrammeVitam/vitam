@@ -17,8 +17,9 @@
  */
 package fr.gouv.vitam.functional.administration.rest;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 import com.jayway.restassured.path.json.JsonPath;
@@ -40,38 +41,29 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
-import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
-import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
-import fr.gouv.vitam.functional.administration.profile.api.ProfileService;
-import fr.gouv.vitam.functional.administration.profile.api.impl.ProfileServiceImpl;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.glassfish.jersey.server.ResourceConfig;
 import org.jhades.JHades;
-import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Mockito;
 
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
@@ -80,11 +72,11 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.jayway.restassured.RestAssured.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.jayway.restassured.RestAssured.given;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.prefix;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assume.assumeTrue;
 import static org.mockito.Matchers.any;
@@ -101,11 +93,8 @@ public class ProfileResourceTest {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProfileResourceTest.class);
     private static final String ADMIN_MANAGEMENT_CONF = "functional-administration-test.conf";
-    private static final String RESULTS = "$results";
 
     private static final String RESOURCE_URI = "/adminmanagement/v1";
-    private static final String STATUS_URI = "/status";
-
 
     private static final int TENANT_ID = 0;
 
@@ -117,15 +106,21 @@ public class ProfileResourceTest {
     private static WorkspaceClient workspaceClient;
     private static WorkspaceClientFactory workspaceClientFactory;
 
-    private InputStream stream;
-    private static JunitHelper junitHelper;
+    private static JunitHelper junitHelper = JunitHelper.getInstance();
+
+    private static int workspacePort = junitHelper.findAvailablePort();
+
+    @ClassRule
+    public static WireMockClassRule wireMockRule = new WireMockClassRule(workspacePort);
+
+    @Rule
+    public WireMockClassRule instanceRule = wireMockRule;
+
     private static int serverPort;
     private static int databasePort;
     private static File adminConfigFile;
-    private static AdminManagementApplication application;
+    private static AdminManagementMain application;
 
-
-    static ProfileService profileService;
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
@@ -133,16 +128,15 @@ public class ProfileResourceTest {
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
-    private static VitamCounterService vitamCounterService;
     private static MongoDbAccessAdminImpl dbImpl;
     private final static String CLUSTER_NAME = "vitam-cluster";
+
     private static ElasticsearchAccessFunctionalAdmin esClient;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         new JHades().overlappingJarsReport();
 
-        junitHelper = JunitHelper.getInstance();
         databasePort = junitHelper.findAvailablePort();
 
         // ES
@@ -164,6 +158,8 @@ public class ProfileResourceTest {
         realAdminConfig.getMongoDbNodes().get(0).setDbPort(databasePort);
         realAdminConfig.setElasticsearchNodes(nodesEs);
         realAdminConfig.setClusterName(CLUSTER_NAME);
+        realAdminConfig.setWorkspaceUrl("http://localhost:" + workspacePort);
+
         adminConfigFile = File.createTempFile("test", ADMIN_MANAGEMENT_CONF, adminConfig.getParentFile());
         PropertiesUtils.writeYaml(adminConfigFile, realAdminConfig);
 
@@ -186,23 +182,9 @@ public class ProfileResourceTest {
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
         dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
-        List tenants = new ArrayList<>();
-        tenants.add(new Integer(TENANT_ID));
-        vitamCounterService = new VitamCounterService(dbImpl, tenants);
 
         try {
-            application = new AdminManagementApplication(adminConfigFile.getAbsolutePath()) {
-                @Override
-                protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-                    final AdminManagementResource resource = new AdminManagementResource(getConfiguration());
-
-                    final MongoDbAccessAdminImpl mongoDbAccess = resource.getLogbookDbAccess();
-                    final ProfileResource profileResource =
-                        new ProfileResource(workspaceClientFactory, mongoDbAccess, vitamCounterService);
-                    resourceConfig
-                        .register(profileResource);
-                }
-            };
+            application = new AdminManagementMain(adminConfigFile.getAbsolutePath());
             application.start();
             JunitHelper.unsetJettyPortSystemProperty();
         } catch (final VitamApplicationServerException e) {
@@ -232,6 +214,13 @@ public class ProfileResourceTest {
         }
     }
 
+    @Before
+    public void setUp() throws Exception {
+        instanceRule.stubFor(WireMock.post(urlMatching("/workspace/v1/containers/(.*)"))
+            .willReturn(aResponse().withStatus(201).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
+        instanceRule.stubFor(WireMock.delete(urlMatching("/workspace/v1/containers/(.*)"))
+            .willReturn(aResponse().withStatus(204).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
+    }
 
     @Test
     @RunWithCustomExecutor

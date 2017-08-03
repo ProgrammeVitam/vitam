@@ -91,7 +91,7 @@ public class AdminManagementApplicationAuthenticationTest {
     @Test
     public void testApplicationLaunch() throws IOException, VitamException {
         try {
-            new AdminManagementApplication(adminConfigFile.getAbsolutePath());
+            new AdminManagementMain(adminConfigFile.getAbsolutePath());
         } catch (final IllegalStateException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }

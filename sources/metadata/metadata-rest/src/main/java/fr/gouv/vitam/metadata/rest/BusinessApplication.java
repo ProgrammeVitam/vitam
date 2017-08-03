@@ -1,5 +1,7 @@
 package fr.gouv.vitam.metadata.rest;
 
+import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
+
 import com.google.common.base.Throwables;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.security.waf.SanityCheckerCommonFilter;
@@ -23,7 +25,7 @@ public class BusinessApplication extends Application {
     private Set<Object> singletons;
 
     public BusinessApplication(@Context ServletConfig servletConfig) {
-        String configurationFile = servletConfig.getInitParameter("vitam.configurationFile");
+        String configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
 
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
             final MetaDataConfiguration
@@ -36,8 +38,6 @@ public class BusinessApplication extends Application {
             singletons.add(metaDataResource);
             singletons.add(new SanityCheckerCommonFilter());
             singletons.add(new SanityDynamicFeature());
-        } catch (FileNotFoundException e) {
-            throw Throwables.propagate(e);
         } catch (IOException e) {
             throw Throwables.propagate(e);
         }

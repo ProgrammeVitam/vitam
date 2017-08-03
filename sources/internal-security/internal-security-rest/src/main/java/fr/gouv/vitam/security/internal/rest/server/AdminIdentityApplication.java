@@ -1,5 +1,7 @@
 package fr.gouv.vitam.security.internal.rest.server;
 
+import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
+
 import com.fasterxml.jackson.jaxrs.base.JsonParseExceptionMapper;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
@@ -32,7 +34,7 @@ public class AdminIdentityApplication extends Application {
     private String configurationFile;
 
     public AdminIdentityApplication(@Context ServletConfig servletConfig) {
-        this.configurationFile = servletConfig.getInitParameter("vitam.configurationFile");
+        this.configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
         this.adminApplication = new AdminApplication();
     }
 

@@ -36,6 +36,7 @@ import java.util.List;
 
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -154,7 +155,7 @@ public class PausedProcessingIT {
 
     private static MetadataMain metadataApplication;
     private static WorkerApplication workerApplication;
-    private static AdminManagementApplication adminManagementApplication;
+    private static AdminManagementMain adminManagementApplication;
     private static LogbookApplication logbookApplication;
     private static WorkspaceApplication workspaceApplication;
     private static ProcessManagementApplication processManagementApplication;
@@ -241,7 +242,7 @@ public class PausedProcessingIT {
         FormatIdentifierFactory.getInstance().changeConfigurationFile(CONFIG_SIEGFRIED_PATH);
 
         // launch functional Admin server
-        adminManagementApplication = new AdminManagementApplication(CONFIG_FUNCTIONAL_ADMIN_PATH);
+        adminManagementApplication = new AdminManagementMain(CONFIG_FUNCTIONAL_ADMIN_PATH);
         adminManagementApplication.start();
 
         AdminManagementClientFactory

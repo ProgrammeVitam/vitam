@@ -140,14 +140,14 @@ public class AdminManagementApplicationTest {
     @Test
     public final void testFictiveLaunch() {
         try {
-            new AdminManagementApplication(adminConfigFile.getAbsolutePath());
+            new AdminManagementMain(adminConfigFile.getAbsolutePath());
         } catch (final IllegalStateException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test(expected = IllegalArgumentException.class)
     public final void shouldRaiseException() throws VitamException {
-        new AdminManagementApplication("");
+        new AdminManagementMain("");
     }
 }
