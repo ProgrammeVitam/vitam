@@ -115,7 +115,7 @@
     },
     {
       "workerGroupId": "DefaultWorker",
-      "stepName": "STP_UNIT_STORING",
+      "stepName": "STP_UNIT_METADATA",
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "LIST",
@@ -126,16 +126,33 @@
           "action": {
             "actionKey": "UNIT_METADATA_INDEXATION",
             "behavior": "BLOCKING",
-             "in": [
+            "in": [
               {
                 "name": "UnitType",
                 "uri": "VALUE:FILING_UNIT"
               },
               {
-	            "name": "globalSEDAParameters.file",
-	            "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
-	          }	          
+                "name": "globalSEDAParameters.file",
+                "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
+              }
             ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_UNIT_STORING",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST",
+        "element": "Units"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "COMMIT_LIFE_CYCLE_UNIT",
+            "behavior": "BLOCKING"
           }
         },
         {
@@ -143,8 +160,7 @@
             "actionKey": "UNIT_METADATA_STORAGE",
             "behavior": "BLOCKING"
           }
-        }
-        ,
+        },
         {
           "action": {
             "actionKey": "COMMIT_LIFE_CYCLE_UNIT",
@@ -195,7 +211,7 @@
       "distribution": {
         "kind": "REF",
         "element": "SIP/manifest.xml"
-      	},
+      },
       "actions": [
         {
           "action": {

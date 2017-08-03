@@ -381,7 +381,7 @@
         },
         {
             "evId": "aedqaaaaacaam7mxaam46akyj2thfoqaaaaq",
-            "evType": "OG_STORAGE",
+            "evType": "OBJ_STORAGE",
             "evDateTime": "2016-11-10T14:31:21.018",
             "evDetData": null,
             "evIdProc": "aedqaaaaacaam7mxabkxoakyj2sqiwqaaaaq",

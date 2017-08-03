@@ -1201,10 +1201,10 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         try {
             final UpdateResult result = LogbookCollections.LIFECYCLE_UNIT.getCollection().updateOne(
                 eq(LogbookDocument.ID, logbookLifeCycleId),
-                Updates.pushEach(LogbookDocument.EVENTS,
+                Updates.addEachToSet(LogbookDocument.EVENTS,
                     (List<VitamDocument>) logbookLifeCycleUnitInProcess.get(LogbookDocument.EVENTS)));
 
-            if (result.getModifiedCount() != 1) {
+            if (result.getMatchedCount() != 1) {
                 throw new LogbookNotFoundException(UPDATE_NOT_FOUND_ITEM + logbookLifeCycleId);
             }
 
@@ -1248,10 +1248,10 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         try {
             final UpdateResult result = LogbookCollections.LIFECYCLE_OBJECTGROUP.getCollection().updateOne(
                 eq(LogbookDocument.ID, logbookLifeCycleId),
-                Updates.pushEach(LogbookDocument.EVENTS,
+                Updates.addEachToSet(LogbookDocument.EVENTS,
                     (List<VitamDocument>) logbookLifeCycleObjectGrouptInProcess.get(LogbookDocument.EVENTS)));
 
-            if (result.getModifiedCount() != 1) {
+            if (result.getMatchedCount() != 1) {
                 throw new LogbookNotFoundException(UPDATE_NOT_FOUND_ITEM + logbookLifeCycleId);
             }
 

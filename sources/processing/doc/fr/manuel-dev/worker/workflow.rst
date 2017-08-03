@@ -123,23 +123,37 @@ Etapes
 
   - STORAGE_AVAILABILITY_CHECK : Contrôle de la taille totale à stocker par rapport à la capacité des offres de stockage pour une stratégie et un tenant donnés
 
-- **Step 5** - STP_OG_STORING : Rangement des objets
+- **Step 5** - STP_OBJ_STORING : Rangement et indexation des objets
 
-  - OG_STORAGE : Écriture des objets sur l’offre de stockage des BDO des GO
+  - OBJ_STORAGE : Écriture des objets sur l’offre de stockage des BDO des GO
 
-  - OG_METADATA_INDEXATION : Enregistrement en base des ObjectGroup
+  - OG_METADATA_INDEXATION : Indexation des métadonnées des ObjectGroup
 
-- **Step 6** - STP_UNIT_STORING : Index Units / distribution sur LIST GUID/Units
+- **Step 6** - STP_UNIT_METADATA : Indexation des métadonnées des Units
 
-  - UNIT_METADATA_INDEXATION :
-    - Transformation Json Unit et intégration GUID Unit + GUID GO
-    - Enregistrement en base Units
+  - UNIT_METADATA_INDEXATION : Transformation Json Unit et intégration GUID Unit + GUID GO
 
-- **Step 7** - STP_ACCESSION_REGISTRATION : Alimentation du registre de fond
+- **Step 7** - STP_OG_STORING : Rangement des métadonnées des objets
+
+  - COMMIT_LIFE_CYCLE_OBJECT_GROUP : Écriture des objets sur l’offre de stockage des BDO des GO
+
+  - OG_METADATA_STORAGE : Enregistrement en base des métadonnées des ObjectGroup
+
+  - COMMIT_LIFE_CYCLE_OBJECT_GROUP : Écriture des objets sur l’offre de stockage des BDO des GO
+
+- **Step 8** - STP_UNIT_STORING : Index Units / distribution sur LIST GUID/Units
+
+  - COMMIT_LIFE_CYCLE_UNIT : Écriture des métadonnées des Units sur l’offre de stockage des BDO des GO
+
+  - UNIT_METADATA_STORAGE : Enregistrement en base des métadonnées des Units
+
+  - COMMIT_LIFE_CYCLE_UNIT : Écriture des métadonnées des Units sur l’offre de stockage des BDO des GO
+
+- **Step 9** - STP_ACCESSION_REGISTRATION : Alimentation du registre de fond
 
   - ACCESSION_REGISTRATION :  enregistrement des archives prises en charge dans le Registre des Fonds
 
-- **Step 8 et finale** - STP_INGEST_FINALISATION : Notification de la fin de l’opération d’entrée. Cette étape est obligatoire et sera toujours exécutée, en dernière position.
+- **Step 10 et finale** - STP_INGEST_FINALISATION : Notification de la fin de l’opération d’entrée. Cette étape est obligatoire et sera toujours exécutée, en dernière position.
 
   - ATR_NOTIFICATION :
     - génération de l'ArchiveTransferReply xml (OK ou KO)

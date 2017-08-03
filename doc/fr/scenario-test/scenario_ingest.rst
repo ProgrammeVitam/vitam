@@ -38,7 +38,7 @@ Ci-dessous est représentée la liste des différents scenarios de test exécut�
    "SIP_OK/ZIP/OK_SIP_test_differentes_langues.zip","OK",200,"Succès du processus d’indexation des métadonnées des Unités Archivistiques","EVT_UNIT_METADATA_INDEXATION"
    "SIP_OK/ZIP/OK_SIP_test_differentes_langues.zip","OK",200,"Succès du processus d’enregistrement du journal de cycle de vie des Unités Archivistiques","EVT_UNIT_LOGBOOK_STORAGE"
    "SIP_OK/ZIP/OK_ARBO_rateau.zip","OK",200,"Succès du processus de rangement des Unités Archivistiques","EVT_STP_UNIT_STORING"
-   "SIP_OK/ZIP/OK_ARBO_rateau.zip","OK",200,"Succès du processus de rangement des Objets et groupes d’objets","EVT_OG_STORAGE"
+   "SIP_OK/ZIP/OK_ARBO_rateau.zip","OK",200,"Succès du processus de rangement des Objets et groupes d’objets","EVT_OBJ_STORAGE"
    "SIP_OK/ZIP/OK_SIP_2_GO.zip","OK",200,"Succès du processsus d’indexation des métadonnées des Objets et Groupes d’Objets","EVT_OG_METADATA_INDEXATION"
    "SIP_OK/ZIP/OK_SIP_2_GO.zip","OK",200,"Succès du processus d’enregistrement du journal de cycle de vie des Objets et Groupes d’Objets","EVT_OG_LOGBOOK_STORAGE"
    "SIP_OK/ZIP/OK_SIP_2_GO.zip","OK",200,"Succès du processus de rangement des Objets et groupes d’objets","EVT_STP_OG_STORING"

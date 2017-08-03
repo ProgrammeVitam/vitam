@@ -15,7 +15,7 @@
 		"className": "fr.gouv.vitam.worker.core.plugin.IndexObjectGroupActionPlugin",
 		"propertiesFile": "index_object_group_plugin.properties"
 	},
-	"OG_STORAGE": {
+	"OBJ_STORAGE": {
 		"className": "fr.gouv.vitam.worker.core.plugin.StoreObjectGroupActionPlugin",
 		"propertiesFile": "store_object_group_plugin.properties"
 	},
