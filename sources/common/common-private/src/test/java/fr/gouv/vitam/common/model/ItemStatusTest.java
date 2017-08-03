@@ -62,7 +62,7 @@ public class ItemStatusTest {
         assertEquals(Integer.valueOf(1), itemStatus1.getStatusMeter().get(StatusCode.KO.getStatusLevel()));
 
         itemStatus1.setData("key", "value");
-        assertEquals("value", itemStatus1.getData().get("key"));
+        assertEquals("value", itemStatus1.getData("key"));
 
         final ItemStatus itemStatus2 = new ItemStatus(ITEM_ID_1);
         final StatusCode statusOK = StatusCode.OK;

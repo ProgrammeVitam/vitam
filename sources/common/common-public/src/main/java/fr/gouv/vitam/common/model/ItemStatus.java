@@ -42,7 +42,6 @@ import com.google.common.base.Strings;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 
 /**
  * Composite Item Status
@@ -52,18 +51,17 @@ public class ItemStatus {
 
     private static final String EVENT_DETAIL_DATA = "eventDetailData";
     private static final String MANDATORY_PARAMETER = "Mandatory parameter";
+    private static final String MASTER_DATA = "masterData";
+
     @JsonProperty("itemsStatus")
     private LinkedHashMap<String, ItemStatus> itemsStatus = new LinkedHashMap<>();
     private LinkedHashMap<String, ItemStatus> subTaskStatus = new LinkedHashMap<>();
 
-    @JsonProperty("masterData")
-    protected Map<String, Object> masterData;
+
     @JsonProperty("itemId")
     protected String itemId;
     @JsonProperty("message")
     protected String message;
-    @JsonProperty("evDetailData")
-    protected String evDetailData;
     @JsonProperty("globalStatus")
     protected StatusCode globalStatus;
     @JsonProperty("statusMeter")
@@ -87,7 +85,7 @@ public class ItemStatus {
 
         globalStatus = StatusCode.UNKNOWN;
         data = new HashMap<>();
-        masterData = new HashMap<>();
+
     }
 
     /**
@@ -112,8 +110,8 @@ public class ItemStatus {
         this.globalStatus = globalStatus;
         this.statusMeter = statusMeter;
         this.data = data;
-        this.evDetailData = evDetailData;
         this.globalState = globalState;
+
     }
 
     /**
@@ -245,7 +243,16 @@ public class ItemStatus {
     /**
      * @return the data
      */
-    public Map<String, Object> getData() {
+    public  Object getData(String key) {
+        return data.get( key );
+    }
+
+    /**
+     * @Deprecated use getData(Sting key)
+     * @return
+     */
+    @Deprecated
+    public   Map<String, Object> getData() {
         return data;
     }
 
@@ -254,16 +261,20 @@ public class ItemStatus {
      * @param value
      * @return this
      */
-    public ItemStatus setData(String key, Object value) {
-        data.put(key, value);
+    public ItemStatus setData(String key, Object value)  {
+        if( key.equals( EVENT_DETAIL_DATA )){
+            throw new IllegalArgumentException("Invalid key, Use apropriate methode  setEvDetailData ");
+        }
+        data.put( key, value );
         return this;
     }
-    
+
+
     /**
      * @return masterData
      */
     public Map<String, Object> getMasterData() {
-        return masterData;
+        return (Map<String, Object>) data.get( MASTER_DATA );
     }
 
     /**
@@ -272,7 +283,10 @@ public class ItemStatus {
      * @return this
      */
     public ItemStatus setMasterData(String key, Object value) {
-        masterData.put(key, value);
+        if( data.get(MASTER_DATA  ) == null){
+            data.put( MASTER_DATA, new HashMap<>());
+        }
+        ((Map)data.get(MASTER_DATA  )).put( key, value );
         return this;
     }
 
@@ -430,8 +444,10 @@ public class ItemStatus {
      * @return evDetailData
      */
     public String getEvDetailData() {
+
+        String evDetailData = (String ) data.get( EVENT_DETAIL_DATA );
         if (Strings.isNullOrEmpty(evDetailData)) {
-            return "";
+            return "{}";
         }
         return evDetailData;
     }
@@ -443,8 +459,14 @@ public class ItemStatus {
      * @return this
      */
     public ItemStatus setEvDetailData(String evDetailData) {
-        ParametersChecker.checkParameterDefault("evDetailData", evDetailData);
-        this.evDetailData = evDetailData;
+        ParametersChecker.checkParameterDefault( "evDetailData", evDetailData );
+        try {
+            JsonHandler.validate( evDetailData );
+
+        } catch ( InvalidParseOperationException e ) {
+            throw new IllegalArgumentException("Value of eventDetailData has to be a Valid Json");
+        }
+        data.put( EVENT_DETAIL_DATA, evDetailData );
         return this;
     }
 
@@ -459,22 +481,23 @@ public class ItemStatus {
 
     private void computeEvDetData(ItemStatus statusDetails) {
         String detailDataString = "";
-        if (statusDetails.getData().containsKey(EVENT_DETAIL_DATA) &&
-            data.containsKey(EVENT_DETAIL_DATA)) {
+
+        if ( !Strings.isNullOrEmpty( statusDetails.getEvDetailData() ) &&
+            data.containsKey( EVENT_DETAIL_DATA ) ) {
             try {
-                ObjectNode subDetailData = (ObjectNode) JsonHandler.getFromString(
-                    (String) statusDetails.getData().get(EVENT_DETAIL_DATA));
-                ObjectNode detailData = (ObjectNode) JsonHandler.getFromString(
-                    (String) data.get(EVENT_DETAIL_DATA));
-                subDetailData.setAll(detailData);
-                detailDataString = JsonHandler.unprettyPrint(subDetailData);
-            } catch (InvalidParseOperationException e) {
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                ObjectNode subDetailData = ( ObjectNode ) JsonHandler.getFromString(
+                    ( String ) statusDetails.getEvDetailData() );
+                ObjectNode detailData = ( ObjectNode ) JsonHandler.getFromString(
+                    ( String ) data.get( EVENT_DETAIL_DATA ) );
+                subDetailData.setAll( detailData );
+                detailDataString = JsonHandler.unprettyPrint( subDetailData );
+            } catch ( InvalidParseOperationException e ) {
+                throw new IllegalArgumentException( "value of eventDetailData has to be a Valid Json" );
             }
         }
-        data.putAll(statusDetails.getData());
-        if (!detailDataString.isEmpty()) {
-            data.put(EVENT_DETAIL_DATA, detailDataString);
+        data.putAll( statusDetails.getData() );
+        if ( ! detailDataString.isEmpty() ) {
+            data.put( EVENT_DETAIL_DATA, detailDataString );
         }
     }
 
@@ -482,21 +505,21 @@ public class ItemStatus {
     private void computeMasterData(ItemStatus statusDetails) {
         String detailDataString = "";
         if (statusDetails.getMasterData().containsKey(EVENT_DETAIL_DATA) &&
-            masterData.containsKey(EVENT_DETAIL_DATA)) {
+            getMasterData().containsKey(EVENT_DETAIL_DATA)) {
             try {
                 ObjectNode subDetailData = (ObjectNode) JsonHandler.getFromString(
                     (String) statusDetails.getMasterData().get(EVENT_DETAIL_DATA));
                 ObjectNode detailData = (ObjectNode) JsonHandler.getFromString(
-                    (String) masterData.get(EVENT_DETAIL_DATA));
+                    (String) getMasterData().get(EVENT_DETAIL_DATA));
                 subDetailData.setAll(detailData);
                 detailDataString = JsonHandler.unprettyPrint(subDetailData);
             } catch (InvalidParseOperationException e) {
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                throw new IllegalArgumentException("value of eventDetailData has to be a Valid Json");
             }
         }
-        masterData.putAll(statusDetails.getMasterData());
+        getMasterData().putAll(statusDetails.getMasterData());
         if (!detailDataString.isEmpty()) {
-            masterData.put(EVENT_DETAIL_DATA, detailDataString);
+            getMasterData().put(EVENT_DETAIL_DATA, detailDataString);
         }
     }
 }

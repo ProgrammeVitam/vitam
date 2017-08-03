@@ -179,8 +179,7 @@ public class CheckArchiveProfileActionHandler extends ActionHandler {
         
         infoNode.put(SedaConstants.TAG_ARCHIVE_PROFILE, profileIdentifier);
         String evdev = JsonHandler.unprettyPrint(infoNode);
-        itemStatus.setData(LogbookParameterName.eventDetailData.name(), evdev);
-        itemStatus.setMasterData(LogbookParameterName.eventDetailData.name(), evdev);
+        itemStatus.setEvDetailData( evdev );
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 

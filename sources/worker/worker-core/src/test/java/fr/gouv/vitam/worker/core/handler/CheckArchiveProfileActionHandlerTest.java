@@ -136,7 +136,7 @@ public class CheckArchiveProfileActionHandlerTest {
 
         ItemStatus response = handler.execute(params, handlerIO);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertNotNull(response.getData().get(LogbookParameterName.eventDetailData.name()));
+        assertNotNull(response.getEvDetailData());
     }
     
     private static RequestResponse createProfileRNG() throws InvalidParseOperationException {

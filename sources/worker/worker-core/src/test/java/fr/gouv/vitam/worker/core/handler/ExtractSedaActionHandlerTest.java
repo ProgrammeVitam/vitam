@@ -220,7 +220,7 @@ public class ExtractSedaActionHandlerTest {
 
         final ItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
-        assertTrue(((String) response.getData().get(LogbookParameterName.eventDetailData.name()))
+        assertTrue(((String) response.getEvDetailData())
             .contains("ArchivalProfile0"));
     }
 
@@ -603,7 +603,7 @@ public class ExtractSedaActionHandlerTest {
         final ItemStatus response = handler.execute(params, handlerIO);
 
         // Check master evDetData
-        String evDetDataString = (String) response.getData().get(LogbookParameterName.eventDetailData.name());
+        String evDetDataString = (String) response.getEvDetailData();
         JsonNode evDetData = JsonHandler.getFromString(evDetDataString);
         assertNotNull(evDetData);
         String masterEvDetDataString = (String) response.getMasterData().get(LogbookParameterName.eventDetailData.name());
@@ -832,7 +832,7 @@ public class ExtractSedaActionHandlerTest {
         final ItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
 
-        JsonNode evDetData = JsonHandler.getFromString((String) response.getData().get("eventDetailData"));
+        JsonNode evDetData = JsonHandler.getFromString((String) response.getData("eventDetailData"));
         assertEquals(
             "Ceci est le premier commentaire_Voici le deuxi\u00E8me commentaire_Exemple de 3\u00E8me commentaire",
             evDetData.get("EvDetailReq").asText());

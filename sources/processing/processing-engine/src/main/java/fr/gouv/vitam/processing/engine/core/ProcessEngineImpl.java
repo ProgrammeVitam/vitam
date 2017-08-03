@@ -328,9 +328,9 @@ public class ProcessEngineImpl implements ProcessEngine {
                     JsonNode value = JsonHandler.toJsonNode(itemStatus.getMasterData());
                     sublogbook.putParameterValue(LogbookParameterName.masterData, JsonHandler.writeAsString(value));                    
                 }               
-                if (itemStatus.getData().get(LogbookParameterName.eventDetailData.name()) != null) {
+                if (itemStatus.getEvDetailData() != null) {
                     final String eventDetailData =
-                        itemStatus.getData().get(LogbookParameterName.eventDetailData.name()).toString();
+                        itemStatus.getEvDetailData().toString();
                     sublogbook.putParameterValue(LogbookParameterName.eventDetailData, eventDetailData);
                 }
                 helper.updateDelegate(sublogbook);
@@ -354,16 +354,16 @@ public class ProcessEngineImpl implements ProcessEngine {
         String messageIdentifier = messageIdentifierMap.get(processId);
 
         if (messageIdentifier == null) {
-            if (stepResponse.getData().get(SedaConstants.TAG_MESSAGE_IDENTIFIER) != null) {
-                messageIdentifier = stepResponse.getData().get(SedaConstants.TAG_MESSAGE_IDENTIFIER).toString();
+            if (stepResponse.getData(SedaConstants.TAG_MESSAGE_IDENTIFIER) != null) {
+                messageIdentifier = stepResponse.getData(SedaConstants.TAG_MESSAGE_IDENTIFIER).toString();
                 messageIdentifierMap.put(processId.getId(), messageIdentifier);
             }
         }
 
         String prodService = prodserviceMap.get(processId);
         if (prodService == null) {
-            if (stepResponse.getData().get(LogbookParameterName.agentIdentifierOriginating.name()) != null) {
-                prodService = (String)stepResponse.getData().get(LogbookParameterName.agentIdentifierOriginating.name().toString());
+            if (stepResponse.getData(LogbookParameterName.agentIdentifierOriginating.name()) != null) {
+                prodService = (String)stepResponse.getData(LogbookParameterName.agentIdentifierOriginating.name().toString());
                 prodserviceMap.put(processId.getId(), prodService);
             }
         }

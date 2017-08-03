@@ -134,10 +134,9 @@ public class CheckHeaderActionHandlerTest {
         action.getInput().add("true");
         final ItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
-        assertNotNull(response.getData());
-        assertNotNull(response.getData().get(SedaConstants.TAG_MESSAGE_IDENTIFIER));
+        assertNotNull(response.getData(SedaConstants.TAG_MESSAGE_IDENTIFIER));
         assertEquals(SedaConstants.TAG_MESSAGE_IDENTIFIER,
-            response.getData().get(SedaConstants.TAG_MESSAGE_IDENTIFIER));
+            response.getData(SedaConstants.TAG_MESSAGE_IDENTIFIER));
 
         action.getInput().clear();
         action.getInput().add("true");
@@ -188,9 +187,8 @@ public class CheckHeaderActionHandlerTest {
         action.getInput().add("false");
         final ItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
-        assertNotNull(response.getData());
-        assertNotNull(response.getData().get(SedaConstants.TAG_MESSAGE_IDENTIFIER));
-        String evDetData = (String) response.getData().get(LogbookParameterName.eventDetailData.name());
+        assertNotNull(response.getData(SedaConstants.TAG_MESSAGE_IDENTIFIER));
+        String evDetData = (String) response.getEvDetailData();
         assertTrue(evDetData.contains("ArchivalAgreement0"));
         assertTrue(evDetData.contains("English Comment"));
         assertTrue(evDetData.contains("ArchivalProfile0"));

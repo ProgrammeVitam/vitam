@@ -84,6 +84,29 @@ public class JsonHandlerTest {
     }
 
     @Test
+
+    public final void testIsvalidJsonString() throws InvalidParseOperationException, FileNotFoundException {
+        JsonHandler.validate( "{}" );
+        JsonHandler.validate( "{\"tzs\":\"ee\"}" );
+
+    }
+
+    @Test(expected = InvalidParseOperationException.class )
+    public final void testInvalidJsonArray() throws InvalidParseOperationException, FileNotFoundException {
+        JsonHandler.validate( "[]" );
+    }
+
+    @Test(expected = InvalidParseOperationException.class )
+    public final void testInvalidJsonString() throws InvalidParseOperationException, FileNotFoundException {
+        JsonHandler.validate( "true" );
+    }
+
+    @Test(expected = InvalidParseOperationException.class )
+    public final void testInvalidNull() throws InvalidParseOperationException, FileNotFoundException {
+        JsonHandler.validate( null );
+    }
+
+    @Test
     public final void testJsonString() throws InvalidParseOperationException, FileNotFoundException {
         final JsonNode node = JsonHandler.getFromString("{ 'a' : 'val' }");
         final File file = ResourcesPublicUtilTest.getInstance().getJsonTestJsonFile();

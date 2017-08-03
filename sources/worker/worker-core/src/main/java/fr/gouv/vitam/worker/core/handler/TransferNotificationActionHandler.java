@@ -213,7 +213,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
                     "\", \"MessageDigest\": \"" + vitamDigestString +
                     "\", \"Algorithm\": \"" + VitamConfiguration.getDefaultDigestType() + "\"}";
 
-            itemStatus.getData().put(LogbookParameterName.eventDetailData.name(), eventDetailData);
+            itemStatus.setEvDetailData( eventDetailData );
             try {
                 // TODO : Works for ATR_OK but not for some ATR_KO - need to be fixed
                 ValidationXsdUtils.checkWithXSD(new FileInputStream(atrFile), XSD_VERSION);

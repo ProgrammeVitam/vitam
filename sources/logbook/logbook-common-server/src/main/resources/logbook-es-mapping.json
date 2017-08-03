@@ -75,6 +75,9 @@
             "ServiceLevel": {
               "type": "string",
               "index": "not_analyzed"
+            },
+            "diff": {
+              "enabled": false
             }
           }
         },

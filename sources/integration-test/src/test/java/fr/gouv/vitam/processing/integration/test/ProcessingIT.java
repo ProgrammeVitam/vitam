@@ -650,7 +650,6 @@ public class ProcessingIT {
                 new fr.gouv.vitam.common.database.builder.request.single.Select();
             selectQuery.setQuery(QueryHelper.eq("evIdProc", containerName));
             JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
-
             JsonNode logbookNode = logbookResult.get("$results").get(0);
             assertEquals(logbookNode.get("obIdIn").asText(),
                 "Transfert des enregistrements des délibérations de l'assemblée départementale");

@@ -283,7 +283,7 @@ public class SedaUtils {
             if (e.getCause() == null) {
                 LOGGER.error("Manifest.xml is not valid with the XSD", e);
                 JsonNode errorNode = JsonHandler.createObjectNode().put(SedaConstants.EV_DET_TECH_DATA, e.getMessage());
-                itemStatus.setData(LogbookParameterName.eventDetailData.name(), errorNode.toString());
+                itemStatus.setEvDetailData( errorNode.toString() );
                 return CheckSedaValidationStatus.NOT_XSD_VALID;
             }
             LOGGER.error("Manifest.xml is not a correct xml file", e);

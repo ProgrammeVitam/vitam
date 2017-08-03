@@ -340,10 +340,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 existingUnitGuids.forEach(attachmentNode::add);
                 evDetData.set(ATTACHMENT_IDS, attachmentNode);
             }
-            globalCompositeItemStatus.getData().put(LogbookParameterName.eventDetailData.name(),
-                JsonHandler.unprettyPrint(evDetData));
-            globalCompositeItemStatus.getMasterData().put(LogbookParameterName.eventDetailData.name(),
-                JsonHandler.unprettyPrint(evDetData));
+            globalCompositeItemStatus.setEvDetailData( JsonHandler.unprettyPrint( evDetData ) );
+            globalCompositeItemStatus.setMasterData( LogbookParameterName.eventDetailData.name(),
+                JsonHandler.unprettyPrint( evDetData ) );
             globalCompositeItemStatus.increment(StatusCode.OK);
 
             if (asyncIO) {
@@ -399,7 +398,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
         if (originatingAgency != null) {
             LOGGER.debug("supplier service is: " + originatingAgency);
-            globalCompositeItemStatus.getData().put(LogbookParameterName.agentIdentifierOriginating.name(),
+            globalCompositeItemStatus.setData(LogbookParameterName.agentIdentifierOriginating.name(),
                 originatingAgency);
         }
 

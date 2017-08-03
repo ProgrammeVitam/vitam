@@ -103,11 +103,11 @@ public class CheckHeaderActionHandler extends ActionHandler {
                 madatoryValueMap.get(SedaConstants.TAG_MESSAGE_IDENTIFIER));
         }
 
-        updateSedaInfo(madatoryValueMap, infoNode);
-        String evDevDetailData = JsonHandler.unprettyPrint(infoNode);
-        itemStatus.setData(LogbookParameterName.eventDetailData.name(), evDevDetailData);
-        itemStatus.setMasterData(LogbookParameterName.eventDetailData.name(), evDevDetailData);
-        
+        updateSedaInfo( madatoryValueMap, infoNode );
+        String evDevDetailData = JsonHandler.unprettyPrint( infoNode );
+        itemStatus.setEvDetailData( evDevDetailData );
+        itemStatus.setMasterData( LogbookParameterName.eventDetailData.name(), evDevDetailData );
+
         if (shouldCheckOriginatingAgency && 
             Strings.isNullOrEmpty((String) madatoryValueMap.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER))) {
             itemStatus.increment(StatusCode.KO);
