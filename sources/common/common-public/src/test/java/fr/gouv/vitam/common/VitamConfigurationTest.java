@@ -44,6 +44,8 @@ public class VitamConfigurationTest {
     private static final String SHOULD_RAIZED_AN_EXCEPTION = "Should raized an exception";
     private static final String SECRET = "vitamsecret";
     private static final String VITAM_CONF_FILE_NAME = "vitam.conf";
+    private static final String VITAM_CONF_FILE_ID = "vitam2.conf";
+
 
     @Test
     public void testPojo() {
@@ -153,6 +155,23 @@ public class VitamConfigurationTest {
             VitamConfiguration.importConfigurationParameters(vitamConfigurationParameters);
             assertThat(VitamConfiguration.getVitamCleanPeriod()).isEqualTo(5);
 
+            assertThat(VitamConfiguration.getAcceptableRequestTime()).isEqualTo(25L);
+            assertThat(VitamConfiguration.getDefaultDigestType()).isEqualTo(DigestType.SHA384);
+
+
+        } catch (final IOException e) {
+            fail("fail"+e);
+        }
+    }
+
+
+
+    @Test
+    public void testFunctionnalIdConfiguration(){
+        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(VITAM_CONF_FILE_ID)) {
+            final VitamConfigurationParameters vitamConfigurationParameters =
+                PropertiesUtils.readYaml(yamlIS, VitamConfigurationParameters.class);
+            vitamConfigurationParameters.getListEnableExternalIdentifiers();
             assertThat(VitamConfiguration.getAcceptableRequestTime()).isEqualTo(25L);
             assertThat(VitamConfiguration.getDefaultDigestType()).isEqualTo(DigestType.SHA384);
 

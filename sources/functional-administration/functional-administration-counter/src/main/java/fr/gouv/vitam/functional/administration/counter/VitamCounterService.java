@@ -159,28 +159,29 @@ public class VitamCounterService {
 
     /**
      * Atomically find a sequence  and update it.
+     *
      * @param tenant
      * @param code
-     * @return String
+     * @return the sequence concatened with it name the name
      * @throws InvalidCreateOperationException
      * @throws InvalidParseOperationException
      * @throws ReferentialException
-     * @return the sequence concatened with it name the name
      */
     public String getNextSequenceAsString(Integer tenant, String code) throws InvalidCreateOperationException,
         InvalidParseOperationException, ReferentialException {
         Integer sequence = getNextSequence(tenant, code);
         return code + "-" + String.format("%06d", sequence);
     }
+
     /**
      * Atomically find a sequence  and update it.
+     *
      * @param tenant
      * @param code
-     * @return String
+     * @return the sequence
      * @throws InvalidCreateOperationException
      * @throws InvalidParseOperationException
      * @throws ReferentialException
-     * @return the sequence
      */
     public Integer getNextSequence(Integer tenant, String code) throws ReferentialException {
         final BasicDBObject incQuery = new BasicDBObject();
@@ -193,7 +194,7 @@ public class VitamCounterService {
         try {
             final Object result = FunctionalAdminCollections.VITAM_SEQUENCE.getCollection()
                 .findOneAndUpdate(query, incQuery, findOneAndUpdateOptions);
-            return  ((VitamSequence) result).getCounter();
+            return ((VitamSequence) result).getCounter();
         } catch (final Exception e) {
             LOGGER.error("find Document Exception", e);
             throw new ReferentialException(e);
@@ -229,15 +230,19 @@ public class VitamCounterService {
             Filters.eq(VitamDocument.TENANT_ID, tenant));
         try {
             final Collection<FunctionalAdminCollections>
-                result = FunctionalAdminCollections.VITAM_SEQUENCE.getCollection().find(query).sort(descending("Counter")).limit(1).into(new ArrayList<FunctionalAdminCollections>());
-                if (result.isEmpty()){
-                    throw new ReferentialException("Document not found");
-                }
-                sequence = ((VitamSequence)((Object)result.iterator().next())).getCounter();
+                result =
+                FunctionalAdminCollections.VITAM_SEQUENCE.getCollection().find(query).sort(descending("Counter"))
+                    .limit(1).into(new ArrayList<FunctionalAdminCollections>());
+            if (result.isEmpty()) {
+                throw new ReferentialException("Document not found");
+            }
+            sequence = ((VitamSequence) ((Object) result.iterator().next())).getCounter();
         } catch (final Exception e) {
             LOGGER.error("find Document Exception", e);
             throw new ReferentialException(e);
         }
         return sequence;
     }
+
+
 }
