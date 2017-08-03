@@ -85,7 +85,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 public class StorageLogbookAdministration {
 
     //TODO : could be usefull to create a Junit for this
-    
+
     private static final String STORAGE_LOGBOOK = "storage_logbook";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageLogbookAdministration.class);
@@ -97,7 +97,7 @@ public class StorageLogbookAdministration {
     public static final String STORAGE_LOGBOOK_OPERATION_ZIP = "StorageLogbookOperation";
     final StorageLogbookService storageLogbookService;
     private final File tmpFolder;
-    private final DateTimeFormatter formatter;
+    private final static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd-HH-mm-ss");
 
 
 
@@ -106,7 +106,6 @@ public class StorageLogbookAdministration {
         this.storageLogbookService = storageLogbookService;
         this.tmpFolder = new File(tmpFolder);
         this.tmpFolder.mkdir();
-        formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     }
 
@@ -116,16 +115,16 @@ public class StorageLogbookAdministration {
      * secure the logbook operation since last securisation.
      *
      * @return the GUID of the operation
-     * @throws TraceabilityException if error on generating secure logbook
-     * @throws IOException if an IOException is thrown while generating the secure storage
-     * @throws StorageLogException if a LogZipFile cannot be generated
-     * @throws LogbookClientBadRequestException if a bad request is encountered
+     * @throws TraceabilityException               if error on generating secure logbook
+     * @throws IOException                         if an IOException is thrown while generating the secure storage
+     * @throws StorageLogException                 if a LogZipFile cannot be generated
+     * @throws LogbookClientBadRequestException    if a bad request is encountered
      * @throws LogbookClientAlreadyExistsException if the logbook already exists
-     * @throws LogbookClientServerException if there's a problem connecting to the logbook functionnality
-     * @throws LogbookNotFoundException if not found on selecting logbook operation
-     * @throws InvalidParseOperationException if json data is not well-formed
-     * @throws LogbookDatabaseException if error on query logbook collection
-     * @throws InvalidCreateOperationException if error on creating query
+     * @throws LogbookClientServerException        if there's a problem connecting to the logbook functionnality
+     * @throws LogbookNotFoundException            if not found on selecting logbook operation
+     * @throws InvalidParseOperationException      if json data is not well-formed
+     * @throws LogbookDatabaseException            if error on query logbook collection
+     * @throws InvalidCreateOperationException     if error on creating query
      */
     public synchronized GUID generateSecureStorageLogbook()
         throws TraceabilityException, IOException, StorageLogException,
@@ -135,9 +134,11 @@ public class StorageLogbookAdministration {
         Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         try {
-
+            LocalDateTime time = now();
             final String fileName =
-                String.format("%d_" + STORAGE_LOGBOOK_OPERATION_ZIP + "_%s_%s.zip", tenantId,now().format(formatter), eip.toString());
+                String
+                    .format("%d_" + STORAGE_LOGBOOK_OPERATION_ZIP + "_%s_%s.zip", tenantId, time.format(formatter),
+                        eip.toString());
             createLogbookOperationStarted(helper, eip);
 
             final File zipFile = new File(tmpFolder, fileName);
@@ -151,12 +152,12 @@ public class StorageLogbookAdministration {
                 logZipFile.storeLogFile(digest.getDigestInputStream(stream));
                 logZipFile.storeAdditionalInformation(getString(info.getBeginTime()), getString(info.getEndTime()),
                     digest.toString(),
-                    getString(LocalDateTime.now()), tenantId);
+                    getString(time), tenantId);
                 logZipFile.close();
                 try {
                     info.getPath().toFile().delete();
                 } catch (Exception e) {
-                    LOGGER.error("unable to delete log fiel ", e);
+                    LOGGER.error("unable to delete log file ", e);
                 }
             } catch (IOException |
                 ArchiveException e) {
@@ -213,7 +214,7 @@ public class StorageLogbookAdministration {
     }
 
     private void createLogbookOperationStarted(LogbookOperationsClientHelper helper, GUID eip)
-        throws LogbookClientNotFoundException, LogbookClientAlreadyExistsException {        
+        throws LogbookClientNotFoundException, LogbookClientAlreadyExistsException {
         final LogbookOperationParameters logbookOperationParameters = LogbookParametersFactory
             .newLogbookOperationParameters(eip, STP_OP_SECURISATION, eip, LogbookTypeProcess.STORAGE_LOGBOOK,
                 StatusCode.STARTED,
