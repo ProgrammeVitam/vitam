@@ -122,7 +122,7 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.logbook.rest.LogbookApplication;
+import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.UnitInheritedRule;
@@ -208,7 +208,7 @@ public class ProcessingIT {
     private static MetadataMain metadataMain;
     private static WorkerApplication workerApplication;
     private static AdminManagementMain adminApplication;
-    private static LogbookApplication lgbapplication;
+    private static LogbookMain logbookApplication;
     private static WorkspaceApplication workspaceApplication;
     private static ProcessManagementApplication processManagementApplication;
     private WorkspaceClient workspaceClient;
@@ -328,10 +328,10 @@ public class ProcessingIT {
 
         // launch logbook
         SystemPropertyUtil
-            .set(LogbookApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_LOGBOOK));
-        lgbapplication = new LogbookApplication(CONFIG_LOGBOOK_PATH);
-        lgbapplication.start();
-        SystemPropertyUtil.clear(LogbookApplication.PARAMETER_JETTY_SERVER_PORT);
+            .set(LogbookMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_LOGBOOK));
+        logbookApplication = new LogbookMain(CONFIG_LOGBOOK_PATH);
+        logbookApplication.start();
+        SystemPropertyUtil.clear(LogbookMain.PARAMETER_JETTY_SERVER_PORT);
 
         LogbookOperationsClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_LOGBOOK));
         LogbookLifeCyclesClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_LOGBOOK));
@@ -379,7 +379,7 @@ public class ProcessingIT {
             workspaceApplication.stop();
             adminApplication.stop();
             workerApplication.stop();
-            lgbapplication.stop();
+            logbookApplication.stop();
             processManagementApplication.stop();
             metadataMain.stop();
             mongoClient.close();

@@ -98,7 +98,7 @@ public class LogbookResourceTest {
 
     // ES
     @ClassRule
-    public static TemporaryFolder esTempFolder = new TemporaryFolder();
+    public static TemporaryFolder temporaryFolder = new TemporaryFolder();
     private final static String ES_CLUSTER_NAME = "vitam-cluster";
     private final static String ES_HOST_NAME = "localhost";
     private static ElasticsearchTestConfiguration config = null;
@@ -110,7 +110,7 @@ public class LogbookResourceTest {
     private static final String TRACEABILITY_URI = "/operations/traceability";
     private static int databasePort;
     private static int serverPort;
-    private static LogbookApplication application;
+    private static LogbookMain application;
 
     private static LogbookOperationParameters logbookParametersStart;
     private static LogbookOperationParameters logbookParametersAppend;
@@ -150,7 +150,7 @@ public class LogbookResourceTest {
         mongod = mongodExecutable.start();
         // ES
         try {
-            config = JunitHelper.startElasticsearchForTest(esTempFolder, ES_CLUSTER_NAME);
+            config = JunitHelper.startElasticsearchForTest(temporaryFolder, ES_CLUSTER_NAME);
         } catch (final VitamApplicationServerException e1) {
             assumeTrue(false);
         }
@@ -171,8 +171,13 @@ public class LogbookResourceTest {
         RestAssured.port = serverPort;
         RestAssured.basePath = REST_URI;
 
+        File file = temporaryFolder.newFile();
+        String configurationFile = file.getAbsolutePath();
+        PropertiesUtils.writeYaml(file, realLogbook);
+
+
         try {
-            application = new LogbookApplication(realLogbook);
+            application = new LogbookMain(configurationFile);
             application.start();
             JunitHelper.unsetJettyPortSystemProperty();
         } catch (final VitamApplicationServerException e) {

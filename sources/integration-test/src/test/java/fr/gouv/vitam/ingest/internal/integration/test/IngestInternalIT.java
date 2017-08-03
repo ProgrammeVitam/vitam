@@ -44,6 +44,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import org.bson.Document;
 import org.elasticsearch.action.search.SearchResponse;
@@ -120,7 +121,6 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.logbook.rest.LogbookApplication;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
@@ -196,7 +196,7 @@ public class IngestInternalIT {
     private static MetadataMain medtadataApplication;
     private static WorkerApplication wkrapplication;
     private static AdminManagementApplication adminApplication;
-    private static LogbookApplication lgbapplication;
+    private static LogbookMain logbookApplication;
     private static WorkspaceApplication workspaceApplication;
     private static ProcessManagementApplication processManagementApplication;
     private static IngestInternalApplication ingestInternalApplication;
@@ -292,10 +292,10 @@ public class IngestInternalIT {
 
         // launch logbook
         SystemPropertyUtil
-            .set(LogbookApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_LOGBOOK));
-        lgbapplication = new LogbookApplication(CONFIG_LOGBOOK_PATH);
-        lgbapplication.start();
-        SystemPropertyUtil.clear(LogbookApplication.PARAMETER_JETTY_SERVER_PORT);
+            .set(LogbookMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_LOGBOOK));
+        logbookApplication = new LogbookMain(CONFIG_LOGBOOK_PATH);
+        logbookApplication.start();
+        SystemPropertyUtil.clear(LogbookMain.PARAMETER_JETTY_SERVER_PORT);
 
         LogbookOperationsClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_LOGBOOK));
         LogbookLifeCyclesClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_LOGBOOK));
@@ -350,7 +350,7 @@ public class IngestInternalIT {
             ingestInternalApplication.stop();
             workspaceApplication.stop();
             wkrapplication.stop();
-            lgbapplication.stop();
+            logbookApplication.stop();
             processManagementApplication.stop();
             medtadataApplication.stop();
             adminApplication.stop();

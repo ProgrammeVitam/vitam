@@ -40,6 +40,7 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.stream.FactoryConfigurationError;
 import javax.xml.transform.TransformerFactoryConfigurationError;
 
+import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import org.apache.commons.io.IOUtils;
 import org.junit.AfterClass;
@@ -81,7 +82,6 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.logbook.rest.LogbookApplication;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.model.Step;
@@ -147,7 +147,7 @@ public class WorkerIT {
     private static ProcessManagementApplication processManagementApplication;
 
     private WorkspaceClient workspaceClient;
-    private static LogbookApplication lgbapplication;
+    private static LogbookMain logbookMain;
     private WorkerClient workerClient;
     private WorkerClientConfiguration workerClientConfiguration;
 
@@ -194,9 +194,9 @@ public class WorkerIT {
 
         // launch logbook
         SystemPropertyUtil
-            .set(LogbookApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_LOGBOOK));
-        lgbapplication = new LogbookApplication(CONFIG_LOGBOOK_PATH);
-        lgbapplication.start();
+            .set(LogbookMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_LOGBOOK));
+        logbookMain = new LogbookMain(CONFIG_LOGBOOK_PATH);
+        logbookMain.start();
         final ClientConfiguration configuration = new ClientConfigurationImpl("localhost", PORT_SERVICE_LOGBOOK);
         LogbookLifeCyclesClientFactory.changeMode(configuration);
         LogbookOperationsClientFactory.changeMode(configuration);
@@ -237,7 +237,7 @@ public class WorkerIT {
         try {
             workspaceApplication.stop();
             wkrapplication.stop();
-            lgbapplication.stop();
+            logbookMain.stop();
             processManagementApplication.stop();
             metadataApplication.stop();
         } catch (final Exception e) {

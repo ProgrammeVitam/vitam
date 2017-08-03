@@ -21,7 +21,7 @@ import ru.yandex.qatools.embed.service.MongoEmbeddedService;
 
 public class LogbookApplicationAuthenticationTest {
     private static final String DATABASE_HOST = "localhost";
-    static LogbookMongoDbAccessImpl mongoDbAccess;
+
     private static int port;
     private static JunitHelper junitHelper;
     private static MongoEmbeddedService mongo;
@@ -32,12 +32,14 @@ public class LogbookApplicationAuthenticationTest {
 
     // ES
     @ClassRule
-    public static TemporaryFolder esTempFolder = new TemporaryFolder();
+    public static TemporaryFolder temporaryFolder = new TemporaryFolder();
     private final static String ES_CLUSTER_NAME = "vitam-cluster";
     private static ElasticsearchTestConfiguration config = null;
     
     private static File logbook;
     private static LogbookConfiguration realLogbook;
+
+    private static String configurationFile;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -52,7 +54,7 @@ public class LogbookApplicationAuthenticationTest {
         mongo.start();
         // ES
         try {
-            config = JunitHelper.startElasticsearchForTest(esTempFolder, ES_CLUSTER_NAME);
+            config = JunitHelper.startElasticsearchForTest(temporaryFolder, ES_CLUSTER_NAME);
         } catch (final VitamApplicationServerException e1) {
             assumeTrue(false);
         }
@@ -60,7 +62,11 @@ public class LogbookApplicationAuthenticationTest {
         logbook = PropertiesUtils.findFile(LOGBOOK_CONF);
         realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
         realLogbook.getMongoDbNodes().get(0).setDbPort(port);
-        realLogbook.getElasticsearchNodes().get(0).setTcpPort(config.getTcpPort());       
+        realLogbook.getElasticsearchNodes().get(0).setTcpPort(config.getTcpPort());
+
+        File file = temporaryFolder.newFile();
+        configurationFile = file.getAbsolutePath();
+        PropertiesUtils.writeYaml(file, realLogbook);
     }
 
     @AfterClass
@@ -73,8 +79,8 @@ public class LogbookApplicationAuthenticationTest {
     }
 
     @Test
-    public void testApplicationLaunch() {
-        new LogbookApplication(realLogbook);
+    public void testApplicationLaunch() throws VitamApplicationServerException {
+        new LogbookMain(configurationFile);
     }
 
 }
