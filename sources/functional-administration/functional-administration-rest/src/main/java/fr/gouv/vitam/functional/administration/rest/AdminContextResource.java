@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.rest;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -33,6 +34,7 @@ import fr.gouv.vitam.functional.administration.client.model.ContextModel;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
+import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
@@ -73,6 +75,19 @@ public class AdminContextResource {
 
         VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
         return contextResource.importContexts(contextModelList, uri);
+    }
+
+    @Path("/contexts")
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response findContexts(JsonNode queryDsl) {
+        // TODO: report this as a vitam event
+        LOGGER.info("create context with admin interface");
+        LOGGER.info("using of admin tenant: 1");
+
+        VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
+        return contextResource.findContexts(queryDsl);
     }
 
 }

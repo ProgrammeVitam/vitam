@@ -6,35 +6,57 @@
       port: "{{vitam_functional_administration_port_admin}}"
       state: "started"
       timeout: "{{service_restart_timeout}}"
+  run_once: true
 
-- name: Send context to functionnal-admin
+- name: Check if context already exists in functionnal-admin
   uri:
-    method: POST
-    body: "[{ \"Name\": \"{{admin_context_name}}\", \"Status\": true, \"Permissions\": [ {% for tenant in admin_context_tenants %}{ \"_tenant\": {{tenant}}, \"AccessContracts\": [], \"IngestContracts\": [] }{% if not loop.last %},{% endif %}{% endfor %} ] }]"
-    status_code: 200,201
+    method: GET
+    body: "{ \"$query\":{\"$and\":[{\"$eq\":{\"Name\":\"{{admin_context_name}}\"}}]},\"$filter\":{\"$orderby\":{\"Name\":1}},\"$projection\":{} }"
+    status_code: 200
     url: "http://{{hostvars[groups['hosts-functional-administration'][0]]['ip_admin']}}:{{vitam_functional_administration_port_admin}}/v1/admin/contexts"
     body_format: "json"
   run_once: true
-  register: functional_adm_response
-
-- name: "Wait until service security-internal is up"
-  wait_for:
-      host: "{{hostvars[groups['hosts-security-internal'][0]]['ip_admin']}}"
-      port: "{{vitam_security_internal_port_admin}}"
-      state: "started"
-      timeout: "{{service_restart_timeout}}"
+  register: context_check
 
 - name: Modify json & convert to dict...
   set_fact:
-    functional_adm_json: "{{ functional_adm_response.json |regex_replace('\\$results', 'results') }}"
-
-- name: Upload certificates into security-internal
-  uri:
-    method: POST
-    body: "{ \"contextId\" : \"{{ functional_adm_json.results[0].Identifier }}\" , \"certificate\" : \"{{ lookup('file','{{inventory_dir}}/certs/client-external/clients/{{item}}') | b64encode }}\" }"
-    status_code: 200,201
-    url: http://{{hostvars[groups['hosts-security-internal'][0]]['ip_admin']}}:{{vitam_security_internal_port_admin}}/v1/api/identity
-    body_format: "json"
+    context_check_json: "{{ context_check.json |regex_replace('\\$hits', 'hits') }}"
   run_once: true
-  with_items:
-    - "{{admin_context_certs}}"
+
+- block:
+
+    - name: Send context to functionnal-admin
+      uri:
+        method: POST
+        body: "[{ \"Name\": \"{{admin_context_name}}\", \"Status\": true, \"Permissions\": [ {% for tenant in admin_context_tenants %}{ \"_tenant\": {{tenant}}, \"AccessContracts\": [], \"IngestContracts\": [] }{% if not loop.last %},{% endif %}{% endfor %} ] }]"
+        status_code: 200,201
+        url: "http://{{hostvars[groups['hosts-functional-administration'][0]]['ip_admin']}}:{{vitam_functional_administration_port_admin}}/v1/admin/contexts"
+        body_format: "json"
+      run_once: true
+      register: functional_adm_response
+
+    - name: Modify json & convert to dict...
+      set_fact:
+        functional_adm_json: "{{ functional_adm_response.json |regex_replace('\\$results', 'results') }}"
+      run_once: true
+
+    - name: "Wait until service security-internal is up"
+      wait_for:
+          host: "{{hostvars[groups['hosts-security-internal'][0]]['ip_admin']}}"
+          port: "{{vitam_security_internal_port_admin}}"
+          state: "started"
+          timeout: "{{service_restart_timeout}}"
+      run_once: true
+
+    - name: Upload certificates into security-internal
+      uri:
+        method: POST
+        body: "{ \"contextId\" : \"{{ functional_adm_json.results[0].Identifier }}\" , \"certificate\" : \"{{ lookup('file','{{inventory_dir}}/certs/client-external/clients/{{item}}') | b64encode }}\" }"
+        status_code: 200,201
+        url: http://{{hostvars[groups['hosts-security-internal'][0]]['ip_admin']}}:{{vitam_security_internal_port_admin}}/v1/api/identity
+        body_format: "json"
+      run_once: true
+      with_items:
+        - "{{admin_context_certs}}"
+
+  when: context_check_json.hits.total < 1
