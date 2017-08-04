@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.impl;
 
+import com.google.common.base.Stopwatch;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -86,6 +87,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -194,6 +196,8 @@ public class WorkerImpl implements Worker {
         try (final HandlerIO handlerIO = new HandlerIOImpl(workParams.getContainerName(), workerId);
             LogbookLifeCyclesClient logbookLfcClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
             for (final Action action : step.getActions()) {
+                Stopwatch stopwatch = Stopwatch.createStarted();
+
                 // Reset handlerIO for next execution
                 handlerIO.reset();
                 ActionDefinition actionDefinition = action.getActionDefinition();
@@ -236,10 +240,14 @@ public class WorkerImpl implements Worker {
                     actionResponse = actionHandler.execute(workParams, handlerIO);
                 }
                 responses.setItemsStatus(actionResponse);
-                LOGGER.debug("STOP handler {} in step {}", actionDefinition.getActionKey(),
-                    step.getStepName());
+                LOGGER.debug("STOP handler {} in step {}", actionDefinition.getActionKey(), step.getStepName());
                 // if the action has been defined as Blocking and the action status is KO or FATAL
                 // then break the process
+
+                long elapsed = stopwatch.elapsed(TimeUnit.MILLISECONDS);
+
+                LOGGER.info("{},{},{}",  actionDefinition.getActionKey(), step.getStepName(), elapsed);
+
                 if (actionResponse.shallStop(ProcessBehavior.BLOCKING.equals(actionDefinition.getBehavior()))) {
                     break;
                 }
