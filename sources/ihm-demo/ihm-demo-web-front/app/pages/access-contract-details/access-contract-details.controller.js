@@ -38,13 +38,8 @@ angular.module('ihm.demo')
 
         $scope.tmpVars = {};
         $scope.updateStatus = function() {
-            $scope.tmpVars.Status = $scope.tmpVars.isActive ? 'ACTIVE': 'INACTIVE';
+            $scope.tmpVars.Status = $scope.isActive ? 'ACTIVE': 'INACTIVE';
         };
-
-
-    $scope.updateWritePermission = function() {
-      $scope.contract.Status = $scope.tmpVars.isActive? 'ACTIVE': 'INACTIVE';
-    };
 
         var displayMessage = function(message, closeMessage) {
             if (!closeMessage) {
@@ -66,7 +61,7 @@ angular.module('ihm.demo')
                       $scope.contract.OriginatingAgencies = [];
                     }
                     $scope.tmpVars = angular.copy($scope.contract);
-                    $scope.tmpVars.isActive = $scope.contract.Status === 'ACTIVE';
+                    $scope.isActive = $scope.contract.Status === 'ACTIVE';
                 }
             });
         };
@@ -76,7 +71,7 @@ angular.module('ihm.demo')
 
       if ($scope.editMode == false) {
         $scope.tmpVars = angular.copy($scope.contract);
-        $scope.tmpVars.isActive = $scope.contract.Status === 'ACTIVE';
+        $scope.isActive = $scope.contract.Status === 'ACTIVE';
       }
     };
         $scope.saveModifs = function() {

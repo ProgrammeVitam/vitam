@@ -62,7 +62,7 @@
                         <label>Droit d'écriture</label>
 
                         <label class="switch">
-                            <input type="checkbox" ng-model="tmpVars.WritingPermission" ng-change="updateStatus()" ng-disabled="!editMode">
+                            <input type="checkbox" ng-model="tmpVars.WritingPermission" ng-disabled="!editMode">
                             <div class="slider round" ng-class="{'disabled': checkPermission() || !editMode}"></div>
                         </label>
                         <span>{{tmpVars.WritingPermission | StrReplace}}</span>

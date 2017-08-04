@@ -53,10 +53,10 @@
                     <div class="form-group col-md-6">
                         <label>Statut</label>
                         <label class="switch">
-                            <input type="checkbox" ng-model="tmpVars.isActive" ng-change="updateStatus()" ng-disabled="checkPermission()  || !editMode">
+                            <input type="checkbox" ng-model="isActive" ng-change="updateStatus()" ng-disabled="checkPermission()  || !editMode">
                             <div class="slider round" ng-class="{'disabled': checkPermission() || !editMode}"></div>
                         </label>
-                        <span>{{contract.Status | StrReplace}}</span>
+                        <span>{{tmpVars.Status | StrReplace}}</span>
                     </div>
                     <div class="clearfix"></div>
                     <div class="form-group col-md-6">
