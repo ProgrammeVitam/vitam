@@ -418,8 +418,6 @@ abstract class AbstractCommonClient implements BasicClient {
      * @param body may be null
      * @param contentType may be null
      * @param builder
-     * @param callback
-     * @param <T> the type of the Future result (generally Response)
      * @return the response from the server as Future
      * @throws VitamClientInternalException if retry is not possible and http call is failed
      */
@@ -509,7 +507,7 @@ abstract class AbstractCommonClient implements BasicClient {
 
     @Override
     public String toString() {
-        return new StringBuilder("VitamClient: { ").append(clientFactory.toString()).append(" }").toString();
+        return "VitamClient: { " + clientFactory.toString() + " }";
     }
 
     /**
