@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,19 +23,32 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.ingest.external.common.client;
+ */
+package fr.gouv.vitam.access.external.rest;
 
-import static org.junit.Assert.assertEquals;
+import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 
-import org.junit.Test;
+/**
+ * AccessConfiguration contains database access informations
+ */
+public class AccessExternalConfiguration extends DefaultVitamApplicationConfiguration {
+    private boolean authentication;
 
-public class ErrorMessageTest {
+    /**
+     * @return the authentication
+     */
+    public boolean isAuthentication() {
+        return authentication;
+    }
 
-    @Test
-    public void givenErrorMessage() {
-        assertEquals("Ingest external upload failed ",
-            ErrorMessage.valueOf("INGEST_EXTERNAL_UPLOAD_ERROR").getMessage());
+    /**
+     * @param authentication the authentication to set
+     *
+     * @return this
+     */
+    public AccessExternalConfiguration setAuthentication(boolean authentication) {
+        this.authentication = authentication;
+        return this;
     }
 
 }

@@ -29,6 +29,8 @@ package fr.gouv.vitam.ihmrecette.appserver;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
@@ -48,18 +50,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.access.external.api.AdminCollections;
-import fr.gouv.vitam.access.external.client.AccessExternalClient;
-import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
-import fr.gouv.vitam.access.external.client.AdminExternalClient;
-import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
-import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
-import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
-import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.ProcessQuery;
-import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
-import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
@@ -70,10 +60,18 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 
+import fr.gouv.vitam.access.external.api.AdminCollections;
+import fr.gouv.vitam.access.external.client.AccessExternalClient;
+import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
+import fr.gouv.vitam.access.external.client.AdminExternalClient;
+import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
+import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
+import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -81,6 +79,8 @@ import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.security.SanityChecker;
@@ -88,7 +88,6 @@ import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server.application.resources.BasicVitamStatusServiceImpl;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.ihmdemo.common.api.IhmDataRest;
 import fr.gouv.vitam.ihmdemo.common.api.IhmWebAppHeader;
@@ -97,6 +96,8 @@ import fr.gouv.vitam.ihmdemo.common.pagination.PaginationHelper;
 import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 import fr.gouv.vitam.ihmdemo.core.JsonTransformer;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
+import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
+import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
@@ -146,6 +147,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String HTTP_GET = "GET";
     private static final String HTTP_PUT = "PUT";
     private static final String HTTP_DELETE = "DELETE";
+    
+    private ExecutorService threadPoolExecutor = Executors.newCachedThreadPool();
 
     /**
      * Constructor
@@ -256,6 +259,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             LogbookOperationsClientFactory.getInstance().getClient()) {
             RequestResponseOK result;
             try {
+                // TODO add tenantId as param
                 VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
                 result = logbookOperationsClient.traceability();
             } catch (final InvalidParseOperationException e) {
@@ -325,7 +329,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
         try {
             tenantId = Integer.parseInt(xTenantId);
-            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+//            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             pagination = new OffsetBasedPagination(headers);
         } catch (final VitamException e) {
             LOGGER.error("Bad request Exception ", e);
@@ -355,7 +359,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
 
                 LOGGER.debug("query >>>>>>>>>>>>>>>>> : " + query);
-                result = UserInterfaceTransactionManager.selectOperation(query, tenantId);
+                result = UserInterfaceTransactionManager.selectOperation(query, tenantId, DEFAULT_CONTRACT_NAME);
 
                 // save result
                 LOGGER.debug("resultr <<<<<<<<<<<<<<<<<<<<<<<: " + result);
@@ -428,8 +432,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.BAD_REQUEST).build());
         }
-        VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
-        VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> downloadObjectAsync(asyncResponse, operationId));
+        threadPoolExecutor.execute(() -> downloadObjectAsync(asyncResponse, operationId, Integer.parseInt(xTenantId)));
     }
 
     /**
@@ -444,8 +447,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void downloadObjectAsStreamForBrowser(@PathParam("idOperation") String operationId,
         @Suspended final AsyncResponse asyncResponse, @QueryParam(GlobalDataRest.X_TENANT_ID) Integer tenantId) {
-        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-        VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> downloadObjectAsync(asyncResponse, operationId));
+        threadPoolExecutor.execute(() -> downloadObjectAsync(asyncResponse, operationId, tenantId));
     }
 
     /**
@@ -454,9 +456,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * @param asyncResponse
      * @param operationId
      */
-    private void downloadObjectAsync(final AsyncResponse asyncResponse, String operationId) {
+    private void downloadObjectAsync(final AsyncResponse asyncResponse, String operationId, int tenantId) {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-            int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
             final RequestResponse<JsonNode> result =
                 UserInterfaceTransactionManager.selectOperationbyId(operationId, tenantId, DEFAULT_CONTRACT_NAME);
 
@@ -498,9 +499,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
             LOGGER.error("INTERNAL SERVER ERROR", e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        } finally {
-            // clean tenantId
-            VitamThreadUtils.getVitamSession().setTenantId(null);
         }
     }
 
@@ -714,9 +712,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                     case HTTP_DELETE:
                                         if (!StringUtils.isBlank(objectID)) {
 //                                            requestId = GUIDFactory.newRequestIdGUID(tenantId).toString();
-                                            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId).toString());
-                                            result = ingestExternalClient.cancelOperationProcessExecution(objectID,
-                                                tenantId);
+                                            result = ingestExternalClient.cancelOperationProcessExecution(objectID, tenantId);
                                             break;
                                         } else {
                                             throw new InvalidParseOperationException(
@@ -818,14 +814,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 // Do Nothing : Put 0 as tenant Id
             }
         }
-        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         return tenantId;
     }
 
     private String getContractId(HttpHeaders headers) {
         // TODO Error check ? Throw error or put tenant Id 0
         String contractId = headers.getHeaderString(GlobalDataRest.X_ACCESS_CONTRAT_ID);
-        VitamThreadUtils.getVitamSession().setContractId(contractId);
         return contractId;
     }
 

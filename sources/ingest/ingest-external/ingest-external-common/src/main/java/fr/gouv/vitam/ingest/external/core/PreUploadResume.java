@@ -30,8 +30,9 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.workspace.common.WorkspaceFileSystem;
+
 /**
-Asynchrone exchange Model
+ * Asynchrone exchange Model
  */
 public class PreUploadResume {
     private LogbookOperationsClientHelper helper;

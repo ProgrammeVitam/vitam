@@ -53,7 +53,6 @@ import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
-import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
@@ -71,7 +70,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseError;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
@@ -115,6 +113,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+            SanityChecker.checkJsonAll(queryJson);
             RequestResponse<JsonNode> result = client.selectUnits(queryJson);
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
@@ -174,6 +173,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         Status status;
         ParametersChecker.checkParameter("unit id is required", idUnit);
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+            SanityChecker.checkJsonAll(queryJson);
             RequestResponse<JsonNode> result = client.selectUnitbyId(queryJson, idUnit);
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
@@ -212,6 +212,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+            SanityChecker.checkJsonAll(queryJson);
             RequestResponse<JsonNode> response = client.updateUnitbyId(queryJson, idUnit);
             if (!response.isOk() && response instanceof VitamError) {
                 VitamError error = (VitamError) response;
@@ -274,6 +275,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+            SanityChecker.checkJsonAll(queryJson);
             String idObjectGroup = idObjectGroup(idu);
             RequestResponse<JsonNode> result = client.selectObjectbyId(queryJson, idObjectGroup);
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
@@ -335,6 +337,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
 
         Status status;
         try {
+            SanityChecker.checkJsonAll(query);
             String idObjectGroup = idObjectGroup(idu);
             getObject(headers, idObjectGroup, query, asyncResponse, false);
         } catch (final InvalidParseOperationException e) {
@@ -378,6 +381,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         JsonNode query, @Suspended final AsyncResponse asyncResponse) {
         Status status;
         try {
+            SanityChecker.checkJsonAll(query);
             String idObjectGroup = idObjectGroup(idu);
             getObject(headers, idObjectGroup, query, asyncResponse, true);
 
@@ -493,6 +497,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         final String xVersion = headers.getRequestHeader(GlobalDataRest.X_VERSION).get(0);
         AsyncInputStreamHelper helper;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+            SanityChecker.checkJsonAll(query);
             HttpHeaderHelper.checkVitamHeaders(headers);
             final Response response =
                 client.getObject(query, idObjectGroup, xQualifier,

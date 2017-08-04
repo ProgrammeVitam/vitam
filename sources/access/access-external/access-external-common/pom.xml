@@ -19,12 +19,7 @@
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>common-private</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>metadata-api</artifactId>
+			<artifactId>common-public</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>

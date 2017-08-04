@@ -29,7 +29,7 @@ import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.client.ClientMockResultHelper;
+import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -504,7 +504,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
             .isEqualTo(Status.UNAUTHORIZED.getStatusCode());
     }
 
-    @Test(expected = InvalidParseOperationException.class)
+    @Test(expected = IllegalArgumentException.class)
     @RunWithCustomExecutor
     public void givenQueryNullWhenSelectObjectByIdThenRaiseAnInvalidParseOperationException() throws Exception {
         client.selectObjectById(null, ID, TENANT_ID, CONTRACT);
@@ -549,7 +549,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         assertThat(client.selectObjectById(JsonHandler.getFromString(queryDsql), ID, TENANT_ID, CONTRACT)).isNotNull();
     }
 
-    @Test(expected = InvalidParseOperationException.class)
+    @Test(expected = IllegalArgumentException.class)
     @RunWithCustomExecutor
     public void givenQueryNullWhenGetObjectAsInputStreamThenRaiseAnInvalidParseOperationException() throws Exception {
         client.getObject(null, ID, USAGE, VERSION, TENANT_ID, CONTRACT);

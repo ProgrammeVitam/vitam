@@ -38,13 +38,12 @@ import javax.ws.rs.core.Response.Status;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.client.AbstractMockClient;
-import fr.gouv.vitam.common.client.ClientMockResultHelper;
-import fr.gouv.vitam.common.client.IngestCollection;
+import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.external.client.AbstractMockClient;
+import fr.gouv.vitam.common.external.client.IngestCollection;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -61,7 +60,7 @@ import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
  */
 class IngestExternalClientMock extends AbstractMockClient implements IngestExternalClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalClientMock.class);
-    private static final String FAKE_X_REQUEST_ID = GUIDFactory.newRequestIdGUID(0).getId();
+    private static final String FAKE_X_REQUEST_ID = "aedqaaaaacaam7mxaaaamakvhiv4rsiaaa0";
     public static final String MOCK_INGEST_EXTERNAL_RESPONSE_STREAM = "VITAM-Ingest External Client Mock Response";
     private static final String FAKE_EXECUTION_STATUS = "Fake";
     final int TENANT_ID = 0;
