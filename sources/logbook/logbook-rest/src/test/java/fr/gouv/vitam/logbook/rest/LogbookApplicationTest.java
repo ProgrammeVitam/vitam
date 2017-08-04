@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.google.common.collect.Lists;
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -76,7 +77,7 @@ public class LogbookApplicationTest {
 
     // ES
     @ClassRule
-    public static TemporaryFolder esTempFolder = new TemporaryFolder();
+    public static TemporaryFolder temporaryFolder = new TemporaryFolder();
     private final static String ES_CLUSTER_NAME = "vitam-cluster";
     private final static String ES_HOST_NAME = "localhost";
     private static ElasticsearchTestConfiguration config = null;
@@ -86,7 +87,8 @@ public class LogbookApplicationTest {
     private static LogbookConfiguration realLogbook;
 
     private static final int TENANT_ID = 0;
-    private static final List<Integer> tenantList = Arrays.asList(0);
+    private static final List<Integer> tenantList = Lists.newArrayList(TENANT_ID);
+    private static String configurationFile;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -106,7 +108,7 @@ public class LogbookApplicationTest {
         mongod = mongodExecutable.start();
         // ES
         try {
-            config = JunitHelper.startElasticsearchForTest(esTempFolder, ES_CLUSTER_NAME);
+            config = JunitHelper.startElasticsearchForTest(temporaryFolder, ES_CLUSTER_NAME);
         } catch (final VitamApplicationServerException e1) {
             assumeTrue(false);
         }
@@ -125,6 +127,11 @@ public class LogbookApplicationTest {
 
         oldPort = VitamServerFactory.getDefaultPort();
         VitamServerFactory.setDefaultPort(serverPort);
+
+        File file = temporaryFolder.newFile();
+        configurationFile = file.getAbsolutePath();
+        PropertiesUtils.writeYaml(file, realLogbook);
+
     }
 
     @AfterClass
@@ -144,16 +151,15 @@ public class LogbookApplicationTest {
     @Test
     public final void testFictiveLaunch() {
         try {
-            new LogbookApplication(realLogbook);
+            new LogbookMain(configurationFile);
         } catch (final IllegalStateException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
     }
 
-
-    @Test(expected = IllegalStateException.class)
+    @Test(expected = IllegalArgumentException.class)
     public final void shouldRaiseException() throws VitamException {
-        new LogbookApplication((String) null);
+        new LogbookMain((String) null);
     }
 
 }

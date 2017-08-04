@@ -484,8 +484,12 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
         headers.add(GlobalDataRest.X_EVENT_STATUS, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED.toString());
 
         try {
-            response = performRequest(HttpMethod.PUT, commitPath, headers,
-                MediaType.APPLICATION_JSON_TYPE);
+            // BIG HACK because we use the same method to update and commit the collection
+            // BIG HACK: I use an empty JSON to by pass the rest easy check
+            // The best way is probably to have two different resource but in the past, we have an another resource .../commit
+            // and we migrate with only one resource because I don't know : discuss with an architect
+            response = performRequest(HttpMethod.PUT, commitPath, headers, JsonHandler.createObjectNode(),
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
 
             switch (status) {

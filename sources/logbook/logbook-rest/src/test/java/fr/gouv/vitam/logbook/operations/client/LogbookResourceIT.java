@@ -26,15 +26,19 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.operations.client;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.logbook.rest.LogbookMain;
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -87,7 +91,6 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
-import fr.gouv.vitam.logbook.rest.LogbookApplication;
 
 public class LogbookResourceIT {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookResourceIT.class);
@@ -103,7 +106,7 @@ public class LogbookResourceIT {
     private static MongodProcess mongod;
     // ES
     @ClassRule
-    public static TemporaryFolder esTempFolder = new TemporaryFolder();
+    public static TemporaryFolder temporaryFolder = new TemporaryFolder();
     private final static String ES_CLUSTER_NAME = "vitam-cluster";
     private final static String ES_HOST_NAME = "localhost";
     private static ElasticsearchTestConfiguration config = null;
@@ -113,14 +116,10 @@ public class LogbookResourceIT {
     private static JunitHelper junitHelper;
     private static int databasePort;
     private static int serverPort;
-    private static LogbookApplication application;
+    private static LogbookMain application;
     private static final int NB_TEST = 100;
     private static final Integer tenantId = 0;
-    private static final List<Integer> tenantList = new ArrayList() {
-        {
-            add(tenantId);
-        }
-    };
+    private static final List<Integer> tenantList = newArrayList(tenantId);
 
     private static LogbookOperationParameters logbookParametersStart;
     private static LogbookOperationParameters logbookParametersAppend;
@@ -150,7 +149,7 @@ public class LogbookResourceIT {
         mongod = mongodExecutable.start();
         // ES
         try {
-            config = JunitHelper.startElasticsearchForTest(esTempFolder, ES_CLUSTER_NAME);
+            config = JunitHelper.startElasticsearchForTest(temporaryFolder, ES_CLUSTER_NAME);
         } catch (final VitamApplicationServerException e1) {
             assumeTrue(false);
         }
@@ -170,7 +169,13 @@ public class LogbookResourceIT {
             logbookConf.setClusterName(ES_CLUSTER_NAME);
             logbookConf.setElasticsearchNodes(esNodes);
             logbookConf.setTenants(tenantList);
-            application = new LogbookApplication(logbookConf);
+
+            File file = temporaryFolder.newFile();
+            String configurationFile = file.getAbsolutePath();
+            PropertiesUtils.writeYaml(file, logbookConf);
+
+
+            application = new LogbookMain(configurationFile);
             application.start();
             JunitHelper.unsetJettyPortSystemProperty();
 
@@ -185,8 +190,6 @@ public class LogbookResourceIT {
         LogbookOperationsClientFactory.changeMode(new ClientConfigurationImpl(DATABASE_HOST, serverPort));
         LogbookLifeCyclesClientFactory.changeMode(new ClientConfigurationImpl(DATABASE_HOST, serverPort));
         LOGGER.debug("Initialize client: " + DATABASE_HOST + ":" + serverPort);
-
-
     }
 
     @AfterClass

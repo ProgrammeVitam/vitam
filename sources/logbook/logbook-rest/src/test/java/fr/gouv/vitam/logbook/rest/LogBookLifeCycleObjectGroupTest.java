@@ -29,12 +29,14 @@ package fr.gouv.vitam.logbook.rest;
 import static com.jayway.restassured.RestAssured.given;
 import static org.junit.Assume.assumeTrue;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.PropertiesUtils;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.jhades.JHades;
@@ -95,7 +97,7 @@ public class LogBookLifeCycleObjectGroupTest {
 
     // ES
     @ClassRule
-    public static TemporaryFolder esTempFolder = new TemporaryFolder();
+    public static TemporaryFolder temporaryFolder = new TemporaryFolder();
     private final static String ES_CLUSTER_NAME = "vitam-cluster";
     private final static String ES_HOST_NAME = "localhost";
     private static ElasticsearchTestConfiguration config = null;
@@ -105,7 +107,7 @@ public class LogBookLifeCycleObjectGroupTest {
 
     private static int databasePort;
     private static int serverPort;
-    private static LogbookApplication application;
+    private static LogbookMain application;
     private static LogbookLifeCycleObjectGroupParameters logbookLifeCyclesObjectGroupParametersStart;
     private static LogbookLifeCycleObjectGroupParameters logbookLCObjectGroupParametersAppend;
     private static LogbookLifeCycleObjectGroupParameters logbookLifeCyclesObjectGroupParametersBAD;
@@ -130,7 +132,7 @@ public class LogBookLifeCycleObjectGroupTest {
         mongod = mongodExecutable.start();
         // ES
         try {
-            config = JunitHelper.startElasticsearchForTest(esTempFolder, ES_CLUSTER_NAME);
+            config = JunitHelper.startElasticsearchForTest(temporaryFolder, ES_CLUSTER_NAME);
         } catch (final VitamApplicationServerException e1) {
             assumeTrue(false);
         }
@@ -154,7 +156,12 @@ public class LogBookLifeCycleObjectGroupTest {
             logbookConf.setElasticsearchNodes(esNodes);
             logbookConf.setTenants(tenantList);
 
-            application = new LogbookApplication(logbookConf);
+            File file = temporaryFolder.newFile();
+            String configurationFile = file.getAbsolutePath();
+            PropertiesUtils.writeYaml(file, logbookConf);
+
+
+            application = new LogbookMain(configurationFile);
             application.start();
 
             RestAssured.port = serverPort;

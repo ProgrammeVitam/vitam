@@ -173,7 +173,7 @@
 					<archive>
 						<manifest>
 							<addClasspath>true</addClasspath>
-							<mainClass>fr.gouv.vitam.logbook.rest.LogbookApplication</mainClass>
+							<mainClass>fr.gouv.vitam.logbook.rest.LogbookMain</mainClass>
 						</manifest>
 					</archive>
 				</configuration>

@@ -33,6 +33,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import org.junit.AfterClass;
@@ -62,13 +63,11 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.functional.administration.rest.AdminManagementApplication;
 import fr.gouv.vitam.ingest.external.rest.IngestExternalApplication;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalApplication;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.logbook.rest.LogbookApplication;
 import fr.gouv.vitam.processing.common.exception.PluginException;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementApplication;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
@@ -203,7 +202,7 @@ public class TnrLaunchAllApplication {
     private static MetadataMain medtadataApplication;
     private static WorkerApplication wkrapplication;
     private static AdminManagementMain adminApplication;
-    private static LogbookApplication lgbapplication;
+    private static LogbookMain logbookMain;
     private static WorkspaceApplication workspaceApplication;
     private static ProcessManagementApplication processManagementApplication;
     private static IngestInternalApplication ingestInternalApplication;
@@ -382,15 +381,15 @@ public class TnrLaunchAllApplication {
         // launch logbook
         LOGGER.warn("Start Logbook");
         SystemPropertyUtil
-            .set(LogbookApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_LOGBOOK));
-        lgbapplication = new LogbookApplication(CONFIG_LOGBOOK_PATH);
+            .set(LogbookMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_LOGBOOK));
+        logbookMain = new LogbookMain(CONFIG_LOGBOOK_PATH);
         try {
-            lgbapplication.start();
+            logbookMain.start();
         } catch (VitamApplicationServerException e) {
             LOGGER.error(e);
             earlyShutdown();
         }
-        SystemPropertyUtil.clear(LogbookApplication.PARAMETER_JETTY_SERVER_PORT);
+        SystemPropertyUtil.clear(LogbookMain.PARAMETER_JETTY_SERVER_PORT);
         LogbookOperationsClientFactory.changeMode(new ClientConfigurationImpl(LOCALHOST, PORT_SERVICE_LOGBOOK));
         LogbookLifeCyclesClientFactory.changeMode(new ClientConfigurationImpl(LOCALHOST, PORT_SERVICE_LOGBOOK));
 
@@ -571,9 +570,9 @@ public class TnrLaunchAllApplication {
             LOGGER.error(e);
         }
         try {
-            if (lgbapplication != null) {
+            if (logbookMain != null) {
                 LOGGER.warn("try to shutdown LOGBOOK");
-                lgbapplication.stop();
+                logbookMain.stop();
             }
         } catch (Exception e) {
             LOGGER.error(e);
