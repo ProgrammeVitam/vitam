@@ -101,6 +101,9 @@ public class VitamStarter {
      */
     private final void configure(VitamApplicationConfiguration configuration, String configurationFile) {
         try {
+
+            configureVitamParameters();
+
             platformSecretConfiguration();
 
             ContextHandlerCollection applicationHandlers = new ContextHandlerCollection();
@@ -130,6 +133,22 @@ public class VitamStarter {
 
             VitamConfiguration.setSecret(vitamConfigurationParameters.getSecret());
             VitamConfiguration.setFilterActivation(vitamConfigurationParameters.isFilterActivation());
+
+        } catch (final IOException e) {
+            LOGGER.error(e);
+            throw new IllegalStateException("Cannot start the " + role + " Application Server", e);
+        }
+    }
+
+    /**
+     *  Allow override Vitam parameters
+     */
+    protected void configureVitamParameters() {
+        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(VITAM_CONF_FILE_NAME)) {
+            final VitamConfigurationParameters vitamConfigurationParameters =
+                PropertiesUtils.readYaml(yamlIS, VitamConfigurationParameters.class);
+
+            VitamConfiguration.importConfigurationParameters(vitamConfigurationParameters);
 
         } catch (final IOException e) {
             LOGGER.error(e);

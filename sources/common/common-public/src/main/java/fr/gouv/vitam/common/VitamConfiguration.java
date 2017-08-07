@@ -31,7 +31,9 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 
 import java.io.File;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * This class contains default values shared among all services in Vitam
@@ -39,6 +41,8 @@ import java.util.Locale;
 public class VitamConfiguration {
 
     private static final VitamConfiguration DEFAULT_CONFIGURATION = new VitamConfiguration();
+
+    /* FINAL ATTRIBUTES */
     /**
      * General Admin path
      */
@@ -77,202 +81,221 @@ public class VitamConfiguration {
      * Property Vitam Tmp Folder
      */
     protected static  final String VITAM_TMP_PROPERTY = "vitam.tmp.folder";
-    /**
-     * Default Vitam Config Folder
-     */
-    private static  String VITAM_CONFIG_FOLDER_DEFAULT = "/vitam/conf";
-    /**
-     * Default Vitam Config Folder
-     */
-    private static  String VITAM_DATA_FOLDER_DEFAULT = "/vitam/data";
-    /**
-     * Default Vitam Config Folder
-     */
-    private static  String VITAM_LOG_FOLDER_DEFAULT = "/vitam/log";
-    /**
-     * Default Vitam Config Folder
-     */
-    private static  String VITAM_TMP_FOLDER_DEFAULT = "/vitam/data/tmp";
 
-    private static Integer VITAM_CLEAN_PERIOD = 1 ;
     /**
      * Property Vitam Tmp Folder
      */
     private static final String VITAM_JUNIT_PROPERTY = "vitam.test.junit";
-    /**
-     * Default Chunk Size
-     */
-    private static  Integer CHUNK_SIZE = 65536;
-    /**
-     * Default Recv Buffer Size
-     */
-    private static  Integer RECV_BUFFER_SIZE = 0;
+
     /**
      * Default Connection timeout
      */
-    private static  Integer CONNECT_TIMEOUT = 2000;
-    /**
-     * Default Read Timeout
-     */
-    private static  Integer READ_TIMEOUT = 86400000;
+    private static final Integer CONNECT_TIMEOUT = 2000;
 
     /**
      *  Max shutdown timeout 2 minute
      */
-    private final static long MAX_SHUTDOWN_TIMEOUT = 2*60*1000; 
+    private final static long MAX_SHUTDOWN_TIMEOUT = 2*60*1000;
+
+
+    /**
+     * OTHERS ATTRIBUTES
+     */
+    /**
+     * Default Vitam Config Folder
+     */
+    private static  String vitamConfigFolderDefault = "/vitam/conf";
+    /**
+     * Default Vitam Config Folder
+     */
+    private static  String vitamDataFolderDefault = "/vitam/data";
+    /**
+     * Default Vitam Config Folder
+     */
+    private static  String vitamLogFolderDefault = "/vitam/log";
+    /**
+     * Default Vitam Config Folder
+     */
+    private static  String vitamTmpFolderDefault = "/vitam/data/tmp";
+
+
+
+    private static Integer vitamCleanPeriod = 1 ;
+
+    /**
+     * Default Chunk Size
+     */
+    private static  Integer chunkSize = 65536;
+    /**
+     * Default Recv Buffer Size
+     */
+    private static  Integer recvBufferSize = 0;
+
+    /**
+     * Default Read Timeout
+     */
+    private static  Integer readTimeout = 86400000;
+
+
 
     /**
      * Max total concurrent clients
      */
-    private static  Integer MAX_TOTAL_CLIENT = 1000;
+    private static  Integer maxTotalClient = 1000;
     /**
      * Max concurrent clients associated to one host
      */
-    private static  Integer MAX_CLIENT_PER_HOST = 200;
+    private static  Integer maxClientPerHost = 200;
     /**
 
      * Max delay to check an unused client in pool before being returned (Apache Only)
      */
-    private static  Integer DELAY_VALIDATION_AFTER_INACTIVITY = 60000;
+    private static  Integer delayValidationAfterInactivity = 60000;
     /**
      * Max delay to check if no buffer is available while trying to continue to read (MultipleInputStreamHandler Only)
      *
      * Not final to allow Junit to decrease it
      */
-    private static Integer DELAY_MULTIPLE_INPUTSTREAM = 60000;
+    private static Integer delayMultipleInputstream = 60000;
     /**
      * Max delay to check if no buffer is available while trying to continue to read (SubStreams Only)
      */
-    private static  Integer DELAY_MULTIPLE_SUBINPUTSTREAM = 6000;
+    private static  Integer delayMultipleSubinputstream = 6000;
+
     /**
      * Default minimum thread pool size
      */
-    private static  Integer MINIMUM_THREAD_POOL_SIZE = 100;
+    private static  Integer minimumThreadPoolSize = 100;
     /**
      * No check of unused client within pool (Apache Only)
      */
-    private static  Integer NO_VALIDATION_AFTER_INACTIVITY = -1;
+    private static  Integer noValidationAfterInactivity = -1;
     /**
      * Max delay to get a client (Apache Only)
      */
-    private static  Integer DELAY_GET_CLIENT = 60000;
+    private static  Integer delayGetClient = 60000;
 
     /**
      * Specify the delay where connections returned to pool will be checked (Apache Only) (5 minutes)
      */
-    private static  int INTERVAL_DELAY_CHECK_IDLE = 300000;
+    private static  int intervalDelayCheckIdle = 300000;
 
     /**
      * Specify the delay of unused connection returned in the pool before being really closed (Apache Only) (5 minutes)
      */
-    private static  int MAX_DELAY_UNUSED_CONNECTION = 300000;
+    private static  int maxDelayUnusedConnection = 300000;
 
     /**
      * Use a new JAX_RS client each time
      */
-    private static  Boolean USE_NEW_JAXR_CLIENT = true;
+    private static  Boolean useNewJaxrClient = true;
 
     /**
      * Default Digest Type for SECURITY
      */
-    private static  DigestType SECURITY_DIGEST_TYPE = DigestType.SHA256;
+    private static  DigestType securityDigestType = DigestType.SHA256;
     /**
      * Default Digest Type for Vitam
      */
-    private static  DigestType DEFAULT_DIGEST_TYPE = DigestType.SHA512;
+    private static  DigestType defaultDigestType = DigestType.SHA512;
     /**
      * Default Digest Type for time stamp generation
      */
-    private static  DigestType DEFAULT_TIMESTAMP_DIGEST_TYPE = DigestType.SHA512;
+    private static  DigestType defaultTimestampDigestType = DigestType.SHA512;
     /**
      * Acceptable Request Time elaps
      */
-    private static  Long ACCEPTABLE_REQUEST_TIME = 10L;
+    private static  Long acceptableRequestTime = 10L;
     /**
      * MongoDB client configuration
      */
-    private static  Integer THREADS_ALLOWED_TO_BLOCK_FOR_CONNECTION_MULTIPLIERS = 1500;
+    private static  Integer threadsAllowedToBlockForConnectionMultipliers = 1500;
     /**
      * Retry repetition
      */
-    private static  Integer RETRY_NUMBER = 3;
+    private static  Integer retryNumber = 3;
     /**
      * Retry delay
      */
-    private static  Integer RETRY_DELAY = 30000;
+    private static  Integer retryDelay = 30000;
     /**
      * Waiting delay (for wait(delay) method)
      */
-    private static  Integer WAITING_DELAY = 1000;
+    private static  Integer waitingDelay = 1000;
     /**
      * Allow client and Server Encoding request or response in GZIP format
      */
-    private static  Boolean ALLOW_GZIP_ENCODING = false;
+    private static  Boolean allowGzipEncoding = false;
     /**
      * Allow client to receive GZIP encoded response
      */
-    private static  Boolean ALLOW_GZIP_DECODING = false;
+    private static  Boolean allowGzipDecoding = false;
     /**
      * Read ahead x4 Buffers
      */
-    private static  Integer BUFFER_NUMBER = 4;
+    private static  Integer bufferNumber = 4;
     // TODO make it configurable
     /**
-     * Max concurrent multiple inputstream (memory size bounded = n x BUFFER_NUMBER * CHUNK_SIZE) 
+     * Max concurrent multiple inputstream (memory size bounded = n x bufferNumber * chunkSize)
      */
-    private static  Integer MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER = 200;
+    private static  Integer maxConcurrentMultipleInputstreamHandler = 200;
 
     /**
      * Should we export #score (only Unit and ObjectGroup)
      */
 
-    private static  boolean EXPORT_SCORE = false;
+    private static  boolean exportScore = false;
 
-    private static  int DISTRIBUTEUR_BATCH_SIZE = 10;
+    private static  int distributeurBatchSize = 10;
     /*
      * Cache delay = 60 seconds
      */
-    private static  int CACHE_CONTROL_DELAY = 60;
-
-
-
+    private static  int cacheControlDelay = 60;
     /*
      * Max cache entries
      */
-    private static  int MAX_CACHE_ENTRIES = 10000;
+    private static  int maxCacheEntries = 10000;
 
     /**
      * Max Elasticsearch Bulk
      */
-    private static  int MAX_ELASTICSEARCH_BULK = 1000;
+    private static  int maxElasticsearchBulk = 1000;
     /*
      * Max Thread for ES and MongoDB
      */
-    private static  int NUMBER_DB_CLIENT_THREAD = 200;
-
+    private static  int numberDbClientThread = 200;
     /**
      * Max queue in ES
      */
-    private static  int NUMBER_ES_QUEUE = 5000;
+    private static  int numberEsQueue = 5000;
     /**
      * Default LANG
      */
     private static  String DEFAULT_LANG = Locale.FRENCH.toString();
 
     private String config;
+
     private String log;
+
     private String data;
+
     private String tmp;
+
     private static String secret;
+
     private static Boolean filterActivation;
+
     private Integer connectTimeout = CONNECT_TIMEOUT;
 
+    private static  boolean enableDistributorV2 = true;
+
+    private static  Boolean enableJaxbParser = true;
+
+    private static int asyncWorkspaceQueueSize = 10;
+
+    private static Map <Integer,List<String>> listEnableExternalIdentifiers ;
 
 
-    private static  boolean ENABLE_DISTRIBUTOR_V2 = true;
-    private static  Boolean ENABLE_JAXB_PARSER = true;
-
-    private static int ASYNC_WORKSPACE_QUEUE_SIZE = 10;
 
 
     static {
@@ -449,6 +472,10 @@ public class VitamConfiguration {
      */
     public static void importConfigurationParameters(VitamConfigurationParameters parameters) {
 
+
+        if (null != parameters.getListEnableExternalIdentifiers()) {
+            setListEnableExternalIdentifiers(parameters.getListEnableExternalIdentifiers());
+        }
         if (null != parameters.getVitamConfigFolderDefault()) {
             setVitamConfigFolderDefault(parameters.getVitamConfigFolderDefault());
         }
@@ -464,11 +491,9 @@ public class VitamConfiguration {
         if (null != parameters.getChunkSize()) {
             setChunkSize(parameters.getChunkSize());
         }
-
         if (null != parameters.getRecvBufferSize()) {
             setRecvBufferSize(parameters.getRecvBufferSize());
         }
-
         if (null != parameters.getRecvBufferSize()) {
             setRecvBufferSize(parameters.getRecvBufferSize());
         }
@@ -542,7 +567,6 @@ public class VitamConfiguration {
         if (null != parameters.getBufferNumber()) {
             setBufferNumber(parameters.getBufferNumber());
         }
-
         if (null != parameters.isAllowGzipEncoding()) {
             setAllowGzipEncoding(parameters.isAllowGzipEncoding());
         }
@@ -555,7 +579,6 @@ public class VitamConfiguration {
         if (null != parameters.isFilterActivation()) {
             setFilterActivation(parameters.isFilterActivation());
         }
-
         if (null != parameters.getMaxConcurrentMultipleInputstreamHandler()) {
             setMaxConcurrentMultipleInputstreamHandler(parameters.getMaxConcurrentMultipleInputstreamHandler());
         }
@@ -565,7 +588,6 @@ public class VitamConfiguration {
         if (null != parameters.getVitamCleanPeriod()) {
             setVitamCleanPeriod(parameters.getVitamCleanPeriod());
         }
-
         if (null != parameters.isEnableJaxbParser()) {
             setEnableJaxbParser(parameters.isEnableJaxbParser());
         }
@@ -578,7 +600,6 @@ public class VitamConfiguration {
         if (null != parameters.getDistributeurBatchSize()) {
             setDistributeurBatchSize(parameters.getDistributeurBatchSize());
         }
-
         if (null != parameters.getMaxElasticsearchBulk()) {
             setMaxElasticsearchBulk(parameters.getMaxElasticsearchBulk());
         }
@@ -588,15 +609,12 @@ public class VitamConfiguration {
         if (null != parameters.getNumberEsQueue()) {
             setNumberEsQueue(parameters.getNumberEsQueue());
         }
-
-
         if (null != parameters.getCacheControlDelay()) {
             setCacheControlDelay(parameters.getCacheControlDelay());
         }
         if (null != parameters.getMaxCacheEntries()) {
             setMaxCacheEntries(parameters.getMaxCacheEntries());
         }
-
         if (null != parameters.isEnableJaxbParser()) {
             setEnableJaxbParser(parameters.isEnableJaxbParser());
         }
@@ -635,19 +653,19 @@ public class VitamConfiguration {
                 "One of the directives is not specified: -Dxxx=path where xxx is one of -D" + VITAM_TMP_PROPERTY +
                     " -D" + VITAM_CONFIG_PROPERTY + " -D" + VITAM_DATA_PROPERTY + " -D" + VITAM_LOG_PROPERTY);
         }
-        String data = VITAM_DATA_FOLDER_DEFAULT;
+        String data = vitamDataFolderDefault;
         if (SystemPropertyUtil.contains(VITAM_DATA_PROPERTY)) {
             data = SystemPropertyUtil.get(VITAM_DATA_PROPERTY);
         }
-        String tmp = VITAM_TMP_FOLDER_DEFAULT;
+        String tmp = vitamTmpFolderDefault;
         if (SystemPropertyUtil.contains(VITAM_TMP_PROPERTY)) {
             tmp = SystemPropertyUtil.get(VITAM_TMP_PROPERTY);
         }
-        String config = VITAM_CONFIG_FOLDER_DEFAULT;
+        String config = vitamConfigFolderDefault;
         if (SystemPropertyUtil.contains(VITAM_CONFIG_PROPERTY)) {
             config = SystemPropertyUtil.get(VITAM_CONFIG_PROPERTY);
         }
-        String log = VITAM_LOG_FOLDER_DEFAULT;
+        String log = vitamLogFolderDefault;
         if (SystemPropertyUtil.contains(VITAM_LOG_PROPERTY)) {
             log = SystemPropertyUtil.get(VITAM_LOG_PROPERTY);
         }
@@ -693,7 +711,7 @@ public class VitamConfiguration {
      * @return the default chunk size
      */
     public static Integer getChunkSize() {
-        return CHUNK_SIZE;
+        return chunkSize;
     }
 
     /**
@@ -716,7 +734,7 @@ public class VitamConfiguration {
      * @return the default read timeout
      */
     public static Integer getReadTimeout() {
-        return READ_TIMEOUT;
+        return readTimeout;
     }
     
     /**
@@ -730,42 +748,42 @@ public class VitamConfiguration {
      * @return the maxTotalClient
      */
     public static Integer getMaxTotalClient() {
-        return MAX_TOTAL_CLIENT;
+        return maxTotalClient;
     }
 
     /**
      * @return the maxClientPerHost
      */
     public static Integer getMaxClientPerHost() {
-        return MAX_CLIENT_PER_HOST;
+        return maxClientPerHost;
     }
 
     /**
      * @return the delayValidationAfterInactivity
      */
     public static Integer getDelayValidationAfterInactivity() {
-        return DELAY_VALIDATION_AFTER_INACTIVITY;
+        return delayValidationAfterInactivity;
     }
 
     /**
      * @return the delayGetClient
      */
     public static Integer getDelayGetClient() {
-        return DELAY_GET_CLIENT;
+        return delayGetClient;
     }
 
     /**
      * @return the intervalDelayCheckIdle
      */
     public static Integer getIntervalDelayCheckIdle() {
-        return INTERVAL_DELAY_CHECK_IDLE;
+        return intervalDelayCheckIdle;
     }
 
     /**
      * @return the maxDelayUnusedConnection
      */
     public static Integer getMaxDelayUnusedConnection() {
-        return MAX_DELAY_UNUSED_CONNECTION;
+        return maxDelayUnusedConnection;
     }
 
     /**
@@ -806,28 +824,28 @@ public class VitamConfiguration {
      * @return the acceptableRequestTime
      */
     public static Long getAcceptableRequestTime() {
-        return ACCEPTABLE_REQUEST_TIME;
+        return acceptableRequestTime;
     }
 
     /**
      * @return the securityDigestType
      */
     public static DigestType getSecurityDigestType() {
-        return SECURITY_DIGEST_TYPE;
+        return securityDigestType;
     }
 
     /**
      * @return the Default DigestType
      */
     public static DigestType getDefaultDigestType() {
-        return DEFAULT_DIGEST_TYPE;
+        return defaultDigestType;
     }
 
     /**
      * @return the Default DigestType for time stamp generation
      */
     public static DigestType getDefaultTimestampDigestType() {
-        return DEFAULT_TIMESTAMP_DIGEST_TYPE;
+        return defaultTimestampDigestType;
     }
 
 
@@ -835,28 +853,28 @@ public class VitamConfiguration {
      * @return the threadsAllowedToBlockForConnectionMultipliers for MongoDb Client
      */
     public static Integer getThreadsAllowedToBlockForConnectionMultipliers() {
-        return THREADS_ALLOWED_TO_BLOCK_FOR_CONNECTION_MULTIPLIERS;
+        return threadsAllowedToBlockForConnectionMultipliers;
     }
 
     /**
      * @return the retryNumber
      */
     public static Integer getRetryNumber() {
-        return RETRY_NUMBER;
+        return retryNumber;
     }
 
     /**
      * @return the retryDelay
      */
     public static Integer getRetryDelay() {
-        return RETRY_DELAY;
+        return retryDelay;
     }
 
     /**
      * @return the waiting Delay (wait)
      */
     public static Integer getWaitingDelay() {
-        return WAITING_DELAY;
+        return waitingDelay;
     }
     
 
@@ -864,7 +882,7 @@ public class VitamConfiguration {
      * @return the size of the queue of async workspace
      */
     public static Integer getAsyncWorkspaceQueueSize() {
-        return ASYNC_WORKSPACE_QUEUE_SIZE;
+        return asyncWorkspaceQueueSize;
     }
 
 
@@ -872,14 +890,14 @@ public class VitamConfiguration {
      * @return the receive Buffer Size
      */
     public static Integer getRecvBufferSize() {
-        return RECV_BUFFER_SIZE;
+        return recvBufferSize;
     }
 
     /**
      * @return the use New Jaxr Client each time a getClient() from Factory is used
      */
     public static Boolean isUseNewJaxrClient() {
-        return USE_NEW_JAXR_CLIENT;
+        return useNewJaxrClient;
     }
 
 
@@ -935,382 +953,382 @@ public class VitamConfiguration {
 
 
     /**
-     * getter for VITAM_CONFIG_FOLDER_DEFAULT
+     * getter for vitamConfigFolderDefault
      * @return
      */
     public static String getVitamConfigFolderDefault() {
-        return VITAM_CONFIG_FOLDER_DEFAULT;
+        return vitamConfigFolderDefault;
     }
 
     /**
-     * setter for VITAM_CONFIG_FOLDER_DEFAULT
+     * setter for vitamConfigFolderDefault
      * @return
      */
     private static void setVitamConfigFolderDefault(String vitamConfigFolderDefault) {
-        VITAM_CONFIG_FOLDER_DEFAULT = vitamConfigFolderDefault;
+        VitamConfiguration.vitamConfigFolderDefault = vitamConfigFolderDefault;
     }
 
     /**
-     * getter for VITAM_DATA_FOLDER_DEFAULT
+     * getter for vitamDataFolderDefault
      * @return
      */
     public static String getVitamDataFolderDefault() {
-        return VITAM_DATA_FOLDER_DEFAULT;
+        return vitamDataFolderDefault;
     }
 
     /**
-     * setter for VITAM_DATA_FOLDER_DEFAULT
+     * setter for vitamDataFolderDefault
      * @return
      */
     private static void setVitamDataFolderDefault(String vitamDataFolderDefault) {
-        VITAM_DATA_FOLDER_DEFAULT = vitamDataFolderDefault;
+        VitamConfiguration.vitamDataFolderDefault = vitamDataFolderDefault;
     }
 
     /**
-     * getter for VITAM_LOG_FOLDER_DEFAULT
+     * getter for vitamLogFolderDefault
      * @return
      */
     public static String getVitamLogFolderDefault() {
-        return VITAM_LOG_FOLDER_DEFAULT;
+        return vitamLogFolderDefault;
     }
 
     /**
-     * setter for VITAM_LOG_FOLDER_DEFAULT
+     * setter for vitamLogFolderDefault
      * @return
      */
     private static void setVitamLogFolderDefault(String vitamLogFolderDefault) {
-        VITAM_LOG_FOLDER_DEFAULT = vitamLogFolderDefault;
+        VitamConfiguration.vitamLogFolderDefault = vitamLogFolderDefault;
     }
 
     /**
-     * getter for VITAM_TMP_FOLDER_DEFAULT
+     * getter for vitamTmpFolderDefault
      * @return
      */
     public static Integer getVitamCleanPeriod() {
-        return VITAM_CLEAN_PERIOD;
+        return vitamCleanPeriod;
     }
 
 
     /**
-     * setter for VITAM_LOG_FOLDER_DEFAULT
+     * setter for vitamLogFolderDefault
      * @return
      */
     private static void setVitamCleanPeriod(Integer vitamCleanPeriod) {
-        VITAM_CLEAN_PERIOD = vitamCleanPeriod;
+        VitamConfiguration.vitamCleanPeriod = vitamCleanPeriod;
     }
 
     /**
-     * getter for VITAM_TMP_FOLDER_DEFAULT
+     * getter for vitamTmpFolderDefault
      * @return
      */
     public static String getVitamTmpFolderDefault() {
-        return VITAM_TMP_FOLDER_DEFAULT;
+        return vitamTmpFolderDefault;
     }
     /**
-     * setter for VITAM_TMP_FOLDER_DEFAULT
+     * setter for vitamTmpFolderDefault
      * @return
      */
     private static void setVitamTmpFolderDefault(String vitamTmpFolderDefault) {
-        VITAM_TMP_FOLDER_DEFAULT = vitamTmpFolderDefault;
+        VitamConfiguration.vitamTmpFolderDefault = vitamTmpFolderDefault;
     }
     /**
-     * setter for CHUNK_SIZE
+     * setter for chunkSize
      * @return
      */
     private static void setChunkSize(int chunkSize) {
-        CHUNK_SIZE = chunkSize;
+        VitamConfiguration.chunkSize = chunkSize;
     }
 
     /**
      * @return the size of the queue of async workspace
      */
     public static void setAsyncWorkspaceQueueSize(int queueSize) {
-        ASYNC_WORKSPACE_QUEUE_SIZE = queueSize;
+        asyncWorkspaceQueueSize = queueSize;
     }
 
 
     /**
-     * setter for RECV_BUFFER_SIZE
+     * setter for recvBufferSize
      * @return
      */
     private static void setRecvBufferSize(int recvBufferSize) {
-        RECV_BUFFER_SIZE = recvBufferSize;
+        VitamConfiguration.recvBufferSize = recvBufferSize;
     }
 
     /**
-     * setter for READ_TIMEOUT
+     * setter for readTimeout
      * @return
      */
     private static void setReadTimeout(int readTimeout) {
-        READ_TIMEOUT = readTimeout;
+        VitamConfiguration.readTimeout = readTimeout;
     }
 
     /**
-     * setter for MAX_TOTAL_CLIENT
+     * setter for maxTotalClient
      * @return
      */
     private static void setMaxTotalClient(int maxTotalClient) {
-        MAX_TOTAL_CLIENT = maxTotalClient;
+        VitamConfiguration.maxTotalClient = maxTotalClient;
     }
 
     /**
-     * setter for MAX_CLIENT_PER_HOST
+     * setter for maxClientPerHost
      * @return
      */
     private static void setMaxClientPerHost(int maxClientPerHost) {
-        MAX_CLIENT_PER_HOST = maxClientPerHost;
+        VitamConfiguration.maxClientPerHost = maxClientPerHost;
     }
 
     /**
-     * setter for DELAY_VALIDATION_AFTER_INACTIVITY
+     * setter for delayValidationAfterInactivity
      * @return
      */
     private static void setDelayValidationAfterInactivity(int delayValidationAfterInactivity) {
-        DELAY_VALIDATION_AFTER_INACTIVITY = delayValidationAfterInactivity;
+        VitamConfiguration.delayValidationAfterInactivity = delayValidationAfterInactivity;
     }
 
     /**
-     * getter for DELAY_MULTIPLE_INPUTSTREAM
+     * getter for delayMultipleInputstream
      * @return
      */
     public static Integer getDelayMultipleInputstream() {
-        return DELAY_MULTIPLE_INPUTSTREAM;
+        return delayMultipleInputstream;
     }
 
     /**
-     * setter for DELAY_MULTIPLE_SUBINPUTSTREAM
+     * setter for delayMultipleSubinputstream
      * @return
      */
     public static void setDelayMultipleInputstream(int delayMultipleInputstream) {
-        DELAY_MULTIPLE_INPUTSTREAM = delayMultipleInputstream;
+        VitamConfiguration.delayMultipleInputstream = delayMultipleInputstream;
     }
 
     /**
-     * getter for DELAY_MULTIPLE_SUBINPUTSTREAM
+     * getter for delayMultipleSubinputstream
      * @return
      */
     public static Integer getDelayMultipleSubinputstream() {
-        return DELAY_MULTIPLE_SUBINPUTSTREAM;
+        return delayMultipleSubinputstream;
     }
 
     /**
-     * setter for DELAY_MULTIPLE_SUBINPUTSTREAM
+     * setter for delayMultipleSubinputstream
      * @return
      */
     private static void setDelayMultipleSubinputstream(int delayMultipleSubinputstream) {
-        DELAY_MULTIPLE_SUBINPUTSTREAM = delayMultipleSubinputstream;
+        VitamConfiguration.delayMultipleSubinputstream = delayMultipleSubinputstream;
     }
 
     /**
-     * getter for MINIMUM_THREAD_POOL_SIZE
+     * getter for minimumThreadPoolSize
      * @return
      */
     public static Integer getMinimumThreadPoolSize() {
-        return MINIMUM_THREAD_POOL_SIZE;
+        return minimumThreadPoolSize;
     }
 
     /**
-     * setter for MINIMUM_THREAD_POOL_SIZE
+     * setter for minimumThreadPoolSize
      * @return
      */
     private static void setMinimumThreadPoolSize(int minimumThreadPoolSize) {
-        MINIMUM_THREAD_POOL_SIZE = minimumThreadPoolSize;
+        VitamConfiguration.minimumThreadPoolSize = minimumThreadPoolSize;
     }
 
     /**
-     * getter for NO_VALIDATION_AFTER_INACTIVITY
+     * getter for noValidationAfterInactivity
      * @return
      */
     public static Integer getNoValidationAfterInactivity() {
-        return NO_VALIDATION_AFTER_INACTIVITY;
+        return noValidationAfterInactivity;
     }
 
     /**
-     * setter for NO_VALIDATION_AFTER_INACTIVITY
+     * setter for noValidationAfterInactivity
      * @return
      */
     private static void setNoValidationAfterInactivity(int noValidationAfterInactivity) {
-        NO_VALIDATION_AFTER_INACTIVITY = noValidationAfterInactivity;
+        VitamConfiguration.noValidationAfterInactivity = noValidationAfterInactivity;
     }
 
     /**
-     * setter for DELAY_GET_CLIENT
+     * setter for delayGetClient
      * @return
      */
     private static void setDelayGetClient(int delayGetClient) {
-        DELAY_GET_CLIENT = delayGetClient;
+        VitamConfiguration.delayGetClient = delayGetClient;
     }
 
     /**
-     * setter for INTERVAL_DELAY_CHECK_IDLE
+     * setter for intervalDelayCheckIdle
      * @return
      */
     private static void setIntervalDelayCheckIdle(int intervalDelayCheckIdle) {
-        INTERVAL_DELAY_CHECK_IDLE = intervalDelayCheckIdle;
+        VitamConfiguration.intervalDelayCheckIdle = intervalDelayCheckIdle;
     }
 
     /**
-     * setter for MAX_DELAY_UNUSED_CONNECTION
+     * setter for maxDelayUnusedConnection
      * @return
      */
     private static void setMaxDelayUnusedConnection(int maxDelayUnusedConnection) {
-        MAX_DELAY_UNUSED_CONNECTION = maxDelayUnusedConnection;
+        VitamConfiguration.maxDelayUnusedConnection = maxDelayUnusedConnection;
     }
 
     /**
-     * setter for USE_NEW_JAXR_CLIENT
+     * setter for useNewJaxrClient
      * @return
      */
     private static void setUseNewJaxrClient(Boolean useNewJaxrClient) {
-        USE_NEW_JAXR_CLIENT = useNewJaxrClient;
+        VitamConfiguration.useNewJaxrClient = useNewJaxrClient;
     }
 
 
 
 
     /**
-     * setter for SECURITY_DIGEST_TYPE
+     * setter for securityDigestType
      * @return
      */
     private static void setSecurityDigestType(DigestType securityDigestType) {
-        SECURITY_DIGEST_TYPE = securityDigestType;
+        VitamConfiguration.securityDigestType = securityDigestType;
     }
 
     /**
-     * setter for DEFAULT_DIGEST_TYPE
+     * setter for defaultDigestType
      * @return
      */
     private static void setDefaultDigestType(DigestType defaultDigestType) {
-        DEFAULT_DIGEST_TYPE = defaultDigestType;
+        VitamConfiguration.defaultDigestType = defaultDigestType;
     }
 
     /**
-     * setter for DEFAULT_TIMESTAMP_DIGEST_TYPE
+     * setter for defaultTimestampDigestType
      * @return
      */
     private static void setDefaultTimestampDigestType(DigestType defaultTimestampDigestType) {
-        DEFAULT_TIMESTAMP_DIGEST_TYPE = defaultTimestampDigestType;
+        VitamConfiguration.defaultTimestampDigestType = defaultTimestampDigestType;
     }
 
     /**
-     * setter for ACCEPTABLE_REQUEST_TIME
+     * setter for acceptableRequestTime
      * @return
      */
     private static void setAcceptableRequestTime(Long acceptableRequestTime) {
-        ACCEPTABLE_REQUEST_TIME = acceptableRequestTime;
+        VitamConfiguration.acceptableRequestTime = acceptableRequestTime;
     }
 
     /**
-     * setter for THREADS_ALLOWED_TO_BLOCK_FOR_CONNECTION_MULTIPLIERS
+     * setter for threadsAllowedToBlockForConnectionMultipliers
      * @return
      */
     private static void setThreadsAllowedToBlockForConnectionMultipliers(
         Integer threadsAllowedToBlockForConnectionMultipliers) {
-        THREADS_ALLOWED_TO_BLOCK_FOR_CONNECTION_MULTIPLIERS = threadsAllowedToBlockForConnectionMultipliers;
+        VitamConfiguration.threadsAllowedToBlockForConnectionMultipliers = threadsAllowedToBlockForConnectionMultipliers;
     }
 
     /**
-     * setter for RETRY_NUMBER
+     * setter for retryNumber
      * @return
      */
     private static void setRetryNumber(int retryNumber) {
-        RETRY_NUMBER = retryNumber;
+        VitamConfiguration.retryNumber = retryNumber;
     }
 
     /**
-     * setter for RETRY_DELAY
+     * setter for retryDelay
      * @return
      */
     private static void setRetryDelay(int retryDelay) {
-        RETRY_DELAY = retryDelay;
+        VitamConfiguration.retryDelay = retryDelay;
     }
 
     /**
-     * setter for WAITING_DELAY
+     * setter for waitingDelay
      * @return
      */
     private static void setWaitingDelay(int waitingDelay) {
-        WAITING_DELAY = waitingDelay;
+        VitamConfiguration.waitingDelay = waitingDelay;
     }
 
     /**
-     * getter for ALLOW_GZIP_ENCODING
+     * getter for allowGzipEncoding
      * @return
      */
     public static Boolean isAllowGzipEncoding() {
-        return ALLOW_GZIP_ENCODING;
+        return allowGzipEncoding;
     }
 
     /**
-     * setter for ALLOW_GZIP_ENCODING
+     * setter for allowGzipEncoding
      * @return
      */
     private static void setAllowGzipEncoding(Boolean allowGzipEncoding) {
-        ALLOW_GZIP_ENCODING = allowGzipEncoding;
+        VitamConfiguration.allowGzipEncoding = allowGzipEncoding;
     }
 
     /**
-     * getter for ALLOW_GZIP_DECODING
+     * getter for allowGzipDecoding
      * @return
      */
     public static Boolean isAllowGzipDecoding() {
-        return ALLOW_GZIP_DECODING;
+        return allowGzipDecoding;
     }
 
     /**
-     * setter for ALLOW_GZIP_DECODING
+     * setter for allowGzipDecoding
      * @return
      */
     private static void setAllowGzipDecoding(Boolean allowGzipDecoding) {
-        ALLOW_GZIP_DECODING = allowGzipDecoding;
+        VitamConfiguration.allowGzipDecoding = allowGzipDecoding;
     }
 
     /**
-     * getter for BUFFER_NUMBER
+     * getter for bufferNumber
      * @return
      */
     public static Integer getBufferNumber() {
-        return BUFFER_NUMBER;
+        return bufferNumber;
     }
 
     /**
-     * setter for BUFFER_NUMBER
+     * setter for bufferNumber
      * @return
      */
     private static void setBufferNumber(int bufferNumber) {
-        BUFFER_NUMBER = bufferNumber;
+        VitamConfiguration.bufferNumber = bufferNumber;
     }
 
     /**
-     * getter for MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER
+     * getter for maxConcurrentMultipleInputstreamHandler
      * @return
      */
     public static Integer getMaxConcurrentMultipleInputstreamHandler() {
-        return MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER;
+        return maxConcurrentMultipleInputstreamHandler;
     }
 
     /**
-     * setter for MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER
+     * setter for maxConcurrentMultipleInputstreamHandler
      * @return
      */
     private static void setMaxConcurrentMultipleInputstreamHandler(int maxConcurrentMultipleInputstreamHandler) {
-        MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER = maxConcurrentMultipleInputstreamHandler;
+        VitamConfiguration.maxConcurrentMultipleInputstreamHandler = maxConcurrentMultipleInputstreamHandler;
     }
 
     /**
-     * getter for ENABLE_JAXB_PARSER
+     * getter for enableJaxbParser
      * @return
      */
     public static Boolean isEnableJaxbParser() {
-        return ENABLE_JAXB_PARSER;
+        return enableJaxbParser;
     }
 
     /**
-     * setter for ENABLE_JAXB_PARSER
+     * setter for enableJaxbParser
      * @return
      */
     private static void setEnableJaxbParser(Boolean enableJaxbParser) {
-        ENABLE_JAXB_PARSER = enableJaxbParser;
+        VitamConfiguration.enableJaxbParser = enableJaxbParser;
     }
 
     /**
@@ -1331,80 +1349,80 @@ public class VitamConfiguration {
 
 
     /**
-     * Setter for   ENABLE_JAXB_PARSER;
+     * Setter for   enableJaxbParser;
      */
     public static void setEnableJaxbParser(boolean enableJaxbParser) {
-        ENABLE_JAXB_PARSER = enableJaxbParser;
+        VitamConfiguration.enableJaxbParser = enableJaxbParser;
     }
 
     /**
-     * Getter for   ENABLE_DISTRIBUTOR_V2;
+     * Getter for   enableDistributorV2;
      */
     public static boolean isEnableDistributorV2() {
-        return ENABLE_DISTRIBUTOR_V2;
+        return enableDistributorV2;
     }
 
     /**
-     * Setter for   ENABLE_DISTRIBUTOR_V2;
+     * Setter for   enableDistributorV2;
      */
     private static void setEnableDistributorV2(boolean enableDistributorV2) {
-        ENABLE_DISTRIBUTOR_V2 = enableDistributorV2;
+        VitamConfiguration.enableDistributorV2 = enableDistributorV2;
     }
 
 
 
     /**
-     * Getter for   DISTRIBUTEUR_BATCH_SIZE;
+     * Getter for   distributeurBatchSize;
      */
     public static int getDistributeurBatchSize() {
-        return DISTRIBUTEUR_BATCH_SIZE;
+        return distributeurBatchSize;
     }
 
     /**
-     * Setter for   DISTRIBUTEUR_BATCH_SIZE;
+     * Setter for   distributeurBatchSize;
      */
     private static void setDistributeurBatchSize(int distributeurBatchSize) {
-        DISTRIBUTEUR_BATCH_SIZE = distributeurBatchSize;
+        VitamConfiguration.distributeurBatchSize = distributeurBatchSize;
     }
 
     /**
-     * Getter for   CACHE_CONTROL_DELAY;
+     * Getter for   cacheControlDelay;
      */
     public static int getCacheControlDelay() {
-        return CACHE_CONTROL_DELAY;
+        return cacheControlDelay;
     }
 
     /**
-     * Setter for   CACHE_CONTROL_DELAY;
+     * Setter for   cacheControlDelay;
      */
     public static void setCacheControlDelay(int cacheControlDelay) {
-        CACHE_CONTROL_DELAY = cacheControlDelay;
+        VitamConfiguration.cacheControlDelay = cacheControlDelay;
     }
 
     /**
-     * Getter for   MAX_CACHE_ENTRIES;
+     * Getter for   maxCacheEntries;
      */
     public static int getMaxCacheEntries() {
-        return MAX_CACHE_ENTRIES;
+        return maxCacheEntries;
     }
 
     /**
-     * Setter for   MAX_CACHE_ENTRIES;
+     * Setter for   maxCacheEntries;
      */
     public static void setMaxCacheEntries(int maxCacheEntries) {
-        MAX_CACHE_ENTRIES = maxCacheEntries;
+        VitamConfiguration.maxCacheEntries = maxCacheEntries;
     }
     /**
-     * Getter for   EXPORT_SCORE;
+     * Getter for   exportScore;
      */
     public static boolean isExportScore() {
-        return EXPORT_SCORE;
+        return exportScore;
     }
     /**
-     * Setter for   EXPORT_SCORE;
+     * Setter for   exportScore;
      */
     private static void setExportScore(boolean exportScore) {
-        EXPORT_SCORE = exportScore;
+        VitamConfiguration.exportScore = exportScore;
     }
 
 
@@ -1412,45 +1430,60 @@ public class VitamConfiguration {
 
 
     /**
-     * Getter for   MAX_ELASTICSEARCH_BULK;
+     * Getter for   maxElasticsearchBulk;
      */
     public static int getMaxElasticsearchBulk() {
-        return MAX_ELASTICSEARCH_BULK;
+        return maxElasticsearchBulk;
     }
 
     /**
-     * Setter for   MAX_ELASTICSEARCH_BULK;
+     * Setter for   maxElasticsearchBulk;
      */
     private static void setMaxElasticsearchBulk(int maxElasticsearchBulk) {
-        MAX_ELASTICSEARCH_BULK = maxElasticsearchBulk;
+        VitamConfiguration.maxElasticsearchBulk = maxElasticsearchBulk;
     }
 
     /**
-     * Getter for   NUMBER_DB_CLIENT_THREAD;
+     * Getter for   numberDbClientThread;
      */
     public static int getNumberDbClientThread() {
-        return NUMBER_DB_CLIENT_THREAD;
+        return numberDbClientThread;
     }
 
     /**
-     * Setter for   NUMBER_DB_CLIENT_THREAD;
+     * Setter for   numberDbClientThread;
      */
     private static void setNumberDbClientThread(int numberDbClientThread) {
-        NUMBER_DB_CLIENT_THREAD = numberDbClientThread;
+        VitamConfiguration.numberDbClientThread = numberDbClientThread;
     }
 
     /**
-     * Getter for   NUMBER_ES_QUEUE;
+     * Getter for   numberEsQueue;
      */
 
     public static Integer getNumberEsQueue() {
-        return NUMBER_ES_QUEUE;
+        return numberEsQueue;
     }
 
     /**
-     * Setter for   NUMBER_ES_QUEUE;
+     * Setter for   numberEsQueue;
      */
     private static void setNumberEsQueue(int numberEsQueue) {
-        NUMBER_ES_QUEUE = numberEsQueue;
+        VitamConfiguration.numberEsQueue = numberEsQueue;
+    }
+
+    /**
+     * Getter for   listEnableExternalIdentifiers;
+     */
+    public static Map<Integer, List<String>> getListEnableExternalIdentifiers() {
+        return listEnableExternalIdentifiers;
+    }
+
+    /**
+     * Setter for   listEnableExternalIdentifiers;
+     */
+    public static void setListEnableExternalIdentifiers(
+        Map<Integer, List<String>> listEnableExternalIdentifiers) {
+        VitamConfiguration.listEnableExternalIdentifiers = listEnableExternalIdentifiers;
     }
 }

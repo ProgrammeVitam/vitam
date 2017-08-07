@@ -28,193 +28,192 @@ package fr.gouv.vitam.common;
 
 import com.google.common.base.Strings;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * This class contains Vitam Data
  */
 public class VitamConfigurationParameters {
 
-    private  Boolean EXPORT_SCORE  ;
+    private  Boolean exportScore;
     private String secret;
     private Boolean filterActivation = true;
-    private    Integer MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER ;
+    private    Integer maxConcurrentMultipleInputstreamHandler;
 
     /**
-     * Property Vitam Config Folder
+     *
      */
-    private String VITAM_CONFIG_PROPERTY;
+    public  Boolean enableJaxbParser;
     /**
      *
      */
-    public  Boolean ENABLE_JAXB_PARSER ;
+    private Integer distributeurBatchSize;
     /**
      *
      */
-    private Integer DISTRIBUTEUR_BATCH_SIZE;
+    private Integer maxElasticsearchBulk;
     /**
      *
      */
-    private Integer MAX_ELASTICSEARCH_BULK;
+    private Integer numberDbClientThread;
     /**
      *
      */
-    private Integer NUMBER_DB_CLIENT_THREAD;
+    private Integer numberEsQueue;
+    private Integer maxCacheEntries;
+    private Integer cacheControlDelay;
+
     /**
-     *
+     * Setter for   listEnableExternalIdentifiers;
      */
-    private Integer NUMBER_ES_QUEUE;
-    private Integer MAX_CACHE_ENTRIES;
-    private Integer CACHE_CONTROL_DELAY;
+    public void setListEnableExternalIdentifiers(
+        Map<Integer, List<String>> listEnableExternalIdentifiers) {
+        this.listEnableExternalIdentifiers = listEnableExternalIdentifiers;
+    }
+
+    private Map<Integer, List<String>> listEnableExternalIdentifiers;
 
 
 
     /**
-     * Setter for   ENABLE_JAXB_PARSER;
+     * Setter for   enableJaxbParser;
      */
     public void setEnableJaxbParser(boolean ENABLE_JAXB_PARSER) {
-        this.ENABLE_JAXB_PARSER = ENABLE_JAXB_PARSER;
+        this.enableJaxbParser = ENABLE_JAXB_PARSER;
     }
 
 
-    public  Boolean ENABLE_DISTRIBUTOR_V2 ;
+    public  Boolean enableDistributorV2;
     /**
 
-     * Property Vitam Data Folder
-     */
-    private String VITAM_DATA_PROPERTY;
-    /**
-     * Property Vitam Log Folder
-     */
-    private String VITAM_LOG_PROPERTY;
-    /**
-     * Property Vitam Tmp Folder
-     */
-    private String VITAM_TMP_PROPERTY;
+
     /**
      * Default Vitam Config Folder
      */
-    private String VITAM_CONFIG_FOLDER_DEFAULT;
+    private String vitamConfigFolderDefault;
     /**
      * Default Vitam Config Folder
      */
-    private String VITAM_DATA_FOLDER_DEFAULT;
+    private String vitamDataFolderDefault;
     /**
      * Default Vitam Config Folder
      */
-    private String VITAM_LOG_FOLDER_DEFAULT;
+    private String vitamLogFolderDefault;
     /**
      * Default Vitam Config Folder
      */
-    private String VITAM_TMP_FOLDER_DEFAULT;
+    private String vitamTmpFolderDefault;
     /**
      * Default Chunk Size
      */
-    private Integer CHUNK_SIZE;
+    private Integer chunkSize;
 
     /**
      * Default Async Workspace Queue Size
      */
-    private Integer ASYNC_WORKSPACE_QUEUE_SIZE;
+    private Integer asyncWorkspaceQueueSize;
 
     /**
      * Default Recv Buffer Size
      */
-    private Integer RECV_BUFFER_SIZE;
+    private Integer recvBufferSize;
     /**
      * Default Connection timeout
      */
-    private Integer CONNECT_TIMEOUT;
+    private Integer connectTimeout;
     /**
      * Default Read Timeout
      */
-    private Integer READ_TIMEOUT;
+    private Integer readTimeout;
 
     /**
      * Max total concurrent clients
      */
-    private Integer MAX_TOTAL_CLIENT;
+    private Integer maxTotalClient;
     /**
      * Max concurrent clients associated to one host
      */
-    private Integer MAX_CLIENT_PER_HOST;
+    private Integer maxClientPerHost;
     /**
      * Max delay to check an unused client in pool before being returned (Apache Only)
      */
-    private Integer DELAY_VALIDATION_AFTER_INACTIVITY;
+    private Integer delayValidationAfterInactivity;
     /**
      * Max delay to check if no buffer is available while trying to continue to read (MultipleInputStreamHandler Only)
      *
      * Not final to allow Junit to decrease it
      */
-    private Integer DELAY_MULTIPLE_INPUTSTREAM;
+    private Integer delayMultipleInputstream;
     /**
      * Max delay to check if no buffer is available while trying to continue to read (SubStreams Only)
      */
-    private Integer DELAY_MULTIPLE_SUBINPUTSTREAM;
+    private Integer delayMultipleSubinputstream;
     /**
      * Default minimum thread pool size
      */
-    private Integer MINIMUM_THREAD_POOL_SIZE;
+    private Integer minimumThreadPoolSize;
     /**
      * No check of unused client within pool (Apache Only)
      */
-    private Integer NO_VALIDATION_AFTER_INACTIVITY;
+    private Integer noValidationAfterInactivity;
     /**
      * Max delay to get a client (Apache Only)
      */
-    private Integer DELAY_GET_CLIENT;
+    private Integer delayGetClient;
     /**
      * Specify the delay where connections returned to pool will be checked (Apache Only)
      */
-    private Integer INTERVAL_DELAY_CHECK_IDLE;
+    private Integer intervalDelayCheckIdle;
     /**
      * Specify the delay of unused connection returned in the pool before being really closed (Apache Only)
      */
-    private Integer MAX_DELAY_UNUSED_CONNECTION;
+    private Integer maxDelayUnusedConnection;
     /**
      * Use a new JAX_RS client each time
      */
-    private Boolean USE_NEW_JAXR_CLIENT;
+    private Boolean useNewJaxrClient;
 
     /**
      * Default Digest Type for SECURITY
      */
-    private String SECURITY_DIGEST_TYPE;
+    private String securityDigestType;
     /**
      * Default Digest Type for Vitam
      */
-    private String DEFAULT_DIGEST_TYPE;
+    private String defaultDigestType;
     /**
      * Default Digest Type for time stamp generation
      */
-    private String DEFAULT_TIMESTAMP_DIGEST_TYPE;
+    private String defaultTimestampDigestType;
     /**
      * Acceptable Request Time elaps
      */
-    private Long ACCEPTABLE_REQUEST_TIME;
+    private Long acceptableRequestTime;
     /**
      * MongoDB client configuration
      */
-    private Integer THREADS_ALLOWED_TO_BLOCK_FOR_CONNECTION_MULTIPLIERS;
+    private Integer threadsAllowedToBlockForConnectionMultipliers;
     /**
      * Retry repetition
      */
-    private Integer RETRY_NUMBER;
+    private Integer retryNumber;
     /**
      * Retry delay
      */
-    private Integer RETRY_DELAY;
+    private Integer retryDelay;
     /**
      * Waiting delay (for wait(delay) method)
      */
-    private Integer WAITING_DELAY;
+    private Integer waitingDelay;
     /**
      * Allow client and Server Encoding request or response in GZIP format
      */
-    private Boolean ALLOW_GZIP_ENCODING;
+    private Boolean allowGzipEncoding;
     /**
      * Allow client to receive GZIP encoded response
      */
-    private Boolean ALLOW_GZIP_DECODING;
+    private Boolean allowGzipDecoding;
     /**
      * Read ahead x4 Buffers
      */
@@ -286,137 +285,84 @@ public class VitamConfigurationParameters {
         return this;
     }
 
-    /**
-     * Getter for   VITAM_CONFIG_PROPERTY;
-     */
-    public String getVitamConfigProperty() {
-        return VITAM_CONFIG_PROPERTY;
-    }
+
+
 
     /**
-     * Setter for   VITAM_CONFIG_PROPERTY;
-     */
-    public void setVitamConfigProperty(String vitamConfigProperty) {
-        VITAM_CONFIG_PROPERTY = vitamConfigProperty;
-    }
-
-    /**
-     * Getter for   VITAM_DATA_PROPERTY;
-     */
-    public String getVitamDataProperty() {
-        return VITAM_DATA_PROPERTY;
-    }
-
-    /**
-     * Setter for   VITAM_DATA_PROPERTY;
-     */
-    public void setVitamDataProperty(String vitamDataProperty) {
-        VITAM_DATA_PROPERTY = vitamDataProperty;
-    }
-
-    /**
-     * Getter for   VITAM_LOG_PROPERTY;
-     */
-    public String getVitamLogProperty() {
-        return VITAM_LOG_PROPERTY;
-    }
-
-    /**
-     * Setter for   VITAM_LOG_PROPERTY;
-     */
-    public void setVitamLogProperty(String vitamLogProperty) {
-        VITAM_LOG_PROPERTY = vitamLogProperty;
-    }
-
-    /**
-     * Getter for   VITAM_TMP_PROPERTY;
-     */
-    public String getVitamTmpProperty() {
-        return VITAM_TMP_PROPERTY;
-    }
-
-    /**
-     * Setter for   VITAM_TMP_PROPERTY;
-     */
-    public void setVitamTmpProperty(String vitamTmpProperty) {
-        VITAM_TMP_PROPERTY = vitamTmpProperty;
-    }
-
-    /**
-     * Getter for   VITAM_CONFIG_FOLDER_DEFAULT;
+     * Getter for   vitamConfigFolderDefault;
      */
     public String getVitamConfigFolderDefault() {
-        return VITAM_CONFIG_FOLDER_DEFAULT;
+        return vitamConfigFolderDefault;
     }
 
     /**
-     * Setter for   VITAM_CONFIG_FOLDER_DEFAULT;
+     * Setter for   vitamConfigFolderDefault;
      */
     public void setVitamConfigFolderDefault(String vitamConfigFolderDefault) {
-        VITAM_CONFIG_FOLDER_DEFAULT = vitamConfigFolderDefault;
+        this.vitamConfigFolderDefault = vitamConfigFolderDefault;
     }
 
     /**
-     * Getter for   VITAM_DATA_FOLDER_DEFAULT;
+     * Getter for   vitamDataFolderDefault;
      */
     public String getVitamDataFolderDefault() {
-        return VITAM_DATA_FOLDER_DEFAULT;
+        return vitamDataFolderDefault;
     }
 
     /**
-     * Setter for   VITAM_DATA_FOLDER_DEFAULT;
+     * Setter for   vitamDataFolderDefault;
      */
     public void setVitamDataFolderDefault(String vitamDataFolderDefault) {
-        VITAM_DATA_FOLDER_DEFAULT = vitamDataFolderDefault;
+        this.vitamDataFolderDefault = vitamDataFolderDefault;
     }
 
     /**
-     * Getter for   VITAM_LOG_FOLDER_DEFAULT;
+     * Getter for   vitamLogFolderDefault;
      */
     public String getVitamLogFolderDefault() {
-        return VITAM_LOG_FOLDER_DEFAULT;
+        return vitamLogFolderDefault;
     }
 
     /**
-     * Setter for   VITAM_LOG_FOLDER_DEFAULT;
+     * Setter for   vitamLogFolderDefault;
      */
     public void setVitamLogFolderDefault(String vitamLogFolderDefault) {
-        VITAM_LOG_FOLDER_DEFAULT = vitamLogFolderDefault;
+        this.vitamLogFolderDefault = vitamLogFolderDefault;
     }
 
     /**
-     * Getter for   VITAM_TMP_FOLDER_DEFAULT;
+     * Getter for   vitamTmpFolderDefault;
      */
     public String getVitamTmpFolderDefault() {
-        return VITAM_TMP_FOLDER_DEFAULT;
+        return vitamTmpFolderDefault;
     }
 
     /**
-     * Setter for   VITAM_TMP_FOLDER_DEFAULT;
+     * Setter for   vitamTmpFolderDefault;
      */
     public void setVitamTmpFolderDefault(String vitamTmpFolderDefault) {
-        VITAM_TMP_FOLDER_DEFAULT = vitamTmpFolderDefault;
+        this.vitamTmpFolderDefault = vitamTmpFolderDefault;
     }
 
     /**
      * Getter for   CHUNK_SIZE;
      */
     public Integer getChunkSize() {
-        return CHUNK_SIZE;
+        return chunkSize;
     }
 
     /**
-     * Setter for   CHUNK_SIZE;
+     * Setter for   chunkSize;
      */
     public void setChunkSize(Integer chunkSize) {
-        CHUNK_SIZE = chunkSize;
+        this.chunkSize = chunkSize;
     }
 
     /**
      * @return the size of the queue of async workspace
      */
     public Integer getAsyncWorkspaceQueueSize() {
-        return ASYNC_WORKSPACE_QUEUE_SIZE;
+        return asyncWorkspaceQueueSize;
     }
 
 
@@ -424,345 +370,345 @@ public class VitamConfigurationParameters {
      * @return the size of the queue of async workspace
      */
     public void setAsyncWorkspaceQueueSize(int queueSize) {
-        ASYNC_WORKSPACE_QUEUE_SIZE = queueSize;
+        asyncWorkspaceQueueSize = queueSize;
     }
 
 
     /**
-     * Getter for   RECV_BUFFER_SIZE;
+     * Getter for   recvBufferSize;
      */
     public Integer getRecvBufferSize() {
-        return RECV_BUFFER_SIZE;
+        return recvBufferSize;
     }
 
     /**
-     * Setter for   RECV_BUFFER_SIZE;
+     * Setter for   recvBufferSize;
      */
     public void setRecvBufferSize(Integer recvBufferSize) {
-        RECV_BUFFER_SIZE = recvBufferSize;
+        this.recvBufferSize = recvBufferSize;
     }
 
     /**
-     * Getter for   CONNECT_TIMEOUT;
+     * Getter for   connectTimeout;
      */
     public Integer getConnectTimeout() {
-        return CONNECT_TIMEOUT;
+        return connectTimeout;
     }
 
     /**
-     * Setter for   CONNECT_TIMEOUT;
+     * Setter for   connectTimeout;
      */
     public void setConnectTimeout(Integer connectTimeout) {
-        CONNECT_TIMEOUT = connectTimeout;
+        this.connectTimeout = connectTimeout;
     }
 
     /**
-     * Getter for   READ_TIMEOUT;
+     * Getter for   readTimeout;
      */
     public Integer getReadTimeout() {
-        return READ_TIMEOUT;
+        return readTimeout;
     }
 
     /**
-     * Setter for   READ_TIMEOUT;
+     * Setter for   readTimeout;
      */
     public void setReadTimeout(Integer readTimeout) {
-        READ_TIMEOUT = readTimeout;
+        this.readTimeout = readTimeout;
     }
 
     /**
-     * Getter for   MAX_TOTAL_CLIENT;
+     * Getter for   maxTotalClient;
      */
     public Integer getMaxTotalClient() {
-        return MAX_TOTAL_CLIENT;
+        return maxTotalClient;
     }
 
     /**
-     * Setter for   MAX_TOTAL_CLIENT;
+     * Setter for   maxTotalClient;
      */
     public void setMaxTotalClient(Integer maxTotalClient) {
-        MAX_TOTAL_CLIENT = maxTotalClient;
+        this.maxTotalClient = maxTotalClient;
     }
 
     /**
-     * Getter for   MAX_CLIENT_PER_HOST;
+     * Getter for   maxClientPerHost;
      */
     public Integer getMaxClientPerHost() {
-        return MAX_CLIENT_PER_HOST;
+        return maxClientPerHost;
     }
 
     /**
-     * Setter for   MAX_CLIENT_PER_HOST;
+     * Setter for   maxClientPerHost;
      */
     public void setMaxClientPerHost(Integer maxClientPerHost) {
-        MAX_CLIENT_PER_HOST = maxClientPerHost;
+        this.maxClientPerHost = maxClientPerHost;
     }
 
     /**
-     * Getter for   DELAY_VALIDATION_AFTER_INACTIVITY;
+     * Getter for   delayValidationAfterInactivity;
      */
     public Integer getDelayValidationAfterInactivity() {
-        return DELAY_VALIDATION_AFTER_INACTIVITY;
+        return delayValidationAfterInactivity;
     }
 
     /**
-     * Setter for   DELAY_VALIDATION_AFTER_INACTIVITY;
+     * Setter for   delayValidationAfterInactivity;
      */
     public void setDelayValidationAfterInactivity(Integer delayValidationAfterInactivity) {
-        DELAY_VALIDATION_AFTER_INACTIVITY = delayValidationAfterInactivity;
+        this.delayValidationAfterInactivity = delayValidationAfterInactivity;
     }
 
     /**
-     * Getter for   DELAY_MULTIPLE_INPUTSTREAM;
+     * Getter for   delayMultipleInputstream;
      */
     public Integer getDelayMultipleInputstream() {
-        return DELAY_MULTIPLE_INPUTSTREAM;
+        return delayMultipleInputstream;
     }
 
     /**
-     * Setter for   DELAY_MULTIPLE_INPUTSTREAM;
+     * Setter for   delayMultipleInputstream;
      */
     public void setDelayMultipleInputstream(Integer delayMultipleInputstream) {
-        DELAY_MULTIPLE_INPUTSTREAM = delayMultipleInputstream;
+        this.delayMultipleInputstream = delayMultipleInputstream;
     }
 
     /**
-     * Getter for   DELAY_MULTIPLE_SUBINPUTSTREAM;
+     * Getter for   delayMultipleSubinputstream;
      */
     public Integer getDelayMultipleSubinputstream() {
-        return DELAY_MULTIPLE_SUBINPUTSTREAM;
+        return delayMultipleSubinputstream;
     }
 
     /**
-     * Setter for   DELAY_MULTIPLE_SUBINPUTSTREAM;
+     * Setter for   delayMultipleSubinputstream;
      */
     public void setDelayMultipleSubinputstream(Integer delayMultipleSubinputstream) {
-        DELAY_MULTIPLE_SUBINPUTSTREAM = delayMultipleSubinputstream;
+        this.delayMultipleSubinputstream = delayMultipleSubinputstream;
     }
 
     /**
-     * Getter for   MINIMUM_THREAD_POOL_SIZE;
+     * Getter for   minimumThreadPoolSize;
      */
     public Integer getMinimumThreadPoolSize() {
-        return MINIMUM_THREAD_POOL_SIZE;
+        return minimumThreadPoolSize;
     }
 
     /**
-     * Setter for   MINIMUM_THREAD_POOL_SIZE;
+     * Setter for   minimumThreadPoolSize;
      */
     public void setMinimumThreadPoolSize(Integer minimumThreadPoolSize) {
-        MINIMUM_THREAD_POOL_SIZE = minimumThreadPoolSize;
+        this.minimumThreadPoolSize = minimumThreadPoolSize;
     }
 
     /**
-     * Getter for   NO_VALIDATION_AFTER_INACTIVITY;
+     * Getter for   noValidationAfterInactivity;
      */
     public Integer getNoValidationAfterInactivity() {
-        return NO_VALIDATION_AFTER_INACTIVITY;
+        return noValidationAfterInactivity;
     }
 
     /**
-     * Setter for   NO_VALIDATION_AFTER_INACTIVITY;
+     * Setter for   noValidationAfterInactivity;
      */
     public void setNoValidationAfterInactivity(Integer noValidationAfterInactivity) {
-        NO_VALIDATION_AFTER_INACTIVITY = noValidationAfterInactivity;
+        this.noValidationAfterInactivity = noValidationAfterInactivity;
     }
 
     /**
-     * Getter for   DELAY_GET_CLIENT;
+     * Getter for   delayGetClient;
      */
     public Integer getDelayGetClient() {
-        return DELAY_GET_CLIENT;
+        return delayGetClient;
     }
 
     /**
-     * Setter for   DELAY_GET_CLIENT;
+     * Setter for   delayGetClient;
      */
     public void setDelayGetClient(Integer delayGetClient) {
-        DELAY_GET_CLIENT = delayGetClient;
+        this.delayGetClient = delayGetClient;
     }
 
     /**
-     * Getter for   INTERVAL_DELAY_CHECK_IDLE;
+     * Getter for   intervalDelayCheckIdle;
      */
     public Integer getIntervalDelayCheckIdle() {
-        return INTERVAL_DELAY_CHECK_IDLE;
+        return intervalDelayCheckIdle;
     }
 
     /**
      * Setter for   IntegerERVAL_DELAY_CHECK_IDLE;
      */
     public void setIntegerervalDelayCheckIdle(Integer IntegerervalDelayCheckIdle) {
-        INTERVAL_DELAY_CHECK_IDLE = IntegerervalDelayCheckIdle;
+        intervalDelayCheckIdle = IntegerervalDelayCheckIdle;
     }
 
     /**
-     * Getter for   MAX_DELAY_UNUSED_CONNECTION;
+     * Getter for   maxDelayUnusedConnection;
      */
     public Integer getMaxDelayUnusedConnection() {
-        return MAX_DELAY_UNUSED_CONNECTION;
+        return maxDelayUnusedConnection;
     }
 
     /**
-     * Setter for   MAX_DELAY_UNUSED_CONNECTION;
+     * Setter for   maxDelayUnusedConnection;
      */
     public void setMaxDelayUnusedConnection(Integer maxDelayUnusedConnection) {
-        MAX_DELAY_UNUSED_CONNECTION = maxDelayUnusedConnection;
+        this.maxDelayUnusedConnection = maxDelayUnusedConnection;
     }
 
     /**
-     * Getter for   USE_NEW_JAXR_CLIENT;
+     * Getter for   useNewJaxrClient;
      */
     public Boolean isUseNewJaxrClient() {
-        return USE_NEW_JAXR_CLIENT;
+        return useNewJaxrClient;
     }
 
     /**
-     * Setter for   USE_NEW_JAXR_CLIENT;
+     * Setter for   useNewJaxrClient;
      */
     public void setUseNewJaxrClient(Boolean useNewJaxrClient) {
-        USE_NEW_JAXR_CLIENT = useNewJaxrClient;
+        this.useNewJaxrClient = useNewJaxrClient;
     }
 
     /**
-     * Getter for   SECURITY_DIGEST_TYPE;
+     * Getter for   securityDigestType;
      */
     public String getSecurityDigestType() {
-        return SECURITY_DIGEST_TYPE;
+        return securityDigestType;
     }
 
     /**
-     * Setter for   SECURITY_DIGEST_TYPE;
+     * Setter for   securityDigestType;
      */
     public void setSecurityDigestType(String securityDigestType) {
-        SECURITY_DIGEST_TYPE = securityDigestType;
+        this.securityDigestType = securityDigestType;
     }
 
     /**
-     * Getter for   DEFAULT_DIGEST_TYPE;
+     * Getter for   defaultDigestType;
      */
     public String getDefaultDigestType() {
-        return DEFAULT_DIGEST_TYPE;
+        return defaultDigestType;
     }
 
     /**
-     * Setter for   DEFAULT_DIGEST_TYPE;
+     * Setter for   defaultDigestType;
      */
     public void setDefaultDigestType(String defaultDigestType) {
-        DEFAULT_DIGEST_TYPE = defaultDigestType;
+        this.defaultDigestType = defaultDigestType;
     }
 
     /**
-     * Getter for   DEFAULT_TIMESTAMP_DIGEST_TYPE;
+     * Getter for   defaultTimestampDigestType;
      */
     public String getDefaultTimestampDigestType() {
-        return DEFAULT_TIMESTAMP_DIGEST_TYPE;
+        return defaultTimestampDigestType;
     }
 
     /**
-     * Setter for   DEFAULT_TIMESTAMP_DIGEST_TYPE;
+     * Setter for   defaultTimestampDigestType;
      */
     public void setDefaultTimestampDigestType(String defaultTimestampDigestType) {
-        DEFAULT_TIMESTAMP_DIGEST_TYPE = defaultTimestampDigestType;
+        this.defaultTimestampDigestType = defaultTimestampDigestType;
     }
 
     /**
-     * Getter for   ACCEPTABLE_REQUEST_TIME;
+     * Getter for   acceptableRequestTime;
      */
     public Long getAcceptableRequestTime() {
-        return ACCEPTABLE_REQUEST_TIME;
+        return acceptableRequestTime;
     }
 
     /**
-     * Setter for   ACCEPTABLE_REQUEST_TIME;
+     * Setter for   acceptableRequestTime;
      */
     public void setAcceptableRequestTime(Long acceptableRequestTime) {
-        ACCEPTABLE_REQUEST_TIME = acceptableRequestTime;
+        this.acceptableRequestTime = acceptableRequestTime;
     }
 
     /**
-     * Getter for   THREADS_ALLOWED_TO_BLOCK_FOR_CONNECTION_MULTIPLIERS;
+     * Getter for   threadsAllowedToBlockForConnectionMultipliers;
      */
     public Integer getThreadsAllowedToBlockForConnectionMultipliers() {
-        return THREADS_ALLOWED_TO_BLOCK_FOR_CONNECTION_MULTIPLIERS;
+        return threadsAllowedToBlockForConnectionMultipliers;
     }
 
     /**
-     * Setter for   THREADS_ALLOWED_TO_BLOCK_FOR_CONNECTION_MULTIPLIERS;
+     * Setter for   threadsAllowedToBlockForConnectionMultipliers;
      */
     public void setThreadsAllowedToBlockForConnectionMultipliers(
         Integer threadsAllowedToBlockForConnectionMultipliers) {
-        THREADS_ALLOWED_TO_BLOCK_FOR_CONNECTION_MULTIPLIERS = threadsAllowedToBlockForConnectionMultipliers;
+        this.threadsAllowedToBlockForConnectionMultipliers = threadsAllowedToBlockForConnectionMultipliers;
     }
 
     /**
-     * Getter for   RETRY_NUMBER;
+     * Getter for   retryNumber;
      */
     public Integer getRetryNumber() {
-        return RETRY_NUMBER;
+        return retryNumber;
     }
 
     /**
-     * Setter for   RETRY_NUMBER;
+     * Setter for   retryNumber;
      */
     public void setRetryNumber(Integer retryNumber) {
-        RETRY_NUMBER = retryNumber;
+        this.retryNumber = retryNumber;
     }
 
     /**
-     * Getter for   RETRY_DELAY;
+     * Getter for   retryDelay;
      */
     public Integer getRetryDelay() {
-        return RETRY_DELAY;
+        return retryDelay;
     }
 
     /**
-     * Setter for   RETRY_DELAY;
+     * Setter for   retryDelay;
      */
     public void setRetryDelay(Integer retryDelay) {
-        RETRY_DELAY = retryDelay;
+        this.retryDelay = retryDelay;
     }
 
     /**
-     * Getter for   WAITING_DELAY;
+     * Getter for   waitingDelay;
      */
     public Integer getWaitingDelay() {
-        return WAITING_DELAY;
+        return waitingDelay;
     }
 
     /**
-     * Setter for   WAITING_DELAY;
+     * Setter for   waitingDelay;
      */
     public void setWaitingDelay(Integer waitingDelay) {
-        WAITING_DELAY = waitingDelay;
+        this.waitingDelay = waitingDelay;
     }
 
     /**
-     * Getter for   ALLOW_GZIP_ENCODING;
+     * Getter for   allowGzipEncoding;
      */
     public Boolean isAllowGzipEncoding() {
-        return ALLOW_GZIP_ENCODING;
+        return allowGzipEncoding;
     }
 
     /**
-     * Setter for   ALLOW_GZIP_ENCODING;
+     * Setter for   allowGzipEncoding;
      */
     public void setAllowGzipEncoding(Boolean allowGzipEncoding) {
-        ALLOW_GZIP_ENCODING = allowGzipEncoding;
+        this.allowGzipEncoding = allowGzipEncoding;
     }
 
     /**
-     * Getter for   ALLOW_GZIP_DECODING;
+     * Getter for   allowGzipDecoding;
      */
     public Boolean isAllowGzipDecoding() {
-        return ALLOW_GZIP_DECODING;
+        return allowGzipDecoding;
     }
 
     /**
-     * Setter for   ALLOW_GZIP_DECODING;
+     * Setter for   allowGzipDecoding;
      */
     public void setAllowGzipDecoding(Boolean allowGzipDecoding) {
-        ALLOW_GZIP_DECODING = allowGzipDecoding;
+        this.allowGzipDecoding = allowGzipDecoding;
     }
 
     /**
@@ -779,49 +725,49 @@ public class VitamConfigurationParameters {
         BUFFER_NUMBER = bufferNumber;
     }
     /**
-     * getter for ENABLE_JAXB_PARSER
+     * getter for enableJaxbParser
      * @return
      */
     public  Boolean isEnableJaxbParser() {
-        return ENABLE_JAXB_PARSER;
+        return enableJaxbParser;
     }
 
     /**
-     * setter for ENABLE_JAXB_PARSER
+     * setter for enableJaxbParser
      * @return
      */
     public  void setEnableJaxbParser(Boolean enableJaxbParser) {
-        ENABLE_JAXB_PARSER = enableJaxbParser;
+        this.enableJaxbParser = enableJaxbParser;
     }
 
     /**
-     * getter for MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER
+     * getter for maxConcurrentMultipleInputstreamHandler
      * @return
      */
     public  Integer getMaxConcurrentMultipleInputstreamHandler() {
-        return MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER;
+        return maxConcurrentMultipleInputstreamHandler;
     }
 
     /**
-     * setter for MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER
+     * setter for maxConcurrentMultipleInputstreamHandler
      * @return
      */
     public  void setMaxConcurrentMultipleInputstreamHandler(int maxConcurrentMultipleInputstreamHandler) {
-        MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER = maxConcurrentMultipleInputstreamHandler;
+        this.maxConcurrentMultipleInputstreamHandler = maxConcurrentMultipleInputstreamHandler;
     }
 
     /**
-     * Getter for   ENABLE_DISTRIBUTOR_V2;
+     * Getter for   enableDistributorV2;
      */
     public Boolean isEnableDistributorV2() {
-        return ENABLE_DISTRIBUTOR_V2;
+        return enableDistributorV2;
     }
 
     /**
-     * Setter for   ENABLE_DISTRIBUTOR_V2;
+     * Setter for   enableDistributorV2;
      */
     public void setEnableDistributorV2(boolean ENABLE_DISTRIBUTOR_V2) {
-        this.ENABLE_DISTRIBUTOR_V2 = ENABLE_DISTRIBUTOR_V2;
+        this.enableDistributorV2 = ENABLE_DISTRIBUTOR_V2;
     }
     public Integer getVitamCleanPeriod() {
         return vitamCleanPeriod;
@@ -829,102 +775,101 @@ public class VitamConfigurationParameters {
 
 
     /**
-     * Getter for   EXPORT_SCORE;
+     * Getter for   exportScore;
      */
     public Boolean isExportScore() {
-        return EXPORT_SCORE;
+        return exportScore;
     }
     /**
-     * Setter for   EXPORT_SCORE;
+     * Setter for   exportScore;
      */
     public  void setExportScore(boolean exportScore) {
-        EXPORT_SCORE = exportScore;
+        this.exportScore = exportScore;
     }
 
 
 
     /**
-     * Getter for   DISTRIBUTEUR_BATCH_SIZE;
+     * Getter for   distributeurBatchSize;
      */
     public  Integer getDistributeurBatchSize() {
-        return DISTRIBUTEUR_BATCH_SIZE;
+        return distributeurBatchSize;
     }
 
     /**
-     * Setter for   DISTRIBUTEUR_BATCH_SIZE;
+     * Setter for   distributeurBatchSize;
      */
     public  void setDistributeurBatchSize(int distributeurBatchSize) {
-        DISTRIBUTEUR_BATCH_SIZE = distributeurBatchSize;
+        this.distributeurBatchSize = distributeurBatchSize;
     }
 
 
     /**
-     * Getter for   MAX_ELASTICSEARCH_BULK;
+     * Getter for   maxElasticsearchBulk;
      */
     public  Integer getMaxElasticsearchBulk() {
-        return MAX_ELASTICSEARCH_BULK;
+        return maxElasticsearchBulk;
     }
 
     /**
-     * Setter for   MAX_ELASTICSEARCH_BULK;
+     * Setter for   maxElasticsearchBulk;
      */
     public  void setMaxElasticsearchBulk(Integer maxElasticsearchBulk) {
-        MAX_ELASTICSEARCH_BULK = maxElasticsearchBulk;
+        this.maxElasticsearchBulk = maxElasticsearchBulk;
     }
     /**
-     * Getter for   NUMBER_DB_CLIENT_THREAD;
+     * Getter for   numberDbClientThread;
      */
     public  Integer getNumberDbClientThread() {
-        return NUMBER_DB_CLIENT_THREAD;
+        return numberDbClientThread;
     }
 
     /**
-     * Setter for   NUMBER_DB_CLIENT_THREAD;
+     * Setter for   numberDbClientThread;
      */
     public  void setNumberDbClientThread(Integer numberDbClientThread) {
-        NUMBER_DB_CLIENT_THREAD = numberDbClientThread;
+        this.numberDbClientThread = numberDbClientThread;
     }
 
     /**
-     * Getter for   NUMBER_ES_QUEUE;
+     * Getter for   numberEsQueue;
      */
     public  Integer getNumberEsQueue() {
-        return NUMBER_ES_QUEUE;
+        return numberEsQueue;
     }
 
     /**
-     * Setter for   NUMBER_ES_QUEUE;
+     * Setter for   numberEsQueue;
      */
     public  void setNumberEsQueue(Integer numberEsQueue) {
-        NUMBER_ES_QUEUE = numberEsQueue;
-    }
-
-    /**
-     * Setter for   CACHE_CONTROL_DELAY;
-     */
-    public  void setCacheControlDelay(int cacheControlDelay, Integer CACHE_CONTROL_DELAY) {
-        CACHE_CONTROL_DELAY = cacheControlDelay;
+        this.numberEsQueue = numberEsQueue;
     }
 
 
+
+
     /**
-     * Getter for   CACHE_CONTROL_DELAY;
+     * Getter for   cacheControlDelay;
      */
     public  Integer getCacheControlDelay() {
-        return CACHE_CONTROL_DELAY;
+        return cacheControlDelay;
     }
 
     /**
-     * Getter for   MAX_CACHE_ENTRIES;
+     * Getter for   maxCacheEntries;
      */
     public  Integer getMaxCacheEntries() {
-        return MAX_CACHE_ENTRIES;
+        return maxCacheEntries;
     }
 
     /**
-     * Setter for   MAX_CACHE_ENTRIES;
+     * Setter for   maxCacheEntries;
      */
     public  void setMaxCacheEntries(int maxCacheEntries) {
-        MAX_CACHE_ENTRIES = maxCacheEntries;
+        this.maxCacheEntries = maxCacheEntries;
+    }
+
+    public Map<Integer, List<String>> getListEnableExternalIdentifiers() {
+        return listEnableExternalIdentifiers;
     }
 }
