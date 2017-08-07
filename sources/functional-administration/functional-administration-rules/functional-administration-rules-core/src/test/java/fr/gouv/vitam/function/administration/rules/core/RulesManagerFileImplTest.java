@@ -30,6 +30,7 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
+import static org.mockito.Mockito.mock;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -37,10 +38,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
-import fr.gouv.vitam.functional.administration.rules.core.RulesSecurisator;
 import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -73,14 +70,13 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
-
 import fr.gouv.vitam.common.model.RequestResponseOK;
-
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
@@ -94,10 +90,12 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.rules.core.RulesManagerFileImpl;
+import fr.gouv.vitam.functional.administration.rules.core.RulesSecurisator;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import static org.mockito.Mockito.mock;
 
 
 /**
@@ -112,8 +110,6 @@ public class RulesManagerFileImplTest {
     String FILE_TO_TEST_OK = "jeu_ok.csv";
     String FILE_TO_TEST_KO = "jeu_donnees_KO_regles_CSV_DuplicatedReference.csv";
     private static final String FILE_TO_COMPARE = "jeu_donnees_OK_regles_CSV.csv";
-    private static final String TXT = ".txt";
-    private static final String TMP = "tmp";
     private static final Integer TENANT_ID = 0;
 
     @Rule
@@ -155,6 +151,7 @@ public class RulesManagerFileImplTest {
 
         port = junitHelper.findAvailablePort();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
+            .withLaunchArgument("--enableMajorityReadConcern")
             .version(Version.Main.PRODUCTION)
             .net(new Net(port, Network.localhostIsIPv6()))
             .build());
@@ -165,7 +162,7 @@ public class RulesManagerFileImplTest {
         LogbookOperationsClientFactory.changeMode(null);
         dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
         List<Integer> tenants = new ArrayList<>();
-        Integer tenantsList [] ={TENANT_ID,1,2,3,4,5,60,70};
+        Integer tenantsList[] = {TENANT_ID, 1, 2, 3, 4, 5, 60, 70};
         tenants.addAll(Arrays.asList(tenantsList));
 
 
@@ -175,7 +172,8 @@ public class RulesManagerFileImplTest {
 
         rulesFileManager = new RulesManagerFileImpl(
             MongoDbAccessAdminFactory.create(
-                new DbConfigurationImpl(nodes, DATABASE_NAME)), vitamCounterService, securisator);
+                new DbConfigurationImpl(nodes, DATABASE_NAME)),
+            vitamCounterService, securisator);
         ElasticsearchAccessAdminFactory.create(
             new AdminManagementConfiguration(nodes, DATABASE_NAME, CLUSTER_NAME, esNodes));
 
@@ -231,7 +229,7 @@ public class RulesManagerFileImplTest {
 
         assertEquals(file.getRuleid(), fileList.getResults().get(0).getRuleid());
 
-        assertEquals(file.getVersion(),1);
+        assertEquals(file.getVersion(), 1);
         client.close();
     }
 
@@ -251,13 +249,13 @@ public class RulesManagerFileImplTest {
         PowerMockito.when(LogbookOperationsClientFactory.getInstance()).thenReturn(logbookOperationsClientFactory);
         PowerMockito.when(logbookOperationsClientFactory.getClient()).thenReturn(client);
 
-        PowerMockito.when(client.selectOperation(Matchers.anyObject())).thenReturn(getJsonResult(StatusCode.OK.name()
-            , tenantId));
+        PowerMockito.when(client.selectOperation(Matchers.anyObject()))
+            .thenReturn(getJsonResult(StatusCode.OK.name(), tenantId));
         rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
 
         VitamThreadUtils.getVitamSession().setTenantId(++tenantId);
-        PowerMockito.when(client.selectOperation(Matchers.anyObject())).thenReturn(getJsonResult(StatusCode.KO.name()
-            , tenantId));
+        PowerMockito.when(client.selectOperation(Matchers.anyObject()))
+            .thenReturn(getJsonResult(StatusCode.KO.name(), tenantId));
         rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
 
         VitamThreadUtils.getVitamSession().setTenantId(++tenantId);
@@ -291,8 +289,7 @@ public class RulesManagerFileImplTest {
         PowerMockito.when(logbookOperationsClientFactory.getClient()).thenReturn(client);
 
         PowerMockito.when(client.selectOperation(Matchers.anyObject())).thenReturn(
-            getJsonResult(StatusCode.STARTED.name
-                (), 60));
+            getJsonResult(StatusCode.STARTED.name(), 60));
         rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
     }
 
@@ -386,9 +383,10 @@ public class RulesManagerFileImplTest {
             List<FileRules> fileRulesAfter =
                 convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
             assertEquals(fileRulesAfter.size(), 22);
-        } catch (ReferentialException | InvalidParseOperationException | IOException | InvalidCreateOperationException e) {
-            fail("ReferentialException " + e.getCause());
+        } catch (ReferentialException | InvalidParseOperationException | IOException |
+            InvalidCreateOperationException e) {
             e.printStackTrace();
+            fail("ReferentialException " + e.getCause());
         }
     }
 
@@ -415,7 +413,8 @@ public class RulesManagerFileImplTest {
                 convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
             assertEquals(22, fileRulesAfterInsert.size());
 
-        } catch (ReferentialException | InvalidParseOperationException | IOException | InvalidCreateOperationException e) {
+        } catch (ReferentialException | InvalidParseOperationException | IOException |
+            InvalidCreateOperationException e) {
             fail("ReferentialException " + e.getCause());
             e.printStackTrace();
         }
@@ -441,11 +440,13 @@ public class RulesManagerFileImplTest {
             List<FileRules> fileRulesAfterInsert =
                 convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
             assertEquals(22, fileRulesAfterInsert.size());
-            assertEquals(fileRulesAfterInsert.stream().findAny().get().get(VitamDocument.VERSION), vitamCounterService.getSequence(TENANT_ID,"RULE"));
+            assertEquals(fileRulesAfterInsert.stream().findAny().get().get(VitamDocument.VERSION),
+                vitamCounterService.getSequence(TENANT_ID, "RULE"));
 
-        } catch (ReferentialException | InvalidParseOperationException | IOException | InvalidCreateOperationException e) {
-            fail("ReferentialException " + e.getCause());
+        } catch (ReferentialException | InvalidParseOperationException | IOException |
+            InvalidCreateOperationException e) {
             e.printStackTrace();
+            fail("ReferentialException " + e.getCause());
         }
     }
 

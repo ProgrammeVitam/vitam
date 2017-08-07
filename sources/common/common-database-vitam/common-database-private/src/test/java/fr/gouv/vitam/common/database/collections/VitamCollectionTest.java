@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.database.collections;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
 import java.util.ArrayList;
@@ -40,8 +41,11 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import com.mongodb.MongoClient;
+import com.mongodb.ReadConcern;
+import com.mongodb.ReadPreference;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
@@ -95,6 +99,7 @@ public class VitamCollectionTest {
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         port = junitHelper.findAvailablePort();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
+            .withLaunchArgument("--enableMajorityReadConcern")
             .version(Version.Main.PRODUCTION)
             .net(new Net(port, Network.localhostIsIPv6()))
             .build());
@@ -120,17 +125,26 @@ public class VitamCollectionTest {
         classList.add(CollectionSample.class);
         mongoClient =
             new MongoClient(new ServerAddress(DATABASE_HOST, port), VitamCollection.getMongoClientOptions(classList));
-        final VitamCollection vitamCollection = VitamCollectionHelper.getCollection(CollectionSample.class, true, false);
+        final VitamCollection vitamCollection =
+            VitamCollectionHelper.getCollection(CollectionSample.class, true, false);
         assertEquals(vitamCollection.getClasz(), CollectionSample.class);
         assertEquals(vitamCollection.getName(), "CollectionSample");
         vitamCollection.initialize(esClient);
         assertEquals(esClient, vitamCollection.getEsClient());
         vitamCollection.initialize(mongoClient.getDatabase(DATABASE_NAME), true);
+        assertEquals("majority", mongoClient.getWriteConcern().getWString());
+        assertEquals(null, mongoClient.getWriteConcern().getJournal());
+        assertEquals(ReadConcern.MAJORITY, mongoClient.getReadConcern());
         final MongoCollection<CollectionSample> collection =
             (MongoCollection<CollectionSample>) vitamCollection.getCollection();
-        final CollectionSample test = new CollectionSample(new Document("_id", GUIDFactory.newGUID().toString()));
+        String guid = GUIDFactory.newGUID().toString();
+        final CollectionSample test = new CollectionSample(new Document("_id", guid));
         collection.insertOne(test);
         assertEquals(1, collection.count());
+        MongoCursor<CollectionSample> iterable = collection.find().iterator();
+        assertTrue(iterable.hasNext());
+        CollectionSample sample = iterable.next();
+        assertEquals(guid, sample.getId());
     }
 
 }

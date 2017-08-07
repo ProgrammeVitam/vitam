@@ -36,17 +36,12 @@ import static org.junit.Assume.assumeTrue;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 import javax.xml.bind.MarshalException;
 
-import com.google.common.collect.Lists;
-import fr.gouv.vitam.common.PropertiesUtils;
 import org.bson.Document;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
 import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -60,6 +55,7 @@ import org.junit.rules.TemporaryFolder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
@@ -71,6 +67,7 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.error.VitamError;
@@ -143,6 +140,7 @@ public class MetaDataResourceTest {
 
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
+            .withLaunchArgument("--enableMajorityReadConcern")
             .version(Version.Main.PRODUCTION)
             .net(new Net(dataBasePort, Network.localhostIsIPv6()))
             .build());

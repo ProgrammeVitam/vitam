@@ -107,6 +107,7 @@ public class IngestContractImplTest {
         junitHelper = JunitHelper.getInstance();
         mongoPort = junitHelper.findAvailablePort();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
+            .withLaunchArgument("--enableMajorityReadConcern")
             .version(Version.Main.PRODUCTION)
             .net(new Net(mongoPort, Network.localhostIsIPv6()))
             .build());
@@ -200,7 +201,6 @@ public class IngestContractImplTest {
         object.add(msg);
         object.add(msg2);
         final String wellFormedJson = SanityChecker.sanitizeJson(object);
-        System.out.println("YOOOOOOOOOOOOOOOOOOOOOOOOOOO" + wellFormedJson);
     }
 
 

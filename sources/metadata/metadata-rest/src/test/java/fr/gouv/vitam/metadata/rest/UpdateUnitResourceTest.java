@@ -91,7 +91,8 @@ public class UpdateUnitResourceTest {
         "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", \"#tenant\": 0, " + "\"data\": \"data2\" }";
     private static final String DATA2 =
         "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\", \"#tenant\": 0, " + "\"data\": \"data2\", " +
-            "\"Title\": \"Archive3\", \"#management\": {\"OriginatingAgency\": \"XXXXXXX\"}," + " \"DescriptionLevel\": \"Item\" }";
+            "\"Title\": \"Archive3\", \"#management\": {\"OriginatingAgency\": \"XXXXXXX\"}," +
+            " \"DescriptionLevel\": \"Item\" }";
 
     private static final String ID_UNIT = "aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab";
     private static final String DATA_URI = "/metadata/v1";
@@ -146,6 +147,7 @@ public class UpdateUnitResourceTest {
 
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
+            .withLaunchArgument("--enableMajorityReadConcern")
             .version(Version.Main.PRODUCTION)
             .net(new Net(dataBasePort, Network.localhostIsIPv6()))
             .build());

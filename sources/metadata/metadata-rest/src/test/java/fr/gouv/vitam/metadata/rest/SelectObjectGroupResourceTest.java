@@ -121,8 +121,12 @@ public class SelectObjectGroupResourceTest {
     private static int dataBasePort;
     private static ElasticsearchTestConfiguration config = null;
     static final int tenantId = 0;
-    static final List tenantList =  new ArrayList(){{add(tenantId);}};
-    
+    static final List tenantList = new ArrayList() {
+        {
+            add(tenantId);
+        }
+    };
+
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -143,6 +147,7 @@ public class SelectObjectGroupResourceTest {
 
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
+            .withLaunchArgument("--enableMajorityReadConcern")
             .version(Version.Main.PRODUCTION)
             .net(new Net(dataBasePort, Network.localhostIsIPv6()))
             .build());

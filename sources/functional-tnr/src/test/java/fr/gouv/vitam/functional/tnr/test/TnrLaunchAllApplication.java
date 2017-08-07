@@ -281,6 +281,7 @@ public class TnrLaunchAllApplication {
 
         try {
             mongodExecutable = starter.prepare(new MongodConfigBuilder()
+                .withLaunchArgument("--enableMajorityReadConcern")
                 .version(Version.Main.PRODUCTION)
                 .net(new Net(DATABASE_PORT, Network.localhostIsIPv6()))
                 .build());

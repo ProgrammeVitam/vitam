@@ -142,6 +142,7 @@ public class LogbookResourceIT {
 
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
+            .withLaunchArgument("--enableMajorityReadConcern")
             .version(Version.Main.PRODUCTION)
             .net(new Net(databasePort, Network.localhostIsIPv6()))
             .build());

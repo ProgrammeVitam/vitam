@@ -34,96 +34,75 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import org.junit.AfterClass;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.process.runtime.Network;
+import com.mongodb.MongoClient;
+
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
+import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 
 public class MetaDataApplicationTest {
-    private static final String METADATA_CONF = "metadata.conf";
-    private static final String METADATA_AUTH_CONF = "metadata-auth.conf";
-    private static MongodExecutable mongodExecutable;
-    static MongodProcess mongod;
-    private static JunitHelper junitHelper;
-    private static int port;
-    static final int tenantId = 0;
-    static final List tenantList =  new ArrayList(){{add(tenantId);}};
 
+    private final static String CLUSTER_NAME = "vitam-cluster";
+    private final static String HOST_NAME = "127.0.0.1";
+    static final int tenantId = 0;
+    static final List tenantList = new ArrayList() {
+        {
+            add(tenantId);
+        }
+    };
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
-
-    private final static String CLUSTER_NAME = "vitam-cluster";
 
     private static MetaDataConfiguration config;
 
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
     private static ElasticsearchTestConfiguration configEs = null;
 
+
+    @Rule
+    public MongoRule mongoRule =
+        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), "vitam-test", "Unit", "ObjectGroup");
+
+    private MongoClient mongoClient = mongoRule.getMongoClient();
+
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-        junitHelper = JunitHelper.getInstance();
-        // ES
+    public static void beforeClass() throws Exception {
         try {
             configEs = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
         } catch (final VitamApplicationServerException e1) {
             assumeTrue(false);
         }
+    }
 
+    /**
+     * @throws java.lang.Exception
+     */
+    @Before
+    public void setUp() throws Exception {
         final List<ElasticsearchNode> nodes = new ArrayList<>();
-        nodes.add(new ElasticsearchNode("localhost", configEs.getTcpPort()));
-
-        final MongodStarter starter = MongodStarter.getDefaultInstance();
-
-        port = junitHelper.findAvailablePort();
-        mongodExecutable = starter.prepare(new MongodConfigBuilder()
-            .version(Version.Main.PRODUCTION)
-            .net(new Net(port, Network.localhostIsIPv6()))
-            .build());
-        mongod = mongodExecutable.start();
+        nodes.add(new ElasticsearchNode(HOST_NAME, configEs.getTcpPort()));
 
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
-        mongo_nodes.add(new MongoDbNode("localhost", port));
+        mongo_nodes.add(new MongoDbNode("localhost", mongoClient.getAddress().getPort()));
         // TODO: using configuration file ? Why not ?
         config = new MetaDataConfiguration(mongo_nodes, "vitam-test", CLUSTER_NAME, nodes);
         config.setTenants(tenantList);
         config.setJettyConfig(JETTY_CONFIG);
-
-    }
-
-    @AfterClass
-    public static void tearDownAfterClass() {
-        if (configEs == null) {
-            return;
-        }
-        mongod.stop();
-        mongodExecutable.stop();
-        junitHelper.releasePort(port);
-        JunitHelper.stopElasticsearchForTest(configEs);
-    }
-
-    @Before
-    public void before() {
-        Assume.assumeTrue("Elasticsearch not started but should", configEs != null);
     }
 
     @Test
