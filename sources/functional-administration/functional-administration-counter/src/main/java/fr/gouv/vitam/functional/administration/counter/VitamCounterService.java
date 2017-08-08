@@ -28,19 +28,16 @@ package fr.gouv.vitam.functional.administration.counter;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.ImmutableMap;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.model.Filters;
 
 import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Sorts.*;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
+import static com.mongodb.client.model.Sorts.descending;
+
 
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.ReturnDocument;
-import com.mongodb.client.model.Sorts;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -53,7 +50,6 @@ import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.VitamSequence;
@@ -68,11 +64,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-/***
- *Vitam functionnal counter service
+
+
+/**
+ * Vitam functionnal counter service
  */
 public class VitamCounterService {
     private static final String ARGUMENT_MUST_NOT_BE_NULL = "Argument must not be null";
@@ -81,31 +77,45 @@ public class VitamCounterService {
     private final MongoDbAccessAdminImpl mongoAccess;
     private final Map<Integer, Integer> tenants;
     private final Map<String, FunctionalAdminCollections> collections = new HashMap<>();
+    private final Map<Integer, List<FunctionalAdminCollections>> externalIdentifiers;
 
     /**
      * Constructor
      *
      * @param dbConfiguration
      * @param tenants
+     * @param externalIdentifiers
      * @throws VitamException
      */
-    public VitamCounterService(MongoDbAccessAdminImpl dbConfiguration, List<Integer> tenants)
+    public VitamCounterService(MongoDbAccessAdminImpl dbConfiguration, List<Integer> tenants,
+        Map<Integer, List<String>> externalIdentifiers)
         throws VitamException {
         ParametersChecker.checkParameter(ARGUMENT_MUST_NOT_BE_NULL, tenants);
-
         ArrayList<SequenceType> sequences = new ArrayList<>();
-        Collections.addAll(sequences, SequenceType.values());
-        sequences.forEach(i -> {
-            collections.put(i.getName(), i.getCollection());
-        });
-        mongoAccess = dbConfiguration;
         this.tenants = new HashMap<>();
-        tenants.stream().forEach((i) -> {
-            this.tenants.put(i, new Integer(i));
+        this.externalIdentifiers = new HashMap<>();
+        mongoAccess = dbConfiguration;
+
+        Collections.addAll(sequences, SequenceType.values());
+        sequences.forEach(i -> collections.put(i.getName(), i.getCollection()));
+
+        tenants.forEach((i) -> {
+            this.tenants.put(i, i);
         });
         initSequences();
+        initExternalIds(externalIdentifiers);
     }
 
+    private void initExternalIds( Map<Integer, List<String>> externalIdentifiers){
+        if (externalIdentifiers != null )
+            for (Map.Entry<Integer, List<String>> identifiers : externalIdentifiers.entrySet()) {
+                List<FunctionalAdminCollections> functionalAdminCollections = new ArrayList<>();
+                for (String collection : identifiers.getValue()) {
+                    functionalAdminCollections.add(FunctionalAdminCollections.valueOf(collection));
+                }
+                    this.externalIdentifiers.put(identifiers.getKey(), functionalAdminCollections);
+            }
+    }
     /**
      * @throws VitamException
      */
@@ -216,6 +226,7 @@ public class VitamCounterService {
 
     /**
      * Get the last sequence Functiontionnal collection
+     *
      * @param tenant
      * @param code
      * @return
@@ -242,6 +253,10 @@ public class VitamCounterService {
             throw new ReferentialException(e);
         }
         return sequence;
+    }
+
+    public boolean isSlaveFunctionnalCollectionOnTenant(FunctionalAdminCollections collection, Integer tenant) {
+        return externalIdentifiers.containsKey(tenant) && externalIdentifiers.get(tenant).contains(collection);
     }
 
 

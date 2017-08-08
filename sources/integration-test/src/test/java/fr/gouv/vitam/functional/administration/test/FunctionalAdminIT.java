@@ -116,6 +116,8 @@ public class FunctionalAdminIT {
     private static WorkspaceApplication workspaceApplication;
     private static VitamCounterService vitamCounterService;
     private static MongoDbAccessAdminImpl dbImpl;
+
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         // Identify overlapping in particular jsr311
@@ -140,7 +142,8 @@ public class FunctionalAdminIT {
         dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
         List tenants = new ArrayList<>();
         tenants.add(new Integer(TENANT_ID));
-        vitamCounterService = new VitamCounterService(dbImpl, tenants);
+
+        vitamCounterService = new VitamCounterService(dbImpl, tenants, null);
         workspacePort = junitHelper.findAvailablePort();
         // launch workspace
         try {

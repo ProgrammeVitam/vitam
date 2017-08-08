@@ -28,8 +28,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import fr.gouv.vitam.common.VitamConfiguration;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -82,6 +85,7 @@ public class ProfileServiceImplTest {
         VitamThreadPoolExecutor.getDefaultExecutor());
 
     private static final Integer TENANT_ID = 1;
+    private static final Integer EXTERNAL_TENANT = 2 ;
 
     static JunitHelper junitHelper;
     static final String COLLECTION_NAME = "Profile";
@@ -92,6 +96,7 @@ public class ProfileServiceImplTest {
     static MongoClient client;
     private static VitamCounterService vitamCounterService;
     private static MongoDbAccessAdminImpl dbImpl;
+    static Map<Integer, List<String>> externalIdentifiers;
 
     static ProfileService profileService;
     static int mongoPort;
@@ -117,7 +122,13 @@ public class ProfileServiceImplTest {
         dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
         final List tenants = new ArrayList<>();
         tenants.add(new Integer(TENANT_ID));
-        vitamCounterService = new VitamCounterService(dbImpl, tenants);
+        tenants.add(new Integer(EXTERNAL_TENANT));
+        Map <Integer,List<String>> listEnableExternalIdentifiers = new HashMap<>();
+        List<String > list_tenant = new ArrayList<>();
+        list_tenant.add("PROFILE");
+        listEnableExternalIdentifiers.put(EXTERNAL_TENANT,list_tenant);
+
+        vitamCounterService = new VitamCounterService(dbImpl, tenants, listEnableExternalIdentifiers);
 
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
@@ -185,7 +196,6 @@ public class ProfileServiceImplTest {
         final RequestResponseOK<ProfileModel> responseCast = (RequestResponseOK<ProfileModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
         assertThat(responseCast.getResults().get(0).getIdentifier()).contains("PR-000");
-        assertThat(responseCast.getResults().get(1).getIdentifier()).contains("aIdentifier");
         final ProfileModel profileModel = responseCast.getResults().get(1);
         InputStream xsdProfile = new FileInputStream(PropertiesUtils.getResourceFile("profile_ok.rng"));
 
@@ -436,6 +446,45 @@ public class ProfileServiceImplTest {
     @Test
     @RunWithCustomExecutor
     public void givenTestfindByID() throws Exception {
+
+        VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
+        final File fileMetadataProfile = PropertiesUtils.getResourceFile("profile_ok.json");
+        final List<ProfileModel> profileModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ProfileModel>>() {});
+        final RequestResponse response = profileService.createProfiles(profileModelList);
+        assertThat(response.isOk()).isFalse();
+
+    }
+    @Test
+    @RunWithCustomExecutor
+    public void givenTestImportExternalIdentifier_KO() throws Exception {
+
+        VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
+        final File fileMetadataProfile = PropertiesUtils.getResourceFile("profile_ok_id.json");
+        final List<ProfileModel> profileModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ProfileModel>>() {});
+        final RequestResponse response = profileService.createProfiles(profileModelList);
+
+        final RequestResponseOK<ProfileModel> responseCast = (RequestResponseOK<ProfileModel>) response;
+        assertThat(responseCast.getResults()).hasSize(1);
+
+        // We juste test the first profile
+        final ProfileModel acm = responseCast.getResults().iterator().next();
+        assertThat(acm).isNotNull();
+
+        String id1 = acm.getIdentifier();
+        assertThat(id1).isNotNull();
+
+
+        ProfileModel one = profileService.findByIdentifier(id1);
+
+        assertThat(one).isNotNull();
+
+        assertThat(one.getName()).isEqualTo(acm.getName());
+    }
+    @Test
+    @RunWithCustomExecutor
+    public void givenTestImportExternalIdentifier() throws Exception {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("profile_ok.json");

@@ -1,26 +1,26 @@
 /**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- *
+ * <p>
  * contact.vitam@culture.gouv.fr
- *
+ * <p>
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
- *
+ * <p>
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
  * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- *
+ * <p>
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
- *
+ * <p>
  * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- *
+ * <p>
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
@@ -100,9 +100,12 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 public class AccessContractImpl implements ContractService<AccessContractModel> {
 
     private static final String DATA_OBJECT_VERSION_INVALID = "Data object version invalid";
-    private static final String THE_ACCESS_CONTRACT_EVERY_DATA_OBJECT_VERSION_MUST_BE_TRUE_OR_FALSE_BUT_NOT = "The Access contract EveryDataObjectVersion must be true or false but not ";
-    private static final String THE_ACCESS_CONTRACT_EVERY_ORIGINATING_AGENCY_MUST_BE_TRUE_OR_FALSE_BUT_NOT = "The Access contract EveryOriginatingAgency must be true or false but not ";
-    private static final String THE_ACCESS_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT = "The Access contract status must be ACTIVE or INACTIVE but not ";
+    private static final String THE_ACCESS_CONTRACT_EVERY_DATA_OBJECT_VERSION_MUST_BE_TRUE_OR_FALSE_BUT_NOT =
+        "The Access contract EveryDataObjectVersion must be true or false but not ";
+    private static final String THE_ACCESS_CONTRACT_EVERY_ORIGINATING_AGENCY_MUST_BE_TRUE_OR_FALSE_BUT_NOT =
+        "The Access contract EveryOriginatingAgency must be true or false but not ";
+    private static final String THE_ACCESS_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT =
+        "The Access contract status must be ACTIVE or INACTIVE but not ";
     private static final String ACCESS_CONTRACT_NOT_FIND = "Access contract not find";
     private static final String ACCESS_CONTRACT_IS_MANDATORY_PATAMETER =
         "The collection of access contracts is mandatory";
@@ -118,7 +121,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
     /**
      * Constructor
      *
-     * @param mongoAccess MongoDB client
+     * @param mongoAccess         MongoDB client
      * @param vitamCounterService
      */
     public AccessContractImpl(MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService) {
@@ -126,8 +129,6 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
         this.vitamCounterService = vitamCounterService;
         logBookclient = LogbookOperationsClientFactory.getInstance().getClient();
     }
-
-
 
     @Override
     public RequestResponse<AccessContractModel> createContracts(List<AccessContractModel> contractModelList)
@@ -137,7 +138,9 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
         if (contractModelList.isEmpty()) {
             return new RequestResponseOK<>();
         }
-
+        boolean slaveMode = vitamCounterService
+            .isSlaveFunctionnalCollectionOnTenant(SequenceType.ACCESS_CONTRACT_SEQUENCE.getCollection(),
+                ParameterHelper.getTenantParameter());
         final AccessContractManager manager = new AccessContractManager(logBookclient);
 
         manager.logStarted();
@@ -151,7 +154,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
 
             for (final AccessContractModel acm : contractModelList) {
                 // if a contract have and id
-                if (null != acm.getId()) {
+                if (acm.getId() != null) {
                     error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem())
                         .setMessage(GenericRejectionCause.rejectIdNotAllowedInCreate(acm.getName()).getReason()));
                     continue;
@@ -171,21 +174,34 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                     acm.setId(GUIDFactory.newIngestContractGUID(ParameterHelper.getTenantParameter()).getId());
                 }
 
+                if (slaveMode) {
+                    final Optional<GenericContractValidator.GenericRejectionCause> result =
+                        manager.checkDuplicateInIdentifierSlaveModeValidator().validate(acm, acm.getIdentifier());
+                    result.ifPresent(genericRejectionCause -> error
+                        .addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem())
+                            .setMessage(genericRejectionCause.getReason())));
+                }
+
             }
-            if (null != error.getErrors() && !error.getErrors().isEmpty()) {
+            if (error.getErrors() != null && !error.getErrors().isEmpty()) {
                 // log book + application log
                 // stop
                 final String errorsDetails =
-                    error.getErrors().stream().map(c -> c.getMessage()).collect(Collectors.joining(","));
+                    error.getErrors().stream().map(VitamError::getMessage).collect(Collectors.joining(","));
                 manager.logValidationError(errorsDetails);
                 return error;
             }
 
             contractsToPersist = JsonHandler.createArrayNode();
             for (final AccessContractModel acm : contractModelList) {
-                final String code = vitamCounterService.getNextSequenceAsString(ParameterHelper.getTenantParameter(),
-                    SequenceType.ACCESS_CONTRACT_SEQUENCE.getName());
-                acm.setIdentifier(code);
+
+                if (!slaveMode) {
+                    final String code =
+                        vitamCounterService.getNextSequenceAsString(ParameterHelper.getTenantParameter(),
+                            SequenceType.ACCESS_CONTRACT_SEQUENCE.getName());
+                    acm.setIdentifier(code);
+                }
+
                 final JsonNode accessContractNode = JsonHandler.toJsonNode(acm);
 
                 /* contract is valid, add it to the list to persist */
@@ -285,7 +301,6 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
 
 
         /**
-         *
          * Log validation error (business error)
          *
          * @param errorsDetails
@@ -301,24 +316,23 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
 
         }
-        
-        /**
-        *
-        * Log validation error (business error)
-        *
-        * @param errorsDetails
-        */
-       private void logUpdateError(String errorsDetails) throws VitamException {
-           LOGGER.error("Update document error {}", errorsDetails);
-           final LogbookOperationParameters logbookParameters = LogbookParametersFactory
-               .newLogbookOperationParameters(eip, CONTRACT_UPDATE_EVENT, eip, LogbookTypeProcess.MASTERDATA,
-                   StatusCode.KO,
-                   VitamLogbookMessages.getCodeOp(CONTRACT_UPDATE_EVENT, StatusCode.KO), eip);
-           logbookMessageError(errorsDetails, logbookParameters);
-           helper.updateDelegate(logbookParameters);
-           logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
 
-       }
+        /**
+         * Log validation error (business error)
+         *
+         * @param errorsDetails
+         */
+        private void logUpdateError(String errorsDetails) throws VitamException {
+            LOGGER.error("Update document error {}", errorsDetails);
+            final LogbookOperationParameters logbookParameters = LogbookParametersFactory
+                .newLogbookOperationParameters(eip, CONTRACT_UPDATE_EVENT, eip, LogbookTypeProcess.MASTERDATA,
+                    StatusCode.KO,
+                    VitamLogbookMessages.getCodeOp(CONTRACT_UPDATE_EVENT, StatusCode.KO), eip);
+            logbookMessageError(errorsDetails, logbookParameters);
+            helper.updateDelegate(logbookParameters);
+            logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
+
+        }
 
         /**
          * log fatal error (system or technical error)
@@ -525,6 +539,28 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             };
         }
 
+        /**
+         * Check if the Id of the  contract  already exists in database
+         *
+         * @return
+         */
+        private static GenericContractValidator checkDuplicateInIdentifierSlaveModeValidator() {
+            return (contract, contractName) -> {
+                if (contract.getIdentifier() == null || contract.getIdentifier().isEmpty()) {
+                    return Optional.of(GenericContractValidator.GenericRejectionCause
+                        .rejectMandatoryMissing(AccessContract.IDENTIFIER));
+                }
+                GenericRejectionCause rejection = null;
+                final int tenant = ParameterHelper.getTenantParameter();
+                final Bson clause =
+                    and(eq(VitamDocument.TENANT_ID, tenant), eq(AccessContract.IDENTIFIER, contract.getIdentifier()));
+                final boolean exist = FunctionalAdminCollections.ACCESS_CONTRACT.getCollection().count(clause) > 0;
+                if (exist) {
+                    rejection = GenericRejectionCause.rejectDuplicatedInDatabase(contractName);
+                }
+                return rejection == null ? Optional.empty() : Optional.of(rejection);
+            };
+        }
 
         /**
          * Check if the contract the same name already exists in database
@@ -617,29 +653,29 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                 error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
                     THE_ACCESS_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT + value.asText()));
             }
-        } 
-        
+        }
+
         if (AccessContractModel.EVERY_ORIGINATINGAGENCY.equals(field)) {
             if (!(value instanceof BooleanNode)) {
                 error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
                     THE_ACCESS_CONTRACT_EVERY_ORIGINATING_AGENCY_MUST_BE_TRUE_OR_FALSE_BUT_NOT +
-                    value.asText()));
+                        value.asText()));
             }
-        } 
-        
+        }
+
         if (AccessContractModel.EVERY_DATA_OBJECT_VERSION.equals(field)) {
             if (!(value instanceof BooleanNode)) {
                 error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
                     THE_ACCESS_CONTRACT_EVERY_DATA_OBJECT_VERSION_MUST_BE_TRUE_OR_FALSE_BUT_NOT +
-                    value.asText()));
+                        value.asText()));
             }
         }
-        
+
         if (AccessContractModel.DATA_OBJECT_VERSION.equals(field)) {
             if (!validateObjectVersion(value)) {
                 error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
                     DATA_OBJECT_VERSION_INVALID +
-                    value.asText()));
+                        value.asText()));
             }
         }
     }
@@ -650,7 +686,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
         if (!value.isArray()) {
             return false;
         }
-        
+
         SedaVersion sedaVersion = new SedaVersion();
         try {
             sedaVersion = SedaConfiguration.getSupportedVerion();
@@ -663,7 +699,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             }
         }
         return true;
-        
+
 
     }
 

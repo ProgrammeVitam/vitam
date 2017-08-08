@@ -30,7 +30,6 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 
 public class AdminManagementConfigurationTest {
 

@@ -21,8 +21,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import fr.gouv.vitam.common.VitamConfiguration;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -86,7 +89,7 @@ public class IngestContractImplTest {
         VitamThreadPoolExecutor.getDefaultExecutor());
 
     private static final Integer TENANT_ID = 1;
-
+    private static final Integer EXTERNAL_TENANT = 2 ;
     static JunitHelper junitHelper;
     static final String COLLECTION_NAME = "IngestContract";
     static final String DATABASE_HOST = "localhost";
@@ -99,6 +102,7 @@ public class IngestContractImplTest {
     static ContractService<IngestContractModel> ingestContractService;
     static int mongoPort;
     private static MongoDbAccessAdminImpl dbImpl;
+    static Map<Integer, List<String>> externalIdentifiers;
 
 
     @BeforeClass
@@ -119,7 +123,14 @@ public class IngestContractImplTest {
         dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
         final List tenants = new ArrayList<>();
         tenants.add(new Integer(TENANT_ID));
-        vitamCounterService = new VitamCounterService(dbImpl, tenants);
+        tenants.add(new Integer(EXTERNAL_TENANT));
+        Map <Integer,List<String>> listEnableExternalIdentifiers = new HashMap<>();
+        List<String > list_tenant = new ArrayList<>();
+        list_tenant.add("INGEST_CONTRACT");
+        listEnableExternalIdentifiers.put(EXTERNAL_TENANT,list_tenant);
+
+
+        vitamCounterService = new VitamCounterService(dbImpl, tenants, listEnableExternalIdentifiers);
         LogbookOperationsClientFactory.changeMode(null);
 
         ingestContractService =
@@ -403,6 +414,55 @@ public class IngestContractImplTest {
         assertThat(one).isNotNull();
 
         assertThat(one.getName()).isEqualTo(acm.getName());
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenIngestContractsTestImportExternalIdentifier() throws Exception {
+
+        VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
+        final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok_identifier.json");
+        final List<IngestContractModel> IngestContractModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
+        RequestResponse response = ingestContractService.createContracts(IngestContractModelList);
+        assertThat(response.isOk()).isTrue();
+
+        final RequestResponseOK<IngestContractModel> responseCast = (RequestResponseOK<IngestContractModel>) response;
+        assertThat(responseCast.getResults()).hasSize(2);
+
+        // We juste test the first contract
+        final IngestContractModel acm = responseCast.getResults().iterator().next();
+        assertThat(acm).isNotNull();
+
+        String id1 = acm.getIdentifier();
+        assertThat(id1).isNotNull();
+
+
+        final IngestContractModel one = ingestContractService.findOne(id1);
+
+        assertThat(one).isNotNull();
+
+        assertThat(one.getName()).isEqualTo(acm.getName());
+
+        // test duplication
+        response = ingestContractService.createContracts(IngestContractModelList);
+        assertThat(response.isOk()).isFalse();
+    }
+
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenIngesContractsTestImportExternalIdentifierKO() throws Exception {
+
+        VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
+        final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
+        final List<IngestContractModel> IngestContractModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
+        final RequestResponse response = ingestContractService.createContracts(IngestContractModelList);
+        assertThat(response.isOk()).isFalse();
+
     }
 
     @Test

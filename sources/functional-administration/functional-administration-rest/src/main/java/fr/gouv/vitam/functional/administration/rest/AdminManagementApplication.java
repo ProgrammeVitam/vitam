@@ -30,6 +30,7 @@ package fr.gouv.vitam.functional.administration.rest;
 import static java.lang.String.format;
 
 import fr.gouv.vitam.common.exception.VitamException;
+import org.elasticsearch.common.recycler.Recycler;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import fr.gouv.vitam.common.ServerIdentity;
@@ -45,6 +46,9 @@ import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminI
 import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Admin management web application
@@ -108,8 +112,9 @@ public class AdminManagementApplication
 
             final MongoDbAccessAdminImpl mongoDbAccess = resource.getLogbookDbAccess();
 
+            Map<Integer, List<String>> externalIdentifiers = configuration.getListEnableExternalIdentifiers();
             final VitamCounterService vitamCounterService =
-                new VitamCounterService(mongoDbAccess, configuration.getTenants());
+                new VitamCounterService(mongoDbAccess, configuration.getTenants(), externalIdentifiers);
 
             resource.setVitamCounterService(vitamCounterService);
 
@@ -145,7 +150,9 @@ public class AdminManagementApplication
 
             final MongoDbAccessAdminImpl mongoDbAccess = resource.getLogbookDbAccess();
 
-            final VitamCounterService vitamCounterService = new VitamCounterService(mongoDbAccess, configuration.getTenants());
+            Map<Integer, List<String>> externalIdentifiers = configuration.getListEnableExternalIdentifiers();
+            final VitamCounterService vitamCounterService = new VitamCounterService(mongoDbAccess, configuration.getTenants(),
+                externalIdentifiers);
 
             ContextResource contextResource = new ContextResource(mongoDbAccess, vitamCounterService);
 

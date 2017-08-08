@@ -34,9 +34,12 @@ import javax.ws.rs.core.Context;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
@@ -63,7 +66,7 @@ public class BusinessApplication extends Application {
             final MongoDbAccessAdminImpl mongoDbAccess = resource.getLogbookDbAccess();
 
             final VitamCounterService vitamCounterService =
-                new VitamCounterService(mongoDbAccess, configuration.getTenants());
+                new VitamCounterService(mongoDbAccess, configuration.getTenants(), null);
 
             resource.setVitamCounterService(vitamCounterService);
 

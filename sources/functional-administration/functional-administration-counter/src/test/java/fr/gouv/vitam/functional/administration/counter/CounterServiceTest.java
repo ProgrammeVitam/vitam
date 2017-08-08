@@ -36,6 +36,7 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
@@ -44,10 +45,13 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -56,7 +60,9 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class CounterServiceTest {
@@ -78,6 +84,7 @@ public class CounterServiceTest {
     private static MongoDbAccessAdminImpl dbImpl;
     static int mongoPort;
     static VitamCounterService vitamCounterService;
+    static Map<Integer, List<String>> externalIdentifiers;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -91,12 +98,23 @@ public class CounterServiceTest {
             .build());
         mongod = mongodExecutable.start();
         client = new MongoClient(new ServerAddress(DATABASE_HOST, mongoPort));
-        List tenants  = new ArrayList<>();
+        List tenants = new ArrayList<>();
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, mongoPort));
         dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
         tenants.add(new Integer(TENANT_ID));
-        vitamCounterService = new VitamCounterService(dbImpl, tenants);
+        Map<Integer, List<String>> listEnableExternalIdentifiers = new HashMap<>();
+        List<String> list_tenant0 = new ArrayList<>();
+        List<String> list_tenant1 = new ArrayList<>();
+        list_tenant0.add("INGEST_CONTRACT");
+        list_tenant0.add("PROFILE");
+        list_tenant0.add("CONTEXT");
+        list_tenant1.add("ACCESS_CONTRACT");
+        list_tenant1.add("PROFILE");
+        list_tenant1.add("CONTEXT");
+        listEnableExternalIdentifiers.put(0, list_tenant0);
+        listEnableExternalIdentifiers.put(1, list_tenant1);
+        vitamCounterService = new VitamCounterService(dbImpl, tenants, listEnableExternalIdentifiers);
     }
 
     @AfterClass
@@ -107,6 +125,7 @@ public class CounterServiceTest {
         client.close();
 
     }
+
     @After
     public void afterTest() {
         final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
@@ -118,8 +137,10 @@ public class CounterServiceTest {
     public void testSequences() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        String ic = vitamCounterService.getNextSequenceAsString(TENANT_ID, SequenceType.INGEST_CONTRACT_SEQUENCE.getName());
-        String ac = vitamCounterService.getNextSequenceAsString(TENANT_ID, SequenceType.ACCESS_CONTRACT_SEQUENCE.getName());
+        String ic =
+            vitamCounterService.getNextSequenceAsString(TENANT_ID, SequenceType.INGEST_CONTRACT_SEQUENCE.getName());
+        String ac =
+            vitamCounterService.getNextSequenceAsString(TENANT_ID, SequenceType.ACCESS_CONTRACT_SEQUENCE.getName());
         String pr = vitamCounterService.getNextSequenceAsString(TENANT_ID, SequenceType.PROFILE_SEQUENCE.getName());
         assertThat(ic).isEqualTo("IC-000001");
         assertThat(ac).isEqualTo("AC-000001");
@@ -127,7 +148,7 @@ public class CounterServiceTest {
 
 
         ic = vitamCounterService.getNextSequenceAsString(TENANT_ID, SequenceType.INGEST_CONTRACT_SEQUENCE.getName());
-        ac = vitamCounterService.getNextSequenceAsString(TENANT_ID,  SequenceType.ACCESS_CONTRACT_SEQUENCE.getName());
+        ac = vitamCounterService.getNextSequenceAsString(TENANT_ID, SequenceType.ACCESS_CONTRACT_SEQUENCE.getName());
         ic = vitamCounterService.getNextSequenceAsString(TENANT_ID, SequenceType.INGEST_CONTRACT_SEQUENCE.getName());
         pr = vitamCounterService.getNextSequenceAsString(TENANT_ID, SequenceType.PROFILE_SEQUENCE.getName());
 
@@ -136,15 +157,23 @@ public class CounterServiceTest {
         assertThat(pr).isEqualTo("PR-000002");
         assertThat(vitamCounterService.getSequence(TENANT_ID, SequenceType.PROFILE_SEQUENCE.getName())).isEqualTo(2);
 
-
+        assertThat(vitamCounterService
+            .isSlaveFunctionnalCollectionOnTenant(SequenceType.ACCESS_CONTRACT_SEQUENCE.getCollection(), 1)).isTrue();
+        assertThat(vitamCounterService
+            .isSlaveFunctionnalCollectionOnTenant(SequenceType.ACCESS_CONTRACT_SEQUENCE.getCollection(), 0)).isFalse();
+        assertThat(
+            vitamCounterService.isSlaveFunctionnalCollectionOnTenant(SequenceType.RULES_SEQUENCE.getCollection(), 0))
+            .isFalse();
+        assertThat(vitamCounterService
+            .isSlaveFunctionnalCollectionOnTenant(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, 0)).isFalse();
 
     }
+
     @Test(expected = ReferentialException.class)
     @RunWithCustomExecutor
     public void testError() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         String ic = vitamCounterService.getNextSequenceAsString(TENANT_ID, "AB");
-
     }
 }

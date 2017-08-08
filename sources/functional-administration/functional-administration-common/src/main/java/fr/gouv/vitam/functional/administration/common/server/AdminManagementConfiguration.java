@@ -28,6 +28,7 @@
 package fr.gouv.vitam.functional.administration.common.server;
 
 import java.util.List;
+import java.util.Map;
 
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
@@ -47,6 +48,7 @@ public class AdminManagementConfiguration extends DbConfigurationImpl {
     AdminManagementConfiguration() {
         super();
     }
+    private  Map<Integer, List<String>> listEnableExternalIdentifiers;
 
     /**
      * Constructor
@@ -123,5 +125,18 @@ public class AdminManagementConfiguration extends DbConfigurationImpl {
     public AdminManagementConfiguration setElasticsearchNodes(List<ElasticsearchNode> elasticsearchNodes) {
         this.elasticsearchNodes = elasticsearchNodes;
         return this;
+    }
+
+    public Map<Integer, List<String>> getListEnableExternalIdentifiers() {
+        return listEnableExternalIdentifiers;
+    }
+
+    /**
+     * Setter for   listEnableExternalIdentifiers;
+     */
+    public void setListEnableExternalIdentifiers(
+        Map<Integer, List<String>>  listEnableExternalIdentifiers) {
+
+        this.listEnableExternalIdentifiers = listEnableExternalIdentifiers;
     }
 }

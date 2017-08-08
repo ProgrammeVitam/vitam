@@ -31,20 +31,21 @@ import com.google.common.base.Strings;
 import java.util.List;
 import java.util.Map;
 
+
 /**
  * This class contains Vitam Data
  */
 public class VitamConfigurationParameters {
 
-    private  Boolean exportScore;
+    private Boolean exportScore;
     private String secret;
     private Boolean filterActivation = true;
-    private    Integer maxConcurrentMultipleInputstreamHandler;
+    private Integer maxConcurrentMultipleInputstreamHandler;
 
     /**
      *
      */
-    public  Boolean enableJaxbParser;
+    public Boolean enableJaxbParser;
     /**
      *
      */
@@ -64,16 +65,6 @@ public class VitamConfigurationParameters {
     private Integer maxCacheEntries;
     private Integer cacheControlDelay;
 
-    /**
-     * Setter for   listEnableExternalIdentifiers;
-     */
-    public void setListEnableExternalIdentifiers(
-        Map<Integer, List<String>> listEnableExternalIdentifiers) {
-        this.listEnableExternalIdentifiers = listEnableExternalIdentifiers;
-    }
-
-    private Map<Integer, List<String>> listEnableExternalIdentifiers;
-
 
 
     /**
@@ -84,11 +75,9 @@ public class VitamConfigurationParameters {
     }
 
 
-    public  Boolean enableDistributorV2;
+    public Boolean enableDistributorV2;
     /**
-
-
-    /**
+     * /**
      * Default Vitam Config Folder
      */
     private String vitamConfigFolderDefault;
@@ -141,7 +130,6 @@ public class VitamConfigurationParameters {
     private Integer delayValidationAfterInactivity;
     /**
      * Max delay to check if no buffer is available while trying to continue to read (MultipleInputStreamHandler Only)
-     *
      * Not final to allow Junit to decrease it
      */
     private Integer delayMultipleInputstream;
@@ -277,14 +265,12 @@ public class VitamConfigurationParameters {
 
     /**
      * @param filterActivation the filterActivation to set
-     *
      * @return this
      */
     public VitamConfigurationParameters setFilterActivation(Boolean filterActivation) {
         this.filterActivation = filterActivation;
         return this;
     }
-
 
 
 
@@ -724,35 +710,40 @@ public class VitamConfigurationParameters {
     public void setBufferNumber(Integer bufferNumber) {
         BUFFER_NUMBER = bufferNumber;
     }
+
     /**
      * getter for enableJaxbParser
+     *
      * @return
      */
-    public  Boolean isEnableJaxbParser() {
+    public Boolean isEnableJaxbParser() {
         return enableJaxbParser;
     }
 
     /**
      * setter for enableJaxbParser
+     *
      * @return
      */
-    public  void setEnableJaxbParser(Boolean enableJaxbParser) {
+    public void setEnableJaxbParser(Boolean enableJaxbParser) {
         this.enableJaxbParser = enableJaxbParser;
     }
 
     /**
      * getter for maxConcurrentMultipleInputstreamHandler
+     *
      * @return
      */
-    public  Integer getMaxConcurrentMultipleInputstreamHandler() {
+    public Integer getMaxConcurrentMultipleInputstreamHandler() {
         return maxConcurrentMultipleInputstreamHandler;
     }
 
     /**
      * setter for maxConcurrentMultipleInputstreamHandler
+     *
      * @return
      */
-    public  void setMaxConcurrentMultipleInputstreamHandler(int maxConcurrentMultipleInputstreamHandler) {
+    public void setMaxConcurrentMultipleInputstreamHandler(int maxConcurrentMultipleInputstreamHandler) {
         this.maxConcurrentMultipleInputstreamHandler = maxConcurrentMultipleInputstreamHandler;
     }
 
@@ -769,6 +760,7 @@ public class VitamConfigurationParameters {
     public void setEnableDistributorV2(boolean ENABLE_DISTRIBUTOR_V2) {
         this.enableDistributorV2 = ENABLE_DISTRIBUTOR_V2;
     }
+
     public Integer getVitamCleanPeriod() {
         return vitamCleanPeriod;
     }
@@ -780,10 +772,11 @@ public class VitamConfigurationParameters {
     public Boolean isExportScore() {
         return exportScore;
     }
+
     /**
      * Setter for   exportScore;
      */
-    public  void setExportScore(boolean exportScore) {
+    public void setExportScore(boolean exportScore) {
         this.exportScore = exportScore;
     }
 
@@ -792,14 +785,14 @@ public class VitamConfigurationParameters {
     /**
      * Getter for   distributeurBatchSize;
      */
-    public  Integer getDistributeurBatchSize() {
+    public Integer getDistributeurBatchSize() {
         return distributeurBatchSize;
     }
 
     /**
      * Setter for   distributeurBatchSize;
      */
-    public  void setDistributeurBatchSize(int distributeurBatchSize) {
+    public void setDistributeurBatchSize(int distributeurBatchSize) {
         this.distributeurBatchSize = distributeurBatchSize;
     }
 
@@ -807,69 +800,67 @@ public class VitamConfigurationParameters {
     /**
      * Getter for   maxElasticsearchBulk;
      */
-    public  Integer getMaxElasticsearchBulk() {
+    public Integer getMaxElasticsearchBulk() {
         return maxElasticsearchBulk;
     }
 
     /**
      * Setter for   maxElasticsearchBulk;
      */
-    public  void setMaxElasticsearchBulk(Integer maxElasticsearchBulk) {
+    public void setMaxElasticsearchBulk(Integer maxElasticsearchBulk) {
         this.maxElasticsearchBulk = maxElasticsearchBulk;
     }
+
     /**
      * Getter for   numberDbClientThread;
      */
-    public  Integer getNumberDbClientThread() {
+    public Integer getNumberDbClientThread() {
         return numberDbClientThread;
     }
 
     /**
      * Setter for   numberDbClientThread;
      */
-    public  void setNumberDbClientThread(Integer numberDbClientThread) {
+    public void setNumberDbClientThread(Integer numberDbClientThread) {
         this.numberDbClientThread = numberDbClientThread;
     }
 
     /**
      * Getter for   numberEsQueue;
      */
-    public  Integer getNumberEsQueue() {
+    public Integer getNumberEsQueue() {
         return numberEsQueue;
     }
 
     /**
      * Setter for   numberEsQueue;
      */
-    public  void setNumberEsQueue(Integer numberEsQueue) {
+    public void setNumberEsQueue(Integer numberEsQueue) {
         this.numberEsQueue = numberEsQueue;
     }
-
 
 
 
     /**
      * Getter for   cacheControlDelay;
      */
-    public  Integer getCacheControlDelay() {
+    public Integer getCacheControlDelay() {
         return cacheControlDelay;
     }
 
     /**
      * Getter for   maxCacheEntries;
      */
-    public  Integer getMaxCacheEntries() {
+    public Integer getMaxCacheEntries() {
         return maxCacheEntries;
     }
 
     /**
      * Setter for   maxCacheEntries;
      */
-    public  void setMaxCacheEntries(int maxCacheEntries) {
+    public void setMaxCacheEntries(int maxCacheEntries) {
         this.maxCacheEntries = maxCacheEntries;
     }
 
-    public Map<Integer, List<String>> getListEnableExternalIdentifiers() {
-        return listEnableExternalIdentifiers;
-    }
+
 }
