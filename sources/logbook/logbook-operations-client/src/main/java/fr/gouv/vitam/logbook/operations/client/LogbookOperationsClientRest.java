@@ -177,7 +177,7 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
                 throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
                 LOGGER.error("Illegal Entry Parameter");
-                throw new LogbookClientException("Request procondition failed");
+                throw new LogbookClientException("Request precondition failed");
             }
 
             return JsonHandler.getFromString(response.readEntity(String.class));

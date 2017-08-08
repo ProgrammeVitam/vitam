@@ -57,6 +57,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     private static final String STATUS = "Status";
     private static final String OPERATION_IDS = "OperationIds";
     private static final String TENANT = "_tenant";
+    private static final String SYMBOLIC = "Symbolic";
 
     /**
      * Empty Constructor
@@ -262,5 +263,10 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
             append(OPERATION_IDS, ids);
         }
         return this;
-	} 
+	}
+
+    public AccessionRegisterDetail setSymbolic(boolean symbolic) {
+        append(SYMBOLIC, symbolic);
+        return this;
+    }
 }

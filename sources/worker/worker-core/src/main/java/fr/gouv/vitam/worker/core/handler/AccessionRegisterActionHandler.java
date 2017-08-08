@@ -29,15 +29,10 @@ package fr.gouv.vitam.worker.core.handler;
 import static fr.gouv.vitam.common.SedaConstants.DATE_TIME_FORMAT_PATERN;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
@@ -53,10 +48,8 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.server.HeaderIdHelper;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
@@ -141,7 +134,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
             List<UnitPerOriginatingAgency> agencies =
                 metaDataClient.selectAccessionRegisterOnUnitByOperationId(operationId);
 
-            if (null == agencies || agencies.isEmpty()) {
+            if (agencies == null || agencies.isEmpty()) {
                 return itemStatus.increment(StatusCode.OK);
             }
 
@@ -189,19 +182,16 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
     private AccessionRegisterDetailModel generateAccessionRegister(WorkerParameters params,
         ObjectGroupPerOriginatingAgency objectGroupPerOriginatingAgency, UnitPerOriginatingAgency agency, int tenantId)
         throws ProcessingException {
-        try (final InputStream archiveUnitMapStream = new FileInputStream(
-            (File) handlerIO.getInput(ARCHIVE_UNIT_MAP_RANK));
-            final InputStream objectGoupMapStream =
-                new FileInputStream((File) handlerIO.getInput(OBJECTGOUP_MAP_RANK));
-            final InputStream bdoToVersionMapTmpFile =
-                new FileInputStream((File) handlerIO.getInput(DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP_RANK))) {
+        try {
 
             final JsonNode sedaParameters =
                 JsonHandler.getFromFile((File) handlerIO.getInput(SEDA_PARAMETERS_RANK))
                     .get(SedaConstants.TAG_ARCHIVE_TRANSFER);
             String originalAgency = agency.getId();
-            String submissionAgency = "SubmissionAgencyUnknown";
+            String submissionAgency;
             String archivalAgreement = "ArchivalAgreementUnknow";
+
+            boolean symbolic;
 
             if (sedaParameters != null) {
                 final JsonNode dataObjectNode = sedaParameters.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE);
@@ -213,6 +203,15 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
                     } else {
                         submissionAgency = originalAgency;
                     }
+
+                    final JsonNode nodeOrigin = dataObjectNode.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
+                    if (nodeOrigin != null && !Strings.isNullOrEmpty(nodeOrigin.asText())) {
+                        symbolic = !nodeOrigin.asText().equals(originalAgency);
+                    } else {
+                        throw new ProcessingException("No " + SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER + " found");
+                    }
+
+
                 } else {
                     throw new ProcessingException("No DataObjectPackage found");
                 }
@@ -227,11 +226,10 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
 
             // TODO P0 get size manifest.xml in local
             // TODO P0 extract this information from first parsing
-            return
-                mapParamsToAccessionRegisterDetailModel(params,
+            return mapParamsToAccessionRegisterDetailModel(params,
                     originalAgency, submissionAgency, archivalAgreement, agency,
-                    objectGroupPerOriginatingAgency, tenantId);
-        } catch (InvalidParseOperationException | IOException e) {
+                    objectGroupPerOriginatingAgency, tenantId, symbolic);
+        } catch (InvalidParseOperationException e) {
             LOGGER.error("Inputs/outputs are not correct", e);
             throw new ProcessingException(e);
         }
@@ -239,7 +237,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
 
     private AccessionRegisterDetailModel mapParamsToAccessionRegisterDetailModel(WorkerParameters params,
         String originalAgency, String submissionAgency, String archivalAgreement, UnitPerOriginatingAgency agency,
-        ObjectGroupPerOriginatingAgency objectGroupPerOriginatingAgency, int tenantId)
+        ObjectGroupPerOriginatingAgency objectGroupPerOriginatingAgency, int tenantId, boolean symbolic)
         throws ProcessingException {
 
         RegisterValueDetailModel totalObjectsGroups =
@@ -273,6 +271,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
             .setTotalUnits(totalUnits)
             .setTotalObjects(totalObjects)
             .setObjectSize(objectSize)
+            .setSymbolic(symbolic)
             .addOperationsId(params.getContainerName());
     }
 

@@ -121,6 +121,9 @@ public class AccessionRegisterDetailModel {
     @JsonProperty("OperationIds")
     private List<String> operationsIds;
 
+    @JsonProperty("Symbolic")
+    private boolean symbolic;
+
     /**
      * Constructor without fields use for jackson
      */
@@ -363,4 +366,21 @@ public class AccessionRegisterDetailModel {
         return this;
     }
 
+    /**
+     *
+     * @param symbolic specify if a detail is a main detail or a symbolic detail.
+     * @return
+     */
+    public AccessionRegisterDetailModel setSymbolic(boolean symbolic) {
+        this.symbolic = symbolic;
+        return this;
+    }
+
+    /**
+     *
+     * @return symbolic
+     */
+    public boolean isSymbolic() {
+        return symbolic;
+    }
 }
