@@ -83,7 +83,7 @@ public final class SystemPropertyUtil {
             PROPS.clear();
             PROPS.putAll(newProps);
         }
-        if (!contains(FILE_ENCODING) || !get(FILE_ENCODING).equalsIgnoreCase(CharsetUtils.UTF_8)) {
+        if (!contains(FILE_ENCODING) || !CharsetUtils.UTF_8.equalsIgnoreCase(get(FILE_ENCODING))) {
             try {
                 // Try to set UTF-8 as default file encoding: use
                 // -Dfile.encoding=UTF-8 as java command argument to ensure
@@ -115,7 +115,7 @@ public final class SystemPropertyUtil {
      * @return True if Encoding is Correct
      */
     public static boolean isFileEncodingCorrect() {
-        return contains(FILE_ENCODING) && get(FILE_ENCODING).equalsIgnoreCase(CharsetUtils.UTF_8);
+        return contains(FILE_ENCODING) && CharsetUtils.UTF_8.equalsIgnoreCase(get(FILE_ENCODING));
     }
 
     /**

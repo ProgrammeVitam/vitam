@@ -841,6 +841,9 @@ public final class JsonHandler {
         String[] fieldNamePath = fieldPath.split("[.]");
         String lastNodeName = fieldNamePath[fieldNamePath.length-1];
         JsonNode parentNode = getParentNodeByPath(node, fieldPath, deepCopy);
+        if (parentNode == null) {
+            return null;
+        }
         JsonNode lastNode = parentNode.get(lastNodeName);
         if (lastNode == null) {
             return null;

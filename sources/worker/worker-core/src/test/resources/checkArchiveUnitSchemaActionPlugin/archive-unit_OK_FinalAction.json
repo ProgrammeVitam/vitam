@@ -1,0 +1,41 @@
+{
+  "ArchiveUnit": {
+    "Management": {
+      "StorageRule": {
+        "Rules": [
+          {
+            "FinalAction": "RestrictAccess"
+          }
+        ]
+      },
+      "AccessRule": {
+        "Rules": [
+          {
+            "Rule": "ACC-00001",
+            "StartDate": "2017-01-01"
+          }
+        ]
+      },
+      "OriginatingAgency": "FRAN_NP_009913"
+    },
+    "_id": "aeaqaaaaaaawsubfabsyuak5yxzje4iaaaaq",
+    "DescriptionLevel": "RecordGrp",
+    "Title": "Tennis",
+    "Titles": {
+      "fr": "Tennis"
+    },
+    "Descriptions": {
+      
+    },
+    "StartDate": "2016-06-03T15:28:00",
+    "EndDate": "2016-06-03T15:28:00"
+  },
+  "_work": {
+    "_up": [
+      
+    ],
+    "RulesToApply": [
+      "ACC-00001;"
+    ]
+  }
+}

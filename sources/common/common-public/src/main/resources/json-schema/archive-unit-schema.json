@@ -51,10 +51,7 @@
 									}
 								]
 							}
-						},
-						"required": [
-							"Rule"
-						]
+						}
 					}
 				},
 				"Inheritance": {
@@ -138,10 +135,7 @@
 											"Destroy"
 										]
 									}
-								},
-								"required": [
-									"Rule"
-								]
+								}
 							}
 						},
 						"Inheritance": {
@@ -253,7 +247,6 @@
 									}
 								},
 								"required": [
-									"Rule",
 									"ClassificationLevel",
 									"ClassificationOwner"
 								]
@@ -334,10 +327,7 @@
 									}
 								]
 							}
-						},
-						"required": [
-							"Rule"
-						]
+						}
 					}
 				},
 				"Inheritance": {
@@ -420,10 +410,7 @@
 									}
 								]
 							}
-						},
-						"required": [
-							"Rule"
-						]
+						}
 					}
 				},
 				"Inheritance": {
@@ -508,10 +495,7 @@
 											"Copy"
 										]
 									}
-								},
-								"required": [
-									"Rule"
-								]
+								}
 							}
 						},
 						"Inheritance": {

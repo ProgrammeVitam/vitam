@@ -756,13 +756,15 @@ public class IngestInternalResource extends ApplicationStatusResource {
                     try (ProcessingManagementClient processManagementClient =
                         ProcessingManagementClientFactory.getInstance().getClient()) {
 
-                        // Initialize a new process
-                        processManagementClient.initVitamProcess(contextId, containerGUID.getId(),
-                            process.getWorkFlowId());
+                        if (containerGUID != null) {
+                            // Initialize a new process
+                            processManagementClient.initVitamProcess(contextId, containerGUID.getId(),
+                                process.getWorkFlowId());
 
-                        // Successful initialization
-                        AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                            Response.status(Status.ACCEPTED).build(), uploadedInputStream);
+                            // Successful initialization
+                            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                                Response.status(Status.ACCEPTED).build(), uploadedInputStream);
+                        }
                     }
                 } else {
 
@@ -785,17 +787,19 @@ public class IngestInternalResource extends ApplicationStatusResource {
                     }
 
                     try {
-                        ProcessState processState =
-                            startProcessing(parameters, logbookOperationsClient, containerGUID.getId(), actionId,
-                                process.getWorkFlowId(), logbookTypeProcess, contextId);
+                        if (containerGUID != null) {
+                            ProcessState processState =
+                                startProcessing(parameters, logbookOperationsClient, containerGUID.getId(), actionId,
+                                    process.getWorkFlowId(), logbookTypeProcess, contextId);
 
-                        isCompletedProcess = isCompletedProcess(processState);
+                            isCompletedProcess = isCompletedProcess(processState);
 
-                        if (!isInitMode) {
-                            // Asynchrone
+                            if (!isInitMode) {
+                                // Asynchrone
 
-                            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                                Response.status(Status.ACCEPTED).build(), uploadedInputStream);
+                                AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                                    Response.status(Status.ACCEPTED).build(), uploadedInputStream);
+                            }
                         }
                     } finally {
                         if (isCompletedProcess) {
@@ -1017,9 +1021,9 @@ public class IngestInternalResource extends ApplicationStatusResource {
                             StorageCollectionType.REPORTS);
                 }
             }
-
             // Add Global execution status to response
-            response.getHeaders().add(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, processState.toString());
+            response.getHeaders().add(GlobalDataRest.X_GLOBAL_EXECUTION_STATE,
+                processState != null ? processState.toString() : null);
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
             helper.writeAsyncResponse(Response.fromResponse(response), Status.fromStatusCode(stepExecutionStatus));
 
@@ -1206,7 +1210,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * @throws ContextNotFoundException if context not found from file data
      */
     private ProcessContext getProcessContext(String contextId)
-            throws InvalidParseOperationException, IOException, ContextNotFoundException {
+        throws InvalidParseOperationException, IOException, ContextNotFoundException {
 
         // read resource config file
         JsonNode context;
@@ -1216,7 +1220,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
             // read external config file if found
             try {
                 extInputJSON = PropertiesUtils.getConfigAsStream(EXTERNAL_PROCESS_CONTEXT_FILE);
-            } catch (IOException ioe){
+            } catch (IOException ioe) {
                 // do nothing as external config file is optional
                 LOGGER.warn("IOException thrown while loading External Process Context", ioe);
             }
@@ -1226,10 +1230,10 @@ public class IngestInternalResource extends ApplicationStatusResource {
         } finally {
             // close the external config file input stream
             try {
-                if(extInputJSON != null) {
+                if (extInputJSON != null) {
                     extInputJSON.close();
                 }
-            } catch(IOException e){
+            } catch (IOException e) {
                 LOGGER.warn("IOException thrown while closing External Process Context file", e);
             }
         }

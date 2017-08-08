@@ -96,6 +96,9 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
                 itemStatus.setItemsStatus(ExtractSedaActionHandler.getId(), extractSedaStatus);
 
                 if (extractSedaStatus.shallStop(true)) {
+                    checkNoObjectsActionHandler.close();
+                    checkObjectsNumberActionHandler.close();
+                    extractSedaActionHandler.close();
                     return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
                 }
 
@@ -108,6 +111,7 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
                 itemStatus.setItemsStatus(CheckVersionActionHandler.getId(), checkVersionStatus);
 
                 if (checkVersionStatus.shallStop(true)) {
+                    checkVersionActionHandler.close();
                     return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
                 }
 
@@ -123,6 +127,9 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
                 itemStatus.setItemsStatus(ExtractSedaActionHandler.getId(), extractSedaStatus);
 
                 if (extractSedaStatus.shallStop(true)) {
+                    checkVersionActionHandler.close();
+                    checkObjectsNumberActionHandler.close();
+                    extractSedaActionHandler.close();
                     return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
                 }
 

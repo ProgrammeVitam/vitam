@@ -260,7 +260,7 @@ public class ProfileServiceImpl implements ProfileService {
             LOGGER.error("No profile metadata found with identifier : " + profileIdentifier +
                 ", to import the file, the metadata profile must be created first");
 
-            manager.logValidationError(PROFILES_FILE_IMPORT_EVENT, profileMetadata.getIdentifier(),
+            manager.logValidationError(PROFILES_FILE_IMPORT_EVENT, profileIdentifier,
                 "No profile metadata found with identifier : " + profileIdentifier +
                     ", to import the file, the metadata profile must be created first");
             return vitamError.addToErrors(getVitamError(VitamCode.PROFILE_FILE_IMPORT_ERROR.getItem(),
