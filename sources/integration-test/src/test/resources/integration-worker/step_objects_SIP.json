@@ -1,6 +1,6 @@
 {
       "workerGroupId": "DefaultWorker",
-      "stepName": "STP_OG_STORING",
+      "stepName": "STP_OBJ_STORING",
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "LIST",
@@ -9,7 +9,7 @@
       "actions": [
         {
           "action": {
-            "actionKey": "OG_STORAGE",
+            "actionKey": "OBJ_STORAGE",
             "behavior": "BLOCKING"
           }
         },

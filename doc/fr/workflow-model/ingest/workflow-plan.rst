@@ -107,11 +107,17 @@ Diagramme d'activité du workflow du plan de classement
 
     + calcul des échéances associées à chaque unité archivistique.
 
-- **Step 3** - STP_UNIT_STORING : Rangement des unités archivistique / distribution sur LIST GUID/Units
+- **Step 3** - STP_UNIT_METADATA : Indexation des unités archivistique
 
   * UNIT_METADATA_INDEXATION (IndexUnitActionPlugin.java) :
 
     + Transformation sous la forme Json des unités archivistiques et intégration du GUID Unit et du GUID des groupes d'objets
+
+- **Step 4** - STP_UNIT_STORING : Rangement des unités archivistique / distribution sur LIST GUID/Units
+
+  * COMMIT_LIFE_CYCLE_UNIT (CommitLifeCycleUnitActionHandler.java)
+
+    + Sécurisation en base des journaux du cycle de vie des unités archivistiques
 
   * UNIT_METADATA_STORAGE (StoreMetaDataUnitActionPlugin.java.java) :
 
@@ -121,13 +127,13 @@ Diagramme d'activité du workflow du plan de classement
 
     + Sécurisation en base des journaux du cycle de vie des unités archivistiques
 
-- **Step 4** - STP_ACCESSION_REGISTRATION : Alimentation du registre des fonds
+- **Step 5** - STP_ACCESSION_REGISTRATION : Alimentation du registre des fonds
 
   * ACCESSION_REGISTRATION (AccessionRegisterActionHandler.java) :
 
     + Création/Mise à jour et enregistrement des collections AccessionRegisterDetail et AccessionRegisterSummary concernant les archives prises en compte, par service producteur.
 
-- **Step 5 et finale** - STP_INGEST_FINALISATION : Finalisation de l'entrée. Cette étape est obligatoire et sera toujours exécutée, en dernière position.
+- **Step 6 et finale** - STP_INGEST_FINALISATION : Finalisation de l'entrée. Cette étape est obligatoire et sera toujours exécutée, en dernière position.
 
   * ATR_NOTIFICATION (TransferNotificationActionHandler.java) :
 

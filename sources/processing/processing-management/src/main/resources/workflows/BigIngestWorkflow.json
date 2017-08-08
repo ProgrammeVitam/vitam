@@ -105,7 +105,7 @@
         "element": "ObjectGroup"
       },
       "actions": [
-      	{
+        {
           "action": {
             "actionKey": "CHECK_DIGEST",
             "behavior": "BLOCKING",
@@ -134,7 +134,7 @@
         "element": "Units"
       },
       "actions": [
-      	{
+        {
           "action": {
             "actionKey": "CHECK_UNIT_SCHEMA",
             "behavior": "BLOCKING"
@@ -167,7 +167,7 @@
     },
     {
       "workerGroupId": "BigWorker",
-      "stepName": "STP_OG_STORING",
+      "stepName": "STP_OBJ_STORING",
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "LIST",
@@ -176,7 +176,7 @@
       "actions": [
         {
           "action": {
-            "actionKey": "OG_STORAGE",
+            "actionKey": "OBJ_STORAGE",
             "behavior": "BLOCKING"
           }
         },
@@ -190,28 +190,28 @@
     },
     {
       "workerGroupId": "BigWorker",
-      "stepName": "STP_UNIT_STORING",
+      "stepName": "STP_UNIT_METADATA",
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "LIST",
         "element": "Units"
       },
-      "actions": [        
+      "actions": [
         {
           "action": {
             "actionKey": "UNIT_METADATA_INDEXATION",
             "behavior": "BLOCKING",
-	        "in": [
-	            {
-	               "name": "UnitType",
-	               "uri": "VALUE:INGEST"
-                },
-	            {
-	              "name": "globalSEDAParameters.file",
-	              "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
-	            }
-	        ]            
-            
+            "in": [
+              {
+                "name": "UnitType",
+                "uri": "VALUE:INGEST"
+              },
+              {
+                "name": "globalSEDAParameters.file",
+                "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
+              }
+            ]
+
           }
         }
       ]

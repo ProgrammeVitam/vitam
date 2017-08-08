@@ -95,7 +95,7 @@ public class ProcessPopulator {
         List<String> workflowFiles = getInternalWorkflowResources();
 
         if(LOGGER.isDebugEnabled()){
-            LOGGER.debug("Found " + workflowFiles.size() + "workflow resource files");
+            LOGGER.debug("Found " + workflowFiles.size() + " workflow resource files");
         }
 
         for (String workflowFile : workflowFiles) {
@@ -120,7 +120,7 @@ public class ProcessPopulator {
         File[] workflowFiles = getExternalWorkflowFiles(fromDate);
 
         if(LOGGER.isDebugEnabled()){
-            LOGGER.debug("Found " + workflowFiles.length + "workflow resource files");
+            LOGGER.debug("Found " + workflowFiles.length + " workflow resource files");
         }
 
         for (File workflowFile : workflowFiles) {

@@ -1,6 +1,6 @@
 {
       "workerGroupId": "DefaultWorker",
-      "stepName": "STP_UNIT_STORING",
+      "stepName": "STP_UNIT_METADATA",
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "LIST",

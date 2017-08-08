@@ -22,20 +22,38 @@
         },
         {
           "action": {
-            "actionKey": "CHECK_MANIFEST_DATAOBJECT_VERSION",
-            "behavior": "BLOCKING"
-          }
-        },
-        {
-          "action": {
-            "actionKey": "CHECK_MANIFEST_OBJECTNUMBER",
-            "behavior": "NOBLOCKING"
-          }
-        },
-        {
-          "action": {
-            "actionKey": "CHECK_MANIFEST",
+            "actionKey": "CHECK_HEADER",
             "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "checkContract",
+                "uri": "VALUE:true"
+              },
+              {
+                "name": "checkOriginatingAgency",
+                "uri": "VALUE:true"
+              },
+              {
+                "name": "checkProfile",
+                "uri": "VALUE:true"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CHECK_DATAOBJECTPACKAGE",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "checkNoObject",
+                "uri": "VALUE:false"
+              },
+              {
+                "name": "UnitType",
+                "uri": "VALUE:INGEST"
+              }
+            ],
             "out": [
               {
                 "name": "unitsLevel.file",
@@ -75,22 +93,6 @@
               }
             ]
           }
-        },
-        {
-          "action": {
-            "actionKey": "CHECK_CONSISTENCY",
-            "behavior": "NOBLOCKING",
-            "in": [
-              {
-                "name": "mapsDOtoOG.file",
-                "uri": "MEMORY:MapsMemory/OG_TO_ARCHIVE_ID_MAP.json"
-              },
-              {
-                "name": "mapsObjectGroup.file",
-                "uri": "MEMORY:MapsMemory/OBJECT_GROUP_ID_TO_GUID_MAP.json"
-              }
-            ]
-          }
         }
       ]
     },
@@ -103,7 +105,7 @@
         "element": "ObjectGroup"
       },
       "actions": [
-      	{
+        {
           "action": {
             "actionKey": "CHECK_DIGEST",
             "behavior": "BLOCKING",
@@ -132,7 +134,7 @@
         "element": "Units"
       },
       "actions": [
-      	{
+        {
           "action": {
             "actionKey": "CHECK_UNIT_SCHEMA",
             "behavior": "BLOCKING"
@@ -165,6 +167,56 @@
     },
     {
       "workerGroupId": "DefaultWorker",
+      "stepName": "STP_OBJ_STORING",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST",
+        "element": "ObjectGroup"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "OBJ_STORAGE",
+            "behavior": "BLOCKING"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "OG_METADATA_INDEXATION",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_UNIT_METADATA",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST",
+        "element": "Units"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "UNIT_METADATA_INDEXATION",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "UnitType",
+                "uri": "VALUE:INGEST"
+              },
+              {
+                "name": "globalSEDAParameters.file",
+                "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
       "stepName": "STP_OG_STORING",
       "behavior": "BLOCKING",
       "distribution": {
@@ -174,17 +226,11 @@
       "actions": [
         {
           "action": {
-            "actionKey": "OG_STORAGE",
+            "actionKey": "COMMIT_LIFE_CYCLE_OBJECT_GROUP",
             "behavior": "BLOCKING"
           }
         },
         {
-          "action": {
-            "actionKey": "OG_METADATA_INDEXATION",
-            "behavior": "BLOCKING"
-          }
-        },
-                {
           "action": {
             "actionKey": "OG_METADATA_STORAGE",
             "behavior": "BLOCKING"
@@ -209,7 +255,7 @@
       "actions": [
         {
           "action": {
-            "actionKey": "UNIT_METADATA_INDEXATION",
+            "actionKey": "COMMIT_LIFE_CYCLE_UNIT",
             "behavior": "BLOCKING"
           }
         },
@@ -218,8 +264,7 @@
             "actionKey": "UNIT_METADATA_STORAGE",
             "behavior": "BLOCKING"
           }
-        }
-        ,
+        },
         {
           "action": {
             "actionKey": "COMMIT_LIFE_CYCLE_UNIT",
@@ -293,7 +338,7 @@
                 "optional": true
               },
               {
-                "name": "mapsDOIdtoDODetail.file",
+                "name": "mapsDOtoVersionBDO.file",
                 "uri": "WORKSPACE:Maps/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP.json",
                 "optional": true
               },
@@ -315,7 +360,7 @@
               }
             ]
           }
-        }, 
+        },
         {
           "action": {
             "actionKey": "ROLL_BACK",
