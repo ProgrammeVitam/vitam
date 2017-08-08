@@ -29,13 +29,16 @@ package fr.gouv.vitam.metadata.core;
 import static fr.gouv.vitam.common.json.JsonHandler.toArrayList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
 
+import fr.gouv.vitam.common.model.RequestResponse;
 import org.bson.BsonDocument;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -446,8 +449,10 @@ public class MetaDataImplTest {
         result.addFinal(new ObjectGroup(sampleObjectGroup));
         when(request.execRequest(anyObject(), anyObject())).thenReturn(result);
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
-        final ArrayNode jsonNode = metaDataImpl.selectObjectGroupById(JsonHandler.getFromString(QUERY), "ogId");
-        final ObjectNode objectGroupDocument = (ObjectNode) jsonNode.get(0);
+        RequestResponse<JsonNode> requestResponse = metaDataImpl.selectObjectGroupById(JsonHandler.getFromString(QUERY), "ogId");
+        assertTrue(requestResponse.isOk());
+        RequestResponseOK<JsonNode> jsonNode = (RequestResponseOK<JsonNode>)requestResponse;
+        final JsonNode objectGroupDocument = jsonNode.getResults().iterator().next();
         boolean different = false;
         Iterator<Entry<String, JsonNode>> fields = objectGroupDocument.fields();
         while (fields.hasNext()) {
@@ -472,11 +477,12 @@ public class MetaDataImplTest {
     @Test
     public void testDiffResultOnUpdate() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        final String wanted = "[{\"#id\":\"unitId\",\"#diff\":\"-  title : title" +
-            "\\n-  description : description\\n+  title : MODIFIED title" +
-            "\\n+  description : MODIFIED description\"}]";
-        final String wantedDiff = "\"-  title : title\\n-  description : description\\n+  " +
-            "title : MODIFIED title\\n+  description : MODIFIED description\"";
+        final List<JsonNode> wanted = JsonHandler.getFromString("[{\"#id\":\"unitId\",\"#diff\":\"-    title : title" +
+            "\\n-    description : description\\n+    title : MODIFIED title" +
+            "\\n+    description : MODIFIED description\"}]", List.class, JsonNode.class);
+
+        final String wantedDiff = "\"-    title : title\\n-    description : description\\n+    " +
+            "title : MODIFIED title\\n+    description : MODIFIED description\"";
 
         final Result updateResult = new ResultDefault(FILTERARGS.UNITS);
         updateResult.addId("unitId", (float) 1);
@@ -504,12 +510,13 @@ public class MetaDataImplTest {
         when(request.execRequest(Matchers.isA(SelectParserMultiple.class), anyObject())).thenReturn(firstSelectResult,
             secondSelectResult);
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
-        final ArrayNode ret = metaDataImpl.updateUnitbyId(updateRequest, "unitId");
-        assertEquals(wanted, ret.toString());
+        RequestResponse<JsonNode> requestResponse = metaDataImpl.updateUnitbyId(updateRequest, "unitId");
+        assertTrue(requestResponse.isOk());
+        List<JsonNode> ret = ((RequestResponseOK<JsonNode>)requestResponse).getResults();
 
-        final RequestResponseOK response = new RequestResponseOK(updateRequest)
-            .addAllResults(toArrayList(ret));
-        assertEquals(wantedDiff, getDiffMessageFor(response.toJsonNode(), "unitId"));
+        assertEquals(wanted, ret);
+
+        assertEquals(wantedDiff, getDiffMessageFor(requestResponse.toJsonNode(), "unitId"));
     }
 
 

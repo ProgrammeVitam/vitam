@@ -537,7 +537,7 @@ public class IngestInternalIT {
 
             RequestResponse response = accessClient.updateUnitbyId(new UpdateMultiQuery().getFinalUpdate(),
                 unit.findValuesAsText("#id").get(0));
-            assertEquals(response.toJsonNode().get("$results").get(0).get("$hits").get("size").asInt(), 1);
+            assertEquals(response.toJsonNode().get("$hits").get("size").asInt(), 1);
 
             sizedInputStream = new SizedInputStream(inputStream);
             final long size2 = StreamUtils.closeSilently(sizedInputStream);
@@ -546,7 +546,7 @@ public class IngestInternalIT {
 
             JsonNode logbookOperation =
                 accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
-                    .toJsonNode().get("$results").get(0);
+                    .toJsonNode();
             QueryBuilder query = QueryBuilders.matchQuery("_id", operationGuid.getId());
             SearchResponse elasticSearchResponse =
                 esClient.search(LogbookCollections.OPERATION, tenantId, query, null, null, 0, 25);
@@ -702,7 +702,7 @@ public class IngestInternalIT {
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
             JsonNode logbookOperation =
                 accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
-                    .toJsonNode().get("$results").get(0);
+                    .toJsonNode();
             boolean checkDataObject = true;
             final JsonNode elmt = logbookOperation.get("$results").get(0);
             final List<Document> logbookOperationEvents =
@@ -774,7 +774,7 @@ public class IngestInternalIT {
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
             JsonNode logbookOperation =
                 accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
-                    .toJsonNode().get("$results").get(0);
+                    .toJsonNode();
             boolean checkUnitSuccess = true;
             final JsonNode elmt = logbookOperation.get("$results").get(0);
             final List<Document> logbookOperationEvents =
@@ -844,7 +844,7 @@ public class IngestInternalIT {
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
             JsonNode logbookOperation =
                 accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
-                    .toJsonNode().get("$results").get(0);
+                    .toJsonNode();
             boolean checkUnitSuccess = true;
             final JsonNode elmt = logbookOperation.get("$results").get(0);
             final List<Document> logbookOperationEvents =
@@ -1172,7 +1172,7 @@ public class IngestInternalIT {
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
             JsonNode logbookOperation =
                 accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
-                    .toJsonNode().get("$results").get(0);
+                    .toJsonNode();
             boolean checkUnitSuccess = false;
             final JsonNode elmt = logbookOperation.get("$results").get(0);
             final List<Document> logbookOperationEvents =
@@ -1243,7 +1243,7 @@ public class IngestInternalIT {
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
             JsonNode logbookOperation =
                 accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
-                    .toJsonNode().get("$results").get(0);
+                    .toJsonNode();
             boolean checkServiceLevel = false;
             final JsonNode elmt = logbookOperation.get("$results").get(0);
             final List<Document> logbookOperationEvents =
@@ -1316,7 +1316,7 @@ public class IngestInternalIT {
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
             JsonNode logbookOperation =
                 accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
-                    .toJsonNode().get("$results").get(0);
+                    .toJsonNode();
             boolean checkServiceLevel = false;
             final JsonNode elmt = logbookOperation.get("$results").get(0);
             final List<Document> logbookOperationEvents =

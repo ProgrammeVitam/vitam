@@ -1030,7 +1030,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     public RequestResponseOK<FileRules> findDocuments(JsonNode select) throws ReferentialException {
         try (DbRequestResult result =
             mongoAccess.findDocuments(select, FunctionalAdminCollections.RULES)) {
-            final RequestResponseOK<FileRules> list = result.getRequestResponseOK(FileRules.class).setQuery(select);
+            final RequestResponseOK<FileRules> list = result.getRequestResponseOK(select, FileRules.class);
             return list;
         } catch (final FileRulesException e) {
             LOGGER.error(e.getMessage());

@@ -185,7 +185,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
         throws FileFormatNotFoundException, ReferentialException {
         try (DbRequestResult result =
             mongoAccess.findDocuments(select, FunctionalAdminCollections.FORMATS)) {
-            final RequestResponseOK<FileFormat> list = result.getRequestResponseOK(FileFormat.class).setQuery(select);
+            final RequestResponseOK<FileFormat> list = result.getRequestResponseOK(select, FileFormat.class);
             if (list.isEmpty()) {
                 throw new FileFormatNotFoundException("Format not found");
             }

@@ -26,19 +26,17 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.api;
 
-import java.util.List;
-
-import org.bson.Document;
-
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import org.bson.Document;
+
+import java.util.List;
 
 /**
  * MetaData interface for database operations
@@ -82,7 +80,7 @@ public interface MetaData {
      * @throws MetaDataNotFoundException Throw if unit by id not found
      *
      */
-    public ArrayNode selectUnitsByQuery(JsonNode selectQuery)
+    public RequestResponse<JsonNode> selectUnitsByQuery(JsonNode selectQuery)
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataDocumentSizeException, MetaDataNotFoundException;
 
@@ -104,7 +102,7 @@ public interface MetaData {
      * @throws MetaDataNotFoundException Throw if unit by id not found
      *
      */
-    public ArrayNode selectUnitsById(JsonNode selectQuery, String unitId)
+    public RequestResponse<JsonNode> selectUnitsById(JsonNode selectQuery, String unitId)
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataDocumentSizeException, MetaDataNotFoundException;
 
@@ -127,7 +125,7 @@ public interface MetaData {
      * 
      * 
      */
-    ArrayNode selectObjectGroupById(JsonNode selectQuery, String objectGroupId)
+    RequestResponse<JsonNode> selectObjectGroupById(JsonNode selectQuery, String objectGroupId)
         throws InvalidParseOperationException, MetaDataDocumentSizeException, MetaDataExecutionException,
         MetaDataNotFoundException;
 
@@ -148,7 +146,7 @@ public interface MetaData {
      * @throws MetaDataDocumentSizeException Throw if Unit size is too big
      *
      */
-    public ArrayNode updateUnitbyId(JsonNode updateQuery, String unitId)
+    public RequestResponse<JsonNode> updateUnitbyId(JsonNode updateQuery, String unitId)
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataDocumentSizeException;
 

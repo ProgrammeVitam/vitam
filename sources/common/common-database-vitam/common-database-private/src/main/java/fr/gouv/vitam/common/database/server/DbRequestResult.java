@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCursor;
 
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
@@ -232,8 +233,8 @@ public class DbRequestResult implements VitamAutoCloseable {
      * @param <T> the original class used by the collection extending VitamCollection
      * @return a RequestResponseOK with Hits and Results sets (not request)
      */
-    public <T extends VitamDocument<T>> RequestResponseOK<T> getRequestResponseOK(Class<T> cls) {
-        final RequestResponseOK<T> response = new RequestResponseOK<>();
+    public <T extends VitamDocument<T>> RequestResponseOK<T> getRequestResponseOK(JsonNode query, Class<T> cls) {
+        final RequestResponseOK<T> response = new RequestResponseOK<>(query);
         // Save before addAll
         DatabaseCursor currentCursor = getDatabaseCursor();
         currentCursor = new DatabaseCursor(currentCursor.getTotal(), currentCursor.getOffset(), 
@@ -253,9 +254,9 @@ public class DbRequestResult implements VitamAutoCloseable {
      * @return a RequestResponseOK with Hits and Results sets (not request)
      * @throws InvalidParseOperationException
      */
-    public <T extends VitamDocument<T>, V> RequestResponseOK<V> getRequestResponseOK(Class<T> cls, Class<V> clsFromJson)
+    public <T extends VitamDocument<T>, V> RequestResponseOK<V> getRequestResponseOK(JsonNode query, Class<T> cls, Class<V> clsFromJson)
         throws InvalidParseOperationException {
-        final RequestResponseOK<V> response = new RequestResponseOK<>();
+        final RequestResponseOK<V> response = new RequestResponseOK<>(query);
         // Save before addAll
         DatabaseCursor currentCursor = getDatabaseCursor();
         currentCursor = new DatabaseCursor(currentCursor.getTotal(), currentCursor.getOffset(), 

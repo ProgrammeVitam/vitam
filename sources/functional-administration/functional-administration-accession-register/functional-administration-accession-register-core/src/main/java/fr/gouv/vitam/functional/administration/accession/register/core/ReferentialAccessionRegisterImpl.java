@@ -179,8 +179,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
         try (DbRequestResult result =
             mongoAccess.findDocuments(select, FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY)) {
             final RequestResponseOK<AccessionRegisterSummary> list =
-                result.getRequestResponseOK(AccessionRegisterSummary.class)
-                    .setQuery(select);
+                result.getRequestResponseOK(select, AccessionRegisterSummary.class);
             if (list.isEmpty()) {
                 throw new ReferentialNotFoundException("Register Sumarry not found");
             }
@@ -202,8 +201,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
         try (DbRequestResult result =
             mongoAccess.findDocuments(select, FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL)) {
             final RequestResponseOK<AccessionRegisterDetail> list =
-                result.getRequestResponseOK(AccessionRegisterDetail.class)
-                    .setQuery(select);
+                result.getRequestResponseOK(select, AccessionRegisterDetail.class);
             if (list.isEmpty()) {
                 throw new ReferentialNotFoundException("Register Detail not found");
             }

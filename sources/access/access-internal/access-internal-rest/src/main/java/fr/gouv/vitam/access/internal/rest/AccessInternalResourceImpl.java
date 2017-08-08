@@ -141,15 +141,17 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     public Response getUnits(JsonNode queryDsl) {
         LOGGER.debug(EXECUTION_OF_DSL_VITAM_FROM_ACCESS_ONGOING);
         Status status;
-        ObjectNode result = null;
         LOGGER.debug("DEBUG: start selectUnits {}", queryDsl);
 
         try {
             SanityChecker.checkJsonAll(queryDsl);
             checkEmptyQuery(queryDsl);
-            result = (ObjectNode) accessModule.selectUnit(addProdServicesToQuery(queryDsl));
+            JsonNode result = accessModule.selectUnit(addProdServicesToQuery(queryDsl));
             LOGGER.debug("DEBUG {}", result);
             resetQuery(result, queryDsl);
+
+            LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
+            return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
             // Unprocessable Entity not implemented by Jersey
@@ -163,8 +165,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             LOGGER.error("Empty query is impossible", e);
             return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
         }
-        LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
-        return Response.status(Status.OK).entity(result).build();
     }
 
     /**
@@ -186,13 +186,15 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         LOGGER.debug(EXECUTION_OF_DSL_VITAM_FROM_ACCESS_ONGOING);
 
         Status status;
-        ObjectNode result = null;
         try {
 
             SanityChecker.checkJsonAll(queryDsl);
             SanityChecker.checkParameter(idUnit);
-            result = (ObjectNode) accessModule.selectUnitbyId(addProdServicesToQuery(queryDsl), idUnit);
+            JsonNode result = accessModule.selectUnitbyId(addProdServicesToQuery(queryDsl), idUnit);
             resetQuery(result, queryDsl);
+
+            LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
+            return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
             // Unprocessable Entity not implemented by Jersey
@@ -203,8 +205,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             status = Status.METHOD_NOT_ALLOWED;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
-        LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
-        return Response.status(Status.OK).entity(result).build();
     }
 
     /**
@@ -226,7 +226,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         LOGGER.debug(EXECUTION_OF_DSL_VITAM_FROM_ACCESS_ONGOING);
 
         Status status;
-        JsonNode result = null;
         try {
             SanityChecker.checkJsonAll(queryDsl);
             SanityChecker.checkParameter(idUnit);
@@ -235,7 +234,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 status = Status.UNAUTHORIZED;
                 return Response.status(status).entity(getErrorEntity(status, "Write permission not allowed")).build();
             }
-            result = accessModule.updateUnitbyId(queryDsl, idUnit, requestId);
+            JsonNode result = accessModule.updateUnitbyId(queryDsl, idUnit, requestId);
+            LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
+            return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
             // Unprocessable Entity not implemented by Jersey
@@ -249,8 +250,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
-        LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
-        return Response.status(Status.OK).entity(result).build();
     }
 
     @Override
@@ -259,13 +258,14 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getObjectGroup(@PathParam("id_object_group") String idObjectGroup, JsonNode query) {
-        JsonNode result;
         Status status;
         try {
             SanityChecker.checkJsonAll(query);
             SanityChecker.checkParameter(idObjectGroup);
             final AccessContractModel contract = VitamThreadUtils.getVitamSession().getContract();
-            Set<String> prodServices = contract.getOriginatingAgencies();        
+            Set<String> prodServices = contract.getOriginatingAgencies();
+            JsonNode result;
+
             if (contract.getEveryOriginatingAgency()) {
                 result = accessModule.selectObjectGroupById(query, idObjectGroup);
             } else {
@@ -276,7 +276,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                         .setDepthLimit(0));
                 result = accessModule.selectObjectGroupById(parser.getRequest().getFinalSelect(), idObjectGroup);
             }
-
+            return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidParseOperationException | IllegalArgumentException | InvalidCreateOperationException exc) {
             LOGGER.error(exc);
             status = Status.PRECONDITION_FAILED;
@@ -286,7 +286,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(getErrorEntity(status, exc.getMessage())).build();
         }
-        return Response.status(Status.OK).entity(result).build();
     }
 
     private void asyncObjectStream(AsyncResponse asyncResponse, HttpHeaders headers, String idObjectGroup,
@@ -446,9 +445,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             .build();
     }
 
-    private void resetQuery(ObjectNode result, JsonNode queryDsl) {
+    private void resetQuery(JsonNode result, JsonNode queryDsl) {
         if (result != null && result.has(RequestResponseOK.CONTEXT)) {
-            result.set(RequestResponseOK.CONTEXT, queryDsl);
+            ((ObjectNode)result).set(RequestResponseOK.CONTEXT, queryDsl);
         }
     }
 }

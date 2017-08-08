@@ -39,6 +39,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 
 
 /**
@@ -85,7 +86,22 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
      */
     public RequestResponseOK(JsonNode query) {
         this.query = query;
-        hits = new DatabaseCursor(0, 0, 0);
+        int offset = 0;
+        int limit = 0;
+
+        try {
+            QueryDTO queryDTO = JsonHandler.getFromJsonNode(query, QueryDTO.class);
+            if (null != queryDTO) {
+                QueryFilter queryFilter = queryDTO.getFilter();
+                if (null != queryFilter) {
+                    offset  = queryFilter.getOffset();
+                    limit  = queryFilter.getLimit();
+                }
+            }
+        } catch (Exception e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+        }
+        hits = new DatabaseCursor(0, offset, limit);
         results = new ArrayList<>();
     }
 
@@ -99,7 +115,6 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
         ParametersChecker.checkParameter("Result is a mandatory parameter", result);
         results.add(result);
         hits.setSize(hits.getSize() + 1);
-        hits.setLimit(hits.getLimit() + 1);
         hits.setTotal(hits.getSize());
         return this;
     }
@@ -114,7 +129,6 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
         ParametersChecker.checkParameter("Result list is a mandatory parameter", resultList);
         results.addAll(resultList);
         hits.setSize(hits.getSize() + resultList.size());
-        hits.setLimit(hits.getLimit() + resultList.size());
         hits.setTotal(hits.getSize());
         return this;
     }
@@ -144,7 +158,7 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
      * @param limit of unit per response as integer
      * @return the RequestReponseOK with the hits are setted
      */
-    public RequestResponseOK<T> setHits(int total, int offset, int limit) {
+    public RequestResponseOK<T> setHits(long total, int offset, int limit) {
         hits = new DatabaseCursor(total, offset, limit, total);
         return this;
     }
@@ -156,10 +170,25 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
      * @param size of unit per response
      * @return the RequestReponseOK with the hits are setted
      */
-    public RequestResponseOK<T> setHits(int total, int offset, int limit, int size) {
+    public RequestResponseOK<T> setHits(long total, int offset, int limit, int size) {
         hits = new DatabaseCursor(total, offset, limit, size);
         return this;
     }
+
+
+    /**
+     * Should  be used only with hints of elasticsearch
+     * @param total
+     * @return
+     */
+    public RequestResponseOK<T> setTotal(long total) {
+        if (hits != null) {
+            hits.setTotal(total);
+        }
+        return this;
+    }
+
+
 
     /**
      * @return the result of RequestResponse as a list of String

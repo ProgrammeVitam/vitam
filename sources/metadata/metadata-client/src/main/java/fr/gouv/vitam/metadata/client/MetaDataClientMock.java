@@ -31,7 +31,7 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
     public JsonNode insertUnit(JsonNode insertQuery)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
         MetaDataAlreadyExistException, MetaDataDocumentSizeException, MetaDataClientServerException {
-        return ClientMockResultHelper.getMetaDataResult();
+        return ClientMockResultHelper.getMetaDataResult().toJsonNode();
     }
 
     @Override
@@ -64,21 +64,21 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
     public JsonNode selectObjectGrouptbyId(JsonNode selectQuery, String objectGroupId)
         throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
         MetadataInvalidSelectException, MetaDataClientServerException {
-        return ClientMockResultHelper.getMetaDataResult();
+        return ClientMockResultHelper.getMetaDataResult().toJsonNode();
     }
 
     @Override
     public JsonNode updateUnitbyId(JsonNode updateQuery, String unitId)
         throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
         MetaDataClientServerException {
-        return ClientMockResultHelper.getMetaDataResult();
+        return ClientMockResultHelper.getMetaDataResult().toJsonNode();
     }
 
     @Override
     public JsonNode insertObjectGroup(JsonNode insertQuery)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
         MetaDataAlreadyExistException, MetaDataDocumentSizeException, MetaDataClientServerException {
-        return ClientMockResultHelper.getMetaDataResult();
+        return ClientMockResultHelper.getMetaDataResult().toJsonNode();
     }
 
     @Override public List<UnitPerOriginatingAgency> selectAccessionRegisterOnUnitByOperationId(String operationId)

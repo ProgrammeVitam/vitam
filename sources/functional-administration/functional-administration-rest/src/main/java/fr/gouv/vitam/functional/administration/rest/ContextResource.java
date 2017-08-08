@@ -153,8 +153,7 @@ public class ContextResource {
             SanityChecker.checkJsonAll(queryDsl); 
             try (DbRequestResult result = contextService.findContexts(queryDsl)) {
                 RequestResponseOK<ContextModel> response = 
-                    result.getRequestResponseOK(fr.gouv.vitam.functional.administration.common.Context.class, ContextModel.class)
-                    .setQuery(queryDsl);
+                    result.getRequestResponseOK(queryDsl, fr.gouv.vitam.functional.administration.common.Context.class, ContextModel.class);
                 return Response.status(Status.OK).entity(response).build();
             }
         } catch (ReferentialException e) {

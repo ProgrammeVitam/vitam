@@ -95,8 +95,7 @@ public class RequestResponseOKTest {
 
         final String json = "{\"Objects\" : [\"One\", \"Two\", \"Three\"]}";
         query = new ObjectMapper().readTree(json);
-        final RequestResponseOK requestResponseOK = new RequestResponseOK();
-        requestResponseOK.setQuery(query);
+        final RequestResponseOK requestResponseOK = new RequestResponseOK(query);
         requestResponseOK.addAllResults(new ArrayList());
         requestResponseOK.setHttpCode(Status.OK.getStatusCode());
         assertThat(requestResponseOK.getQuery()).isNotEmpty();
@@ -114,6 +113,7 @@ public class RequestResponseOKTest {
         }
         requestResponseOK.addResult(objectTest);
         requestResponseOK.addResult(objectTest);
+        requestResponseOK.setHits(2, 0, 2, 2);
         assertEquals(
             "{\"httpCode\":200,\"$hits\":{\"total\":2,\"offset\":0,\"limit\":2,\"size\":2}," +
                 "\"$results\":[{\"Objects\":[\"One\",\"Two\",\"Three\"]},{\"Objects\":[\"One\",\"Two\",\"Three\"]}]," +

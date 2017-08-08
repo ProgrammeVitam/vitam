@@ -114,10 +114,10 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         Status status;
-        RequestResponse<JsonNode> result = null;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            result = client.selectUnits(queryJson);
-            return Response.status(result.getHttpCode()).entity(result.toJsonNode()).build();
+            RequestResponse<JsonNode> result = client.selectUnits(queryJson);
+            int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+            return Response.status(st).entity(result).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("Predicate Failed Exception ", e);
             status = Status.PRECONDITION_FAILED;
@@ -172,11 +172,11 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         Status status;
-        JsonNode result = null;
         ParametersChecker.checkParameter("unit id is required", idUnit);
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            result = client.selectUnitbyId(queryJson, idUnit).toJsonNode().get("$results").get(0);
-            return Response.status(Status.OK).entity(result).build();
+            RequestResponse<JsonNode> result = client.selectUnitbyId(queryJson, idUnit);
+            int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+            return Response.status(st).entity(result).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             status = Status.PRECONDITION_FAILED;
@@ -211,15 +211,13 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         Status status;
-        JsonNode result = null;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             RequestResponse<JsonNode> response = client.updateUnitbyId(queryJson, idUnit);
             if (!response.isOk() && response instanceof VitamError) {
                 VitamError error = (VitamError) response;
                 return buildErrorFromError(VitamCode.ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR, error.getMessage(), error);
             }
-    	    result = response.toJsonNode().get("$results").get(0);
-            return Response.status(Status.OK).entity(result).build();
+            return Response.status(Status.OK).entity(response).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             status = Status.PRECONDITION_FAILED;
@@ -274,14 +272,12 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         JsonNode queryJson) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        JsonNode result;
         Status status;
-        try {
-            try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-                String idObjectGroup = idObjectGroup(idu);
-                result = client.selectObjectbyId(queryJson, idObjectGroup).toJsonNode().get("$results").get(0);
-                return Response.status(Status.OK).entity(RequestResponseOK.getFromJsonNode(result)).build();
-            }
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+            String idObjectGroup = idObjectGroup(idu);
+            RequestResponse<JsonNode> result = client.selectObjectbyId(queryJson, idObjectGroup);
+            int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+            return Response.status(st).entity(result).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
@@ -316,7 +312,6 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         @PathParam("idu") String idu, JsonNode queryJson) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        Status status;
         return getObjectGroupMetadatas(headers, idu, queryJson);
     }
 
@@ -434,14 +429,14 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         throws InvalidParseOperationException, AccessInternalClientServerException,
         AccessInternalClientNotFoundException, AccessUnauthorizedException {
         // Select "Object from ArchiveUNit idu
-        JsonNode result = null;
         ParametersChecker.checkParameter("unit id is required", idu);
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             SelectMultiQuery select = new SelectMultiQuery();
             select.addUsedProjection("#object");
-            result = client.selectUnitbyId(select.getFinalSelect(), idu).toJsonNode().get("$results").get(0);
-            SanityChecker.checkJsonAll(result);
-            return result.findValue("#object").textValue();
+            RequestResponse<JsonNode> result = client.selectUnitbyId(select.getFinalSelect(), idu);
+            JsonNode jsonNode = result.toJsonNode();
+            SanityChecker.checkJsonAll(jsonNode);
+            return jsonNode.findValue("#object").textValue();
         }
     }
 
@@ -546,11 +541,11 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
 
     private Response buildErrorFromError(VitamCode vitamCode, String message, VitamError oldVitamError) {
         LOGGER.info("Description: " + message);
-    	VitamError newVitamError = new VitamError(VitamCodeHelper.getCode(vitamCode))
-        .setContext(vitamCode.getService().getName()).setState(vitamCode.getDomain().getName())
-        .setMessage(vitamCode.getMessage()).setDescription(message);
+        VitamError newVitamError = new VitamError(VitamCodeHelper.getCode(vitamCode))
+            .setContext(vitamCode.getService().getName()).setState(vitamCode.getDomain().getName())
+            .setMessage(vitamCode.getMessage()).setDescription(message);
 
-    	oldVitamError.addToErrors(newVitamError);
+        oldVitamError.addToErrors(newVitamError);
 
         return Response.status(vitamCode.getStatus())
             .entity(new RequestResponseError().setError(oldVitamError).toString())

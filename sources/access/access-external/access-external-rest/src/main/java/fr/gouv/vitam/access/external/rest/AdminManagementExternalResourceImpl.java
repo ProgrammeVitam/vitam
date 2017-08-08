@@ -359,32 +359,38 @@ public class AdminManagementExternalResourceImpl {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 if (AdminCollections.FORMATS.compareTo(collection)) {
                     final RequestResponse<FileFormatModel> result = client.getFormats(select);
-                    return Response.status(Status.OK).entity(result).build();
+                    int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+                    return Response.status(st).entity(result).build();
                 }
                 if (AdminCollections.RULES.compareTo(collection)) {
                     final JsonNode result = client.getRules(select);
                     return Response.status(Status.OK).entity(result).build();
                 }
                 if (AdminCollections.ENTRY_CONTRACTS.compareTo(collection)) {
-                    RequestResponse<IngestContractModel> contracts = client.findIngestContracts(select);
-                    return Response.status(Status.OK).entity(contracts.toJsonNode()).build();
+                    RequestResponse<IngestContractModel> result = client.findIngestContracts(select);
+                    int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+                    return Response.status(st).entity(result).build();
                 }
                 if (AdminCollections.ACCESS_CONTRACTS.compareTo(collection)) {
                     RequestResponse result = client.findAccessContracts(select);
-                    return Response.status(Status.OK).entity(result).build();
+                    int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+                    return Response.status(st).entity(result).build();
                 }
                 if (AdminCollections.PROFILE.compareTo(collection)) {
                     RequestResponse result = client.findProfiles(select);
-                    return Response.status(Status.OK).entity(result).build();
+                    int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+                    return Response.status(st).entity(result).build();
                 }
                 if (AdminCollections.CONTEXTS.compareTo(collection)) {
                     RequestResponse result = client.findContexts(select);
-                    return Response.status(Status.OK).entity(result).build();
+                    int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+                    return Response.status(st).entity(result).build();
                 }
 
                 if (AdminCollections.ACCESSION_REGISTERS.compareTo(collection)) {
                     final RequestResponse result = client.getAccessionRegister(select);
-                    return Response.status(Status.OK).entity(result).build();
+                    int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+                    return Response.status(st).entity(result).build();
                 }
                 final Status status = Status.NOT_FOUND;
                 return Response.status(status).entity(getErrorEntity(status, "Collection not found", null)).build();
@@ -528,19 +534,23 @@ public class AdminManagementExternalResourceImpl {
                 }
                 if (AdminCollections.ENTRY_CONTRACTS.compareTo(collection)) {
                     RequestResponse<IngestContractModel> requestResponse = client.findIngestContractsByID(documentId);
-                    return Response.status(Status.OK).entity(requestResponse).build();
+                    int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
+                    return Response.status(st).entity(requestResponse).build();
                 }
                 if (AdminCollections.ACCESS_CONTRACTS.compareTo(collection)) {
                     RequestResponse<AccessContractModel> requestResponse = client.findAccessContractsByID(documentId);
-                    return Response.status(Status.OK).entity(requestResponse).build();
+                    int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
+                    return Response.status(st).entity(requestResponse).build();
                 }
                 if (AdminCollections.PROFILE.compareTo(collection)) {
                     RequestResponse<ProfileModel> requestResponse = client.findProfilesByID(documentId);
-                    return Response.status(Status.OK).entity(requestResponse).build();
+                    int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
+                    return Response.status(st).entity(requestResponse).build();
                 }
                 if (AdminCollections.CONTEXTS.compareTo(collection)) {
                     RequestResponse<ContextModel> requestResponse = client.findContextById(documentId);
-                    return Response.status(Status.OK).entity(requestResponse).build();
+                    int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
+                    return Response.status(st).entity(requestResponse).build();
                 }
                 final Status status = Status.NOT_FOUND;
                 return Response.status(status).entity(getErrorEntity(status, "Collection not found", null)).build();
@@ -648,11 +658,13 @@ public class AdminManagementExternalResourceImpl {
 
         ParametersChecker.checkParameter("accession register id is a mandatory parameter", documentId);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            RequestResponse accessionRegisterDetail =
+            RequestResponse result =
                 client.getAccessionRegisterDetail(documentId, select);
-            return Response.status(Status.OK).entity(accessionRegisterDetail).build();
+            int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+
+            return Response.status(st).entity(result).build();
         } catch (final ReferentialNotFoundException e) {
-            return Response.status(Status.OK).entity(new RequestResponseOK()).build();
+            return Response.status(Status.OK).entity(new RequestResponseOK().setHttpCode(Status.OK.getStatusCode())).build();
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
             final Status status = Status.BAD_REQUEST;
@@ -682,10 +694,9 @@ public class AdminManagementExternalResourceImpl {
             Integer tenantId = ParameterHelper.getTenantParameter();
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
             RequestResponse<JsonNode> result = client.checkTraceabilityOperation(query);
-            if (result.isOk()){
-                return Response.status(Status.OK).entity(result).build();
-            }
-            return Response.status(result.getHttpCode()).entity(result).build();
+            int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+
+            return Response.status(st).entity(result).build();
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
             final Status status = Status.BAD_REQUEST;

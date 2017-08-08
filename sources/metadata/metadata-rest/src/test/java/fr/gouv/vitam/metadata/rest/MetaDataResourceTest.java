@@ -349,7 +349,7 @@ public class MetaDataResourceTest {
             .body(buildDSLWithOptions("", DATA)).when()
             .post("/units").then()
             .body(equalTo(
-                new RequestResponseOK(buildDSLWithOptions("", DATA)).setHits(1, 0, 1).toString()))
+                new RequestResponseOK(buildDSLWithOptions("", DATA)).setHits(1, 0, 1).setHttpCode(Status.CREATED.getStatusCode()).toString()))
             .statusCode(Status.CREATED.getStatusCode());
     }
 

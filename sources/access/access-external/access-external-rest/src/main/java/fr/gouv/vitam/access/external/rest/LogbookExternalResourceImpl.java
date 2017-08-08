@@ -61,6 +61,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
@@ -110,8 +111,9 @@ public class LogbookExternalResourceImpl {
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(query);
-            final JsonNode result = client.selectOperation(query).toJsonNode().get("$results").get(0);
-            return Response.status(Status.OK).entity(result).build();
+            RequestResponse<JsonNode> result = client.selectOperation(query);
+            int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+            return Response.status(st).entity(result).build();
         } catch (final LogbookClientException e) {
             LOGGER.error(e);
             status = Status.INTERNAL_SERVER_ERROR;
@@ -150,9 +152,9 @@ public class LogbookExternalResourceImpl {
             parser.parse(select.getFinalSelect());
             parser.addCondition(QueryHelper.eq(EVENT_ID_PROCESS, operationId));
             queryDsl = parser.getRequest().getFinalSelect();
-            final JsonNode result =
-                client.selectOperationById(operationId, queryDsl).toJsonNode().get("$results").get(0);
-            return Response.status(Status.OK).entity(result).build();
+            RequestResponse<JsonNode> result = client.selectOperationById(operationId, queryDsl);
+            int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+            return Response.status(st).entity(result).build();
         } catch (final LogbookClientException e) {
             LOGGER.error(e);
             status = Status.INTERNAL_SERVER_ERROR;
@@ -196,9 +198,9 @@ public class LogbookExternalResourceImpl {
             parser.parse(select.getFinalSelect());
             parser.addCondition(QueryHelper.eq(OB_ID, unitLifeCycleId));
             queryDsl = parser.getRequest().getFinalSelect();
-            final JsonNode result =
-                client.selectUnitLifeCycleById(unitLifeCycleId, queryDsl).toJsonNode().get("$results").get(0);
-            return Response.status(Status.OK).entity(result).build();
+            RequestResponse<JsonNode> result = client.selectUnitLifeCycleById(unitLifeCycleId, queryDsl);
+            int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+            return Response.status(st).entity(result).build();
         } catch (final LogbookClientException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
@@ -242,9 +244,10 @@ public class LogbookExternalResourceImpl {
             parser.parse(select.getFinalSelect());
             parser.addCondition(QueryHelper.eq(OB_ID, objectGroupLifeCycleId));
             queryDsl = parser.getRequest().getFinalSelect();
-            final JsonNode result = client.selectObjectGroupLifeCycleById(objectGroupLifeCycleId, queryDsl).toJsonNode()
-                .get("$results").get(0);
-            return Response.status(Status.OK).entity(result).build();
+            RequestResponse<JsonNode> result =
+                client.selectObjectGroupLifeCycleById(objectGroupLifeCycleId, queryDsl);
+            int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+            return Response.status(st).entity(result).build();
         } catch (final LogbookClientException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;

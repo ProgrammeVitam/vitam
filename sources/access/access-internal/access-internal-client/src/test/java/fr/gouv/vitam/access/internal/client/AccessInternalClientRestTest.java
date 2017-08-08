@@ -451,7 +451,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     @Test
     public void givenQueryCorrectWhenSelectObjectByIdThenOK() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        when(mock.get()).thenReturn(Response.status(Status.OK).entity("{ \"hint\": {\"total\":\"1\"} }").build());
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity("{ \"$hits\": {\"total\":\"1\"} }").build());
         final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         assertThat(client.selectObjectbyId(queryJson, ID)).isNotNull();
     }
