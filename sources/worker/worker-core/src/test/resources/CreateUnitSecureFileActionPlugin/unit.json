@@ -1,0 +1,62 @@
+{
+  "$query": {
+    
+  },
+  "$hits": {
+    "total": 2,
+    "offset": 0,
+    "limit": 100
+  },
+  "$results": [
+{
+    "_id": "aeaqaaaaaqhgausqab7boak55nw5vqaaaaaq",
+    "_og": "aebaaaaaaqhgausqab7boak55nw5k3qaaaaq",
+    "DescriptionLevel": "Item",
+    "Title": "009734_20130456_0002_20101129_DI_Senat_PLF_2011.pdf.pdf",
+    "Titles": {
+        "fr": "009734_20130456_0002_20101129_DI_Senat_PLF_2011.pdf.pdf"
+    },
+    "Descriptions": {},
+    "TransactedDate": "2012-10-22T15:47:20",
+    "_sps": [
+        "FRAN_NP_009734"
+    ],
+    "_sp": "FRAN_NP_009734",
+    "_mgt": {
+        "OriginatingAgency": "FRAN_NP_009734"
+    },
+    "_ops": [
+        "aedqaaaaasgxm4z4abt3gak55nwzxtyaaaba"
+    ],
+    "_unitType": "INGEST",
+    "_v": 1,
+    "_tenant": 4,
+    "_max": 4,
+    "_min": 1,
+    "_up": [
+        "aeaqaaaaaqhgausqab7boak55nw5uzaaaadq"
+    ],
+    "_nbc": 0,
+    "_us": [
+        "aeaqaaaaaqhgausqab7boak55nw5mbaaaabq",
+        "aeaqaaaaaqhgausqab7boak55nw5sraaaabq",
+        "aeaqaaaaaqhgausqab7boak55nw5uzaaaadq"
+    ],
+    "_uds": {
+        "aeaqaaaaaqhgausqab7boak55nw5mbaaaabq": 3,
+        "aeaqaaaaaqhgausqab7boak55nw5sraaaabq": 2,
+        "aeaqaaaaaqhgausqab7boak55nw5uzaaaadq": 1
+    },
+    "_storage": {
+        "_nbc": [
+            2
+        ],
+        "strategyId": "default",
+        "offerIds": [
+            "vitam-iaas-app-02.int",
+            "vitam-iaas-app-03.int"
+        ]
+    }
+}
+]
+}

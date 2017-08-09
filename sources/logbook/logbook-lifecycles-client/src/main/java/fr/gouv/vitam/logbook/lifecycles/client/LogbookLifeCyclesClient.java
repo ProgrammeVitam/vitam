@@ -135,6 +135,16 @@ public interface LogbookLifeCyclesClient extends BasicClient {
     JsonNode selectObjectGroupLifeCycleById(String id, JsonNode queryDsl) throws LogbookClientException, InvalidParseOperationException;
 
     /**
+     * returns the object group life cycles
+     *
+     * @param queryDsl dsl query to be executed
+     * @return the object group life cycles
+     * @throws LogbookClientException
+     * @throws InvalidParseOperationException
+     */
+    JsonNode selectObjectGroupLifeCycle(JsonNode queryDsl) throws LogbookClientException, InvalidParseOperationException;
+    
+    /**
      * returns VitamRequestIterator on ObjectGroupLifecycles for this operation.</br>
      * </br>
      * Example of code using it:</br>

@@ -125,7 +125,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     /**
      * For test purpose
      *
-     * @param pManagement   the processManagement to mock
+     * @param pManagement the processManagement to mock
      * @param configuration the configuration
      */
     ProcessManagementResource(ProcessManagement pManagement, ServerConfiguration configuration) {
@@ -186,7 +186,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
      *
      * @param headers contain X-Action and X-Context-ID
      * @param process as Json of type ProcessingEntry, indicate the container and workflowId
-     * @param id      operation identifier
+     * @param id operation identifier
      * @throws ProcessingException if error in start a workflow
      */
     @Path("operations/{id}")
@@ -294,7 +294,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     /**
      * get the workflow status
      *
-     * @param id    operation identifier
+     * @param id operation identifier
      * @param query the query
      * @return http response
      */
@@ -341,7 +341,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
      * Update the status of an operation.
      *
      * @param headers contain X-Action and X-Context-ID
-     * @param id      operation identifier
+     * @param id operation identifier
      */
     @Path("operations/{id}")
     @PUT
@@ -509,7 +509,8 @@ public class ProcessManagementResource extends ApplicationStatusResource {
             LOGGER.error(exc);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, "Error while finding existing workflow process",
-                    "Error : " + exc.getMessage())).build();
+                    "Error : " + exc.getMessage()))
+                .build();
         }
     }
 

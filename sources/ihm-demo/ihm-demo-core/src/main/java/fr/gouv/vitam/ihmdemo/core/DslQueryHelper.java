@@ -257,7 +257,10 @@ public final class DslQueryHelper {
                     case TRACEABILITY_OK:
                         // FIXME : check if it is normal that the end event is a step event for a traceability
                         if ("true".equals(searchValue)) {
-                            query.add(eq(EVENT_OUT_DETAIL, "STP_OP_SECURISATION.OK"));
+                            BooleanQuery queryOrTraceability = or();
+                            queryOrTraceability.add(eq(EVENT_OUT_DETAIL, "STP_OP_SECURISATION.OK"));
+                            queryOrTraceability.add(eq(EVENT_OUT_DETAIL, "LOGBOOK_LC_SECURISATION.OK"));
+                            query.add(queryOrTraceability);
                         }
                         break;
                     case TRACEABILITY_ID:

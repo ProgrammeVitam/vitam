@@ -184,5 +184,15 @@ public interface LogbookOperationsClient extends BasicClient {
      * @throws InvalidParseOperationException
      */
     RequestResponseOK traceability() throws LogbookClientServerException, InvalidParseOperationException;
+    
+    /**
+     * Call traceability logbook lifecycles <br>
+     * <br>
+     *
+     * @return logbook lifecycles as String
+     * @throws LogbookClientServerException
+     * @throws InvalidParseOperationException
+     */
+    RequestResponseOK traceabilityLFC() throws LogbookClientServerException, InvalidParseOperationException;
 
 }

@@ -274,7 +274,6 @@ public class ProcessEngineImpl implements ProcessEngine {
      */
     private ItemStatus callDistributor(ProcessStep step, WorkerParameters workParams, String operationId,
         PauseRecover pauseRecover) {
-
         final ItemStatus stepResponse = processDistributor.distribute(workParams, step, operationId, pauseRecover);
         try {
             processDistributor.close();

@@ -19,6 +19,11 @@
 			<artifactId>logbook-administration</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>logbook-administration-lfc</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>

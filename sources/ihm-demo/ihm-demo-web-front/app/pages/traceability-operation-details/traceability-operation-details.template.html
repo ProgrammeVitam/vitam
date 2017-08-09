@@ -35,6 +35,7 @@
               <td>{{fileSize | filterSize}}</td>
               <td>{{genTime}}</td>
               <td>{{signerCertIssuer}}</td>
+              
             </tr>
           </table>
 
@@ -46,7 +47,7 @@
         </div>
       </div>
     </div>
-    <button ng-show="hasPermission('traceability:check:create')" class="btn btn-primary center-block" ng-click="runTraceabilityVerificationProcess()">
+    <button ng-show="hasPermission('traceability:check:create') && logType != 'LIFECYCLE'" class="btn btn-primary center-block" ng-click="runTraceabilityVerificationProcess()">
       <i class="material-icons pull-left">play_arrow</i>
       <span>Lancer la vérification</span>
     </button>
@@ -64,6 +65,7 @@
       <logbook-entry-table id="report.evIdProc"></logbook-entry-table>
 
         <!-- Download traceability file -->
+        
         <button ng-show="hasPermission('traceability:content:read')" class="btn btn-primary center-block" ng-click="downloadOperation()">
           <i class="material-icons">file_download</i>
           <span>Télécharger</span>

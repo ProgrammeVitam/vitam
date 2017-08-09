@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.rest;
 
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventDetailData;
+
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -488,17 +490,26 @@ public class LogbookInternalResourceImpl {
         // A valid operation found : download the related file
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
 
-            // Get last event to extract eventDetailData field
-            ArrayList events = (ArrayList) operationToCheck.get(LogbookDocument.EVENTS);
-            Document lastEvent = (Document) Iterables.getLast(events);
+            String fileName = null;
+            if (operationToCheck.get(eventDetailData.getDbname()) != null) {
+                TraceabilityEvent traceabilityEvent =
+                    JsonHandler.getFromString((String) operationToCheck.get(eventDetailData.getDbname()),
+                        TraceabilityEvent.class);
+                fileName = traceabilityEvent.getFileName();
+            } else {
 
-            // Create TraceabilityEvent instance
-            String evDetData = lastEvent.getString(LogbookMongoDbName.eventDetailData.getDbname());
-            JsonNode eventDetail = JsonHandler.getFromString(evDetData);
+                // Get last event to extract eventDetailData field
+                ArrayList events = (ArrayList) operationToCheck.get(LogbookDocument.EVENTS);
+                Document lastEvent = (Document) Iterables.getLast(events);
 
-            TraceabilityEvent traceabilityEvent =
-                JsonHandler.getFromJsonNode(eventDetail, TraceabilityEvent.class);
-            String fileName = traceabilityEvent.getFileName();
+                // Create TraceabilityEvent instance
+                String evDetData = lastEvent.getString(LogbookMongoDbName.eventDetailData.getDbname());
+                JsonNode eventDetail = JsonHandler.getFromString(evDetData);
+
+                TraceabilityEvent traceabilityEvent =
+                    JsonHandler.getFromJsonNode(eventDetail, TraceabilityEvent.class);
+                fileName = traceabilityEvent.getFileName();
+            }
 
             // Get zip file
             final Response response =

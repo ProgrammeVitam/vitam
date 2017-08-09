@@ -28,14 +28,12 @@ package fr.gouv.vitam.processing.integration.test;
 
 import static com.jayway.restassured.RestAssured.get;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.EVENT_DETAILS;
-import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.TENANT_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -55,6 +53,18 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import javax.ws.rs.core.Response.Status;
+
+import org.bson.Document;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assume;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -66,6 +76,7 @@ import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.MongoIterable;
 import com.mongodb.client.model.Filters;
+
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -143,15 +154,6 @@ import fr.gouv.vitam.worker.server.rest.WorkerApplication;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
-import org.bson.Document;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assume;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 /**
  * Processing integration test
@@ -227,6 +229,7 @@ public class ProcessingIT {
     private static String INGEST_PLAN_WORFKLOW = "FILINGSCHEME";
     private static String BIG_WORFKLOW_NAME = "BigIngestWorkflow";
     private static String UPD8_AU_WORKFLOW = "UPDATE_RULES_ARCHIVE_UNITS";
+    private static String LFC_TRACEABILITY_WORKFLOW = "LOGBOOK_LC_SECURISATION";
     private static String SIP_FILE_OK_NAME = "integration-processing/SIP-test.zip";
     private static String SIP_PROFIL_OK = "integration-processing/SIP_ok_profil.zip";
     private static String SIP_FILE_OK_WITH_SYSTEMID = "integration-processing/SIP_with_systemID.zip";
@@ -608,7 +611,7 @@ public class ProcessingIT {
             assertEquals(logbookResult.get("$results").get(0).get("agIdOrig").asText(), "producteur1");
 
 
-            //Test Audit
+            // Test Audit
             final GUID opId = GUIDFactory.newRequestIdGUID(tenantId);
             final String auditId = opId.toString();
 
@@ -1936,11 +1939,19 @@ public class ProcessingIT {
     public void createLogbookOperation(GUID operationId, GUID objectId)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
         LogbookClientNotFoundException {
+        createLogbookOperation(operationId, objectId, null);
+    }
+
+    public void createLogbookOperation(GUID operationId, GUID objectId, String type)
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
+        LogbookClientNotFoundException {
 
         final LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
-
+        if (type == null) {
+            type = "Process_SIP_unitary";
+        }
         final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-            operationId, "Process_SIP_unitary", objectId,
+            operationId, type, objectId,
             LogbookTypeProcess.INGEST, StatusCode.STARTED,
             operationId != null ? operationId.toString() : "outcomeDetailMessage",
             operationId);
@@ -2555,7 +2566,7 @@ public class ProcessingIT {
             final GUID objectGuid2 = GUIDFactory.newManifestGUID(tenantId);
             final String containerName2 = objectGuid2.getId();
             createLogbookOperation(operationGuid2, objectGuid2);
-            
+
             RestAssured.port = PORT_SERVICE_WORKSPACE;
             RestAssured.basePath = WORKSPACE_PATH;
             final InputStream zipInputStreamSipObject =
@@ -2563,8 +2574,8 @@ public class ProcessingIT {
             workspaceClient = WorkspaceClientFactory.getInstance().getClient();
             workspaceClient.createContainer(containerName2);
             workspaceClient.uncompressObject(containerName2, SIP_FOLDER, CommonMediaType.ZIP,
-                zipInputStreamSipObject);           
-            
+                zipInputStreamSipObject);
+
             // call processing
             RestAssured.port = PORT_SERVICE_PROCESSING;
             RestAssured.basePath = PROCESSING_PATH;
@@ -2581,7 +2592,7 @@ public class ProcessingIT {
             assertNotNull(processWorkflow2);
             assertEquals(ProcessState.COMPLETED, processWorkflow2.getState());
             assertEquals(StatusCode.OK, processWorkflow2.getStatus());
-            
+
             final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
@@ -2609,7 +2620,7 @@ public class ProcessingIT {
 
             assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-            
+
             wait(containerName);
             ProcessWorkflow processWorkflow =
                 processMonitoring.findOneProcessWorkflow(containerName, tenantId);

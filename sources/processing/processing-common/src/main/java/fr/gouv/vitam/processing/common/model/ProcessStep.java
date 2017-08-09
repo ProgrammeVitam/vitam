@@ -184,4 +184,11 @@ public class ProcessStep extends Step {
     public int hashCode() {
         return Objects.hash(getId(), getStepName(), getWorkerGroupId());
     }
+    
+    @Override
+    public String toString() {
+        return "" + this.getStepName() + " " +
+            this.getActions() + " "+ this.getDistribution().getKind() + " " +
+            this.getDistribution().getElement() + " " + this.getId();
+    }
 }

@@ -44,7 +44,6 @@ import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -86,6 +85,7 @@ import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
 
+
 public class LogbookResourceTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookResourceTest.class);
 
@@ -108,6 +108,7 @@ public class LogbookResourceTest {
     private static final String OPERATION_ID_URI = "/{id_op}";
     private static final String STATUS_URI = "/status";
     private static final String TRACEABILITY_URI = "/operations/traceability";
+    private static final String TRACEABILITY_LFC_URI = "/lifecycles/traceability";
     private static int databasePort;
     private static int serverPort;
     private static LogbookMain application;
@@ -235,8 +236,8 @@ public class LogbookResourceTest {
     }
 
     @Test
-    @Ignore("need a mock of workspace client factory")
     public final void testTraceability() {
+        // TODO -> use mocks and get a proper status code        
         logbookParametersAppend.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         logbookParametersAppend.putParameterValue(LogbookParameterName.agentIdentifier,
@@ -246,7 +247,22 @@ public class LogbookResourceTest {
             .body(logbookParametersAppend)
             .post(TRACEABILITY_URI)
             .then()
-            .statusCode(Status.OK.getStatusCode());
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    public final void testTraceabilityLFC() throws Exception {
+        // TODO -> use mocks and get a proper status code
+        logbookParametersAppend.putParameterValue(LogbookParameterName.eventDateTime,
+            LocalDateUtil.now().toString());
+        logbookParametersAppend.putParameterValue(LogbookParameterName.agentIdentifier,
+            ServerIdentity.getInstance().getJsonIdentity());
+        given()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(logbookParametersAppend)
+            .post(TRACEABILITY_LFC_URI)
+            .then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
     @Test

@@ -14,7 +14,7 @@
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
  *
- *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
@@ -28,8 +28,8 @@
 package fr.gouv.vitam.logbook.common.parameters;
 
 /**
- * TODO: to review, hack for release 4 and demo
- * Note US #2774: Moving Contexts enum from ingestExternal and little refactoring
+ * TODO: to review, hack for release 4 and demo Note US #2774: Moving Contexts enum from ingestExternal and little
+ * refactoring
  */
 public enum Contexts {
 
@@ -39,7 +39,8 @@ public enum Contexts {
     DEFAULT_WORKFLOW(LogbookTypeProcess.INGEST, "PROCESS_SIP_UNITARY"),
     UPDATE_RULES_ARCHIVE_UNITS(LogbookTypeProcess.UPDATE, "UPDATE_RULES_ARCHIVE_UNITS"),
     CHECK(LogbookTypeProcess.CHECK, "CHECK_LOGBOOK_OP_SECURISATION"),
-    AUDIT_WORKFLOW(LogbookTypeProcess.AUDIT, "PROCESS_AUDIT");
+    AUDIT_WORKFLOW(LogbookTypeProcess.AUDIT, "PROCESS_AUDIT"),
+    SECURISATION_LC(LogbookTypeProcess.TRACEABILITY, "LOGBOOK_LC_SECURISATION");
 
     private LogbookTypeProcess logbookTypeProcess;
     private String eventType;

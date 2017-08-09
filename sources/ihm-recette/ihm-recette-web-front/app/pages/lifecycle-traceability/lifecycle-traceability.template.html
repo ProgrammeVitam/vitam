@@ -1,0 +1,12 @@
+<div id="global" class="container-fluid">
+	<ol class="breadcrumb">
+        <li>Menu</li>
+        <li><a href="#!/lifecycleTraceability">Génération journal des cycles de vie sécurisé</a></li>
+	</ol>
+
+	<button class="btn btn-primary" type="button" ng-disabled="checkTenant()"
+		class="btn btn-success btn-s" ng-click="getResults()">
+		<span>Générer le journal des cycles de vie</span>
+	</button>
+	<h2 ng-model="data">{{data}}</h2>
+</div>

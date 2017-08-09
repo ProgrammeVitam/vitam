@@ -46,6 +46,7 @@ public class LogbookConfigurationTest {
     private static final String P2_FILE = "tsa.p12";
     private static final String P2_PASSWORD = "1234";
     private static final String WORKSPACE_URL = "http://localhost:8082";
+    private static final String PROCESSING_URL = "http://localhost:8087";
 
     private final static String CLUSTER_NAME = "cluster-vitam";
     private final static String HOST_NAME = "localhost";
@@ -69,7 +70,8 @@ public class LogbookConfigurationTest {
         assertEquals(P2_PASSWORD, config1.getP12LogbookPassword());
         config1.setWorkspaceUrl(WORKSPACE_URL);
         assertEquals(WORKSPACE_URL, config1.getWorkspaceUrl());
-
+        config1.setProcessingUrl(PROCESSING_URL);
+        assertEquals(PROCESSING_URL, config1.getProcessingUrl());
         final List<ElasticsearchNode> es_nodes = new ArrayList<>();
         es_nodes.add(new ElasticsearchNode(HOST_NAME, TCP_PORT));
         assertEquals(1, config1.setElasticsearchNodes(es_nodes).getElasticsearchNodes().size());

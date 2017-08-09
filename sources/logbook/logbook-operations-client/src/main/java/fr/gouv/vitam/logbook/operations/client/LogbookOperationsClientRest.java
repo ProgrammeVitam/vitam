@@ -64,6 +64,7 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookOperationsClientRest.class);
     private static final String OPERATIONS_URL = "/operations";
     private static final String TRACEABILITY_URI = "/operations/traceability";
+    private static final String TRACEABILITY_LFC_URI = "/lifecycles/traceability";
 
     private final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
 
@@ -319,5 +320,30 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
             consumeAnyEntityAndClose(response);
         }
 
+    }
+
+    @Override
+    public RequestResponseOK traceabilityLFC() throws LogbookClientServerException, InvalidParseOperationException {
+        Response response = null;
+        try {
+            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+            headers.add(GlobalDataRest.X_TENANT_ID, ParameterHelper.getTenantParameter());
+            response = performRequest(HttpMethod.POST, TRACEABILITY_LFC_URI, headers, MediaType.APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK:
+                    LOGGER.debug(" " + Response.Status.OK.getReasonPhrase());
+                    break;
+                default:
+                    LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
+                    throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            }            
+            return RequestResponse.parseRequestResponseOk(response);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
     }
 }

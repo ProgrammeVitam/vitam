@@ -46,10 +46,15 @@ angular.module('traceability.operation.details')
         if(!responseValidator.validateReceivedResponse(response)){
           // Display error
         } else{
+          var receivedDetails;
           // Display operation details
-          var receivedDetails = response.data.$results[0].events[response.data.$results[0].events.length - 1].evDetData;
+          if (response.data.$results[0].evDetData !=null) {
+        	  receivedDetails = response.data.$results[0].evDetData;
+          } else {
+        	  receivedDetails = response.data.$results[0].events[response.data.$results[0].events.length - 1].evDetData;  
+          }
           var details = JSON.parse(receivedDetails);
-
+          $scope.logType = details.LogType;
           $scope.startDate = details.StartDate;
           $scope.endDate = details.EndDate;
           $scope.numberOfElement = details.NumberOfElement;

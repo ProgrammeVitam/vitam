@@ -169,4 +169,12 @@ class LogbookOperationsClientMock extends AbstractMockClient implements LogbookO
         super.close();
         helper.clear();
     }
+
+    @Override
+    public RequestResponseOK traceabilityLFC() throws LogbookClientServerException, InvalidParseOperationException {
+        LOGGER.debug("calling traceability LFC");
+        final List<String> resultAsJson = new ArrayList<>();
+        resultAsJson.add(GUID_EXAMPLE);
+        return new RequestResponseOK().addAllResults(resultAsJson);
+    }
 }

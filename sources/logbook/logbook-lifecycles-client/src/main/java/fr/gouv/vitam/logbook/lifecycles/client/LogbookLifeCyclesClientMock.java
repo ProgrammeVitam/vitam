@@ -51,6 +51,7 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
@@ -144,7 +145,7 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     @Override
     public JsonNode selectUnitLifeCycle(JsonNode queryDsl) throws InvalidParseOperationException {
         LOGGER.debug("Select request with id:" + queryDsl.findValue(LogbookMongoDbName.objectIdentifier.getDbname()));
-        return ClientMockResultHelper.getLogbookOperation();
+        return ClientMockResultHelper.getLogbookLifecycle();
     }
 
     @Override
@@ -287,5 +288,12 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
             }
         }
         return null;
+    }
+
+    @Override
+    public JsonNode selectObjectGroupLifeCycle(JsonNode queryDsl)
+        throws LogbookClientException, InvalidParseOperationException {
+        LOGGER.debug("Select request without id:" + queryDsl.findValue(LogbookMongoDbName.objectIdentifier.getDbname()));
+        return ClientMockResultHelper.getLogbookLifecycle();
     }
 }

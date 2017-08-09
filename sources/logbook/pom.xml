@@ -21,7 +21,7 @@
 		<module>logbook-lifecycles</module>
 		<module>logbook-lifecycles-client</module>
 		<module>logbook-administration</module>
-		<module>logbook-administration-client</module>
+		<module>logbook-administration-lfc</module>
 		<module>logbook-rest</module>
 	</modules>
 </project>
