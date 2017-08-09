@@ -50,6 +50,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
@@ -130,20 +131,8 @@ public class StoreMetaDataUnitActionPlugin extends StoreObjectActionHandler {
                     throw new ProcessingException(ARCHIVE_UNIT_NOT_FOUND);
                 }
                 unit = unit.get(0);
-                // transfer json to workspace
-                try {
-                    handlerIO.transferJsonToWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER, fileName,
-                        unit, true, asyncIO);
-                } catch (ProcessingException e) {
-                    LOGGER.error(params.getObjectName(), e);
-                    throw new WorkspaceClientServerException(e);
-                }
-                // object Description
-                final ObjectDescription description =
-                    new ObjectDescription(StorageCollectionType.UNITS, params.getContainerName(), fileName,
-                        IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + fileName);
-                // store metadata object from workspace
-                StoredInfoResult result = storeObject(description, itemStatus);
+                // store metadata object
+                StoredInfoResult result = storeObject(StorageCollectionType.UNITS, guid, itemStatus);
                 // Update unit with store information
                 if (result != null) {
                     try {

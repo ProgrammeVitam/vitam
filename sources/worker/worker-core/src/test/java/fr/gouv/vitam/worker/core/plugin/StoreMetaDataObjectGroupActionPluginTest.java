@@ -160,7 +160,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
 
         when(storageClientFactory.getClient()).thenReturn(storageClient);
         when(StorageClientFactory.getInstance()).thenReturn(storageClientFactory);
-        when(storageClient.storeFileFromWorkspace(anyObject(), anyObject(), anyObject(), anyObject()))
+        when(storageClient.storeFileFromDatabase(anyObject(), anyObject(), anyObject()))
             .thenReturn(getStoredInfoResult());
         plugin = new StoreMetaDataObjectGroupActionPlugin();
 
@@ -191,7 +191,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
         when(storageClientFactory.getClient()).thenReturn(storageClient);
         when(StorageClientFactory.getInstance()).thenReturn(storageClientFactory);
         
-        when(storageClient.storeFileFromWorkspace(anyObject(), anyObject(), anyObject(), anyObject()))
+        when(storageClient.storeFileFromDatabase(anyObject(), anyObject(), anyObject()))
             .thenReturn(getStoredInfoResult());
 
         plugin = new StoreMetaDataObjectGroupActionPlugin();
@@ -250,7 +250,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
                 .thenReturn(Response.status(Status.OK).entity(objectGroup).build());
 
         Mockito.doThrow(new StorageNotFoundClientException("Error Metadata")).when(storageClient)
-            .storeFileFromWorkspace(anyObject(), anyObject(), anyObject(), anyObject());
+            .storeFileFromDatabase(anyObject(), anyObject(), anyObject());
 
         plugin = new StoreMetaDataObjectGroupActionPlugin();
 
@@ -279,7 +279,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
                 .thenReturn(Response.status(Status.OK).entity(objectGroup).build());
 
         Mockito.doThrow(new StorageAlreadyExistsClientException("Error Metadata ")).when(storageClient)
-            .storeFileFromWorkspace(anyObject(), anyObject(), anyObject(), anyObject());
+            .storeFileFromDatabase(anyObject(), anyObject(), anyObject());
 
         plugin = new StoreMetaDataObjectGroupActionPlugin();
 
