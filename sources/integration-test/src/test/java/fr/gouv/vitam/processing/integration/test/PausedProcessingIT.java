@@ -293,13 +293,14 @@ public class PausedProcessingIT {
 
         if (!imported) {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-                client
-                    .importFormat(
-                        PropertiesUtils.getResourceAsStream("integration-processing/DROID_SignatureFile_V88.xml"));
+                client.importFormat(
+                    PropertiesUtils.getResourceAsStream("integration-processing/DROID_SignatureFile_V88.xml"),
+                    "DROID_SignatureFile_V88.xml");
 
                 // Import Rules
                 client.importRulesFile(
-                    PropertiesUtils.getResourceAsStream("integration-processing/jeu_donnees_OK_regles_CSV_regles.csv"));
+                    PropertiesUtils.getResourceAsStream("integration-processing/jeu_donnees_OK_regles_CSV_regles.csv"),
+                    "jeu_donnees_OK_regles_CSV_regles.csv");
 
                 File fileProfiles = PropertiesUtils.getResourceFile("integration-processing/OK_profil.json");
                 List<ProfileModel> profileModelList =
@@ -437,10 +438,11 @@ public class PausedProcessingIT {
             } catch (InterruptedException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
-            nbTry --;
+            nbTry--;
 
             if (nbTry < 0) {
-                LOGGER.error("CANNOT CONNECT TO SERVER {}", ProcessingManagementClientFactory.getInstance().getServiceUrl());
+                LOGGER.error("CANNOT CONNECT TO SERVER {}",
+                    ProcessingManagementClientFactory.getInstance().getServiceUrl());
                 break;
             }
         }

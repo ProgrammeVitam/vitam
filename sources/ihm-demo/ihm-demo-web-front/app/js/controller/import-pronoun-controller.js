@@ -94,12 +94,14 @@ angular.module('ihm.demo')
 	$scope.validAction = function(){
 		uploader = $scope.uploader;
 		uploader.queue[0].url = serviceURI + checkFormat;
+		uploader.queue[0].headers['X-Filename'] = uploader.queue[0]._file.name;
 		uploader.queue[0].upload();
 	};
 
 	function uploadAction() {
 		uploader = $scope.uploader;
 		uploader.queue[0].url = serviceURI + uploadFormat;
+		uploader.queue[0].headers['X-Filename'] = uploader.queue[0]._file.name;
 		uploader.queue[0].upload();
 
 		$scope.checked = true;

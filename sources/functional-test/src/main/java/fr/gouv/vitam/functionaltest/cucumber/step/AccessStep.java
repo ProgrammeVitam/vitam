@@ -535,13 +535,13 @@ public class AccessStep {
                     world.getAdminClient().checkDocuments(adminCollection, inputStream, world.getTenantId());
             } else if ("importe".equals(action)) {
                 status =
-                    world.getAdminClient().createDocuments(adminCollection, inputStream, world.getTenantId());
+                    world.getAdminClient().createDocuments(adminCollection, inputStream, filename, world.getTenantId());
             }
             if (status != null) {
                 results.add(JsonHandler.createObjectNode().put("Code", String.valueOf(status.getStatusCode())));
             }
         } catch (Exception e) {
-            LOGGER.warn("Referetiels collection already imported");
+            LOGGER.warn("Referentiels collection already imported");
         }
     }
 

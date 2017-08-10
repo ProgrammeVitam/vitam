@@ -42,6 +42,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.EntityTag;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
@@ -55,6 +56,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
 
 import fr.gouv.vitam.common.CharsetUtils;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.Query;
@@ -194,6 +196,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     /**
      * import the file format
      *
+     * @param headers http headers
      * @param xmlPronom as InputStream
      * @return Response jersey response
      */
@@ -201,10 +204,11 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response importFormat(InputStream xmlPronom) {
+    public Response importFormat(@Context HttpHeaders headers, InputStream xmlPronom) {
         ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", xmlPronom);
+        String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
         try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(mongoAccess)) {
-            formatManagement.importFile(xmlPronom);
+            formatManagement.importFile(xmlPronom, filename);
             return Response.status(Status.CREATED).entity(Status.CREATED.getReasonPhrase()).build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
@@ -262,7 +266,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 // resource is modified so server new content
                 // 200 OK status code is returned with new content
                 return Response.status(Status.OK).entity(new RequestResponseOK()
-                    .addResult(JsonHandler.toJsonNode(fileFormat)).setHttpCode(Status.OK.getStatusCode())).tag(etag).cacheControl(cacheControl).build();
+                    .addResult(JsonHandler.toJsonNode(fileFormat)).setHttpCode(Status.OK.getStatusCode())).tag(etag)
+                    .cacheControl(cacheControl).build();
             }
 
             return builder.cacheControl(cacheControl).tag(etag).build();
@@ -302,7 +307,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (FileFormatNotFoundException e) {
-            return Response.status(Status.OK).entity(new RequestResponseOK(select).setHttpCode(Status.OK.getStatusCode())).build();
+            return Response.status(Status.OK)
+                .entity(new RequestResponseOK(select).setHttpCode(Status.OK.getStatusCode())).build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
             final Status status = Status.NOT_FOUND;
@@ -331,7 +337,6 @@ public class AdminManagementResource extends ApplicationStatusResource {
     public Response checkRulesFile(InputStream rulesStream)
         throws IOException, ReferentialException, InvalidParseOperationException, InvalidCreateOperationException {
         ParametersChecker.checkParameter("rulesStream is a mandatory parameter", rulesStream);
-
         try (RulesManagerFileImpl rulesManagerFileImpl = new RulesManagerFileImpl(mongoAccess, vitamCounterService,
             securisator)) {
             rulesManagerFileImpl.checkFile(rulesStream);
@@ -352,7 +357,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
     /**
      * import the rules file
-     *
+     * 
+     * @param headers http headers
      * @param rulesStream as InputStream
      * @return Response jersey response
      * @throws IOException when error json occurs
@@ -363,13 +369,14 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response importRulesFile(InputStream rulesStream)
+    public Response importRulesFile(@Context HttpHeaders headers, InputStream rulesStream)
         throws InvalidParseOperationException, ReferentialException, IOException {
         ParametersChecker.checkParameter("rulesStream is a mandatory parameter", rulesStream);
+        String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
         try (RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess, vitamCounterService,
             securisator)) {
 
-            rulesFileManagement.importFile(rulesStream);
+            rulesFileManagement.importFile(rulesStream, filename);
             return Response.status(Status.CREATED).entity(Status.CREATED.getReasonPhrase()).build();
         } catch (final FileRulesImportInProgressException e) {
             LOGGER.warn(e);
@@ -433,7 +440,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 // resource is modified so server new content
                 // 200 OK status code is returned with new content
                 return Response.status(Status.OK).entity(new RequestResponseOK()
-                    .addResult(JsonHandler.toJsonNode(fileRules)).setHttpCode(Status.OK.getStatusCode())).tag(etag).cacheControl(cacheControl).build();
+                    .addResult(JsonHandler.toJsonNode(fileRules)).setHttpCode(Status.OK.getStatusCode())).tag(etag)
+                    .cacheControl(cacheControl).build();
             }
 
             return builder.cacheControl(cacheControl).tag(etag).build();
@@ -641,7 +649,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
             .build();
     }
 
-    private AccessContractModel getContractDetails(String contratId) throws InvalidParseOperationException,
+    private AccessContractModel getContractDetails(String contratId)
+        throws InvalidParseOperationException,
         InvalidCreateOperationException, AdminManagementClientServerException {
 
         try (ContractService<AccessContractModel> accessContract = new AccessContractImpl(mongoAccess,

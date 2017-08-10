@@ -31,11 +31,13 @@ import java.util.List;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -138,11 +140,14 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public Status importFormat(InputStream stream) throws ReferentialException, DatabaseConflictException {
+    public Status importFormat(InputStream stream, String filename)
+        throws ReferentialException, DatabaseConflictException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
         Response response = null;
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_FILENAME, filename);
         try {
-            response = performRequest(HttpMethod.POST, FORMAT_IMPORT_URL, null,
+            response = performRequest(HttpMethod.POST, FORMAT_IMPORT_URL, headers,
                 stream, MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
@@ -229,7 +234,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
 
     @Override
-    public Status checkRulesFile(InputStream stream) throws FileRulesException, AdminManagementClientServerException {
+    public Status checkRulesFile(InputStream stream)
+        throws FileRulesException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
         Response response = null;
         try {
@@ -260,12 +266,14 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public Status importRulesFile(InputStream stream)
+    public Status importRulesFile(InputStream stream, String filename)
         throws ReferentialException, DatabaseConflictException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
         Response response = null;
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_FILENAME, filename);
         try {
-            response = performRequest(HttpMethod.POST, RULESMANAGER_IMPORT_URL, null,
+            response = performRequest(HttpMethod.POST, RULESMANAGER_IMPORT_URL, headers,
                 stream, MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
             final Status status = Status.fromStatusCode(response.getStatus());

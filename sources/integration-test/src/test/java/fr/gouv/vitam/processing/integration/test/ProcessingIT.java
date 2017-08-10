@@ -435,13 +435,14 @@ public class ProcessingIT {
 
         if (!imported) {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-                client
-                    .importFormat(
-                        PropertiesUtils.getResourceAsStream("integration-processing/DROID_SignatureFile_V88.xml"));
+                client.importFormat(
+                    PropertiesUtils.getResourceAsStream("integration-processing/DROID_SignatureFile_V88.xml"),
+                    "DROID_SignatureFile_V88.xml");
 
                 // Import Rules
                 client.importRulesFile(
-                    PropertiesUtils.getResourceAsStream("integration-processing/jeu_donnees_OK_regles_CSV_regles.csv"));
+                    PropertiesUtils.getResourceAsStream("integration-processing/jeu_donnees_OK_regles_CSV_regles.csv"),
+                    "jeu_donnees_OK_regles_CSV_regles.csv");
 
                 File fileProfiles = PropertiesUtils.getResourceFile("integration-processing/OK_profil.json");
                 List<ProfileModel> profileModelList =
@@ -2464,7 +2465,6 @@ public class ProcessingIT {
             fail("should not raized an exception");
         }
     }
-
 
 
     @RunWithCustomExecutor

@@ -40,7 +40,7 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     }
 
     @Override
-    public Status createDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
+    public Status createDocuments(AdminCollections documentType, InputStream stream, String filename, Integer tenantId)
         throws AccessExternalClientNotFoundException, AccessExternalClientException {
         StreamUtils.closeSilently(stream);
         return Status.CREATED;
@@ -59,7 +59,8 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     }
 
     @Override
-    public RequestResponse findDocuments(AdminCollections documentType, JsonNode select, Integer tenantId, String contractName)
+    public RequestResponse findDocuments(AdminCollections documentType, JsonNode select, Integer tenantId,
+        String contractName)
         throws AccessExternalClientNotFoundException, AccessExternalClientException, InvalidParseOperationException {
         if (AdminCollections.RULES.equals(documentType)) {
             return ClientMockResultHelper.getRuleList();
@@ -114,7 +115,9 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     @Override
     public RequestResponse createProfiles(InputStream profiles, Integer tenantId)
         throws InvalidParseOperationException, AccessExternalClientException {
-        return ClientMockResultHelper.createReponse(ClientMockResultHelper.getProfiles(Status.CREATED.getStatusCode()).toJsonNode()).setHttpCode(Status.CREATED.getStatusCode());
+        return ClientMockResultHelper
+            .createReponse(ClientMockResultHelper.getProfiles(Status.CREATED.getStatusCode()).toJsonNode())
+            .setHttpCode(Status.CREATED.getStatusCode());
     }
 
     @Override
@@ -124,21 +127,26 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     }
 
     @Override
-    public Response downloadProfileFile(String profileMetadataId, Integer tenantId) throws AccessExternalClientException {
+    public Response downloadProfileFile(String profileMetadataId, Integer tenantId)
+        throws AccessExternalClientException {
         return new AbstractMockClient.FakeInboundResponse(Status.OK, IOUtils.toInputStream("Vitam Test"),
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
     }
 
     @Override
-    public RequestResponse importContexts(InputStream contexts, Integer tenantId) 
+    public RequestResponse importContexts(InputStream contexts, Integer tenantId)
         throws InvalidParseOperationException {
-        return ClientMockResultHelper.createReponse(ClientMockResultHelper.getContexts(Status.CREATED.getStatusCode()).toJsonNode()).setHttpCode(Status.CREATED.getStatusCode());
+        return ClientMockResultHelper
+            .createReponse(ClientMockResultHelper.getContexts(Status.CREATED.getStatusCode()).toJsonNode())
+            .setHttpCode(Status.CREATED.getStatusCode());
     }
 
     @Override
     public RequestResponse updateContext(String id, JsonNode queryDsl, Integer tenantId)
         throws AccessExternalClientException, InvalidParseOperationException {
-        return ClientMockResultHelper.createReponse(ClientMockResultHelper.getContexts(Status.CREATED.getStatusCode()).toJsonNode()).setHttpCode(Status.CREATED.getStatusCode());
+        return ClientMockResultHelper
+            .createReponse(ClientMockResultHelper.getContexts(Status.CREATED.getStatusCode()).toJsonNode())
+            .setHttpCode(Status.CREATED.getStatusCode());
     }
 
     @Override

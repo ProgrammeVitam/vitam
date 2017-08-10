@@ -135,6 +135,11 @@ public class GlobalDataRest {
     public static final String X_ACCESS_CONTRAT_ID = "X-Access-Contract-Id";
 
     /**
+     * Filename Header
+     */
+    public static final String X_FILENAME = "X-Filename";
+
+    /**
      * Transfer Encoding Header
      */
     public static final String TRANSFER_ENCODING_HEADER = "Transfer-Encoding";

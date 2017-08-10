@@ -896,7 +896,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @RequiresPermissions("format:create")
     public Response uploadRefFormat(@Context HttpHeaders headers, InputStream input) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-            Status status = adminClient.createDocuments(AdminCollections.FORMATS, input, getTenantId(headers));
+            Status status = adminClient.createDocuments(AdminCollections.FORMATS, input,
+                headers.getHeaderString(GlobalDataRest.X_FILENAME), getTenantId(headers));
             return Response.status(status).build();
         } catch (final AccessExternalClientException e) {
             LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
@@ -1113,6 +1114,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
         final List<String> requestIds = HttpHeaderHelper.getHeaderValues(headers, IhmWebAppHeader.REQUEST_ID.name());
         Integer tenantId = getTenantId(headers);
+
         if (requestIds != null) {
             requestId = requestIds.get(0);
             // get result from shiro session
@@ -1153,7 +1155,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 return Response.status(Status.BAD_REQUEST).build();
             } catch (final AccessExternalClientNotFoundException e) {
                 LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
-                return Response.status(Status.OK).entity(new RequestResponseOK<>().setHttpCode(Status.OK.getStatusCode())).build();
+                return Response.status(Status.OK)
+                    .entity(new RequestResponseOK<>().setHttpCode(Status.OK.getStatusCode())).build();
             } catch (final Exception e) {
                 LOGGER.error(INTERNAL_SERVER_ERROR_MSG);
                 return Response.status(Status.INTERNAL_SERVER_ERROR).build();
@@ -1207,7 +1210,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @RequiresPermissions("rules:create")
     public Response checkRefRule(@Context HttpHeaders headers, InputStream input) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-            Status status = adminClient.checkDocuments(AdminCollections.RULES, input, getTenantId(headers));
+            Status status =
+                adminClient.checkDocuments(AdminCollections.RULES, input, getTenantId(headers));
             return Response.status(status).build();
         } catch (final AccessExternalClientException e) {
             return Response.status(Status.FORBIDDEN).build();
@@ -1231,7 +1235,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @RequiresPermissions("rules:create")
     public Response uploadRefRule(@Context HttpHeaders headers, InputStream input) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-            Status status = adminClient.createDocuments(AdminCollections.RULES, input, getTenantId(headers));
+            Status status =
+                adminClient.createDocuments(AdminCollections.RULES, input,
+                    headers.getHeaderString(GlobalDataRest.X_FILENAME), getTenantId(headers));
             return Response.status(status).build();
         } catch (final AccessExternalClientException e) {
             return Response.status(Status.FORBIDDEN).entity(e.getMessage()).build();

@@ -26,6 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.external.client;
 
+import java.io.InputStream;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.external.api.AdminCollections;
@@ -33,15 +38,10 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientExcept
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalNotFoundException;
-import fr.gouv.vitam.common.external.client.BasicClient;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.external.client.BasicClient;
 import fr.gouv.vitam.common.model.RequestResponse;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import java.io.InputStream;
 
 /**
  * Admin External Client Interface
@@ -69,12 +69,13 @@ public interface AdminExternalClient extends BasicClient {
      *
      * @param documentType
      * @param stream
+     * @param filename
      * @param tenantId
      * @return the status
      * @throws AccessExternalClientNotFoundException
      * @throws AccessExternalClientException
      */
-    Status createDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
+    Status createDocuments(AdminCollections documentType, InputStream stream, String filename, Integer tenantId)
         throws AccessExternalClientNotFoundException, AccessExternalClientException;
 
     /**

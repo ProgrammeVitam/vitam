@@ -135,6 +135,7 @@ import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.worker.server.rest.WorkerApplication;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
+
 /**
  * Ingest Internal integration test
  */
@@ -388,13 +389,14 @@ public class IngestInternalIT {
 
         if (!imported) {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-                client
-                    .importFormat(
-                    PropertiesUtils.getResourceAsStream("integration-ingest-internal/DROID_SignatureFile_V88.xml"));
+                client.importFormat(
+                    PropertiesUtils.getResourceAsStream("integration-ingest-internal/DROID_SignatureFile_V88.xml"),
+                    "DROID_SignatureFile_V88.xml");
 
                 // Import Rules
                 client.importRulesFile(
-                    PropertiesUtils.getResourceAsStream("integration-ingest-internal/MGT_RULES_REF.csv"));
+                    PropertiesUtils.getResourceAsStream("integration-ingest-internal/MGT_RULES_REF.csv"),
+                    "MGT_RULES_REF.csv");
 
                 // import contract
                 File fileContracts =
@@ -1465,9 +1467,10 @@ public class IngestInternalIT {
     public void shouldImportRulesFile() {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         try {
+            // TODO check logbook
             FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK));
             AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
-            final Status status = client.importRulesFile(stream);
+            final Status status = client.importRulesFile(stream, FILE_TO_TEST_OK);
             ResponseBuilder ResponseBuilder = Response.status(status);
             Response response = ResponseBuilder.build();
             assertEquals(response.getStatus(), Status.CREATED.getStatusCode());

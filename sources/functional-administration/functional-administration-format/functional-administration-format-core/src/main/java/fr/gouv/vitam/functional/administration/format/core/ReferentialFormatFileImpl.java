@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
@@ -45,6 +46,7 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.ReferentialFile;
+import fr.gouv.vitam.functional.administration.common.ReferentialFileUtils;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatNotFoundException;
@@ -84,7 +86,8 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
     }
 
     @Override
-    public void importFile(InputStream xmlPronom) throws ReferentialException, DatabaseConflictException {
+    public void importFile(InputStream xmlPronom, String filename)
+        throws ReferentialException, DatabaseConflictException, InvalidParseOperationException {
         ParametersChecker.checkParameter("Pronom file is a mandatory parameter", xmlPronom);
         final ArrayNode pronomList = checkFile(xmlPronom);
         try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
@@ -112,6 +115,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
                             VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, StatusCode.OK) + VERSION +
                                 pronomList.get(0).get("VersionPronom").textValue() + FILE_PRONOM,
                             eip1);
+                    ReferentialFileUtils.addFilenameInLogbookOperation(filename, logbookParametersEnd);
 
                     try {
                         client.update(logbookParametersEnd);
@@ -125,6 +129,8 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
                         .newLogbookOperationParameters(eip1, STP_REFERENTIAL_FORMAT_IMPORT, eip,
                             LogbookTypeProcess.MASTERDATA, StatusCode.KO,
                             VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, StatusCode.KO), eip1);
+                    ReferentialFileUtils.addFilenameInLogbookOperation(filename, logbookParametersEnd);
+
                     try {
                         client.update(logbookParametersEnd);
                     } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |

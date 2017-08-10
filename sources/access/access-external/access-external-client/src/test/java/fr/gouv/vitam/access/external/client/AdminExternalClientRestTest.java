@@ -210,7 +210,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     public void testCheckDocumentAccessExternalClientException()
         throws Exception {
         when(mock.put()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        assertEquals(Status.BAD_REQUEST, 
+        assertEquals(Status.BAD_REQUEST,
             client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID));
     }
 
@@ -219,7 +219,8 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
         assertEquals(
-            client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID),
+            client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), "test.xml",
+                TENANT_ID),
             Status.OK);
     }
 
@@ -227,15 +228,17 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     public void testImportDocumentAccessExternalClientNotFoundException()
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID);
+        client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), "test.xml",
+            TENANT_ID);
     }
 
     @Test
     public void testImportDocumentAccessExternalClientException()
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).entity("not well formated").build());
-        assertEquals(Status.BAD_REQUEST, 
-            client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID));
+        assertEquals(Status.BAD_REQUEST,
+            client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), "test.xml",
+                TENANT_ID));
     }
 
     @Test
@@ -431,7 +434,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(
             Response.status(Status.OK).entity(new RequestResponseOK<>().addAllResults(getAccessContracts())).build());
-        
+
         RequestResponse resp =
             client.findDocuments(AdminCollections.ACCESS_CONTRACTS, JsonHandler.createObjectNode(), TENANT_ID);
         assertThat(resp).isInstanceOf(RequestResponseOK.class);
@@ -459,7 +462,6 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         assertThat(resp).isInstanceOf(RequestResponseOK.class);
         assertThat(((RequestResponseOK) resp).getResults()).hasSize(0);
     }
-
 
 
 
@@ -506,7 +508,6 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         client.createProfiles(null, TENANT_ID);
     }
-
 
 
 
@@ -610,7 +611,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         assertThat(resp).isInstanceOf(RequestResponseOK.class);
         assertThat(((RequestResponseOK) resp).getResults()).hasSize(0);
     }
-    
+
     @Test()
     @RunWithCustomExecutor
     public void importContextsWithCorrectJsonReturnCreated()

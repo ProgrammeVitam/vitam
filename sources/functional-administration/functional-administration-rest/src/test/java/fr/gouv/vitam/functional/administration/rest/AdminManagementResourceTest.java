@@ -27,8 +27,6 @@
 package fr.gouv.vitam.functional.administration.rest;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.ok;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
@@ -37,7 +35,6 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assume.assumeTrue;
 
-import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -45,14 +42,25 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.core.Response.Status;
+
+import org.jhades.JHades;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
+
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -89,15 +97,6 @@ import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminF
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import org.jhades.JHades;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 
 public class AdminManagementResourceTest {
@@ -246,9 +245,11 @@ public class AdminManagementResourceTest {
     @Before
     public void setUp() throws Exception {
         instanceRule.stubFor(WireMock.post(urlMatching("/workspace/v1/containers/(.*)"))
-            .willReturn(aResponse().withStatus(201).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
+            .willReturn(
+                aResponse().withStatus(201).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
         instanceRule.stubFor(WireMock.delete(urlMatching("/workspace/v1/containers/(.*)"))
-            .willReturn(aResponse().withStatus(204).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
+            .willReturn(
+                aResponse().withStatus(204).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
     }
 
     @After
@@ -290,11 +291,13 @@ public class AdminManagementResourceTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
         given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_FILENAME, "FF-vitam.xml")
             .when().post(IMPORT_FORMAT_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
         stream = PropertiesUtils.getResourceAsStream("FF-vitam-format-KO.xml");
         given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_FILENAME, "FF-vitam-format-KO.xml")
             .when().post(IMPORT_FORMAT_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
@@ -330,7 +333,8 @@ public class AdminManagementResourceTest {
         contractModel.setName(contractId);
         contractModel.setStatus(ContractStatus.ACTIVE.name());
 
-        mongoDbAccess.insertDocument(JsonHandler.toJsonNode(contractModel), FunctionalAdminCollections.ACCESS_CONTRACT).close();
+        mongoDbAccess.insertDocument(JsonHandler.toJsonNode(contractModel), FunctionalAdminCollections.ACCESS_CONTRACT)
+            .close();
 
         stream = PropertiesUtils.getResourceAsStream("accession-register.json");
         final AccessionRegisterDetail register = JsonHandler.getFromInputStream(stream, AccessionRegisterDetail.class);
@@ -361,6 +365,7 @@ public class AdminManagementResourceTest {
         with()
             .contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_FILENAME, "FF-vitam.xml")
             .when().post(IMPORT_FORMAT_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
@@ -393,6 +398,7 @@ public class AdminManagementResourceTest {
         with()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_FILENAME, "FF-vitam.xml")
             .when().post(IMPORT_FORMAT_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
@@ -423,6 +429,7 @@ public class AdminManagementResourceTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         with()
             .contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_FILENAME, "FF-vitam.xml")
             .when().post(IMPORT_FORMAT_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
@@ -448,6 +455,7 @@ public class AdminManagementResourceTest {
         with()
             .contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_FILENAME, "FF-vitam.xml")
             .when().post(IMPORT_FORMAT_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
@@ -609,6 +617,7 @@ public class AdminManagementResourceTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream(FILE_TEST_OK);
         given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_FILENAME, FILE_TEST_OK)
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
@@ -624,6 +633,7 @@ public class AdminManagementResourceTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream(FILE_TEST_OK);
         given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_FILENAME, FILE_TEST_OK)
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
@@ -632,6 +642,7 @@ public class AdminManagementResourceTest {
         VitamThreadUtils.getVitamSession().setTenantId(1);
         stream = PropertiesUtils.getResourceAsStream(FILE_TEST_OK);
         given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, 1)
+            .header(GlobalDataRest.X_FILENAME, FILE_TEST_OK)
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
     }
@@ -646,6 +657,7 @@ public class AdminManagementResourceTest {
         with()
             .contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_FILENAME, FILE_TEST_OK)
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
@@ -677,6 +689,7 @@ public class AdminManagementResourceTest {
         with()
             .contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_FILENAME, FILE_TEST_OK)
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
@@ -707,6 +720,7 @@ public class AdminManagementResourceTest {
         with()
             .contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_FILENAME, FILE_TEST_OK)
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
@@ -729,6 +743,7 @@ public class AdminManagementResourceTest {
         with()
             .contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_FILENAME, FILE_TEST_OK)
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
@@ -753,6 +768,7 @@ public class AdminManagementResourceTest {
         with()
             .contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_FILENAME, FILE_TEST_OK)
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
