@@ -112,9 +112,9 @@ public class ArchiveUnitMapper {
             archiveUnitType.getArchiveUnitOrDataObjectReferenceOrDataObjectGroup().stream()
                 .filter(item -> item instanceof JAXBElement)
                 .filter(item -> ((JAXBElement) item).getDeclaredType().equals(DataObjectRefType.class))
-                .map(item -> ((JAXBElement) item))
+                .map(item -> (JAXBElement) item)
                 .map(JAXBElement::getValue)
-                .map(item -> ((DataObjectRefType) item))
+                .map(item -> (DataObjectRefType) item)
                 .map(item -> {
                     DataObjectReference dataObjectReference = new DataObjectReference();
                     dataObjectReference.setDataObjectGroupReferenceId(item.getDataObjectGroupReferenceId());
@@ -138,6 +138,16 @@ public class ArchiveUnitMapper {
     private void fillStorageRule(ArchiveUnitType archiveUnitType, ArchiveUnitModel archiveUnit) {
         StorageRuleType storageRule = archiveUnitType.getManagement().getStorageRule();
         RuleCategoryModel storageRuleCategory = fillCommonRule(storageRule);
+        if (storageRule != null && storageRule.getFinalAction() != null && storageRuleCategory == null) {
+            // that means we only have FinalAction set in the rule
+            storageRuleCategory = new RuleCategoryModel();
+            List<RuleModel> rules = new ArrayList<>();
+            RuleModel newRule = new RuleModel();
+            newRule.setFinalAction(storageRule.getFinalAction().value());
+            rules.add(newRule);
+            storageRuleCategory.getRules().addAll(rules);
+        }
+
         if (archiveUnit.getManagement().getStorage() != null) {
             archiveUnit.getManagement().getStorage().merge(storageRuleCategory);
         } else {
@@ -147,7 +157,8 @@ public class ArchiveUnitMapper {
         if (archiveUnit.getManagement().getStorage() != null &&
             archiveUnit.getManagement().getStorage().getRules().size() > 0) {
             RuleModel lastRule = Iterables.getLast(archiveUnit.getManagement().getStorage().getRules());
-            if (storageRule.getFinalAction() != null) {
+
+            if (storageRule != null && storageRule.getFinalAction() != null) {
                 lastRule.setFinalAction(storageRule.getFinalAction().value());
             }
         }
@@ -198,6 +209,17 @@ public class ArchiveUnitMapper {
     private void fillAppraisalRule(ArchiveUnitType archiveUnitType, ArchiveUnitModel archiveUnit) {
         AppraisalRuleType appraisalRule = archiveUnitType.getManagement().getAppraisalRule();
         RuleCategoryModel appraisalRuleCategory = fillCommonRule(appraisalRule);
+
+        if (appraisalRule != null && appraisalRule.getFinalAction() != null && appraisalRuleCategory == null) {
+            // that means we only have FinalAction set in the rule
+            appraisalRuleCategory = new RuleCategoryModel();
+            List<RuleModel> rules = new ArrayList<>();
+            RuleModel newRule = new RuleModel();
+            newRule.setFinalAction(appraisalRule.getFinalAction().value());
+            rules.add(newRule);
+            appraisalRuleCategory.getRules().addAll(rules);
+        }
+
         if (archiveUnit.getManagement().getAppraisal() != null) {
             archiveUnit.getManagement().getAppraisal().merge(appraisalRuleCategory);
         } else {
@@ -205,7 +227,7 @@ public class ArchiveUnitMapper {
         }
 
         if (archiveUnit.getManagement().getAppraisal() != null &&
-            archiveUnit.getManagement().getAppraisal().getRules().size() > 0) {
+            appraisalRule != null && archiveUnit.getManagement().getAppraisal().getRules().size() > 0) {
             RuleModel lastRule = Iterables.getLast(archiveUnit.getManagement().getAppraisal().getRules());
             lastRule.setFinalAction(appraisalRule.getFinalAction().value());
         }
@@ -230,7 +252,7 @@ public class ArchiveUnitMapper {
                 String ruleId = ((RuleIdType) ruleOrStartDate).getValue();
                 ruleModel.setRule(ruleId);
             }
-            if (ruleOrStartDate instanceof XMLGregorianCalendar) {
+            if (ruleOrStartDate instanceof XMLGregorianCalendar && ruleModel != null) {
                 XMLGregorianCalendar startDate = (XMLGregorianCalendar) ruleOrStartDate;
                 ruleModel.setStartDate(startDate.toString());
             }

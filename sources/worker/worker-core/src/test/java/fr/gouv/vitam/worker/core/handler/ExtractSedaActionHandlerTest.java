@@ -117,7 +117,8 @@ public class ExtractSedaActionHandlerTest {
         "extractSedaActionHandler/SIP_WITH_SPECIAL_CHARACTERS.xml";
     private static final String SIP_ARBORESCENCE = "SIP_Arborescence.xml";
     private static final String OK_MULTI_COMMENT = "extractSedaActionHandler/OK_multi_comment.xml";
-    private static final String OK_SIGNATURE = "extractSedaActionHandler/signature.xml";    
+    private static final String OK_SIGNATURE = "extractSedaActionHandler/signature.xml";
+    private static final String OK_RULES_WOUT_ID = "extractSedaActionHandler/manifestRulesWithoutId.xml";    
     private WorkspaceClient workspaceClient;
     private MetaDataClient metadataClient;
     private WorkspaceClientFactory workspaceClientFactory;
@@ -845,6 +846,21 @@ public class ExtractSedaActionHandlerTest {
         assertNotNull(ExtractSedaActionHandler.getId());
         final InputStream seda_arborescence =
             PropertiesUtils.getResourceAsStream(OK_SIGNATURE);
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(seda_arborescence).build());
+        handlerIO.addOutIOParameters(out);
+
+        final ItemStatus response = handler.execute(params, handlerIO);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
+    }
+    
+    @Test
+    @RunWithCustomExecutor
+    public void givenManifestWithRulesWithoutIdWhenExecuteThenReturnResponseOK() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        assertNotNull(ExtractSedaActionHandler.getId());
+        final InputStream seda_arborescence =
+            PropertiesUtils.getResourceAsStream(OK_RULES_WOUT_ID);
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(seda_arborescence).build());
         handlerIO.addOutIOParameters(out);

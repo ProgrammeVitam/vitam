@@ -90,7 +90,7 @@ import fr.gouv.vitam.common.server.application.configuration.ServerIdentityConfi
  * </ul>
  * <br>
  * <br>
- * NOTE for developers:<br/> 
+ * NOTE for developers:<br/>
  * <ul>
  * <li>Do not add LOGGER there</li>
  * <li>Do not modify directly serverId attribute . Use setServerId</li>
@@ -279,8 +279,8 @@ public final class ServerIdentity implements ServerIdentityInterface {
          * ServerId (Id of the VM/server): Integer or String representing integer
          */
         SERVERID;
-        
-        
+
+
     }
 
     /**
@@ -304,11 +304,11 @@ public final class ServerIdentity implements ServerIdentityInterface {
                 role = svalue;
             }
             svalue = properties.getProperty(MAP_KEYNAME.SERVERID.name());
-            if (svalue != null){
+            if (svalue != null) {
                 setServerId(Integer.parseInt(svalue));
             }
             svalue = properties.getProperty(MAP_KEYNAME.SITEID.name());
-            if (svalue != null){
+            if (svalue != null) {
                 setSiteId(Integer.parseInt(svalue));
             }
         } catch (final IOException | NumberFormatException e) {
@@ -345,10 +345,10 @@ public final class ServerIdentity implements ServerIdentityInterface {
     private final void setYamlConfiguration(ServerIdentityConfigurationImpl serverIdentityConf) {
         name = serverIdentityConf.getIdentityName();
         role = serverIdentityConf.getIdentityRole();
-        if (serverIdentityConf.getIdentityServerId()>0){
+        if (serverIdentityConf.getIdentityServerId() > 0) {
             setServerId(serverIdentityConf.getIdentityServerId());
         }
-        if (serverIdentityConf.getIdentitySiteId() > 0){
+        if (serverIdentityConf.getIdentitySiteId() > 0) {
             setSiteId(serverIdentityConf.getIdentitySiteId());
         }
     }
@@ -410,7 +410,7 @@ public final class ServerIdentity implements ServerIdentityInterface {
         if (sId != null) {
             setSiteId(sId.intValue());
         }
-        
+
         initializeCommentFormat();
         return this;
     }
@@ -451,11 +451,11 @@ public final class ServerIdentity implements ServerIdentityInterface {
         return this;
     }
 
-    // TODO :   P2 protect race condition on GlobalPlatform ID
-    private final void calculateGlobalPlatformId(){
+    // TODO : P2 protect race condition on GlobalPlatform ID
+    private final void calculateGlobalPlatformId() {
         globalPlatformId = ((siteId & 0x0F) << 27) + (serverId & 0x07FFFFFF);
     }
-    
+
     @Override
     public final int getGlobalPlatformId() {
         return globalPlatformId;
@@ -478,10 +478,10 @@ public final class ServerIdentity implements ServerIdentityInterface {
     }
 
     @Override
-    public final int getServerId(){
+    public final int getServerId() {
         return serverId;
     }
-    
+
 
     /**
      * @return the siteID
@@ -493,6 +493,7 @@ public final class ServerIdentity implements ServerIdentityInterface {
 
     /**
      * Set the SideID
+     * 
      * @param siteId the siteId to set
      *
      * @return this
@@ -505,7 +506,7 @@ public final class ServerIdentity implements ServerIdentityInterface {
         return this;
     }
 
-    
+
     /**
      *
      * @return the mac address if possible, else random values
@@ -626,7 +627,8 @@ public final class ServerIdentity implements ServerIdentityInterface {
             } else if (res == 0) {
                 // Two MAC addresses are of pretty much same quality.
                 res = compareAddresses(bestInetAddr, inetAddr);
-                if (res < 0 || res == 0 && bestMacAddr.length < macAddr.length) {
+                if (bestMacAddr != null && macAddr != null && (res < 0 ||
+                    res == 0 && bestMacAddr.length < macAddr.length)) {
                     // if res < 0: Found a MAC address with better INET address.
                     // Else: Cannot tell the difference. Choose the longer one.
                     replace = true;

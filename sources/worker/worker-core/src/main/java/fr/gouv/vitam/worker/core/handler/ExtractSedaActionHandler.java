@@ -908,7 +908,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
                 // Write to new File
                 JsonHandler.writeAsFile(archiveUnit, unitCompleteTmpFile);
-
                 // Write to workspace
                 try {
                     handlerIO

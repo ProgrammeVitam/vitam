@@ -26,11 +26,22 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.workspace.driver;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
-import fr.gouv.vitam.common.client.configuration.*;
+import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
+import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.client.configuration.SSLConfiguration;
+import fr.gouv.vitam.common.client.configuration.SSLKey;
+import fr.gouv.vitam.common.client.configuration.SecureClientConfigurationImpl;
 import fr.gouv.vitam.common.exception.VitamApplicationServerDisconnectException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.logging.SysErrLogger;
@@ -42,13 +53,6 @@ import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 
 /**
  * Workspace Driver Implementation
@@ -142,10 +146,10 @@ public class DriverImpl extends AbstractDriver {
                 }
                 continue;
             }
-        }
+        }        
         LOGGER.error("Service unavailable for Driver {} with Offer {}", getName(), offerId, lastExc);
         throw new StorageDriverException("Driver " + getName() + " with Offer " + offerId,
-            lastExc.getMessage(), lastExc);
+            lastExc != null ? lastExc.getMessage() : "", lastExc);
     }
 
 

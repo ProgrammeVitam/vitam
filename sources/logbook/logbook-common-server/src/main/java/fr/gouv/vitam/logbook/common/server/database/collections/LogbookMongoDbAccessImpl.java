@@ -781,7 +781,9 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         LogbookLifeCycle lifeCycleInProd = null;
 
         try {
-            lifeCycleInProd = (LogbookLifeCycle) getLogbook(prodCollection, objectId);
+            if (prodCollection != null && objectId != null) {
+                lifeCycleInProd = (LogbookLifeCycle) getLogbook(prodCollection, objectId);
+            }
         } catch (LogbookNotFoundException e) {
             if (LogbookTypeProcess.UPDATE.equals(processMode)) {
                 throw e;
@@ -795,7 +797,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             try {
                 lifeCycleInProcess = (LogbookLifeCycle) getLogbook(inProcessCollection, objectId);
             } catch (LogbookNotFoundException e) {
-                LOGGER.info(INIT_UPDATE_LIFECYCLE);
+                LOGGER.info(INIT_UPDATE_LIFECYCLE, e);
             }
 
             if (lifeCycleInProcess == null) {
@@ -1211,7 +1213,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             // Do not delete the temporary lifeCycle when it is on an INGEST process
             List<VitamDocument> newEvents =
                 (List<VitamDocument>) logbookLifeCycleUnitInProcess.get(LogbookDocument.EVENTS);
-            if (newEvents != null && newEvents.size() != 0) {
+            if (newEvents != null && !newEvents.isEmpty()) {
                 LogbookTypeProcess typeProcess = LogbookTypeProcess
                     .valueOf(
                         ((Document) newEvents.get(0))
@@ -1258,7 +1260,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             // Do not delete the temporary lifeCycle when it is on an INGEST process
             List<VitamDocument> newEvents =
                 (List<VitamDocument>) logbookLifeCycleObjectGrouptInProcess.get(LogbookDocument.EVENTS);
-            if (newEvents != null && newEvents.size() != 0) {
+            if (newEvents != null && !newEvents.isEmpty()) {
                 LogbookTypeProcess typeProcess = LogbookTypeProcess
                     .valueOf(
                         ((Document) newEvents.get(0))
@@ -1423,7 +1425,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                 vitamDocument.remove(LogbookMongoDbName.eventDetailData.getDbname());
                 vitamDocument.put(LogbookMongoDbName.eventDetailData.getDbname(), evDetData);
             } catch (InvalidParseOperationException e) {
-                LOGGER.warn("EvDetData is not a json compatible field");
+                LOGGER.warn("EvDetData is not a json compatible field", e);
             }
         }
         List<Document> eventDocuments = (List<Document>) vitamDocument.get(LogbookDocument.EVENTS);

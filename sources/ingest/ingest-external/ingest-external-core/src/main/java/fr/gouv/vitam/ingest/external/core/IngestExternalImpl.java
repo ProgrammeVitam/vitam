@@ -577,8 +577,9 @@ public class IngestExternalImpl implements IngestExternal {
         }
 
         LOGGER.warn("ATR KO created : " + atrKo);
-        responseNoProcess = new AbstractMockClient.FakeInboundResponse(Status.BAD_REQUEST,
-            new ByteArrayInputStream(atrKo.getBytes(CharsetUtils.UTF8)), MediaType.APPLICATION_XML_TYPE, null);
+        byte[] bytes = (atrKo != null) ? atrKo.getBytes(CharsetUtils.UTF8) : new byte[0];
+        responseNoProcess = new AbstractMockClient.FakeInboundResponse(Status.BAD_REQUEST,            
+            new ByteArrayInputStream(bytes), MediaType.APPLICATION_XML_TYPE, null);
         // add the step in the logbook
         addTransferNotificationLog(ingestGuid, containerName, helper, atrStatusCode, logbookTypeProcess);
         addStpIngestFinalisationLog(ingestGuid, containerName, helper, atrStatusCode, logbookTypeProcess);

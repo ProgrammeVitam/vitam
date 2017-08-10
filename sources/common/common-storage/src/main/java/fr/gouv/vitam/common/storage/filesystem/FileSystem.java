@@ -179,8 +179,10 @@ public class FileSystem extends ContentAddressableStorageJcloudsAbstract {
                     result.setFileSize(getFolderUsedSize(file));
                 }
                 // TODO store vitam metadatas
-                result.setType(containerName.split("_")[1]);
-                result.setFileOwner("Vitam_" + containerName.split("_")[0]);
+                if (containerName != null) {
+                    result.setType(containerName.split("_")[1]);
+                    result.setFileOwner("Vitam_" + containerName.split("_")[0]);
+                }
                 result.setLastAccessDate(basicAttribs.lastAccessTime().toString());
                 result.setLastModifiedDate(basicAttribs.lastModifiedTime().toString());
             }
