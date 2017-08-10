@@ -208,4 +208,53 @@
 			<artifactId>jersey-test-framework-provider-jetty</artifactId>
 		</dependency>
 	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.jvnet.jaxb2.maven2</groupId>
+				<artifactId>maven-jaxb2-plugin</artifactId>
+				<version>0.13.1</version>
+				<configuration>
+					<catalog>src/main/resources/seda-vitam/seda-vitam.cat</catalog>
+					<args>
+						<arg>-Xinheritance</arg>
+						<arg>-Xannotate</arg>
+					</args>
+
+					<strict>false</strict>
+					<schemaDirectory>src/main/resources</schemaDirectory>
+					<schemaExcludes>
+						<exclude>seda-2.0-main.xsd</exclude>
+					</schemaExcludes>
+					<schemaIncludes>
+						<include>seda-vitam/seda-vitam-2.0-main.xsd</include>
+					</schemaIncludes>
+					<plugins>
+						<plugin>
+							<groupId>org.jvnet.jaxb2_commons</groupId>
+							<artifactId>jaxb2-basics-annotate</artifactId>
+							<version>${jaxb2.version}</version>
+						</plugin>
+					</plugins>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+					</execution>
+				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>org.jvnet.jaxb2_commons</groupId>
+						<artifactId>jaxb2-basics</artifactId>
+						<version>0.6.5</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+		</plugins>
+	</build>
+
+
 </project>

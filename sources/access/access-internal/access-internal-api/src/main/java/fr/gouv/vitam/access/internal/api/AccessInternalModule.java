@@ -50,7 +50,7 @@ public interface AccessInternalModule {
      * @throws InvalidParseOperationException Throw if json format is not correct
      * @throws AccessInternalExecutionException Throw if error occurs when send Unit to database
      */
-    public JsonNode selectUnit(JsonNode queryJson)
+    JsonNode selectUnit(JsonNode queryJson)
         throws InvalidParseOperationException, AccessInternalExecutionException;
 
     /**
@@ -64,7 +64,7 @@ public interface AccessInternalModule {
      * @throws AccessInternalExecutionException Throw if error occurs when send Unit to database
      * @throws IllegalArgumentException Throw if error occurs when checking argument
      */
-    public JsonNode selectUnitbyId(JsonNode queryJson, String idUnit)
+    JsonNode selectUnitbyId(JsonNode queryJson, String idUnit)
         throws InvalidParseOperationException, AccessInternalExecutionException;
 
     /**
@@ -80,7 +80,7 @@ public interface AccessInternalModule {
      * @throws AccessInternalRuleExecutionException Throw When error occures on rules update check
      * @throws IllegalArgumentException Throw if error occurs when checking argument
      */
-    public JsonNode updateUnitbyId(JsonNode queryJson, String idUnit, String requestId)
+    JsonNode updateUnitbyId(JsonNode queryJson, String idUnit, String requestId)
         throws InvalidParseOperationException, AccessInternalExecutionException, IllegalArgumentException, AccessInternalRuleExecutionException;
 
     /**

@@ -46,13 +46,13 @@ import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ReuseRuleType;
 import fr.gouv.culture.archivesdefrance.seda.v2.RuleIdType;
 import fr.gouv.culture.archivesdefrance.seda.v2.StorageRuleType;
-import fr.gouv.vitam.worker.common.CommonRule;
-import fr.gouv.vitam.worker.core.model.ArchiveUnitModel;
-import fr.gouv.vitam.worker.core.model.ArchiveUnitRoot;
-import fr.gouv.vitam.worker.core.model.DataObjectReference;
-import fr.gouv.vitam.worker.core.model.DescriptiveMetadataModel;
-import fr.gouv.vitam.worker.core.model.RuleCategoryModel;
-import fr.gouv.vitam.worker.core.model.RuleModel;
+import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
+import fr.gouv.vitam.common.model.unit.ArchiveUnitRoot;
+import fr.gouv.vitam.common.model.unit.CommonRule;
+import fr.gouv.vitam.common.model.unit.DataObjectReference;
+import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
+import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
+import fr.gouv.vitam.common.model.unit.RuleModel;
 
 /**
  * map archive unit to model
@@ -281,4 +281,5 @@ public class ArchiveUnitMapper {
         return ruleCategoryModel;
 
     }
+
 }

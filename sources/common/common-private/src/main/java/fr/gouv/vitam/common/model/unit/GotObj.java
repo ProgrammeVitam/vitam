@@ -1,4 +1,4 @@
-package fr.gouv.vitam.worker.core.model;
+package fr.gouv.vitam.common.model.unit;
 
 /**
  * This object content the new technical object group guid and the an boolean. It is created when the BDO not

@@ -28,6 +28,7 @@ package fr.gouv.vitam.common.storage.filesystem.v2;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.AbstractMockClient;
@@ -59,6 +60,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystemException;
@@ -453,13 +456,17 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         view.write(name, ByteBuffer.wrap(value.getBytes()));
     }
 
-    private String readExtendedMetadata(Path p, String name) throws IOException {
+    @VisibleForTesting
+    public String readExtendedMetadata(Path p, String name) throws IOException {
         return readExtendedMetadata(Files.getFileAttributeView(p, UserDefinedFileAttributeView.class), name);
     }
 
     private String readExtendedMetadata(UserDefinedFileAttributeView view, String name) throws IOException {
         ByteBuffer bb = ByteBuffer.allocate(view.size(name));
         view.read(name, bb);
-        return new String(bb.array());
+        bb.flip();
+
+        CharBuffer buffer = Charset.defaultCharset().decode(bb);
+        return buffer.toString();
     }
 }

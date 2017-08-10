@@ -93,11 +93,11 @@ import fr.gouv.vitam.processing.common.exception.ProcessingUnitNotFoundException
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.mapping.ArchiveUnitMapper;
 import fr.gouv.vitam.worker.core.mapping.DescriptiveMetadataMapper;
-import fr.gouv.vitam.worker.core.model.ArchiveUnitRoot;
-import fr.gouv.vitam.worker.core.model.GotObj;
-import fr.gouv.vitam.worker.core.model.RuleCategoryModel;
-import fr.gouv.vitam.worker.core.model.RuleModel;
-import fr.gouv.vitam.worker.core.model.TextByLang;
+import fr.gouv.vitam.common.model.unit.ArchiveUnitRoot;
+import fr.gouv.vitam.common.model.unit.GotObj;
+import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
+import fr.gouv.vitam.common.model.unit.RuleModel;
+import fr.gouv.vitam.common.model.unit.TextByLang;
 
 /**
  * listener to unmarshall seda

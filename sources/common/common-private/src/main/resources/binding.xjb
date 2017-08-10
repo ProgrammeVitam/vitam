@@ -1,0 +1,94 @@
+<jxb:bindings version="2.0"
+      xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+      xmlns:inheritance="http://jaxb2-commons.dev.java.net/basic/inheritance"
+      xmlns:annox="http://annox.dev.java.net"
+      xmlns:xs="http://www.w3.org/2001/XMLSchema" >
+
+    <jxb:bindings schemaLocation="http://www.w3.org/1999/xlink.xsd" node="/xs:schema">
+
+        <jxb:bindings node="//xs:attributeGroup[@name='locatorAttrs']">
+            <jxb:bindings node=".//xs:attribute[@ref='xlink:title']">
+                <jxb:property name="title1"/>
+            </jxb:bindings>
+        </jxb:bindings>
+
+        <jxb:bindings node="//xs:attributeGroup[@name='arcAttrs']">           
+            <jxb:bindings node=".//xs:attribute[@ref='xlink:title']">
+                <jxb:property name="title2"/>
+            </jxb:bindings>            
+        </jxb:bindings>              
+    </jxb:bindings>
+
+    <jxb:bindings schemaLocation="seda-vitam/seda-vitam-2.0-descriptive.xsd" node="/xs:schema">
+
+        <jxb:bindings node="xs:complexType[@name='ArchiveUnitType']">
+            <jxb:bindings node="//xs:element[@name='ArchiveUnitRefId']">
+                <jxb:property>
+                    <jxb:baseType>
+                        <jxb:javaType name="java.lang.String"></jxb:javaType>
+                    </jxb:baseType>
+                </jxb:property>
+
+            </jxb:bindings>
+            <annox:annotate>
+                <annox:annotate annox:class="javax.xml.bind.annotation.XmlRootElement"
+                                name="ArchiveUnitType" />
+            </annox:annotate>
+
+        </jxb:bindings>
+    </jxb:bindings>
+
+    <jxb:bindings schemaLocation="seda-vitam/seda-vitam-2.0-main.xsd" node="/xs:schema">
+
+        <jxb:bindings node="xs:complexType[@name='DataObjectPackageType']">
+            <annox:annotate>
+                <annox:annotate annox:class="javax.xml.bind.annotation.XmlRootElement"
+                                name="DataObjectPackageType" />
+            </annox:annotate>
+
+        </jxb:bindings>
+    </jxb:bindings>
+
+
+
+    <jxb:bindings schemaLocation="seda-vitam/seda-vitam-2.0-management.xsd">
+        <jxb:bindings node="//xs:complexType[@name='StorageRuleType']">
+            <inheritance:implements>fr.gouv.vitam.common.model.unit.CommonRule</inheritance:implements>
+        </jxb:bindings>
+        <jxb:bindings node="//xs:complexType[@name='AppraisalRuleType']">
+            <inheritance:implements>fr.gouv.vitam.common.model.unit.CommonRule</inheritance:implements>
+        </jxb:bindings>
+        <jxb:bindings node="//xs:complexType[@name='AccessRuleType']">
+            <inheritance:implements>fr.gouv.vitam.common.model.unit.CommonRule</inheritance:implements>
+        </jxb:bindings>
+        <jxb:bindings node="//xs:complexType[@name='DisseminationRuleType']">
+            <inheritance:implements>fr.gouv.vitam.common.model.unit.CommonRule</inheritance:implements>
+        </jxb:bindings>
+        <jxb:bindings node="//xs:complexType[@name='ReuseRuleType']">
+            <inheritance:implements>fr.gouv.vitam.common.model.unit.CommonRule</inheritance:implements>
+        </jxb:bindings>
+        <jxb:bindings node="//xs:complexType[@name='ClassificationRuleType']">
+            <inheritance:implements>fr.gouv.vitam.common.model.unit.CommonRule</inheritance:implements>
+        </jxb:bindings>
+    </jxb:bindings>
+
+    <jxb:bindings schemaLocation="seda-vitam/seda-vitam-2.0-types.xsd">
+        <jxb:bindings node="//xs:element[@name='DataObjectReferenceId']">
+            <jxb:property>
+                <jxb:baseType>
+                    <jxb:javaType name="java.lang.String"></jxb:javaType>
+                </jxb:baseType>
+            </jxb:property>
+        </jxb:bindings>
+        <jxb:bindings node="//xs:element[@name='DataObjectGroupReferenceId']">
+            <jxb:property>
+                <jxb:baseType>
+                    <jxb:javaType name="java.lang.String"></jxb:javaType>
+                </jxb:baseType>
+            </jxb:property>
+        </jxb:bindings>
+
+    </jxb:bindings>
+
+
+</jxb:bindings>

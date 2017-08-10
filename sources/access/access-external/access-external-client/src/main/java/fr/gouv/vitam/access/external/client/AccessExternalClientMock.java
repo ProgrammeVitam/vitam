@@ -1,6 +1,9 @@
 package fr.gouv.vitam.access.external.client;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -18,6 +21,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import org.apache.commons.io.IOUtils;
 
 /**
  * Mock client implementation for Access External
@@ -86,6 +90,18 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
     public RequestResponse selectObjectGroupLifeCycleById(String idObject, Integer tenantId, String contractName)
         throws LogbookClientException, InvalidParseOperationException {
         return ClientMockResultHelper.getLogbookRequestResponse();
+    }
+
+    @Override
+    public Response getUnitByIdWithXMLFormat(JsonNode queryDsl, String idUnit, Integer tenantId, String contractName)
+        throws AccessExternalClientServerException {
+        try (InputStream resourceAsStream = getClass().getResourceAsStream("/unit.xml")){
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            IOUtils.copy(resourceAsStream, byteArrayOutputStream);
+            return Response.ok().entity(byteArrayOutputStream.toByteArray()).build();
+        } catch (IOException e) {
+            throw new AccessExternalClientServerException(e);
+        }
     }
 
     @Override

@@ -24,42 +24,36 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.model;
+package fr.gouv.vitam.access.internal.core.serializer;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.io.IOException;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
 
-public class InheritanceModel {
+/**
+ * Deserialize a (json, xml, string) representation to IdentifierType
+ * To be registered in jackson objectMapper
+ */
+public class IdentifierTypeDeserializer extends JsonDeserializer<IdentifierType> {
+    /**
+     *
+     * @param jp representation (json, xml, string)
+     * @param ctxt
+     * @return
+     * @throws IOException
+     */
+    @Override
+    public IdentifierType deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+        JsonNode node = jp.getCodec().readTree(jp);
 
-    private Boolean preventInheritance;
+        IdentifierType identifierType = new IdentifierType();
+        identifierType.setValue(node.asText());
 
-    private Set<String> preventRulesId;
-
-    public InheritanceModel() {
-        preventRulesId = new HashSet<>();
-    }
-
-    public Boolean isPreventInheritance() {
-        return preventInheritance;
-    }
-
-    public void setPreventInheritance(Boolean preventInheritance) {
-        this.preventInheritance = preventInheritance;
-    }
-
-    public Set<String> getPreventRulesId() {
-        return preventRulesId;
-    }
-
-    @JsonIgnore
-    public void merge(InheritanceModel inheritance) {
-        if (inheritance.isPreventInheritance() != null) {
-            this.preventInheritance = inheritance.isPreventInheritance();
-        }
-        preventRulesId.addAll(inheritance.getPreventRulesId());
-
+        return identifierType;
     }
 
 }

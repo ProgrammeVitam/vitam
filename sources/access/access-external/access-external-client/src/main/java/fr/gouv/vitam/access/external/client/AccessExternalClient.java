@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.external.client;
 
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -47,8 +48,8 @@ public interface AccessExternalClient extends BasicClient {
     /**
      * selectUnits /units
      *
-     * @param selectQuery the select query
-     * @param tenantId the working tenant
+     * @param selectQuery  the select query
+     * @param tenantId     the working tenant
      * @param contractName the contract name
      * @return Json representation
      * @throws InvalidParseOperationException
@@ -63,9 +64,9 @@ public interface AccessExternalClient extends BasicClient {
     /**
      * selectUnitbyId GET(POST overrided) /units/{id}
      *
-     * @param selectQuery the select query
-     * @param unitId the unit id to select
-     * @param tenantId the working tenant
+     * @param selectQuery  the select query
+     * @param unitId       the unit id to select
+     * @param tenantId     the working tenant
      * @param contractName the contract name
      * @return Json representation
      * @throws InvalidParseOperationException
@@ -80,8 +81,8 @@ public interface AccessExternalClient extends BasicClient {
     /**
      * updateUnitbyId UPDATE /units/{id}
      *
-     * @param updateQuery the update query
-     * @param unitId the unit id to update
+     * @param updateQuery  the update query
+     * @param unitId       the unit id to update
      * @param tenantId
      * @param contractName the contract name
      * @return Json representation
@@ -99,11 +100,11 @@ public interface AccessExternalClient extends BasicClient {
      * <br>
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
      *
-     * @param selectQuery the select query
-     * @param objectId the object id to get
-     * @param usage kind of usage
-     * @param version the version
-     * @param tenantId the working tenant
+     * @param selectQuery  the select query
+     * @param objectId     the object id to get
+     * @param usage        kind of usage
+     * @param version      the version
+     * @param tenantId     the working tenant
      * @param contractName the contract name
      * @return Response including InputStream
      * @throws InvalidParseOperationException
@@ -121,9 +122,9 @@ public interface AccessExternalClient extends BasicClient {
     /**
      * selectObjectById
      *
-     * @param selectQuery the select query
-     * @param unitId the unit id for getting object
-     * @param tenantId the working tenant
+     * @param selectQuery  the select query
+     * @param unitId       the unit id for getting object
+     * @param tenantId     the working tenant
      * @param contractName the contract name
      * @return Json representation
      * @throws InvalidParseOperationException
@@ -140,11 +141,11 @@ public interface AccessExternalClient extends BasicClient {
      * <br>
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
      *
-     * @param selectQuery the select query
-     * @param unitId the unit id for getting the object
-     * @param usage kind of usage
-     * @param version the version
-     * @param tenantId the working tenant
+     * @param selectQuery  the select query
+     * @param unitId       the unit id for getting the object
+     * @param usage        kind of usage
+     * @param version      the version
+     * @param tenantId     the working tenant
      * @param contractName the contract name
      * @return Response including InputStream
      * @throws InvalidParseOperationException
@@ -160,8 +161,8 @@ public interface AccessExternalClient extends BasicClient {
     /**
      * selectOperation
      *
-     * @param select the select query
-     * @param tenantId the working tenant
+     * @param select       the select query
+     * @param tenantId     the working tenant
      * @param contractName the contract name
      * @return Json representation
      * @throws LogbookClientException
@@ -174,8 +175,8 @@ public interface AccessExternalClient extends BasicClient {
     /**
      * selectOperationbyId
      *
-     * @param processId the process id
-     * @param tenantId the working tenant
+     * @param processId    the process id
+     * @param tenantId     the working tenant
      * @param contractName the contract name
      * @return Json representation
      * @throws LogbookClientException
@@ -188,8 +189,8 @@ public interface AccessExternalClient extends BasicClient {
     /**
      * selectUnitLifeCycleById
      *
-     * @param idUnit the unit id
-     * @param tenantId the working tenant
+     * @param idUnit       the unit id
+     * @param tenantId     the working tenant
      * @param contractName the contract name
      * @return Json representation
      * @throws LogbookClientException
@@ -202,8 +203,8 @@ public interface AccessExternalClient extends BasicClient {
     /**
      * selectUnitLifeCycle
      *
-     * @param queryDsl the query for get lfc
-     * @param tenantId the working tenant
+     * @param queryDsl     the query for get lfc
+     * @param tenantId     the working tenant
      * @param contractName the contract name
      * @return Json representation
      * @throws LogbookClientException
@@ -216,8 +217,8 @@ public interface AccessExternalClient extends BasicClient {
     /**
      * selectObjectGroupLifeCycleById
      *
-     * @param idObject the object id
-     * @param tenantId the working tenant
+     * @param idObject     the object id
+     * @param tenantId     the working tenant
      * @param contractName the contract name
      * @return Json representation
      * @throws LogbookClientException
@@ -226,6 +227,19 @@ public interface AccessExternalClient extends BasicClient {
      */
     RequestResponse selectObjectGroupLifeCycleById(String idObject, Integer tenantId, String contractName)
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException;
+
+
+    /**
+     * DIP export of the unit (xml representation with SEDA schema)
+     * @param queryDsl
+     * @param idUnit
+     * @param tenantId
+     * @param contractName
+     * @return unit with a xml representation
+     * @throws AccessExternalClientServerException
+     */
+    Response getUnitByIdWithXMLFormat(JsonNode queryDsl, @PathParam("id_unit") String idUnit, Integer tenantId, String contractName)
+        throws AccessExternalClientServerException;
 
 }
 

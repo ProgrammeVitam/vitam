@@ -26,48 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.rest;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.http.ContentType;
-
-import fr.gouv.vitam.access.internal.api.AccessInternalModule;
-import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.AccessContractModel;
-import fr.gouv.vitam.common.server.application.junit.ResponseHelper;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
-
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import java.io.ByteArrayInputStream;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.with;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
@@ -77,6 +38,58 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
+
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.http.ContentType;
+import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
+import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
+import fr.gouv.vitam.access.internal.api.AccessInternalModule;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
+import fr.gouv.vitam.access.internal.core.serializer.IdentifierTypeDeserializer;
+import fr.gouv.vitam.access.internal.core.serializer.LevelTypeDeserializer;
+import fr.gouv.vitam.access.internal.core.serializer.TextByLangDeserializer;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.AccessContractModel;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
+import fr.gouv.vitam.common.model.unit.TextByLang;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import org.apache.shiro.util.Assert;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
 
 public class AccessInternalResourceImplTest {
 
@@ -162,6 +175,7 @@ public class AccessInternalResourceImplTest {
     }
 
     // Error cases
+
     /**
      * Test if the update is in error the 500
      *
@@ -227,7 +241,6 @@ public class AccessInternalResourceImplTest {
     }
 
     /**
-     *
      * @param data
      * @return query DSL with Options
      * @throws InvalidParseOperationException
@@ -238,7 +251,6 @@ public class AccessInternalResourceImplTest {
     }
 
     /**
-     *
      * @param data
      * @return query DSL with id as Roots
      * @throws InvalidParseOperationException
@@ -318,9 +330,9 @@ public class AccessInternalResourceImplTest {
     @RunWithCustomExecutor
     public void given_getUnits_and_getUnitByID_thenReturn_OK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-    	AccessContractModel contract = new AccessContractModel();
+        AccessContractModel contract = new AccessContractModel();
         Set<String> prodServices = new HashSet<String>(Arrays.asList("a", "b"));
-    	contract.setOriginatingAgencies(prodServices);
+        contract.setOriginatingAgencies(prodServices);
         VitamThreadUtils.getVitamSession().setContract(contract);
         with()
             .contentType(ContentType.JSON)
@@ -430,7 +442,7 @@ public class AccessInternalResourceImplTest {
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .when().get(OBJECTS_URI +
-                OBJECT_ID)
+            OBJECT_ID)
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -581,11 +593,52 @@ public class AccessInternalResourceImplTest {
             .getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .headers(getStreamHeaders())
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .body(BODY_TEST).when().get(OBJECTS_URI + OBJECT_ID).then()
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void should_retrieve_unit_with_xml_format() throws Exception {
+        RequestResponseOK<JsonNode> requestResponse = new RequestResponseOK<>();
+        InputStream resourceAsStream = getClass().getResourceAsStream("/simpleUnit.json");
+        JsonNode jsonNode = JsonHandler.getFromInputStream(resourceAsStream);
+        requestResponse.addResult(jsonNode);
+
+        given(mock.selectUnitbyId(anyObject(), anyString()))
+            .willReturn(JsonHandler.toJsonNode(requestResponse));
+
+
+        ArchiveUnitModel archiveUnitModel = buildObjectMapper().treeToValue(jsonNode, ArchiveUnitModel.class);
+
+        Assert.notNull(archiveUnitModel);
+        Assert.notNull(archiveUnitModel.getManagement());
+
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_XML)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .headers(getStreamHeaders())
+            .body(BODY_TEST).when().get(ACCESS_UNITS_URI + "/1234").then()
+            .statusCode(Status.OK.getStatusCode());
+    }
+
+    private ObjectMapper buildObjectMapper() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.UPPER_CAMEL_CASE);
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+
+        SimpleModule module = new SimpleModule();
+
+        module.addDeserializer(TextByLang.class, new TextByLangDeserializer());
+        module.addDeserializer(LevelType.class, new LevelTypeDeserializer());
+        module.addDeserializer(IdentifierType.class, new IdentifierTypeDeserializer());
+
+        objectMapper.registerModule(module);
+
+        return objectMapper;
+    }
 }
 

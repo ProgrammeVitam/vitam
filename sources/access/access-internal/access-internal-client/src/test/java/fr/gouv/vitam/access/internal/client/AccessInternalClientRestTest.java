@@ -181,6 +181,15 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
         }
 
         @Override
+        @GET
+        @Path("/units/{id_unit}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_XML)
+        public Response getUnitByIdWithXMLFormat(JsonNode dslQuery, @PathParam("id_unit") String unitId) {
+            return expectedResponse.get();
+        }
+
+        @Override
         @PUT
         @Path("/units/{id_unit}")
         @Consumes(MediaType.APPLICATION_JSON)

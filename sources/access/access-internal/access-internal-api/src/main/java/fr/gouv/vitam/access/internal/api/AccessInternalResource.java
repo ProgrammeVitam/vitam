@@ -49,16 +49,25 @@ public interface AccessInternalResource extends VitamResource {
      * @param dslQuery null not allowed
      * @return a archive unit result list
      */
-    public Response getUnits(JsonNode dslQuery);
+    Response getUnits(JsonNode dslQuery);
 
     /**
      * gets archive units by Id with Json query
      *
      * @param dslQuery DSL, null not allowed
      * @param unitId units identifier
-     * @return a archive unit result list
+     * @return a archive unit result list on json format
      */
-    public Response getUnitById(JsonNode dslQuery, String unitId);
+    Response getUnitById(JsonNode dslQuery, String unitId);
+
+    /**
+     * gets archive units by Id with Json query
+     *
+     * @param dslQuery DSL, null not allowed
+     * @param unitId units identifier
+     * @return a archive unit result list on xml format
+     */
+    Response getUnitByIdWithXMLFormat(JsonNode dslQuery, String unitId);
 
     /**
      * update archive units by Id with Json query
@@ -69,7 +78,7 @@ public interface AccessInternalResource extends VitamResource {
      * @param requestId request identifier
      * @return a archive unit result list
      */
-    public Response updateUnitById(JsonNode dslQuery, String unitId, String requestId);
+    Response updateUnitById(JsonNode dslQuery, String unitId, String requestId);
 
     /**
      * Retrieve an ObjectGroup by its id

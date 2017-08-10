@@ -35,22 +35,22 @@
 
     <jxb:bindings schemaLocation="seda-vitam/seda-vitam-2.0-management.xsd">
         <jxb:bindings node="//xs:complexType[@name='StorageRuleType']">
-            <inheritance:implements>fr.gouv.vitam.worker.common.CommonRule</inheritance:implements>
+            <inheritance:implements>fr.gouv.vitam.common.model.unit.CommonRule</inheritance:implements>
         </jxb:bindings>
         <jxb:bindings node="//xs:complexType[@name='AppraisalRuleType']">
-            <inheritance:implements>fr.gouv.vitam.worker.common.CommonRule</inheritance:implements>
+            <inheritance:implements>fr.gouv.vitam.common.model.unit.CommonRule</inheritance:implements>
         </jxb:bindings>
         <jxb:bindings node="//xs:complexType[@name='AccessRuleType']">
-            <inheritance:implements>fr.gouv.vitam.worker.common.CommonRule</inheritance:implements>
+            <inheritance:implements>fr.gouv.vitam.common.model.unit.CommonRule</inheritance:implements>
         </jxb:bindings>
         <jxb:bindings node="//xs:complexType[@name='DisseminationRuleType']">
-            <inheritance:implements>fr.gouv.vitam.worker.common.CommonRule</inheritance:implements>
+            <inheritance:implements>fr.gouv.vitam.common.model.unit.CommonRule</inheritance:implements>
         </jxb:bindings>
         <jxb:bindings node="//xs:complexType[@name='ReuseRuleType']">
-            <inheritance:implements>fr.gouv.vitam.worker.common.CommonRule</inheritance:implements>
+            <inheritance:implements>fr.gouv.vitam.common.model.unit.CommonRule</inheritance:implements>
         </jxb:bindings>
         <jxb:bindings node="//xs:complexType[@name='ClassificationRuleType']">
-            <inheritance:implements>fr.gouv.vitam.worker.common.CommonRule</inheritance:implements>
+            <inheritance:implements>fr.gouv.vitam.common.model.unit.CommonRule</inheritance:implements>
         </jxb:bindings>
     </jxb:bindings>
 

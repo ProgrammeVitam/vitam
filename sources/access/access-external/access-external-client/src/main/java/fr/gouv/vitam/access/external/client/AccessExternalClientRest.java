@@ -21,6 +21,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.external.client.DefaultClient;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -640,4 +641,28 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
     }
 
+
+    @Override
+    public Response getUnitByIdWithXMLFormat(JsonNode queryDsl, String idUnit, Integer tenantId, String contractName)
+        throws AccessExternalClientServerException {
+
+        ParametersChecker.checkParameter(BLANK_DSL, queryDsl);
+        ParametersChecker.checkParameter(BLANK_UNIT_ID, idUnit);
+
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
+
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, "units/" + idUnit, headers, queryDsl,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_XML_TYPE);
+
+            return response;
+        } catch (VitamClientInternalException e) {
+            consumeAnyEntityAndClose(response);
+            LOGGER.error("Error while getUnitByIdWithXMLFormat ", e);
+            throw  new AccessExternalClientServerException(e);
+        }
+    }
 }

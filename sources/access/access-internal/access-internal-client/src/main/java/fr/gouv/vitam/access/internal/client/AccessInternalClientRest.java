@@ -28,18 +28,14 @@
 package fr.gouv.vitam.access.internal.client;
 
 import javax.ws.rs.HttpMethod;
-import javax.ws.rs.ProcessingException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.mongodb.util.JSON;
-
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
-import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
@@ -54,8 +50,6 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseError;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -65,7 +59,6 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 /**
  * Access client <br>
  * <br>
- *
  */
 
 class AccessInternalClientRest extends DefaultClient implements AccessInternalClient {
@@ -132,14 +125,15 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     public RequestResponse<JsonNode> selectUnitbyId(JsonNode selectQuery, String idUnit)
         throws InvalidParseOperationException,
         AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException {
+
         ParametersChecker.checkParameter(BLANK_DSL, selectQuery);
         ParametersChecker.checkParameter(BLANK_UNIT_ID, idUnit);
         VitamThreadUtils.getVitamSession().checkValidRequestId();
-
         Response response = null;
         try {
             response = performRequest(HttpMethod.GET, "units/" + idUnit, null, selectQuery,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+
             if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR); // access-common
             } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) { // access-common
@@ -177,15 +171,15 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) { // access-common
                 throw new AccessInternalClientNotFoundException(NOT_FOUND_EXCEPTION);
             } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
-            	try {
-            		VitamError vitamError = RequestResponse.parseVitamError(response);
-                	if (VitamCodeHelper.getCode(VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CHECK_RULES)
-                			.equals(vitamError.getCode())) {
-                		return vitamError;
-                	}
-            	} catch(final InvalidParseOperationException e ) {
-            		LOGGER.info("Cant parse error as vitamError, throw a new exception");
-            	}
+                try {
+                    VitamError vitamError = RequestResponse.parseVitamError(response);
+                    if (VitamCodeHelper.getCode(VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CHECK_RULES)
+                        .equals(vitamError.getCode())) {
+                        return vitamError;
+                    }
+                } catch (final InvalidParseOperationException e) {
+                    LOGGER.info("Cant parse error as vitamError, throw a new exception");
+                }
                 throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);// common
             } else if (response.getStatus() == Status.METHOD_NOT_ALLOWED.getStatusCode()) {
                 throw new NoWritingPermissionException(NO_WRITING_PERMISSION);
@@ -501,6 +495,38 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             if (status != Status.OK) {
                 consumeAnyEntityAndClose(response);
             }
+        }
+    }
+
+    @Override
+    public Response getUnitByIdWithXMLFormat(JsonNode queryDsl, String idUnit)
+        throws AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
+        InvalidParseOperationException {
+        ParametersChecker.checkParameter(BLANK_DSL, queryDsl);
+        ParametersChecker.checkParameter(BLANK_UNIT_ID, idUnit);
+        VitamThreadUtils.getVitamSession().checkValidRequestId();
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, "units/" + idUnit, null, queryDsl,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_XML_TYPE);
+
+            if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+                throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR); // access-common
+            } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) { // access-common
+                throw new AccessInternalClientNotFoundException(NOT_FOUND_EXCEPTION);
+            } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
+                throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);// common
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
+            }
+
+            return response;
+        } catch (final VitamClientInternalException e) {
+            consumeAnyEntityAndClose(response);
+            throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
+        } catch (final Exception e) {
+            consumeAnyEntityAndClose(response);
+            throw e;
         }
     }
 

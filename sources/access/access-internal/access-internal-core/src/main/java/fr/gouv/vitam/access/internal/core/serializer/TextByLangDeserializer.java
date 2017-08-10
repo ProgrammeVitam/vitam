@@ -24,75 +24,43 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.model;
+package fr.gouv.vitam.access.internal.core.serializer;
 
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
+import fr.gouv.vitam.common.model.unit.TextByLang;
 
-public class RuleCategoryModel {
+/**
+ * Deserialize a (json, xml, string) representation to TextByLang
+ * To be registered in jackson objectMapper
+ */
+public class TextByLangDeserializer extends JsonDeserializer<TextByLang> {
 
-    @JsonProperty("Rules")
-    private List<RuleModel> rules;
+    /**
+     * Convert json, xml, string to TextByLang
+     * @param jp (json, xml, string) representation
+     * @param ctxt
+     * @return
+     * @throws IOException
+     */
+    @Override
+    public TextByLang deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+        JsonNode node = jp.getCodec().readTree(jp);
 
-    @JsonProperty("Inheritance")
-    private InheritanceModel inheritance;
+        ArrayList<TextType> textTypes = new ArrayList<>();
 
-    public RuleCategoryModel() {
-        rules = new ArrayList<>();
+        node.fields().forEachRemaining(stringJsonNodeEntry -> {
+            TextType textType = new TextType();
+            textType.setLang(stringJsonNodeEntry.getKey());
+            textType.setValue(stringJsonNodeEntry.getValue().asText());
+            textTypes.add(textType);
+        });
+        return new TextByLang(textTypes);
     }
-
-    public List<RuleModel> getRules() {
-        return rules;
-    }
-
-    public InheritanceModel getInheritance() {
-        return inheritance;
-    }
-
-    @JsonIgnore
-    public void merge(RuleCategoryModel ruleCategoryModel) {
-        if (ruleCategoryModel == null) {
-            return;
-        }
-        rules.addAll(ruleCategoryModel.getRules());
-        if (inheritance != null) {
-            inheritance.merge(ruleCategoryModel.getInheritance());
-        } else {
-            inheritance = ruleCategoryModel.getInheritance();
-        }
-    }
-    
-    @JsonIgnore
-    public boolean isPreventInheritance() {
-        return inheritance != null && inheritance.isPreventInheritance() != null &&
-            Boolean.TRUE.equals(inheritance.isPreventInheritance());
-    }
-
-    @JsonIgnore
-    public void setPreventInheritance(Boolean preventInheritance) {
-        if (inheritance == null) {
-            inheritance = new InheritanceModel();
-        }
-        inheritance.setPreventInheritance(preventInheritance);
-    }
-
-    @JsonIgnore
-    public void addPreventRulesId(List<String> preventRulesId) {
-        if (inheritance == null) {
-            inheritance = new InheritanceModel();
-        }
-        inheritance.getPreventRulesId().addAll(preventRulesId);
-    }
-
-    @JsonIgnore
-    public void addPreventRuleId(String preventRulesId) {
-        if (inheritance == null) {
-            inheritance = new InheritanceModel();
-        }
-        inheritance.getPreventRulesId().add(preventRulesId);
-    }
-
 }

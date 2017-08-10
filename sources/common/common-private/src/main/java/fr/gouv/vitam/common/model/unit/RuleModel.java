@@ -24,10 +24,12 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.model;
+package fr.gouv.vitam.common.model.unit;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+@JsonIgnoreProperties({"EndDate"})
 public class RuleModel {
 
     /**
@@ -67,6 +69,14 @@ public class RuleModel {
      * needReassessingAuthorization
      */
     private Boolean needReassessingAuthorization;
+
+    public RuleModel() {
+    }
+
+    public RuleModel(String rule, String startDate) {
+        this.rule = rule;
+        this.startDate = startDate;
+    }
 
     public String getRule() {
         return rule;

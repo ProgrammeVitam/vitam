@@ -1,8 +1,8 @@
-package fr.gouv.vitam.worker.core.model;
-
-import java.util.List;
+package fr.gouv.vitam.common.model.unit;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.ArrayList;
+import java.util.List;
 
 import fr.gouv.culture.archivesdefrance.seda.v2.AgentType;
 import fr.gouv.culture.archivesdefrance.seda.v2.CoverageType;
@@ -254,6 +254,9 @@ public class DescriptiveMetadataModel {
     }
 
     public List<String> getTag() {
+        if (tag == null) {
+            tag = new ArrayList<>();
+        }
         return tag;
     }
 
@@ -262,6 +265,9 @@ public class DescriptiveMetadataModel {
     }
 
     public List<KeywordsType> getKeyword() {
+        if (keyword == null) {
+            keyword = new ArrayList<>();
+        }
         return keyword;
     }
 
@@ -302,6 +308,9 @@ public class DescriptiveMetadataModel {
     }
 
     public List<DescriptiveMetadataContentType.Writer> getWriter() {
+        if (writer == null) {
+            writer = new ArrayList<>();
+        }
         return writer;
     }
 
@@ -310,6 +319,9 @@ public class DescriptiveMetadataModel {
     }
 
     public List<AgentType> getAddressee() {
+        if (addressee == null) {
+            addressee = new ArrayList<>();
+        }
         return addressee;
     }
 
@@ -318,6 +330,9 @@ public class DescriptiveMetadataModel {
     }
 
     public List<AgentType> getRecipient() {
+        if (recipient == null) {
+            recipient = new ArrayList<>();
+        }
         return recipient;
     }
 
@@ -407,6 +422,9 @@ public class DescriptiveMetadataModel {
     }
 
     public List<EventType> getEvent() {
+        if (event == null) {
+            event = new ArrayList<>();
+        }
         return event;
     }
 
@@ -431,6 +449,9 @@ public class DescriptiveMetadataModel {
     }
 
     public List<Object> getAny() {
+        if (any == null) {
+            any = new ArrayList<>();
+        }
         return any;
     }
 

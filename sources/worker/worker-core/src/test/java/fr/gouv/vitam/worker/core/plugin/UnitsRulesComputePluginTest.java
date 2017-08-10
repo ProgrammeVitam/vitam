@@ -51,7 +51,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.worker.core.model.ArchiveUnitModel;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
