@@ -58,7 +58,6 @@ import com.google.common.base.Throwables;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.client.HeaderIdClientFilter;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -147,6 +146,7 @@ public class ServerApplication extends AbstractVitamApplication<ServerApplicatio
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonJsonProvider.class)
             .register(JacksonFeature.class)
+            // FIXME find a way to remove VitamSession from ihm-recette
             .register(HeaderIdContainerFilter.class)
             // Register a Generic Exception Mapper
             .register(new GenericExceptionMapper());
@@ -237,7 +237,8 @@ public class ServerApplication extends AbstractVitamApplication<ServerApplicatio
 
         String testSystemSipDirectory = getConfiguration().getTestSystemSipDirectory();
         String testSystemReportDirectory = getConfiguration().getTestSystemReportDirectory();
-        ApplicativeTestService applicativeTestService = new ApplicativeTestService(Paths.get(testSystemReportDirectory));
+        ApplicativeTestService applicativeTestService =
+            new ApplicativeTestService(Paths.get(testSystemReportDirectory));
 
         resourceConfig.register(new ApplicativeTestResource(applicativeTestService,
             testSystemSipDirectory));

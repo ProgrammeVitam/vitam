@@ -9,21 +9,16 @@
 	<artifactId>ingest-external-client</artifactId>
 	<name>ingest-external-client</name>
 	<description>ingest external client module</description>
-	
+
 	<dependencies>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>common-private</artifactId>
+			<artifactId>common-public-client</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>ingest-external-common</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>ingest-external-rest</artifactId>
+			<artifactId>ingest-external-api</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
@@ -57,6 +52,12 @@
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>common-junit</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>ingest-external-rest</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>

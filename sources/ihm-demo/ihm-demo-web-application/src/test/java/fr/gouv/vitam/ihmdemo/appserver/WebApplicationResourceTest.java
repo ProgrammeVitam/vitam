@@ -143,6 +143,7 @@ public class WebApplicationResourceTest {
     private static final String TRACEABILITY_CHECK_DSL_QUERY = "{EventID: \"fake_id\"}";
 
     private final int TENANT_ID = 0;
+    private final String CONTRACT_NAME = "contract";
     private static final String STATUS_FIELD_QUERY = "Status";
     private static final String ACTIVATION_DATE_FIELD_QUERY = "ActivationDate";
     private static final String LAST_UPDATE_FIELD_QUERY = "LastUpdate";
@@ -218,7 +219,7 @@ public class WebApplicationResourceTest {
 
     @Test
     public void givenNoArchiveUnitWhenSearchOperationsThenReturnOK() throws Exception {
-        PowerMockito.when(UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject()))
+        PowerMockito.when(UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject(), anyObject()))
             .thenReturn(RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN));
 
         PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), anyObject());
@@ -308,7 +309,7 @@ public class WebApplicationResourceTest {
         final JsonNode preparedDslQuery = JsonHandler.createObjectNode();
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(searchCriteriaMap)).thenReturn(preparedDslQuery);
 
-        PowerMockito.when(UserInterfaceTransactionManager.selectOperation(preparedDslQuery, TENANT_ID))
+        PowerMockito.when(UserInterfaceTransactionManager.selectOperation(preparedDslQuery, TENANT_ID, CONTRACT_NAME))
             .thenThrow(Exception.class);
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when().post("/logbook/operations");
@@ -375,7 +376,7 @@ public class WebApplicationResourceTest {
 
         // UserInterfaceTransactionManager Exception 1 :
         // AccessExternalClientServerException
-        PowerMockito.when(UserInterfaceTransactionManager.searchUnits(preparedDslQuery, TENANT_ID))
+        PowerMockito.when(UserInterfaceTransactionManager.searchUnits(preparedDslQuery, TENANT_ID, CONTRACT_NAME))
             .thenThrow(AccessExternalClientServerException.class);
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
@@ -391,13 +392,12 @@ public class WebApplicationResourceTest {
 
         PowerMockito.when(DslQueryHelper.createSelectElasticsearchDSLQuery(searchCriteriaMap))
             .thenReturn(preparedDslQuery);
-
-        // UserInterfaceTransactionManager Exception 1 :
-        // AccessExternalClientServerException
-        PowerMockito.when(UserInterfaceTransactionManager.searchUnits(preparedDslQuery, TENANT_ID))
+        PowerMockito.when(UserInterfaceTransactionManager.searchUnits(preparedDslQuery, TENANT_ID, CONTRACT_NAME))
             .thenThrow(AccessExternalClientNotFoundException.class);
 
-        given().contentType(ContentType.JSON).body(OPTIONS).expect().statusCode(Status.NOT_FOUND.getStatusCode())
+        given().contentType(ContentType.JSON).body(OPTIONS).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_NAME).expect()
+            .statusCode(Status.NOT_FOUND.getStatusCode())
             .when()
             .post("/archivesearch/units");
     }
@@ -413,7 +413,7 @@ public class WebApplicationResourceTest {
 
         // UserInterfaceTransactionManager Exception 1 :
         // AccessExternalClientServerException
-        PowerMockito.when(UserInterfaceTransactionManager.searchUnits(preparedDslQuery, TENANT_ID))
+        PowerMockito.when(UserInterfaceTransactionManager.searchUnits(preparedDslQuery, TENANT_ID, CONTRACT_NAME))
             .thenThrow(Exception.class);
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
@@ -456,10 +456,14 @@ public class WebApplicationResourceTest {
 
         // UserInterfaceTransactionManager Exception 1 :
         // AccessExternalClientServerException
-        PowerMockito.when(UserInterfaceTransactionManager.getArchiveUnitDetails(preparedDslQuery, "1", TENANT_ID))
+        PowerMockito
+            .when(
+                UserInterfaceTransactionManager.getArchiveUnitDetails(preparedDslQuery, "1", TENANT_ID, CONTRACT_NAME))
             .thenThrow(AccessExternalClientServerException.class);
 
-        given().param("id", "1").expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
+        given().param("id", "1").header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_NAME).expect()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
             .get("/archivesearch/unit/1");
     }
 
@@ -477,10 +481,14 @@ public class WebApplicationResourceTest {
 
         // UserInterfaceTransactionManager Exception 2 :
         // AccessExternalClientNotFoundException
-        PowerMockito.when(UserInterfaceTransactionManager.getArchiveUnitDetails(preparedDslQuery, "1", TENANT_ID))
+        PowerMockito
+            .when(
+                UserInterfaceTransactionManager.getArchiveUnitDetails(preparedDslQuery, "1", TENANT_ID, CONTRACT_NAME))
             .thenThrow(AccessExternalClientNotFoundException.class);
 
-        given().param("id", "1").expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
+        given().param("id", "1").header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_NAME).expect()
+            .statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .get("/archivesearch/unit/1");
     }
 
@@ -495,10 +503,14 @@ public class WebApplicationResourceTest {
         PowerMockito.when(DslQueryHelper.createSelectDSLQuery(searchCriteriaMap)).thenReturn(preparedDslQuery);
 
         // All exceptions
-        PowerMockito.when(UserInterfaceTransactionManager.getArchiveUnitDetails(preparedDslQuery, "1", TENANT_ID))
+        PowerMockito
+            .when(
+                UserInterfaceTransactionManager.getArchiveUnitDetails(preparedDslQuery, "1", TENANT_ID, CONTRACT_NAME))
             .thenThrow(Exception.class);
 
-        given().param("id", "1").expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
+        given().param("id", "1").header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_NAME).expect()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
             .get("/archivesearch/unit/1");
     }
 
@@ -829,7 +841,8 @@ public class WebApplicationResourceTest {
     @Test
     public void testNotFoundGetArchiveObjectGroup() throws Exception {
 
-        PowerMockito.when(UserInterfaceTransactionManager.selectObjectbyId(anyObject(), anyObject(), anyObject()))
+        PowerMockito
+            .when(UserInterfaceTransactionManager.selectObjectbyId(anyObject(), anyObject(), anyObject(), anyObject()))
             .thenThrow(new AccessExternalClientNotFoundException(""));
 
         given().accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)
@@ -842,7 +855,8 @@ public class WebApplicationResourceTest {
         final RequestResponseOK sampleObjectGroup =
             RequestResponseOK
                 .getFromJsonNode(JsonHandler.getFromFile(PropertiesUtils.findFile("sample_objectGroup_document.json")));
-        PowerMockito.when(UserInterfaceTransactionManager.selectObjectbyId(anyObject(), anyObject(), anyObject()))
+        PowerMockito
+            .when(UserInterfaceTransactionManager.selectObjectbyId(anyObject(), anyObject(), anyObject(), anyObject()))
             .thenReturn(sampleObjectGroup);
 
         given().accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)
@@ -862,7 +876,8 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testInternalServerErrorGetArchiveObjectGroup() throws Exception {
-        PowerMockito.when(UserInterfaceTransactionManager.selectObjectbyId(anyObject(), anyObject(), anyObject()))
+        PowerMockito
+            .when(UserInterfaceTransactionManager.selectObjectbyId(anyObject(), anyObject(), anyObject(), anyObject()))
             .thenThrow(new AccessExternalClientServerException(""));
 
         given().accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)
@@ -872,7 +887,8 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testUnknownErrorGetArchiveObjectGroup() throws Exception {
-        PowerMockito.when(UserInterfaceTransactionManager.selectObjectbyId(anyObject(), anyObject(), anyObject()))
+        PowerMockito
+            .when(UserInterfaceTransactionManager.selectObjectbyId(anyObject(), anyObject(), anyObject(), anyObject()))
             .thenThrow(new NullPointerException(""));
 
         given().accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)
@@ -965,10 +981,11 @@ public class WebApplicationResourceTest {
     public void testUnitTreeOk() throws InvalidCreateOperationException, VitamException {
 
         PowerMockito.when(
-            DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(JsonHandler
-                .getFromString(FAKE_STRING_RETURN));
+            DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(
+                JsonHandler
+                    .getFromString(FAKE_STRING_RETURN));
         PowerMockito.when(
-            UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject()))
+            UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject(), anyObject()))
             .thenReturn(RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN));
         PowerMockito.when(
             UserInterfaceTransactionManager.buildUnitTree(anyString(), anyObject())).thenReturn(FAKE_JSONNODE_RETURN);
@@ -1009,11 +1026,12 @@ public class WebApplicationResourceTest {
     public void testUnitTreeWithAccessExternalClientServerException()
         throws Exception {
         PowerMockito.when(
-            DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(JsonHandler
-                .getFromString(FAKE_STRING_RETURN));
+            DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(
+                JsonHandler
+                    .getFromString(FAKE_STRING_RETURN));
 
         PowerMockito.when(
-            UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject()))
+            UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject(), anyObject()))
             .thenThrow(AccessExternalClientServerException.class);
 
         given().contentType(ContentType.JSON).body(ALL_PARENTS)
@@ -1026,11 +1044,12 @@ public class WebApplicationResourceTest {
     public void testUnitTreeWithAccessExternalClientNotFoundException()
         throws Exception {
         PowerMockito.when(
-            DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(JsonHandler
-                .getFromString(FAKE_STRING_RETURN));
+            DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(
+                JsonHandler
+                    .getFromString(FAKE_STRING_RETURN));
 
         PowerMockito.when(
-            UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject()))
+            UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject(), anyObject()))
             .thenThrow(AccessExternalClientNotFoundException.class);
 
         given().contentType(ContentType.JSON).body(ALL_PARENTS)
@@ -1043,10 +1062,11 @@ public class WebApplicationResourceTest {
     public void testUnitTreeWithUnknownException()
         throws InvalidCreateOperationException, VitamException {
         PowerMockito.when(
-            DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(JsonHandler
-                .getFromString(FAKE_STRING_RETURN));
+            DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(
+                JsonHandler
+                    .getFromString(FAKE_STRING_RETURN));
         PowerMockito.when(
-            UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject()))
+            UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject(), anyObject()))
             .thenReturn(RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN));
         PowerMockito.when(
             UserInterfaceTransactionManager.buildUnitTree(anyString(), anyObject())).thenThrow(VitamException.class);
@@ -1216,7 +1236,8 @@ public class WebApplicationResourceTest {
     public void testGetUnitLifeCycleByIdOk() throws Exception {
         final RequestResponseOK result = RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN);
 
-        PowerMockito.when(UserInterfaceTransactionManager.selectUnitLifeCycleById(FAKE_UNIT_LF_ID, TENANT_ID))
+        PowerMockito
+            .when(UserInterfaceTransactionManager.selectUnitLifeCycleById(FAKE_UNIT_LF_ID, TENANT_ID, CONTRACT_NAME))
             .thenReturn(result);
 
         given().param("id_lc", FAKE_UNIT_LF_ID).expect().statusCode(Status.OK.getStatusCode()).when()
@@ -1227,7 +1248,9 @@ public class WebApplicationResourceTest {
     public void testGetObjectGroupLifeCycleByIdOk() throws Exception {
         final RequestResponseOK result = RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN);
 
-        PowerMockito.when(UserInterfaceTransactionManager.selectObjectGroupLifeCycleById(FAKE_OBG_LF_ID, TENANT_ID))
+        PowerMockito
+            .when(UserInterfaceTransactionManager.selectObjectGroupLifeCycleById(FAKE_OBG_LF_ID, TENANT_ID,
+                CONTRACT_NAME))
             .thenReturn(result);
 
         given().param("id_lc", FAKE_OBG_LF_ID).expect().statusCode(Status.OK.getStatusCode()).when()
@@ -1238,10 +1261,13 @@ public class WebApplicationResourceTest {
     @Test
     public void testGetUnitLifeCycleByIdWithBadRequestWhenInvalidParseOperationException()
         throws Exception {
-        PowerMockito.when(UserInterfaceTransactionManager.selectUnitLifeCycleById(FAKE_UNIT_LF_ID, TENANT_ID))
+        PowerMockito
+            .when(UserInterfaceTransactionManager.selectUnitLifeCycleById(FAKE_UNIT_LF_ID, TENANT_ID, CONTRACT_NAME))
             .thenThrow(InvalidParseOperationException.class);
 
-        given().param("id_lc", FAKE_UNIT_LF_ID).expect().statusCode(Status.BAD_REQUEST.getStatusCode()).when()
+        given().param("id_lc", FAKE_UNIT_LF_ID).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_NAME).expect()
+            .statusCode(Status.BAD_REQUEST.getStatusCode()).when()
             .get("/unitlifecycles/" + FAKE_UNIT_LF_ID);
     }
 
@@ -1249,10 +1275,13 @@ public class WebApplicationResourceTest {
     @Test
     public void testGetUnitLifeCycleByIdWithNotFoundResponseWhenLogbookClientException()
         throws Exception {
-        PowerMockito.when(UserInterfaceTransactionManager.selectUnitLifeCycleById(FAKE_UNIT_LF_ID, TENANT_ID))
+        PowerMockito
+            .when(UserInterfaceTransactionManager.selectUnitLifeCycleById(FAKE_UNIT_LF_ID, TENANT_ID, CONTRACT_NAME))
             .thenThrow(LogbookClientException.class);
 
-        given().param("id_lc", FAKE_UNIT_LF_ID).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
+        given().param("id_lc", FAKE_UNIT_LF_ID).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_NAME).expect()
+            .statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .get("/unitlifecycles/" + FAKE_UNIT_LF_ID);
     }
 
@@ -1260,10 +1289,13 @@ public class WebApplicationResourceTest {
     @Test
     public void testGetUnitLifeCycleByIdWithInternalServerErrorWhenUnknownException()
         throws Exception {
-        PowerMockito.when(UserInterfaceTransactionManager.selectUnitLifeCycleById(FAKE_UNIT_LF_ID, TENANT_ID))
+        PowerMockito
+            .when(UserInterfaceTransactionManager.selectUnitLifeCycleById(FAKE_UNIT_LF_ID, TENANT_ID, CONTRACT_NAME))
             .thenThrow(NullPointerException.class);
 
-        given().param("id_lc", FAKE_UNIT_LF_ID).expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
+        given().param("id_lc", FAKE_UNIT_LF_ID).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_NAME).expect()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
             .when()
             .get("/unitlifecycles/" + FAKE_UNIT_LF_ID);
     }
@@ -1272,10 +1304,14 @@ public class WebApplicationResourceTest {
     @Test
     public void testGetObjectGroupLifeCycleByIdWithBadRequestWhenInvalidParseOperationException()
         throws Exception {
-        PowerMockito.when(UserInterfaceTransactionManager.selectObjectGroupLifeCycleById(FAKE_OBG_LF_ID, TENANT_ID))
+        PowerMockito
+            .when(UserInterfaceTransactionManager.selectObjectGroupLifeCycleById(FAKE_OBG_LF_ID, TENANT_ID,
+                CONTRACT_NAME))
             .thenThrow(InvalidParseOperationException.class);
 
-        given().param("id_lc", FAKE_OBG_LF_ID).expect().statusCode(Status.BAD_REQUEST.getStatusCode()).when()
+        given().param("id_lc", FAKE_OBG_LF_ID).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_NAME).expect()
+            .statusCode(Status.BAD_REQUEST.getStatusCode()).when()
             .get("/objectgrouplifecycles/" + FAKE_OBG_LF_ID);
     }
 
@@ -1283,10 +1319,14 @@ public class WebApplicationResourceTest {
     @Test
     public void testGetObjectGroupLifeCycleByIdWithNotFoundResponseWhenLogbookClientException()
         throws Exception {
-        PowerMockito.when(UserInterfaceTransactionManager.selectObjectGroupLifeCycleById(FAKE_OBG_LF_ID, TENANT_ID))
+        PowerMockito
+            .when(UserInterfaceTransactionManager.selectObjectGroupLifeCycleById(FAKE_OBG_LF_ID, TENANT_ID,
+                CONTRACT_NAME))
             .thenThrow(LogbookClientException.class);
 
-        given().param("id_lc", FAKE_OBG_LF_ID).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
+        given().param("id_lc", FAKE_OBG_LF_ID).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_NAME).expect()
+            .statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .get("/objectgrouplifecycles/" + FAKE_OBG_LF_ID);
     }
 
@@ -1294,10 +1334,14 @@ public class WebApplicationResourceTest {
     @Test
     public void testGetOjectGroupLifeCycleByIdWithInternalServerErrorWhenUnknownException()
         throws Exception {
-        PowerMockito.when(UserInterfaceTransactionManager.selectObjectGroupLifeCycleById(FAKE_OBG_LF_ID, TENANT_ID))
+        PowerMockito
+            .when(UserInterfaceTransactionManager.selectObjectGroupLifeCycleById(FAKE_OBG_LF_ID, TENANT_ID,
+                CONTRACT_NAME))
             .thenThrow(NullPointerException.class);
 
-        given().param("id_lc", FAKE_OBG_LF_ID).expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
+        given().param("id_lc", FAKE_OBG_LF_ID).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_NAME).expect()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
             .get("/objectgrouplifecycles/" + FAKE_OBG_LF_ID);
     }
 

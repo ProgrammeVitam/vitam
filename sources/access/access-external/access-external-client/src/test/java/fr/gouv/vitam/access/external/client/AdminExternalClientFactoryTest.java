@@ -10,7 +10,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType;
-import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.external.client.configuration.ClientConfigurationImpl;
 
 public class AdminExternalClientFactoryTest {
     @Before

@@ -24,8 +24,38 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.ingest.external.client;
 
 /**
- * Provides Ingest external common client classes
+ * Error Message for Ingest External
  */
-package fr.gouv.vitam.ingest.external.common.client;
+public enum ErrorMessage {
+    /**
+     * Ingest external upload failed
+     */
+    INGEST_EXTERNAL_UPLOAD_ERROR("Ingest external upload failed "),
+
+    /**
+     * Ingest external upload with warning
+     */
+    INGEST_EXTERNAL_UPLOAD_WITH_WARNING("Ingest external upload with warning "),
+    /**
+     *
+     */
+    INTERNAL_SERVER_ERROR("Ingest External Server Error");
+
+    private final String message;
+
+    private ErrorMessage(String message) {
+        this.message = message;
+    }
+
+    /**
+     *
+     * @return the associated message
+     */
+    public String getMessage() {
+        return message;
+    }
+
+}

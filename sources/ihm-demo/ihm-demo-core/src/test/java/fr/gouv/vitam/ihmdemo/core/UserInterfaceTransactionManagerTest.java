@@ -63,7 +63,6 @@ import fr.gouv.vitam.common.server.application.junit.AsyncResponseJunitTest;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
 /**
  * Tests UserInterfaceTransactionManager class
@@ -137,7 +136,7 @@ public class UserInterfaceTransactionManagerTest {
         when(accessClient.selectUnits(anyObject(), anyObject(), anyObject())).thenReturn(searchResult);
         // Test method
         final RequestResponseOK result = (RequestResponseOK) UserInterfaceTransactionManager
-            .searchUnits(JsonHandler.getFromString(SEARCH_UNIT_DSL_QUERY), TENANT_ID);
+            .searchUnits(JsonHandler.getFromString(SEARCH_UNIT_DSL_QUERY), TENANT_ID, CONTRACT_NAME);
         assertTrue(result.getHits().getTotal() == 1);
     }
 
@@ -145,14 +144,14 @@ public class UserInterfaceTransactionManagerTest {
     @RunWithCustomExecutor
     public void testSuccessGetArchiveUnitDetails()
         throws Exception {
-        VitamThreadUtils.getVitamSession().setContractId(CONTRACT_NAME);
         when(accessClient.selectUnitbyId(JsonHandler.getFromString(SELECT_ID_DSL_QUERY), ID_UNIT, TENANT_ID,
             CONTRACT_NAME))
                 .thenReturn(unitDetails);
         // Test method
         final RequestResponseOK<JsonNode> archiveDetails =
             (RequestResponseOK) UserInterfaceTransactionManager
-                .getArchiveUnitDetails(JsonHandler.getFromString(SELECT_ID_DSL_QUERY), ID_UNIT, TENANT_ID);
+                .getArchiveUnitDetails(JsonHandler.getFromString(SELECT_ID_DSL_QUERY), ID_UNIT, TENANT_ID,
+                    CONTRACT_NAME);
         assertTrue(archiveDetails.getResults().get(0).get("Title").textValue().equals("Archive 1"));
     }
 
@@ -163,7 +162,7 @@ public class UserInterfaceTransactionManagerTest {
         when(accessClient.updateUnitbyId(anyObject(), anyObject(), anyObject(), anyObject())).thenReturn(updateResult);
         // Test method
         final RequestResponseOK results = (RequestResponseOK) UserInterfaceTransactionManager.updateUnits(JsonHandler
-            .getFromString(UPDATE_UNIT_DSL_QUERY), "1", TENANT_ID);
+            .getFromString(UPDATE_UNIT_DSL_QUERY), "1", TENANT_ID, CONTRACT_NAME);
         assertTrue(results.getHits().getTotal() == 1);
     }
 
@@ -171,7 +170,6 @@ public class UserInterfaceTransactionManagerTest {
     @RunWithCustomExecutor
     public void testSuccessSelectObjectbyId()
         throws Exception {
-        VitamThreadUtils.getVitamSession().setContractId(CONTRACT_NAME);
         final RequestResponse result =
             JsonHandler.getFromString(
                 "{$hits: {'total':'1'}, $results:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}],$context :" +
@@ -183,7 +181,8 @@ public class UserInterfaceTransactionManagerTest {
         // Test method
         final RequestResponseOK<JsonNode> objectGroup =
             (RequestResponseOK) UserInterfaceTransactionManager
-                .selectObjectbyId(JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP, TENANT_ID);
+                .selectObjectbyId(JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP, TENANT_ID,
+                    CONTRACT_NAME);
         assertTrue(
             objectGroup.getResults().get(0).get("#id").textValue().equals("1"));
     }
@@ -192,7 +191,6 @@ public class UserInterfaceTransactionManagerTest {
     @RunWithCustomExecutor
     public void testSuccessGetObjectAsInputStream()
         throws Exception {
-        VitamThreadUtils.getVitamSession().setContractId(CONTRACT_NAME);
         when(accessClient.getUnitObject(JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP, "usage", 1,
             TENANT_ID, CONTRACT_NAME))
                 .thenReturn(new AbstractMockClient.FakeInboundResponse(Status.OK, IOUtils.toInputStream("Vitam Test"),
@@ -235,13 +233,14 @@ public class UserInterfaceTransactionManagerTest {
             UserInterfaceTransactionManager.extractInformationFromTimestamp(encodedTimeStampToken);
         assertTrue(!timeStampInfo.isNull());
         assertTrue("2017-05-26T17:25:26".equals(timeStampInfo.get("genTime").asText()));
-        assertTrue("C=FR,ST=idf,L=paris,O=Vitam.,CN=CA_timestamping".equals(timeStampInfo.get("signerCertIssuer").asText()));
-        
+        assertTrue(
+            "C=FR,ST=idf,L=paris,O=Vitam.,CN=CA_timestamping".equals(timeStampInfo.get("signerCertIssuer").asText()));
+
         try {
             UserInterfaceTransactionManager.extractInformationFromTimestamp("FakeTimeStamp");
             fail("Should raized an exception");
-        } catch (BadRequestException e){
-            //do nothing
+        } catch (BadRequestException e) {
+            // do nothing
         }
 
     }

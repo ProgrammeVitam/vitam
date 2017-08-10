@@ -43,9 +43,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -73,7 +74,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.apache.shiro.subject.Subject;
@@ -96,16 +96,11 @@ import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.client.DefaultClient;
-import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
-import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
-import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.error.ServiceName;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
@@ -114,13 +109,14 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.external.client.DefaultClient;
+import fr.gouv.vitam.common.external.client.IngestCollection;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.AccessContractModel;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
@@ -133,8 +129,6 @@ import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server.application.resources.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.ihmdemo.common.api.IhmDataRest;
 import fr.gouv.vitam.ihmdemo.common.api.IhmWebAppHeader;
 import fr.gouv.vitam.ihmdemo.common.pagination.OffsetBasedPagination;
@@ -184,6 +178,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     private final WebApplicationConfig webApplicationConfig;
     private Map<String, AtomicLong> uploadMap = new HashMap<>();
+    private ExecutorService threadPoolExecutor = Executors.newCachedThreadPool();
+
 
     private final Set<String> permissions;
 
@@ -263,7 +259,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 final Map<String, Object> criteriaMap = JsonHandler.getMapFromString(criteria);
                 final JsonNode preparedQueryDsl = DslQueryHelper.createSelectElasticsearchDSLQuery(criteriaMap);
                 result = UserInterfaceTransactionManager.searchUnits(preparedQueryDsl,
-                    getTenantId(headers));
+                    getTenantId(headers), getAccessContractId(headers));
+
+                LOGGER.error(result.toString());
+                LOGGER.error(JsonHandler.prettyPrint(result.toJsonNode()));
 
                 // save result
                 PaginationHelper.setResult(sessionId, result.toJsonNode());
@@ -311,7 +310,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
             final JsonNode preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(selectUnitIdMap);
             final RequestResponse archiveDetails = UserInterfaceTransactionManager
-                .getArchiveUnitDetails(preparedQueryDsl, unitId, getTenantId(headers));
+                .getArchiveUnitDetails(preparedQueryDsl, unitId, getTenantId(headers), getAccessContractId(headers));
 
             return Response.status(Status.OK).entity(archiveDetails).build();
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
@@ -358,6 +357,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
         final List<String> requestIds = HttpHeaderHelper.getHeaderValues(headers, IhmWebAppHeader.REQUEST_ID.name());
         Integer tenantId = getTenantId(headers);
+        String contractId = getAccessContractId(headers);
         if (requestIds != null) {
             requestId = requestIds.get(0);
             // get result from shiro session
@@ -380,7 +380,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
                 final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
 
-                result = UserInterfaceTransactionManager.selectOperation(query, tenantId);
+                result = UserInterfaceTransactionManager.selectOperation(query, tenantId, contractId);
 
                 // save result
                 PaginationHelper.setResult(sessionId, result.toJsonNode());
@@ -746,8 +746,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 for (final JsonNode modifiedField : modifiedFields) {
                     if (modifiedField.get(UPDATE_RULES_KEY) != null) {
                         ArrayNode rulesCategories = (ArrayNode) modifiedField.get(UPDATE_RULES_KEY);
-                        for (JsonNode ruleCategory: rulesCategories) {
-                            for (String categoryKey: VitamConstants.getSupportedRules()) {
+                        for (JsonNode ruleCategory : rulesCategories) {
+                            for (String categoryKey : VitamConstants.getSupportedRules()) {
                                 ArrayNode rules = (ArrayNode) ruleCategory.get(categoryKey);
                                 if (rules != null) {
                                     updateRules.put(categoryKey, rules);
@@ -766,7 +766,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             final JsonNode preparedQueryDsl = DslQueryHelper.createUpdateDSLQuery(updateUnitIdMap, updateRules);
             final RequestResponse archiveDetails =
                 UserInterfaceTransactionManager.updateUnits(preparedQueryDsl, unitId,
-                    getTenantId(headers));
+                    getTenantId(headers), getAccessContractId(headers));
             return Response.status(Status.OK).entity(archiveDetails).build();
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
@@ -784,81 +784,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
-
-    // /**
-    // * @param headers HTTP header needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
-    // * @param sessionId json session id from shiro
-    // * @param options the queries for searching
-    // * @return Response
-    // */
-    // @POST
-    // @Path("/admin/formats")
-    // @Produces(MediaType.APPLICATION_JSON)
-    // @RequiresPermissions("admin:formats:read")
-    // public Response getFileFormats(@Context HttpHeaders headers, @CookieParam("JSESSIONID") String sessionId,
-    // String options) {
-    //
-    // ParametersChecker.checkParameter("cookie is mandatory", sessionId);
-    // String requestId = null;
-    // RequestResponse result = null;
-    // OffsetBasedPagination pagination = null;
-    //
-    // try {
-    // pagination = new OffsetBasedPagination(headers);
-    // } catch (final VitamException e) {
-    // LOGGER.error("Bad request Exception ", e);
-    // return Response.status(Status.BAD_REQUEST).build();
-    // }
-    // final List<String> requestIds = HttpHeaderHelper.getHeaderValues(headers, IhmWebAppHeader.REQUEST_ID.name());
-    // Integer tenantId = getTenantId(headers);
-    // if (requestIds != null) {
-    // requestId = requestIds.get(0);
-    // // get result from shiro session
-    // try {
-    // result = RequestResponseOK.getFromJsonNode(PaginationHelper.getResult(sessionId, pagination));
-    //
-    // // save result
-    // PaginationHelper.setResult(sessionId, result.toJsonNode());
-    // // pagination
-    // result = RequestResponseOK.getFromJsonNode(PaginationHelper.getResult(result.toJsonNode(), pagination));
-    //
-    // return Response.status(Status.OK).entity(result).header(GlobalDataRest.X_REQUEST_ID, requestId)
-    // .header(IhmDataRest.X_OFFSET, pagination.getOffset())
-    // .header(IhmDataRest.X_LIMIT, pagination.getLimit()).build();
-    // } catch (final VitamException e) {
-    // LOGGER.error("Bad request Exception ", e);
-    // return Response.status(Status.BAD_REQUEST).header(GlobalDataRest.X_REQUEST_ID, requestId).build();
-    // }
-    // } else {
-    // requestId = GUIDFactory.newRequestIdGUID(tenantId).toString();
-    //
-    // ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
-    // try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-    // SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-    // final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
-    // final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-    // result = adminClient.findDocuments(AdminCollections.FORMATS, query,
-    // getTenantId(headers));
-    //
-    // // save result
-    // PaginationHelper.setResult(sessionId, result.toJsonNode());
-    // // pagination
-    // result = RequestResponseOK.getFromJsonNode(PaginationHelper.getResult(result.toJsonNode(), pagination));
-    //
-    // return Response.status(Status.OK).entity(result).build();
-    // } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
-    // LOGGER.error("Bad request Exception ", e);
-    // return Response.status(Status.BAD_REQUEST).build();
-    // } catch (final AccessExternalClientNotFoundException e) {
-    // LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
-    // return Response.status(Status.NOT_FOUND).build();
-    // } catch (final Exception e) {
-    // LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
-    // return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-    // }
-    // }
-    // }
-
 
     /**
      * @param headers HTTP header needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
@@ -1003,7 +928,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             qualifierProjection.put("projection_qualifiers", "#qualifiers");
             final JsonNode preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(qualifierProjection);
             final RequestResponse searchResult = UserInterfaceTransactionManager.selectObjectbyId(preparedQueryDsl,
-                objectGroupId, getTenantId(headers));
+                objectGroupId, getTenantId(headers), getAccessContractId(headers));
 
             return Response.status(Status.OK).entity(JsonTransformer.transformResultObjects(searchResult.toJsonNode()))
                 .build();
@@ -1047,8 +972,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         @QueryParam("tenantId") Integer tenantId,
         @QueryParam("contractId") String contractId,
         @Suspended final AsyncResponse asyncResponse) {
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        VitamThreadPoolExecutor.getDefaultExecutor()
+        threadPoolExecutor
             .execute(() -> asyncGetObjectStream(asyncResponse, unitId, usage, filename, tenantId,
                 contractId));
     }
@@ -1069,8 +993,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         @PathParam("idObject") String objectId, @PathParam("type") String type,
         @Suspended final AsyncResponse asyncResponse) {
         Integer tenantId = getTenantId(headers);
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        VitamThreadPoolExecutor.getDefaultExecutor()
+        threadPoolExecutor
             .execute(() -> asyncGetObjectStorageStream(asyncResponse, objectId, type, tenantId));
     }
 
@@ -1461,7 +1384,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
             // 2- Execute Select Query
             final RequestResponse parentsDetails = UserInterfaceTransactionManager.searchUnits(preparedDslQuery,
-                getTenantId(headers));
+                getTenantId(headers), getAccessContractId(headers));
 
             // 3- Build Unit tree (all paths)
             final JsonNode unitTree = UserInterfaceTransactionManager.buildUnitTree(unitId,
@@ -1539,7 +1462,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitLifeCycleId);
         RequestResponse result = null;
         try {
-            result = UserInterfaceTransactionManager.selectUnitLifeCycleById(unitLifeCycleId, getTenantId(headers));
+            result = UserInterfaceTransactionManager.selectUnitLifeCycleById(unitLifeCycleId, getTenantId(headers),
+                getAccessContractId(headers));
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
@@ -1571,7 +1495,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
         try {
             result = UserInterfaceTransactionManager.selectObjectGroupLifeCycleById(objectGroupLifeCycleId,
-                getTenantId(headers));
+                getTenantId(headers), getAccessContractId(headers));
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
@@ -2040,7 +1964,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
-    
+
     /**
      * upload context
      *
@@ -2070,7 +1994,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
-    
+
     /**
      * Get contexts
      * 
@@ -2106,7 +2030,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
-    
+
     /**
      * Get context by id
      * 
@@ -2207,8 +2131,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         @Suspended final AsyncResponse asyncResponse) {
 
         ParametersChecker.checkParameter("Profile id should be filled", profileMetadataId);
-
-        VitamThreadPoolExecutor.getDefaultExecutor()
+        threadPoolExecutor
             .execute(() -> asyncDownloadProfileFile(profileMetadataId, getTenantId(headers), asyncResponse));
     }
 
@@ -2324,8 +2247,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 // Do Nothing : Put 0 as tenant Id
             }
         }
-        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         return tenantId;
+    }
+
+    private String getAccessContractId(HttpHeaders headers) {
+        return headers.getHeaderString(GlobalDataRest.X_ACCESS_CONTRAT_ID);
     }
 
     private File downloadAndSaveATR(String guid, Integer tenantId)
@@ -2441,8 +2367,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             tenantId = getTenantId(headers);
         }
 
-        VitamThreadUtils.getVitamSession().setContractId(contractId);
-        VitamThreadPoolExecutor.getDefaultExecutor()
+        threadPoolExecutor
             .execute(() -> downloadTraceabilityFileAsync(asyncResponse, operationId, tenantId, contractId));
     }
 

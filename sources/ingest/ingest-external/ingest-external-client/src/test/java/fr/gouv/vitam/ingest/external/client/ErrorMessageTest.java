@@ -27,43 +27,17 @@
 package fr.gouv.vitam.ingest.external.client;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
-import org.junit.Before;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType;
+import fr.gouv.vitam.ingest.external.client.ErrorMessage;
 
-
-public class IngestExternalClientFactoryTest {
-
-    @Before
-    public void initFileConfiguration() {
-        IngestExternalClientFactory
-            .changeMode(IngestExternalClientFactory.changeConfigurationFile("ingest-external-client.conf"));
-    }
+public class ErrorMessageTest {
 
     @Test
-    public void changeDefaultClientTypeTest() {
-
-        // First client type : Production
-        final IngestExternalClient client =
-            IngestExternalClientFactory.getInstance().getClient();
-        assertTrue(client instanceof IngestExternalClientRest);
-        assertEquals(VitamClientType.PRODUCTION, IngestExternalClientFactory.getInstance().getVitamClientType());
-
-        // Change to mock type and test
-        IngestExternalClientFactory.changeMode(null);
-        final IngestExternalClient client2 = IngestExternalClientFactory.getInstance().getClient();
-        assertTrue(client2 instanceof IngestExternalClientMock);
-        assertEquals(VitamClientType.MOCK, IngestExternalClientFactory.getInstance().getVitamClientType());
+    public void givenErrorMessage() {
+        assertEquals("Ingest external upload failed ",
+            ErrorMessage.valueOf("INGEST_EXTERNAL_UPLOAD_ERROR").getMessage());
     }
 
-    @Test
-    public void testInitWithConfigurationFile() {
-        final IngestExternalClient client =
-            IngestExternalClientFactory.getInstance().getClient();
-        assertTrue(client instanceof IngestExternalClientRest);
-        assertEquals(VitamClientType.PRODUCTION, IngestExternalClientFactory.getInstance().getVitamClientType());
-    }
 }

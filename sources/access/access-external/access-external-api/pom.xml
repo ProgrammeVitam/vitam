@@ -11,11 +11,4 @@
 	<artifactId>access-external-api</artifactId>
 	<name>access-external-api</name>
 
-	<dependencies>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>access-external-common</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-	</dependencies>
 </project>

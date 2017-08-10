@@ -45,14 +45,6 @@ public class LogbookClientExceptionTest {
     }
 
     @Test
-    public final void testLogbookClientException() {
-        assertEquals(null, new LogbookClientException((String) null).getMessage());
-        assertEquals("test", new LogbookClientException("test").getMessage());
-        assertNotNull(new LogbookClientException(new Exception()).getCause());
-        assertNotNull(new LogbookClientException("test", new Exception()).getCause());
-    }
-
-    @Test
     public final void testLogbookClientNotFoundException() {
         assertEquals(null, new LogbookClientNotFoundException((String) null).getMessage());
         assertEquals("test", new LogbookClientNotFoundException("test").getMessage());

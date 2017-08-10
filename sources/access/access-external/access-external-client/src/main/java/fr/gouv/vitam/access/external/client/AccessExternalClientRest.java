@@ -13,7 +13,6 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFou
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
@@ -21,13 +20,11 @@ import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.external.client.DefaultClient;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
@@ -71,7 +68,6 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         AccessExternalClientNotFoundException, AccessUnauthorizedException {
         Response response = null;
 
-        SanityChecker.checkJsonAll(selectQuery);
         if (selectQuery == null || selectQuery.size() == 0) {
             throw new IllegalArgumentException(BLANK_DSL);
         }
@@ -129,7 +125,6 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
 
-        SanityChecker.checkJsonAll(selectQuery);
         if (selectQuery == null || selectQuery.size() == 0) {
             throw new IllegalArgumentException(BLANK_DSL);
         }
@@ -179,7 +174,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException, NoWritingPermissionException, AccessUnauthorizedException {
         Response response = null;
-        SanityChecker.checkJsonAll(updateQuery);
+
         if (updateQuery == null || updateQuery.size() == 0) {
             throw new IllegalArgumentException(BLANK_DSL);
         }
@@ -242,7 +237,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         String contractName)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException, AccessUnauthorizedException {
-        SanityChecker.checkJsonAll(selectObjectQuery);
+
         if (selectObjectQuery == null || selectObjectQuery.size() == 0) {
             throw new IllegalArgumentException(BLANK_DSL);
         }
@@ -303,7 +298,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         Integer tenantId, String contractName)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException {
-        SanityChecker.checkJsonAll(selectObjectQuery);
+
         if (selectObjectQuery == null || selectObjectQuery.size() == 0) {
             throw new IllegalArgumentException(BLANK_DSL);
         }
@@ -350,7 +345,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         String contractName)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException, AccessUnauthorizedException {
-        SanityChecker.checkJsonAll(selectObjectQuery);
+
         if (selectObjectQuery == null || selectObjectQuery.size() == 0) {
             throw new IllegalArgumentException(BLANK_DSL);
         }
@@ -548,7 +543,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     public RequestResponse selectUnitLifeCycle(JsonNode queryDsl, Integer tenantId, String contractName)
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         Response response = null;
-        SanityChecker.checkJsonAll(queryDsl);
+
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);

@@ -24,46 +24,47 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.ingest.external.client;
+package fr.gouv.vitam.ingest.external.core;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import java.io.InputStream;
 
-import org.junit.Before;
-import org.junit.Test;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.core.Response;
 
-import fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
+import fr.gouv.vitam.ingest.external.core.PreUploadResume;
+import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
+
+/**
+ * IngestExtern interface
+ */
+public interface IngestExternal {
+
+    /**
+     *
+     * @param input
+     * @param contextId
+     * @param action
+     * @param guid
+     * @param asyncResponse
+     * @return PreUploadResume
+     * @throws WorkspaceClientServerException error when workspace server is down
+     */
+    public PreUploadResume preUploadAndResume(InputStream input, String contextId, String action, GUID guid,
+        AsyncResponse asyncResponse)
+        throws IngestExternalException, WorkspaceClientServerException;
 
 
-public class IngestExternalClientFactoryTest {
-
-    @Before
-    public void initFileConfiguration() {
-        IngestExternalClientFactory
-            .changeMode(IngestExternalClientFactory.changeConfigurationFile("ingest-external-client.conf"));
-    }
-
-    @Test
-    public void changeDefaultClientTypeTest() {
-
-        // First client type : Production
-        final IngestExternalClient client =
-            IngestExternalClientFactory.getInstance().getClient();
-        assertTrue(client instanceof IngestExternalClientRest);
-        assertEquals(VitamClientType.PRODUCTION, IngestExternalClientFactory.getInstance().getVitamClientType());
-
-        // Change to mock type and test
-        IngestExternalClientFactory.changeMode(null);
-        final IngestExternalClient client2 = IngestExternalClientFactory.getInstance().getClient();
-        assertTrue(client2 instanceof IngestExternalClientMock);
-        assertEquals(VitamClientType.MOCK, IngestExternalClientFactory.getInstance().getVitamClientType());
-    }
-
-    @Test
-    public void testInitWithConfigurationFile() {
-        final IngestExternalClient client =
-            IngestExternalClientFactory.getInstance().getClient();
-        assertTrue(client instanceof IngestExternalClientRest);
-        assertEquals(VitamClientType.PRODUCTION, IngestExternalClientFactory.getInstance().getVitamClientType());
-    }
+    /**
+     * upload the file -- store in local, scan for viruses and then check for supported format (ZIP, TAR, ...)<br>
+     *
+     * @param preUploadResume     informations returned
+     * @param guid
+     * @return Response containing as InputStream the ArchiveTransferReply in XML format
+     * @throws IngestExternalException thrown if an error occurred in workflow
+     */
+    // TODO P0 add the file name as param from a header
+    Response upload(PreUploadResume preUploadResume, GUID guid)
+        throws IngestExternalException;
 }
