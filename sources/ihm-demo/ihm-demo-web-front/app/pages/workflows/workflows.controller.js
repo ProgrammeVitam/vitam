@@ -145,9 +145,9 @@ angular.module('workflows')
 
       // Handle steps
       if (!!requestOptions.steps) {
-        requestOptions.lastSteps = _.map(requestOptions.steps, 'id');
-        if (requestOptions.lastSteps.length === 1 && requestOptions.lastSteps[0] === '') {
-          delete requestOptions.lastSteps;
+        requestOptions.listSteps = _.map(requestOptions.steps, 'id');
+        if (requestOptions.listSteps.length === 1 && requestOptions.listSteps[0] === '') {
+          delete requestOptions.listSteps;
         }
       }
       delete requestOptions.steps;
