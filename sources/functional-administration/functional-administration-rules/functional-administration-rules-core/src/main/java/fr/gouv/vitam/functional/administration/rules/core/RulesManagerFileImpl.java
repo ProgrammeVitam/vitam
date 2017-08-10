@@ -58,7 +58,6 @@ import org.apache.commons.lang3.StringUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.gson.Gson;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -278,15 +277,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
                         digest.update(new FileInputStream(file));
 
                         store(eip, new FileInputStream(file), CSV, digest.toString());
-                        // store json
-                        if (commitOk) {
-                            Integer sequence = vitamCounterService
-                                .getSequence(ParameterHelper.getTenantParameter(),
-                                    SequenceType.RULES_SEQUENCE.getName());
-                            storeJson(eip, sequence);
-                        }
-                        // else no rule modified ?
-                        // store Json
+                        storeJson(eip);
 
                         final LogbookOperationParameters logbookParametersEnd = LogbookParametersFactory
                             .newLogbookOperationParameters(eip1, STP_IMPORT_RULES, eip, LogbookTypeProcess.MASTERDATA,
@@ -452,17 +443,15 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         securisator.secureFileRules(sequence, stream, extension, eipMaster, digest);
     }
 
-    private void storeJson(GUID eipMaster, Integer sequence)
+    private void storeJson(GUID eipMaster)
         throws ReferentialException, InvalidParseOperationException, InvalidCreateOperationException,
         LogbookClientServerException, StorageException, LogbookClientBadRequestException,
         LogbookClientAlreadyExistsException {
         final SelectParserSingle parser = new SelectParserSingle(new VarNameAdapter());
         Select select = new Select();
         parser.parse(select.getFinalSelect());
-        parser.addCondition(eq("#version", sequence.toString()));
         final RequestResponseOK<FileRules> documents = findDocuments(parser.getRequest().getFinalSelect());
-        // FIXME use JsonHandler
-        String json = new Gson().toJson(documents.getResults());
+        String json = JsonHandler.toJsonNode(documents.getResults()).toString();
         InputStream stream = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));
 
         final DigestType digestType = VitamConfiguration.getDefaultTimestampDigestType();
