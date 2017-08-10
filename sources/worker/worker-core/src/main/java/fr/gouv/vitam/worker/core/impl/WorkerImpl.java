@@ -26,7 +26,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.impl;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
+
 import com.google.common.base.Stopwatch;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -74,6 +82,8 @@ import fr.gouv.vitam.worker.core.handler.CommitLifeCycleObjectGroupActionHandler
 import fr.gouv.vitam.worker.core.handler.CommitLifeCycleUnitActionHandler;
 import fr.gouv.vitam.worker.core.handler.DummyHandler;
 import fr.gouv.vitam.worker.core.handler.ExtractSedaActionHandler;
+import fr.gouv.vitam.worker.core.handler.ListArchiveUnitsActionHandler;
+import fr.gouv.vitam.worker.core.handler.ListRunningIngestsActionHandler;
 import fr.gouv.vitam.worker.core.handler.PrepareTraceabilityCheckProcessActionHandler;
 import fr.gouv.vitam.worker.core.handler.RollBackActionHandler;
 import fr.gouv.vitam.worker.core.handler.TransferNotificationActionHandler;
@@ -81,13 +91,6 @@ import fr.gouv.vitam.worker.core.handler.VerifyMerkleTreeActionHandler;
 import fr.gouv.vitam.worker.core.handler.VerifyTimeStampActionHandler;
 import fr.gouv.vitam.worker.core.plugin.PluginLoader;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -101,6 +104,7 @@ public class WorkerImpl implements Worker {
     private static final String EMPTY_LIST = "null or Empty Action list";
     private static final String STEP_NULL = "step paramaters is null";
     private static final String HANDLER_NOT_FOUND = ": handler not found exception: ";
+    private static final String UNIT_LIST_WITHOUT_LEVEL = "UnitsWithoutLevel";
     private final Map<String, ActionHandler> actions = new HashMap<>();
     private final String workerId;
     private final PluginLoader pluginLoader;
@@ -140,7 +144,7 @@ public class WorkerImpl implements Worker {
          */
         actions.put(ExtractSedaActionHandler.getId(), new ExtractSedaActionHandler());
         actions.put(CheckSedaActionHandler.getId(), new CheckSedaActionHandler());
-        actions.put(CheckIngestContractActionHandler.getId(), new CheckIngestContractActionHandler());        
+        actions.put(CheckIngestContractActionHandler.getId(), new CheckIngestContractActionHandler());
         actions.put(CheckObjectsNumberActionHandler.getId(), new CheckObjectsNumberActionHandler());
         actions.put(CheckNoObjectsActionHandler.getId(), new CheckNoObjectsActionHandler());
         actions.put(CheckVersionActionHandler.getId(), new CheckVersionActionHandler());
@@ -174,6 +178,10 @@ public class WorkerImpl implements Worker {
             new CheckHeaderActionHandler());
         actions.put(CheckDataObjectPackageActionHandler.getId(),
             new CheckDataObjectPackageActionHandler());
+        actions.put(ListRunningIngestsActionHandler.getId(),
+            new ListRunningIngestsActionHandler());
+        actions.put(ListArchiveUnitsActionHandler.getId(),
+            new ListArchiveUnitsActionHandler());
 
     }
 
@@ -214,10 +222,11 @@ public class WorkerImpl implements Worker {
                 if (pluginLoader.contains(handlerName)) {
 
                     try (ActionHandler actionPlugin = pluginLoader.newInstance(handlerName)) {
-    
+
                         ItemStatus pluginResponse;
                         LOGGER.debug("START plugin ", actionDefinition.getActionKey(), step.getStepName());
-                        boolean shouldWriteLFC = step.getDistribution().getKind().equals(DistributionKind.LIST);
+                        boolean shouldWriteLFC = step.getDistribution().getKind().equals(DistributionKind.LIST) &&
+                            !step.getDistribution().getElement().equals(UNIT_LIST_WITHOUT_LEVEL);
                         if (shouldWriteLFC) {
                             LogbookLifeCycleParameters lfcParam = createStartLogbookLfc(step, handlerName, workParams);
                             logbookLfcClient.update(lfcParam);
@@ -246,7 +255,7 @@ public class WorkerImpl implements Worker {
 
                 long elapsed = stopwatch.elapsed(TimeUnit.MILLISECONDS);
 
-                LOGGER.info("{},{},{}",  actionDefinition.getActionKey(), step.getStepName(), elapsed);
+                LOGGER.info("{},{},{}", actionDefinition.getActionKey(), step.getStepName(), elapsed);
 
                 if (actionResponse.shallStop(ProcessBehavior.BLOCKING.equals(actionDefinition.getBehavior()))) {
                     break;

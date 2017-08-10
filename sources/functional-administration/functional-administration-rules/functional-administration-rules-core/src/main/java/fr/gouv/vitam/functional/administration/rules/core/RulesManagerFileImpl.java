@@ -48,6 +48,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.ws.rs.core.Response.Status;
+
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -77,14 +79,20 @@ import fr.gouv.vitam.common.database.server.DbRequestSingle;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
@@ -108,6 +116,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
@@ -121,7 +130,11 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
+import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 /**
  * RulesManagerFileImpl
@@ -157,10 +170,10 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     private final MongoDbAccessAdminImpl mongoAccess;
     private static final String RULE_ID = "RuleId";
     private final VitamCounterService vitamCounterService;
-
     private LogbookOperationsClient client;
 
     private static String STP_IMPORT_RULES = "STP_IMPORT_RULES";
+    private static String UPDATE_RULES_ARCHIVE_UNITS = "UPDATE_RULES_ARCHIVE_UNITS";
     private static String CHECK_RULES = "CHECK_RULES";
     private static String COMMIT_RULES = "COMMIT_RULES";
     private static String USED_DELETED_RULE_IDS = "usedDeletedRuleIds";
@@ -275,13 +288,17 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
                         // else no rule modified ?
                         // store Json
 
-
-                        // TODO #2201 : Create Workflow for update AU linked to unit
                         final LogbookOperationParameters logbookParametersEnd = LogbookParametersFactory
                             .newLogbookOperationParameters(eip1, STP_IMPORT_RULES, eip, LogbookTypeProcess.MASTERDATA,
                                 StatusCode.OK, VitamLogbookMessages.getCodeOp(STP_IMPORT_RULES, StatusCode.OK),
                                 eip1);
                         updateLogBookEntry(logbookParametersEnd);
+
+                        if (!fileRulesModelToUpdate.isEmpty()) {
+                            // #2201 - we now launch the process that will update units
+                            launchWorkflow(fileRulesModelToUpdate);
+
+                        }
                     } catch (final FileRulesException | StorageException | LogbookClientServerException |
                         LogbookClientBadRequestException |
                         LogbookClientAlreadyExistsException e) {
@@ -304,6 +321,65 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
             throw new FileRulesException(e);
         } finally {
             file.delete();
+        }
+    }
+
+    /**
+     * Method that is responsible of launching workflow that will update archive units after rules has been updated
+     * 
+     * @param fileRulesModelToUpdate
+     * @throws InvalidParseOperationException
+     */
+    private void launchWorkflow(List<FileRulesModel> fileRulesModelToUpdate) throws InvalidParseOperationException {
+
+        try (ProcessingManagementClient processManagementClient =
+            ProcessingManagementClientFactory.getInstance().getClient()) {
+            ArrayNode arrayNode = JsonHandler.createArrayNode();
+            for (final FileRulesModel ruleNode : fileRulesModelToUpdate) {
+                arrayNode.add(JsonHandler.toJsonNode(ruleNode));
+            }
+            final GUID updateOperationGUID = GUIDFactory.newOperationLogbookGUID(getTenant());
+            final LogbookOperationParameters logbookUpdateParametersStart = LogbookParametersFactory
+                .newLogbookOperationParameters(updateOperationGUID, UPDATE_RULES_ARCHIVE_UNITS,
+                    updateOperationGUID,
+                    LogbookTypeProcess.UPDATE,
+                    StatusCode.STARTED,
+                    VitamLogbookMessages.getCodeOp(UPDATE_RULES_ARCHIVE_UNITS, StatusCode.STARTED),
+                    updateOperationGUID);
+            createLogBookEntry(logbookUpdateParametersStart);
+            try {
+                securisator.copyFilesOnWorkspaceUpdateWorkflow(
+                    JsonHandler.writeToInpustream(arrayNode),
+                    updateOperationGUID.getId());
+
+                processManagementClient.initVitamProcess(Contexts.UPDATE_RULES_ARCHIVE_UNITS.name(),
+                    updateOperationGUID.getId(), UPDATE_RULES_ARCHIVE_UNITS);
+                LOGGER.debug("Started Update in Resource");
+                RequestResponse<ItemStatus> ret =
+                    processManagementClient
+                        .updateOperationActionProcess(ProcessAction.RESUME.getValue(),
+                            updateOperationGUID.getId());
+
+                if (Status.ACCEPTED.getStatusCode() != ret.getStatus()) {
+                    throw new VitamClientException("Process couldnt be executed");
+                }
+
+            } catch (ContentAddressableStorageAlreadyExistException |
+                ContentAddressableStorageServerException | InternalServerException |
+                VitamClientException | BadRequestException e) {
+                LOGGER.error(e);
+                final LogbookOperationParameters logbookUpdateParametersEnd =
+                    LogbookParametersFactory
+                        .newLogbookOperationParameters(updateOperationGUID,
+                            UPDATE_RULES_ARCHIVE_UNITS,
+                            updateOperationGUID,
+                            LogbookTypeProcess.UPDATE,
+                            StatusCode.KO,
+                            VitamLogbookMessages.getCodeOp(UPDATE_RULES_ARCHIVE_UNITS,
+                                StatusCode.KO),
+                            updateOperationGUID);
+                updateLogBookEntry(logbookUpdateParametersEnd);
+            }
         }
     }
 
@@ -649,10 +725,10 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         for (FileRulesModel fileRulesModel : fileRulesModelsToImport) {
             for (FileRulesModel fileRulesModelInDb : fileRulesModelsInDb) {
                 if (fileRulesModelInDb.equals(fileRulesModel) &&
-                    (!fileRulesModelInDb.getRuleDuration().equals(fileRulesModel.getRuleDuration())
-                        || !fileRulesModelInDb.getRuleMeasurement().equals(fileRulesModel.getRuleMeasurement())
-                        || !fileRulesModelInDb.getRuleDescription().equals(fileRulesModel.getRuleDescription())
-                        || !fileRulesModelInDb.getRuleValue().equals(fileRulesModel.getRuleValue()))) {
+                    (!fileRulesModelInDb.getRuleDuration().equals(fileRulesModel.getRuleDuration()) ||
+                        !fileRulesModelInDb.getRuleMeasurement().equals(fileRulesModel.getRuleMeasurement()) ||
+                        !fileRulesModelInDb.getRuleDescription().equals(fileRulesModel.getRuleDescription()) ||
+                        !fileRulesModelInDb.getRuleValue().equals(fileRulesModel.getRuleValue()))) {
                     fileRulesModelToUpdate.add(fileRulesModel);
                 }
             }
@@ -957,9 +1033,9 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
             (record.get(RULE_MEASUREMENT).equalsIgnoreCase(RuleMeasurementEnum.YEAR.getType()) &&
                 Integer.parseInt(record.get(RULE_DURATION)) > YEAR_LIMIT ||
                 record.get(RULE_MEASUREMENT).equalsIgnoreCase(RuleMeasurementEnum.MONTH.getType()) &&
-                Integer.parseInt(record.get(RULE_DURATION)) > MONTH_LIMIT ||
-            record.get(RULE_MEASUREMENT).equalsIgnoreCase(RuleMeasurementEnum.DAY.getType()) &&
-                Integer.parseInt(record.get(RULE_DURATION)) > DAY_LIMIT)) {
+                    Integer.parseInt(record.get(RULE_DURATION)) > MONTH_LIMIT ||
+                record.get(RULE_MEASUREMENT).equalsIgnoreCase(RuleMeasurementEnum.DAY.getType()) &&
+                    Integer.parseInt(record.get(RULE_DURATION)) > DAY_LIMIT)) {
             throw new FileRulesException(
                 String.format(INVALIDPARAMETERS, RULE_DURATION, record.get(RULE_DURATION)));
         }
@@ -1056,16 +1132,15 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
             select.addProjection(
                 JsonHandler.createObjectNode().set(BuilderToken.PROJECTION.FIELDS.exactToken(),
                     JsonHandler.createObjectNode()
-                        .put(BuilderToken.PROJECTIONARGS.ID.exactToken(), 1).put
-                        (String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.outcome.name()), 1)));
+                        .put(BuilderToken.PROJECTIONARGS.ID.exactToken(), 1)
+                        .put(String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.outcome.name()), 1)));
             JsonNode logbookResult = client.selectOperation(select.getFinalSelect());
             RequestResponseOK<JsonNode> requestResponseOK = RequestResponseOK.getFromJsonNode(logbookResult);
             // one result and statuscode is STARTED -> import in progress
             if (requestResponseOK.getHits().getSize() != 0) {
                 JsonNode result = requestResponseOK.getResults().get(0);
                 return StatusCode.STARTED.name().equals(
-                    result.get(LogbookDocument.EVENTS).get(0).get(LogbookMongoDbName
-                        .outcome.name()).asText());
+                    result.get(LogbookDocument.EVENTS).get(0).get(LogbookMongoDbName.outcome.name()).asText());
             } else {
                 return false;
             }

@@ -143,7 +143,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
 
 
-                    // Test regarding Unit to be indexed
+                    // Test regarding Unit to be indexed                    
                     if (ELEMENT_UNITS.equalsIgnoreCase(step.getDistribution().getElement())) {
                         // get the file to retrieve the GUID
                         final Response response = workspaceClient.getObject(workParams.getContainerName(),

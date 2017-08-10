@@ -82,7 +82,7 @@ public final class GUIDObjectType {
          * Store Accession register detail type
          */
         ACCESSION_REGISTER_DETAIL(ACCESSION_REGISTER_DETAIL_TYPE),
-        
+
         /**
          * Ingest contract type
          */
@@ -159,7 +159,7 @@ public final class GUIDObjectType {
      * Profile
      */
     public static final int PROFILE_TYPE = 12;
-    
+
     /**
      * Context
      */
@@ -169,7 +169,6 @@ public final class GUIDObjectType {
      * Accession register detail
      */
     public static final int ACCESSION_REGISTER_DETAIL_TYPE = 14;
-
 
     private GUIDObjectType() {
         // empty
@@ -240,8 +239,8 @@ public final class GUIDObjectType {
      */
     public static boolean getDefaultWorm(int type) {
         switch (type) {
-        	case INGEST_CONTRACT_TYPE:
-        	return false;
+            case INGEST_CONTRACT_TYPE:
+                return false;
             case UNIT_TYPE:
             case OBJECTGROUP_TYPE:
             case STORAGE_OPERATION_TYPE:

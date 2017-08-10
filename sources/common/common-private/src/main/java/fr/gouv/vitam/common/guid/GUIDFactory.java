@@ -289,7 +289,7 @@ public final class GUIDFactory {
         return new GUIDImplPrivate(type, tenantId, serverIdentity.getGlobalPlatformId(),
             GUIDObjectType.getDefaultWorm(type));
     }
-
+    
     /**
      *
      * @param uuid

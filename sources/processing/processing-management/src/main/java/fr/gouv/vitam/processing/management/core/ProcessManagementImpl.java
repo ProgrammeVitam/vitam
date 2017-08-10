@@ -397,6 +397,10 @@ public class ProcessManagementImpl implements ProcessManagement {
                     continue;
                 }
             }
+            if (query.getListProcessTypes() != null && !query.getListProcessTypes().isEmpty() &&
+                !query.getListProcessTypes().contains(processWorkflow.getLogbookTypeProcess().toString())) {
+                continue;
+            }
             if (query.getStartDateMin() != null && query.getStartDateMax() != null) {
                 if (!isStartDateIn(query.getStartDateMin(), query.getStartDateMax(), processWorkflow)) {
                     continue;
@@ -457,7 +461,7 @@ public class ProcessManagementImpl implements ProcessManagement {
                         }
                     }
                     break;
-                case COMPLETED:
+                case COMPLETED:                   
                     if (processStep.getStepStatusCode() == StatusCode.KO ||
                         processStep.getStepStatusCode() == StatusCode.STARTED) {
                         previousStep = processStep.getStepName();

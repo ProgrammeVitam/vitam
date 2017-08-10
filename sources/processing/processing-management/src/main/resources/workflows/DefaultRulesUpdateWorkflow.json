@@ -1,0 +1,84 @@
+{
+  "id": "DefaultRulesUpdateWorkflow",
+  "name": "Default Update Rules in Archive Units",
+  "identifier": "UPDATE_RULES_ARCHIVE_UNITS",
+  "typeProc": "UPDATE",
+  "comment": "Default Update Rules in Archive Units workflow V1",
+  "steps": [
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_PREPARE_LISTS",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": "PROCESSING\/updatedRules.json"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "LIST_RUNNING_INGESTS",
+            "behavior": "BLOCKING",
+            "out": [
+              {
+                "name": "runningingests.file",
+                "uri": "WORKSPACE:PROCESSING\/runningIngests.json"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "LIST_ARCHIVE_UNITS",
+            "behavior": "BLOCKING",
+            "out": [
+              {
+                "name": "updatedarchiveunits.file",
+                "uri": "WORKSPACE:PROCESSING\/auToBeUpdated.json"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_UNIT_UPDATE",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST",
+        "element": "UnitsWithoutLevel"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "UPDATE_UNIT_RULES",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_UPDATE_RUNNING_INGESTS",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": "PROCESSING\/updatedRules.json"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "UPDATE_RUNNING_INGESTS",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "runningingests.file",
+                "uri": "WORKSPACE:PROCESSING\/runningIngests.json"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

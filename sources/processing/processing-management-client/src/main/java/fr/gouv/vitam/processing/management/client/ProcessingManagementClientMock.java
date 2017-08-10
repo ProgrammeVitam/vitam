@@ -46,9 +46,11 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
+import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -60,6 +62,7 @@ import fr.gouv.vitam.processing.common.model.Distribution;
 import fr.gouv.vitam.processing.common.model.DistributionKind;
 import fr.gouv.vitam.processing.common.model.IOParameter;
 import fr.gouv.vitam.processing.common.model.ProcessBehavior;
+import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.common.model.ProcessingUri;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.model.WorkFlow;
@@ -198,9 +201,18 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
 
 
     @Override
-    public RequestResponse<JsonNode> listOperationsDetails(ProcessQuery query) {
-        // TODO Add a list of operations to response
-        return new RequestResponseOK<>();
+    public RequestResponse<JsonNode> listOperationsDetails(ProcessQuery query) throws VitamClientException {
+        ProcessWorkflow pw = new ProcessWorkflow();
+        pw.setOperationId(GUIDFactory.newOperationLogbookGUID(0).toString());
+        pw.setState(ProcessState.RUNNING);
+        pw.setStatus(StatusCode.STARTED);
+        List<JsonNode> list = new ArrayList<JsonNode>();
+        try {
+            list.add(JsonHandler.toJsonNode(pw));
+        } catch (InvalidParseOperationException e) {
+            throw new VitamClientException(e.getMessage());
+        }
+        return new RequestResponseOK<JsonNode>().addAllResults(list);
     }
 
     @Override

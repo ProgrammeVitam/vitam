@@ -27,10 +27,12 @@
 package fr.gouv.vitam.functional.administration.rules.core;
 
 
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.digest.Digest;
-import fr.gouv.vitam.common.digest.DigestType;
+
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
@@ -38,6 +40,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
@@ -64,14 +67,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-
-import static fr.gouv.vitam.common.LocalDateUtil.getString;
 
 public class RulesSecurisator {
 
@@ -117,16 +112,18 @@ public class RulesSecurisator {
         Integer tenantId = ParameterHelper.getTenantParameter();
         try (
             WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-            StorageClient storageClient = StorageClientFactory.getInstance().getClient();
-        ) {
+            StorageClient storageClient = StorageClientFactory.getInstance().getClient();) {
 
             final GUID eip1 = GUIDFactory.newOperationLogbookGUID(tenantId);
             final String fileName =
-                String.format("%d_" + STORAGE_RULE_NAME + "%s_%s." + extension, tenantId, version, LocalDateTime.now().format(
-                    DateTimeFormatter.ofPattern("yyyyMMddhhmmss")) );
+                String.format("%d_" + STORAGE_RULE_NAME + "%s_%s." + extension, tenantId, version,
+                    LocalDateTime.now().format(
+                        DateTimeFormatter.ofPattern("yyyyMMddhhmmss")));
             final LogbookOperationParameters logbookParametersStart = LogbookParametersFactory
-                .newLogbookOperationParameters(eip1, RULE_SECURISATION + "_" + extension.toUpperCase(), eipMaster, LogbookTypeProcess.STORAGE_RULE,
-                    StatusCode.STARTED, VitamLogbookMessages.getCodeOp(RULE_SECURISATION + "_" + extension.toUpperCase(), StatusCode.STARTED),
+                .newLogbookOperationParameters(eip1, RULE_SECURISATION + "_" + extension.toUpperCase(), eipMaster,
+                    LogbookTypeProcess.STORAGE_RULE,
+                    StatusCode.STARTED, VitamLogbookMessages
+                        .getCodeOp(RULE_SECURISATION + "_" + extension.toUpperCase(), StatusCode.STARTED),
                     eip1);
             updateLogBookEntry(logbookParametersStart);
 
@@ -148,9 +145,11 @@ public class RulesSecurisator {
                     StorageServerClientException | ContentAddressableStorageNotFoundException e) {
 
                     final LogbookOperationParameters logbookParametersEnd = LogbookParametersFactory
-                        .newLogbookOperationParameters(eip1, RULE_SECURISATION + "_" + extension.toUpperCase(), eipMaster,
+                        .newLogbookOperationParameters(eip1, RULE_SECURISATION + "_" + extension.toUpperCase(),
+                            eipMaster,
                             LogbookTypeProcess.STORAGE_RULE,
-                            StatusCode.KO, VitamLogbookMessages.getCodeOp(RULE_SECURISATION + "_" + extension.toUpperCase(), StatusCode.KO),
+                            StatusCode.KO, VitamLogbookMessages
+                                .getCodeOp(RULE_SECURISATION + "_" + extension.toUpperCase(), StatusCode.KO),
                             eip1);
                     updateLogBookEntry(logbookParametersEnd);
 
@@ -160,8 +159,10 @@ public class RulesSecurisator {
 
 
                 final LogbookOperationParameters logbookParametersEnd = LogbookParametersFactory
-                    .newLogbookOperationParameters(eip1, RULE_SECURISATION + "_" + extension.toUpperCase(), eipMaster, LogbookTypeProcess.STORAGE_RULE,
-                        StatusCode.OK, VitamLogbookMessages.getCodeOp(RULE_SECURISATION + "_" + extension.toUpperCase(), StatusCode.OK),
+                    .newLogbookOperationParameters(eip1, RULE_SECURISATION + "_" + extension.toUpperCase(), eipMaster,
+                        LogbookTypeProcess.STORAGE_RULE,
+                        StatusCode.OK, VitamLogbookMessages.getCodeOp(RULE_SECURISATION + "_" + extension.toUpperCase(),
+                            StatusCode.OK),
                         eip1);
                 final ObjectNode evDetData = JsonHandler.createObjectNode();
                 evDetData.put(FLE_NAME, fileName);
@@ -172,8 +173,10 @@ public class RulesSecurisator {
             } catch (ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException e) {
                 LOGGER.error("unable to create container or store file in workspace", e);
                 final LogbookOperationParameters logbookParametersEnd = LogbookParametersFactory
-                    .newLogbookOperationParameters(eip1, RULE_SECURISATION + "_" + extension.toUpperCase(), eipMaster, LogbookTypeProcess.STORAGE_RULE,
-                        StatusCode.KO, VitamLogbookMessages.getCodeOp(RULE_SECURISATION + "_" + extension.toUpperCase(), StatusCode.KO),
+                    .newLogbookOperationParameters(eip1, RULE_SECURISATION + "_" + extension.toUpperCase(), eipMaster,
+                        LogbookTypeProcess.STORAGE_RULE,
+                        StatusCode.KO, VitamLogbookMessages.getCodeOp(RULE_SECURISATION + "_" + extension.toUpperCase(),
+                            StatusCode.KO),
                         eip1);
                 updateLogBookEntry(logbookParametersEnd);
                 throw new StorageException(e);
@@ -184,5 +187,17 @@ public class RulesSecurisator {
         }
     }
 
+
+    public void copyFilesOnWorkspaceUpdateWorkflow(InputStream stream, String containerName)
+        throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageServerException {
+        try (
+            WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();) {
+            workspaceClient.createContainer(containerName);
+            workspaceClient.putObject(containerName,
+                UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.UPDATED_RULES_JSON,
+                stream);
+        }
+
+    }
 
 }

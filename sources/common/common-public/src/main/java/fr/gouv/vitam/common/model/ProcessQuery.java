@@ -21,6 +21,8 @@ public class ProcessQuery {
     private List<String> workflows;
     @JsonProperty("listSteps")
     private List<String> listSteps;
+    @JsonProperty("listProcessTypes")
+    private List<String> listProcessTypes;
     // TODO: use LocaDate instead of String here, but need serializer / deserializer (see JavaTimeModule)
     @JsonProperty("startDateMin")
     private String startDateMin;
@@ -41,16 +43,18 @@ public class ProcessQuery {
      * @param statuses
      * @param workflows
      * @param listSteps
+     * @param listProcessTypes 
      * @param startDateMin
      * @param startDateMax
      */
     public ProcessQuery(String id, List<String> states, List<String> statuses, List<String> workflows,
-        List<String> listSteps, String startDateMin, String startDateMax) {
+        List<String> listSteps, List<String> listProcessTypes, String startDateMin, String startDateMax) {
         this.id = id;
         this.states = states;
         this.statuses = statuses;
         this.workflows = workflows;
         this.listSteps = listSteps;
+        this.listProcessTypes = listProcessTypes;
         this.startDateMin = startDateMin;
         this.startDateMax = startDateMax;
     }
@@ -98,6 +102,15 @@ public class ProcessQuery {
      */
     public List<String> getListSteps() {
         return listSteps;
+    }
+    
+    /**
+     * Gets process types list
+     * 
+     * @return the listProcessTypes
+     */
+    public List<String> getListProcessTypes() {
+        return listProcessTypes;
     }
 
 	/**
@@ -162,6 +175,15 @@ public class ProcessQuery {
     public void setListSteps(List<String> listSteps) {
         this.listSteps = listSteps;
 	}
+    
+    /**
+     * Sets the process types
+     * 
+     * @param listProcessTypes the process types to set
+     */
+    public void setListProcessTypes(List<String> listProcessTypes) {
+        this.listProcessTypes = listProcessTypes;
+    }
 
     /**
      * Sets the startDateMin

@@ -1,0 +1,81 @@
+{
+     "httpCode": 200,
+     "$hits": {
+          "total": 18,
+          "offset": 0,
+          "limit": 18,
+          "size": 18
+     },
+     "$results": [
+          {
+               "#id": "aeaqaaaaaagds5zjaabmaak5mlrxdpyaaaba",
+               "#tenant": 0,
+               "#management": {
+                    "AccessRule": {
+                         "Rules": [
+                              {
+                                   "Rule": "ACC-00001",
+                                   "StartDate": "2000-01-01",
+                                   "EndDate": "2000-01-01"
+                              },
+                              {
+                                   "Rule": "ACC-00035",
+                                   "StartDate": "2000-01-01",
+                                   "EndDate": "2000-01-01"
+                              }
+                         ],
+                         "Inheritance": {
+                              "PreventInheritance": true,
+                              "PreventRulesId": []
+                         }
+                    },
+                    "DisseminationRule": {
+                         "Rules": [
+                              {
+                                   "Rule": "DIS-00001",
+                                   "StartDate": "2000-01-01",
+                                   "EndDate": "2025-01-01"
+                              }
+                         ],
+                         "Inheritance": {
+                              "PreventRulesId": [
+                                   "DIS-00002"
+                              ]
+                         }
+                    },
+                    "OriginatingAgency": "RATP"
+               },
+               "#version": 0
+          }
+           ],
+     "$context": {
+          "$roots": [],
+          "$query": [
+               {
+                    "$and": [
+                         {
+                              "$in": {
+                                   "#operations": [
+                                        "aedqaaaaacft6tl2aanmkak5mlrwznaaaaba"
+                                   ]
+                              }
+                         }
+                    ],
+                    "$depth": 20
+               }
+          ],
+          "$filter": {
+               "$offset": 10,
+               "$limit": 20,
+               "$orderby": {
+                    "TransactedDate": 1
+               }
+          },
+          "$projection": {
+               "$fields": {
+                    "#management": 1,
+                    "#id": 1
+               }
+          }
+     }
+}

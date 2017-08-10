@@ -101,6 +101,7 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -223,6 +224,7 @@ public class ProcessingIT {
     private static String INGEST_TREE_WORFKLOW = "HOLDINGSCHEME";
     private static String INGEST_PLAN_WORFKLOW = "FILINGSCHEME";
     private static String BIG_WORFKLOW_NAME = "BigIngestWorkflow";
+    private static String UPD8_AU_WORKFLOW = "UPDATE_RULES_ARCHIVE_UNITS";
     private static String SIP_FILE_OK_NAME = "integration-processing/SIP-test.zip";
     private static String SIP_PROFIL_OK = "integration-processing/SIP_ok_profil.zip";
     private static String SIP_FILE_OK_WITH_SYSTEMID = "integration-processing/SIP_with_systemID.zip";
@@ -253,6 +255,7 @@ public class ProcessingIT {
     private static String SIP_BORD_AU_REF_PHYS_OBJECT = "integration-processing/KO_BORD_AUrefphysobject.zip";
     private static String SIP_MANIFEST_INCORRECT_REFERENCE = "integration-processing/KO_Reference_Unexisting.zip";
     private static String SIP_REFERENCE_CONTRACT_KO = "integration-processing/KO_SIP_2_GO_contract.zip";
+    private static String SIP_COMPLEX_RULES = "integration-processing/OK_RULES_COMPLEXE_COMPLETE.zip";
 
     private static String SIP_FILE_KO_AU_REF_BDO = "integration-processing/SIP_KO_ArchiveUnit_ref_BDO.zip";
     private static String SIP_BUG_2182 = "integration-processing/SIP_bug_2182.zip";
@@ -260,9 +263,10 @@ public class ProcessingIT {
     private static String SIP_PLAN = "integration-processing/test_plan.zip";
     private static String SIP_FILE_1791_CA1 = "integration-processing/SIP_FILE_1791_CA1.zip";
     private static String SIP_FILE_1791_CA2 = "integration-processing/SIP_FILE_1791_CA2.zip";
+    private static String OK_SIP_2_GO = "integration-processing/OK_SIP_2_GO.zip";
 
     private static String SIP_ARBRE_3062 = "integration-processing/3062_arbre.zip";
-    
+
     private static ElasticsearchTestConfiguration config = null;
 
     private final static String DUMMY_REQUEST_ID = "reqId";
@@ -2460,5 +2464,136 @@ public class ProcessingIT {
             fail("should not raized an exception");
         }
     }
-    
+
+
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowOkSIP2GO() throws Exception {
+        try {
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            tryImportFile();
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+            final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
+            final String containerName = objectGuid.getId();
+            createLogbookOperation(operationGuid, objectGuid);
+
+            // workspace client dezip SIP in workspace
+            RestAssured.port = PORT_SERVICE_WORKSPACE;
+            RestAssured.basePath = WORKSPACE_PATH;
+
+            final InputStream zipInputStreamSipObject =
+                PropertiesUtils.getResourceAsStream(OK_SIP_2_GO);
+            workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+            workspaceClient.createContainer(containerName);
+            workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
+
+            // call processing
+            RestAssured.port = PORT_SERVICE_PROCESSING;
+            RestAssured.basePath = PROCESSING_PATH;
+
+            processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+            processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
+
+            final RequestResponse<JsonNode> ret =
+                processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
+                    Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+
+            assertNotNull(ret);
+            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+            wait(containerName);
+            ProcessWorkflow processWorkflow =
+                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+        } catch (final Exception e) {
+            e.printStackTrace();
+            fail("should not raized an exception");
+        }
+    }
+
+
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowRulesUpdate() throws Exception {
+        try {
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            tryImportFile();
+
+            final GUID operationGuid2 = GUIDFactory.newOperationLogbookGUID(tenantId);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid2);
+            final GUID objectGuid2 = GUIDFactory.newManifestGUID(tenantId);
+            final String containerName2 = objectGuid2.getId();
+            createLogbookOperation(operationGuid2, objectGuid2);
+            
+            RestAssured.port = PORT_SERVICE_WORKSPACE;
+            RestAssured.basePath = WORKSPACE_PATH;
+            final InputStream zipInputStreamSipObject =
+                PropertiesUtils.getResourceAsStream(SIP_COMPLEX_RULES);
+            workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+            workspaceClient.createContainer(containerName2);
+            workspaceClient.uncompressObject(containerName2, SIP_FOLDER, CommonMediaType.ZIP,
+                zipInputStreamSipObject);           
+            
+            // call processing
+            RestAssured.port = PORT_SERVICE_PROCESSING;
+            RestAssured.basePath = PROCESSING_PATH;
+            processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+            processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName2, WORFKLOW_NAME);
+            final RequestResponse<JsonNode> ret2 =
+                processingClient.executeOperationProcess(containerName2, WORFKLOW_NAME,
+                    Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            assertNotNull(ret2);
+            assertEquals(Status.ACCEPTED.getStatusCode(), ret2.getStatus());
+            wait(containerName2);
+            ProcessWorkflow processWorkflow2 =
+                processMonitoring.findOneProcessWorkflow(containerName2, tenantId);
+            assertNotNull(processWorkflow2);
+            assertEquals(ProcessState.COMPLETED, processWorkflow2.getState());
+            assertEquals(StatusCode.OK, processWorkflow2.getStatus());
+            
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+            final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
+            final String containerName = objectGuid.getId();
+            createLogbookOperation(operationGuid, objectGuid);
+
+            // put rules into workspace
+            RestAssured.port = PORT_SERVICE_WORKSPACE;
+            RestAssured.basePath = WORKSPACE_PATH;
+            final InputStream rulesStream =
+                PropertiesUtils.getResourceAsStream("integration-processing/RULES.json");
+            workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+            workspaceClient.createContainer(containerName);
+            workspaceClient.putObject(containerName,
+                UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.UPDATED_RULES_JSON,
+                rulesStream);
+            // call processing
+            RestAssured.port = PORT_SERVICE_PROCESSING;
+            RestAssured.basePath = PROCESSING_PATH;
+            processingClient.initVitamProcess(Contexts.UPDATE_RULES_ARCHIVE_UNITS.name(),
+                containerName, UPD8_AU_WORKFLOW);
+            RequestResponse<ItemStatus> ret =
+                processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
+            assertNotNull(ret);
+
+            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+            
+            wait(containerName);
+            ProcessWorkflow processWorkflow =
+                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.OK, processWorkflow.getStatus());
+        } catch (final Exception e) {
+            e.printStackTrace();
+            fail("should not raized an exception");
+        }
+    }
+
 }
