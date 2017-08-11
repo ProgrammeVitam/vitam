@@ -805,6 +805,15 @@ public class AdminManagementExternalResourceImplTest {
             .then().statusCode(Status.OK.getStatusCode());
     }
 
+    @Test
+    public void testDownloadTraceabilityOperationFile() throws InvalidParseOperationException {
+        given()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .get(TRACEABILITY_OPERATION_BASE_URI + TRACEABILITY_OPERATION_ID)
+            .then().statusCode(Status.OK.getStatusCode());
+    }
+
 
     private List<Object> getIngestContracts() throws FileNotFoundException, InvalidParseOperationException {
         InputStream fileContracts = PropertiesUtils.getResourceAsStream("referential_contracts_ok.json");
@@ -821,6 +830,5 @@ public class AdminManagementExternalResourceImplTest {
         array.forEach(e -> res.add(e));
         return res;
     }
-
 
 }

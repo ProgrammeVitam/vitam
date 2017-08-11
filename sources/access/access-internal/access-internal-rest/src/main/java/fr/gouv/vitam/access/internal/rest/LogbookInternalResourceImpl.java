@@ -43,7 +43,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -66,6 +65,7 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -89,7 +89,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
-import fr.gouv.vitam.logbook.common.server.database.collections.request.LogbookVarNameAdapter;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -204,7 +203,8 @@ public class LogbookInternalResourceImpl {
             return Response.status(Status.OK).entity(result).build();
         } catch (final LogbookClientNotFoundException e) {
             LOGGER.error(e);
-            return Response.status(Status.OK).entity(new RequestResponseOK().setHttpCode(Status.OK.getStatusCode())).build();
+            return Response.status(Status.OK).entity(new RequestResponseOK().setHttpCode(Status.OK.getStatusCode()))
+                .build();
         } catch (final LogbookClientException e) {
             LOGGER.error(e);
             status = Status.INTERNAL_SERVER_ERROR;
@@ -350,7 +350,7 @@ public class LogbookInternalResourceImpl {
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkOperationTraceability(JsonNode query) throws LogbookClientNotFoundException {
         ParametersChecker.checkParameter(DSLQUERY_TO_CHECK_TRACEABILITY_OPERATION_NOT_FOUND, query);
-        
+
         // Get TenantID
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         Response response = null;
@@ -366,7 +366,7 @@ public class LogbookInternalResourceImpl {
             // Initialize a new process
             checkOperationGUID = GUIDFactory.newOperationLogbookGUID(tenantId);
             processingClient.initVitamProcess(LogbookTypeProcess.CHECK.toString(), checkOperationGUID.getId(),
-                DEFAULT_CHECK_TRACEABILITY_WORKFLOW);            
+                DEFAULT_CHECK_TRACEABILITY_WORKFLOW);
 
             // Create logbookOperation for check TRACEABILITY process
             createOrUpdateLogbookOperation(helper, true, checkOperationGUID, StatusCode.STARTED);
@@ -384,8 +384,8 @@ public class LogbookInternalResourceImpl {
 
             int nbTry = 0;
             boolean done = processingClient.isOperationCompleted(checkOperationGUID.getId());
-            
-            while (! done) {
+
+            while (!done) {
                 try {
                     Thread.sleep(SLEEP_TIME);
                 } catch (InterruptedException e) {
@@ -401,17 +401,19 @@ public class LogbookInternalResourceImpl {
                 // Get the created logbookOperation and return the response
                 final JsonNode result = logbookOperationsClient.selectOperationById(checkOperationGUID.getId(), null);
                 cleanWorkspace(checkOperationGUID.getId());
-                return Response.ok().entity(RequestResponseOK.getFromJsonNode(result)).build();            
+                return Response.ok().entity(RequestResponseOK.getFromJsonNode(result)).build();
             } else {
                 ItemStatus itemStatus = processingClient.getOperationProcessStatus(checkOperationGUID.getId());
                 Status status = Status.EXPECTATION_FAILED;
                 if (itemStatus == null) {
-                    itemStatus = new ItemStatus(checkOperationGUID.getId()).setMessage("Unknown status of the workflow");
+                    itemStatus =
+                        new ItemStatus(checkOperationGUID.getId()).setMessage("Unknown status of the workflow");
                     status = Status.INTERNAL_SERVER_ERROR;
                 }
-                return Response.status(status).entity(getErrorEntity(status, JsonHandler.unprettyPrint(itemStatus))).build();
+                return Response.status(status).entity(getErrorEntity(status, JsonHandler.unprettyPrint(itemStatus)))
+                    .build();
             }
-        } catch (BadRequestException | LogbookClientBadRequestException e) {            
+        } catch (BadRequestException | LogbookClientBadRequestException e) {
             LOGGER.error(e);
             final Status status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
@@ -426,7 +428,7 @@ public class LogbookInternalResourceImpl {
             LOGGER.error(e);
             final Status status = Status.NOT_FOUND;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
-        } finally {            
+        } finally {
             DefaultClient.staticConsumeAnyEntityAndClose(response);
         }
     }
@@ -446,9 +448,15 @@ public class LogbookInternalResourceImpl {
         LogbookOperation operationToCheck = null;
         try (LogbookOperationsClient logbookOperationsClient =
             LogbookOperationsClientFactory.getInstance().getClient()) {
-            
+
+            final SelectParserSingle parser = new SelectParserSingle();
+            Select select = new Select();
+            parser.parse(select.getFinalSelect());
+            parser.addCondition(QueryHelper.eq(EVENT_ID_PROCESS, operationId));
+
             RequestResponseOK requestResponseOK =
-                RequestResponseOK.getFromJsonNode(logbookOperationsClient.selectOperationById(operationId, null));
+                RequestResponseOK.getFromJsonNode(
+                    logbookOperationsClient.selectOperationById(operationId, parser.getRequest().getFinalSelect()));
 
             List<ObjectNode> foundOperation = requestResponseOK.getResults();
             if (foundOperation == null || foundOperation.isEmpty() || foundOperation.size() > 1) {
@@ -468,11 +476,12 @@ public class LogbookInternalResourceImpl {
                     .entity(getErrorStream(Status.BAD_REQUEST, "Not a traceability operation")).build());
                 return;
             }
-        } catch (InvalidParseOperationException | LogbookClientException | IllegalArgumentException e) {
+        } catch (InvalidParseOperationException | InvalidCreateOperationException | LogbookClientException |
+            IllegalArgumentException e) {
             LOGGER.error(e.getMessage(), e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build());
+                    .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build());
             return;
         }
 
@@ -509,13 +518,13 @@ public class LogbookInternalResourceImpl {
             LOGGER.error(e.getMessage(), e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build());
+                    .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build());
             return;
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e.getMessage(), e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build());
+                    .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build());
             return;
         }
     }
@@ -536,7 +545,7 @@ public class LogbookInternalResourceImpl {
             helper.updateDelegate(parameters);
         }
     }
-        
+
     private void cleanWorkspace(final String containerName)
         throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException {
         // call workspace
@@ -546,5 +555,5 @@ public class LogbookInternalResourceImpl {
             }
         }
     }
-    
+
 }
