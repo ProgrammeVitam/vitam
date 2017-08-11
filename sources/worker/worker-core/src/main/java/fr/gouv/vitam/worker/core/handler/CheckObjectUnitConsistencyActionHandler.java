@@ -61,6 +61,7 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
     private static final int OBJECTGROUP_TO_GUID_MAP_RANK = 1;
     private static final int OBJECTGROUP_TO_UNIT_MAP_RANK = 0;
     private static final String HANDLER_ID = "CHECK_CONSISTENCY";
+    private static final String SUBTASK_ORPHAN = "CHECK_CONSISTANCY_ORPHAN_OBJECT";
 
     private HandlerIO handlerIO;
     private final List<Class<?>> handlerInitialIOList = new ArrayList<>();
@@ -130,22 +131,19 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
                 final Map.Entry<String, Object> objectGroup = it.next();
                 if (!objectGroupToUnitStoredMap.containsKey(objectGroup.getKey())) {
                     itemStatus.increment(StatusCode.KO);
+                    itemStatus.setGlobalOutcomeDetailSubcode(SUBTASK_ORPHAN);
                     try {
                         // Update logbook OG lifecycle
                         final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters =
                             LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
 
                         LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(handlerIO.getHelper(),
-                            logbookLifecycleObjectGroupParameters,
-                            params, HANDLER_ID, params.getLogbookTypeProcess(),
+                            logbookLifecycleObjectGroupParameters, params, HANDLER_ID, params.getLogbookTypeProcess(),
                             objectGroupToGuidStoredMap.get(objectGroup.getKey()).toString());
-
-                        logbookLifecycleObjectGroupParameters.setFinalStatus(HANDLER_ID, null, StatusCode.KO,
-                            null);
+                        logbookLifecycleObjectGroupParameters.setFinalStatus(SUBTASK_ORPHAN, null, StatusCode.KO, null);
                         handlerIO.getHelper().updateDelegate(logbookLifecycleObjectGroupParameters);
-                        final String objectID =
-                            logbookLifecycleObjectGroupParameters
-                                .getParameterValue(LogbookParameterName.objectIdentifier);
+                        final String objectID = logbookLifecycleObjectGroupParameters
+                            .getParameterValue(LogbookParameterName.objectIdentifier);
                         handlerIO.getLifecyclesClient().bulkUpdateObjectGroup(params.getContainerName(),
                             handlerIO.getHelper().removeUpdateDelegate(objectID));
                     } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
@@ -161,16 +159,14 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
                             LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
 
                         LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(handlerIO.getHelper(),
-                            logbookLifecycleObjectGroupParameters,
-                            params, HANDLER_ID, params.getLogbookTypeProcess(),
+                            logbookLifecycleObjectGroupParameters, params, HANDLER_ID, params.getLogbookTypeProcess(),
                             objectGroupToGuidStoredMap.get(objectGroup.getKey()).toString());
 
                         logbookLifecycleObjectGroupParameters.setFinalStatus(HANDLER_ID, null, StatusCode.OK,
                             null);
                         handlerIO.getHelper().updateDelegate(logbookLifecycleObjectGroupParameters);
-                        final String objectID =
-                            logbookLifecycleObjectGroupParameters
-                                .getParameterValue(LogbookParameterName.objectIdentifier);
+                        final String objectID = logbookLifecycleObjectGroupParameters
+                            .getParameterValue(LogbookParameterName.objectIdentifier);
                         handlerIO.getLifecyclesClient().bulkUpdateObjectGroup(params.getContainerName(),
                             handlerIO.getHelper().removeUpdateDelegate(objectID));
                     } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |

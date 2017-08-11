@@ -258,6 +258,51 @@ public class IngestStep {
     }
 
 
+    /**
+     * check if the outcome detail is valid for an event type according to logbook operation
+     *
+     * @param eventName the event
+     * @param eventResult otucome detail of the event
+     * @throws LogbookClientException
+     * @throws InvalidParseOperationException
+     * @throws AccessUnauthorizedException
+     */
+    @Then("^le résultat de l'événement (.*) est (.*)$")
+    public void the_results_are(String eventName, String eventResults)
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
+        RequestResponse requestResponse =
+            world.getAccessClient().selectOperationbyId(world.getOperationId(), world.getTenantId(),
+                world.getContractId());
+
+        if (requestResponse.isOk()) {
+            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
+
+            ArrayNode actual = (ArrayNode) requestResponseOK.getResults().get(0).get("events");
+            List<JsonNode> list = (List<JsonNode>) JsonHandler.toArrayList(actual);
+            try (AutoCloseableSoftAssertions softly = new AutoCloseableSoftAssertions()) {
+                List<JsonNode> events =
+                    list.stream().filter(event -> eventName.equals(event.get("evType").textValue()))
+                        .filter(event -> !event.get("outcome").textValue().equals("STARTED"))
+                        .collect(Collectors.toList());
+
+                softly.assertThat(events).as("event %s is not present or finish.", eventName).hasSize(1);
+                JsonNode onlyElement = Iterables.getOnlyElement(events);
+
+                String currentResult = onlyElement.get("outDetail").textValue();
+                softly.assertThat(currentResult)
+                    .as("event %s has outcome detail %s but excepted outcome detail is %s.", eventName, currentResult,
+                        eventResults)
+                    .isEqualTo(eventResults);
+            }
+        } else {
+            VitamError error = (VitamError) requestResponse;
+            LOGGER.error(String.format("logbook operation return a vitam error for operationId: %s, requestId is %s",
+                world.getOperationId(), error.getCode()));
+            Fail.fail("cannot find logbook with id: " + world.getOperationId());
+        }
+    }
+
+
     @When("je construit le sip de rattachement avec le template")
     public void build_the_attachenment() throws IOException {
         this.sip = SipTool.copyAndModifyManifestInZip(sip, SipTool.REPLACEMENT_STRING, world.getUnitId());

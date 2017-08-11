@@ -45,7 +45,6 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.validation.constraints.AssertTrue;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLStreamException;
@@ -118,7 +117,8 @@ public class ExtractSedaActionHandlerTest {
     private static final String SIP_ARBORESCENCE = "SIP_Arborescence.xml";
     private static final String OK_MULTI_COMMENT = "extractSedaActionHandler/OK_multi_comment.xml";
     private static final String OK_SIGNATURE = "extractSedaActionHandler/signature.xml";
-    private static final String OK_RULES_WOUT_ID = "extractSedaActionHandler/manifestRulesWithoutId.xml";    
+    private static final String OK_RULES_WOUT_ID = "extractSedaActionHandler/manifestRulesWithoutId.xml";
+    private static final String KO_CYCLE = "extractSedaActionHandler/KO_cycle.xml";
     private WorkspaceClient workspaceClient;
     private MetaDataClient metadataClient;
     private WorkspaceClientFactory workspaceClientFactory;
@@ -141,8 +141,7 @@ public class ExtractSedaActionHandlerTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
-    public ExtractSedaActionHandlerTest() throws FileNotFoundException {
-    }
+    public ExtractSedaActionHandlerTest() throws FileNotFoundException {}
 
     @Before
     public void setUp() throws URISyntaxException, IOException {
@@ -422,7 +421,8 @@ public class ExtractSedaActionHandlerTest {
         FileNotFoundException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip_with_rules_without_rule_id.xml"));
+        final InputStream sedaLocal =
+            new FileInputStream(PropertiesUtils.findFile("sip_with_rules_without_rule_id.xml"));
 
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
@@ -607,7 +607,8 @@ public class ExtractSedaActionHandlerTest {
         String evDetDataString = (String) response.getEvDetailData();
         JsonNode evDetData = JsonHandler.getFromString(evDetDataString);
         assertNotNull(evDetData);
-        String masterEvDetDataString = (String) response.getMasterData().get(LogbookParameterName.eventDetailData.name());
+        String masterEvDetDataString =
+            (String) response.getMasterData().get(LogbookParameterName.eventDetailData.name());
         JsonNode masterEvDetData = JsonHandler.getFromString(masterEvDetDataString);
         assertNotNull(masterEvDetData);
 
@@ -636,6 +637,7 @@ public class ExtractSedaActionHandlerTest {
         final ItemStatus response = handler.execute(params, handlerIO);
 
         assertEquals(StatusCode.KO, response.getGlobalStatus());
+        assertEquals("CHECK_MANIFEST_WRONG_ATTACHMENT", response.getGlobalOutcomeDetailSubcode());
     }
 
     @Test
@@ -802,8 +804,8 @@ public class ExtractSedaActionHandlerTest {
         final ItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
-    
-    
+
+
     @Test
     @RunWithCustomExecutor
     public void givenManifestWithSpecialCharactersWhenExecuteThenReturnResponseOK() throws Exception {
@@ -838,7 +840,7 @@ public class ExtractSedaActionHandlerTest {
             "Ceci est le premier commentaire_Voici le deuxi\u00E8me commentaire_Exemple de 3\u00E8me commentaire",
             evDetData.get("EvDetailReq").asText());
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public void givenManifestWithSignatureWhenExecuteThenReturnResponseOK() throws Exception {
@@ -853,7 +855,7 @@ public class ExtractSedaActionHandlerTest {
         final ItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public void givenManifestWithRulesWithoutIdWhenExecuteThenReturnResponseOK() throws Exception {
@@ -867,6 +869,22 @@ public class ExtractSedaActionHandlerTest {
 
         final ItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenManifestWithCycleWhenExecuteThenReturnResponseKO() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        assertNotNull(ExtractSedaActionHandler.getId());
+        final InputStream seda_arborescence =
+            PropertiesUtils.getResourceAsStream(KO_CYCLE);
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(seda_arborescence).build());
+        handlerIO.addOutIOParameters(out);
+
+        final ItemStatus response = handler.execute(params, handlerIO);
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
 
 }

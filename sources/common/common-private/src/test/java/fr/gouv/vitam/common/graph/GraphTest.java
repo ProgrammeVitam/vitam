@@ -60,7 +60,7 @@ public class GraphTest {
     @Test
     public void test_graph_DAG() throws Exception {
 
-        final File file = PropertiesUtils.getResourceFile("ingest_cyc_2.json");
+        final File file = PropertiesUtils.getResourceFile("ingest_acyc_2.json");
         final JsonNode json = JsonHandler.getFromFile(file);
         final Graph g = new Graph(json);
         assertNotNull(g.getGraphWithLongestPaths());
@@ -85,7 +85,6 @@ public class GraphTest {
         assertTrue(level_2.contains("ID032"));
         assertTrue(level_2.contains("ID033"));
         assertTrue(level_2.contains("ID029"));
-
     }
 
     @Test
@@ -102,6 +101,5 @@ public class GraphTest {
         Set<String> level_1 = g.getGraphWithLongestPaths().get(1);
         assertTrue(level_1.contains("ID14"));
         assertTrue(level_1.contains("ID8"));
-
     }
 }

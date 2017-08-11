@@ -29,7 +29,6 @@ package fr.gouv.vitam.worker.core.handler;
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;

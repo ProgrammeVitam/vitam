@@ -71,6 +71,8 @@ public class ItemStatus {
     protected Map<String, Object> data;
     @JsonProperty("globalState")
     protected ProcessState globalState;
+    @JsonProperty("globalOutcomeDetailSubcode")
+    protected String globalOutcomeDetailSubcode;
 
     @JsonIgnore
     private String logbookTypeProcess;
@@ -180,7 +182,6 @@ public class ItemStatus {
      * @return this
      */
     public ItemStatus increment(StatusCode statusCode) {
-
         return increment(statusCode, 1);
     }
 
@@ -196,8 +197,7 @@ public class ItemStatus {
         statusMeter.set(statusCode.getStatusLevel(),
             increment + statusMeter.get(statusCode.getStatusLevel()));
         // update globalStatus
-        globalStatus = globalStatus.compareTo(statusCode) > 0
-            ? globalStatus : statusCode;
+        globalStatus = globalStatus.compareTo(statusCode) > 0 ? globalStatus : statusCode;
 
         return this;
     }
@@ -216,8 +216,9 @@ public class ItemStatus {
                 itemStatus1.getStatusMeter().get(i) + itemStatus2.getStatusMeter().get(i));
         }
         // update globalStatus
-        itemStatus1.setGlobalStatus(itemStatus1.getGlobalStatus().compareTo(itemStatus2.getGlobalStatus()) >= 1
-            ? itemStatus1.getGlobalStatus() : itemStatus2.getGlobalStatus());
+        itemStatus1.setGlobalStatus(
+            itemStatus1.getGlobalStatus().compareTo(itemStatus2.getGlobalStatus()) >= 1 ? itemStatus1.getGlobalStatus()
+                : itemStatus2.getGlobalStatus());
 
         return itemStatus1;
     }
@@ -244,8 +245,8 @@ public class ItemStatus {
     /**
      * @return the data
      */
-    public  Object getData(String key) {
-        return data.get( key );
+    public Object getData(String key) {
+        return data.get(key);
     }
 
     /**
@@ -253,7 +254,7 @@ public class ItemStatus {
      * @return
      */
     @Deprecated
-    public   Map<String, Object> getData() {
+    public Map<String, Object> getData() {
         return data;
     }
 
@@ -262,11 +263,11 @@ public class ItemStatus {
      * @param value
      * @return this
      */
-    public ItemStatus setData(String key, Object value)  {
-        if( key.equals( EVENT_DETAIL_DATA )){
+    public ItemStatus setData(String key, Object value) {
+        if (EVENT_DETAIL_DATA.equals(key)) {
             throw new IllegalArgumentException("Invalid key, Use apropriate methode  setEvDetailData ");
         }
-        data.put( key, value );
+        data.put(key, value);
         return this;
     }
 
@@ -275,7 +276,7 @@ public class ItemStatus {
      * @return masterData
      */
     public Map<String, Object> getMasterData() {
-        return (Map<String, Object>) data.get( MASTER_DATA );
+        return (Map<String, Object>) data.get(MASTER_DATA);
     }
 
     /**
@@ -284,10 +285,10 @@ public class ItemStatus {
      * @return this
      */
     public ItemStatus setMasterData(String key, Object value) {
-        if( data.get(MASTER_DATA  ) == null){
-            data.put( MASTER_DATA, new HashMap<>());
+        if (data.get(MASTER_DATA) == null) {
+            data.put(MASTER_DATA, new HashMap<>());
         }
-        ((Map)data.get(MASTER_DATA  )).put( key, value );
+        ((Map) data.get(MASTER_DATA)).put(key, value);
         return this;
     }
 
@@ -332,7 +333,8 @@ public class ItemStatus {
 
         // update globalStatus
         globalStatus = globalStatus.compareTo(statusDetails.getGlobalStatus()) > 0
-            ? globalStatus : statusDetails.getGlobalStatus();
+            ? globalStatus
+            : statusDetails.getGlobalStatus();
         // update statusMeter
         for (int i = StatusCode.UNKNOWN.getStatusLevel(); i <= StatusCode.FATAL.getStatusLevel(); i++) {
             statusMeter.set(i, statusMeter.get(i) + statusDetails.getStatusMeter().get(i));
@@ -344,6 +346,9 @@ public class ItemStatus {
         // update MasterData Map
         if (statusDetails.getMasterData() != null) {
             computeMasterData(statusDetails);
+        }
+        if (statusDetails.getGlobalOutcomeDetailSubcode() != null) {
+            globalOutcomeDetailSubcode = statusDetails.getGlobalOutcomeDetailSubcode();
         }
 
         return this;
@@ -369,9 +374,8 @@ public class ItemStatus {
                 final ItemStatus is = itemsStatus.get(key);
 
                 if (null != is) {
-                    if (value.getGlobalStatus().isGreaterOrEqualToKo()
-                        && null != value.getData()
-                        && value.getData().size() > 0) {
+                    if (value.getGlobalStatus().isGreaterOrEqualToKo() && null != value.getData() &&
+                        value.getData().size() > 0) {
                         is.getData().putAll(value.getData());
                     }
 
@@ -388,12 +392,16 @@ public class ItemStatus {
             if (compositeItemStatus.getMasterData() != null) {
                 computeMasterData(compositeItemStatus);
             }
+            if (compositeItemStatus.getGlobalOutcomeDetailSubcode() != null) {
+                globalOutcomeDetailSubcode = compositeItemStatus.getGlobalOutcomeDetailSubcode();
+            }
         }
         return this;
     }
 
     /**
      * Get the global state
+     * 
      * @return globalState as type ProcessState
      */
     public ProcessState getGlobalState() {
@@ -446,12 +454,13 @@ public class ItemStatus {
      */
     public String getEvDetailData() {
 
-        String evDetailData = (String ) data.get( EVENT_DETAIL_DATA );
+        String evDetailData = (String) data.get(EVENT_DETAIL_DATA);
         if (Strings.isNullOrEmpty(evDetailData)) {
             return "{}";
         }
         return evDetailData;
     }
+
 
     /**
      * set EvDetailData
@@ -460,14 +469,14 @@ public class ItemStatus {
      * @return this
      */
     public ItemStatus setEvDetailData(String evDetailData) {
-        ParametersChecker.checkParameterDefault( "evDetailData", evDetailData );
+        ParametersChecker.checkParameterDefault("evDetailData", evDetailData);
         try {
-            JsonHandler.validate( evDetailData );
+            JsonHandler.validate(evDetailData);
 
-        } catch ( InvalidParseOperationException e ) {
+        } catch (InvalidParseOperationException e) {
             throw new IllegalArgumentException("Value of eventDetailData has to be a Valid Json");
         }
-        data.put( EVENT_DETAIL_DATA, evDetailData );
+        data.put(EVENT_DETAIL_DATA, evDetailData);
         return this;
     }
 
@@ -483,22 +492,22 @@ public class ItemStatus {
     private void computeEvDetData(ItemStatus statusDetails) {
         String detailDataString = "";
 
-        if ( !Strings.isNullOrEmpty( statusDetails.getEvDetailData() ) &&
-            data.containsKey( EVENT_DETAIL_DATA ) ) {
+        if (!Strings.isNullOrEmpty(statusDetails.getEvDetailData()) &&
+            data.containsKey(EVENT_DETAIL_DATA)) {
             try {
-                ObjectNode subDetailData = ( ObjectNode ) JsonHandler.getFromString(
-                    ( String ) statusDetails.getEvDetailData() );
-                ObjectNode detailData = ( ObjectNode ) JsonHandler.getFromString(
-                    ( String ) data.get( EVENT_DETAIL_DATA ) );
-                subDetailData.setAll( detailData );
-                detailDataString = JsonHandler.unprettyPrint( subDetailData );
-            } catch ( InvalidParseOperationException e ) {
-                throw new IllegalArgumentException( "value of eventDetailData has to be a Valid Json" );
+                ObjectNode subDetailData = (ObjectNode) JsonHandler.getFromString(
+                    (String) statusDetails.getEvDetailData());
+                ObjectNode detailData = (ObjectNode) JsonHandler.getFromString(
+                    (String) data.get(EVENT_DETAIL_DATA));
+                subDetailData.setAll(detailData);
+                detailDataString = JsonHandler.unprettyPrint(subDetailData);
+            } catch (InvalidParseOperationException e) {
+                throw new IllegalArgumentException("value of eventDetailData has to be a Valid Json");
             }
         }
-        data.putAll( statusDetails.getData() );
-        if ( ! detailDataString.isEmpty() ) {
-            data.put( EVENT_DETAIL_DATA, detailDataString );
+        data.putAll(statusDetails.getData());
+        if (!detailDataString.isEmpty()) {
+            data.put(EVENT_DETAIL_DATA, detailDataString);
         }
     }
 
@@ -522,5 +531,13 @@ public class ItemStatus {
         if (!detailDataString.isEmpty()) {
             getMasterData().put(EVENT_DETAIL_DATA, detailDataString);
         }
+    }
+
+    public String getGlobalOutcomeDetailSubcode() {
+        return globalOutcomeDetailSubcode;
+    }
+
+    public void setGlobalOutcomeDetailSubcode(String globalOutcomeDetailSubcode) {
+        this.globalOutcomeDetailSubcode = globalOutcomeDetailSubcode;
     }
 }

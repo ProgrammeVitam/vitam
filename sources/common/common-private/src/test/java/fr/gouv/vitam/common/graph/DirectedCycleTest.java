@@ -46,11 +46,24 @@ public class DirectedCycleTest {
         final File file = PropertiesUtils.getResourceFile("ingest_cyc.json");
         final JsonNode json = JsonHandler.getFromFile(file);
         final DirectedGraph g = new DirectedGraph(json);
-
         final DirectedCycle dc = new DirectedCycle(g);
         assertTrue(dc.isCyclic());
+        assertTrue("ID029".equals(g.getId(dc.getCycle().get(0))));
+        assertTrue("ID029".equals(g.getId(dc.getCycle().get(1))));
     }
 
+    @Test
+    public void given_CyclycGraph_2() throws Exception {
+        final File file = PropertiesUtils.getResourceFile("ingest_cyc_2.json");
+        final JsonNode json = JsonHandler.getFromFile(file);
+        final DirectedGraph g = new DirectedGraph(json);
+        final DirectedCycle dc = new DirectedCycle(g);
+        assertTrue(dc.isCyclic());
+        assertTrue("ID036".equals(g.getId(dc.getCycle().get(0))));
+        assertTrue("ID035".equals(g.getId(dc.getCycle().get(1))));
+        assertTrue("ID030".equals(g.getId(dc.getCycle().get(2))));
+        assertTrue("ID036".equals(g.getId(dc.getCycle().get(3))));
+    }
 
     @Test
     public void given_aCyclycGraph() throws Exception {

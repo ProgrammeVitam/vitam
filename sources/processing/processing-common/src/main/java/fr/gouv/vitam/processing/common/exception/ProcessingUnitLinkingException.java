@@ -30,57 +30,28 @@ package fr.gouv.vitam.processing.common.exception;
 /**
  * Define a Processing Exception to be thrown when an error occurred, not a fatal error
  */
-public class ProcessingUnitNotFoundException extends ProcessingException {
-    private static final long serialVersionUID = 4559736510275835494L;
-
-    private String unitId;
-    private String unitGuid;
+public class ProcessingUnitLinkingException extends ProcessingException {
+    private static final long serialVersionUID = 3818219095508337803L;
 
     /**
      * @param message associated message
      * @param cause associated cause
      */
-    public ProcessingUnitNotFoundException(String message, Throwable cause) {
+    public ProcessingUnitLinkingException(String message, Throwable cause) {
         super(message, cause);
     }
 
     /**
      * @param cause associated cause
      */
-    public ProcessingUnitNotFoundException(Throwable cause) {
+    public ProcessingUnitLinkingException(Throwable cause) {
         super(cause);
     }
 
     /**
      * @param message associated message
      */
-    public ProcessingUnitNotFoundException(String message, String unitId, String unitGuid) {
-        super(message);
-        this.unitId = unitId;
-        this.unitGuid = unitGuid;
-    }
-
-    /**
-     * @param message associated message
-     */
-    public ProcessingUnitNotFoundException(String message) {
+    public ProcessingUnitLinkingException(String message) {
         super(message);
     }
-
-    /**
-     * 
-     * @return the unit guid (system id)
-     */
-    public String getUnitGuid() {
-        return unitGuid;
-    }
-
-    /**
-     * 
-     * @return the unit id
-     */
-    public String getUnitId() {
-        return unitId;
-    }
-
 }

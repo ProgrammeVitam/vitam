@@ -162,4 +162,12 @@ public class DirectedCycle {
         return isCyclic;
     }
 
+    /**
+     * Return the directed cycle if isCyclic
+     * 
+     * @return the directed cycle or null
+     */
+    public Stack<Integer> getCycle() {
+        return cycle;
+    }
 }

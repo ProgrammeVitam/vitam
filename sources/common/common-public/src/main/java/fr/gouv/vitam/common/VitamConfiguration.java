@@ -26,15 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.common;
 
+import java.io.File;
+import java.util.Locale;
+
 import com.google.common.base.Strings;
 
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.SysErrLogger;
-
-import java.io.File;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 
 /**
  * This class contains default values shared among all services in Vitam
@@ -288,10 +286,7 @@ public class VitamConfiguration {
 
     private static boolean enableDistributorV2 = true;
 
-    private static Boolean enableJaxbParser = true;
-
     private static int asyncWorkspaceQueueSize = 10;
-
 
 
 
@@ -574,14 +569,8 @@ public class VitamConfiguration {
         if (null != parameters.getMaxConcurrentMultipleInputstreamHandler()) {
             setMaxConcurrentMultipleInputstreamHandler(parameters.getMaxConcurrentMultipleInputstreamHandler());
         }
-        if (null != parameters.isEnableJaxbParser()) {
-            setEnableJaxbParser(parameters.isEnableJaxbParser());
-        }
         if (null != parameters.getVitamCleanPeriod()) {
             setVitamCleanPeriod(parameters.getVitamCleanPeriod());
-        }
-        if (null != parameters.isEnableJaxbParser()) {
-            setEnableJaxbParser(parameters.isEnableJaxbParser());
         }
         if (null != parameters.isEnableDistributorV2()) {
             setEnableDistributorV2(parameters.isEnableDistributorV2());
@@ -607,10 +596,6 @@ public class VitamConfiguration {
         if (null != parameters.getMaxCacheEntries()) {
             setMaxCacheEntries(parameters.getMaxCacheEntries());
         }
-        if (null != parameters.isEnableJaxbParser()) {
-            setEnableJaxbParser(parameters.isEnableJaxbParser());
-        }
-
 
     }
 
@@ -1352,24 +1337,6 @@ public class VitamConfiguration {
     }
 
     /**
-     * getter for enableJaxbParser
-     *
-     * @return
-     */
-    public static Boolean isEnableJaxbParser() {
-        return enableJaxbParser;
-    }
-
-    /**
-     * setter for enableJaxbParser
-     *
-     * @return
-     */
-    private static void setEnableJaxbParser(Boolean enableJaxbParser) {
-        VitamConfiguration.enableJaxbParser = enableJaxbParser;
-    }
-
-    /**
      * getter for DEFAULT_LANG
      *
      * @return
@@ -1387,23 +1354,15 @@ public class VitamConfiguration {
         DEFAULT_LANG = defaultLang;
     }
 
-
     /**
-     * Setter for   enableJaxbParser;
-     */
-    public static void setEnableJaxbParser(boolean enableJaxbParser) {
-        VitamConfiguration.enableJaxbParser = enableJaxbParser;
-    }
-
-    /**
-     * Getter for   enableDistributorV2;
+     * Getter for enableDistributorV2;
      */
     public static boolean isEnableDistributorV2() {
         return enableDistributorV2;
     }
 
     /**
-     * Setter for   enableDistributorV2;
+     * Setter for enableDistributorV2;
      */
     private static void setEnableDistributorV2(boolean enableDistributorV2) {
         VitamConfiguration.enableDistributorV2 = enableDistributorV2;
@@ -1412,56 +1371,56 @@ public class VitamConfiguration {
 
 
     /**
-     * Getter for   distributeurBatchSize;
+     * Getter for distributeurBatchSize;
      */
     public static int getDistributeurBatchSize() {
         return distributeurBatchSize;
     }
 
     /**
-     * Setter for   distributeurBatchSize;
+     * Setter for distributeurBatchSize;
      */
     private static void setDistributeurBatchSize(int distributeurBatchSize) {
         VitamConfiguration.distributeurBatchSize = distributeurBatchSize;
     }
 
     /**
-     * Getter for   cacheControlDelay;
+     * Getter for cacheControlDelay;
      */
     public static int getCacheControlDelay() {
         return cacheControlDelay;
     }
 
     /**
-     * Setter for   cacheControlDelay;
+     * Setter for cacheControlDelay;
      */
     public static void setCacheControlDelay(int cacheControlDelay) {
         VitamConfiguration.cacheControlDelay = cacheControlDelay;
     }
 
     /**
-     * Getter for   maxCacheEntries;
+     * Getter for maxCacheEntries;
      */
     public static int getMaxCacheEntries() {
         return maxCacheEntries;
     }
 
     /**
-     * Setter for   maxCacheEntries;
+     * Setter for maxCacheEntries;
      */
     public static void setMaxCacheEntries(int maxCacheEntries) {
         VitamConfiguration.maxCacheEntries = maxCacheEntries;
     }
 
     /**
-     * Getter for   exportScore;
+     * Getter for exportScore;
      */
     public static boolean isExportScore() {
         return exportScore;
     }
 
     /**
-     * Setter for   exportScore;
+     * Setter for exportScore;
      */
     private static void setExportScore(boolean exportScore) {
         VitamConfiguration.exportScore = exportScore;
@@ -1470,35 +1429,35 @@ public class VitamConfiguration {
 
 
     /**
-     * Getter for   maxElasticsearchBulk;
+     * Getter for maxElasticsearchBulk;
      */
     public static int getMaxElasticsearchBulk() {
         return maxElasticsearchBulk;
     }
 
     /**
-     * Setter for   maxElasticsearchBulk;
+     * Setter for maxElasticsearchBulk;
      */
     private static void setMaxElasticsearchBulk(int maxElasticsearchBulk) {
         VitamConfiguration.maxElasticsearchBulk = maxElasticsearchBulk;
     }
 
     /**
-     * Getter for   numberDbClientThread;
+     * Getter for numberDbClientThread;
      */
     public static int getNumberDbClientThread() {
         return numberDbClientThread;
     }
 
     /**
-     * Setter for   numberDbClientThread;
+     * Setter for numberDbClientThread;
      */
     private static void setNumberDbClientThread(int numberDbClientThread) {
         VitamConfiguration.numberDbClientThread = numberDbClientThread;
     }
 
     /**
-     * Getter for   numberEsQueue;
+     * Getter for numberEsQueue;
      */
 
     public static Integer getNumberEsQueue() {
@@ -1506,7 +1465,7 @@ public class VitamConfiguration {
     }
 
     /**
-     * Setter for   numberEsQueue;
+     * Setter for numberEsQueue;
      */
     private static void setNumberEsQueue(int numberEsQueue) {
         VitamConfiguration.numberEsQueue = numberEsQueue;
