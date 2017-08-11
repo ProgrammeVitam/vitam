@@ -22,3 +22,12 @@ elasticsearchNodes:
 - hostName: {{hostvars[host]['ip_service']}}
   tcpPort: {{elasticsearch_data_tcp_port}}
 {% endfor %}
+
+
+# ExternalId configuration
+listEnableExternalIdentifiers:
+  1:
+    - INGEST_CONTRACT
+    - ACCESS_CONTRACT
+    - PROFILE
+    - CONTEXT

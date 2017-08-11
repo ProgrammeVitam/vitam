@@ -1,19 +1,17 @@
 [
 	{
-		"Name":"aName",
-		"Description":"aDescription of the Profile",
+		"Name":"aNamebis",
+		"Description":"aDescription of the contract",
 		"Status":"ACTIVE",
-		"Format":"XSD",
 		"LastUpdate":"10/12/2016",
 		"CreationDate":"10/12/2016",
 		"ActivationDate":"10/12/2016",
 		"DeactivationDate":"10/12/2016"
 	},
 		{
-		"Name":"aName2",
-		"Description":"aDescription of the profile 2",
+		"Name":"aName2bis",
+		"Description":"aDescription of the contract 2",
 		"Status":"ACTIVE",
-		"Format":"RNG",
 		"LastUpdate":"10/12/2016",
 		"CreationDate":"10/12/2016",
 		"ActivationDate":"10/12/2016",

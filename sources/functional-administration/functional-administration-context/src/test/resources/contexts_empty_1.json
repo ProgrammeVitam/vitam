@@ -1,0 +1,37 @@
+[
+  {
+    "Identifier": "09877777",
+    "Name": "My_Context_3",
+    "Status": true,
+    "Permissions": [
+      {
+        "_tenant": 2,
+        "AccessContracts": [],
+        "IngestContracts": []
+      },
+      {
+        "_tenant": 1,
+        "AccessContracts": [],
+        "IngestContracts": []
+      }
+    ]
+  },
+  {
+    "Identifier": "0987788",
+
+    "Name": "My_Context_5",
+    "Status": false,
+    "Permissions": [
+      {
+        "_tenant": 2,
+        "AccessContracts": [],
+        "IngestContracts": []
+      },
+      {
+        "_tenant": 1,
+        "AccessContracts": [],
+        "IngestContracts": []
+      }
+    ]
+  }
+]

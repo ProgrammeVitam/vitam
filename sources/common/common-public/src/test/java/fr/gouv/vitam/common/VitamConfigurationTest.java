@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.common;
 
+import com.google.common.collect.Multimap;
 import org.assertj.core.api.Fail;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,7 +36,10 @@ import fr.gouv.vitam.common.digest.DigestType;
 import javax.security.auth.login.FailedLoginException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 
@@ -44,7 +48,6 @@ public class VitamConfigurationTest {
     private static final String SHOULD_RAIZED_AN_EXCEPTION = "Should raized an exception";
     private static final String SECRET = "vitamsecret";
     private static final String VITAM_CONF_FILE_NAME = "vitam.conf";
-    private static final String VITAM_CONF_FILE_ID = "vitam2.conf";
 
 
     @Test
@@ -155,23 +158,6 @@ public class VitamConfigurationTest {
             VitamConfiguration.importConfigurationParameters(vitamConfigurationParameters);
             assertThat(VitamConfiguration.getVitamCleanPeriod()).isEqualTo(5);
 
-            assertThat(VitamConfiguration.getAcceptableRequestTime()).isEqualTo(25L);
-            assertThat(VitamConfiguration.getDefaultDigestType()).isEqualTo(DigestType.SHA384);
-
-
-        } catch (final IOException e) {
-            fail("fail"+e);
-        }
-    }
-
-
-
-    @Test
-    public void testFunctionnalIdConfiguration(){
-        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(VITAM_CONF_FILE_ID)) {
-            final VitamConfigurationParameters vitamConfigurationParameters =
-                PropertiesUtils.readYaml(yamlIS, VitamConfigurationParameters.class);
-            vitamConfigurationParameters.getListEnableExternalIdentifiers();
             assertThat(VitamConfiguration.getAcceptableRequestTime()).isEqualTo(25L);
             assertThat(VitamConfiguration.getDefaultDigestType()).isEqualTo(DigestType.SHA384);
 

@@ -24,7 +24,10 @@ import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 
 import org.bson.Document;
 import org.junit.After;
@@ -62,7 +65,6 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.model.AccessContractModel;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -74,8 +76,6 @@ import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
-import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
-import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.context.api.ContextService;
@@ -94,8 +94,9 @@ public class ContextServiceImplTest {
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
-    
-    private static final Integer TENANT_ID = 0;
+
+    private static final Integer TENANT_ID = 1;
+    private static final Integer EXTERNAL_TENANT = 2;
 
     static JunitHelper junitHelper;
     static final String COLLECTION_NAME = "Context";
@@ -110,9 +111,10 @@ public class ContextServiceImplTest {
     private static ElasticsearchTestConfiguration esConfig = null;
     private final static String HOST_NAME = "127.0.0.1";
     private final static String CLUSTER_NAME = "vitam-cluster";
+    static Map<Integer, List<String>> externalIdentifiers;
 
     static ContextService contextService;
-    
+
     static ContractService<IngestContractModel> ingestContractService;
     static ContractService<AccessContractModel> accessContractService;
     static int mongoPort;
@@ -143,11 +145,17 @@ public class ContextServiceImplTest {
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
         esNodes.add(new ElasticsearchNode(HOST_NAME, esConfig.getTcpPort()));
         ElasticsearchAccessAdminFactory.create(CLUSTER_NAME, esNodes);
-        
-        
+
+
         final List tenants = new ArrayList<>();
         tenants.add(new Integer(TENANT_ID));
-        vitamCounterService = new VitamCounterService(dbImpl, tenants);
+        tenants.add(new Integer(EXTERNAL_TENANT));
+        Map<Integer, List<String>> listEnableExternalIdentifiers = new HashMap<>();
+        List<String> list_tenant = new ArrayList<>();
+        list_tenant.add("CONTEXT");
+        listEnableExternalIdentifiers.put(EXTERNAL_TENANT, list_tenant);
+
+        vitamCounterService = new VitamCounterService(dbImpl, tenants, listEnableExternalIdentifiers);
         LogbookOperationsClientFactory.changeMode(null);
 
         contextService =
@@ -179,12 +187,14 @@ public class ContextServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileIngest = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
         final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileIngest, new TypeReference<List<IngestContractModel>>() {});
+            JsonHandler.getFromFileAsTypeRefence(fileIngest, new TypeReference<List<IngestContractModel>>() {
+            });
         ingestContractService.createContracts(IngestContractModelList);
         ingestContractService.findContracts(new Select().getFinalSelect());
         final File fileContexts = PropertiesUtils.getResourceFile("contexts_empty.json");
         final List<ContextModel> ModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {});
+            JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
+            });
 
         contextService.createContexts(ModelList);
 
@@ -207,7 +217,8 @@ public class ContextServiceImplTest {
             .add(QueryHelper.eq("#id", context.getId())));
 
         JsonNode queryDslForUpdate = update.getFinalUpdate();
-        final RequestResponse<ContextModel> updateResponse = contextService.updateContext(context.getIdentifier(), queryDslForUpdate);
+        final RequestResponse<ContextModel> updateResponse =
+            contextService.updateContext(context.getIdentifier(), queryDslForUpdate);
         assertTrue(updateResponse.isOk());
 
         permissionNode.set("IngestContracts", JsonHandler.createArrayNode().add("IC-000001500000"));
@@ -215,8 +226,49 @@ public class ContextServiceImplTest {
         final SetAction setInvalidPermission = UpdateActionHelper.set(permissionsNode);
         update.getActions().clear();
         update.addActions(setInvalidPermission);
-        final RequestResponse<ContextModel> updateError = contextService.updateContext(context.getIdentifier(), update.getFinalUpdate());
+        final RequestResponse<ContextModel> updateError =
+            contextService.updateContext(context.getIdentifier(), update.getFinalUpdate());
         assertFalse(updateError.isOk());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenTestImportExternalIdentifier() throws Exception {
+
+        VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
+        final File fileIngest = PropertiesUtils.getResourceFile("referential_contracts_ok_1.json");
+        final List<IngestContractModel> IngestContractModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileIngest, new TypeReference<List<IngestContractModel>>() {
+            });
+        ingestContractService.createContracts(IngestContractModelList);
+        ingestContractService.findContracts(new Select().getFinalSelect());
+        final File fileContexts = PropertiesUtils.getResourceFile("contexts_empty_1.json");
+        final List<ContextModel> ModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
+            });
+
+        RequestResponse<ContextModel> response = contextService.createContexts(ModelList);
+        assertThat(response.isOk()).isTrue();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenTestImportExternalIdentifier_KO() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
+        final File fileIngest = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
+        final List<IngestContractModel> IngestContractModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileIngest, new TypeReference<List<IngestContractModel>>() {
+            });
+        ingestContractService.createContracts(IngestContractModelList);
+        ingestContractService.findContracts(new Select().getFinalSelect());
+        final File fileContexts = PropertiesUtils.getResourceFile("contexts_empty.json");
+        final List<ContextModel> ModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
+            });
+
+        RequestResponse<ContextModel> response = contextService.createContexts(ModelList);
+        assertThat(response.isOk()).isFalse();
+
     }
 
 }

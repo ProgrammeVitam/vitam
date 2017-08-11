@@ -27,6 +27,7 @@
 package fr.gouv.vitam.function.administration.rules.core;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
@@ -34,10 +35,16 @@ import static org.mockito.Mockito.mock;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
+import java.util.Map;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
+import fr.gouv.vitam.functional.administration.rules.core.RulesSecurisator;
 import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -134,6 +141,7 @@ public class RulesManagerFileImplTest {
     static int port;
     static RulesManagerFileImpl rulesFileManager;
     private static MongoDbAccessAdminImpl dbImpl;
+    static Map<Integer, List<String>> externalIdentifiers;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -165,9 +173,7 @@ public class RulesManagerFileImplTest {
         Integer tenantsList[] = {TENANT_ID, 1, 2, 3, 4, 5, 60, 70};
         tenants.addAll(Arrays.asList(tenantsList));
 
-
-
-        vitamCounterService = new VitamCounterService(dbImpl, tenants);
+        vitamCounterService = new VitamCounterService(dbImpl, tenants, null);
         RulesSecurisator securisator = mock(RulesSecurisator.class);
 
         rulesFileManager = new RulesManagerFileImpl(

@@ -27,7 +27,6 @@
 package fr.gouv.vitam.functional.administration.context.core;
 
 import java.util.Optional;
-
 import fr.gouv.vitam.functional.administration.client.model.ContextModel;
 
 public interface ContextValidator {

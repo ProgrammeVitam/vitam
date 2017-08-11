@@ -30,7 +30,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.bson.Document;
 import org.junit.After;
@@ -94,6 +96,7 @@ public class AccessContractImplTest {
         VitamThreadPoolExecutor.getDefaultExecutor());
 
     private static final Integer TENANT_ID = 1;
+    private static final Integer EXTERNAL_TENANT = 2 ;
     private static MongoDbAccessAdminImpl dbImpl;
     private static final SingleVarNameAdapter DEFAULT_VARNAME_ADAPTER = new SingleVarNameAdapter();
 
@@ -105,6 +108,7 @@ public class AccessContractImplTest {
     static MongodProcess mongod;
     static MongoClient client;
     static VitamCounterService vitamCounterService;
+    static Map<Integer, List<String>> externalIdentifiers;
 
     static ContractService<AccessContractModel> accessContractService;
     static int mongoPort;
@@ -123,13 +127,19 @@ public class AccessContractImplTest {
         mongod = mongodExecutable.start();
         client = new MongoClient(new ServerAddress(DATABASE_HOST, mongoPort));
 
+
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, mongoPort));
 
         dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
         final List tenants = new ArrayList<>();
         tenants.add(new Integer(TENANT_ID));
-        vitamCounterService = new VitamCounterService(dbImpl, tenants);
+        tenants.add(new Integer(EXTERNAL_TENANT));
+        Map <Integer,List<String>> listEnableExternalIdentifiers = new HashMap<>();
+        List<String > list_tenant = new ArrayList<>();
+        list_tenant.add("ACCESS_CONTRACT");
+        listEnableExternalIdentifiers.put(EXTERNAL_TENANT,list_tenant);
+        vitamCounterService = new VitamCounterService(dbImpl, tenants, listEnableExternalIdentifiers);
         LogbookOperationsClientFactory.changeMode(null);
 
 
@@ -548,6 +558,30 @@ public class AccessContractImplTest {
 
         assertThat(one.getName()).isEqualTo(acm.getName());
     }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenAccessContractsTestImportExternalIdentifierKO() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
+        final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
+        final List<AccessContractModel> accessContractModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {});
+        final RequestResponse response = accessContractService.createContracts(accessContractModelList);
+        assertThat(!response.isOk());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenAccessContractsTestImportExternalIdentifier() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
+        final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok_Identifier.json");
+        final List<AccessContractModel> accessContractModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {});
+        final RequestResponse response = accessContractService.createContracts(accessContractModelList);
+        assertThat(response.isOk());
+    }
+
 
     @Test
     @RunWithCustomExecutor

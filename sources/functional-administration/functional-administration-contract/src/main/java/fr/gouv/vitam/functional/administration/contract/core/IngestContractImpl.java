@@ -1,26 +1,26 @@
 /**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- *
+ * <p>
  * contact.vitam@culture.gouv.fr
- *
+ * <p>
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
- *
+ * <p>
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
  * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- *
+ * <p>
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
- *
+ * <p>
  * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- *
+ * <p>
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
@@ -43,6 +43,8 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.common.StringUtils;
+import fr.gouv.vitam.functional.administration.common.AccessContract;
 import org.bson.conversions.Bson;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -101,7 +103,8 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 
 public class IngestContractImpl implements ContractService<IngestContractModel> {
 
-    private static final String THE_INGEST_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT = "The Ingest contract status must be ACTIVE or INACTIVE but not ";
+    private static final String THE_INGEST_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT =
+        "The Ingest contract status must be ACTIVE or INACTIVE but not ";
     private static final String INGEST_CONTRACT_NOT_FIND = "Ingest contract not find";
     private static final String CONTRACT_IS_MANDATORY_PATAMETER = "The collection of ingest contracts is mandatory";
     private static final String CONTRACTS_IMPORT_EVENT = "STP_IMPORT_INGEST_CONTRACT";
@@ -135,7 +138,9 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         if (contractModelList.isEmpty()) {
             return new RequestResponseOK<>();
         }
-
+        boolean slaveMode = vitamCounterService
+            .isSlaveFunctionnalCollectionOnTenant(SequenceType.INGEST_CONTRACT_SEQUENCE.getCollection(),
+                ParameterHelper.getTenantParameter());
         final IngestContractImpl.IngestContractManager manager =
             new IngestContractImpl.IngestContractManager(logBookclient);
 
@@ -189,12 +194,16 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 if (manager.validateContract(acm, acm.getName(), error)) {
 
                     acm.setId(GUIDFactory.newIngestContractGUID(ParameterHelper.getTenantParameter()).getId());
-
                     final JsonNode ingestContractModel = JsonHandler.toJsonNode(acm);
 
-
                 }
-
+                if (slaveMode) {
+                    final Optional<GenericContractValidator.GenericRejectionCause> result =
+                        manager.checkDuplicateInIdentifierSlaveModeValidator().validate(acm, acm.getIdentifier());
+                    result.ifPresent(t -> error
+                        .addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(result
+                            .get().getReason())));
+                }
 
             }
 
@@ -206,11 +215,14 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 manager.logValidationError(errorsDetails, CONTRACTS_IMPORT_EVENT);
                 return error;
             }
-
             contractsToPersist = JsonHandler.createArrayNode();
             for (final IngestContractModel acm : contractModelList) {
-               final String code = vitamCounterService.getNextSequenceAsString(ParameterHelper.getTenantParameter(), SequenceType.INGEST_CONTRACT_SEQUENCE.getName());
-                acm.setIdentifier(code);
+                if (!slaveMode) {
+                    final String code = vitamCounterService
+                        .getNextSequenceAsString(ParameterHelper.getTenantParameter(),
+                            SequenceType.INGEST_CONTRACT_SEQUENCE.getName());
+                    acm.setIdentifier(code);
+                }
                 final JsonNode accessContractNode = JsonHandler.toJsonNode(acm);
 
                 /* contract is valid, add it to the list to persist */
@@ -444,7 +456,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
         /**
          * Validate that contract have not a missing mandatory parameter
-         * 
+         *
          * @return GenericContractValidator
          */
         private static GenericContractValidator<IngestContractModel> createMandatoryParamsValidator() {
@@ -461,7 +473,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
         /**
          * Set a default value if null
-         * 
+         *
          * @return GenericContractValidator
          */
         private static GenericContractValidator createWrongFieldFormatValidator() {
@@ -532,7 +544,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
         /**
          * Check if the contract the same name already exists in database
-         * 
+         *
          * @return GenericContractValidator
          */
         private static GenericContractValidator createCheckDuplicateInDatabaseValidator() {
@@ -541,6 +553,30 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 final int tenant = ParameterHelper.getTenantParameter();
                 final Bson clause =
                     and(eq(VitamDocument.TENANT_ID, tenant), eq(IngestContract.NAME, contract.getName()));
+                final boolean exist = FunctionalAdminCollections.INGEST_CONTRACT.getCollection().count(clause) > 0;
+                if (exist) {
+                    rejection = GenericContractValidator.GenericRejectionCause.rejectDuplicatedInDatabase(contractName);
+                }
+                return rejection == null ? Optional.empty() : Optional.of(rejection);
+            };
+        }
+
+
+        /**
+         * Check if the Id of the  contract  already exists in database
+         *
+         * @return
+         */
+        private static GenericContractValidator checkDuplicateInIdentifierSlaveModeValidator() {
+            return (contract, contractName) -> {
+                if (contractName == null || contractName.isEmpty()) {
+                    return Optional
+                        .of(GenericContractValidator.GenericRejectionCause.rejectMandatoryMissing(contractName));
+                }
+                GenericContractValidator.GenericRejectionCause rejection = null;
+                final int tenant = ParameterHelper.getTenantParameter();
+                final Bson clause =
+                    and(eq(VitamDocument.TENANT_ID, tenant), eq(AccessContract.IDENTIFIER, contract.getIdentifier()));
                 final boolean exist = FunctionalAdminCollections.INGEST_CONTRACT.getCollection().count(clause) > 0;
                 if (exist) {
                     rejection = GenericContractValidator.GenericRejectionCause.rejectDuplicatedInDatabase(contractName);

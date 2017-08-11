@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
+import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.embed.ProfileFormat;
 import fr.gouv.vitam.functional.administration.common.embed.ProfileStatus;
@@ -405,6 +406,29 @@ public class ProfileManager {
             profile.setLastupdate(now);
 
             return (rejection == null) ? Optional.empty() : Optional.of(rejection);
+        };
+    }
+
+    /**
+     * Check if the Id of the  contract  already exists in database
+     *
+     * @return
+     */
+    public static ProfileValidator checkDuplicateInIdentifierSlaveModeValidator() {
+        return (profileModel) -> {
+            if(profileModel.getIdentifier() == null || profileModel.getIdentifier().isEmpty()){
+                return    Optional.of( ProfileValidator.RejectionCause.rejectMandatoryMissing(
+                    AccessContract.IDENTIFIER));
+            }
+            RejectionCause rejection = null;
+            final int tenant = ParameterHelper.getTenantParameter();
+            final Bson clause =
+                and(eq(VitamDocument.TENANT_ID, tenant), eq(AccessContract.IDENTIFIER, profileModel.getIdentifier()));
+            final boolean exist = FunctionalAdminCollections.PROFILE.getCollection().count(clause) > 0;
+            if (exist) {
+                rejection = ProfileValidator.RejectionCause.rejectDuplicatedInDatabase(profileModel.getIdentifier());
+            }
+            return rejection == null ? Optional.empty() : Optional.of(rejection);
         };
     }
 

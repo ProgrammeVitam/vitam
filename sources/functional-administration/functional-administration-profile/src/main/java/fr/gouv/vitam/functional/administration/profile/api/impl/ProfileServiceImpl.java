@@ -27,12 +27,14 @@ import java.io.InputStream;
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.functional.administration.profile.core.ProfileValidator;
 import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -140,7 +142,9 @@ public class ProfileServiceImpl implements ProfileService {
         if (profileModelList.isEmpty()) {
             return new RequestResponseOK<>();
         }
-
+        boolean slaveMode = vitamCounterService
+            .isSlaveFunctionnalCollectionOnTenant(SequenceType.PROFILE_SEQUENCE.getCollection(),
+                ParameterHelper.getTenantParameter());
 
         manager.logStarted(PROFILES_IMPORT_EVENT, null);
 
@@ -192,7 +196,13 @@ public class ProfileServiceImpl implements ProfileService {
                 if (manager.validateProfile(pm, error)) {
                     pm.setId(GUIDFactory.newProfileGUID(ParameterHelper.getTenantParameter()).getId());
                 }
-
+                if (slaveMode) {
+                    final Optional<ProfileValidator.RejectionCause> result =
+                        manager.checkDuplicateInIdentifierSlaveModeValidator().validate(pm);
+                    result.ifPresent(t -> error
+                        .addToErrors(new VitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem()).setMessage(result
+                            .get().getReason())));
+                }
 
             }
 
@@ -209,8 +219,7 @@ public class ProfileServiceImpl implements ProfileService {
 
             profilesToPersist = JsonHandler.createArrayNode();
             for (final ProfileModel pm : profileModelList) {
-                if (!ParametersChecker.isNotEmpty(pm.getIdentifier()) ||
-                    pm.getIdentifier().startsWith(PROFIL_PREFIX + "-")) {
+                if (!slaveMode ) {
                     String code = vitamCounterService.getNextSequenceAsString(ParameterHelper.getTenantParameter(),
                         SequenceType.PROFILE_SEQUENCE.getName());
                     pm.setIdentifier(code);

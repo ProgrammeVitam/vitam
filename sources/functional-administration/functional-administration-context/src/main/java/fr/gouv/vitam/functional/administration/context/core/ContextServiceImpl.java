@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.functional.administration.context.core;
 
+import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 
 import java.util.ArrayList;
@@ -39,6 +40,9 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.functional.administration.common.AccessContract;
+import fr.gouv.vitam.functional.administration.contract.core.GenericContractValidator;
 import org.bson.conversions.Bson;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -95,9 +99,11 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 
 public class ContextServiceImpl implements ContextService {
-    private static final String INVALID_IDENTIFIER_OF_THE_ACCESS_CONTRACT = "Invalid identifier of the access contract:";
+    private static final String INVALID_IDENTIFIER_OF_THE_ACCESS_CONTRACT =
+        "Invalid identifier of the access contract:";
 
-    private static final String INVALID_IDENTIFIER_OF_THE_INGEST_CONTRACT = "Invalid identifier of the ingest contract:";
+    private static final String INVALID_IDENTIFIER_OF_THE_INGEST_CONTRACT =
+        "Invalid identifier of the ingest contract:";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ContextServiceImpl.class);
 
@@ -130,7 +136,9 @@ public class ContextServiceImpl implements ContextService {
         if (contextModelList.isEmpty()) {
             return new RequestResponseOK<>();
         }
-
+        boolean slaveMode = vitamCounterService
+            .isSlaveFunctionnalCollectionOnTenant(SequenceType.CONTEXT_SEQUENCE.getCollection(),
+                ParameterHelper.getTenantParameter());
         final ContextServiceImpl.ContextManager manager =
             new ContextServiceImpl.ContextManager(logBookclient, mongoAccess, vitamCounterService);
 
@@ -142,11 +150,15 @@ public class ContextServiceImpl implements ContextService {
         final VitamError error = new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem())
             .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
 
-        try {            
-            for (final ContextModel cm : contextModelList){
-               final  String code = vitamCounterService.getNextSequenceAsString(ParameterHelper.getTenantParameter(), SequenceType.CONTEXT_SEQUENCE.getName());
-                cm.setIdentifier(code);
+        try {
+            for (final ContextModel cm : contextModelList) {
 
+                if (!slaveMode) {
+                    final String code = vitamCounterService
+                        .getNextSequenceAsString(ParameterHelper.getTenantParameter(),
+                            SequenceType.CONTEXT_SEQUENCE.getName());
+                    cm.setIdentifier(code);
+                }
                 // if a contract have an id
                 if (null != cm.getId()) {
                     error.addToErrors(new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem()).setMessage(
@@ -183,20 +195,26 @@ public class ContextServiceImpl implements ContextService {
                     final ContextModel ctxt = JsonHandler.getFromJsonNode(contextNode, ContextModel.class);
                     contextsListToPersist.add(ctxt);
                 }
+                if (slaveMode) {
+                    Optional<ContextRejectionCause> result =
+                        ContextManager.checkDuplicateInIdentifierSlaveModeValidator().validate(cm);
+                    result.ifPresent(t -> error.addToErrors(
+                        new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem()).setMessage(t.getReason())));
+                }
             }
 
             if (null != error.getErrors() && !error.getErrors().isEmpty()) {
                 // log book + application log
                 // stop
                 final String errorsDetails =
-                    error.getErrors().stream().map(c -> c.getMessage()).collect(Collectors.joining(","));
+                    error.getErrors().stream().map(VitamError::getMessage).collect(Collectors.joining(","));
                 manager.logValidationError(errorsDetails, CONTEXTS_IMPORT_EVENT);
                 return error;
             }
 
             mongoAccess.insertDocuments(contextsToPersist, FunctionalAdminCollections.CONTEXT).close();
         } catch (final Exception exp) {
-            final String err = new StringBuilder("Import contexts error > ").append(exp.getMessage()).toString();
+            final String err = "Import contexts error > " + exp.getMessage();
             manager.logFatalError(err);
             return error.setCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem()).setDescription(err).setHttpCode(
                 Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
@@ -272,7 +290,7 @@ public class ContextServiceImpl implements ContextService {
 
         if (error.getErrors() != null && error.getErrors().size() > 0) {
             final String errorsDetails =
-                error.getErrors().stream().map(c -> c.getMessage()).collect(Collectors.joining(","));
+                error.getErrors().stream().map(VitamError::getMessage).collect(Collectors.joining(","));
             manager.logValidationError(errorsDetails, CONTEXTS_UPDATE_EVENT);
 
             return error;
@@ -281,10 +299,11 @@ public class ContextServiceImpl implements ContextService {
         try {
             mongoAccess.updateData(queryDsl, FunctionalAdminCollections.CONTEXT).close();
         } catch (final ReferentialException e) {
-            final String err = new StringBuilder("Update context error > ").append(e.getMessage()).toString();
+            final String err = "Update context error > " + e.getMessage();
             error.setCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem())
                 .setDescription(err)
                 .setHttpCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            manager.logFatalError(err);
             manager.logFatalError(err);
             return error;
         }
@@ -557,6 +576,30 @@ public class ContextServiceImpl implements ContextService {
             }
 
             return true;
+        }
+
+        /**
+         * Check if the Id of the  context  already exists in database
+         *
+         * @return
+         */
+        private static ContextValidator checkDuplicateInIdentifierSlaveModeValidator() {
+            return (context) -> {
+                if (context.getIdentifier() == null || context.getIdentifier().isEmpty()) {
+                    return Optional.of(ContextValidator.ContextRejectionCause.rejectMandatoryMissing(
+                        AccessContract.IDENTIFIER));
+                }
+                ContextValidator.ContextRejectionCause rejection = null;
+                final int tenant = ParameterHelper.getTenantParameter();
+                final Bson clause =
+                    and(eq(VitamDocument.TENANT_ID, tenant), eq(AccessContract.IDENTIFIER, context.getIdentifier()));
+                final boolean exist = FunctionalAdminCollections.CONTEXT.getCollection().count(clause) > 0;
+                if (exist) {
+                    rejection =
+                        ContextValidator.ContextRejectionCause.rejectDuplicatedInDatabase(context.getIdentifier());
+                }
+                return rejection == null ? Optional.empty() : Optional.of(rejection);
+            };
         }
     }
 
