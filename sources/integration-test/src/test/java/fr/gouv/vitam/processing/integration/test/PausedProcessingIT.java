@@ -27,28 +27,8 @@
 
 package fr.gouv.vitam.processing.integration.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.io.File;
-import java.io.InputStream;
-import java.util.List;
-
-import javax.ws.rs.core.Response;
-
-import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
-import fr.gouv.vitam.logbook.rest.LogbookMain;
-import fr.gouv.vitam.metadata.rest.MetadataMain;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -84,6 +64,7 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
+import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -95,7 +76,11 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.metadata.rest.MetadataMain;
+import fr.gouv.vitam.processing.common.model.PauseRecover;
+import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
@@ -106,6 +91,22 @@ import fr.gouv.vitam.worker.server.rest.WorkerApplication;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.InputStream;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class PausedProcessingIT {
 
@@ -163,7 +164,7 @@ public class PausedProcessingIT {
     private static MongodExecutable mongodExecutable;
     private static MongodProcess mongod;
 
-    private static String SIP_FILE_OK_NAME = "integration-processing/SIP-test.zip";
+    private static String SIP_FILE_OK_NAME = "integration-processing/OK_ARBO_complexe.zip";
 
     private WorkspaceClient workspaceClient;
     private ProcessingManagementClient processingClient;
@@ -274,6 +275,18 @@ public class PausedProcessingIT {
         ProcessDataAccessImpl.getInstance().clearWorkflow();
     }
 
+    private void waitStep(ProcessWorkflow processWorkflow, int stepId) {
+
+        ProcessStep step = processWorkflow.getSteps().get(stepId);
+        while (step.getStepStatusCode() != StatusCode.STARTED) {
+            try {
+                Thread.sleep(5);
+            } catch (InterruptedException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
+        }
+    }
+
     private void wait(String operationId) {
         int nbTry = 0;
         while (!processingClient.isOperationCompleted(operationId)) {
@@ -304,7 +317,8 @@ public class PausedProcessingIT {
 
                 File fileProfiles = PropertiesUtils.getResourceFile("integration-processing/OK_profil.json");
                 List<ProfileModel> profileModelList =
-                    JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {});
+                    JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {
+                    });
                 RequestResponse improrResponse = client.createProfiles(profileModelList);
 
                 RequestResponseOK<ProfileModel> response =
@@ -316,7 +330,8 @@ public class PausedProcessingIT {
                 File fileContracts =
                     PropertiesUtils.getResourceFile("integration-processing/referential_contracts_ok.json");
                 List<IngestContractModel> IngestContractModelList = JsonHandler
-                    .getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
+                    .getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+                    });
 
                 client.importIngestContracts(IngestContractModelList);
             } catch (final Exception e) {
@@ -429,6 +444,85 @@ public class PausedProcessingIT {
         assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
     }
 
+
+
+    /**
+     * This test is ignored because it use a complete ingest sip
+     *
+     * @throws Exception
+     * @see ProperlyStopStartProcessingIT that use a mocked worker and lite ingestLevelStack.json
+     * While running stop the server processing,
+     * this should stop properly the running process
+     * Then start the server, this should start the stopped process and run it unitl process complete
+     */
+    @Ignore
+    @RunWithCustomExecutor
+    @Test
+    public void testProperlyStopStartProcessing() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        tryImportFile();
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        final GUID objectGuid = GUIDFactory.newManifestGUID(TENANT_ID);
+        final String containerName = objectGuid.getId();
+        createLogbookOperation(operationGuid, objectGuid);
+
+        // workspace client dezip SIP in workspace
+        final InputStream zipInputStreamSipObject =
+            PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        workspaceClient.createContainer(containerName);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
+            zipInputStreamSipObject);
+
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName,
+            WORFKLOW_NAME);
+        // wait a little bit
+
+        ProcessWorkflow processWorkflow =
+            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
+
+        RequestResponse<JsonNode> resp = processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
+            LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
+        // wait a little bit
+        assertNotNull(resp);
+        assertEquals(Response.Status.ACCEPTED.getStatusCode(), resp.getStatus());
+
+
+        waitStep(processWorkflow, 5);
+
+        // shutdown processing
+        processManagementApplication.stop();
+
+        // wait a little bit
+        LOGGER.info("After STOP");
+
+        assertEquals(ProcessState.PAUSE, processWorkflow.getState());
+        assertTrue(PauseRecover.RECOVER_FROM_SERVER_PAUSE.equals(processWorkflow.getPauseRecover()));
+
+        // restart processing
+        SystemPropertyUtil.set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT,
+            Integer.toString(PORT_SERVICE_PROCESSING));
+        processManagementApplication = new ProcessManagementApplication(CONFIG_PROCESSING_PATH);
+        processManagementApplication.start();
+        SystemPropertyUtil.clear(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT);
+
+        // wait a little bit until jetty start
+
+        waitServerStart();
+
+        LOGGER.info("After RE-START");
+
+
+        wait(containerName);
+
+
+        assertNotNull(processWorkflow);
+        assertTrue(PauseRecover.NO_RECOVER.equals(processWorkflow.getPauseRecover()));
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+    }
 
     private void waitServerStart() {
         int nbTry = 30;

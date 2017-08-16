@@ -26,25 +26,25 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.rest;
 
-import fr.gouv.vitam.processing.distributor.api.IWorkerManager;
-import org.glassfish.jersey.server.ResourceConfig;
-
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.server.VitamServerLifeCycle;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
 import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
+import fr.gouv.vitam.processing.distributor.api.IWorkerManager;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImpl;
 import fr.gouv.vitam.processing.distributor.core.WorkerManager;
 import fr.gouv.vitam.processing.distributor.rest.ProcessDistributorResource;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.glassfish.jersey.server.ResourceConfig;
 
 
 /**
@@ -134,13 +134,17 @@ public class ProcessManagementApplication
             processDistributor = new fr.gouv.vitam.processing.distributor.v2.ProcessDistributorImpl(workerManager);
         } else {
             workerManager = new WorkerManager();
-            processDistributor = new ProcessDistributorImpl((WorkerManager)workerManager);
+            processDistributor = new ProcessDistributorImpl((WorkerManager) workerManager);
         }
+        ProcessManagementResource pmr = null;
         try {
-        resourceConfig
-            .register(new ProcessManagementResource(getConfiguration(), processDistributor))
-            .register(new ProcessDistributorResource(workerManager));
+            pmr = new ProcessManagementResource(getConfiguration(), processDistributor);
+            resourceConfig
+                .register(pmr)
+                .register(new ProcessDistributorResource(workerManager));
 
+            final VitamServerLifeCycle vitamServerLifeCycle = new VitamServerLifeCycle(pmr.getProcessLifeCycle());
+            getVitamServer().getServer().addLifeCycleListener(vitamServerLifeCycle);
         } catch (Exception e) {
             LOGGER.error("Error while initiate ProcessManagementResource", e);
         }

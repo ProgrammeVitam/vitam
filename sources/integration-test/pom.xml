@@ -232,6 +232,10 @@
 			<artifactId>jhades</artifactId>
 			<scope>test</scope>
 		</dependency>
+        <dependency>
+            <groupId>com.github.tomakehurst</groupId>
+            <artifactId>wiremock</artifactId>
+        </dependency>
 
-	</dependencies>
+    </dependencies>
 </project>

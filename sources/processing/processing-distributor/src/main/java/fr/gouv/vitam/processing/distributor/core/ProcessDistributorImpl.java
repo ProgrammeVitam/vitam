@@ -26,23 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.distributor.core;
 
-import java.io.InputStream;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
-
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -55,6 +40,7 @@ import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.DistributionKind;
+import fr.gouv.vitam.processing.common.model.PauseRecover;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
@@ -68,6 +54,20 @@ import fr.gouv.vitam.processing.model.WorkerAsyncResponse;
 import fr.gouv.vitam.worker.common.DescriptionStep;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.lang3.NotImplementedException;
+
+import javax.ws.rs.core.Response;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The Process Distributor call the workers and intercept the response for manage a post actions step
@@ -93,23 +93,17 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  *  </code>
  * </pre>
  */
+@Deprecated
 public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<WorkerAsyncResponse> {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessDistributorImpl.class);
-    private static final String UNITS_LEVEL = "UnitsLevel";
-    private static final String JSON_EXTENSION = ".json";
-    private static final String EXCEPTION_MESSAGE =
-        "runtime exceptions thrown by the Process distributor during runnig...";
-    private static final String INGEST_LEVEL_STACK = "ingestLevelStack.json";
-    private static final String OBJECTS_LIST_EMPTY = "OBJECTS_LIST_EMPTY";
-    private static final String ELEMENT_UNITS = "Units";
-
 
     private final ProcessDataAccess processDataAccess;
     private final WorkerManager workerManager;
 
     /**
      * Empty constructor
+     *
      * @param workerManager
      */
     public ProcessDistributorImpl(WorkerManager workerManager) {
@@ -117,16 +111,27 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
         processDataAccess = ProcessDataAccessImpl.getInstance();
     }
 
+    @Override
+    public boolean pause(String operationId) {
+        throw  new NotImplementedException("This method is not implemented, use distributor v2");
+    }
+
+    @Override
+    public boolean cancel(String operationId) {
+        throw  new NotImplementedException("This method is not implemented, use distributor v2");
+    }
+
     /**
      * Temporary method for distribution supporting multi-list
      *
-     * @param workParams of type {@link WorkerParameters}
-     * @param step the execution step 
+     * @param workParams  of type {@link WorkerParameters}
+     * @param step        the execution step
      * @param operationId the operation id
      * @return the final step status
      */
     @Override
-    public ItemStatus distribute(WorkerParameters workParams, Step step, String operationId) {
+    public ItemStatus distribute(WorkerParameters workParams, Step step, String operationId,
+        PauseRecover pauseRecover) {
 
         ParametersChecker.checkParameter("WorkParams is a mandatory parameter", workParams);
         ParametersChecker.checkParameter("Step is a mandatory parameter", step);
@@ -180,9 +185,11 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
                     } else {
                         // List from Storage
                         final List<URI> objectsListUri =
-                            JsonHandler.getFromStringAsTypeRefence(workspaceClient.getListUriDigitalObjectFromFolder(workParams.getContainerName(),
-                                step.getDistribution().getElement())
-                                .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {});
+                            JsonHandler.getFromStringAsTypeRefence(
+                                workspaceClient.getListUriDigitalObjectFromFolder(workParams.getContainerName(),
+                                    step.getDistribution().getElement())
+                                    .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {
+                                });
                         for (URI uri : objectsListUri) {
                             objectsList.add(uri.getPath());
                         }
@@ -337,7 +344,7 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
             try {
                 processDataAccess.updateStep(workParams.getContainerName(), step.getId(), 0,
                     true, workerAsyncResponse.getWorkerAsyncRequest().getSession().getTenantId());
-            } catch (ProcessingException | RuntimeException e) {
+            } catch (RuntimeException e) {
                 if (step.getStepResponses() != null) {
                     step.getStepResponses().increment(StatusCode.FATAL);
                 }

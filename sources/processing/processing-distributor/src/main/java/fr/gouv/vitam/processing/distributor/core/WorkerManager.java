@@ -67,6 +67,7 @@ import java.util.concurrent.Semaphore;
 /**
  * Manage the parallelism calls to worker in the same distributor
  */
+@Deprecated
 public class WorkerManager implements IWorkerManager {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerManager.class);
     // No need to have a concurrent map while there is no dymanic add/remove of queues

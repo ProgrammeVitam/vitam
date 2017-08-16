@@ -27,6 +27,7 @@
 package fr.gouv.vitam.processing.distributor.api;
 
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.processing.common.model.PauseRecover;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -39,16 +40,45 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
  */
 public interface ProcessDistributor extends AutoCloseable {
 
+    String UNITS_LEVEL = "UnitsLevel";
+    String JSON_EXTENSION = ".json";
+    String EXCEPTION_MESSAGE = "runtime exceptions thrown by the Process distributor during runnig...";
+    String INGEST_LEVEL_STACK = "ingestLevelStack.json";
+    String OBJECTS_LIST_EMPTY = "OBJECTS_LIST_EMPTY";
+    String ELEMENT_UNITS = "Units";
+    String DISTRIBUTOR_INDEX = "distributorIndex";
+    String NOLEVEL = "_no_level";
+    String WORKER_CALL_EXCEPTION = "WorkerCallException";
+
     /**
      * Distribute different steps (execute a workflow actions step by step)
      *
      * @param workParams {@link fr.gouv.vitam.processing.common.parameter.WorkerParameters} null not allowed
      * @param step {@link ProcessStep} null not allowed
-     * @param workflowId workflow Id
+     * @param operationId operationId
+     * @param pauseRecover
      *
      * @return CompositeItemStatus : list of action response
      */
-    ItemStatus distribute(WorkerParameters workParams, Step step, String workflowId);
+    ItemStatus distribute(WorkerParameters workParams, Step step, String operationId, PauseRecover pauseRecover);
 
+
+    /**
+     * Get the current step of the processWorkflow corresponding to the operationId
+     * and update his pauseCancelAction parameter to be PauseOrCancelAction.ACTION_PAUSE
+     * WorkerTask check this parameter and can pause the not yet running tasks
+     * @param operationId concerning operation id
+     * @return true if pause applied, false else
+     */
+    boolean pause(String operationId);
+
+    /**
+     * Get the current step if the processWorkflow corresponding to the operationId
+     * and update his pauseCancelAction parameter to be PauseOrCancelAction.ACTION_CANCEL
+     * WorkerTask check this parameter and can cancel the not yet running tasks
+     * @param operationId concerning operation id
+     * @return true if pause applied, false else
+     */
+    boolean cancel(String operationId);
 
 }

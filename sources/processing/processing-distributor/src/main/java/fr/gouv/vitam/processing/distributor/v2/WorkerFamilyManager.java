@@ -27,14 +27,8 @@
 
 package fr.gouv.vitam.processing.distributor.v2;
 
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
-import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
-import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
-import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
-import fr.gouv.vitam.processing.common.exception.WorkerNotFoundException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
-import fr.gouv.vitam.processing.distributor.api.IWorkerManager;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -81,7 +75,8 @@ public class WorkerFamilyManager implements Executor {
         }
     }
 
-    @Override public void execute(Runnable command) {
+    @Override
+    public void execute(Runnable command) {
         try {
             queue.put(command);
         } catch (InterruptedException e) {

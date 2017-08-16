@@ -25,52 +25,33 @@
  *  accept its terms.
  */
 
-package fr.gouv.vitam.processing.common.automation;
-
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.model.PauseOrCancelAction;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+package fr.gouv.vitam.processing.common.model;
 
 /**
- * This implemented by the state machine and passed to the ProcessEngine
- * ProcessEngine can with this callback the state machine and update it with the information about the execution of step with her status code
  */
-public interface IEventsProcessEngine {
+public enum PauseOrCancelAction {
+    /**
+     * The default PauseOrCancelAction
+     */
+    ACTION_RUN,
 
     /**
-     * Update the current step status code
-     * @param statusCode
+     * When the step was ACTION_PAUSE, after restart the step will be marked as ACTION_RECOVER
      */
-    void onUpdate(StatusCode statusCode);
+    ACTION_RECOVER,
 
     /**
-     * @param messageIdentifier
-     * @param prodService
+     * When the pause occurs, the current step will be marked as ACTION_PAUSE
      */
-    void onUpdate(String messageIdentifier, String prodService);
+    ACTION_PAUSE,
 
     /**
-     * The ProcessEngine callback on complete step (for any status code)
-     *
-     * @param itemStatus
-     * @param workerParameters
+     * When the cancel occurs, the current step will be marked as ACTION_CANCEL
      */
-    void onComplete(ItemStatus itemStatus, WorkerParameters workerParameters);
-
+    ACTION_CANCEL,
 
     /**
-     * The ProcessEngine callback onPauseOrCancel when the step is paused or cancelled
-     * @param pauseOrCancelAction
-     * @param workerParameters
+     * When the step is finished without pause nor cancel, the current step will be marked as ACTION_COMPLETE
      */
-    void onPauseOrCancel(PauseOrCancelAction pauseOrCancelAction, WorkerParameters workerParameters);
-
-    /**
-     * The ProcessEngine callback on system error occurred
-     *
-     * @param throwable
-     * @param workerParameters
-     */
-    void onError(Throwable throwable, WorkerParameters workerParameters);
+    ACTION_COMPLETE
 }

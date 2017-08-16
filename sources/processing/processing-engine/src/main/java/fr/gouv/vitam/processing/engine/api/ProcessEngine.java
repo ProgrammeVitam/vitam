@@ -30,6 +30,7 @@ package fr.gouv.vitam.processing.engine.api;
 import fr.gouv.vitam.processing.common.automation.IEventsProcessEngine;
 import fr.gouv.vitam.processing.common.exception.ProcessingEngineException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.model.PauseRecover;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 
@@ -53,20 +54,25 @@ public interface ProcessEngine {
      *
      * @param step
      * @param workerParameters
+     * @param pauseRecover
      * @throws ProcessingException
      */
-    void start(ProcessStep step, WorkerParameters workerParameters, Map<String, String> params)
+    void start(ProcessStep step, WorkerParameters workerParameters, Map<String, String> params, PauseRecover pauseRecover)
         throws ProcessingEngineException;
 
     /**
      * Pause the execution of the current step
      * Send message to the distributor to cancel the execution of the current step
+     * @param operationId
+     * @return true if pause applied, false else
      */
-    void pause();
+    boolean pause(String operationId);
 
     /**
      * Cancel the execution of the current step
      * Send message to the distributor to cancel the execution of the current step
+     * @param operationId
+     * @return true if pause applied, false else
      */
-    void cancel();
+    boolean cancel(String operationId);
 }

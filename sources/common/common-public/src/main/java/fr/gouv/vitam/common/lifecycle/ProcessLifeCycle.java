@@ -24,53 +24,25 @@
  *  The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  *  accept its terms.
  */
+package fr.gouv.vitam.common.lifecycle;
 
-package fr.gouv.vitam.processing.common.automation;
 
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.model.PauseOrCancelAction;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.common.exception.StateNotAllowedException;
 
 /**
- * This implemented by the state machine and passed to the ProcessEngine
- * ProcessEngine can with this callback the state machine and update it with the information about the execution of step with her status code
+ * Interface of the private class ServerIdentity
  */
-public interface IEventsProcessEngine {
+public interface ProcessLifeCycle {
 
     /**
-     * Update the current step status code
-     * @param statusCode
+     * This method is called when the server started
+     * Start all process
      */
-    void onUpdate(StatusCode statusCode);
+    void startProcess();
 
     /**
-     * @param messageIdentifier
-     * @param prodService
+     * This method is called when the server is going to stop
+     * Stop all process
      */
-    void onUpdate(String messageIdentifier, String prodService);
-
-    /**
-     * The ProcessEngine callback on complete step (for any status code)
-     *
-     * @param itemStatus
-     * @param workerParameters
-     */
-    void onComplete(ItemStatus itemStatus, WorkerParameters workerParameters);
-
-
-    /**
-     * The ProcessEngine callback onPauseOrCancel when the step is paused or cancelled
-     * @param pauseOrCancelAction
-     * @param workerParameters
-     */
-    void onPauseOrCancel(PauseOrCancelAction pauseOrCancelAction, WorkerParameters workerParameters);
-
-    /**
-     * The ProcessEngine callback on system error occurred
-     *
-     * @param throwable
-     * @param workerParameters
-     */
-    void onError(Throwable throwable, WorkerParameters workerParameters);
+    void stopProcess();
 }

@@ -28,7 +28,6 @@
 package fr.gouv.vitam.processing.management.core;
 
 import com.google.common.collect.Maps;
-
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -53,6 +52,8 @@ import fr.gouv.vitam.processing.common.exception.ProcessingEngineException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
 import fr.gouv.vitam.processing.common.exception.StepsNotFoundException;
+import fr.gouv.vitam.processing.common.model.PauseOrCancelAction;
+import fr.gouv.vitam.processing.common.model.PauseRecover;
 import fr.gouv.vitam.processing.common.model.ProcessBehavior;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
@@ -60,12 +61,19 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
+import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * T
@@ -93,12 +101,15 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
     private StatusCode status = StatusCode.UNKNOWN;
 
     private ProcessState state = null;
-    private ProcessState targetState = null;
+    private volatile ProcessState targetState = null;
+    private PauseOrCancelAction pauseCancelAction = PauseOrCancelAction.ACTION_RUN;
 
+    private CompletableFuture<Boolean> waitMonitor;
 
-    private Map<String, String > engineParams = Maps.newHashMap();
+    private Map<String, String> engineParams = Maps.newHashMap();
     private String messageIdentifier = null;
     private String prodService = null;
+
 
     public StateMachine(ProcessWorkflow processWorkflow, ProcessEngine processEngine) {
         if (null == processWorkflow)
@@ -124,84 +135,222 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
      */
     private void initStepIndex() {
         final Iterator<ProcessStep> it = processWorkflow.getSteps().iterator();
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             final ProcessStep step = it.next();
-            if (!StatusCode.UNKNOWN.equals(step.getStepStatusCode())
+            if (!PauseRecover.NO_RECOVER.equals(processWorkflow.getPauseRecover())
+                && step.getPauseOrCancelAction().equals(PauseOrCancelAction.ACTION_PAUSE)) {
+                step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_RECOVER);
+
+                break;
+            } else if (!StatusCode.UNKNOWN.equals(step.getStepStatusCode())
                 && !ProcessBehavior.FINALLY.equals(step.getBehavior())) {
-                stepIndex ++;
+                stepIndex++;
             } else {
                 break;
             }
         }
+
+        if (stepIndex + 1 <= stepTotal - 1) {
+            currentStep = steps.get(stepIndex + 1);
+        }
     }
 
-    @Override synchronized public void resume(WorkerParameters workerParameters)
+    @Override
+    synchronized public void resume(WorkerParameters workerParameters)
         throws StateNotAllowedException, ProcessingException {
         this.state.eval(ProcessState.RUNNING);
         this.doRunning(workerParameters, ProcessState.RUNNING);
     }
 
-    @Override synchronized public void next(WorkerParameters workerParameters)
+    @Override
+    synchronized public void next(WorkerParameters workerParameters)
         throws StateNotAllowedException, ProcessingException {
         this.state.eval(ProcessState.RUNNING);
         this.doRunning(workerParameters, ProcessState.PAUSE);
 
     }
 
-    @Override synchronized public void pause() throws StateNotAllowedException {
+    @Override
+    synchronized public void pause()
+        throws StateNotAllowedException {
         this.state.eval(ProcessState.PAUSE);
-        this.doPause();
+        this.doPause(PauseRecover.RECOVER_FROM_API_PAUSE);
     }
 
-    @Override synchronized public void cancel() throws StateNotAllowedException, ProcessingException {
+    @Override
+    public void shutdown() throws StateNotAllowedException {
+        this.doPause(PauseRecover.RECOVER_FROM_SERVER_PAUSE);
+    }
+
+    @Override
+    synchronized public void cancel() throws StateNotAllowedException, ProcessingException {
         this.state.eval(ProcessState.COMPLETED);
         doCompleted();
+    }
+
+    @Override
+    public boolean isDone() {
+        return ProcessState.COMPLETED.equals(processWorkflow.getState()) ||
+            ProcessState.PAUSE.equals(processWorkflow.getState());
+    }
+
+    @Override
+    public int getTenant() {
+        return processWorkflow.getTenantId();
+    }
+
+    @Override public String getWorkflowId() {
+        return processWorkflow.getWorkflowId();
+    }
+
+    @Override
+    public boolean isStepByStep() {
+        return this.processWorkflow.isStepByStep();
+    }
+
+    @Override
+    public LogbookTypeProcess getLogbookTypeProcess() {
+        return this.processWorkflow.getLogbookTypeProcess();
     }
 
     /**
      * Change state of the process to pause
      * Can be called only from running state
      * If last step then change state to completed
+     *
+     * @param wait     if true wait until process is completed or until pauseCancelAction is ACTION_PAUSE or ACTION_CANCEL
+     * @param nbTry
+     * @param timeWait
+     * @param timeUnit
      * @throws StateNotAllowedException
      */
-    protected void doPause() throws StateNotAllowedException {
+    protected void doPause(PauseRecover pauseRecover)
+        throws StateNotAllowedException {
+        if (PauseRecover.RECOVER_FROM_SERVER_PAUSE.equals(pauseRecover)) {
+            this.waitMonitor = new CompletableFuture<>();
+        }
+
         if (isLastStep()) {
             targetState = ProcessState.COMPLETED;
         } else {
             targetState = ProcessState.PAUSE;
+
+            /**
+             * As pause can occurs when step is in processEngine, but not yet in the distributor
+             * Wait max 1 second to be sur that step is in tje distributor
+             * If pause is not applied after 1 second, then return without calling waitMonitor.get bellow
+             * Else if pause applied then wait until distributor responds using waitMonitor.get bellow
+             */
+            int retry = 100;
+            boolean pausedApplied = this.processEngine.pause(operationId);
+            while (!pausedApplied) {
+                if (retry < 0) {
+                    break;
+                }
+
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+                    LOGGER.error(e);
+                }
+                pausedApplied = this.processEngine.pause(operationId);
+                retry--;
+            }
+
+            if (!pausedApplied) {
+                LOGGER.error("Pause is not applied in the distributor !!!");
+                return;
+            }
+
+            /**
+             * We can just stop here (updating the current step)
+             * and the information will be passed in reference to the worker task
+             * currentStep.setPauseOrCancelAction(PauseOrCancelAction.ACTION_PAUSE);
+             */
+
+            processWorkflow.setPauseRecover(pauseRecover);
         }
+
+        if (PauseRecover.RECOVER_FROM_SERVER_PAUSE.equals(pauseRecover)) {
+
+            try {
+                this.waitMonitor.get(5, TimeUnit.MINUTES);
+            } catch (Exception e) {
+                LOGGER.error(e);
+            } finally {
+
+                boolean stop = false;
+                if (ProcessState.PAUSE.equals(processWorkflow.getState())) {
+                    stop = true;
+                }
+
+                if (ProcessState.COMPLETED.equals(processWorkflow.getState())) {
+                    stop = true;
+                }
+
+                if (ProcessState.PAUSE.equals(state)) {
+                    stop = true;
+                }
+
+                if (pauseCancelAction.equals(PauseOrCancelAction.ACTION_PAUSE)) {
+                    stop = true;
+                }
+
+
+                if (stop) {
+                    processWorkflow.setPauseRecover(pauseRecover);
+                    // Be sur that ProcessWorkflow is persisted in workspace
+                    this.persistProcessWorkflow();
+                }
+            }
+
+        }
+
     }
 
     /**
      * Change the state of the process to completed
      * Can be called only from running or pause state
      * If running state, the next step will be completed
+     *
      * @throws StateNotAllowedException
      */
     protected void doCompleted() throws StateNotAllowedException, ProcessingException {
         if (isRunning()) {
             targetState = ProcessState.COMPLETED;
-        } else if (isPause()){
+            if (!isLastStep()) {
+                this.processEngine.cancel(operationId);
+                /**
+                 * We can just stop here (updating the current step)
+                 * and the information will be passed in reference to the worker task
+                 * currentStep.setPauseOrCancelAction(PauseOrCancelAction.ACTION_CANCEL);
+                 */
+            }
+        } else if (isPause()) {
             status = StatusCode.FATAL;
             if (stepIndex == -1) {
                 state = ProcessState.COMPLETED;
+                targetState = ProcessState.COMPLETED;
                 this.persistProcessWorkflow();
             } else {
                 this.executeFinallyStep(null);
             }
         }
+
     }
 
     /**
      * Change state of the process to running
      * Can be called only from pause state
+     *
      * @param workerParameters the parameters to be passed to the distributor
-     * @param targetState if true, run ony the next step
+     * @param targetState      if true, run ony the next step
      * @throws StateNotAllowedException
      */
     protected void doRunning(WorkerParameters workerParameters, ProcessState targetState)
         throws ProcessingException {
-        if (null == targetState) throw new ProcessingException("The targetState is required");
+        if (null == targetState)
+            throw new ProcessingException("The targetState is required");
         // Double check
         if (isRunning()) {
             throw new ProcessingException("doRunning not allowed on already running state");
@@ -211,39 +360,80 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         this.targetState = targetState;
         stepByStep = ProcessState.PAUSE.equals(targetState);
 
-        executeSteps(workerParameters);
+        executeSteps(workerParameters, processWorkflow.getPauseRecover());
     }
 
     /**
      * Execute steps of the workflow and manage index of the current step
      * Call engine to execute the current step
-     *@param workerParameters
+     *
+     * @param workerParameters
      */
-    protected void executeSteps(WorkerParameters workerParameters)
+    protected void executeSteps(WorkerParameters workerParameters, PauseRecover pauseRecover)
         throws ProcessingException {
-        stepIndex ++;
+
+        /**
+         * This is required when pause action origin is API, we have to
+         * We have to check if we passe to the next step or continue with the current step
+         * Be careful, when server starts, the currentStep is already initialized in initIndex
+         * With stepIndex +1 without increment stepIndex
+         */
+        if (PauseRecover.RECOVER_FROM_API_PAUSE.equals(pauseRecover)) {
+
+            /**
+             * currentStep.getPauseOrCancelAction().equals(PauseOrCancelAction.ACTION_PAUSE))
+             * This situation occurs when pause the processWorkflow without restart server
+             * In this case, the initIndex is not used to update pauseCancelAction
+             */
+            if (currentStep.getPauseOrCancelAction().equals(PauseOrCancelAction.ACTION_PAUSE)) {
+                currentStep.setPauseOrCancelAction(PauseOrCancelAction.ACTION_RECOVER);
+
+            } else {
+                /**
+                 * As the restart of the server can occurs with processWorkflow in pause mode
+                 * After start of the server the current step in PauseOrCancelAction.ACTION_PAUSE
+                 * is already initiated in the constructor and updated to be PauseOrCancelAction.ACTION_RECOVER
+                 * In this case, we have not to passe to the next step, but continue with the current step
+                 * As the currentStep in the constructor is initialized with stepIndex + 1 without increment stepIndex
+                 * So increment of stepIndex is required
+                 *
+                 * In fact, currentStep = steps.get(stepIndex); bellow will have the correct current step
+                 *
+                 */
+
+                stepIndex++;
+            }
+        } else {
+            stepIndex++;
+        }
+
         if (stepIndex == 0) {
             globalStartTime = Calendar.getInstance().getTimeInMillis();
         }
 
-        if (stepIndex <= stepTotal -1) {
+        if (stepIndex <= stepTotal - 1) {
             currentStep = steps.get(stepIndex);
         } else {
             throw new StepsNotFoundException("No step found in the process workflow");
+        }
+
+        if (!PauseRecover.NO_RECOVER.equals(pauseRecover)) {
+            processWorkflow.setPauseRecover(PauseRecover.NO_RECOVER);
         }
 
         if (!this.persistProcessWorkflow()) {
             // As the workspace throw an exception just update logbook and in memory
             status = StatusCode.FATAL;
             this.finalizeLogbook(workerParameters);
-            throw new ProcessingException("StateMachine can't persist ProcessWorkflow > see log of the persistProcessWorkflow method");
+            throw new ProcessingException(
+                "StateMachine can't persist ProcessWorkflow > see log of the persistProcessWorkflow method");
         }
 
         if (null != currentStep) {
             engineParams.put(SedaConstants.TAG_MESSAGE_IDENTIFIER, messageIdentifier);
             engineParams.put(SedaConstants.TAG_ORIGINATINGAGENCY, prodService);
             try {
-                this.processEngine.start(currentStep, workerParameters, engineParams);
+                this.processEngine.start(currentStep, workerParameters, engineParams, pauseRecover);
             } catch (ProcessingEngineException e) {
                 LOGGER.error("ProcessEngine error ", e);
                 status = StatusCode.FATAL;
@@ -260,7 +450,8 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
      * Execute the finally step of the workflow
      * Update global status of the workflow
      * Persist the process workflow
-     *@param workerParameters
+     *
+     * @param workerParameters
      */
     protected void executeFinallyStep(WorkerParameters workerParameters) {
         if (!this.persistProcessWorkflow()) {
@@ -271,12 +462,12 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         }
 
         stepIndex = stepTotal - 1;
-        currentStep = steps.get(stepTotal -1);
+        currentStep = steps.get(stepTotal - 1);
         if (null != currentStep) {
             engineParams.put(SedaConstants.TAG_MESSAGE_IDENTIFIER, messageIdentifier);
             engineParams.put(SedaConstants.TAG_ORIGINATINGAGENCY, prodService);
             try {
-                this.processEngine.start(currentStep, workerParameters, engineParams);
+                this.processEngine.start(currentStep, workerParameters, engineParams, PauseRecover.NO_RECOVER);
             } catch (ProcessingEngineException e) {
                 LOGGER.error("ProcessEngine error", e);
                 status = StatusCode.FATAL;
@@ -289,7 +480,8 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         }
     }
 
-    @Override synchronized public void onUpdate(StatusCode statusCode) {
+    @Override
+    synchronized public void onUpdate(StatusCode statusCode) {
         StatusCode stepStatusCode = currentStep.getStepStatusCode();
         if (stepStatusCode != null) {
             stepStatusCode = stepStatusCode.compareTo(statusCode) > 0
@@ -299,12 +491,16 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         this.status = this.status.compareTo(statusCode) > 0 ? this.status : statusCode;
     }
 
-    @Override synchronized public void onUpdate(String messageIdentifier, String prodService) {
-        if (null != messageIdentifier) this.messageIdentifier = messageIdentifier;
-        if (null != prodService) this.prodService = prodService;
+    @Override
+    synchronized public void onUpdate(String messageIdentifier, String prodService) {
+        if (null != messageIdentifier)
+            this.messageIdentifier = messageIdentifier;
+        if (null != prodService)
+            this.prodService = prodService;
     }
 
-    @Override synchronized public void onError(Throwable throwable, WorkerParameters workerParameters) {
+    @Override
+    synchronized public void onError(Throwable throwable, WorkerParameters workerParameters) {
         LOGGER.error("Error in Engine", throwable);
         status = StatusCode.FATAL;
 
@@ -321,7 +517,33 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         globalEndTime = Calendar.getInstance().getTimeInMillis();
     }
 
-    @Override synchronized public void onComplete(ItemStatus itemStatus, WorkerParameters workerParameters) {
+    @Override
+    synchronized public void onPauseOrCancel(PauseOrCancelAction pauseCancelAction, WorkerParameters workerParameters) {
+        try {
+            switch (pauseCancelAction) {
+                case ACTION_PAUSE:
+                    state = ProcessState.PAUSE;
+                    this.persistProcessWorkflow();
+                    targetState = ProcessState.PAUSE;
+                    break;
+                case ACTION_CANCEL:
+                    status = StatusCode.FATAL;
+                    targetState = ProcessState.COMPLETED;
+                    this.executeFinallyStep(workerParameters);
+                    break;
+            }
+        } finally {
+            this.pauseCancelAction = pauseCancelAction;
+
+            if (null != waitMonitor) {
+                this.waitMonitor.complete(Boolean.TRUE);
+            }
+        }
+
+    }
+
+    @Override
+    synchronized public void onComplete(ItemStatus itemStatus, WorkerParameters workerParameters) {
         if (!isLastStep()) {
             final StatusCode statusCode = itemStatus.getGlobalStatus();
             // update global status Process workFlow and process Step
@@ -340,12 +562,18 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
                 } else if (ProcessState.PAUSE.equals(targetState)) {
                     state = ProcessState.PAUSE;
                     targetState = ProcessState.PAUSE;
+                    try {
+                        this.persistProcessWorkflow();
+                    } finally {
+                        if (null != waitMonitor) {
+                            waitMonitor.complete(Boolean.FALSE);
+                        }
+                    }
 
-                    this.persistProcessWorkflow();
                 } else {
                     targetState = ProcessState.RUNNING;
                     try {
-                        this.executeSteps(workerParameters);
+                        this.executeSteps(workerParameters, PauseRecover.NO_RECOVER);
                     } catch (ProcessingException e) {
                         LOGGER.error("ProcessEngine error > ", e);
                     }
@@ -365,6 +593,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
 
     /**
      * Check if the state is running
+     *
      * @return true if the current state is running
      */
     protected boolean isRunning() {
@@ -373,6 +602,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
 
     /**
      * Check if the state is pause
+     *
      * @return true if the current state is pause
      */
     protected boolean isPause() {
@@ -381,22 +611,31 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
 
     /**
      * Check if the state is completed
+     *
      * @return true if the current state is completed
      */
-    protected boolean isCompleted() {
+    public boolean isCompleted() {
         return ProcessState.COMPLETED.equals(state);
+    }
+
+    @Override
+    public boolean isRecover() {
+        return !ProcessState.COMPLETED.equals(state) &&
+            PauseRecover.RECOVER_FROM_SERVER_PAUSE.equals(processWorkflow.getPauseRecover());
     }
 
     /**
      * Check if the current step is the last one
+     *
      * @return true if the current step is the last one
      */
     protected boolean isLastStep() {
-        return stepIndex >= (stepTotal -1);
+        return stepIndex >= (stepTotal - 1);
     }
 
     /**
      * Persist the process workflow in the workspace
+     *
      * @return true is success, false else
      */
     protected boolean persistProcessWorkflow() {
@@ -419,7 +658,8 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             // Retry after 5 second
             try {
                 Thread.sleep(5000);
-            } catch (InterruptedException e1) {}
+            } catch (InterruptedException e1) {
+            }
             try {
                 dataManagement.persistProcessWorkflow(String.valueOf(ServerIdentity.getInstance().getServerId()),
                     operationId, processWorkflow);
@@ -449,7 +689,8 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             // Retry after 5 second
             try {
                 Thread.sleep(5000);
-            } catch (InterruptedException e1) {}
+            } catch (InterruptedException e1) {
+            }
 
             try {
                 final GUID operationGuid = GUIDReader.getGUID(operationId);
@@ -482,8 +723,15 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             if (workspaceClient.isExistingContainer(operationId)) {
                 workspaceClient.deleteContainer(operationId, true);
             }
+
+            if (workspaceClient
+                .isExistingObject(ProcessDataManagement.PROCESS_CONTAINER,
+                    ProcessDistributor.DISTRIBUTOR_INDEX + "/" + operationId + ".json")) {
+                workspaceClient.deleteObject(ProcessDataManagement.PROCESS_CONTAINER,
+                    ProcessDistributor.DISTRIBUTOR_INDEX + "/" + operationId + ".json");
+            }
         } catch (Exception e) {
-            LOGGER.error("Error while clear the container "+operationId+" from the workspace", e);
+            LOGGER.error("Error while clear the container " + operationId + " from the workspace", e);
         }
     }
 

@@ -63,8 +63,7 @@ public interface ProcessDataAccess {
      * @throws ProcessingException if the step does not exist
      */
     void updateStep(String processId, String uniqueId, long elementToProcess, boolean elementProcessed,
-        Integer tenantId)
-        throws ProcessingException;
+        Integer tenantId);
 
     /**
      * Gets Process Workflow by ID

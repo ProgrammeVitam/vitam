@@ -109,7 +109,8 @@ public class WorkerManager implements IWorkerManager {
 
     }
 
-    @Override public void registerWorker(WorkerBean workerBean) {
+    @Override
+    public void registerWorker(WorkerBean workerBean) {
         workersFamily.putIfAbsent(workerBean.getFamily(), new WorkerFamilyManager(QUEUE_SIZE));
         workersFamily.compute(workerBean.getFamily(), (key, workerManager) -> {
             workerManager.registerWorker(workerBean);
@@ -118,7 +119,8 @@ public class WorkerManager implements IWorkerManager {
         marshallToDB();
     }
 
-    @Override public void unregisterWorker(String workerFamily, String worker) throws WorkerFamilyNotFoundException {
+    @Override
+    public void unregisterWorker(String workerFamily, String worker) throws WorkerFamilyNotFoundException {
         final WorkerFamilyManager workerManager = workersFamily.get(workerFamily);
         if (workerManager == null) {
             throw  new WorkerFamilyNotFoundException("Worker : "+worker+ " not found in the family :"+workerFamily);
@@ -128,7 +130,8 @@ public class WorkerManager implements IWorkerManager {
         marshallToDB();
     }
 
-    @Override public WorkerFamilyManager findWorkerBy(String workerFamily) {
+    @Override
+    public WorkerFamilyManager findWorkerBy(String workerFamily) {
         return workersFamily.get(workerFamily);
     }
 }

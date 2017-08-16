@@ -1647,13 +1647,18 @@ public class ExtractSedaActionHandler extends ActionHandler {
             for (final Entry<Integer, Set<String>> entry : levelStackMap.entrySet()) {
                 final ArrayNode unitList = ingestLevelStack.withArray(LEVEL + entry.getKey());
                 final Set<String> unitGuidList = entry.getValue();
+                Set<String> alreadyAdded = new HashSet<>();
                 for (final String idXml : unitGuidList) {
 
                     final String unitGuid = unitIdToGuid.get(idXml);
                     if (unitGuid == null) {
                         throw new IllegalArgumentException("Unit guid not found in map");
                     }
-                    unitList.add(unitGuid);
+
+                    if (!alreadyAdded.contains(unitGuid)) {
+                        alreadyAdded.add(unitGuid);
+                        unitList.add(unitGuid);
+                    }
                 }
                 ingestLevelStack.set(LEVEL + entry.getKey(), unitList);
             }

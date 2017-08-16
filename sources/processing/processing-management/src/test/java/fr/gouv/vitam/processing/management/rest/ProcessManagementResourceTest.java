@@ -61,6 +61,7 @@ import java.util.HashMap;
 import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyObject;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
@@ -148,7 +149,7 @@ public class ProcessManagementResourceTest {
         ItemStatus itemStatus = new ItemStatus();
         itemStatus.increment(StatusCode.OK);
 
-        Mockito.when(processDistributorImpl.distribute(anyObject(), anyObject(), anyObject()))
+        Mockito.when(processDistributorImpl.distribute(anyObject(), anyObject(), anyObject(), anyObject()))
             .thenReturn(itemStatus);
 
 
@@ -228,7 +229,7 @@ public class ProcessManagementResourceTest {
         ItemStatus itemStatus = new ItemStatus();
         itemStatus.increment(StatusCode.OK);
 
-        Mockito.when(processDistributorImpl.distribute(anyObject(), anyObject(), anyObject()))
+        Mockito.when(processDistributorImpl.distribute(anyObject(), anyObject(), anyObject(), anyObject()))
             .thenReturn(itemStatus);
 
 

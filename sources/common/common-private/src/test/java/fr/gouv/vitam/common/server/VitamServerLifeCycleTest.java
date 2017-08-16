@@ -25,52 +25,47 @@
  *  accept its terms.
  */
 
-package fr.gouv.vitam.processing.common.automation;
+package fr.gouv.vitam.common.server;
 
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.model.PauseOrCancelAction;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.common.lifecycle.ProcessLifeCycle;
+import fr.gouv.vitam.common.logging.SysErrLogger;
+import org.eclipse.jetty.util.component.LifeCycle;
+import org.junit.Test;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 /**
- * This implemented by the state machine and passed to the ProcessEngine
- * ProcessEngine can with this callback the state machine and update it with the information about the execution of step with her status code
  */
-public interface IEventsProcessEngine {
+public class VitamServerLifeCycleTest {
 
-    /**
-     * Update the current step status code
-     * @param statusCode
-     */
-    void onUpdate(StatusCode statusCode);
+    @Test
+    public void whenConstructorWithNotNullArgThenOK() {
+            new VitamServerLifeCycle(mock(ProcessLifeCycle.class));
+    }
 
-    /**
-     * @param messageIdentifier
-     * @param prodService
-     */
-    void onUpdate(String messageIdentifier, String prodService);
+    @Test(expected = RuntimeException.class)
+    public void whenConstructorWithNullArgThenKO() {
+        new VitamServerLifeCycle(null);
+    }
 
-    /**
-     * The ProcessEngine callback on complete step (for any status code)
-     *
-     * @param itemStatus
-     * @param workerParameters
-     */
-    void onComplete(ItemStatus itemStatus, WorkerParameters workerParameters);
+    @Test
+    public void whenLifeCycleStartedThenProcessLifeCycleStartProcess() {
+        ProcessLifeCycle plc = mock(ProcessLifeCycle.class);
+        new VitamServerLifeCycle(plc).lifeCycleStarted(mock(LifeCycle.class));
+        // As startProcess is called in the executor, wait until startProcess be called by the executor
+        try {
+            Thread.sleep(5);
+        } catch (InterruptedException e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+        }
+        verify(plc).startProcess();
+    }
 
-
-    /**
-     * The ProcessEngine callback onPauseOrCancel when the step is paused or cancelled
-     * @param pauseOrCancelAction
-     * @param workerParameters
-     */
-    void onPauseOrCancel(PauseOrCancelAction pauseOrCancelAction, WorkerParameters workerParameters);
-
-    /**
-     * The ProcessEngine callback on system error occurred
-     *
-     * @param throwable
-     * @param workerParameters
-     */
-    void onError(Throwable throwable, WorkerParameters workerParameters);
+    @Test
+    public void whenLifeCycleStoppingThenProcessLifeCycleStopProcess() {
+        ProcessLifeCycle plc = mock(ProcessLifeCycle.class);
+        new VitamServerLifeCycle(plc).lifeCycleStopping(mock(LifeCycle.class));
+        verify(plc).stopProcess();
+    }
 }

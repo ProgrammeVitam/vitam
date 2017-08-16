@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -31,7 +31,6 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
@@ -69,6 +68,16 @@ public class ProcessWorkflow {
     private StatusCode status = StatusCode.UNKNOWN;
     private ProcessState state = ProcessState.PAUSE;
     private boolean stepByStep = false;
+
+    /**
+     * This Should be :
+     *  PauseRecover.RECOVER_FROM_API_PAUSE when pause origin is API
+     *  PauseRecover.RECOVER_FROM_SERVER_PAUSE when pause origin is SERVER
+     *
+     *  Should be updated to PauseRecover.NO_RECOVER after the execution of the next step
+     */
+    private PauseRecover pauseRecover = PauseRecover.NO_RECOVER;
+
     /**
      * Set the state of the workflow process
      * @return ProcessState
@@ -195,12 +204,12 @@ public class ProcessWorkflow {
      * @param prodService the prodService to set
      *
      * @return this
-     */    
+     */
     public ProcessWorkflow setProdService(String prodService) {
         this.prodService = prodService;
         return this;
     }
-    
+
 
     /**
      * @return the logbookTypeProcess
@@ -261,7 +270,13 @@ public class ProcessWorkflow {
     public ProcessWorkflow setProcessCompletedDate(LocalDateTime processCompletedDate) {
         this.processCompletedDate = processCompletedDate;
         return this;
-
     }
 
+    public PauseRecover getPauseRecover() {
+        return pauseRecover;
+    }
+
+    public void setPauseRecover(PauseRecover pauseRecover) {
+        this.pauseRecover = pauseRecover;
+    }
 }

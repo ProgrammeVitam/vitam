@@ -25,52 +25,19 @@
  *  accept its terms.
  */
 
-package fr.gouv.vitam.processing.common.automation;
+package fr.gouv.vitam.worker.client.exception;
 
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.PauseOrCancelAction;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 
-/**
- * This implemented by the state machine and passed to the ProcessEngine
- * ProcessEngine can with this callback the state machine and update it with the information about the execution of step with her status code
- */
-public interface IEventsProcessEngine {
+public class PauseCancelException extends RuntimeException {
 
-    /**
-     * Update the current step status code
-     * @param statusCode
-     */
-    void onUpdate(StatusCode statusCode);
+    final private PauseOrCancelAction pauseOrCancelAction;
 
-    /**
-     * @param messageIdentifier
-     * @param prodService
-     */
-    void onUpdate(String messageIdentifier, String prodService);
+    public PauseCancelException(PauseOrCancelAction pauseCancelAction) {
+        this.pauseOrCancelAction = pauseCancelAction;
+    }
 
-    /**
-     * The ProcessEngine callback on complete step (for any status code)
-     *
-     * @param itemStatus
-     * @param workerParameters
-     */
-    void onComplete(ItemStatus itemStatus, WorkerParameters workerParameters);
-
-
-    /**
-     * The ProcessEngine callback onPauseOrCancel when the step is paused or cancelled
-     * @param pauseOrCancelAction
-     * @param workerParameters
-     */
-    void onPauseOrCancel(PauseOrCancelAction pauseOrCancelAction, WorkerParameters workerParameters);
-
-    /**
-     * The ProcessEngine callback on system error occurred
-     *
-     * @param throwable
-     * @param workerParameters
-     */
-    void onError(Throwable throwable, WorkerParameters workerParameters);
+    public PauseOrCancelAction getPauseOrCancelAction() {
+        return pauseOrCancelAction;
+    }
 }
