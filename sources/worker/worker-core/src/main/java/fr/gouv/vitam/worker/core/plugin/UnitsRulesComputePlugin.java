@@ -103,6 +103,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN);
 
+    private static final int UNIT_INPUT_RANK = 0;
     private HandlerIO handlerIO;
     private boolean asyncIO = false;
 
@@ -146,14 +147,18 @@ public class UnitsRulesComputePlugin extends ActionHandler {
         final String containerId = params.getContainerName();
         final String objectName = params.getObjectName();
 
-        try (InputStream inputStream =
-            handlerIO.getInputStreamFromWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName)) {
-            // Parse RULES in management Archive unit, and add EndDate
-            // parseXmlRulesAndUpdateEndDate(inputStream, objectName, containerId, params, itemStatus);
-            parseRulesAndUpdateEndDate(inputStream, objectName, containerId);
-        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
-            IOException e) {
-            LOGGER.error(WORKSPACE_SERVER_ERROR, e);
+        try {
+            JsonNode archiveUnit = null;
+            if (handlerIO.getInput().size() > 0) {
+                archiveUnit = (JsonNode) handlerIO.getInput(UNIT_INPUT_RANK);
+            } else {
+                InputStream inputStream =
+                    handlerIO.getInputStreamFromWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName);
+                archiveUnit = JsonHandler.getFromInputStream(inputStream);
+            }
+            
+            parseRulesAndUpdateEndDate(archiveUnit, objectName, containerId);
+        } catch (IOException | ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException | InvalidParseOperationException e) {
             throw new ProcessingException(e);
         }
     }
@@ -197,14 +202,13 @@ public class UnitsRulesComputePlugin extends ActionHandler {
      * @throws IOException
      * @throws ProcessingException
      */
-    private void parseRulesAndUpdateEndDate(InputStream input, String objectName, String containerName)
+    private void parseRulesAndUpdateEndDate(JsonNode archiveUnit, String objectName, String containerName)
         throws IOException, ProcessingException {
 
         final File fileWithEndDate = handlerIO.getNewLocalFile(AU_PREFIX_WITH_END_DATE + objectName);
         try {
 
             // Archive unit nodes
-            JsonNode archiveUnit = JsonHandler.getFromInputStream(input);
             JsonNode archiveUnitNode = archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT);
             JsonNode workNode = archiveUnit.get(SedaConstants.PREFIX_WORK);
             JsonNode managementNode = archiveUnitNode.get(SedaConstants.TAG_MANAGEMENT);

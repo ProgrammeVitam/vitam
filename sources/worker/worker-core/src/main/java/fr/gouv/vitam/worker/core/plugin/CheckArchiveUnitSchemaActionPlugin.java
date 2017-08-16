@@ -30,22 +30,20 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.json.SchemaValidationStatus;
-import fr.gouv.vitam.common.json.SchemaValidationUtils;
 import fr.gouv.vitam.common.json.SchemaValidationStatus.SchemaValidationStatusEnum;
+import fr.gouv.vitam.common.json.SchemaValidationUtils;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.processing.common.exception.ArchiveUnitContainSpecialCharactersException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -68,6 +66,7 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
 
     private static final String CHECK_UNIT_SCHEMA_TASK_ID = "CHECK_UNIT_SCHEMA";
 
+    private static final int UNIT_OUT_RANK = 0;
     private HandlerIO handlerIO;
 
     private static final String NOT_AU_JSON_VALID = "NOT_AU_JSON_VALID";
@@ -138,7 +137,9 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
             handlerIO.getInputStreamFromWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName)) {
             SchemaValidationUtils validator = new SchemaValidationUtils();
             JsonNode archiveUnit = JsonHandler.getFromInputStream(archiveUnitToJson);
-
+            
+            handlerIO.addOuputResult(UNIT_OUT_RANK, archiveUnit, true, false);
+            
             // sanityChecker
             try {
                 SanityChecker.checkJsonAll(archiveUnit);

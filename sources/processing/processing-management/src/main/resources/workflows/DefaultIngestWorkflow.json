@@ -137,13 +137,25 @@
         {
           "action": {
             "actionKey": "CHECK_UNIT_SCHEMA",
-            "behavior": "BLOCKING"
+            "behavior": "BLOCKING",
+            "out": [
+              {
+                "name": "unit",
+                "uri": "MEMORY:unitId"
+              }
+            ]
           }
         },
         {
           "action": {
             "actionKey": "UNITS_RULES_COMPUTE",
-            "behavior": "BLOCKING"
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "unit",
+                "uri": "MEMORY:unitId"
+              }
+            ]
           }
         }
       ]

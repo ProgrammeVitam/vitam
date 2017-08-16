@@ -36,6 +36,8 @@ import static org.mockito.Mockito.when;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -57,6 +59,9 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.model.IOParameter;
+import fr.gouv.vitam.processing.common.model.ProcessingUri;
+import fr.gouv.vitam.processing.common.model.UriPrefix;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
@@ -104,7 +109,9 @@ public class CheckArchiveUnitSchemaActionPluginTest {
     private final InputStream archiveUnitInvalidDate;
     private final InputStream archiveUnitInvalidContent;
     private final InputStream archiveUnitInvalidXml;
-    private final InputStream archiveUnitInvalidDescLevel;    
+    private final InputStream archiveUnitInvalidDescLevel;
+    
+    private List<IOParameter> out;
 
     private HandlerIOImpl action;
     private GUID guid = GUIDFactory.newGUID();
@@ -138,6 +145,10 @@ public class CheckArchiveUnitSchemaActionPluginTest {
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
         action = new HandlerIOImpl(guid.getId(), "workerId");
+        
+        out = new ArrayList<>();
+        out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "unitId.json")));
+        action.addOutIOParameters(out);
     }
 
     @After
