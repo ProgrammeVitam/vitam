@@ -86,6 +86,27 @@ public interface StorageClient extends BasicClient {
             throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException;
 
     /**
+     * Store an object available in database by its vitam guid
+     *
+     * @param strategyId
+     *            the storage strategy id
+     * @param type
+     *            the type of object collection
+     * @param guid
+     *            vitam guid
+     * @throws StorageAlreadyExistsClientException
+     *             if the Server got a CONFLICT status result
+     * @throws StorageNotFoundClientException
+     *             if the Server got a NotFound result
+     * @throws StorageServerClientException
+     *             if the Server got an internal error
+     * @return the result status of object creation
+     */
+    StoredInfoResult storeFileFromDatabase(String strategyId, StorageCollectionType type, String guid)
+            throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException;
+
+
+    /**
      * Check the existance of a tenant container in storage by its id
      *
      * @param strategyId

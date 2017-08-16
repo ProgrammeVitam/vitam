@@ -202,7 +202,7 @@ public class StoreMetaDataUnitActionPluginTest {
                 .thenReturn(Response.status(Status.OK).entity(unit).build());
 
         Mockito.doThrow(new StorageNotFoundClientException("Error Metadata")).when(storageClient)
-            .storeFileFromWorkspace(anyObject(), anyObject(), anyObject(), anyObject());
+            .storeFileFromDatabase(anyObject(), anyObject(), anyObject());
 
         plugin = new StoreMetaDataUnitActionPlugin();
 
@@ -231,7 +231,7 @@ public class StoreMetaDataUnitActionPluginTest {
                 .thenReturn(Response.status(Status.OK).entity(unit).build());
 
         Mockito.doThrow(new StorageAlreadyExistsClientException("Error Metadata ")).when(storageClient)
-            .storeFileFromWorkspace(anyObject(), anyObject(), anyObject(), anyObject());
+            .storeFileFromDatabase(anyObject(), anyObject(), anyObject());
 
         plugin = new StoreMetaDataUnitActionPlugin();
 

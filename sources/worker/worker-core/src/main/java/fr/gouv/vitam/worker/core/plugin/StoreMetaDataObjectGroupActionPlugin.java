@@ -91,11 +91,8 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreObjectActionHandl
             JsonNode og = createMetadataFileInWorkspace(params, metaDataClient);
             final String objectNameFinal = StringUtils.substringBeforeLast(params.getObjectName(), ".");
 
-            final ObjectDescription description =
-                new ObjectDescription(StorageCollectionType.OBJECTGROUPS, params.getContainerName(), objectName,
-                    IngestWorkflowConstants.OBJECT_GROUP_FOLDER + File.separator + objectName);
-            // transfer json to workspace
-            StoredInfoResult result = storeObject(description, itemStatus);
+            // transfer json to storage
+            StoredInfoResult result = storeObject(StorageCollectionType.OBJECTGROUPS, objectNameFinal, itemStatus);
             // Update OG with store information
             if (result != null) {
                 try {

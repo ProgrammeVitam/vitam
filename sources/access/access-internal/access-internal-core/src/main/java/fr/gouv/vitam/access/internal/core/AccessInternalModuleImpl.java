@@ -720,6 +720,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         JsonNode constructQuery = query.getFinalSelect();
         final String fileName = idUnit + JSON;
 
+        // FIXME : no need to save unit in workspace as StorageEngine get it and its lfc from Database
         final WorkspaceClient workspaceClient =
             workspaceClientMock == null ? WorkspaceClientFactory.getInstance().getClient() : workspaceClientMock;
         try {
@@ -746,9 +747,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                         file.delete();
                     }
                 }
-                // updates (replaces) stored object
-                storeMetaDataUnit(new ObjectDescription(StorageCollectionType.UNITS, requestId, fileName,
-                    IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + fileName));
+                // updates (replaces) stored object (get unit and lfc from database and save it)
+                storeMetaDataUnit(StorageCollectionType.UNITS, idUnit);
 
             } else {
                 LOGGER.error(ARCHIVE_UNIT_NOT_FOUND);
@@ -766,20 +766,19 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     /**
      * The function is used for retrieving ObjectGroup in workspace and storing metaData in storage offer
      *
-     * @param description
+     * @param type
+     * @param uuid
      * @throws StorageServerClientException
      * @throws StorageNotFoundClientException
      * @throws StorageAlreadyExistsClientException
      * @throws ProcessingException when error in execution
      */
-    private void storeMetaDataUnit(ObjectDescription description) throws StorageClientException {
+    private void storeMetaDataUnit(StorageCollectionType type, String uuid) throws StorageClientException {
         final StorageClient storageClient =
             storageClientMock == null ? StorageClientFactory.getInstance().getClient() : storageClientMock;
         try {
             // store binary data object
-            storageClient.storeFileFromWorkspace(DEFAULT_STRATEGY, description.getType(),
-                description.getObjectName(),
-                description);
+            storageClient.storeFileFromDatabase(DEFAULT_STRATEGY, type, uuid);
         } finally {
             if (storageClient != null && storageClientMock == null) {
                 storageClient.close();

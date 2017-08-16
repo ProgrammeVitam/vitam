@@ -47,6 +47,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
@@ -80,6 +81,34 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
             return storageClient.storeFileFromWorkspace(DEFAULT_STRATEGY, description.getType(),
                 description.getObjectName(),
                 description);
+
+        } catch (StorageAlreadyExistsClientException e) {
+            LOGGER.error(e);
+            itemStatus.increment(StatusCode.KO);
+        } catch (StorageNotFoundClientException e) {
+            LOGGER.error(e);
+            itemStatus.increment(StatusCode.FATAL);
+        } catch (StorageServerClientException e) {
+            LOGGER.error(e);
+            itemStatus.increment(StatusCode.FATAL);
+        }
+        return null;
+    }
+
+    /**
+     * The function is used for retrieving ObjectGroup in workspace and storing metaData in storage offer
+     *
+     * @param uuid the object id
+     * @param type the object type
+     * @param itemStatus item status
+     * @return StoredInfoResult
+     * @throws ProcessingException when error in execution
+     */
+    protected StoredInfoResult storeObject(StorageCollectionType type, String uuid, ItemStatus itemStatus) throws ProcessingException {
+
+        try (final StorageClient storageClient = storageClientFactory.getClient()) {
+            // store binary data object
+            return storageClient.storeFileFromDatabase(DEFAULT_STRATEGY, type, uuid);
 
         } catch (StorageAlreadyExistsClientException e) {
             LOGGER.error(e);
