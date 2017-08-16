@@ -41,7 +41,8 @@ public class AdminExternalClientMockTest {
             Status.OK);
 
         assertEquals(
-            client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID),
+            client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), "test.xml",
+                TENANT_ID),
             Status.CREATED);
 
         assertEquals(
@@ -72,7 +73,7 @@ public class AdminExternalClientMockTest {
         assertEquals(
             client.findDocumentById(AdminCollections.RULES, DOCUMENT_ID, TENANT_ID).toString(),
             ClientMockResultHelper.getRule().toString());
-        
+
         assertEquals(
             client.importContexts(new ByteArrayInputStream("test".getBytes()), TENANT_ID).getHttpCode(),
             Status.CREATED.getStatusCode());

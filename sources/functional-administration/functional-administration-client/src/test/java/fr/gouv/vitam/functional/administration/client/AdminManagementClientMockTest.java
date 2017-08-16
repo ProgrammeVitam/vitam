@@ -30,7 +30,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,24 +39,20 @@ import java.util.List;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
-import fr.gouv.vitam.common.junit.FakeInputStream;
-import fr.gouv.vitam.functional.administration.common.exception.*;
-import org.assertj.core.api.Assertions;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -65,6 +60,11 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
+import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
+import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
+import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 
 
 public class AdminManagementClientMockTest {
@@ -86,7 +86,7 @@ public class AdminManagementClientMockTest {
     @Test
     public void givenClientMockWhenWhenImportThenReturnOK() throws FileFormatException, FileNotFoundException {
         stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
-        client.importFormat(stream);
+        client.importFormat(stream, "FF-vitam.xml");
     }
 
     @Test
@@ -124,7 +124,7 @@ public class AdminManagementClientMockTest {
         throws ReferentialException, FileRulesException, DatabaseConflictException, FileNotFoundException {
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        client.importRulesFile(stream);
+        client.importRulesFile(stream, "FF-jeu_donnees_OK_regles_CSV.csv");
     }
 
     @Test
@@ -178,7 +178,8 @@ public class AdminManagementClientMockTest {
         AdminManagementClientFactory.changeMode(null);
         final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
         final Select select = new Select();
-        final RequestResponse detailResponse = client.getAccessionRegisterDetail("aedqaaaaacaam7mxabsakakygeje2uyaaaaq", select.getFinalSelect());
+        final RequestResponse detailResponse =
+            client.getAccessionRegisterDetail("aedqaaaaacaam7mxabsakakygeje2uyaaaaq", select.getFinalSelect());
 
         if (detailResponse.isOk()) {
             RequestResponseOK<AccessionRegisterDetailModel> responseOK =
@@ -210,8 +211,8 @@ public class AdminManagementClientMockTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         RequestResponse resp = client.findIngestContractsByID("FakeId");
         assertThat(RequestResponseOK.class).isAssignableFrom(resp.getClass());
-        assertThat(((RequestResponseOK)resp).isOk());
-        assertThat(((RequestResponseOK)resp).getResults()).hasSize(1);
+        assertThat(((RequestResponseOK) resp).isOk());
+        assertThat(((RequestResponseOK) resp).getResults()).hasSize(1);
         throw new ReferentialNotFoundException("Ingest contract not found with id FakeId");
     }
 
@@ -222,8 +223,8 @@ public class AdminManagementClientMockTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         RequestResponse resp = client.findIngestContracts(JsonHandler.createObjectNode());
         assertThat(RequestResponseOK.class).isAssignableFrom(resp.getClass());
-        assertThat(((RequestResponseOK)resp).isOk());
-        assertThat(((RequestResponseOK)resp).getResults()).hasSize(1);
+        assertThat(((RequestResponseOK) resp).isOk());
+        assertThat(((RequestResponseOK) resp).getResults()).hasSize(1);
     }
 
 
@@ -241,8 +242,8 @@ public class AdminManagementClientMockTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         RequestResponse resp = client.findAccessContractsByID("FakeId");
         assertThat(RequestResponseOK.class).isAssignableFrom(resp.getClass());
-        assertThat(((RequestResponseOK)resp).isOk());
-        assertThat(((RequestResponseOK)resp).getResults()).hasSize(1);
+        assertThat(((RequestResponseOK) resp).isOk());
+        assertThat(((RequestResponseOK) resp).getResults()).hasSize(1);
         throw new ReferentialNotFoundException("Ingest contract not found with id FakeId");
     }
 
@@ -253,8 +254,8 @@ public class AdminManagementClientMockTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         RequestResponse resp = client.findAccessContracts(JsonHandler.createObjectNode());
         assertThat(RequestResponseOK.class).isAssignableFrom(resp.getClass());
-        assertThat(((RequestResponseOK)resp).isOk());
-        assertThat(((RequestResponseOK)resp).getResults()).hasSize(1);
+        assertThat(((RequestResponseOK) resp).isOk());
+        assertThat(((RequestResponseOK) resp).getResults()).hasSize(1);
     }
 
 
@@ -290,8 +291,8 @@ public class AdminManagementClientMockTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         RequestResponse resp = client.findProfiles(JsonHandler.createObjectNode());
         assertThat(RequestResponseOK.class).isAssignableFrom(resp.getClass());
-        assertThat(((RequestResponseOK)resp).isOk());
-        assertThat(((RequestResponseOK)resp).getResults()).hasSize(1);
+        assertThat(((RequestResponseOK) resp).isOk());
+        assertThat(((RequestResponseOK) resp).getResults()).hasSize(1);
     }
 
 
@@ -300,7 +301,7 @@ public class AdminManagementClientMockTest {
         final Response response = client.downloadProfileFile("FameProfileId");
         assertNotNull(response);
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public void givenClientMockWhenImportContexts() throws Exception {

@@ -33,7 +33,6 @@ import java.util.List;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -119,7 +118,8 @@ public class AdminManagementExternalResourceImpl {
     @PUT
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response checkDocument(@PathParam("collection") String collection, InputStream document) {
+    public Response checkDocument(@PathParam("collection") String collection,
+        InputStream document) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         try {
@@ -133,7 +133,8 @@ public class AdminManagementExternalResourceImpl {
                     final Status status = client.checkRulesFile(document);
                     return Response.status(status).build();
                 }
-                return Response.status(Status.NOT_FOUND).entity(getErrorEntity(Status.NOT_FOUND, "Collection nout found", null)).build();
+                return Response.status(Status.NOT_FOUND)
+                    .entity(getErrorEntity(Status.NOT_FOUND, "Collection nout found", null)).build();
             } catch (ReferentialException ex) {
                 LOGGER.error(ex);
                 return Response.status(Status.BAD_REQUEST)
@@ -151,6 +152,7 @@ public class AdminManagementExternalResourceImpl {
     /**
      * Import a referential document
      *
+     * @param headers http headers
      * @param uriInfo used to construct the created resource and send it back as location in the response
      * @param collection target collection type
      * @param document inputStream representing the data to import
@@ -160,9 +162,10 @@ public class AdminManagementExternalResourceImpl {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response importDocument(@Context UriInfo uriInfo, @PathParam("collection") String collection,
-        InputStream document) {
+    public Response importDocument(@Context HttpHeaders headers, @Context UriInfo uriInfo,
+        @PathParam("collection") String collection, InputStream document) {
         Integer tenantId = ParameterHelper.getTenantParameter();
+        String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         try {
             ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", document);
@@ -170,10 +173,10 @@ public class AdminManagementExternalResourceImpl {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 Status status = Status.CREATED;
                 if (AdminCollections.FORMATS.compareTo(collection)) {
-                    status = client.importFormat(document);
+                    status = client.importFormat(document, filename);
                 }
                 if (AdminCollections.RULES.compareTo(collection)) {
-                    status = client.importRulesFile(document);
+                    status = client.importRulesFile(document, filename);
                 }
                 if (AdminCollections.ENTRY_CONTRACTS.compareTo(collection)) {
                     JsonNode json = JsonHandler.getFromInputStream(document);
@@ -664,7 +667,8 @@ public class AdminManagementExternalResourceImpl {
 
             return Response.status(st).entity(result).build();
         } catch (final ReferentialNotFoundException e) {
-            return Response.status(Status.OK).entity(new RequestResponseOK().setHttpCode(Status.OK.getStatusCode())).build();
+            return Response.status(Status.OK).entity(new RequestResponseOK().setHttpCode(Status.OK.getStatusCode()))
+                .build();
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
             final Status status = Status.BAD_REQUEST;
@@ -737,7 +741,7 @@ public class AdminManagementExternalResourceImpl {
             .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
 
-    
+
     private InputStream getErrorStream(Status status, String message, String code) {
         String aMessage =
             (message != null && !message.trim().isEmpty()) ? message
@@ -751,7 +755,7 @@ public class AdminManagementExternalResourceImpl {
             return new ByteArrayInputStream("{ 'message' : 'Invalid VitamError message' }".getBytes());
         }
     }
-    
+
     private VitamError getErrorEntity(Status status, String message) {
         String aMessage =
             (message != null && !message.trim().isEmpty()) ? message

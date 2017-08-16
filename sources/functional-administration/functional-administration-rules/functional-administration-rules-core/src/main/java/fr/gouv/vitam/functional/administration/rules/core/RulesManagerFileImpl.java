@@ -100,6 +100,7 @@ import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.functional.administration.client.model.FileRulesModel;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.ReferentialFile;
+import fr.gouv.vitam.functional.administration.common.ReferentialFileUtils;
 import fr.gouv.vitam.functional.administration.common.RuleMeasurementEnum;
 import fr.gouv.vitam.functional.administration.common.RuleTypeEnum;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatNotFoundException;
@@ -203,7 +204,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     }
 
     @Override
-    public void importFile(InputStream rulesFileStream)
+    public void importFile(InputStream rulesFileStream, String filename)
         throws IOException, InvalidParseOperationException, ReferentialException, InvalidCreateOperationException {
         ParametersChecker.checkParameter(RULES_FILE_STREAMIS_A_MANDATORY_PARAMETER, rulesFileStream);
         File file = convertInputStreamToFile(rulesFileStream, CSV);
@@ -283,6 +284,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
                             .newLogbookOperationParameters(eip1, STP_IMPORT_RULES, eip, LogbookTypeProcess.MASTERDATA,
                                 StatusCode.OK, VitamLogbookMessages.getCodeOp(STP_IMPORT_RULES, StatusCode.OK),
                                 eip1);
+                        ReferentialFileUtils.addFilenameInLogbookOperation(filename, logbookParametersEnd);
                         updateLogBookEntry(logbookParametersEnd);
 
                         if (!fileRulesModelToUpdate.isEmpty()) {
@@ -300,6 +302,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
                                     LogbookTypeProcess.MASTERDATA,
                                     StatusCode.KO, VitamLogbookMessages.getCodeOp(STP_IMPORT_RULES, StatusCode.KO),
                                     eip1);
+                        ReferentialFileUtils.addFilenameInLogbookOperation(filename, logbookParametersEnd);
                         updateLogBookEntry(logbookParametersEnd);
                         throw new FileRulesException(e);
                     }
@@ -976,7 +979,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
      * @throws FileRulesException thrown if one ore more parameters are missing
      */
     private void checkParametersNotEmpty(String ruleId, String ruleType, String ruleValue, String ruleDuration,
-        String ruleMeasurementValue) throws FileRulesException {
+        String ruleMeasurementValue)
+        throws FileRulesException {
         final StringBuffer missingParam = new StringBuffer();
         if (ruleId == null || ruleId.isEmpty()) {
             missingParam.append(",").append(RULE_ID);

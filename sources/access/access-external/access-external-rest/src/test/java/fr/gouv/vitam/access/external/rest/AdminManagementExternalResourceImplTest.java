@@ -16,9 +16,6 @@ import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.model.RequestResponse;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -28,6 +25,7 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
@@ -38,12 +36,14 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
@@ -65,8 +65,8 @@ public class AdminManagementExternalResourceImplTest {
     private static final String RULES_URI = "/" + AdminCollections.RULES.getName();
 
     private static final String DOCUMENT_ID = "/1";
-    
-    private static final String RULE_ID = "/APP-00001";    
+
+    private static final String RULE_ID = "/APP-00001";
 
     private static final String WRONG_URI = "/wrong-uri";
 
@@ -78,11 +78,11 @@ public class AdminManagementExternalResourceImplTest {
     private static final String CONTRACT_ID = "NAME";
 
     private static final String TRACEABILITY_OPERATION_ID = "op_id";
-    private static final String TRACEABILITY_OPERATION_BASE_URI = AccessExtAPI.TRACEABILITY_API  + "/";
+    private static final String TRACEABILITY_OPERATION_BASE_URI = AccessExtAPI.TRACEABILITY_API + "/";
     private static final String ACCESSION_REGISTER_DETAIL_URI = AccessExtAPI.ACCESSION_REGISTERS_API +
         "/FR_ORG_AGEC/" +
         AccessExtAPI.ACCESSION_REGISTERS_DETAIL;
-    private static final String CHECK_TRACEABILITY_OPERATION_URI =  AccessExtAPI.TRACEABILITY_API + "/check";
+    private static final String CHECK_TRACEABILITY_OPERATION_URI = AccessExtAPI.TRACEABILITY_API + "/check";
 
     private static final String request = "{ $query: {} , $projection: {}, $filter: {} }";
 
@@ -214,44 +214,52 @@ public class AdminManagementExternalResourceImplTest {
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_FILENAME, "vitam.conf")
             .when().post(FORMAT_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .header(GlobalDataRest.X_FILENAME, "vitam.conf")
             .when().post(FORMAT_URI)
             .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_FILENAME, "vitam.conf")
             .when().post(FORMAT_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_FILENAME, "vitam.conf")
             .when().post(RULES_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .header(GlobalDataRest.X_FILENAME, "vitam.conf")
             .when().post(RULES_URI)
             .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_FILENAME, "vitam.conf")
             .when().post(RULES_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given().contentType(ContentType.BINARY)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_FILENAME, "vitam.conf")
             .when().post(WRONG_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given().contentType(ContentType.BINARY)
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .header(GlobalDataRest.X_FILENAME, "vitam.conf")
             .when().post(WRONG_URI)
             .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
 
@@ -268,7 +276,7 @@ public class AdminManagementExternalResourceImplTest {
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        doThrow(new ReferentialException("")).when(adminCLient).importFormat(anyObject());
+        doThrow(new ReferentialException("")).when(adminCLient).importFormat(anyObject(), anyObject());
         doReturn(Status.OK).when(adminCLient).checkFormat(anyObject());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
@@ -277,7 +285,7 @@ public class AdminManagementExternalResourceImplTest {
             .when().post(FORMAT_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
 
-        doThrow(new DatabaseConflictException("")).when(adminCLient).importFormat(anyObject());
+        doThrow(new DatabaseConflictException("")).when(adminCLient).importFormat(anyObject(), anyObject());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
@@ -670,11 +678,12 @@ public class AdminManagementExternalResourceImplTest {
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
 
-        doReturn(new RequestResponseOK<>().addAllResults(getIngestContracts())).when(adminCLient).findIngestContracts(anyObject());
+        doReturn(new RequestResponseOK<>().addAllResults(getIngestContracts())).when(adminCLient)
+            .findIngestContracts(anyObject());
         given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
-                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-                .when().get(AccessExtAPI.ENTRY_CONTRACT_API)
-        .then().statusCode(Status.OK.getStatusCode());
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get(AccessExtAPI.ENTRY_CONTRACT_API)
+            .then().statusCode(Status.OK.getStatusCode());
     }
 
 
@@ -718,7 +727,8 @@ public class AdminManagementExternalResourceImplTest {
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        doReturn(new RequestResponseOK<>().addAllResults(getAccessContracts())).when(adminCLient).findAccessContracts(anyObject());
+        doReturn(new RequestResponseOK<>().addAllResults(getAccessContracts())).when(adminCLient)
+            .findAccessContracts(anyObject());
         given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().get(AccessExtAPI.ACCESS_CONTRACT_API)
@@ -734,7 +744,8 @@ public class AdminManagementExternalResourceImplTest {
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        doReturn(new VitamError("").setHttpCode(Status.BAD_REQUEST.getStatusCode())).when(adminCLient).createProfiles(anyObject());
+        doReturn(new VitamError("").setHttpCode(Status.BAD_REQUEST.getStatusCode())).when(adminCLient)
+            .createProfiles(anyObject());
 
         File fileProfiles = PropertiesUtils.getResourceFile("profile_missing_identifier.json");
         JsonNode json = JsonHandler.getFromFile(fileProfiles);
@@ -754,7 +765,8 @@ public class AdminManagementExternalResourceImplTest {
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        doReturn(new RequestResponseOK<>().setHttpCode(Status.CREATED.getStatusCode())).when(adminCLient).createProfiles(anyObject());
+        doReturn(new RequestResponseOK<>().setHttpCode(Status.CREATED.getStatusCode())).when(adminCLient)
+            .createProfiles(anyObject());
 
         File fileProfiles = PropertiesUtils.getResourceFile("profiles_ok.json");
         JsonNode json = JsonHandler.getFromFile(fileProfiles);
@@ -774,7 +786,8 @@ public class AdminManagementExternalResourceImplTest {
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        doReturn(new RequestResponseOK<>().addAllResults(getAccessContracts())).when(adminCLient).findProfiles(anyObject());
+        doReturn(new RequestResponseOK<>().addAllResults(getAccessContracts())).when(adminCLient)
+            .findProfiles(anyObject());
         given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().get(PROFILE_URI)
@@ -794,12 +807,12 @@ public class AdminManagementExternalResourceImplTest {
 
 
     private List<Object> getIngestContracts() throws FileNotFoundException, InvalidParseOperationException {
-    	InputStream fileContracts = PropertiesUtils.getResourceAsStream("referential_contracts_ok.json");
-		ArrayNode array = (ArrayNode) JsonHandler.getFromInputStream(fileContracts);
-		List<Object> res = new ArrayList<>();
-		array.forEach(e -> res.add(e));
-		return res;
-	}
+        InputStream fileContracts = PropertiesUtils.getResourceAsStream("referential_contracts_ok.json");
+        ArrayNode array = (ArrayNode) JsonHandler.getFromInputStream(fileContracts);
+        List<Object> res = new ArrayList<>();
+        array.forEach(e -> res.add(e));
+        return res;
+    }
 
     private List<Object> getAccessContracts() throws FileNotFoundException, InvalidParseOperationException {
         InputStream fileContracts = PropertiesUtils.getResourceAsStream("contracts_access_ok.json");
@@ -808,6 +821,6 @@ public class AdminManagementExternalResourceImplTest {
         array.forEach(e -> res.add(e));
         return res;
     }
-    
+
 
 }

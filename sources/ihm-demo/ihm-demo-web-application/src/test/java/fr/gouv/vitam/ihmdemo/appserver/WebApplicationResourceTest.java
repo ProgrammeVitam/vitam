@@ -657,7 +657,7 @@ public class WebApplicationResourceTest {
         final AdminExternalClientFactory adminManagementClientFactory =
             PowerMockito.mock(AdminExternalClientFactory.class);
         PowerMockito.doThrow(new AccessExternalClientException("")).when(adminManagementClient)
-            .createDocuments(anyObject(), anyObject(), anyObject());
+            .createDocuments(anyObject(), anyObject(), anyObject(), anyObject());
         PowerMockito.when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
 
@@ -681,7 +681,7 @@ public class WebApplicationResourceTest {
         final AdminExternalClientFactory adminManagementClientFactory =
             PowerMockito.mock(AdminExternalClientFactory.class);
         PowerMockito.doReturn(Status.OK).when(adminManagementClient).createDocuments(anyObject(), anyObject(),
-            anyObject());
+            anyObject(), anyObject());
         PowerMockito.when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
 
@@ -691,6 +691,7 @@ public class WebApplicationResourceTest {
 
         given()
             .contentType(ContentType.BINARY)
+            .header(GlobalDataRest.X_FILENAME, "FF-vitam.xml")
             .config(RestAssured.config().encoderConfig(
                 EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
             .content(stream).expect()
@@ -818,7 +819,8 @@ public class WebApplicationResourceTest {
     public void testCheckFormatOK() throws Exception {
         final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
         final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
-        PowerMockito.when(adminClient.checkDocuments(anyObject(), anyObject(), anyObject())).thenReturn(Status.OK);
+        PowerMockito.when(adminClient.checkDocuments(anyObject(), anyObject(), anyObject()))
+            .thenReturn(Status.OK);
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject()))
             .thenReturn(JsonHandler.getFromString(OPTIONS));
 
@@ -1087,7 +1089,7 @@ public class WebApplicationResourceTest {
         final AdminExternalClientFactory adminExternalClientFactory =
             PowerMockito.mock(AdminExternalClientFactory.class);
         PowerMockito.doThrow(new AccessExternalClientException("")).when(adminManagementClient)
-            .createDocuments(anyObject(), anyObject(), anyObject());
+            .createDocuments(anyObject(), anyObject(), anyObject(), anyObject());
         PowerMockito.when(adminExternalClientFactory.getClient()).thenReturn(adminManagementClient);
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminExternalClientFactory);
 
@@ -1111,7 +1113,7 @@ public class WebApplicationResourceTest {
         final AdminExternalClientFactory adminManagementClientFactory =
             PowerMockito.mock(AdminExternalClientFactory.class);
         PowerMockito.doReturn(Status.OK).when(adminManagementClient).createDocuments(anyObject(), anyObject(),
-            anyObject());
+            anyObject(), anyObject());
         PowerMockito.when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
 
@@ -1122,6 +1124,7 @@ public class WebApplicationResourceTest {
 
         given()
             .contentType(ContentType.BINARY)
+            .header(GlobalDataRest.X_FILENAME, "jeu_donnees_OK_regles_CSV.csv")
             .config(RestAssured.config().encoderConfig(
                 EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
             .content(stream).expect()
@@ -1212,7 +1215,8 @@ public class WebApplicationResourceTest {
     public void testCheckRulesFileOK() throws Exception {
         final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
         final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
-        PowerMockito.when(adminClient.checkDocuments(anyObject(), anyObject(), anyObject())).thenReturn(Status.OK);
+        PowerMockito.when(adminClient.checkDocuments(anyObject(), anyObject(), anyObject()))
+            .thenReturn(Status.OK);
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject()))
             .thenReturn(JsonHandler.getFromString(OPTIONS));
 

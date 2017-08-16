@@ -69,11 +69,12 @@ public interface AdminManagementClient extends MockOrRestClient {
 
     /**
      * @param stream as InputStream
+     * @param filename name of the imported file
      * @return the response to the request
      * @throws ReferentialException when import exception occurs
      * @throws DatabaseConflictException conflict exception occurs
      */
-    Status importFormat(InputStream stream) throws ReferentialException, DatabaseConflictException;
+    Status importFormat(InputStream stream, String filename) throws ReferentialException, DatabaseConflictException;
 
 
     /**
@@ -104,18 +105,20 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws FileRulesException
      * @throws AdminManagementClientServerException
      */
-    Status checkRulesFile(InputStream stream) throws FileRulesException, AdminManagementClientServerException;
+    Status checkRulesFile(InputStream stream)
+        throws FileRulesException, AdminManagementClientServerException;
 
     /**
      * Import a the set of rules for a given tenant
      * 
      * @param stream rule file inputstream to import
+     * @param filename name of the imported file
      * @return the response to the request
      * @throws ReferentialException when file rules exception occurs
      * @throws DatabaseConflictException when Database conflict exception occurs
      * @throws AdminManagementClientServerException
      */
-    Status importRulesFile(InputStream stream)
+    Status importRulesFile(InputStream stream, String filename)
         throws ReferentialException, DatabaseConflictException;
 
     /**
@@ -232,6 +235,7 @@ public interface AdminManagementClient extends MockOrRestClient {
 
     /**
      * Update IngestContract to mongo
+     * 
      * @param id the given Ingest contract id to update
      * @param queryDsl query to execute
      * 
@@ -329,7 +333,8 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @param profileMetadataId
      * @return Response
      */
-    Response downloadProfileFile(String profileMetadataId) throws AdminManagementClientServerException,
+    Response downloadProfileFile(String profileMetadataId)
+        throws AdminManagementClientServerException,
         ProfileNotFoundException;
 
 
@@ -356,7 +361,7 @@ public interface AdminManagementClient extends MockOrRestClient {
     RequestResponse<ProfileModel> findProfilesByID(String id)
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException;
 
-    
+
     /**
      * Import a set of context
      * 
@@ -365,7 +370,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws ReferentialException
      */
     Status importContexts(List<ContextModel> ContextModelList) throws ReferentialException;
-    
+
     /**
      * Update context to mongo
      * 
@@ -375,9 +380,9 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws InvalidParseOperationException
      * @throws AdminManagementClientServerException
      */
-    RequestResponse<ContextModel> updateContext(String id, JsonNode queryDsl) 
+    RequestResponse<ContextModel> updateContext(String id, JsonNode queryDsl)
         throws InvalidParseOperationException, AdminManagementClientServerException;
-    
+
     /**
      * Find contexts
      * 
@@ -386,9 +391,9 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws InvalidParseOperationException
      * @throws AdminManagementClientServerException
      */
-    RequestResponse<ContextModel> findContexts(JsonNode queryDsl) 
+    RequestResponse<ContextModel> findContexts(JsonNode queryDsl)
         throws InvalidParseOperationException, AdminManagementClientServerException;
-    
+
     /**
      * Find context by id
      * 
@@ -398,6 +403,6 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws ReferentialNotFoundException
      * @throws AdminManagementClientServerException
      */
-    RequestResponse<ContextModel> findContextById(String id) 
+    RequestResponse<ContextModel> findContextById(String id)
         throws InvalidParseOperationException, ReferentialNotFoundException, AdminManagementClientServerException;
 }

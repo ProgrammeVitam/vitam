@@ -35,8 +35,6 @@ import org.bson.Document;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
-import fr.gouv.vitam.common.guid.GUIDReader;
 
 /**
  * FileFormat define the file referential format for Vitam

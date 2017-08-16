@@ -46,6 +46,8 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.jayway.restassured.RestAssured;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
@@ -58,9 +60,15 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.database.builder.query.CompareQuery;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -76,13 +84,22 @@ import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
+import fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFileImpl;
 import fr.gouv.vitam.functional.administration.profile.api.ProfileService;
 import fr.gouv.vitam.functional.administration.profile.api.impl.ProfileServiceImpl;
+import fr.gouv.vitam.functional.administration.rules.core.RulesManagerFileImpl;
+import fr.gouv.vitam.functional.administration.rules.core.RulesSecurisator;
+import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
+
 /**
  * !!! WARNING !!! : in case of modification of class fr.gouv.vitam.driver.fake.FakeDriverImpl, you need to recompile
  * the storage-offer-mock.jar from the storage-offer-mock module and copy it in src/test/resources in place of the
@@ -95,28 +112,40 @@ public class FunctionalAdminIT {
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
         VitamThreadPoolExecutor.getDefaultExecutor());
-    private static final Integer TENANT_ID = 1;
-    static JunitHelper junitHelper;
-    static final String COLLECTION_NAME = "Profile";
-    static final String DATABASE_HOST = "localhost";
-    static final String DATABASE_NAME = "vitam-test";
-    static MongodExecutable mongodExecutable;
-    static MongodProcess mongod;
-    static MongoClient client;
-    static ProfileService profileService;
-    static int mongoPort;
     @ClassRule
     public static TemporaryFolder temporaryFolder = new TemporaryFolder();
     private static String TMP_FOLDER;
-    private static final String REST_URI = StorageClientFactory.RESOURCE_PATH;
-    private static final String STORAGE_CONF = "functional-admin/storage-engine.conf";
-    private static int serverPort;
-    private static int workspacePort;
-    private static StorageMain storageMain;
-    private static WorkspaceApplication workspaceApplication;
-    private static VitamCounterService vitamCounterService;
-    private static MongoDbAccessAdminImpl dbImpl;
 
+    private static final Integer TENANT_ID = 1;
+    static JunitHelper junitHelper;
+    static final String DATABASE_HOST = "localhost";
+    static final String DATABASE_NAME = "vitam-test";
+    final static String CLUSTER_NAME = "vitam-cluster";
+    static MongodExecutable mongodExecutable;
+    static MongodProcess mongod;
+    static MongoClient client;
+    static int mongoPort;
+    static ElasticsearchTestConfiguration config;
+
+    private static final String REST_URI = StorageClientFactory.RESOURCE_PATH;
+    private static final String LOGBOOK_REST_URI = LogbookOperationsClientFactory.RESOURCE_PATH;
+
+    private static final String STORAGE_CONF = "functional-admin/storage-engine.conf";
+    private static final String LOGBOOK_CONF = "functional-admin/logbook.conf";
+
+    private static int storagePort;
+    private static int workspacePort;
+    private static int logbookPort;
+
+    private static StorageMain storageMain;
+    private static LogbookMain logbookMain;
+    private static WorkspaceApplication workspaceApplication;
+
+    private static VitamCounterService vitamCounterService;
+    private static ProfileService profileService;
+    private static RulesManagerFileImpl rulesManagerFile;
+    private static ReferentialFormatFileImpl referentialFormatFile;
+    private static MongoDbAccessAdminImpl dbImpl;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -145,8 +174,15 @@ public class FunctionalAdminIT {
 
         vitamCounterService = new VitamCounterService(dbImpl, tenants, null);
         workspacePort = junitHelper.findAvailablePort();
+        logbookPort = junitHelper.findAvailablePort();
+
+        // ES
+        ElasticsearchTestConfiguration config =
+            JunitHelper.startElasticsearchForTest(temporaryFolder, CLUSTER_NAME);
+
         // launch workspace
         try {
+            SystemPropertyUtil.set("jetty.port", workspacePort);
             workspaceApplication = new WorkspaceApplication("functional-admin/workspace.conf");
             workspaceApplication.start();
         } catch (final VitamApplicationServerException e) {
@@ -154,6 +190,7 @@ public class FunctionalAdminIT {
             throw new IllegalStateException(
                 "Cannot start Workspace Server", e);
         }
+
         // Prepare storage
         File storageConfigurationFile = PropertiesUtils.findFile(STORAGE_CONF);
         final StorageConfiguration serverConfiguration =
@@ -169,43 +206,76 @@ public class FunctionalAdminIT {
         serverConfiguration.setTenants(tenants);
         serverConfiguration.setZippingDirecorty(TMP_FOLDER);
         serverConfiguration.setLoggingDirectory(TMP_FOLDER);
-        serverPort = junitHelper.findAvailablePort();;
-        RestAssured.port = serverPort;
-        RestAssured.basePath = REST_URI;
-
+        storagePort = junitHelper.findAvailablePort();
         PropertiesUtils.writeYaml(storageConfigurationFile, serverConfiguration);
-
+        SystemPropertyUtil.set("jetty.port", storagePort);
         storageMain = new StorageMain(STORAGE_CONF);
         storageMain.start();
 
+        // Prepare logbook
+        File logbookConfigurationFile = PropertiesUtils.findFile(LOGBOOK_CONF);
+        final LogbookConfiguration logbookServerConfiguration =
+            PropertiesUtils.readYaml(logbookConfigurationFile, LogbookConfiguration.class);
+        logbookServerConfiguration.getMongoDbNodes().get(0).setDbPort(mongoPort);
+        logbookServerConfiguration.setWorkspaceUrl("http://localhost:" + Integer.toString(workspacePort));
+        logbookServerConfiguration.getElasticsearchNodes().get(0).setTcpPort(config.getTcpPort());
+        logbookPort = junitHelper.findAvailablePort();
+        PropertiesUtils.writeYaml(logbookConfigurationFile, logbookServerConfiguration);
+        SystemPropertyUtil.set("jetty.logbook.port", logbookPort);
+        logbookMain = new LogbookMain(LOGBOOK_CONF);
+        logbookMain.start();
+
+
         WorkspaceClientFactory.changeMode("http://localhost:" + workspacePort);
         final WorkspaceClientFactory workspaceClientFactory = WorkspaceClientFactory.getInstance();
+
+        LogbookOperationsClientFactory.changeMode(new ClientConfigurationImpl("localhost", logbookPort));
+        LogbookLifeCyclesClientFactory.changeMode(new ClientConfigurationImpl("localhost", logbookPort));
+
         profileService =
             new ProfileServiceImpl(MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)),
                 workspaceClientFactory, vitamCounterService);
+
+        rulesManagerFile =
+            new RulesManagerFileImpl(MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)),
+                vitamCounterService, new RulesSecurisator());
+
+        referentialFormatFile = new ReferentialFormatFileImpl(
+            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)));
+
     }
+
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
+        logbookMain.stop();
         workspaceApplication.stop();
         storageMain.stop();
+        if (config != null) {
+            JunitHelper.stopElasticsearchForTest(config);
+        }
         mongod.stop();
         mongodExecutable.stop();
         junitHelper.releasePort(mongoPort);
-        junitHelper.releasePort(serverPort);
+        junitHelper.releasePort(storagePort);
         junitHelper.releasePort(workspacePort);
+        junitHelper.releasePort(logbookPort);
         client.close();
         profileService.close();
+        rulesManagerFile.close();
     }
+
     @Test
     @RunWithCustomExecutor
     public final void testUploadDownloadProfileFile() throws Exception {
+        RestAssured.port = storagePort;
+        RestAssured.basePath = REST_URI;
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         File fileMetadataProfile = PropertiesUtils.getResourceFile("functional-admin/profile_ok.json");
         List<ProfileModel> profileModelList =
             JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ProfileModel>>() {});
         RequestResponse response = profileService.createProfiles(profileModelList);
-        assertThat(response.isOk());
+        assertThat(response.isOk()).isTrue();
         RequestResponseOK<ProfileModel> responseCast = (RequestResponseOK<ProfileModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
         final ProfileModel profileModel = responseCast.getResults().iterator().next();
@@ -216,5 +286,67 @@ public class FunctionalAdminIT {
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
         profileService.downloadProfileFile(profileModel.getIdentifier(), responseAsync);
         assertThat(responseAsync.isDone()).isTrue();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public final void testImportRulesFile() throws Exception {
+        RestAssured.port = logbookPort;
+        RestAssured.basePath = LOGBOOK_REST_URI;
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        InputStream rulesFileStream =
+            new FileInputStream(
+                PropertiesUtils.getResourceFile("functional-admin/jeu_donnees_OK_regles_CSV_regles.csv"));
+        rulesManagerFile.importFile(rulesFileStream, "jeu_donnees_OK_regles_CSV_regles.csv");
+
+        LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
+        final Select select = new Select();
+        select.setQuery(new CompareQuery(QUERY.EQ, "evType", "STP_IMPORT_RULES"));
+        select.setLimitFilter(0, 1);
+        select.addOrderByDescFilter("evDateTime");
+        JsonNode result = logbookClient.selectOperation(select.getFinalSelect());
+        assertThat(result).isNotNull();
+        JsonNode operation = ((ArrayNode) result.get("$results")).get(0);
+        assertThat(operation).isNotNull();
+        JsonNode lastEvent =
+            ((ArrayNode) operation.get("events")).get(((ArrayNode) operation.get("events")).size() - 1);
+        assertThat(lastEvent).isNotNull();
+        assertThat(lastEvent.has("evDetData")).isTrue();
+        JsonNode evDetData = JsonHandler.getFromString(lastEvent.get("evDetData").asText());
+        assertThat(evDetData).isNotNull();
+        assertThat(evDetData.get("FileName")).isNotNull();
+        assertThat(evDetData.get("FileName").asText()).isEqualTo("jeu_donnees_OK_regles_CSV_regles.csv");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public final void testImportFormatsFile() throws Exception {
+        RestAssured.port = logbookPort;
+        RestAssured.basePath = LOGBOOK_REST_URI;
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        InputStream rulesFileStream =
+            new FileInputStream(
+                PropertiesUtils.getResourceFile("functional-admin/DROID_SignatureFile_V88.xml"));
+        referentialFormatFile.importFile(rulesFileStream, "DROID_SignatureFile_V88.xml");
+
+        LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
+        final Select select = new Select();
+        select.setQuery(new CompareQuery(QUERY.EQ, "evType", "STP_REFERENTIAL_FORMAT_IMPORT"));
+        select.setLimitFilter(0, 1);
+        select.addOrderByDescFilter("evDateTime");
+        JsonNode result = logbookClient.selectOperation(select.getFinalSelect());
+        assertThat(result).isNotNull();
+        JsonNode operation = ((ArrayNode) result.get("$results")).get(0);
+        assertThat(operation).isNotNull();
+        JsonNode lastEvent =
+            ((ArrayNode) operation.get("events")).get(((ArrayNode) operation.get("events")).size() - 1);
+        assertThat(lastEvent).isNotNull();
+        assertThat(lastEvent.has("evDetData")).isTrue();
+        JsonNode evDetData = JsonHandler.getFromString(lastEvent.get("evDetData").asText());
+        assertThat(evDetData).isNotNull();
+        assertThat(evDetData.get("FileName")).isNotNull();
+        assertThat(evDetData.get("FileName").asText()).isEqualTo("DROID_SignatureFile_V88.xml");
     }
 }

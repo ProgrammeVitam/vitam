@@ -54,13 +54,14 @@ public interface ReferentialFile<E> {
      * importFile : import reference file to database
      *
      * @param file as InputStream
+     * @param filename file name
      * @throws ReferentialException when there is error of import
      * @throws DatabaseConflictException when there is a database conflict
      * @throws IOException
      * @throws InvalidParseOperationException
      * @throws InvalidCreateOperationException
      */
-    void importFile(InputStream file)
+    void importFile(InputStream file, String filename)
         throws ReferentialException, DatabaseConflictException, IOException, InvalidParseOperationException,
         InvalidCreateOperationException;
 
@@ -86,8 +87,8 @@ public interface ReferentialFile<E> {
     /**
      * Checks File : checks if a stream of referential data is valid
      *
-     * @return The JsonArray containing the referential data if they are all valid
      * @param file as InputStream
+     * @return The JsonArray containing the referential data if they are all valid
      * @throws ReferentialException when there is errors import
      * @throws IOException when there is IO Exception
      * @throws InvalidCreateOperationException

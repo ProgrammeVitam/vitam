@@ -34,6 +34,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.apache.commons.io.IOUtils;
+
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -49,7 +51,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AccessContractModel;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.server.HeaderIdHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
@@ -68,8 +69,6 @@ import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundE
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 
-import org.apache.commons.io.IOUtils;
-
 
 /**
  * Mock client implementation for AdminManagement
@@ -87,7 +86,7 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     }
 
     @Override
-    public Status importFormat(InputStream stream) throws FileFormatException {
+    public Status importFormat(InputStream stream, String filename) throws FileFormatException {
         ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, stream);
         LOGGER.debug("Import file format request:");
         StreamUtils.closeSilently(stream);
@@ -120,7 +119,8 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     }
 
     @Override
-    public Status importRulesFile(InputStream stream) throws ReferentialException, DatabaseConflictException {
+    public Status importRulesFile(InputStream stream, String filename)
+        throws ReferentialException, DatabaseConflictException {
         ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, stream);
         LOGGER.debug("import file Rules request:");
         StreamUtils.closeSilently(stream);
@@ -135,7 +135,8 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     }
 
     @Override
-    public JsonNode getRules(JsonNode query) throws FileRulesException, InvalidParseOperationException,
+    public JsonNode getRules(JsonNode query)
+        throws FileRulesException, InvalidParseOperationException,
         JsonGenerationException, JsonMappingException, IOException {
         ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, query);
         LOGGER.debug("get document rules request:");
@@ -245,7 +246,8 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
         if (VitamThreadUtils.getVitamSession().getTenantId() == null) {
             VitamThreadUtils.getVitamSession().setTenantId(0);
         }
-        AccessContractModel model = JsonHandler.getFromString(ClientMockResultHelper.ACCESS_CONTRACTS, AccessContractModel.class);
+        AccessContractModel model =
+            JsonHandler.getFromString(ClientMockResultHelper.ACCESS_CONTRACTS, AccessContractModel.class);
         return ClientMockResultHelper.createReponse(model);
     }
 
@@ -260,7 +262,8 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     public RequestResponse<IngestContractModel> findIngestContracts(JsonNode query)
         throws InvalidParseOperationException, AdminManagementClientServerException {
         LOGGER.debug("find ingest contracts request");
-        IngestContractModel ingestContract = JsonHandler.getFromString(ClientMockResultHelper.INGEST_CONTRACTS, IngestContractModel.class);
+        IngestContractModel ingestContract =
+            JsonHandler.getFromString(ClientMockResultHelper.INGEST_CONTRACTS, IngestContractModel.class);
         return ClientMockResultHelper.createReponse(ingestContract);
     }
 
@@ -307,7 +310,7 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
         ObjectNode on = onr.getResults().iterator().next();
         JsonNode idin = on.get("_id");
         if (null == idin || !idin.asText().equals(id)) {
-            throw new ReferentialNotFoundException("No profile found with id "+id);
+            throw new ReferentialNotFoundException("No profile found with id " + id);
         }
         return var;
     }
@@ -337,7 +340,8 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     }
 
     @Override
-    public RequestResponse<ContextModel> updateContext(String id, JsonNode queryDsl) throws InvalidParseOperationException {        
+    public RequestResponse<ContextModel> updateContext(String id, JsonNode queryDsl)
+        throws InvalidParseOperationException {
         ContextModel model = JsonHandler.getFromString(ClientMockResultHelper.CONTEXTS, ContextModel.class);
         return ClientMockResultHelper.createReponse(model);
     }

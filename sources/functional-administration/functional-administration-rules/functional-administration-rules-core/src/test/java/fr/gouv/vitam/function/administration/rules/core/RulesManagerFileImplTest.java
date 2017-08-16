@@ -218,7 +218,7 @@ public class RulesManagerFileImplTest {
         } catch (final Exception e) {
             fail("Check file with FILE_TO_TEST_KO should not throw this exception");
         }
-        rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
+        rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)), FILE_TO_TEST_OK);
         final MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
         final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
 
@@ -257,26 +257,26 @@ public class RulesManagerFileImplTest {
 
         PowerMockito.when(client.selectOperation(Matchers.anyObject()))
             .thenReturn(getJsonResult(StatusCode.OK.name(), tenantId));
-        rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
+        rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)), FILE_TO_TEST_OK);
 
         VitamThreadUtils.getVitamSession().setTenantId(++tenantId);
         PowerMockito.when(client.selectOperation(Matchers.anyObject()))
             .thenReturn(getJsonResult(StatusCode.KO.name(), tenantId));
-        rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
+        rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)), FILE_TO_TEST_OK);
 
         VitamThreadUtils.getVitamSession().setTenantId(++tenantId);
         PowerMockito.when(client.selectOperation(Matchers.anyObject())).thenReturn(getJsonResult(StatusCode.WARNING
             .name(), tenantId));
-        rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
+        rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)), FILE_TO_TEST_OK);
 
         VitamThreadUtils.getVitamSession().setTenantId(++tenantId);
         PowerMockito.when(client.selectOperation(Matchers.anyObject())).thenReturn(getJsonResult(StatusCode.FATAL
             .name(), tenantId));
-        rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
+        rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)), FILE_TO_TEST_OK);
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         PowerMockito.when(client.selectOperation(Matchers.anyObject())).thenReturn(getEmptyJsonResponse());
-        rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
+        rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)), FILE_TO_TEST_OK);
     }
 
     /**
@@ -296,7 +296,7 @@ public class RulesManagerFileImplTest {
 
         PowerMockito.when(client.selectOperation(Matchers.anyObject())).thenReturn(
             getJsonResult(StatusCode.STARTED.name(), 60));
-        rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
+        rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)), FILE_TO_TEST_OK);
     }
 
     private JsonNode getJsonResult(String outcome, int tenantId) throws Exception {
@@ -384,7 +384,8 @@ public class RulesManagerFileImplTest {
             List<FileRules> fileRules =
                 convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
             if (fileRules.size() == 0) {
-                rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
+                rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)),
+                    FILE_TO_TEST_OK);
             }
             List<FileRules> fileRulesAfter =
                 convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
@@ -408,13 +409,15 @@ public class RulesManagerFileImplTest {
                 fileRules = convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
             } catch (ReferentialException e) {}
             if (fileRules.size() == 0) {
-                rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
+                rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)),
+                    FILE_TO_TEST_OK);
             }
             List<FileRules> fileRulesAfterImport =
                 convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
             assertEquals(22, fileRulesAfterImport.size());
             // FILE_TO_COMPARE => insert 1 rule, delete 1 rule, update 1 rule
-            rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_COMPARE)));
+            rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_COMPARE)),
+                FILE_TO_COMPARE);
             List<FileRules> fileRulesAfterInsert =
                 convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
             assertEquals(22, fileRulesAfterInsert.size());
@@ -437,12 +440,14 @@ public class RulesManagerFileImplTest {
             fileRules = convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
 
             if (fileRules.size() == 0) {
-                rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
+                rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)),
+                    FILE_TO_TEST_OK);
             }
             List<FileRules> fileRulesAfterImport =
                 convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
             assertEquals(22, fileRulesAfterImport.size());
-            rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
+            rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)),
+                FILE_TO_TEST_OK);
             List<FileRules> fileRulesAfterInsert =
                 convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
             assertEquals(22, fileRulesAfterInsert.size());
