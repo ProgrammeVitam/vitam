@@ -47,6 +47,7 @@ angular.module('ihm.demo', [
   'accession.register.details',
   'flow',
   'workflows',
+  'audits',
   'accessContracts',
   'entryContracts',
   'contexts',

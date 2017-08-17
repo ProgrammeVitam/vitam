@@ -232,6 +232,70 @@ public class MetaDataResource extends ApplicationStatusResource {
     }
 
     /**
+     * Select objectgroups with json request
+     *
+     * @param request the request in JsonNode format
+     * @return Response
+     */
+    @Path("objectgroups")
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response selectObjectgroups(JsonNode request) {
+        return selectObjectgroupsByQuery(request);
+    }
+
+    /**
+     * select units list by query
+     *
+     * @param selectRequest
+     * @return
+     */
+    private Response selectObjectgroupsByQuery(JsonNode selectRequest) {
+        Status status;
+        try {
+            RequestResponse<JsonNode> result = metaDataImpl.selectObjectGroupsByQuery(selectRequest);
+            int st = result.isOk() ? Status.FOUND.getStatusCode() : result.getHttpCode();
+            return Response.status(st).entity(result.setHttpCode(st)).build();
+
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(ACCESS)
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(e.getMessage()))
+                .build();
+
+        } catch (final MetaDataExecutionException e) {
+            return metadataExecutionExceptionTrace(e);
+        } catch (final MetaDataDocumentSizeException e) {
+            LOGGER.error(e);
+            status = Status.REQUEST_ENTITY_TOO_LARGE;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(ACCESS)
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(e.getMessage()))
+                .build();
+
+        } catch (MetaDataNotFoundException e) {
+            LOGGER.error(e);
+            status = Status.NOT_FOUND;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(ACCESS)
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(e.getMessage()))
+                .build();
+        }
+    }
+
+    /**
      * @param selectRequest the select request in JsonNode format
      * @param unitId        the unit id to get
      * @return {@link Response} will be contains an json filled by unit result

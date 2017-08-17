@@ -45,6 +45,10 @@
 	"UPDATE_RUNNING_INGESTS": {
 		"className": "fr.gouv.vitam.worker.core.plugin.RunningIngestsUpdateActionPlugin",
 		"propertiesFile": "running_ingests_update_plugin.properties"
+	},
+	"AUDIT_FILE_EXISTING": {
+		"className": "fr.gouv.vitam.worker.core.plugin.CheckExistenceObjectPlugin",
+		"propertiesFile": "audit_existence_object_plugin.properties"
 	}
 }
 

@@ -1,0 +1,149 @@
+{ "httpCode": 302,
+  "$hits": {
+    "total": 1,
+    "offset": 0,
+    "limit": 10000,
+    "size": 1
+  },
+  "$results": [
+    {
+      "FileInfo": {
+        "Filename": "Gallieni Source",
+        "LastModified": "2016-06-03T15:28:00.000+02:00"
+      },
+      "#id": "aebaaaaaaabtaydsabbvcak56afisfaaaaaq",
+      "#nbobjects": 0,
+      "#qualifiers": [
+        {
+          "qualifier": "BinaryMaster",
+          "_nbc": 1,
+          "versions": [
+            {
+              "_id": "aeaaaaaaaabtaydsabbvcak56afiseaaaaaq",
+              "DataObjectGroupId": "aebaaaaaaabtaydsabbvcak56afisfaaaaaq",
+              "DataObjectVersion": "BinaryMaster_1",
+              "FormatIdentification": {
+                "FormatLitteral": "Plain Text File",
+                "MimeType": "text/plain",
+                "FormatId": "x-fmt/111"
+              },
+              "FileInfo": {
+                "Filename": "Gallieni Source",
+                "LastModified": "2016-06-03T15:28:00.000+02:00"
+              },
+              "Size": 127244,
+              "Uri": "Content/df3c1f0fe7bf3ef61bdc5fb6148efa1e3638ee4e933a3fab26203d95634caf6c1b7393cdf908d797088da07554e523571803462b07c807744f25d78aa7038a16.jpg",
+              "MessageDigest": "df3c1f0fe7bf3ef61bdc5fb6148efa1e3638ee4e933a3fab26203d95634caf6c1b7393cdf908d797088da07554e523571803462b07c807744f25d78aa7038a16",
+              "Algorithm": "SHA-512",
+              "_storage": {
+                "_nbc": 1,
+                "offerIds": [
+                  "fakeOfferId"
+                ],
+                "strategyId": "default-fake"
+              }
+            }
+          ]
+        },
+        {
+          "qualifier": "Dissemination",
+          "_nbc": 1,
+          "versions": [
+            {
+              "_id": "aeaaaaaaaabtaydsabbvcak56afispqaaaaq",
+              "DataObjectGroupId": "aebaaaaaaabtaydsabbvcak56afisfaaaaaq",
+              "DataObjectVersion": "Dissemination_1",
+              "FormatIdentification": {
+                "FormatLitteral": "Plain Text File",
+                "MimeType": "text/plain",
+                "FormatId": "x-fmt/111"
+              },
+              "FileInfo": {
+                "Filename": "Gallieni pour diffusion",
+                "LastModified": "2016-06-03T15:28:00.000+02:00"
+              },
+              "Size": 57850,
+              "Uri": "Content/0f1ddc38a1eb38d401e394c057db3f2ebc646fd1cd0c06e7dc680c19d89c05f74815cbf27399fafe111192bcb4c0e246186cc8cc430c6ff7fe52a7fdbd2110f7.png",
+              "MessageDigest": "0f1ddc38a1eb38d401e394c057db3f2ebc646fd1cd0c06e7dc680c19d89c05f74815cbf27399fafe111192bcb4c0e246186cc8cc430c6ff7fe52a7fdbd2110f7",
+              "Algorithm": "SHA-512",
+              "_storage": {
+                "_nbc": 1,
+                "offerIds": [
+                  "fakeOfferId"
+                ],
+                "strategyId": "default-fake"
+              }
+            }
+          ]
+        },
+        {
+          "qualifier": "Thumbnail",
+          "_nbc": 1,
+          "versions": [
+            {
+              "_id": "aeaaaaaaaabtaydsabbvcak56afisqqaaaaq",
+              "DataObjectGroupId": "aebaaaaaaabtaydsabbvcak56afisfaaaaaq",
+              "DataObjectVersion": "Thumbnail_1",
+              "FormatIdentification": {
+                "FormatLitteral": "Plain Text File",
+                "MimeType": "text/plain",
+                "FormatId": "x-fmt/111"
+              },
+              "FileInfo": {
+                "Filename": "Gallieni vignette",
+                "LastModified": "2016-06-03T15:28:00.000+02:00"
+              },
+              "Size": 44266,
+              "Uri": "Content/04a5b5a5db9a4505d75f024af9379d0fc9b1d50f0eff8a6f1a7caa299a689639b57e4ace0f562643ab0822f7ea33e0539635fb8201a1bfacaab4210cd7236b82.jpg",
+              "MessageDigest": "04a5b5a5db9a4505d75f024af9379d0fc9b1d50f0eff8a6f1a7caa299a689639b57e4ace0f562643ab0822f7ea33e0539635fb8201a1bfacaab4210cd7236b82",
+              "Algorithm": "SHA-512",
+              "_storage": {
+                "_nbc": 1,
+                "offerIds": [
+                  "fakeOfferId"
+                ],
+                "strategyId": "default-fake"
+              }
+            }
+          ]
+        }
+      ],
+      "#type": "",
+      "#tenant": 0,
+      "#unitups": [
+        "aeaqaaaaaabtaydsabbvcak56afistqaaaaq"
+      ],
+      "#operations": [
+        "aedaaaaaacbtaydsabbvcak56afgfpqaaaaq",
+        "aecaaaaaacbtaydsabbvcak56afhxuqaaaaq"
+      ],
+      "#originating_agency": "producteur1",
+      "#originating_agencies": [
+        "producteur1",
+        "FR_ORG_AGEN"
+      ],
+      "#storage": {
+        "_nbc": [
+          1
+        ],
+        "strategyId": "default-fake",
+        "offerIds": [
+          "fakeOfferId"
+        ]
+      },
+      "#version": 1
+    }
+  ],
+  "$context": {
+    "$roots": [],
+    "$query": [
+      {
+        "$eq": {
+          "#tenant": "0"
+        }
+      }
+    ],
+    "$filter": {},
+    "$projection": {}
+  }
+}

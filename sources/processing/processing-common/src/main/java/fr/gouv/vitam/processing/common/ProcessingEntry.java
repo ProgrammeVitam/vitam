@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.common;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -46,6 +47,7 @@ public class ProcessingEntry {
     @JsonProperty("workflow")
     private final String workflow;
 
+    @JsonProperty("extraParams")
     private Map<String, String> extraParams;
 
 
@@ -61,6 +63,7 @@ public class ProcessingEntry {
         ParametersChecker.checkParameter("workflow is a mandatory parameter", workflow);
         this.container = container;
         this.workflow = workflow;
+        extraParams = new HashMap<>();
     }
 
     /**

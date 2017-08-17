@@ -92,6 +92,12 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
         return new ArrayList<>();
     }
 
+    @Override public JsonNode selectObjectGroups(JsonNode selectQuery)
+        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
+        MetaDataClientServerException {
+        return ClientMockResultHelper.getMetaDataResult().toJsonNode();
+    }
+
     @Override
     public void updateObjectGroupById(JsonNode objectGroup, String objectGroupId) {
         // Empty

@@ -140,6 +140,37 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     }
 
     @Override
+    public JsonNode selectObjectGroups(JsonNode selectQuery)
+        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
+        MetaDataClientServerException {
+        try {
+            ParametersChecker.checkParameter(ErrorMessage.SELECT_OBJECT_GROUP_QUERY_NULL.getMessage(), selectQuery);
+        } catch (final IllegalArgumentException e) {
+            throw new InvalidParseOperationException(e);
+        }
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, "/objectgroups", null, selectQuery, MediaType.APPLICATION_JSON_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
+            if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+                throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
+            } else if (response.getStatus() == Response.Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
+                throw new MetaDataDocumentSizeException(ErrorMessage.SIZE_TOO_LARGE.getMessage());
+            } else if (response.getStatus() == Response.Status.BAD_REQUEST.getStatusCode()) {
+                throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
+            } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
+                throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
+            }
+            return response.readEntity(JsonNode.class);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR, e);
+            throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
     public JsonNode selectUnitbyId(JsonNode selectQuery, String unitId) throws MetaDataExecutionException,
         MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException {
         try {

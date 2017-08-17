@@ -203,6 +203,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
             .setContainerName(process.getContainer())
             .setUrlMetadata(config.getUrlMetadata())
             .setUrlWorkspace(config.getUrlWorkspace());
+        workParams.setMap(process.getExtraParams());
 
         ParametersChecker.checkParameter("actionId is a mandatory parameter",
             headers.getRequestHeader(GlobalDataRest.X_ACTION));

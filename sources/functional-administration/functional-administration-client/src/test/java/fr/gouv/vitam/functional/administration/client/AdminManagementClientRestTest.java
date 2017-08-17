@@ -348,6 +348,14 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
             return expectedResponse.post();
         }
 
+        @POST
+        @Path("/audit")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response launchAudit(JsonNode options) {
+            return expectedResponse.post();
+        }
+
     }
 
 
@@ -844,6 +852,18 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
             .entity(new RequestResponseOK<ContextModel>().addAllResults(getContexts())).build());
         Status resp = client.importContexts(new ArrayList<>());
         assertEquals(resp, Status.CREATED);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void launchAuditWithCorrectJsonReturnAccepted()
+        throws ReferentialException, FileNotFoundException, InvalidParseOperationException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        when(mock.post()).thenReturn(Response.status(Status.ACCEPTED)
+            .build());
+        Status resp = client.launchAuditWorkflow(JsonHandler.createObjectNode());
+        assertEquals(resp, Status.ACCEPTED);
     }
 
     private List<ContextModel> getContexts() throws FileNotFoundException, InvalidParseOperationException {

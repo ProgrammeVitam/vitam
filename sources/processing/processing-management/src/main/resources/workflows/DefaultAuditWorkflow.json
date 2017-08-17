@@ -1,0 +1,43 @@
+{
+  "id": "DefaultAuditWorkflow",
+  "name": "Default Audit Object Workflow",
+  "identifier": "PROCESS_AUDIT",
+  "typeProc": "AUDIT",
+  "comment": "Default Update Rules in Archive Units workflow V1",
+  "steps": [
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_PREPARE_AUDIT",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": ""
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "LIST_OBJECTGROUP_ID",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_AUDIT",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_FILE",
+        "element": "AUDIT_OG"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "AUDIT_FILE_EXISTING",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    }
+  ]
+}

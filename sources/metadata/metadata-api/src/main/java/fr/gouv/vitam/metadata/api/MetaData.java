@@ -85,6 +85,22 @@ public interface MetaData {
         MetaDataDocumentSizeException, MetaDataNotFoundException;
 
     /**
+     * Search ObjectGroups by Select {@link Select}Query
+     *
+     * @param selectQuery the query of type JsonNode
+     * @return JsonNode {$hits{},$context{},$result:[{}....{}],} <br>
+     *         $context will be added later (Access)</br>
+     *         $result array of units(can be empty)
+     * @throws InvalidParseOperationException Thrown when json format is not correct
+     * @throws MetaDataExecutionException Throw if error occurs when send Unit to database
+     * @throws MetaDataDocumentSizeException Throw if Unit size is too big
+     * @throws MetaDataNotFoundException Throw if unit by id not found
+     *
+     */
+    RequestResponse<JsonNode> selectObjectGroupsByQuery(JsonNode selectQuery)
+        throws MetaDataExecutionException, InvalidParseOperationException,
+        MetaDataDocumentSizeException, MetaDataNotFoundException;
+    /**
      * Search UNITs by Id {@link Select}Query <br>
      * for this method, the roots will be filled<br>
      * for example request :{

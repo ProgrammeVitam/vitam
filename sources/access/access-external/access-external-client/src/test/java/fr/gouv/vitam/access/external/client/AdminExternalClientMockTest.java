@@ -22,6 +22,7 @@ public class AdminExternalClientMockTest {
             " \"$filter\": { \"$orderby\": \"#id\" }, " +
             " \"$projection\" : { \"$fields\" : { \"#id\": 1, \"title\" : 2, \"transacdate\": 1 } } " +
             " }";
+    private static final String AUDIT_OPTION = "{serviceProducteur: \"Service Producteur 1\"}";
     private static final String DOCUMENT_ID = "1";
     final int TENANT_ID = 0;
     final String CONTRACT = "contract";
@@ -81,6 +82,10 @@ public class AdminExternalClientMockTest {
         assertEquals(
             client.checkTraceabilityOperation(JsonHandler.getFromString(queryDsql), TENANT_ID, CONTRACT).getHttpCode(),
             Status.OK.getStatusCode());
+        
+        assertEquals(
+            client.launchAudit(JsonHandler.getFromString(AUDIT_OPTION), TENANT_ID, CONTRACT),
+            Status.OK);
 
     }
 

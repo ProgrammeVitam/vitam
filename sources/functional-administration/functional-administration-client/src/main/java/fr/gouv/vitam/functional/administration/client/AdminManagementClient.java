@@ -405,4 +405,14 @@ public interface AdminManagementClient extends MockOrRestClient {
      */
     RequestResponse<ContextModel> findContextById(String id)
         throws InvalidParseOperationException, ReferentialNotFoundException, AdminManagementClientServerException;
+
+    /**
+     * launch audit with options
+     *
+     * @param options
+     * @return
+     * @throws AdminManagementClientServerException
+     */
+    Status launchAuditWorkflow(JsonNode options)
+        throws AdminManagementClientServerException;
 }

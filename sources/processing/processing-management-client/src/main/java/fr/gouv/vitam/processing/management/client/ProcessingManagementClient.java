@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
@@ -99,5 +100,13 @@ public interface ProcessingManagementClient extends OperationManagementClient {
      * @throws VitamClientException
      */
     RequestResponse<JsonNode> getWorkflowDefinitions() throws VitamClientException;
+
+
+    /**
+     * initVitamProcess woth processing entry
+     * @param contextId
+     * @param entry
+     */
+    void initVitamProcess(String contextId, ProcessingEntry entry) throws InternalServerException, BadRequestException;
 
 }

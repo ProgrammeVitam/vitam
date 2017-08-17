@@ -11,6 +11,7 @@ import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.stream.StreamUtils;
 
 import org.apache.commons.io.IOUtils;
@@ -160,5 +161,10 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         throws AccessExternalClientServerException {
         return new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+    }
+
+    @Override
+    public Status launchAudit(JsonNode auditOption, Integer tenantId, String contractName) {
+        return Status.OK;
     }
 }

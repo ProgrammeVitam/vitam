@@ -538,4 +538,26 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             }
         }
     }
+
+    @Override
+    public Status launchAudit(JsonNode auditOption, Integer tenantId, String contractName) throws AccessExternalClientServerException {
+        Response response = null;
+        
+        try {
+            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+            headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+            headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
+
+            response = performRequest(HttpMethod.POST, AccessExtAPI.AUDITS_API, headers, auditOption,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
+                consumeAnyEntityAndClose(response);
+            }
+        }
+        return Status.fromStatusCode(response.getStatus());
+    }
 }

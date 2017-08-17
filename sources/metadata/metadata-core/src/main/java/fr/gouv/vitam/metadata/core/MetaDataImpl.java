@@ -213,6 +213,15 @@ public class MetaDataImpl implements MetaData {
     }
 
     @Override
+    public RequestResponse<JsonNode> selectObjectGroupsByQuery(JsonNode selectQuery)
+        throws MetaDataExecutionException, InvalidParseOperationException,
+        MetaDataDocumentSizeException, MetaDataNotFoundException {
+        LOGGER.debug("selectObjectGroupsByQuery/ selectQuery: " + selectQuery);
+        return selectMetadataObject(selectQuery, null, Collections.singletonList(BuilderToken.FILTERARGS.OBJECTGROUPS));
+
+    }
+
+    @Override
     public RequestResponse<JsonNode> selectUnitsById(JsonNode selectQuery, String unitId)
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataDocumentSizeException, MetaDataNotFoundException {

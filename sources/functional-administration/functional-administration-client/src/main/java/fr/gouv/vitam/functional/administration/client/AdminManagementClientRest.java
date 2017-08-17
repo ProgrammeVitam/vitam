@@ -100,6 +100,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     private static final String UPDATE_INGEST_CONTRACT_URI = "/entrycontracts/";
     private static final String PROFILE_URI = "/profiles";
     private static final String CONTEXT_URI = "/contexts";
+    private static final String AUDIT_URI = "/audit";
     private static final String UPDATE_CONTEXT_URI = "/context/";
 
     AdminManagementClientRest(AdminManagementClientFactory factory) {
@@ -980,6 +981,24 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         } catch (InvalidCreateOperationException e) {
             LOGGER.error("unable to create query", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public Status launchAuditWorkflow(JsonNode options) throws AdminManagementClientServerException {
+        ParametersChecker.checkParameter("The options are mandatory", options);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, AUDIT_URI, null, options,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+
+            return Status.fromStatusCode(response.getStatus());
+
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);

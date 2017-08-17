@@ -59,4 +59,7 @@ public class AccessExtAPI {
     public static final String TRACEABILITY = "traceability";
     
     public static final String TRACEABILITY_API = "/" + TRACEABILITY;
+    
+    public static final String AUDITS = "audits";
+    public static final String AUDITS_API = "/" + AUDITS;
 }

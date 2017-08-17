@@ -105,7 +105,9 @@ abstract class AbstractWorkerParameters implements WorkerParameters {
     public WorkerParameters setMap(Map<String, String> map) {
         ParametersChecker.checkParameter(String.format(ERROR_MESSAGE, "map"), map);
         for (final String key : map.keySet()) {
-            mapParameters.put(WorkerParameterName.valueOf(key), map.get(key));
+            if (WorkerParameterName.getEnums().contains(key)) {
+                mapParameters.put(WorkerParameterName.valueOf(key), map.get(key));
+            }
         }
         return this;
     }

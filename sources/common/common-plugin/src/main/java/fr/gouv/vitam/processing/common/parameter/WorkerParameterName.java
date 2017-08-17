@@ -27,6 +27,8 @@
 
 package fr.gouv.vitam.processing.common.parameter;
 
+import java.util.HashSet;
+
 /**
  * Enum with all possible worker parameters <br />
  * <br />
@@ -62,6 +64,10 @@ public enum WorkerParameterName {
      * Id of the object to be processed (not used, except in test classes)
      */
     objectId,
+    /**
+     * Type of the audit to be processed
+     */
+    auditType,
     /**
      * Id of the worker (GUID) (not used for now, except in test classes)
      */
@@ -105,4 +111,15 @@ public enum WorkerParameterName {
      * process logbook context
      */
     context;
+
+    public static HashSet<String> getEnums() {
+
+        HashSet<String> values = new HashSet<String>();
+
+        for (WorkerParameterName c : WorkerParameterName.values()) {
+            values.add(c.name());
+        }
+
+        return values;
+    }
 }
