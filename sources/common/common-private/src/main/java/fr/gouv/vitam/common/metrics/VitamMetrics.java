@@ -160,12 +160,15 @@ public class VitamMetrics {
         final GarbageCollectorMetricSet garbageCollector = new GarbageCollectorMetricSet();
         final MemoryUsageGaugeSet memoryGauges = new MemoryUsageGaugeSet();
 
+        final CpuGaugeSet cpuGaugeSet = CpuGaugeSet.create();
+
         registry.register("fileDescriptorRatioGauge", fileDescriptor);
         registry.registerAll(bufferPool);
         registry.registerAll(cachedThreadStates);
         registry.registerAll(classLoading);
         registry.registerAll(garbageCollector);
         registry.registerAll(memoryGauges);
+        registry.registerAll(cpuGaugeSet);
         registry.register("customGarbadgeCollectorRatioGauge", new VitamGarbageCollectorGauge());
         // ThreadStatesGaugeSet not working because duplicate metrics names.
         // TODO P2 open a github issue demanding a fix

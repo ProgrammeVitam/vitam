@@ -7,6 +7,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.security.waf.SanityCheckerCommonFilter;
 import fr.gouv.vitam.common.security.waf.SanityDynamicFeature;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
+import fr.gouv.vitam.common.serverv2.metrics.MetricsFeature;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 
 import javax.servlet.ServletConfig;
@@ -20,7 +21,7 @@ import java.util.Set;
 
 public class BusinessApplication extends Application {
 
-    private CommonBusinessApplication commonBusinessApplication;
+    private final CommonBusinessApplication commonBusinessApplication;
 
     private Set<Object> singletons;
 
@@ -41,7 +42,11 @@ public class BusinessApplication extends Application {
         } catch (IOException e) {
             throw Throwables.propagate(e);
         }
+    }
 
+    @Override
+    public Set<Class<?>> getClasses() {
+        return commonBusinessApplication.getClasses();
     }
 
     @Override

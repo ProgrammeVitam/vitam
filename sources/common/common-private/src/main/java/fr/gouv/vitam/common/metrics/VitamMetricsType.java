@@ -35,7 +35,7 @@ import fr.gouv.vitam.common.ParametersChecker;
  */
 public enum VitamMetricsType {
 
-    JERSEY("JERSEY", "metrics-vitam-jersey"),
+    REST("REST", "metrics-vitam-rest"),
 
     JVM("JVM", "metrics-vitam-jvm"),
 

@@ -182,7 +182,7 @@ public class VitamMetricsConfigurationImplTest {
 
     @Test
     public final void testJerseyMetrics() {
-        testVitamMetrics(VitamMetricsType.JERSEY);
+        testVitamMetrics(VitamMetricsType.REST);
     }
 
     @Test

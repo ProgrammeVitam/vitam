@@ -119,7 +119,7 @@ public class VitamInstrumentedResourceMethodApplicationListenerTest {
     @Test
     public void testSimpleJerseyMetricsResource() {
         final Set<String> formattedExpectedNames = formatMetricsNames(SimpleJerseyMetricsResource.expectedNames);
-        final VitamMetrics metrics = AbstractVitamApplication.getVitamMetrics(VitamMetricsType.JERSEY);
+        final VitamMetrics metrics = AbstractVitamApplication.getVitamMetrics(VitamMetricsType.REST);
 
         assertNotNull("VitamMetrics", metrics);
         assertTrue("SimpleJerseyMetricsResource",
@@ -129,7 +129,7 @@ public class VitamInstrumentedResourceMethodApplicationListenerTest {
     @Test
     public void testAdvancedJerseyMetricsResource() {
         final Set<String> formattedExpectedNames = formatMetricsNames(AdvancedJerseyMetricsResource.expectedNames);
-        final VitamMetrics metrics = AbstractVitamApplication.getVitamMetrics(VitamMetricsType.JERSEY);
+        final VitamMetrics metrics = AbstractVitamApplication.getVitamMetrics(VitamMetricsType.REST);
 
         assertNotNull("VitamMetrics", metrics);
         assertTrue("AdvancedJerseyMetricsResource",
@@ -139,7 +139,7 @@ public class VitamInstrumentedResourceMethodApplicationListenerTest {
     @Test
     public void testMediaTypeJerseyMetricsResource() {
         final Set<String> formattedExpectedNames = formatMetricsNames(MediaTypeJerseyMetricsResource.expectedNames);
-        final VitamMetrics metrics = AbstractVitamApplication.getVitamMetrics(VitamMetricsType.JERSEY);
+        final VitamMetrics metrics = AbstractVitamApplication.getVitamMetrics(VitamMetricsType.REST);
 
         assertNotNull("VitamMetrics", metrics);
         assertTrue("MediaTypeJerseyMetricsResource",
@@ -153,7 +153,7 @@ public class VitamInstrumentedResourceMethodApplicationListenerTest {
                 AdvancedJerseyMetricsResource.expectedNames.size() +
                 ShouldNotWorkJerseyMetricsResource.expectedNames.size() +
                 MediaTypeJerseyMetricsResource.expectedNames.size(); // Default in test
-        final VitamMetrics metrics = AbstractVitamApplication.getVitamMetrics(VitamMetricsType.JERSEY);
+        final VitamMetrics metrics = AbstractVitamApplication.getVitamMetrics(VitamMetricsType.REST);
 
         assertNotNull("VitamMetrics", metrics);
 
