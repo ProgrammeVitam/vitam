@@ -71,6 +71,7 @@ public class CheckConformityActionPlugin extends ActionHandler {
     private HandlerIO handlerIO;
     private boolean oneOrMoreMessagesDigestUpdated = false;
     private static final int ALGO_RANK = 0;
+    private static final int OG_OUT_RANK = 0;
     private boolean asyncIO = false;
     /**
      * Constructor
@@ -91,6 +92,8 @@ public class CheckConformityActionPlugin extends ActionHandler {
             // Get objectGroup
             final JsonNode jsonOG = handlerIO.getJsonFromWorkspace(
                 IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName());
+            
+            handlerIO.addOuputResult(OG_OUT_RANK, jsonOG, true, false);
 
             final Map<String, DataObjectInfo> binaryObjects = getBinaryObjects(jsonOG);
 

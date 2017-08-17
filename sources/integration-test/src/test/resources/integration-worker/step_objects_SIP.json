@@ -10,13 +10,25 @@
         {
           "action": {
             "actionKey": "OBJ_STORAGE",
-            "behavior": "BLOCKING"
+            "behavior": "BLOCKING",
+            "out": [
+              {
+                "name": "groupObject",
+                "uri": "MEMORY:groupObjectId"
+              }
+            ]
           }
         },
         {
           "action": {
             "actionKey": "OG_METADATA_INDEXATION",
-            "behavior": "BLOCKING"
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "groupObject",
+                "uri": "MEMORY:groupObjectId"
+              }
+            ]
           }
         }
       ]

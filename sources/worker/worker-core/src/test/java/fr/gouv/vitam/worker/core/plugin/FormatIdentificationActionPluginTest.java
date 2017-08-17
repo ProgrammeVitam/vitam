@@ -53,10 +53,13 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.AbstractMockClient.FakeInboundResponse;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.format.identification.exception.FileFormatNotFoundException;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierFactoryException;
@@ -66,6 +69,7 @@ import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse
 import fr.gouv.vitam.common.format.identification.siegfried.FormatIdentifierSiegfried;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -96,15 +100,20 @@ public class FormatIdentificationActionPluginTest {
     private final InputStream objectGroup;
     private final InputStream objectGroup2;
     private final InputStream objectGroup3;
+    private final JsonNode og;
+    private final JsonNode og3;
     private WorkspaceClientFactory workspaceClientFactory;
     private WorkspaceClient workspaceClient;
     private HandlerIOImpl handlerIO;
     private GUID guid;
 
-    public FormatIdentificationActionPluginTest() throws FileNotFoundException {
+    public FormatIdentificationActionPluginTest() throws FileNotFoundException, InvalidParseOperationException {
         objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP);
         objectGroup2 = PropertiesUtils.getResourceAsStream(OBJECT_GROUP_2);
         objectGroup3 = PropertiesUtils.getResourceAsStream(OBJECT_GROUP_3);
+        
+        og = JsonHandler.getFromInputStream(objectGroup);
+        og3 = JsonHandler.getFromInputStream(objectGroup3);
     }
 
     @Before
@@ -166,31 +175,13 @@ public class FormatIdentificationActionPluginTest {
     }
 
     @Test
-    public void gettingJsonFromWorkspaceError() throws Exception {
-        final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
-
-        when(workspaceClient.getObject(anyObject(), anyObject()))
-            .thenThrow(new ContentAddressableStorageNotFoundException(""));
-        plugin = new FormatIdentificationActionPlugin();
-        final WorkerParameters params = getDefaultWorkerParameters();
-
-        final ItemStatus response = plugin.execute(params, handlerIO);
-        assertEquals(StatusCode.FATAL, response.getGlobalStatus());
-        deleteFiles();
-    }
-
-    @Test
     public void formatNotFoundInInternalReferential() throws Exception {
         final FormatIdentifierSiegfried siegfried =
             getMockedFormatIdentifierSiegfried();
 
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierResponseList());
-        when(workspaceClient.getObject(anyObject(), anyObject()))
-            .thenReturn(new FakeInboundResponse(Status.OK, objectGroup, null, null))
-            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
-            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
-            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
-            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null));
+        handlerIO.getInput().clear();
+        handlerIO.getInput().add(og);
 
         final AdminManagementClient adminManagementClient = getMockedAdminManagementClient();
         when(adminManagementClient.getFormats(anyObject())).thenReturn(getAdminManagementJson2Result());
@@ -217,13 +208,8 @@ public class FormatIdentificationActionPluginTest {
 
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierResponseList());
 
-        when(workspaceClient.getObject(anyObject(), anyObject()))
-            .thenReturn(new FakeInboundResponse(Status.OK, objectGroup, null, null))
-            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
-            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
-            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
-            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null));
-        doNothing().when(workspaceClient).putObject(anyObject(), anyObject(), anyObject());
+        handlerIO.getInput().clear();
+        handlerIO.getInput().add(og);
 
         final AdminManagementClient adminManagementClient =
             getMockedAdminManagementClient();
@@ -247,11 +233,8 @@ public class FormatIdentificationActionPluginTest {
 
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierResponseList());
 
-        when(workspaceClient.getObject(anyObject(), anyObject()))
-            .thenReturn(new FakeInboundResponse(Status.OK, objectGroup3, null, null))
-            .thenReturn(
-                new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest", CharsetUtils.UTF8), null, null));
-        doNothing().when(workspaceClient).putObject(anyObject(), anyObject(), anyObject());
+        handlerIO.getInput().clear();
+        handlerIO.getInput().add(og3);
 
         final AdminManagementClient adminManagementClient =
             getMockedAdminManagementClient();
@@ -271,13 +254,8 @@ public class FormatIdentificationActionPluginTest {
 
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierResponseList());
 
-        when(workspaceClient.getObject(anyObject(), anyObject()))
-            .thenReturn(new FakeInboundResponse(Status.OK, objectGroup, null, null))
-            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
-            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
-            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
-            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null));
-        doNothing().when(workspaceClient).putObject(anyObject(), anyObject(), anyObject());
+        handlerIO.getInput().clear();
+        handlerIO.getInput().add(og);
 
         final AdminManagementClient adminManagementClient =
             getMockedAdminManagementClient();
@@ -298,12 +276,8 @@ public class FormatIdentificationActionPluginTest {
 
         when(siegfried.analysePath(anyObject())).thenThrow(new FileFormatNotFoundException(""));
 
-        when(workspaceClient.getObject(anyObject(), anyObject()))
-            .thenReturn(new FakeInboundResponse(Status.OK, objectGroup, null, null))
-            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
-            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
-            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
-            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null));
+        handlerIO.getInput().clear();
+        handlerIO.getInput().add(og);
 
         plugin = new FormatIdentificationActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
@@ -321,12 +295,8 @@ public class FormatIdentificationActionPluginTest {
 
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierResponseList());
 
-        when(workspaceClient.getObject(anyObject(), anyObject()))
-            .thenReturn(new FakeInboundResponse(Status.OK, objectGroup, null, null))
-            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
-            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
-            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
-            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null));
+        handlerIO.getInput().clear();
+        handlerIO.getInput().add(og);
 
         final AdminManagementClient adminManagementClient =
             getMockedAdminManagementClient();
@@ -348,11 +318,8 @@ public class FormatIdentificationActionPluginTest {
 
         when(siegfried.analysePath(anyObject())).thenThrow(new FormatIdentifierTechnicalException(""));
 
-        when(workspaceClient.getObject(anyObject(), anyObject()))
-            .thenReturn(new FakeInboundResponse(Status.OK, objectGroup, null, null))
-            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
-            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
-            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null));
+        handlerIO.getInput().clear();
+        handlerIO.getInput().add(og);
         plugin = new FormatIdentificationActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
 
@@ -366,12 +333,8 @@ public class FormatIdentificationActionPluginTest {
 
         when(siegfried.analysePath(anyObject())).thenThrow(new FormatIdentifierNotFoundException(""));
 
-        when(workspaceClient.getObject(anyObject(), anyObject()))
-            .thenReturn(new FakeInboundResponse(Status.OK, objectGroup, null, null))
-            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
-            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
-            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
-            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null));
+        handlerIO.getInput().clear();
+        handlerIO.getInput().add(og);
 
         plugin = new FormatIdentificationActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();

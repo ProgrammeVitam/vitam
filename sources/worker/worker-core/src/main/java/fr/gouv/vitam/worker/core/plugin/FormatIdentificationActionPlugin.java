@@ -104,6 +104,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
     private static final String FILE_FORMAT_NOT_FOUND_REFERENTIAL_ERROR = "NOT_FOUND_REFERENTIAL";
 
     private static final String FORMAT_IDENTIFIER_ID = "siegfried-local";
+    private static final int OG_INPUT_RANK = 0;
 
     private HandlerIO handlerIO;
     private FormatIdentifier formatIdentifier;
@@ -149,8 +150,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
         File file = null;
         try {
             // Get objectGroup metadatas
-            final JsonNode jsonOG = handlerIO.getJsonFromWorkspace(
-                IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName());
+            final JsonNode jsonOG = (JsonNode) handlerIO.getInput(OG_INPUT_RANK);
 
             final Map<String, String> objectIdToUri = getMapOfObjectsIdsAndUris(jsonOG);
 

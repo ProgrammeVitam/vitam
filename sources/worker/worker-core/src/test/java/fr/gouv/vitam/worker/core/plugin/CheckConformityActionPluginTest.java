@@ -72,6 +72,7 @@ public class CheckConformityActionPluginTest {
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
     private static final String CALC_CHECK = "CALC_CHECK";
+    private List<IOParameter> out;
 
     private static final String EV_DETAIL_DATA = "{\"MessageDigest\":\"3273aa2ccb0cf4d5d37cef899d1774b9\"," +
         "\"Algorithm\": \"MD5\", " +
@@ -103,6 +104,9 @@ public class CheckConformityActionPluginTest {
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
+        
+        out = new ArrayList<>();
+        out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "objectGroupId.json")));
     }
 
     @After
@@ -134,6 +138,7 @@ public class CheckConformityActionPluginTest {
         final List<IOParameter> in = new ArrayList<>();
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.VALUE, "SHA-512")));
         handlerIO.addInIOParameters(in);
+        handlerIO.addOutIOParameters(out);
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
         assertEquals(response.getItemsStatus().get(CALC_CHECK).getEvDetailData(), EV_DETAIL_DATA);
@@ -156,6 +161,7 @@ public class CheckConformityActionPluginTest {
         final List<IOParameter> in = new ArrayList<>();
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.VALUE, "SHA-512")));
         handlerIO.addInIOParameters(in);
+        handlerIO.addOutIOParameters(out);
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
         assertEquals(response.getItemsStatus().get(CALC_CHECK).getEvDetailData(), EV_DETAIL_DATA_BDO_AND_PDO);
