@@ -727,8 +727,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             final String mainLogbookDocumentId = document.getId();
 
             // Remove _id and events fields
-            document.remove(LogbookDocument.EVENTS);
-            document.remove(LogbookDocument.ID);
+            removeDuplicatedInformation(document);
             final VitamDocument<?> result = (VitamDocument<?>) collection.getCollection().findOneAndUpdate(
                 eq(LogbookDocument.ID, mainLogbookDocumentId),
                 Updates.push(LogbookDocument.EVENTS, document),
@@ -891,8 +890,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         final List<VitamDocument> events = new ArrayList<>(items.length - 1);
         for (i = 1; i < items.length; i++) {
             final VitamDocument currentEvent = getDocumentForUpdate(items[i]);
-            currentEvent.remove(LogbookDocument.EVENTS);
-            currentEvent.remove(LogbookDocument.ID);
+            removeDuplicatedInformation(currentEvent);
             events.add(currentEvent);
         }
         document.append(LogbookDocument.EVENTS, events);
@@ -950,16 +948,14 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         final VitamDocument firstEvent = getDocumentForUpdate(items[0]);
         final String mainLogbookDocumentId = firstEvent.getId();
 
-        firstEvent.remove(LogbookDocument.EVENTS);
-        firstEvent.remove(LogbookDocument.ID);
+        removeDuplicatedInformation(firstEvent);
         events.add(firstEvent);
 
         List<Bson> listMaster = new ArrayList<>();
         for (int i = 1; i < items.length; i++) {
             // Remove _id and events fields
             final VitamDocument currentEvent = getDocument(items[i]);
-            currentEvent.remove(LogbookDocument.EVENTS);
-            currentEvent.remove(LogbookDocument.ID);
+            removeDuplicatedInformation(currentEvent);
 
             listMaster.addAll(checkCopyToMaster(collection, items[i]));
 
@@ -1502,5 +1498,11 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             }
         }
         return updates;
+    }
+
+    private void removeDuplicatedInformation (VitamDocument document) {
+        document.remove(LogbookDocument.EVENTS);
+        document.remove(LogbookDocument.ID);
+        document.remove(LogbookDocument.TENANT_ID);
     }
 }
