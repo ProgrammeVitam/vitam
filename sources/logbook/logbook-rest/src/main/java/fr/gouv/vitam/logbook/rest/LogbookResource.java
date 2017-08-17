@@ -172,7 +172,7 @@ public class LogbookResource extends ApplicationStatusResource {
 
     /**
      * Selects an operation
-     *
+     * FIXME : since migration to RESTEASY queryDsl cannot be null => rewrite method
      * @param id operation ID
      * @param queryDsl the query containing the ID
      * @return the response with a specific HTTP status

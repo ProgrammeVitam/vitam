@@ -51,16 +51,20 @@ import javax.ws.rs.core.UriInfo;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.access.external.api.AccessCollections;
 import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.ServiceName;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -306,10 +310,64 @@ public class AdminManagementExternalResourceImpl {
             VitamThreadPoolExecutor.getDefaultExecutor()
                 .execute(() -> asyncDownloadProfileFile(fileId, asyncResponse));
 
-        } else {
+        } else if (AdminCollections.TRACEABILITY.compareTo(collection)) {
+            try {
+                ParametersChecker.checkParameter("Traceability operation should be filled", fileId);
+
+                Integer tenantId = ParameterHelper.getTenantParameter();
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+
+                VitamThreadPoolExecutor.getDefaultExecutor()
+                    .execute(() -> downloadTraceabilityOperationFile(fileId, asyncResponse));
+            } catch (IllegalArgumentException | VitamThreadAccessException e) {
+                LOGGER.error(e);
+                final Response errorResponse = Response.status(Status.PRECONDITION_FAILED)
+                    .entity(getErrorStream(Status.PRECONDITION_FAILED, e.getMessage(), null))
+                    .build();
+                AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
+            }
+        }
+        else {
             LOGGER.error("Endpoint accept only profiles");
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.NOT_IMPLEMENTED)
                 .entity(getErrorStream(Status.NOT_IMPLEMENTED, "Endpoint accept only profiles", null)).build());
+        }
+    }
+
+    private void downloadTraceabilityOperationFile(String operationId, final AsyncResponse asyncResponse) {
+        AsyncInputStreamHelper helper;
+
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+
+            final Response response = client.downloadTraceabilityFile(operationId);
+            helper = new AsyncInputStreamHelper(asyncResponse, response);
+            final ResponseBuilder responseBuilder =
+                Response.status(Status.OK)
+                    .header("Content-Disposition", response.getHeaderString("Content-Disposition"))
+                    .type(response.getMediaType());
+            helper.writeResponse(responseBuilder);
+        } catch (final InvalidParseOperationException | IllegalArgumentException exc) {
+            LOGGER.error(exc);
+            final Response errorResponse = Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorStream(Status.PRECONDITION_FAILED, exc.getMessage(), null))
+                .build();
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
+        } catch (final AccessInternalClientServerException exc) {
+            LOGGER.error(exc.getMessage(), exc);
+            final Response errorResponse =
+                Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, 
+                    exc.getMessage(), null)).build();
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
+        } catch (final AccessInternalClientNotFoundException exc) {
+            LOGGER.error(exc.getMessage(), exc);
+            final Response errorResponse =
+                Response.status(Status.NOT_FOUND).entity(getErrorStream(Status.NOT_FOUND, exc.getMessage(), null)).build();
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error("Contract access does not allow ", e);
+            final Response errorResponse =
+                Response.status(Status.UNAUTHORIZED).entity(getErrorStream(Status.UNAUTHORIZED, e.getMessage(), null)).build();
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         }
     }
 
