@@ -168,6 +168,22 @@ public enum VitamCode {
         Status.BAD_REQUEST,
         "Access external client error in checkTraceabilityOperation method."),
 
+    ACCESS_EXTERNAL_SERVER_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "12",
+        Status.INTERNAL_SERVER_ERROR,
+        "Access external server error."),
+
+    ACCESS_EXTERNAL_CLIENT_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "13",
+        Status.INTERNAL_SERVER_ERROR,
+        "Access external client not found."),
+
+    ADMIN_EXTERNAL_FIND_DOCUMENT_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "14",
+        Status.BAD_REQUEST,
+        "Admin external client error in findDocuments method."),
+
+    ADMIN_EXTERNAL_FIND_DOCUMENT_BY_ID_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "15",
+        Status.BAD_REQUEST,
+        "Admin external client error in findDocumentById method."),
+
     ACCESS_INTERNAL_UPDATE_UNIT_CHECK_RULES(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "01",
         Status.BAD_REQUEST,
         "Access internal error while check update on rules"),
@@ -204,14 +220,6 @@ public enum VitamCode {
     ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_START_DATE(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "12",
         Status.BAD_REQUEST,
         "Access internal error while check update on rules: Can't update rule with a startDate > 9000"),
-
-    ADMIN_EXTERNAL_FIND_DOCUMENT_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "12",
-        Status.BAD_REQUEST,
-        "Admin external client error in findDocuments method."),
-
-    ADMIN_EXTERNAL_FIND_DOCUMENT_BY_ID_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "13",
-        Status.BAD_REQUEST,
-        "Admin external client error in findDocumentById method."),
 
     INGEST_EXTERNAL_UPLOAD_ERROR(ServiceName.EXTERNAL_INGEST, DomainName.IO, "00",
         Status.BAD_REQUEST,

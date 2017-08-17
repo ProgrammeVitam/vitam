@@ -50,6 +50,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.model.StatusCode;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
@@ -121,12 +123,15 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * field of VitamResponseError
      */
     public static final String IHM_RECETTE = "IHM_RECETTE";
+    private static final String ACCESS_EXTERNAL_MODULE = "AccessExternalModule";
     private static final String MISSING_THE_TENANT_ID_X_TENANT_ID =
         "Missing the tenant ID (X-Tenant-Id) or wrong object Type";
     private static final String INTERNAL_SERVER_ERROR_MSG = "INTERNAL SERVER ERROR";
     private static final String BAD_REQUEST_EXCEPTION_MSG = "Bad request Exception";
     private static final String ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG = "Access client unavailable";
     private static final String ACCESS_SERVER_EXCEPTION_MSG = "Access Server exception";
+    private static final String REQUEST_METHOD_UNDEFINED = "Request method undefined for collection";
+    private static final String WRONG_QUERY = "Query should not be empty or lacks parameters";
 
 
     // TODO FIX_TENANT_ID (LFET FOR ONLY stat API)
@@ -147,7 +152,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String HTTP_GET = "GET";
     private static final String HTTP_PUT = "PUT";
     private static final String HTTP_DELETE = "DELETE";
-    
+
     private ExecutorService threadPoolExecutor = Executors.newCachedThreadPool();
 
     /**
@@ -587,7 +592,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
                     if ( !(requestedCollection.equalsIgnoreCase(WORKFLOW_OPERATIONS)
                         || requestedCollection.equalsIgnoreCase(WORKFLOWS))) {
                         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-                            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(criteria));
                             if (requestedCollection.equalsIgnoreCase(UNIT_COLLECTION)) {
                                 switch (requestMethod) {
                                     case HTTP_GET:
@@ -608,8 +612,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                         }
                                         break;
                                     default:
-                                        throw new InvalidParseOperationException(
-                                            "Request method undefined for collection" + requestedCollection);
+                                        throw new UnsupportedOperationException(
+                                            REQUEST_METHOD_UNDEFINED + " " + requestedCollection);
                                 }
                             } else if (requestedCollection.equalsIgnoreCase(LOGBOOK_COLLECTION)) {
                                 switch (requestMethod) {
@@ -623,8 +627,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                         }
                                         break;
                                     default:
-                                        throw new InvalidParseOperationException(
-                                            "Request method undefined for collection " + requestedCollection);
+                                        throw new UnsupportedOperationException(
+                                            REQUEST_METHOD_UNDEFINED + " " + requestedCollection);
                                 }
                             } else if (requestedCollection.equalsIgnoreCase(OBJECT_GROUP_COLLECTION)) {
                                 switch (requestMethod) {
@@ -643,8 +647,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                         }
                                         break;
                                     default:
-                                        throw new InvalidParseOperationException(
-                                            "Request method undefined for collection " + requestedCollection);
+                                        throw new UnsupportedOperationException(
+                                            REQUEST_METHOD_UNDEFINED + " " + requestedCollection);
                                 }
                             } else if (requestedCollection.equalsIgnoreCase(UNIT_LIFECYCLES)) {
                                 switch (requestMethod) {
@@ -652,8 +656,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                         result = client.selectUnitLifeCycleById(objectID, tenantId, contractId);
                                         break;
                                     default:
-                                        throw new InvalidParseOperationException(
-                                            "Request method undefined for collection " + requestedCollection);
+                                        throw new UnsupportedOperationException(
+                                            REQUEST_METHOD_UNDEFINED + " " + requestedCollection);
                                 }
                             } else if (requestedCollection.equalsIgnoreCase(OBJECT_GROUP_LIFECYCLES)) {
                                 switch (requestMethod) {
@@ -661,11 +665,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                         result = client.selectObjectGroupLifeCycleById(objectID, tenantId, contractId);
                                         break;
                                     default:
-                                        throw new InvalidParseOperationException(
-                                            "Request method undefined for collection " + requestedCollection);
+                                        throw new UnsupportedOperationException(
+                                            REQUEST_METHOD_UNDEFINED + " " + requestedCollection);
                                 }
                             } else {
-                                throw new InvalidParseOperationException("Collection unrecognized");
+                                throw new UnsupportedOperationException("Collection unrecognized");
                             }
                         }
                     } else {
@@ -719,8 +723,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                                 "Operation ID should be filled");
                                         }
                                     default:
-                                        throw new InvalidParseOperationException(
-                                            "Request method undefined for collection " + requestedCollection);
+                                        throw new UnsupportedOperationException(
+                                            REQUEST_METHOD_UNDEFINED + " " + requestedCollection);
                                 }
                             } else if (requestedCollection.equalsIgnoreCase(WORKFLOWS)) {
                                 switch (requestMethod) {
@@ -728,11 +732,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                         result = ingestExternalClient.getWorkflowDefinitions(tenantId);
                                         return Response.status(Status.OK).entity(result).build();
                                     default:
-                                        throw new InvalidParseOperationException(
-                                            "Request method undefined for collection " + requestedCollection);
+                                        throw new UnsupportedOperationException(
+                                            REQUEST_METHOD_UNDEFINED + " " + requestedCollection);
                                 }
                             }
-                            throw new InvalidParseOperationException(
+                            throw new UnsupportedOperationException(
                                 "No implementation found for collection " + requestedCollection);
                         }
                     }
@@ -766,8 +770,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                     } else if (AdminCollections.ENTRY_CONTRACTS.equals(requestedAdminCollection)) {
                                         result = adminExternalClient.updateIngestContract(objectID, criteria, tenantId);
                                     } else {
-                                        throw new InvalidParseOperationException(
-                                            "Request method undefined for collection " + requestedCollection);
+                                        throw new UnsupportedOperationException(
+                                            REQUEST_METHOD_UNDEFINED + " " + requestedCollection);
                                     }
                                 } else {
                                     throw new InvalidParseOperationException(
@@ -775,8 +779,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                 }
                                 break;
                             default:
-                                throw new InvalidParseOperationException(
-                                    "Request method undefined for collection " + requestedCollection);
+                                throw new UnsupportedOperationException(
+                                    REQUEST_METHOD_UNDEFINED + " " + requestedCollection);
                         }
                     }
                 }
@@ -784,19 +788,39 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 return Response.status(Status.OK).entity(result).build();
             } catch (final InvalidParseOperationException | IllegalArgumentException e) {
                 LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
-                return Response.status(Status.BAD_REQUEST).build();
+                VitamError vitamError = new VitamError(VitamCode.GLOBAL_EMPTY_QUERY.getItem())
+                    .setHttpCode(Status.BAD_REQUEST.getStatusCode())
+                    .setContext(IHM_RECETTE).setState(StatusCode.KO.name())
+                    .setMessage(Status.BAD_REQUEST.getReasonPhrase()).setDescription(e.getMessage());
+                return vitamError.toResponse();
             } catch (final AccessExternalClientServerException e) {
                 LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
-                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+                VitamError vitamError = new VitamError(VitamCode.ACCESS_EXTERNAL_SERVER_ERROR.getItem())
+                    .setHttpCode(VitamCode.ACCESS_EXTERNAL_SERVER_ERROR.getStatus().getStatusCode())
+                    .setContext(ACCESS_EXTERNAL_MODULE).setState(StatusCode.KO.name())
+                    .setMessage(VitamCode.ACCESS_EXTERNAL_SERVER_ERROR.getMessage()).setDescription(e.getMessage());
+                return vitamError.toResponse();
             } catch (final AccessExternalClientNotFoundException e) {
                 LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
-                return Response.status(Status.NOT_FOUND).build();
+                VitamError vitamError = new VitamError(VitamCode.ACCESS_EXTERNAL_CLIENT_ERROR.getItem())
+                    .setHttpCode(VitamCode.ACCESS_EXTERNAL_CLIENT_ERROR.getStatus().getStatusCode())
+                    .setContext(ACCESS_EXTERNAL_MODULE).setState(StatusCode.KO.name())
+                    .setMessage(VitamCode.ACCESS_EXTERNAL_CLIENT_ERROR.getMessage()).setDescription(e.getMessage());
+                return vitamError.toResponse();
             } catch (final AccessUnauthorizedException e) {
                 LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
-                return Response.status(Status.UNAUTHORIZED).build();
+                VitamError vitamError = new VitamError(VitamCode.ACCESS_EXTERNAL_CLIENT_ERROR.getItem())
+                    .setHttpCode(Status.UNAUTHORIZED.getStatusCode())
+                    .setContext(ACCESS_EXTERNAL_MODULE).setState(Status.UNAUTHORIZED.name())
+                    .setMessage(Status.UNAUTHORIZED.getReasonPhrase()).setDescription(e.getMessage());
+                return vitamError.toResponse();
             } catch (final Exception e) {
                 LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
-                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+                VitamError vitamError = new VitamError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem())
+                    .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
+                    .setContext(IHM_RECETTE).setState(StatusCode.KO.name())
+                    .setMessage(Status.INTERNAL_SERVER_ERROR.getReasonPhrase()).setDescription(e.getMessage());
+                return vitamError.toResponse();
             }
         }
     }
