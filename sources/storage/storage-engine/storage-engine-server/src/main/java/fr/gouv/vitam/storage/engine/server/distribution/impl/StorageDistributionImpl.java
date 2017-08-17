@@ -84,6 +84,7 @@ import fr.gouv.vitam.common.stream.MultipleInputStreamHandler;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
@@ -254,8 +255,10 @@ public class StorageDistributionImpl implements StorageDistribution {
             } catch (IOException e) {
                 LOGGER.error(e);
             }
+            
             // TODO P1 Handle Status result if different for offers
-            return buildStoreDataResponse(objectId, category, strategyId, datas.getGlobalOfferResult());
+            return buildStoreDataResponse(objectId, category, parameters.getMapParameters().get(StorageLogbookParameterName.digest), 
+                    strategyId, datas.getGlobalOfferResult());
         }
         throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
     }
@@ -573,15 +576,15 @@ public class StorageDistributionImpl implements StorageDistribution {
     private Map<String, Object> getInputStreamFromDatabase(String documentId, DataCategory dataCategory)
             throws StorageNotFoundException, StorageTechnicalException  {
 
-        final ObjectNode unitWithLFC = JsonHandler.getFactory().objectNode();
+        final ObjectNode docWithLFC = JsonHandler.getFactory().objectNode();
         switch (dataCategory){
             case UNIT:
             case OBJECT_GROUP:
                 // get the document
-                unitWithLFC.set(dataCategory.equals(DataCategory.UNIT) ? UNIT_KEY : GOT_KEY,
+                docWithLFC.set(dataCategory.equals(DataCategory.UNIT) ? UNIT_KEY : GOT_KEY,
                         selectMetadataDocumentById(documentId, dataCategory));
                 // get the lfc
-                unitWithLFC.set(LFC_KEY, retrieveLogbookLifeCycleById(documentId, dataCategory));
+                docWithLFC.set(LFC_KEY, retrieveLogbookLifeCycleById(documentId, dataCategory));
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported category " + dataCategory);
@@ -590,7 +593,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         // create the result
         Map<String, Object> result = new HashMap<>();
         try{
-            InputStream stream = getInputStreamFromJsonNode(documentId, unitWithLFC);
+            InputStream stream = getInputStreamFromJsonNode(documentId, docWithLFC);
             result.put(SIZE_KEY, String.valueOf(stream.available()));
             result.put(STREAM_KEY, stream);
             // no need to set response as it is already closed by the client
@@ -756,7 +759,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         }
     }
 
-    private StoredInfoResult buildStoreDataResponse(String objectId, DataCategory category, String strategy,
+    private StoredInfoResult buildStoreDataResponse(String objectId, DataCategory category, String digest, String strategy,
         Map<String, Status> offerResults) throws StorageTechnicalException, StorageAlreadyExistsException {
 
         final String offerIds = String.join(", ", offerResults.keySet());
@@ -827,6 +830,8 @@ public class StorageDistributionImpl implements StorageDistribution {
         result.setNbCopy(offerResults.size());
         result.setStrategy(strategy);
         result.setOfferIds(Arrays.asList(offerResults.keySet().toArray(new String[0])));
+        result.setDigestType(digestType.getName());
+        result.setDigest(digest);
         LOGGER.debug("DEBUG result: {}", result);
         return result;
     }
@@ -842,10 +847,10 @@ public class StorageDistributionImpl implements StorageDistribution {
      * @return storage logbook parameters
      */
     private StorageLogbookParameters getParameters(String objectGuid, StoragePutResult putObjectResult,
-        Digest messageDigest,
-        String offerId, Status objectStored, String requester, int attempt) {
+        Digest messageDigest, String offerId, Status objectStored, String requester, int attempt) {
         final String objectIdentifier = objectGuid != null ? objectGuid : "objectRequest NA";
-        final String messageDig = messageDigest != null ? messageDigest.digestHex() : "messageDigest NA";
+        final String messageDig = messageDigest != null ? messageDigest.digestHex() : (putObjectResult != null ? 
+                putObjectResult.getDigestHashBase16() : "messageDigest NA") ;
         final String size = putObjectResult != null ? String.valueOf(putObjectResult.getObjectSize()) : "Size NA";
         boolean error = objectStored == Status.INTERNAL_SERVER_ERROR;
         final StorageLogbookOutcome outcome = error ? StorageLogbookOutcome.KO : StorageLogbookOutcome.OK;

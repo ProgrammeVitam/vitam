@@ -1,0 +1,38 @@
+{
+  "unit" : {
+    "#id" : "GUID_ARCHIVE_UNIT_CHILD",
+    "DescriptionLevel" : "Item",
+    "Title" : "Annuaire_projet.pdf",
+    "Description" : "Pseudo Archive Unit du fichier\n                        :C:\\Users\\mehdi.afnai\\Desktop\\content\\Annuaire_projet.pdf",
+    "TransactedDate" : "2016-03-23T14:58:30",
+    "#object" : "aeaaaaaaaaaam7mxabw5iakzn47qjaiaaaaq",
+    "#operations" : [ "aedqaaaaacaam7mxaabpuakzn47pvkiaaaaq" ],
+    "#tenant" : 0,
+    "#max" : 1,
+    "#min" : 1,
+    "#unitups" : [ ],
+    "#nbunits" : 1,
+    "#allunitups" : [ ]
+  },
+  "lfc" : {
+    "_id" : "aedqaaaaacaam7mxaaaamakvhiv4rsiaaa0",
+    "evId" : "aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq",
+    "evType" : "Process_SIP_unitary",
+    "evDateTime" : "2016-06-10T11:56:35.914",
+    "evIdProc" : "aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq",
+    "evTypeProc" : "INGEST",
+    "outcome" : "STARTED",
+    "outDetail" : null,
+    "outMessg" : "SIP entry : SIP.zip",
+    "agId" : "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1048375580,\"SiteId\":1,\"GlobalPlatformId\":243069212}",
+    "agIdApp" : null,
+    "agIdAppSession" : null,
+    "evIdReq" : "aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq",
+    "agIdSubm" : null,
+    "agIdOrig" : null,
+    "obId" : null,
+    "obIdReq" : null,
+    "obIdIn" : null,
+    "events" : [ ]
+  }
+}

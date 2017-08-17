@@ -96,6 +96,9 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
                 StoredInfoResult result = storeObject(description, itemStatus);
 
                 if (result != null) {
+                    // update sub task itemStatus
+                    itemStatus.setEvDetailData(detailsFromStorageInfo(result));
+
                     try {
                         storeStorageInfo((ObjectNode) mapOfObjects.objectJsonMap.get(objectGuid.getKey()), result, false);
                     } catch (InvalidCreateOperationException e) {

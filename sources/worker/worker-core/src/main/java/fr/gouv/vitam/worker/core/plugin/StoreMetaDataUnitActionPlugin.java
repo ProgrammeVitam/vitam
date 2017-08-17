@@ -135,6 +135,9 @@ public class StoreMetaDataUnitActionPlugin extends StoreObjectActionHandler {
                 StoredInfoResult result = storeObject(StorageCollectionType.UNITS, guid, itemStatus);
                 // Update unit with store information
                 if (result != null) {
+                    // update sub task itemStatus
+                    itemStatus.setEvDetailData(detailsFromStorageInfo(result));
+                    
                     try {
                         UpdateMultiQuery queryUpdate = storeStorageInfo((ObjectNode) unit, result, true);
                         query.addHintFilter(BuilderToken.FILTERARGS.UNITS.exactToken());

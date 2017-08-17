@@ -95,6 +95,9 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreObjectActionHandl
             StoredInfoResult result = storeObject(StorageCollectionType.OBJECTGROUPS, objectNameFinal, itemStatus);
             // Update OG with store information
             if (result != null) {
+                // update sub task itemStatus
+                itemStatus.setEvDetailData(detailsFromStorageInfo(result));
+                
                 try {
                     UpdateMultiQuery query = storeStorageInfo((ObjectNode) og, result, true);
                     query.addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());

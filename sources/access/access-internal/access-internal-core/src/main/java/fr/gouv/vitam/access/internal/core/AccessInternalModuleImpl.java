@@ -128,6 +128,7 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientExceptio
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -173,6 +174,10 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private static final String ID = "#id";
     private static final String DEFAULT_STRATEGY = "default";
 
+    private static final String FILE_NAME = "FileName";
+    private static final String OFFERS = "Offers";
+    private static final String ALGORITHM = "Algorithm";
+    private static final String DIGEST = "MessageDigest";
 
     private static final String WORKSPACE_SERVER_EXCEPTION = "workspace server exception";
     private static final String STORAGE_SERVER_EXCEPTION = "Storage server exception";
@@ -587,7 +592,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             stepStorageUpdate = false;
 
             // update stored Metadata
-            replaceStoredUnitMetadata(idUnit, requestId);
+            StoredInfoResult storedInfoResult = replaceStoredUnitMetadata(idUnit, requestId);
 
             if (updateLogbook) {
                 // update logbook operation TASK STORAGE
@@ -602,8 +607,12 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 // update logbook lifecycle TASK STORAGE
                 logbookLCParamEnd = getLogbookLifeCycleUpdateUnitParameters(updateOpGuidStart, StatusCode.OK,
                     idGUID, UNIT_METADATA_STORAGE);
-                logbookLCParamEnd.putParameterValue(LogbookParameterName.eventDetailData,
-                    getDiffMessageFor(jsonNode, idUnit));
+                if(storedInfoResult != null){
+                    // Diff always saved in LFC for Metadata Update event, we only save file infos in evDetData
+                    logbookLCParamEnd.putParameterValue(LogbookParameterName.eventDetailData, detailsFromStorageInfo(storedInfoResult));
+                } else {
+                    logbookLCParamEnd.putParameterValue(LogbookParameterName.eventDetailData, getDiffMessageFor(jsonNode, idUnit));    
+                }
                 logbookLifeCycleClient.update(logbookLCParamEnd);
 
                 // update logbook operation STP
@@ -623,6 +632,9 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 // Commit logbook lifeCycle action
                 logbookLifeCycleClient.commitUnit(updateOpGuidStart.toString(), idUnit);
             }
+
+            // updates (replaces) stored object (get unit and lfc from database and save it)
+            // storeMetaDataUnit(StorageCollectionType.UNITS, idUnit);
         } catch (final InvalidParseOperationException ipoe) {
             rollBackLogbook(logbookOperationClient, logbookLifeCycleClient, updateOpGuidStart, globalStep,
                 stepMetadataUpdate, stepStorageUpdate, stepCheckRules, null);
@@ -706,12 +718,13 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     /**
      * @param idUnit
      * @param requestId
+     * @return updated storedInfo for the unit
      * @throws InvalidParseOperationException
      * @throws StorageClientException
      * @throws AccessInternalException
      * @throws ContentAddressableStorageServerException
      */
-    private void replaceStoredUnitMetadata(String idUnit, String requestId)
+    private StoredInfoResult replaceStoredUnitMetadata(String idUnit, String requestId)
         throws InvalidParseOperationException, ContentAddressableStorageException,
         StorageClientException, AccessInternalException {
 
@@ -748,7 +761,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     }
                 }
                 // updates (replaces) stored object (get unit and lfc from database and save it)
-                storeMetaDataUnit(StorageCollectionType.UNITS, idUnit);
+                return storeMetaDataUnit(StorageCollectionType.UNITS, idUnit);
 
             } else {
                 LOGGER.error(ARCHIVE_UNIT_NOT_FOUND);
@@ -768,17 +781,18 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      *
      * @param type
      * @param uuid
+     * @return updated storedInfo for the unit
      * @throws StorageServerClientException
      * @throws StorageNotFoundClientException
      * @throws StorageAlreadyExistsClientException
      * @throws ProcessingException when error in execution
      */
-    private void storeMetaDataUnit(StorageCollectionType type, String uuid) throws StorageClientException {
+    private StoredInfoResult storeMetaDataUnit(StorageCollectionType type, String uuid) throws StorageClientException {
         final StorageClient storageClient =
             storageClientMock == null ? StorageClientFactory.getInstance().getClient() : storageClientMock;
         try {
             // store binary data object
-            storageClient.storeFileFromDatabase(DEFAULT_STRATEGY, type, uuid);
+            return storageClient.storeFileFromDatabase(DEFAULT_STRATEGY, type, uuid);
         } finally {
             if (storageClient != null && storageClientMock == null) {
                 storageClient.close();
@@ -872,6 +886,20 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 outcomeDetailMessage,
                 eventIdentifierRequest);
         return parameters;
+    }
+
+    protected String detailsFromStorageInfo(StoredInfoResult result){
+        final ObjectNode object = JsonHandler.createObjectNode();
+
+        if(result != null){
+            object.put(FILE_NAME, result.getId() );
+            object.put(ALGORITHM, result.getDigestType());
+            object.put(DIGEST, result.getDigest());
+            List<String> offers = result.getOfferIds();
+            object.put(OFFERS, offers != null ? String.join(",", offers) : "");
+        }
+
+        return JsonHandler.unprettyPrint( object );
     }
 
     private String getDiffMessageFor(JsonNode diff, String unitId) throws InvalidParseOperationException {
