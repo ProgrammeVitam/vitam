@@ -319,6 +319,10 @@ public class WorkerImpl implements Worker {
         LogbookLifeCycleParameters finalLogbookLfcParam = LogbookLifeCyclesClientHelper.copy(logbookParam);
         finalLogbookLfcParam.setFinalStatus(handlerName, null, actionResponse.getGlobalStatus(),
             actionResponse.getMessage());
+        if (!actionResponse.getEvDetailData().isEmpty()) {
+            finalLogbookLfcParam.putParameterValue(LogbookParameterName.eventDetailData,
+                    actionResponse.getEvDetailData());
+        }
         logbookParamList.add(finalLogbookLfcParam);
         for (final Entry<String, ItemStatus> entry : actionResponse.getItemsStatus().entrySet()) {
             for (final Entry<String, ItemStatus> subTaskEntry : entry.getValue().getSubTaskStatus().entrySet()) {

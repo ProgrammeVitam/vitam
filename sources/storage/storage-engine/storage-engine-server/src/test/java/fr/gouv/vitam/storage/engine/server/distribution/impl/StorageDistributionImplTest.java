@@ -231,7 +231,14 @@ public class StorageDistributionImplTest {
         info = storedInfoResult.getInfo();
         assertNotNull(info);
         assertTrue(info.contains("Unit") && info.contains("successfully"));
-
+        // check digest algorithm
+        assertEquals(storedInfoResult.getDigestType(), DigestType.SHA1.getName());
+        // Check stored file by comparing digest
+        final String expectedDigest = Digest.digest(PropertiesUtils.findFile("unit_lfc_result.json"), 
+                DigestType.SHA1).digestHex();
+        final String actualDigest = storedInfoResult.getDigest();
+        assertEquals(expectedDigest, actualDigest);
+        
         // Store logbook
         stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         stream2 = new FileInputStream(PropertiesUtils.findFile("object.zip"));
@@ -292,14 +299,21 @@ public class StorageDistributionImplTest {
         info = storedInfoResult.getInfo();
         assertNotNull(info);
         assertTrue(info.contains("ObjectGroup") && info.contains("successfully"));
-
+        // check digest algorithm
+        assertEquals(storedInfoResult.getDigestType(), DigestType.SHA1.getName());
+        // Check stored file by comparing digest
+        final String expectedDigest2 = Digest.digest(PropertiesUtils.findFile("got_lfc_result.json"),
+                DigestType.SHA1).digestHex();
+        final String actualDigest2 = storedInfoResult.getDigest();
+        assertEquals(expectedDigest2, actualDigest2);
+        
         Digest digest = Digest.digest(new FileInputStream(PropertiesUtils.findFile("object.zip")),
             VitamConfiguration.getDefaultDigestType());
         // lets delete the object on offers
         customDistribution.deleteObject(STRATEGY_ID, objectId, digest.toString(), DigestType.SHA1);
 
     }
-
+    
     @Test(expected = StorageTechnicalException.class)
     @RunWithCustomExecutor
     public void testStoreData_retry_KO() throws Exception {

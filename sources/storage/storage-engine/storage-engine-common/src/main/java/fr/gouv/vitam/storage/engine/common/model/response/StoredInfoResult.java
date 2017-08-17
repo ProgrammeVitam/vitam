@@ -55,6 +55,10 @@ public class StoredInfoResult {
     private int nbCopy;
     @JsonProperty("offerIds")
     private List<String> offerIds;
+    @JsonProperty("digestType")
+    private String digestType;
+    @JsonProperty("digest")
+    private String digest;
 
     /**
      * @return the strategy
@@ -229,6 +233,38 @@ public class StoredInfoResult {
      */
     public StoredInfoResult setLastModifiedTime(String lastModifiedTime) {
         this.lastModifiedTime = lastModifiedTime;
+        return this;
+    }
+
+    /**
+     * @return the digestType
+     */
+    public String getDigestType() {
+        return digestType;
+    }
+
+    /**
+     * @param digestType of global result
+     * @return this
+     */
+    public StoredInfoResult setDigestType(String digestType) {
+        this.digestType = digestType;
+        return this;
+    }
+
+    /**
+     * @return the digest
+     */
+    public String getDigest() {
+        return digest;
+    }
+
+    /**
+     * @param digest of global result
+     * @return this
+     */
+    public StoredInfoResult setDigest(String digest) {
+        this.digest = digest;
         return this;
     }
     

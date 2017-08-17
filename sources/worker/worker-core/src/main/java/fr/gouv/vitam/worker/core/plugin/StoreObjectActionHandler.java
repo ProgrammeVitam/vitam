@@ -62,6 +62,11 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
         VitamLoggerFactory.getInstance(StoreObjectActionHandler.class);
 
     private static final String DEFAULT_STRATEGY = "default";
+    
+    private static final String FILE_NAME = "FileName";
+    private static final String OFFERS = "Offers";
+    private static final String ALGORITHM = "Algorithm";
+    private static final String DIGEST = "MessageDigest";
 
     private final StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
 
@@ -158,5 +163,25 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
             return query;
         }
         return null;
+    }
+
+    /**
+     * detailsFromStorageInfo, get storage details as JSON String from storageInfo result
+     * 
+     * @param result
+     * @return JSON String
+     */
+    protected String detailsFromStorageInfo(StoredInfoResult result){
+        final ObjectNode object = JsonHandler.createObjectNode();
+        
+        if(result != null){
+            object.put(FILE_NAME, result.getId() );
+            object.put(ALGORITHM, result.getDigestType());
+            object.put(DIGEST, result.getDigest());
+            List<String> offers = result.getOfferIds();
+            object.put(OFFERS, offers != null ? String.join(",", offers) : "");   
+        }
+        
+        return JsonHandler.unprettyPrint( object );
     }
 }
