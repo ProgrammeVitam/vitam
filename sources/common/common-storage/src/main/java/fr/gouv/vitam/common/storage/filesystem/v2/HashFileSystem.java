@@ -42,6 +42,8 @@ import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.common.storage.cas.container.api.MetadatasStorageObject;
+import fr.gouv.vitam.common.storage.cas.container.api.VitamPageSet;
+import fr.gouv.vitam.common.storage.cas.container.api.VitamStorageMetadata;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.common.storage.constants.ExtendedAttributes;
 import fr.gouv.vitam.common.storage.filesystem.v2.metadata.container.HashContainerMetadata;
@@ -49,8 +51,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExi
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import org.jclouds.blobstore.domain.PageSet;
-import org.jclouds.blobstore.domain.StorageMetadata;
+
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
@@ -61,7 +62,14 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
-import java.nio.file.*;
+import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.FileSystemException;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.UserDefinedFileAttributeView;
@@ -392,7 +400,7 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     }
 
     @Override
-    public PageSet<? extends StorageMetadata> listContainer(String containerName)
+    public VitamPageSet<? extends VitamStorageMetadata> listContainer(String containerName)
         throws ContentAddressableStorageNotFoundException {
         ParametersChecker
             .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
@@ -407,7 +415,8 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     }
 
     @Override
-    public PageSet<? extends StorageMetadata> listContainerNext(String containerName, String nextMarker)
+    public VitamPageSet<? extends VitamStorageMetadata> listContainerNext(String containerName,
+        String nextMarker)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker
             .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
