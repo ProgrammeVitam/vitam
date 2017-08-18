@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.client;
 
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -206,6 +207,16 @@ public interface AccessInternalClient extends MockOrRestClient {
     Response downloadTraceabilityFile(String operationId)
         throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
         InvalidParseOperationException, AccessUnauthorizedException;
+
+    /**
+     *
+     * @param queryDsl
+     * @param idUnit
+     * @return unit with a xml representation
+     */
+    Response getUnitByIdWithXMLFormat(JsonNode queryDsl, @PathParam("id_unit") String idUnit)
+        throws AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
+        InvalidParseOperationException;
 
 
 }

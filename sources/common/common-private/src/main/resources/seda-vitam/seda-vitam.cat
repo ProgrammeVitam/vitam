@@ -1,0 +1,3 @@
+PUBLIC "http://www.w3.org/1999/xlink" "seda-vitam/1999/xlink.xsd"
+PUBLIC "http://www.w3.org/XML/1998/namespace" "seda-vitam/2001/xml.xsd"
+REWRITE_SYSTEM "http://www.w3.org" "w3c"

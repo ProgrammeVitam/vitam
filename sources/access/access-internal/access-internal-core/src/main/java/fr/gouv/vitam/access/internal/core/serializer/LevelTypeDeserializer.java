@@ -24,22 +24,32 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.model;
+package fr.gouv.vitam.access.internal.core.serializer;
 
-import java.util.List;
+import java.io.IOException;
 
-import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 
-public class TextByLang {
-
-    private List<TextType> textTypes;
-
-    public TextByLang(List<TextType> textTypes) {
-        this.textTypes = textTypes;
-    }
-
-    public List<TextType> getTextTypes() {
-        return textTypes;
+/**
+ * Deserialize a (json, xml, string) representation to LevelType
+ * To be registered in jackson objectMapper
+ */
+public class LevelTypeDeserializer extends JsonDeserializer<LevelType> {
+    /**
+     *
+     * @param jp (json, xml, string) representation
+     * @param ctxt
+     * @return
+     * @throws IOException
+     */
+    @Override
+    public LevelType deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+        JsonNode node = jp.getCodec().readTree(jp);
+        return LevelType.fromValue(node.asText());
     }
 
 }

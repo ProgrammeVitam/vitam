@@ -55,6 +55,7 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFou
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
@@ -190,6 +191,49 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             status = Status.NOT_FOUND;
             return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         } catch (AccessUnauthorizedException e) {
+            LOGGER.error("Contract access does not allow ", e);
+            status = Status.UNAUTHORIZED;
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+        }
+    }
+
+
+    /**
+     * Get unit int xml format
+     * @param queryJson
+     * @param idUnit
+     * @return ArchiveUnit in xml format
+     */
+    @GET
+    @Path("/units/{idu}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_XML)
+    public Response selectUnitByIdOnXML(JsonNode queryJson, @PathParam("idu") String idUnit) {
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        Status status;
+        ParametersChecker.checkParameter("unit id is required", idUnit);
+        Response xmlFormat = null;
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+            xmlFormat = client.getUnitByIdWithXMLFormat(queryJson, idUnit);
+            return xmlFormat;
+        } catch (final InvalidParseOperationException e) {
+            DefaultClient.staticConsumeAnyEntityAndClose(xmlFormat);
+            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+        } catch (final AccessInternalClientServerException e) {
+            DefaultClient.staticConsumeAnyEntityAndClose(xmlFormat);
+            LOGGER.error("Unauthorized request Exception ", e);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+        } catch (final AccessInternalClientNotFoundException e) {
+            DefaultClient.staticConsumeAnyEntityAndClose(xmlFormat);
+            LOGGER.error("Request resources does not exits", e);
+            status = Status.NOT_FOUND;
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+        } catch (AccessUnauthorizedException e) {
+            DefaultClient.staticConsumeAnyEntityAndClose(xmlFormat);
             LOGGER.error("Contract access does not allow ", e);
             status = Status.UNAUTHORIZED;
             return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();

@@ -28,17 +28,15 @@
 package fr.gouv.vitam.worker.core.extractseda;
 
 import java.io.IOException;
-import java.util.Objects;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
 
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.worker.core.model.TextByLang;
+import fr.gouv.vitam.common.model.unit.TextByLang;
 
 /**
  * textType serializer

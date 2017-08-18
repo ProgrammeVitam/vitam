@@ -26,15 +26,27 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.storage.filesystem.v2;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageTestAbstract;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.common.storage.constants.ExtendedAttributes;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.IOException;
-
 public class HashFileSystemTest extends ContentAddressableStorageTestAbstract {
+
+
+    public static final String ROOT_CONTAINER = "container";
+    public static final String FILE = "test1";
+    public static final String DIGEST_EXTENDED_ATTRIBUTE =
+        "SHA-512:a7c976db1723adb41274178dc82e9b777941ab201c69de61d0f2bc6d27a3598f594fa748e50d88d3c2bf1e2c2e72c3cfef78c3c6d4afa90391f7e33ababca48e";
 
     @Before
     public void setup() throws IOException {
@@ -42,6 +54,36 @@ public class HashFileSystemTest extends ContentAddressableStorageTestAbstract {
         tempDir = tempFolder.newFolder();
         configuration.setStoragePath(tempDir.getCanonicalPath());
         storage = new HashFileSystem(configuration);
+    }
+
+    /**
+     * THis test work only if your temporary folder support linux extended attribute
+     *
+     * @throws Exception
+     */
+    @Test
+    public void should_write_and_read_extended_attribute() throws Exception {
+
+        // Given
+        File rootContainer = new File(tempDir, ROOT_CONTAINER);
+        rootContainer.mkdir();
+
+        File container = new File(rootContainer, CONTAINER_NAME);
+        container.mkdir();
+
+        Path path = container.toPath().resolve("1").resolve("b").resolve("4").resolve("f");
+        Files.createDirectories(path);
+
+        Path file = path.resolve(FILE);
+        Files.write(file, new byte[] {1, 2, 3, 4});
+
+        storage.computeObjectDigest(CONTAINER_NAME, FILE, DigestType.SHA512);
+
+        // When
+        String hash = ((HashFileSystem) storage).readExtendedMetadata(file, ExtendedAttributes.DIGEST.getKey());
+
+        // Then
+        assertThat(hash).isEqualTo(DIGEST_EXTENDED_ATTRIBUTE);
     }
 
 }

@@ -24,75 +24,17 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.model;
+package fr.gouv.vitam.common.model.unit;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
+public class DataObjectReference {
 
-public class ArchiveUnitModel {
+    private String dataObjectGroupReferenceId;
 
-    @JsonProperty("_id")
-    private String id;
-
-    @JsonProperty("_og")
-    private String og;
-
-    private String archiveUnitProfile;
-
-    private ManagementModel management;
-
-    @JsonUnwrapped
-    @JsonProperty("Content")
-    private DescriptiveMetadataModel descriptiveMetadataModel;
-
-    private DataObjectReference dataObjectReference;
-
-    public ArchiveUnitModel() {
-        management = new ManagementModel();
+    public String getDataObjectGroupReferenceId() {
+        return dataObjectGroupReferenceId;
     }
 
-    public String getId() {
-        return id;
+    public void setDataObjectGroupReferenceId(String dataObjectGroupReferenceId) {
+        this.dataObjectGroupReferenceId = dataObjectGroupReferenceId;
     }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getArchiveUnitProfile() {
-        return archiveUnitProfile;
-    }
-
-    public void setArchiveUnitProfile(String archiveUnitProfile) {
-        this.archiveUnitProfile = archiveUnitProfile;
-    }
-
-    public ManagementModel getManagement() {
-        return management;
-    }
-
-    public DescriptiveMetadataModel getDescriptiveMetadataModel() {
-        return descriptiveMetadataModel;
-    }
-
-    public void setDescriptiveMetadataModel(DescriptiveMetadataModel descriptiveMetadataModel) {
-        this.descriptiveMetadataModel = descriptiveMetadataModel;
-    }
-
-    public DataObjectReference getDataObjectReference() {
-        return dataObjectReference;
-    }
-
-    public void setDataObjectReference(DataObjectReference dataObjectReference) {
-        this.dataObjectReference = dataObjectReference;
-    }
-
-    public String getOg() {
-        return og;
-    }
-
-    public void setOg(String og) {
-        this.og = og;
-    }
-
 }

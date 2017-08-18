@@ -30,6 +30,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
 import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -138,5 +143,17 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
         return new AbstractMockClient.FakeInboundResponse(Status.OK, IOUtils.toInputStream(MOCK_GET_FILE_CONTENT),
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
     }
+
+    @Override
+    public Response getUnitByIdWithXMLFormat(JsonNode queryDsl, String idUnit) throws AccessInternalClientServerException {
+        try (InputStream resourceAsStream = getClass().getResourceAsStream("/unit.xml")){
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            IOUtils.copy(resourceAsStream, byteArrayOutputStream);
+            return Response.ok().entity(byteArrayOutputStream.toByteArray()).build();
+        } catch (IOException e) {
+            throw new AccessInternalClientServerException(e);
+        }
+    }
+
 
 }

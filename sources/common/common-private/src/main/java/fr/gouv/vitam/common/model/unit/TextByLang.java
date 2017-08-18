@@ -24,17 +24,22 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.model;
+package fr.gouv.vitam.common.model.unit;
 
-public class DataObjectReference {
+import java.util.List;
 
-    private String dataObjectGroupReferenceId;
+import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 
-    public String getDataObjectGroupReferenceId() {
-        return dataObjectGroupReferenceId;
+public class TextByLang {
+
+    private List<TextType> textTypes;
+
+    public TextByLang(List<TextType> textTypes) {
+        this.textTypes = textTypes;
     }
 
-    public void setDataObjectGroupReferenceId(String dataObjectGroupReferenceId) {
-        this.dataObjectGroupReferenceId = dataObjectGroupReferenceId;
+    public List<TextType> getTextTypes() {
+        return textTypes;
     }
+
 }

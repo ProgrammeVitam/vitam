@@ -493,7 +493,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
     /**
      * 
      * @param config
-     * @param chunked
+     * @param engine
      * @return the ResteasyClientBuilder
      */
     private ResteasyClientBuilder configureRestEasy(Map<VitamRestEasyConfiguration, Object> config,

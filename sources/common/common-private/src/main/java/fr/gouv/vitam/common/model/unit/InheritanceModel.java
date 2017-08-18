@@ -24,17 +24,42 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.model;
+package fr.gouv.vitam.common.model.unit;
 
-public class ArchiveUnitRoot {
+import java.util.HashSet;
+import java.util.Set;
 
-    private ArchiveUnitModel archiveUnit;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
-    public ArchiveUnitRoot() {
-        archiveUnit = new ArchiveUnitModel();
+public class InheritanceModel {
+
+    private Boolean preventInheritance;
+
+    private Set<String> preventRulesId;
+
+    public InheritanceModel() {
+        preventRulesId = new HashSet<>();
     }
 
-    public ArchiveUnitModel getArchiveUnit() {
-        return archiveUnit;
+    public Boolean isPreventInheritance() {
+        return preventInheritance;
     }
+
+    public void setPreventInheritance(Boolean preventInheritance) {
+        this.preventInheritance = preventInheritance;
+    }
+
+    public Set<String> getPreventRulesId() {
+        return preventRulesId;
+    }
+
+    @JsonIgnore
+    public void merge(InheritanceModel inheritance) {
+        if (inheritance.isPreventInheritance() != null) {
+            this.preventInheritance = inheritance.isPreventInheritance();
+        }
+        preventRulesId.addAll(inheritance.getPreventRulesId());
+
+    }
+
 }

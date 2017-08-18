@@ -30,10 +30,8 @@ package fr.gouv.vitam.common.auth.web.filter;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.io.StringReader;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.util.Base64;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -45,9 +43,6 @@ import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.web.filter.authc.AuthenticatingFilter;
 
 import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationToken;
-import org.bouncycastle.util.io.pem.PemReader;
-import sun.misc.BASE64Decoder;
-import sun.misc.BASE64Encoder;
 
 /**
  * Based on work: Copyright Paul Merlin 2011 (Apache Licence v2.0)
