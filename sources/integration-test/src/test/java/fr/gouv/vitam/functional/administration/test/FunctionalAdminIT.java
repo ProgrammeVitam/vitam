@@ -27,6 +27,8 @@
 package fr.gouv.vitam.functional.administration.test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -37,6 +39,10 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import fr.gouv.vitam.common.database.builder.query.action.SetAction;
+import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
+import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
+import fr.gouv.vitam.functional.administration.contract.core.IngestContractImpl;
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -145,6 +151,7 @@ public class FunctionalAdminIT {
     private static ProfileService profileService;
     private static RulesManagerFileImpl rulesManagerFile;
     private static ReferentialFormatFileImpl referentialFormatFile;
+    private static IngestContractImpl ingestContract;
     private static MongoDbAccessAdminImpl dbImpl;
 
     @BeforeClass
@@ -243,6 +250,9 @@ public class FunctionalAdminIT {
         referentialFormatFile = new ReferentialFormatFileImpl(
             MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)));
 
+        ingestContract = new IngestContractImpl(
+                MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)),
+                vitamCounterService);
     }
 
     @AfterClass
@@ -348,5 +358,73 @@ public class FunctionalAdminIT {
         assertThat(evDetData).isNotNull();
         assertThat(evDetData.get("FileName")).isNotNull();
         assertThat(evDetData.get("FileName").asText()).isEqualTo("DROID_SignatureFile_V88.xml");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public final void testImportAndUpdateIngestContract() throws Exception {
+        RestAssured.port = logbookPort;
+        RestAssured.basePath = LOGBOOK_REST_URI;
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        // do the import 
+        File fileContracts =
+                PropertiesUtils.getResourceFile("integration-ingest-internal/referential_contracts_ok.json");
+        List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
+                new TypeReference<List<IngestContractModel>>() {});
+        ingestContract.createContracts(IngestContractModelList);
+        
+        // check import log
+        LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
+        final Select select = new Select();
+        select.setQuery(new CompareQuery(QUERY.EQ, "evType", "STP_IMPORT_INGEST_CONTRACT"));
+        select.setLimitFilter(0, 1);
+        select.addOrderByDescFilter("evDateTime");
+        JsonNode result = logbookClient.selectOperation(select.getFinalSelect());
+        assertThat(result).isNotNull();
+        JsonNode operation = ((ArrayNode) result.get("$results")).get(0);
+        assertThat(operation).isNotNull();
+        JsonNode lastEvent =
+                ((ArrayNode) operation.get("events")).get(((ArrayNode) operation.get("events")).size() - 1);
+        assertThat(lastEvent).isNotNull();
+        assertThat(lastEvent.has("outcome")).isTrue();
+        assertThat(lastEvent.get("outcome").asText()).isEqualTo("OK");
+        
+        // check created contract
+        final Select select2 = new Select();
+        select2.setQuery(exists("Name"));
+        List<IngestContractModel> contractModels = ingestContract.findContracts(select2.getFinalSelect()).getResults();
+        assertThat(contractModels).isNotEmpty();
+        IngestContractModel contractModel =  contractModels.get(0);
+        assertThat(contractModel).isNotNull();
+        assertThat(contractModel.getStatus().equals("ACTIVE"));
+        String contractToUpdate = contractModel.getIdentifier();
+        
+        // do an update
+        UpdateMultiQuery updateQuery = new UpdateMultiQuery();
+        updateQuery.addActions(new SetAction("Status", "INACTIVE"));
+        ingestContract.updateContract(contractToUpdate, updateQuery.getFinalUpdate());
+        
+        // check update
+        IngestContractModel updatedContractModel = ingestContract.findOne(contractToUpdate);
+        assertThat(updatedContractModel).isNotNull();
+        assertThat(updatedContractModel.getStatus().equals("INACTIVE")).isTrue();
+                
+        // check update log
+        select.setQuery(new CompareQuery(QUERY.EQ, "evType", "STP_UPDATE_INGEST_CONTRACT"));
+        result = logbookClient.selectOperation(select.getFinalSelect());
+        assertThat(result).isNotNull();
+        operation = ((ArrayNode) result.get("$results")).get(0);
+        assertThat(operation).isNotNull();
+        lastEvent = ((ArrayNode) operation.get("events")).get(((ArrayNode) operation.get("events")).size() - 1);
+        assertThat(lastEvent).isNotNull();
+        assertThat(lastEvent.has("outcome")).isTrue();
+        assertThat(lastEvent.get("outcome").asText()).isEqualTo("OK");
+        assertThat(lastEvent.has("evDetData")).isTrue();
+        JsonNode evDetData = JsonHandler.getFromString(lastEvent.get("evDetData").asText());
+        assertThat(evDetData).isNotNull();
+        assertThat(evDetData.get("IngestContract")).isNotNull();
+        assertThat(evDetData.get("IngestContract").get("updatedDiffs")).isNotNull();
+        assertThat(evDetData.get("IngestContract").get("updatedDiffs").asText()).contains("-  Status : ACTIVE+  Status : INACTIVE");
     }
 }

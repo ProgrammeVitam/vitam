@@ -34,9 +34,11 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -289,6 +291,9 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
      */
     protected final static class IngestContractManager {
 
+        private static final String UPDATED_DIFFS = "updatedDiffs";
+        private static final String INGEST_CONTRACT = "IngestContract";
+
         private static List<GenericContractValidator<IngestContractModel>> validators = Arrays.asList(
             createMandatoryParamsValidator(), createWrongFieldFormatValidator(),
             createCheckDuplicateInDatabaseValidator(), createCheckProfilesExistsInDatabaseValidator());
@@ -424,13 +429,16 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
         }
 
-        private void logUpdateSuccess(String id, String updateEventDetailData, String oldValue) throws VitamException {
+        private void logUpdateSuccess(String id, List<String> listDiffs) throws VitamException {
             final ObjectNode evDetData = JsonHandler.createObjectNode();
+            final ObjectNode evDetDataContract = JsonHandler.createObjectNode();
+            final String diffs = listDiffs.stream().reduce("", String::concat);
+
             final ObjectNode msg = JsonHandler.createObjectNode();
-            msg.put("updateField", "Status");
-            msg.put("oldValue", oldValue);
-            msg.put("newValue", updateEventDetailData);
-            evDetData.put("IngestContract", msg);
+            msg.put(UPDATED_DIFFS, diffs);
+            evDetDataContract.set(id, msg);
+
+            evDetData.set(INGEST_CONTRACT, msg);
             final String wellFormedJson = SanityChecker.sanitizeJson(evDetData);
             final LogbookOperationParameters logbookParameters =
                 LogbookParametersFactory
@@ -660,6 +668,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             }
         }
 
+        Map<String, List<String>> updateDiffs = new HashMap<>();
         try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
             if (queryDsl.findValue(IngestContractModel.FILING_PARENT_ID) != null) {
                 final String filingParentId = queryDsl.findValue(IngestContractModel.FILING_PARENT_ID).asText();
@@ -702,7 +711,9 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
                 return error;
             }
-            mongoAccess.updateData(queryDsl, FunctionalAdminCollections.INGEST_CONTRACT).close();
+            DbRequestResult result = mongoAccess.updateData(queryDsl, FunctionalAdminCollections.INGEST_CONTRACT);
+            updateDiffs = result.getDiffs();
+            result.close();
         } catch (ReferentialException | InvalidCreateOperationException e) {
             final String err = new StringBuilder("Update ingest contracts error > ").append(e.getMessage()).toString();
             manager.logFatalError(err);
@@ -712,7 +723,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
             return error;
         }
-        manager.logUpdateSuccess(ingestContractModel.getId(), updateStatus, ingestContractModel.getStatus());
+        manager.logUpdateSuccess(ingestContractModel.getId(), updateDiffs.get(ingestContractModel.getId()));
         return new RequestResponseOK<>();
     }
 
