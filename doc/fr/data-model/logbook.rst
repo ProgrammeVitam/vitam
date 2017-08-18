@@ -224,7 +224,7 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
     *Actuellement, la valeur est toujours 'null'. Ce champ existe pour les structures incluantes et incluses*
 
 "obIdIn" (ObjectIdentifierIncome): Identifiant externe du lot d’objets auquel s’applique l’opération.
-      Chaîne de caractère intelligible pour un humain qui permet de comprendre à quel SIP ou quel lot d'archives se raporte l'événement.
+      Chaîne de caractères intelligible pour un humain qui permet de comprendre à quel SIP ou quel lot d'archives se raporte l'événement.
       Reprend le contenu du champ MessageIdentifier du message ArchiveTransfer.
 
       *Ce champ existe pour les structures incluantes et incluses*
@@ -458,6 +458,13 @@ Détail des champs du JSON stocké en base
 
     - diff: contient la différence entre les métadonnées d'origine et les métadonnées modifiées. Chaîne de caractères.
 
+En outre, lors de l'historisation de la sauvegarde de l'unité archivistique sur les offres de stockage, on utilise ce champ pour tracer les informations sur le fichier sauvegardé. Il contient, ainsi, un JSON composé comme suit :
+
+    - FileName : Identifiant du fichier. Il s'agit du nom du fichier sauvegardé dans le stockage.
+    - Algorithm : Algorithme de hachage. Il s'agit du nom de l'algorithme de hachage.
+    - MessageDigest : Empreinte du fichier. Il s'agit d'une chaîne de caractères contenant l'empreinte du fichier.
+    - Offers : Offres de srockage. Il s'agit des offres de stockage utilisées pour la sauvegarde du fichier.
+
     *Ce champ existe pour les structures incluantes et incluses*
 
 "events": tableau de structure
@@ -647,6 +654,19 @@ Détail des champs du JSON stocké en base
     - Algorithm : algorithme de hachage utilisé dans le bordereau. Chaîne de caractères. Reprends l'attribut de champ "MessageDigest" du message ArchiveTransfer.
     - SystemMessageDigest : empreinte de l'objet réalisé par la solution logicielle Vitam. Chaîne de caractères.
     - SystemAlgorithm : algorithme de hachage utilisé par la solution logicielle Vitam. Chaîne de caractères.
+
+En outre, pour l'événement LFC.OBJ_STORAGE, on utilise ce champ pour tracer les informations sur l'objet (fichier binaire) sauvegardé. Il contient un JSON composé comme suit :
+
+    - FileName : Identifiant du fichier. Il s'agit du nom du fichier sauvegardé dans le stockage.
+    - Algorithm : Algorithme de hachage. Il s'agit du nom de l'algorithme de hachage.
+    - MessageDigest : Empreinte de l'objet. Il s'agit d'une chaîne de caractères contenant l'empreinte de l'objet.
+    - Offers : Offres de srockage. Il s'agit des offres de stockage utilisées pour la sauvegarde de l'objet.
+
+Pour l'événement LFC.OG_METADATA_STORAGE, on utilise ce champ pour tracer les informations sur le fichier (métadonnée) sauvegardé. Il contient un JSON composé comme suit :
+    - FileName : Identifiant du fichier. Il s'agit du nom du fichier sauvegardé dans le stockage.
+    - Algorithm : Algorithme de hachage. Il s'agit du nom de l'algorithme de hachage.
+    - MessageDigest : Empreinte du fichier. Il s'agit d'une chaîne de caractères contenant l'empreinte du fichier.
+    - Offers : Offres de srockage. Il s'agit des offres de stockage utilisées pour la sauvegarde du fichier.
 
     *Ce champ existe pour les structures incluantes et incluses*
 
