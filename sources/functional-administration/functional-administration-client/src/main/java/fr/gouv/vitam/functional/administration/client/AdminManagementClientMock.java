@@ -359,4 +359,9 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
         return ClientMockResultHelper.createReponse(model);
 
     }
+
+    @Override
+    public Status launchAuditWorkflow(JsonNode options) throws AdminManagementClientServerException {
+        return Status.OK;
+    }
 }

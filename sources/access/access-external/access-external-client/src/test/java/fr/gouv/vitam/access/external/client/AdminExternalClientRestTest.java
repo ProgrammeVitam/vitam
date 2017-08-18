@@ -57,6 +57,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
 
     private static final String ID = "id";
     protected static final String HOSTNAME = "localhost";
+    private static final String AUDIT_OPTION = "{serviceProducteur: \"Service Producteur 1\"}";
     protected AdminExternalClientRest client;
     final int TENANT_ID = 0;
     final String CONTRACT = "contract";
@@ -186,6 +187,13 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         public Response downloadTraceabilityOperationFile(@PathParam("id") String id)
             throws InvalidParseOperationException {
             return expectedResponse.get();
+        }
+        
+        @POST
+        @Path(AccessExtAPI.AUDITS)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response checkExistenceAudit(JsonNode query) {
+            return expectedResponse.post();
         }
 
     }
@@ -686,6 +694,14 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         throws Exception {
         when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
         client.downloadTraceabilityOperationFile(ID, TENANT_ID, CONTRACT);
+    }
+    
+    @Test
+    public void testCheckExistenceAudit() 
+        throws Exception{
+        when(mock.post()).thenReturn(Response.status(Status.OK).build());
+        JsonNode auditOption = JsonHandler.getFromString(AUDIT_OPTION);
+        assertThat(client.launchAudit(auditOption, TENANT_ID, CONTRACT)).isEqualTo(Status.OK);
     }
 
 }

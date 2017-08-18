@@ -124,8 +124,7 @@ public class AdminManagementExternalResourceImpl {
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkDocument(@PathParam("collection") String collection,
         InputStream document) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        addRequestId();
         try {
             ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", document);
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
@@ -259,8 +258,7 @@ public class AdminManagementExternalResourceImpl {
             return Response.status(status).entity(getErrorEntity(status, "Endpoint accept only profiles", null))
                 .build();
         }
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        addRequestId();
         try {
             ParametersChecker.checkParameter("profileFile stream is a mandatory parameter", profileFile);
             ParametersChecker.checkParameter(profileMetadataId, "The profile id is mandatory");
@@ -305,8 +303,7 @@ public class AdminManagementExternalResourceImpl {
 
         if (AdminCollections.PROFILE.compareTo(collection)) {
             ParametersChecker.checkParameter("Profile id should be filled", fileId);
-            Integer tenantId = ParameterHelper.getTenantParameter();
-            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+            addRequestId();
             VitamThreadPoolExecutor.getDefaultExecutor()
                 .execute(() -> asyncDownloadProfileFile(fileId, asyncResponse));
 
@@ -314,8 +311,7 @@ public class AdminManagementExternalResourceImpl {
             try {
                 ParametersChecker.checkParameter("Traceability operation should be filled", fileId);
 
-                Integer tenantId = ParameterHelper.getTenantParameter();
-                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+                addRequestId();
 
                 VitamThreadPoolExecutor.getDefaultExecutor()
                     .execute(() -> downloadTraceabilityOperationFile(fileId, asyncResponse));
@@ -413,8 +409,7 @@ public class AdminManagementExternalResourceImpl {
         @PathParam("collection") String collection, JsonNode select) {
 
 
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        addRequestId();
         try {
             ParametersChecker.checkParameter(collection, "The collection is mandatory");
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
@@ -492,8 +487,7 @@ public class AdminManagementExternalResourceImpl {
     public Response createOrfindDocuments(@PathParam("collection") String collection, JsonNode select)
         throws DatabaseConflictException {
 
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        addRequestId();
         ParametersChecker.checkParameter("Json select is a mandatory parameter", select);
         ParametersChecker.checkParameter(collection, "The collection is mandatory");
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
@@ -561,8 +555,7 @@ public class AdminManagementExternalResourceImpl {
     @Produces(MediaType.APPLICATION_JSON)
     public Response findDocumentByID(@PathParam("collection") String collection,
         @PathParam("id_document") String documentId) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        addRequestId();
         return Response.status(Status.BAD_REQUEST)
             .entity(getErrorEntity(Status.BAD_REQUEST, "Method not yet implemented", null)).build();
     }
@@ -579,8 +572,7 @@ public class AdminManagementExternalResourceImpl {
     @Produces(MediaType.APPLICATION_JSON)
     public Response findDocumentByID(@PathParam("collection") String collection,
         @PathParam("id_document") String documentId, JsonNode select) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        addRequestId();
         try {
             ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
             SanityChecker.checkParameter(documentId);
@@ -652,8 +644,7 @@ public class AdminManagementExternalResourceImpl {
     public Response updateDocument(@PathParam("collection") String collection,
         @PathParam("id") String id, JsonNode queryDsl)
         throws AdminManagementClientServerException, InvalidParseOperationException {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        addRequestId();
         try {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 RequestResponse response = null;
@@ -695,8 +686,7 @@ public class AdminManagementExternalResourceImpl {
     @Path(AccessExtAPI.ACCESSION_REGISTERS_API + "/{id_document}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response findAccessionRegisterById(@PathParam("id_document") String documentId) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        addRequestId();
         final Status status = Status.NOT_IMPLEMENTED;
         return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase(), null)).build();
     }
@@ -714,8 +704,7 @@ public class AdminManagementExternalResourceImpl {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response findAccessionRegisterDetail(@PathParam("id_document") String documentId, JsonNode select) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        addRequestId();
 
         ParametersChecker.checkParameter("accession register id is a mandatory parameter", documentId);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
@@ -753,8 +742,7 @@ public class AdminManagementExternalResourceImpl {
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             ParametersChecker.checkParameter("checks operation Logbook traceability parameters", query);
 
-            Integer tenantId = ParameterHelper.getTenantParameter();
-            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+            addRequestId();
             RequestResponse<JsonNode> result = client.checkTraceabilityOperation(query);
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
 
@@ -780,6 +768,37 @@ public class AdminManagementExternalResourceImpl {
             final Status status = Status.UNAUTHORIZED;
             return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         }
+    }
+
+    /**
+     * launch Audit
+     *
+     * @param options
+     * @return
+     */
+    @POST
+    @Path(AccessExtAPI.AUDITS_API)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response launchAudit(JsonNode options) {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            addRequestId();
+            client.launchAuditWorkflow(options);
+        } catch (AdminManagementClientServerException e) {
+            LOGGER.error(e);
+            final Status status = Status.BAD_REQUEST;
+            return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                .setContext(ServiceName.EXTERNAL_ACCESS.getName())
+                .setState("code_vitam")
+                .setMessage(status.getReasonPhrase())
+                .setDescription(e.getMessage())).build();
+        }
+        return Response.status(Status.ACCEPTED).build();
+    }
+
+    private void addRequestId() {
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
     }
 
     /**

@@ -26,13 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.external.client;
 
-import java.io.InputStream;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
@@ -42,6 +36,10 @@ import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.external.client.BasicClient;
 import fr.gouv.vitam.common.model.RequestResponse;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.InputStream;
 
 /**
  * Admin External Client Interface
@@ -276,4 +274,15 @@ public interface AdminExternalClient extends BasicClient {
      */
     Response downloadTraceabilityOperationFile(String operationId, Integer tenantId, String contractName)
         throws AccessExternalClientServerException, AccessUnauthorizedException;
+    
+    /**
+     * Check the existence of objects in the context of an audit
+     * 
+     * @param auditOption
+     * @param tenantId
+     * @param contractName
+     * @return Status
+     * @throws AccessExternalClientServerException
+     */
+    Status launchAudit(JsonNode auditOption, Integer tenantId, String contractName) throws AccessExternalClientServerException;
 }

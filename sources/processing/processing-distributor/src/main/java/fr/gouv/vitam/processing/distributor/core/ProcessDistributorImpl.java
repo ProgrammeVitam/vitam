@@ -28,6 +28,7 @@ package fr.gouv.vitam.processing.distributor.core;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -97,6 +98,15 @@ import java.util.concurrent.TimeUnit;
 public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<WorkerAsyncResponse> {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessDistributorImpl.class);
+
+    private static final String UNITS_LEVEL = "UnitsLevel";
+    private static final String JSON_EXTENSION = ".json";
+    private static final String EXCEPTION_MESSAGE =
+        "runtime exceptions thrown by the Process distributor during runnig...";
+    private static final String INGEST_LEVEL_STACK = "ingestLevelStack.json";
+    private static final String OBJECTS_LIST_EMPTY = "OBJECTS_LIST_EMPTY";
+    private static final String ELEMENT_UNITS = "Units";
+    private static final String AUDIT_OG = "AUDIT_OG";
 
     private final ProcessDataAccess processDataAccess;
     private final WorkerManager workerManager;
@@ -183,7 +193,7 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
                         }
 
                     } else {
-                        // List from Storage
+                        // List from Workspace
                         final List<URI> objectsListUri =
                             JsonHandler.getFromStringAsTypeRefence(
                                 workspaceClient.getListUriDigitalObjectFromFolder(workParams.getContainerName(),

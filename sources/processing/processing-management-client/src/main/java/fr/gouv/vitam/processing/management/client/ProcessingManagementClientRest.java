@@ -99,18 +99,24 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     @Override
     public void initVitamProcess(String contextId, String container, String workflow)
         throws InternalServerException, BadRequestException {
+        initVitamProcess(contextId, new ProcessingEntry(container, workflow));
+    }
+
+    @Override
+    public void initVitamProcess(String contextId, ProcessingEntry entry)
+        throws InternalServerException, BadRequestException {
         Response response = null;
         ParametersChecker.checkParameter("Params cannot be null", contextId);
-        ParametersChecker.checkParameter(ERR_CONTAINER_IS_MANDATORY, container);
-        ParametersChecker.checkParameter(ERR_WORKFLOW_IS_MANDATORY, workflow);
+        ParametersChecker.checkParameter(ERR_CONTAINER_IS_MANDATORY, entry.getContainer());
+        ParametersChecker.checkParameter(ERR_WORKFLOW_IS_MANDATORY, entry.getWorkflow());
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
 
         headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
         headers.add(GlobalDataRest.X_ACTION, ProcessAction.INIT);
         // add header action id default init
         try {
-            response = performRequest(HttpMethod.POST, OPERATION_URI + "/" + container, headers,
-                new ProcessingEntry(container, workflow),
+            response = performRequest(HttpMethod.POST, OPERATION_URI + "/" + entry.getContainer(), headers,
+                entry,
                 MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {

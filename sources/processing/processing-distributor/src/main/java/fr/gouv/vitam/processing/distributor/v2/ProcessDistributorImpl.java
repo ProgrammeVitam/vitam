@@ -25,6 +25,7 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.AuditWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -243,6 +244,27 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                         // Iterate over Objects List
                         distributeOnList(workParams, step, NOLEVEL, objectsList, useDistributorIndex, tenantId);
                     }
+                }
+            }  else if (step.getDistribution().getKind().equals(DistributionKind.LIST_IN_FILE)) {
+                try (final WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+                    // List from Workspace
+                    Response response =
+                        workspaceClient.getObject(workParams.getContainerName(), AuditWorkflowConstants.AUDIT_FILE);
+                    final JsonNode ogIdList;
+                    try {
+                        ogIdList = JsonHandler.getFromInputStream((InputStream) response.getEntity());
+                    } finally {
+                        workspaceClient.consumeAnyEntityAndClose(response);
+                    }
+
+                    if (ogIdList.isArray()) {
+                        for (JsonNode node : ogIdList) {
+                            objectsList.add(node.textValue());
+                        }
+                    }
+
+                    // Iterate over Objects List
+                    distributeOnList(workParams, step, NOLEVEL, objectsList, useDistributorIndex, tenantId);
                 }
             } else {
                 // update the number of element to process

@@ -116,6 +116,7 @@ public class WebApplicationResourceTest {
     private static final String DEFAULT_WEB_APP_CONTEXT = "/ihm-demo";
     private static final String DEFAULT_STATIC_CONTENT = "webapp";
     private static final String OPTIONS = "{name: \"myName\"}";
+    private static final String AUDIT_OPTION = "{serviceProducteur: \"Service Producteur 1\"}";
     private static final Cookie COOKIE = new Cookie.Builder("JSESSIONID", "testId").build();
     private static final String CREDENTIALS = "{\"token\": {\"principal\": \"myName\", \"credentials\": \"myName\"}}";
     private static final String CREDENTIALS_NO_VALID =
@@ -1500,6 +1501,26 @@ public class WebApplicationResourceTest {
         given().contentType(ContentType.JSON).body(timestampExtractMap).expect()
             .statusCode(Status.BAD_REQUEST.getStatusCode()).when()
             .post("/traceability/extractTimestamp");
+    }
+    
+    @Test
+    public void testLaunchAudit() throws AccessExternalClientServerException, InvalidParseOperationException{
+        AdminExternalClient adminExternalClient = Mockito.mock(AdminExternalClient.class);
+
+        final AdminExternalClientFactory adminExternalClientFactory =
+            PowerMockito.mock(AdminExternalClientFactory.class);
+        PowerMockito.when(adminExternalClientFactory.getClient()).thenReturn(adminExternalClient);
+        PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminExternalClientFactory);
+
+        JsonNode auditOption = JsonHandler.getFromString(AUDIT_OPTION);
+        PowerMockito
+            .when(adminExternalClient.launchAudit(Mockito.anyObject(),
+                    (Integer) anyInt(), anyString()))
+            .thenReturn(Status.OK);
+
+        given().contentType(ContentType.JSON).body(auditOption).expect()
+            .when().post("audits")
+            .then().statusCode(Status.OK.getStatusCode());
     }
 
 }

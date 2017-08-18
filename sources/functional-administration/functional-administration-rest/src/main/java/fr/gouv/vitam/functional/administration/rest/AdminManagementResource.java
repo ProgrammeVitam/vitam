@@ -49,6 +49,23 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.guid.GUIDReader;
+import fr.gouv.vitam.common.model.*;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.parameters.Contexts;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.processing.common.ProcessingEntry;
+import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -70,9 +87,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.AccessContractModel;
-import fr.gouv.vitam.common.model.ContractStatus;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
@@ -116,8 +130,13 @@ public class AdminManagementResource extends ApplicationStatusResource {
     private static final String SELECT_IS_A_MANDATORY_PARAMETER = "select is a mandatory parameter";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementResource.class);
+    private static final String AUDIT_URI = "/audit";
+    private static final String OPTIONS_IS_MANDATORY_PATAMETER =
+        "The json option is mandatory";
 
     private static final SingleVarNameAdapter DEFAULT_VARNAME_ADAPTER = new SingleVarNameAdapter();
+    public static final String AUDIT_TYPE = "auditType";
+    public static final String OBJECT_ID = "objectId";
     private final MongoDbAccessAdminImpl mongoAccess;
     private final ElasticsearchAccessFunctionalAdmin elasticsearchAccess;
     private VitamCounterService vitamCounterService;
@@ -541,8 +560,37 @@ public class AdminManagementResource extends ApplicationStatusResource {
         throws InvalidParseOperationException, IOException, ReferentialException {
         ParametersChecker.checkParameter(SELECT_IS_A_MANDATORY_PARAMETER, select);
         RequestResponseOK<AccessionRegisterSummary> fileFundRegisters;
+        try {
+            fileFundRegisters = findFundRegisters(select);
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        } catch (final ReferentialNotFoundException e) {
+            LOGGER.error(e);
+            final Status status = Status.NOT_FOUND;
+            return Response.status(status).entity(status).build();
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error("Access contract does not allow ", e);
+            final Status status = Status.UNAUTHORIZED;
+            return Response.status(status).entity(status).build();
+        } catch (final Exception e) {
+            LOGGER.error(e);
+            final Status status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(status).build();
+        }
+
+        return Response.status(Status.OK)
+            .entity(fileFundRegisters)
+            .build();
+    }
+
+    private RequestResponseOK<AccessionRegisterSummary> findFundRegisters(JsonNode select)
+        throws InvalidParseOperationException, AccessUnauthorizedException, InvalidCreateOperationException,
+        ReferentialException {
         try (ReferentialAccessionRegisterImpl accessionRegisterManagement =
             new ReferentialAccessionRegisterImpl(mongoAccess)) {
+
+            RequestResponseOK<AccessionRegisterSummary> fileFundRegisters;
             SanityChecker.checkJsonAll(select);
 
             if (StringUtils.isBlank(VitamThreadUtils.getVitamSession().getContractId())) {
@@ -565,26 +613,10 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
             fileFundRegisters = accessionRegisterManagement.findDocuments(parser.getRequest().getFinalSelect())
                 .setQuery(select);
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (final ReferentialNotFoundException e) {
-            LOGGER.error(e);
-            final Status status = Status.NOT_FOUND;
-            return Response.status(status).entity(status).build();
-        } catch (AccessUnauthorizedException e) {
-            LOGGER.error("Access contract does not allow ", e);
-            final Status status = Status.UNAUTHORIZED;
-            return Response.status(status).entity(status).build();
-        } catch (final Exception e) {
-            LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(status).build();
+            return fileFundRegisters;
+        } catch (Exception e) {
+            throw e;
         }
-
-        return Response.status(Status.OK)
-            .entity(fileFundRegisters)
-            .build();
     }
 
     /**
@@ -649,6 +681,56 @@ public class AdminManagementResource extends ApplicationStatusResource {
             .build();
     }
 
+    /**
+     * Launch audit with options
+     *
+     * @param options
+     * @return Response jersey response
+     */
+    @Path(AUDIT_URI)
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response launchAudit(JsonNode options) {
+        ParametersChecker.checkParameter(OPTIONS_IS_MANDATORY_PATAMETER, options);
+        try (ProcessingManagementClient processingClient = ProcessingManagementClientFactory.getInstance().getClient()) {
+            createAuditLogbookOperation();
+            final int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+            final ProcessingEntry entry = new ProcessingEntry(VitamThreadUtils.getVitamSession().getRequestId(),
+                Contexts.AUDIT_WORKFLOW.getEventType());
+            if (options.get(AUDIT_TYPE) == null || options.get(OBJECT_ID) == null) {
+                return Response.status(Status.BAD_REQUEST).build();
+            }
+            final String auditType = options.get(AUDIT_TYPE).textValue();
+            if (auditType.toLowerCase().equals("tenant")) {
+                if (!options.get(OBJECT_ID).textValue().equals(String.valueOf(tenantId))) {
+                    return Response.status(Status.BAD_REQUEST).build();
+                }
+            } else if (auditType.toLowerCase().equals("originatingagency")) {
+                RequestResponseOK<AccessionRegisterSummary> fileFundRegisters;
+                Select selectRequest = new Select();
+                selectRequest.setQuery(QueryHelper.eq("OriginatingAgency",
+                    options.get(OBJECT_ID).textValue()));
+                fileFundRegisters = findFundRegisters(selectRequest.getFinalSelect());
+                if (fileFundRegisters.getResults().size() == 0) {
+                    return Response.status(Status.BAD_REQUEST).build();
+                }
+            } else {
+                return Response.status(Status.BAD_REQUEST).build();
+            }
+            entry.getExtraParams().put(OBJECT_ID, options.get(OBJECT_ID).textValue());
+            entry.getExtraParams().put(AUDIT_TYPE, options.get(AUDIT_TYPE).textValue());
+            processingClient.initVitamProcess(Contexts.AUDIT_WORKFLOW.name(), entry);
+            processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(),
+                VitamThreadUtils.getVitamSession().getRequestId());
+            return Response.status(Status.ACCEPTED).build();
+        } catch (Exception exp) {
+            LOGGER.error(exp);
+            final Status status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(status).build();
+        }
+    }
+
     private AccessContractModel getContractDetails(String contratId)
         throws InvalidParseOperationException,
         InvalidCreateOperationException, AdminManagementClientServerException {
@@ -679,5 +761,23 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
     public void setVitamCounterService(VitamCounterService vitamCounterService) {
         this.vitamCounterService = vitamCounterService;
+    }
+
+
+    private void createAuditLogbookOperation()
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
+        LogbookClientNotFoundException, InvalidGuidOperationException {
+        final int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        final GUID objectId = GUIDReader.getGUID(VitamThreadUtils.getVitamSession().getRequestId());
+        final GUID operationAuditGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+
+        try (final LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
+            final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+                operationAuditGuid, Contexts.AUDIT_WORKFLOW.getEventType(), objectId,
+                LogbookTypeProcess.AUDIT, StatusCode.STARTED,
+                operationAuditGuid.toString(),
+                operationAuditGuid);
+            logbookClient.create(initParameters);
+        }
     }
 }

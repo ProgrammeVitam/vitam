@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.AuditWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
@@ -67,28 +68,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.LogbookLifecycleWorkerHelper;
 import fr.gouv.vitam.worker.core.api.Worker;
-import fr.gouv.vitam.worker.core.handler.AccessionRegisterActionHandler;
-import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.handler.CheckDataObjectPackageActionHandler;
-import fr.gouv.vitam.worker.core.handler.CheckHeaderActionHandler;
-import fr.gouv.vitam.worker.core.handler.CheckIngestContractActionHandler;
-import fr.gouv.vitam.worker.core.handler.CheckNoObjectsActionHandler;
-import fr.gouv.vitam.worker.core.handler.CheckObjectUnitConsistencyActionHandler;
-import fr.gouv.vitam.worker.core.handler.CheckObjectsNumberActionHandler;
-import fr.gouv.vitam.worker.core.handler.CheckSedaActionHandler;
-import fr.gouv.vitam.worker.core.handler.CheckStorageAvailabilityActionHandler;
-import fr.gouv.vitam.worker.core.handler.CheckVersionActionHandler;
-import fr.gouv.vitam.worker.core.handler.CommitLifeCycleObjectGroupActionHandler;
-import fr.gouv.vitam.worker.core.handler.CommitLifeCycleUnitActionHandler;
-import fr.gouv.vitam.worker.core.handler.DummyHandler;
-import fr.gouv.vitam.worker.core.handler.ExtractSedaActionHandler;
-import fr.gouv.vitam.worker.core.handler.ListArchiveUnitsActionHandler;
-import fr.gouv.vitam.worker.core.handler.ListRunningIngestsActionHandler;
-import fr.gouv.vitam.worker.core.handler.PrepareTraceabilityCheckProcessActionHandler;
-import fr.gouv.vitam.worker.core.handler.RollBackActionHandler;
-import fr.gouv.vitam.worker.core.handler.TransferNotificationActionHandler;
-import fr.gouv.vitam.worker.core.handler.VerifyMerkleTreeActionHandler;
-import fr.gouv.vitam.worker.core.handler.VerifyTimeStampActionHandler;
+import fr.gouv.vitam.worker.core.handler.*;
 import fr.gouv.vitam.worker.core.plugin.PluginLoader;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
@@ -182,6 +162,8 @@ public class WorkerImpl implements Worker {
             new ListRunningIngestsActionHandler());
         actions.put(ListArchiveUnitsActionHandler.getId(),
             new ListArchiveUnitsActionHandler());
+        actions.put(PrepareAuditActionHandler.getId(),
+            new PrepareAuditActionHandler());
 
     }
 
@@ -297,6 +279,18 @@ public class WorkerImpl implements Worker {
                 GUIDReader.getGUID(LogbookLifecycleWorkerHelper.getObjectID(workParams)));
         } else if (step.getDistribution().getElement()
             .equals(LogbookType.OBJECTGROUP.getType())) {
+            lfcParam = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
+                GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()),
+                VitamLogbookMessages.getEventTypeLfc(handlerName),
+                GUIDReader.getGUID(workParams.getContainerName()),
+                // TODO Le type de process devrait venir du message recu (paramètre du workflow)
+                workParams.getLogbookTypeProcess(),
+                StatusCode.STARTED,
+                VitamLogbookMessages.getOutcomeDetailLfc(handlerName, StatusCode.STARTED),
+                VitamLogbookMessages.getCodeLfc(handlerName, StatusCode.STARTED),
+                GUIDReader.getGUID(LogbookLifecycleWorkerHelper.getObjectID(workParams)));
+        } else if (step.getDistribution().getElement()
+            .equals(AuditWorkflowConstants.AUDIT_FILE)) {
             lfcParam = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
                 GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()),
                 VitamLogbookMessages.getEventTypeLfc(handlerName),

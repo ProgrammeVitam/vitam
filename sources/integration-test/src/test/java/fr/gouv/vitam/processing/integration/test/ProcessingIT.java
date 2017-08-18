@@ -28,6 +28,7 @@ package fr.gouv.vitam.processing.integration.test;
 
 import static com.jayway.restassured.RestAssured.get;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.EVENT_DETAILS;
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.TENANT_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -128,6 +129,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.UnitInheritedRule;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
+import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
@@ -604,6 +606,30 @@ public class ProcessingIT {
             assertEquals(logbookResult.get("$results").get(0).get("obIdIn").asText(),
                 "bug2721_2racines_meme_rattachement");
             assertEquals(logbookResult.get("$results").get(0).get("agIdOrig").asText(), "producteur1");
+
+
+            //Test Audit
+            final GUID opId = GUIDFactory.newRequestIdGUID(tenantId);
+            final String auditId = opId.toString();
+
+            final GUID operationAuditGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+            VitamThreadUtils.getVitamSession().setRequestId(operationAuditGuid);
+            createLogbookOperation(operationAuditGuid, opId);
+            final ProcessingEntry entry = new ProcessingEntry(auditId, Contexts.AUDIT_WORKFLOW.getEventType());
+            entry.getExtraParams().put("objectId", "0");
+            entry.getExtraParams().put("auditType", "#tenant");
+            processingClient.initVitamProcess(Contexts.AUDIT_WORKFLOW.name(), entry);
+
+            RequestResponse<ItemStatus> auditResponse =
+                processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), auditId);
+
+            wait(auditId);
+
+            ProcessWorkflow processAuditWorkflow =
+                processMonitoring.findOneProcessWorkflow(auditId, tenantId);
+            assertNotNull(processAuditWorkflow);
+            assertEquals(ProcessState.COMPLETED, processAuditWorkflow.getState());
+            assertEquals(StatusCode.OK, processAuditWorkflow.getStatus());
         } catch (final Exception e) {
             LOGGER.error(e);
             fail("should not raized an exception");

@@ -303,6 +303,12 @@ public class AdminManagementClientMockTest {
     }
 
     @Test
+    public void givenMockExistsWhenLaunchAUditThenReturnOK() throws Exception {
+        Status resp = client.launchAuditWorkflow(JsonHandler.createObjectNode());
+        assertEquals(resp, Status.OK);
+    }
+
+    @Test
     @RunWithCustomExecutor
     public void givenClientMockWhenImportContexts() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);

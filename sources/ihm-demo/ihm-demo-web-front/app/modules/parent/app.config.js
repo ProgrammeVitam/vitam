@@ -94,6 +94,12 @@ config(['$locationProvider' ,'$routeProvider',
       title: 'Référentiel des Règles de gestion',
       permission: 'admin:rules:read'
     }).
+    when('/admin/audits', {
+          templateUrl: 'pages/audits/audits.template.html',
+          controller: 'auditsController',
+          title: 'Audit de l\'existence des objets',
+          permission: 'admin:audit'
+    }).
     when('/admin/contexts', {
           templateUrl: 'pages/context-search/context.template.html',
           controller: 'contextsController',

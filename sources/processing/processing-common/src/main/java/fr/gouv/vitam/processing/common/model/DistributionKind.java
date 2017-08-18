@@ -38,6 +38,10 @@ public enum DistributionKind {
     /**
      * Distribution by List (workspace or other kind of lists)
      */
+    LIST_IN_FILE("LIST_IN_FILE"),
+    /**
+     * Distribution by List defined in a file
+     */
     LIST("LIST");
 
     private String value;

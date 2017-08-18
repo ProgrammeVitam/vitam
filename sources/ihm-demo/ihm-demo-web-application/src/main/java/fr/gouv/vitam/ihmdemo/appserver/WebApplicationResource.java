@@ -2041,7 +2041,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Get context by id
      * 
      * @param headers
-     * @param select
+     * @param id
      * @return Response
      */
     @GET
@@ -2442,6 +2442,22 @@ public class WebApplicationResource extends ApplicationStatusResource {
             RequestResponse<JsonNode> result = ingestExternalClient.getWorkflowDefinitions(getTenantId(headers));
             return Response.status(Status.OK).entity(result).build();
         } catch (VitamClientException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+
+    }
+    
+    @POST
+    @Path("/audits")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("admin:audit")
+    public Response launchAudit(@Context HttpHeaders headers, JsonNode auditOption) {
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+            Status status = adminClient.launchAudit(auditOption, getTenantId(headers), getAccessContractId(headers));
+            return Response.status(status).build();
+        } catch (Exception e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }

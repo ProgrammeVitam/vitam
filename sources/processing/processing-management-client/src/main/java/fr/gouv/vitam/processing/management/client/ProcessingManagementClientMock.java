@@ -54,6 +54,7 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.model.Action;
@@ -256,6 +257,12 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
         } catch (InvalidParseOperationException e) {
             throw new VitamClientException(e.getMessage());
         }
+    }
+
+    @Override
+    public void initVitamProcess(String contextId, ProcessingEntry entry)
+        throws InternalServerException, BadRequestException {
+
     }
 
     /**
