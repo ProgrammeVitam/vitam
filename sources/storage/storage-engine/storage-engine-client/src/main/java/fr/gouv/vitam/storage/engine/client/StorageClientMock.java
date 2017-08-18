@@ -29,6 +29,7 @@ package fr.gouv.vitam.storage.engine.client;
 import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.List;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
@@ -135,7 +136,7 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
     }
 
     @Override
-    public boolean exists(String strategyId, StorageCollectionType type, String guid)
+    public boolean exists(String strategyId, StorageCollectionType type, String guid, List<String> offerIds)
         throws StorageServerClientException {
         return true;
     }

@@ -32,6 +32,7 @@ import static com.jayway.restassured.RestAssured.given;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.servlet.ServletConfig;
@@ -264,16 +265,14 @@ public class StorageResourceTest {
                 VitamConfiguration.getDefaultDigestType().getName())
             .body("").when().delete(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
-
-        given().contentType(ContentType.JSON).when().head(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
-            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-        given().contentType(ContentType.JSON)
-            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
-            .when().head(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then().statusCode(Status.OK.getStatusCode());
         given().contentType(ContentType.JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
                 TENANT_ID_E)
-            .when().head(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then().statusCode(Status.NOT_FOUND.getStatusCode());
+            .when().head(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+        given().contentType(ContentType.JSON)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
+                TENANT_ID_E, VitamHttpHeader.OFFERS_IDS.getName(), "offerId")
+            .when().head(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then().statusCode(Status.NO_CONTENT.getStatusCode());
 
     }
 
@@ -1059,6 +1058,11 @@ public class StorageResourceTest {
                 throw new StorageNotFoundException("Not Found");
             }
             return null;
+        }
+
+        @Override public boolean checkObjectExisting(String strategyId, String objectId, List<String> offerIds)
+            throws StorageException {
+            return true;
         }
 
         @Override

@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 
+import fr.gouv.vitam.common.SingletonUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
@@ -101,7 +102,7 @@ public class StorageClientMockTest {
     public void checkExists() throws VitamClientException {
         final StorageClient client = StorageClientFactory.getInstance().getClient();
         assertNotNull(client);
-        assertTrue(client.exists("idStrategy", StorageCollectionType.OBJECTS, "guid"));
+        assertTrue(client.exists("idStrategy", StorageCollectionType.OBJECTS, "guid", SingletonUtils.singletonList()));
         assertTrue(client.existsContainer("idStrategy"));
     }
 

@@ -48,6 +48,10 @@ import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * CheckExistenceObject Plugin.<br>
  */
@@ -57,7 +61,7 @@ public class CheckExistenceObjectPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckExistenceObjectPlugin.class);
 
     private static final String CHECK_EXISTENCE_ID = "AUDIT_FILE_EXISTING";
-    private static final String DEFAULT_STRATEGY = "default";
+    private static final int SHOULD_WRITE_RANK = 0;
     private HandlerIO handlerIO;
 
     /**
@@ -68,22 +72,35 @@ public class CheckExistenceObjectPlugin extends ActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters params, HandlerIO handler) {
+    public ItemStatus execute(WorkerParameters params, HandlerIO handler) throws ProcessingException {
         LOGGER.debug(CHECK_EXISTENCE_ID + " in execute");
         handlerIO = handler;
 
         final ItemStatus itemStatus = new ItemStatus(CHECK_EXISTENCE_ID);
-        itemStatus.increment(StatusCode.OK);
+        int nbObjectOK = 0;
+        int nbObjectKO = 0;
         try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient();
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
             JsonNode searchResult =
                 metadataClient.selectObjectGrouptbyId(new SelectMultiQuery().getFinalSelect(), params.getObjectName());
-            JsonNode qualifiersList = searchResult.get("$results").get(0).get("#qualifiers");
+            JsonNode ogNode = searchResult.get("$results").get(0);
+            JsonNode qualifiersList = ogNode.get("#qualifiers");
+            JsonNode storageInformation = ogNode.get("#storage");
+            final String strategy = storageInformation.get("strategyId").textValue();
+            final List<String> offerIds = new ArrayList<>();
+            for (JsonNode offerId : storageInformation.get("offerIds")) {
+                offerIds.add(offerId.textValue());
+            }
+
             for (JsonNode qualifier : qualifiersList) {
                 JsonNode versions = qualifier.get("versions");
                 for (JsonNode version : versions) {
-                    if (!storageClient.exists(DEFAULT_STRATEGY, StorageCollectionType.OBJECTS, version.get("_id").asText())) {
+                    if (!storageClient.exists(strategy, StorageCollectionType.OBJECTS,
+                        version.get("_id").asText(), offerIds)) {
                         itemStatus.increment(StatusCode.KO);
+                        nbObjectKO += 1;
+                    } else {
+                        nbObjectOK += 1;
                     }
                 }
             }
@@ -98,6 +115,13 @@ public class CheckExistenceObjectPlugin extends ActionHandler {
             itemStatus.increment(StatusCode.WARNING);
         }
 
+        if (itemStatus.getGlobalStatus().equals(StatusCode.UNKNOWN)) {
+            itemStatus.increment(StatusCode.OK);
+            handlerIO.addOuputResult(SHOULD_WRITE_RANK, false, true, false);
+        } else {
+            handlerIO.addOuputResult(SHOULD_WRITE_RANK, true, true, false);
+        }
+        itemStatus.setData("Detail", "Detail = OK : "+ nbObjectOK + " KO : " + nbObjectKO);
         return new ItemStatus(CHECK_EXISTENCE_ID).setItemsStatus(CHECK_EXISTENCE_ID, itemStatus);
     }
 

@@ -29,6 +29,7 @@ package fr.gouv.vitam.storage.engine.client;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.anyObject;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -38,6 +39,7 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import fr.gouv.vitam.common.SingletonUtils;
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -298,7 +300,7 @@ public class StorageClientIT {
             }
 
             try {
-                assertTrue(storageClient.exists("default", StorageCollectionType.MANIFESTS, MANIFEST));
+                assertTrue(storageClient.exists("default", StorageCollectionType.MANIFESTS, MANIFEST, SingletonUtils.singletonList()));
             } catch (StorageServerClientException svce) { // not yet implemented
                 LOGGER.error(svce);
                 fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);

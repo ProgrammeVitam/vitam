@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -498,15 +499,21 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         final Response response = checkTenantStrategyHeader(headers);
         if (response == null) {
             strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+            if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.OFFERS_IDS)) {
+                return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
+            }
+            String listOffer = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.OFFERS_IDS).get(0);
+            List<String> offerIds = Arrays.asList(listOffer.split(","));
             try {
-                distribution.getContainerObjectInformations(strategyId, objectId);
-                return Response.status(Status.OK).build();
-            } catch (final StorageNotFoundException e) {
+                if (!distribution.checkObjectExisting(strategyId, objectId, offerIds)) {
+                    return Response.status(Status.NOT_FOUND).build();
+                }
+            } catch (final StorageException e) {
                 LOGGER.error(e);
                 return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND);
             }
         }
-        return response;
+        return Response.status(Status.NO_CONTENT).build();
     }
 
     /**

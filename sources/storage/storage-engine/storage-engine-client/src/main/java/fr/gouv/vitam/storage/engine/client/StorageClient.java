@@ -44,6 +44,8 @@ import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 
+import java.util.List;
+
 /**
  * Storage Client interface
  */
@@ -131,7 +133,7 @@ public interface StorageClient extends BasicClient {
      * @throws StorageServerClientException
      *             if the Server got an internal error
      */
-    boolean exists(String strategyId, StorageCollectionType type, String guid) throws StorageServerClientException;
+    boolean exists(String strategyId, StorageCollectionType type, String guid, List<String> offerIds) throws StorageServerClientException;
 
     /**
      * Delete a container in the storage offer strategy A non-empty container

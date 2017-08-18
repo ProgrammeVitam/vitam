@@ -96,8 +96,7 @@ public class CheckExistenceObjectPluginTest {
 
         action = new HandlerIOImpl(guid.getId(), "workerId");
         out = new ArrayList<>();
-        out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE,
-            UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.AU_TO_BE_UPDATED_JSON)));
+        out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "shouldWriteLFC")));
     }
 
     @Test
@@ -107,7 +106,7 @@ public class CheckExistenceObjectPluginTest {
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(SEARCH_RESULTS));
         reset(storageClient);
         reset(metadataClient);
-        when(storageClient.exists(anyObject(), anyObject(), anyObject())).thenReturn(true);
+        when(storageClient.exists(anyObject(), anyObject(), anyObject(), anyObject())).thenReturn(true);
         when(metadataClient.selectObjectGrouptbyId(anyObject(), anyObject())).thenReturn(searchResults);
 
         final ItemStatus response = plugin.execute(params, action);
@@ -121,7 +120,7 @@ public class CheckExistenceObjectPluginTest {
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(SEARCH_RESULTS));
         reset(storageClient);
         reset(metadataClient);
-        when(storageClient.exists(anyObject(), anyObject(), anyObject())).thenReturn(false);
+        when(storageClient.exists(anyObject(), anyObject(), anyObject(), anyObject())).thenReturn(false);
         when(metadataClient.selectObjectGrouptbyId(anyObject(), anyObject())).thenReturn(searchResults);
 
         final ItemStatus response = plugin.execute(params, action);
