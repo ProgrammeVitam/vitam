@@ -176,8 +176,7 @@ public class FileRulesModel {
         }
         if (obj != null && obj instanceof FileRulesModel) {
             final FileRulesModel objectToCompare = (FileRulesModel) obj;
-            if (this.getRuleId().equals(objectToCompare.getRuleId()) &&
-                this.getRuleType().equals(objectToCompare.getRuleType())) {
+            if (this.getRuleId().equals(objectToCompare.getRuleId())) {
                 same = true;
             }
         }
