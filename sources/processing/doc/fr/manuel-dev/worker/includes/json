@@ -114,13 +114,25 @@
                 "name": "algo",
                 "uri": "VALUE:SHA-512"
               }
+            ],
+            "out": [
+              {
+                "name": "groupObject",
+                "uri": "MEMORY:groupObjectId"
+              }
             ]
           }
         },
         {
           "action": {
             "actionKey": "OG_OBJECTS_FORMAT_CHECK",
-            "behavior": "BLOCKING"
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "groupObject",
+                "uri": "MEMORY:groupObjectId"
+              }
+            ]
           }
         }
       ]
@@ -137,13 +149,25 @@
         {
           "action": {
             "actionKey": "CHECK_UNIT_SCHEMA",
-            "behavior": "BLOCKING"
+            "behavior": "BLOCKING",
+            "out": [
+              {
+                "name": "unit",
+                "uri": "MEMORY:unitId"
+              }
+            ]
           }
         },
         {
           "action": {
             "actionKey": "UNITS_RULES_COMPUTE",
-            "behavior": "BLOCKING"
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "unit",
+                "uri": "MEMORY:unitId"
+              }
+            ]
           }
         }
       ]
@@ -177,13 +201,25 @@
         {
           "action": {
             "actionKey": "OBJ_STORAGE",
-            "behavior": "BLOCKING"
+            "behavior": "BLOCKING",
+            "out": [
+              {
+                "name": "groupObject",
+                "uri": "MEMORY:groupObjectId"
+              }
+            ]
           }
         },
         {
           "action": {
             "actionKey": "OG_METADATA_INDEXATION",
-            "behavior": "BLOCKING"
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "groupObject",
+                "uri": "MEMORY:groupObjectId"
+              }
+            ]
           }
         }
       ]
