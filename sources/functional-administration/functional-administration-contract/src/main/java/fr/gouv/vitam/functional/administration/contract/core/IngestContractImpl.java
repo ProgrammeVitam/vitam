@@ -712,7 +712,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
             return error;
         }
-        manager.logUpdateSuccess(id, updateStatus, ingestContractModel.getStatus());
+        manager.logUpdateSuccess(ingestContractModel.getId(), updateStatus, ingestContractModel.getStatus());
         return new RequestResponseOK<>();
     }
 

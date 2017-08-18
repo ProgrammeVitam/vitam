@@ -258,9 +258,9 @@ public class ProfileServiceImpl implements ProfileService {
         InputStream profileFile)
         throws VitamException {
 
-        manager.logStarted(PROFILES_FILE_IMPORT_EVENT, profileIdentifier);
-
         final ProfileModel profileMetadata = findByIdentifier(profileIdentifier);
+
+        manager.logStarted(PROFILES_FILE_IMPORT_EVENT, profileMetadata.getId());
 
         final VitamError vitamError =
             getVitamError(VitamCode.PROFILE_FILE_IMPORT_ERROR.getItem(), "Global import profile error").setHttpCode(
@@ -269,7 +269,7 @@ public class ProfileServiceImpl implements ProfileService {
             LOGGER.error("No profile metadata found with identifier : " + profileIdentifier +
                 ", to import the file, the metadata profile must be created first");
 
-            manager.logValidationError(PROFILES_FILE_IMPORT_EVENT, profileIdentifier,
+            manager.logValidationError(PROFILES_FILE_IMPORT_EVENT, profileMetadata.getId(),
                 "No profile metadata found with identifier : " + profileIdentifier +
                     ", to import the file, the metadata profile must be created first");
             return vitamError.addToErrors(getVitamError(VitamCode.PROFILE_FILE_IMPORT_ERROR.getItem(),
@@ -294,7 +294,7 @@ public class ProfileServiceImpl implements ProfileService {
             if (!isValide) {
                 final String errorsDetails =
                     vitamError.getErrors().stream().map(c -> c.getMessage()).collect(Collectors.joining(","));
-                manager.logValidationError(PROFILES_FILE_IMPORT_EVENT, profileIdentifier,
+                manager.logValidationError(PROFILES_FILE_IMPORT_EVENT, profileMetadata.getId(),
                     "Profile file validate error : " + errorsDetails);
                 return vitamError;
             }
@@ -331,7 +331,7 @@ public class ProfileServiceImpl implements ProfileService {
         // Final path in the workspace : tenant_profiles/format(xsd|rng)/tenant_profile_id.format(xsd|rng)
 
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-            manager.logInProgress(OP_PROFILE_STORAGE, profileIdentifier, StatusCode.STARTED);
+            manager.logInProgress(OP_PROFILE_STORAGE, profileMetadata.getId(), StatusCode.STARTED);
 
             workspaceClient.createContainer(containerName);
             workspaceClient.putObject(containerName, uri, profileFile);
@@ -346,7 +346,7 @@ public class ProfileServiceImpl implements ProfileService {
                 if (!isValide) {
                     final String errorsDetails =
                         vitamError.getErrors().stream().map(c -> c.getMessage()).collect(Collectors.joining(","));
-                    manager.logValidationError(PROFILES_FILE_IMPORT_EVENT, profileIdentifier,
+                    manager.logValidationError(PROFILES_FILE_IMPORT_EVENT, profileMetadata.getId(),
                         "Profile file validate error : " + errorsDetails);
                     workspaceClient.deleteContainer(containerName, true);
                     return vitamError;
@@ -364,7 +364,7 @@ public class ProfileServiceImpl implements ProfileService {
 
                 storageClient.storeFileFromWorkspace(DEFAULT_STORAGE_STRATEGY, StorageCollectionType.PROFILES, fileName,
                     description);
-                manager.logInProgress(OP_PROFILE_STORAGE, profileIdentifier, StatusCode.OK);
+                manager.logInProgress(OP_PROFILE_STORAGE, profileMetadata.getId(), StatusCode.OK);
 
 
 
@@ -389,7 +389,7 @@ public class ProfileServiceImpl implements ProfileService {
                 final String err =
                     new StringBuilder("Import profiles storage error : ").append(e.getMessage()).toString();
                 LOGGER.error(err, e);
-                manager.logFatalError(OP_PROFILE_STORAGE, profileIdentifier, err);
+                manager.logFatalError(OP_PROFILE_STORAGE, profileMetadata.getId(), err);
                 return getVitamError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem(), err).setHttpCode(
                     Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
             } finally {
@@ -399,7 +399,7 @@ public class ProfileServiceImpl implements ProfileService {
             String err =
                 new StringBuilder("Import profiles storage workspace error : ").append(e.getMessage()).toString();
             LOGGER.error(err, e);
-            manager.logFatalError(OP_PROFILE_STORAGE, profileIdentifier, err);
+            manager.logFatalError(OP_PROFILE_STORAGE, profileMetadata.getId(), err);
             return getVitamError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem(), err).setHttpCode(
                 Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
@@ -427,7 +427,7 @@ public class ProfileServiceImpl implements ProfileService {
             // Do nothing
         }
 
-        manager.logSuccess(PROFILES_FILE_IMPORT_EVENT, profileIdentifier, wellFormedJson);
+        manager.logSuccess(PROFILES_FILE_IMPORT_EVENT, profileMetadata.getId(), wellFormedJson);
 
         return new RequestResponseOK().setHttpCode(Response.Status.CREATED.getStatusCode());
     }

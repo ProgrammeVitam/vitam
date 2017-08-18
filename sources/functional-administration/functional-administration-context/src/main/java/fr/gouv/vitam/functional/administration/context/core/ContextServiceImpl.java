@@ -308,7 +308,7 @@ public class ContextServiceImpl implements ContextService {
             return error;
         }
 
-        manager.logUpdateSuccess(id, queryDsl.toString(), JsonHandler.unprettyPrint(contextModel));
+        manager.logUpdateSuccess(contextModel.getId(), queryDsl.toString(), JsonHandler.unprettyPrint(contextModel));
         return new RequestResponseOK<>();
     }
 
