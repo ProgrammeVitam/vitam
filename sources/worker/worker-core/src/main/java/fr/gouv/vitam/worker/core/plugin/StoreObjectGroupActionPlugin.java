@@ -61,6 +61,7 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
 
     private static final String STORING_OBJECT_TASK_ID = "OBJECT_STORAGE_SUB_TASK";
     private static final String SIP = "SIP/";
+    private static final int OG_OUT_RANK = 0;
     private HandlerIO handlerIO;
     private boolean asyncIO = false;
 
@@ -158,6 +159,8 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
         // Get objectGroup objects ids
         mapOfObjects.jsonOG = handlerIO.getJsonFromWorkspace(
             IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + objectName);
+        handlerIO.addOuputResult(OG_OUT_RANK, mapOfObjects.jsonOG, true, false);
+        
         // Filter on objectGroup objects ids to retrieve only binary objects
         // informations linked to the ObjectGroup
         final JsonNode original = mapOfObjects.jsonOG.get(SedaConstants.PREFIX_QUALIFIERS);

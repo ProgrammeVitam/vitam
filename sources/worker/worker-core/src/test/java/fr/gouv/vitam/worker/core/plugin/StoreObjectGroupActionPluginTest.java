@@ -33,7 +33,9 @@ import static org.mockito.Mockito.when;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -55,6 +57,9 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.processing.common.model.IOParameter;
+import fr.gouv.vitam.processing.common.model.ProcessingUri;
+import fr.gouv.vitam.processing.common.model.UriPrefix;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
@@ -84,6 +89,7 @@ public class StoreObjectGroupActionPluginTest {
     private static final String OBJECT_GROUP_2 = "storeObjectGroupHandler/aebaaaaaaaakwtamaaxakak32oqku2qaaaaq.json";
     private final InputStream objectGroup;
     private final InputStream objectGroup2;
+    private List<IOParameter> out;
 
     public StoreObjectGroupActionPluginTest() throws FileNotFoundException {
         objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP);
@@ -102,6 +108,10 @@ public class StoreObjectGroupActionPluginTest {
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
         action = new HandlerIOImpl(CONTAINER_NAME, "workerId");
+        
+        out = new ArrayList<>();
+        out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "objectGroupId.json")));
+        action.addOutIOParameters(out);
     }
 
     @After
