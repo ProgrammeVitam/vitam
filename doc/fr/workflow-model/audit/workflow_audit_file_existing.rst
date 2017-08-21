@@ -6,7 +6,7 @@ Introduction
 
 Cette section décrit le processus (workflow) d'audit de l'existence des fichiers mis en place dans la solution logicielle Vitam.
 
-Celui-ci est défini dans le fichier "DefaultAuditWorkflow.json.json” (situé ici : sources/processing/processing-management/src/main/resources/workflows).
+Celui-ci est défini dans le fichier "DefaultAuditWorkflow.json” (situé ici : sources/processing/processing-management/src/main/resources/workflows).
 
 Processus d'audit d'existence des fichiers (vision métier)
 =======================================================================
@@ -55,9 +55,7 @@ Audit de l'existence des fichiers (AUDIT_FILE_EXISTING)
 Sécurisation des journaux des cycles de vie des groupes d'objets (COMMIT_LIFE_CYCLE_OBJECT_GROUP)
 --------------------------------------------------------------------------------------------------------
 
-Cette tâche est strictement la même
-
-Sécurisation en base des journaux du cycle de vie des groupes d'objets qui ont été modifiés durant l'audit. Cette étape est strictement la même que celle décrite dans le processus d'entrée (section "Workflow d'entrée")
+Sécurisation en base des journaux du cycle de vie des groupes d'objets qui ont été modifiés durant l'audit et uniquement ceux qui ont été modifiés. Pour le reste cette étape est strictement la même que celle décrite dans le processus d'entrée (section "Workflow d'entrée")
 
 .. figure:: images/workflow_audit_file_existing.png
 	:align: center
