@@ -64,10 +64,9 @@ public class BusinessApplication extends Application {
             final AdminManagementResource resource = new AdminManagementResource(configuration);
 
             final MongoDbAccessAdminImpl mongoDbAccess = resource.getLogbookDbAccess();
-
+            Map<Integer, List<String>> externalIdentifiers = configuration.getListEnableExternalIdentifiers();
             final VitamCounterService vitamCounterService =
-                new VitamCounterService(mongoDbAccess, configuration.getTenants(), null);
-
+                new VitamCounterService(mongoDbAccess, configuration.getTenants(), externalIdentifiers);
             resource.setVitamCounterService(vitamCounterService);
 
             final ProfileResource profileResource =

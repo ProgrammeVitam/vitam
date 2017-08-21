@@ -103,7 +103,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 public class ContractResourceTest {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ContractResourceTest.class);
-    private static final String ADMIN_MANAGEMENT_CONF = "functional-administration-test.conf";
+    private static final String ADMIN_MANAGEMENT_CONF = "functional-administration-test-contract.conf";
     private static final String RESULTS = "$results";
 
     private static final String RESOURCE_URI = "/adminmanagement/v1";
