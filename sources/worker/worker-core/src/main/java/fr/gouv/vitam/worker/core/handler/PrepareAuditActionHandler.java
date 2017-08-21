@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
+import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -64,6 +65,7 @@ public class PrepareAuditActionHandler extends ActionHandler {
 
     private static final String HANDLER_ID = "LIST_OBJECTGROUP_ID";
     private static final String RESULTS = "$results";
+    private static final String HITS = "$hits";
     private static final String ID = "#id";
     private boolean asyncIO = false;
 
@@ -84,7 +86,7 @@ public class PrepareAuditActionHandler extends ActionHandler {
         try (WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
             MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
 
-            SelectMultiQuery query = new SelectMultiQuery();
+            SelectMultiQuery selectQuery = new SelectMultiQuery();
             Map<WorkerParameterName, String> mapParameters = param.getMapParameters();
             String auditType = mapParameters.get(WorkerParameterName.auditType);
             if (auditType.toLowerCase().equals("tenant")) {
@@ -92,14 +94,24 @@ public class PrepareAuditActionHandler extends ActionHandler {
             } else if (auditType.toLowerCase().equals("originatingagency")) {
                 auditType = BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCY.exactToken();
             }
-            query.setQuery(QueryHelper.eq(auditType,
+            selectQuery.setQuery(QueryHelper.eq(auditType,
                 mapParameters.get(WorkerParameterName.objectId)));
-            query.setProjection(JsonHandler.createObjectNode().put(ID, 1));
-            JsonNode searchResults = metadataClient.selectObjectGroups(query.getFinalSelect());
-            if (searchResults.get(RESULTS) != null) {
-                ArrayNode ogList = (ArrayNode) searchResults.get(RESULTS);
-                for (JsonNode og : ogList) {
-                    ogIdList.add(og.get(ID).asText());
+            selectQuery.setProjection(JsonHandler.createObjectNode().put(ID, 1));
+            JsonNode searchResults = metadataClient.selectObjectGroups(selectQuery.getFinalSelect());
+            if (searchResults.get(HITS) != null) {
+                JsonNode total = searchResults.get(HITS).get("total");
+                if (total != null) {
+                    long ogTotalNumber = total.asLong();
+                    addToOgIdList(ogIdList, searchResults);
+                    int offset = GlobalDatas.LIMIT_LOAD;
+                    if (ogTotalNumber > GlobalDatas.LIMIT_LOAD) {
+                        while (offset < ogTotalNumber) {
+                            selectQuery.setLimitFilter(offset, GlobalDatas.LIMIT_LOAD);
+                            final JsonNode nextSearchResults = metadataClient.selectObjectGroups(selectQuery.getFinalSelect());
+                            addToOgIdList(ogIdList, nextSearchResults);
+                            offset += GlobalDatas.LIMIT_LOAD;
+                        }
+                    }
                 }
             }
 
@@ -117,6 +129,15 @@ public class PrepareAuditActionHandler extends ActionHandler {
         }
 
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+    }
+
+    private void addToOgIdList(ArrayNode ogIdList, JsonNode searchResults) {
+        if (searchResults.get(RESULTS) != null) {
+            ArrayNode ogList = (ArrayNode) searchResults.get(RESULTS);
+            for (JsonNode og : ogList) {
+                ogIdList.add(og.get(ID).asText());
+            }
+        }
     }
 
     @Override

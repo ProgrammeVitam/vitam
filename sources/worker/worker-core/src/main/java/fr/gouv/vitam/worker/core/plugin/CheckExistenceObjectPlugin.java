@@ -27,11 +27,13 @@
 package fr.gouv.vitam.worker.core.plugin;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
@@ -62,6 +64,7 @@ public class CheckExistenceObjectPlugin extends ActionHandler {
 
     private static final String CHECK_EXISTENCE_ID = "AUDIT_FILE_EXISTING";
     private static final int SHOULD_WRITE_RANK = 0;
+    public static final String QUALIFIERS = "#qualifiers";
     private HandlerIO handlerIO;
 
     /**
@@ -83,21 +86,26 @@ public class CheckExistenceObjectPlugin extends ActionHandler {
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
             JsonNode searchResult =
                 metadataClient.selectObjectGrouptbyId(new SelectMultiQuery().getFinalSelect(), params.getObjectName());
-            JsonNode ogNode = searchResult.get("$results").get(0);
-            JsonNode qualifiersList = ogNode.get("#qualifiers");
-            JsonNode storageInformation = ogNode.get("#storage");
-            final String strategy = storageInformation.get("strategyId").textValue();
-            final List<String> offerIds = new ArrayList<>();
-            for (JsonNode offerId : storageInformation.get("offerIds")) {
-                offerIds.add(offerId.textValue());
-            }
+            JsonNode ogNode = searchResult.get(RequestResponseOK.RESULTS).get(0);
+            JsonNode qualifiersList = ogNode.get(QUALIFIERS);
 
             for (JsonNode qualifier : qualifiersList) {
+                final String usageName = qualifier.get("qualifier").asText();
+
                 JsonNode versions = qualifier.get("versions");
                 for (JsonNode version : versions) {
+                    if (usageName.equals("PhysicalMaster")) {
+                        continue;
+                    }
+                    JsonNode storageInformation = version.get("_storage");
+                    final String strategy = storageInformation.get("strategyId").textValue();
+                    final List<String> offerIds = new ArrayList<>();
+                    for (JsonNode offerId : storageInformation.get("offerIds")) {
+                        offerIds.add(offerId.textValue());
+                    }
+
                     if (!storageClient.exists(strategy, StorageCollectionType.OBJECTS,
                         version.get("_id").asText(), offerIds)) {
-                        itemStatus.increment(StatusCode.KO);
                         nbObjectKO += 1;
                     } else {
                         nbObjectOK += 1;
@@ -115,12 +123,19 @@ public class CheckExistenceObjectPlugin extends ActionHandler {
             itemStatus.increment(StatusCode.WARNING);
         }
 
+        if (nbObjectKO > 0) {
+            itemStatus.increment(StatusCode.KO);
+            handlerIO.addOuputResult(SHOULD_WRITE_RANK, true, true, false);
+        } else if (nbObjectOK == 0) {
+            itemStatus.increment(StatusCode.WARNING);
+            handlerIO.addOuputResult(SHOULD_WRITE_RANK, false, true, false);
+        }
+
         if (itemStatus.getGlobalStatus().equals(StatusCode.UNKNOWN)) {
             itemStatus.increment(StatusCode.OK);
             handlerIO.addOuputResult(SHOULD_WRITE_RANK, false, true, false);
-        } else {
-            handlerIO.addOuputResult(SHOULD_WRITE_RANK, true, true, false);
         }
+
         itemStatus.setData("Detail", "Detail = OK : "+ nbObjectOK + " KO : " + nbObjectKO);
         return new ItemStatus(CHECK_EXISTENCE_ID).setItemsStatus(CHECK_EXISTENCE_ID, itemStatus);
     }

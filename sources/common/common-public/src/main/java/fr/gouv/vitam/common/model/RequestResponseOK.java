@@ -58,7 +58,7 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
     /**
      * result in response
      */
-    private static final String RESULTS = "$results";
+    public static final String RESULTS = "$results";
 
     /**
      * context in response
