@@ -66,6 +66,7 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientExcept
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.FileUtil;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
@@ -115,6 +116,8 @@ public class AccessStep {
     private String query;
 
     private StatusCode statusCode;
+    
+    private Status auditStatus;
 
     public AccessStep(World world) {
         this.world = world;
@@ -705,6 +708,31 @@ public class AccessStep {
         RequestResponse<ContextModel> requestResponse =
             world.getAdminClient().findDocuments(AdminCollections.ACCESS_CONTRACTS, queryDsl, world.getTenantId());
         return requestResponse.toJsonNode().findValue("_id").asText();
+    }
+    
+    @When("^je veux faire l'audit des objets du service producteur \"([^\"]*)\"$")
+    public void je_lance_l_audit_en_service_producteur(String originatingAgnecy) throws Throwable {
+        String QUERY = "{auditType:\"originatingAgency\",objectID:\"" + originatingAgnecy + "\"}";
+        JsonNode auditOption = JsonHandler.getFromString(QUERY);
+        
+        assertThat(world.getAdminClient().launchAudit(
+            auditOption, world.getTenantId(), world.getContractId()).getStatusCode()).isEqualTo(202);
+        
+        auditStatus = world.getAdminClient().launchAudit(auditOption, world.getTenantId(), world.getContractId());
+    }
+    
+    @When("^je veux faire l'audit des objets de tenant (\\d+)$")
+    public void je_veux_faire_l_audit_des_objets_de_tenant(int tenant) throws Throwable {
+        String QUERY = "{auditType:\"originatingAgency\",objectID:\"" + tenant + "\"}";
+        JsonNode auditOption = JsonHandler.getFromString(QUERY);
+        
+        assertThat(world.getAdminClient().launchAudit(
+            auditOption, world.getTenantId(), world.getContractId()).getStatusCode()).isEqualTo(202);
+    }
+    
+    @Then("^le réultat de l'audit est succès$")
+    public void le_réultat_de_l_audit_est_succès() throws Throwable {
+        assertThat(auditStatus.getStatusCode()).isEqualTo(202);
     }
 
 }
