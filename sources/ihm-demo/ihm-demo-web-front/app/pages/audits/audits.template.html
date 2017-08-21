@@ -12,16 +12,16 @@
         <div id="boxEntriesSearchForm" class="panel-body panel-collapse collapse in">
             <div class="col-md-12">
                 <div class="form-group col-md-3">
-                    <label>Sélectionner la type</label>
+                    <label>Sélectionner le type</label>
                     <select ng-init="form.auditType = 'originatingagency'"
                             ng-model="form.auditType" class="form-control" name="executionModeList" id="typeAudit">
                         <option value="originatingagency" selected>Service Producteur</option>
                         <option value="tenant">Tenant</option>
                     </select>
                 </div>
-                <div class="form-group col-md-4" id="oagency">
+                <div class="form-group col-md-4" id="oagency" ng-show="form.auditType == 'originatingagency'" >
                     <label>Sélectionner l'identifiant</label>
-                    <select ng-show="form.auditType == 'originatingagency'" ng-model="form.objectId" class="form-control" name="executionModeList">
+                    <select ng-model="form.objectId" class="form-control" name="executionModeList">
                         <option ng-repeat='sp in sps' value="{{sp}}">{{sp}}</option>
                     </select>
 
@@ -29,18 +29,24 @@
                         <option value="{{tenant}}">{{tenant}}</option>
                     </select>
                 </div>
+                <div class="form-group col-md-4" id="oagency" ng-show="form.auditType == 'tenant'" >
+                    <label>Tenant en cours</label>
+                    <div style="padding-top: 5px">{{tenant}}</div>
+                </div>
             </div>
             <div class="col-md-12">
                 <div class="form-group col-md-6">
                     <span><b>Audit</b></span>
                     <div class="checkbox">
-                        <label><input type="checkbox" checked ng-disabled="true">Audit de l'existence des objets</label>
+                        <label><input type="checkbox" ng-model="enableLaunchAudit">Audit de l'existence des objets</label>
                     </div>
                 </div>
             </div>
 
             <div class="text-center boxSimpleSearchInput">
-                <button ng-click="launchAudit()" class="btn btn-primary"><i class="material-icons pull-left">play_arrow</i><span>Lancer l'audit</span></button>
+                <button ng-disabled="!enableLaunchAudit" ng-click="launchAudit()" class="btn btn-primary">
+                    <i class="material-icons pull-left">play_arrow</i><span>Lancer l'audit</span>
+                </button>
             </div>
         </div>
     </div>

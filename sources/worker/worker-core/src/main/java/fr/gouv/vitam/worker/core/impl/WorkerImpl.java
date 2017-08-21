@@ -207,8 +207,10 @@ public class WorkerImpl implements Worker {
 
                         ItemStatus pluginResponse;
                         LOGGER.debug("START plugin ", actionDefinition.getActionKey(), step.getStepName());
-                        boolean shouldWriteLFC = step.getDistribution().getKind().equals(DistributionKind.LIST) &&
-                            !step.getDistribution().getElement().equals(UNIT_LIST_WITHOUT_LEVEL);
+                        boolean shouldWriteLFC = (step.getDistribution().getKind().equals(DistributionKind.LIST)
+                            || step.getDistribution().getKind().equals(DistributionKind.LIST_IN_FILE))
+                            && !step.getDistribution().getElement().equals(UNIT_LIST_WITHOUT_LEVEL);
+
                         if (shouldWriteLFC) {
                             LogbookLifeCycleParameters lfcParam = createStartLogbookLfc(step, handlerName, workParams);
                             logbookLfcClient.update(lfcParam);
@@ -316,6 +318,12 @@ public class WorkerImpl implements Worker {
         if (!actionResponse.getEvDetailData().isEmpty()) {
             finalLogbookLfcParam.putParameterValue(LogbookParameterName.eventDetailData,
                     actionResponse.getEvDetailData());
+        }
+        if (actionResponse.getData("Detail") != null) {
+            String outcomeDetailMessage = finalLogbookLfcParam.getParameterValue(LogbookParameterName.outcomeDetailMessage)
+                + " " + actionResponse.getData("Detail");
+            finalLogbookLfcParam.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                outcomeDetailMessage);
         }
         logbookParamList.add(finalLogbookLfcParam);
         for (final Entry<String, ItemStatus> entry : actionResponse.getItemsStatus().entrySet()) {

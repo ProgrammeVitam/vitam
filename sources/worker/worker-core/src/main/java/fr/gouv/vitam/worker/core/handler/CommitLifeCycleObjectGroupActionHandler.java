@@ -39,6 +39,8 @@ public class CommitLifeCycleObjectGroupActionHandler extends CommitLifeCycleActi
 
     private static final String HANDLER_ID = "COMMIT_LIFE_CYCLE_OBJECT_GROUP";
 
+    private static final int SHOULD_WRITE_RANK = 0;
+
     /**
      * @return HANDLER_ID
      */
@@ -50,7 +52,15 @@ public class CommitLifeCycleObjectGroupActionHandler extends CommitLifeCycleActi
     public void commitLifeCycle(HandlerIO handlerIO, String objectID, String operationId)
         throws ProcessingException, LogbookClientBadRequestException, LogbookClientNotFoundException,
         LogbookClientServerException {
-        handlerIO.getLifecyclesClient().commitObjectGroup(operationId, objectID);
+
+        if (handlerIO.getInput() != null && handlerIO.getInput().size() > 0) {
+            boolean shouldWriteLFC = (boolean) handlerIO.getInput(SHOULD_WRITE_RANK);
+            if (shouldWriteLFC) {
+                handlerIO.getLifecyclesClient().commitObjectGroup(operationId, objectID);
+            }
+        } else {
+            handlerIO.getLifecyclesClient().commitObjectGroup(operationId, objectID);
+        }
     }
 
     @Override

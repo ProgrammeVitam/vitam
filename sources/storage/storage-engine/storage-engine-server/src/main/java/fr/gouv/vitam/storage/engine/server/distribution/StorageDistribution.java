@@ -27,6 +27,7 @@
 package fr.gouv.vitam.storage.engine.server.distribution;
 
 import java.io.InputStream;
+import java.util.List;
 
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
@@ -184,6 +185,19 @@ public interface StorageDistribution extends VitamAutoCloseable {
      *             Thrown if the Container or the object does not exist
      */
     JsonNode getContainerObjectInformations(String strategyId, String objectId) throws StorageNotFoundException;
+
+
+    /**
+     * Verify if object exists
+     *
+     * @param strategyId id of the strategy
+     * @param objectId id of the object
+     * @param offerIds list id of offers
+     * @return
+     * @throws StorageException
+     */
+    boolean checkObjectExisting(String strategyId, String objectId,
+        List<String> offerIds) throws StorageException;
 
     /**
      * Delete an object

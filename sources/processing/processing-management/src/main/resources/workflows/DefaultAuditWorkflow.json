@@ -34,7 +34,25 @@
         {
           "action": {
             "actionKey": "AUDIT_FILE_EXISTING",
-            "behavior": "BLOCKING"
+            "behavior": "NOBLOCKING",
+            "out": [
+              {
+                "name": "shouldWriteLogbook",
+                "uri": "MEMORY:shouldWrite"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "COMMIT_LIFE_CYCLE_OBJECT_GROUP",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "shouldWriteLogbook",
+                "uri": "MEMORY:shouldWrite"
+              }
+            ]
           }
         }
       ]

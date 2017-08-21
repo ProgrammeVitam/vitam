@@ -38,12 +38,19 @@ angular.module('audits')
     };
 
     $scope.sps= [];
+    $scope.enableLaunchAudit = false;
+    $scope.tenant = $cookies.get('tenantId');
 
     $scope.launchAudit = function () {
-      return ihmDemoCLient.getClient('audits').all('').post($scope.form);
+      if ($scope.form.auditType == 'tenant') {
+        $scope.form.objectId = $scope.tenant;
+      }
+      $mdDialog.show($mdDialog.alert()
+        .title("Le processus d'audit est lancé")
+        .ok("Fermer"));
+      ihmDemoCLient.getClient('audits').all('').post($scope.form);
     };
 
-    $scope.tenant = $cookies.get('tenantId');
 
     $scope.search = {
       form: {
@@ -79,6 +86,7 @@ angular.module('audits')
       $scope.search.response.data.forEach(function(sp) {
         $scope.sps.push(sp.OriginatingAgency);
       });
+      $scope.form.objectId = $scope.sps[0];
       return true;
     };
 

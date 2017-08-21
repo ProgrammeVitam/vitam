@@ -84,6 +84,11 @@ public class GlobalDataRest {
     public static final String X_STRATEGY_ID = "X-Strategy-Id";
 
     /**
+     * The X_OFFER_IDS header, used in requests to give list of offer ids
+     */
+    public static final String X_OFFER_IDS = "X-Offer-Ids";
+
+    /**
      * The X_PLATFORM_ID header
      */
     public static final String X_PLATFORM_ID = "X-Platform-Id";
