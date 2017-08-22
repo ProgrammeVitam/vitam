@@ -80,6 +80,15 @@ traits:
               **UNSUPPORTED** When X-Cursor-Id is present, it specifies the date and time limit of the availability of this cursor Id
             type: datetime
 
+  UploadFileOptionalHeader:
+    headers: &optionalheader
+      X-Filename:
+        type: string
+        required: false
+        description: |
+            Name of the file uploaded
+        example: Rules_v5.csv
+
   StandardHeader200:
     responses:
       200:

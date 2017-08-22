@@ -40,7 +40,7 @@ documentation:
       Request that will return results composed of Formats if the request is using POST with X-Http-Method-Override: GET.
       If there is no X-Http-Method-Override, this allow to push a new Referential from a PRONOM source file (see TNA).
     is: [RegisterTraits.RegisterListingResponse, StandardTraits.OverrideGet,
-       RegisterTraits.RegisterUpload]
+       RegisterTraits.RegisterUpload, StandardTraits.UploadFileOptionalHeader]
     headers:
       X-Http-Method-Override:
         required: false
@@ -77,7 +77,7 @@ documentation:
     description: |
       Request that will return results composed of Rules if the request is using POST with X-Http-Method-Override: GET.
       If there is no X-Http-Method-Override, this allow to push a new Referential from a CSV source file containing Rules definitions.
-    is: [RegisterTraits.RegisterListingResponse, StandardTraits.OverrideGet, RegisterTraits.RegisterUpload]
+    is: [RegisterTraits.RegisterListingResponse, StandardTraits.OverrideGet, RegisterTraits.RegisterUpload, StandardTraits.UploadFileOptionalHeader]
     headers:
       X-Http-Method-Override:
         required: false
@@ -234,5 +234,3 @@ documentation:
   get:
     is: [ StandardTraits.StandardHeader204,
       StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader503 ]
-
-
