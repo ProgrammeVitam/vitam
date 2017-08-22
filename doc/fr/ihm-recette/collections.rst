@@ -46,6 +46,13 @@ Le référentiel des règles de gestion de la solution logicielle Vitam est supp
 
 Le contenu du registre des fonds de la solution logicielle Vitam est supprimé. L'IHM du registre des fonds est vide de contenu.
 
+**Purge des profils**
+
+Tous les profils sont supprimés de la solution logicielle Vitam. L'IHM "Référentiel des profils" est vide de contenu.
+
+**Purge des contextes**
+
+Lors de son exécution, la fonctionnalité de purge des contextes contrôle qu'il y a plus d'un contexte dans le référentiel. Si tel n'est pas le cas, la purge n'est pas réalisée. Si le référentiel contient plus d'un contexte, ils sont supprimés de la solution logicielle Vitam à l'exception de celui nommé « admin-context ».
 
 Purge des journaux
 ==================
