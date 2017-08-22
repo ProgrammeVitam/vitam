@@ -279,9 +279,9 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             fillListRulesToMap(archiveUnitId, archiveUnitRoot.getArchiveUnit().getManagement().getAccess());
             fillListRulesToMap(archiveUnitId, archiveUnitRoot.getArchiveUnit().getManagement().getStorage());
             fillListRulesToMap(archiveUnitId,
-                archiveUnitRoot.getArchiveUnit().getManagement().getClassification());
-            fillListRulesToMap(archiveUnitId,
                 archiveUnitRoot.getArchiveUnit().getManagement().getAppraisal());
+            fillListRulesToMap(archiveUnitId,
+                archiveUnitRoot.getArchiveUnit().getManagement().getClassification());
             fillListRulesToMap(archiveUnitId,
                 archiveUnitRoot.getArchiveUnit().getManagement().getDissemination());
             fillListRulesToMap(archiveUnitId, archiveUnitRoot.getArchiveUnit().getManagement().getReuse());

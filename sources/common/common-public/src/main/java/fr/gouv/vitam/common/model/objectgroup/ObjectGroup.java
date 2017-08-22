@@ -43,7 +43,7 @@ public class ObjectGroup {
     private int tenant;
 
     @JsonProperty("FileInfo")
-    private FileInfoJson fileInfo;
+    private FileInfoModel fileInfo;
 
     @JsonProperty("_up")
     private List<String> up;
@@ -111,11 +111,11 @@ public class ObjectGroup {
         this.originatingAgency = originatingAgency;
     }
 
-    public FileInfoJson getFileInfo() {
+    public FileInfoModel getFileInfo() {
         return fileInfo;
     }
 
-    public void setFileInfo(FileInfoJson fileInfo) {
+    public void setFileInfo(FileInfoModel fileInfo) {
         this.fileInfo = fileInfo;
     }
 

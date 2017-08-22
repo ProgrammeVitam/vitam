@@ -33,16 +33,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * Object Group Json model for extra SEDA
  */
-public class ObjectGroupJsonData extends ObjectGroup {
+public class ObjectGroupModel extends ObjectGroup {
 
     @JsonProperty("_qualifiers")
-    private List<QualifiersJson> qualifiers;
+    private List<QualifiersModel> qualifiers;
 
-    public List<QualifiersJson> getQualifiers() {
+    public List<QualifiersModel> getQualifiers() {
         return qualifiers;
     }
 
-    public void setQualifiers(List<QualifiersJson> qualifiers) {
+    public void setQualifiers(List<QualifiersModel> qualifiers) {
         this.qualifiers = qualifiers;
     }
 

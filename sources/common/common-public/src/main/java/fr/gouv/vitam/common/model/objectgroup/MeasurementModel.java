@@ -26,46 +26,36 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model.objectgroup;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.math.BigDecimal;
+
+
+
 /**
- * Object mapping QualifiersResponse
+ * Measurement POJO for physical Object
  */
-public class QualifiersJson {
+public class MeasurementModel {
+    @JsonProperty("value")
+    private BigDecimal value;
+    @JsonProperty("unit")
+    private String unit;
 
-    @JsonProperty("qualifier")
-    private String qualifier;
-
-    @JsonProperty("_nbc")
-    private String nbc;
-
-    @JsonProperty("versions")
-    private List<VersionsJson> versions;
-
-    public String getQualifier() {
-        return qualifier;
+    public BigDecimal getValue() {
+        return value;
     }
 
-    public void setQualifier(String qualifier) {
-        this.qualifier = qualifier;
+    public void setValue(BigDecimal value) {
+        this.value = value;
     }
 
-    public String getNbc() {
-        return nbc;
+    public String getUnit() {
+        return unit;
     }
 
-    public void setNbc(String nbc) {
-        this.nbc = nbc;
+    public void setUnit(String unit) {
+        this.unit = unit;
     }
 
-    public List<VersionsJson> getVersions() {
-        return versions;
-    }
-
-    public void setVersions(List<VersionsJson> versions) {
-        this.versions = versions;
-    }
 
 }

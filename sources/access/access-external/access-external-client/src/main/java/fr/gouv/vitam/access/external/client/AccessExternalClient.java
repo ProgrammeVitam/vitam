@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.external.client;
 
-import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -223,10 +222,22 @@ public interface AccessExternalClient extends BasicClient {
      * @return unit with a xml representation
      * @throws AccessExternalClientServerException
      */
-    Response getUnitByIdWithXMLFormat(JsonNode queryDsl, @PathParam("id_unit") String idUnit, Integer tenantId,
-        String contractName)
+    Response getUnitByIdWithXMLFormat(JsonNode queryDsl, String idUnit, Integer tenantId, String contractName)
         throws AccessExternalClientServerException;
 
+    /**
+     * DIP export of the Object Group (xml representation with SEDA schema)
+     * Be careful in the external you cannot access directly to the Object group
+     *
+     * @param queryDsl     the given query dsl
+     * @param idUnit       the given unit
+     * @param tenantId     the given tenant if
+     * @param contractName the given contract Name
+     * @return object group with a xml representation
+     * @throws AccessExternalClientServerException
+     */
+    Response getObjectGroupByIdWithXMLFormat(JsonNode queryDsl, String idUnit, Integer tenantId, String contractName)
+        throws AccessExternalClientServerException;
 }
 
 

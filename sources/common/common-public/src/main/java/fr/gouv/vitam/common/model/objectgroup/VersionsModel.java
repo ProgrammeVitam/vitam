@@ -26,12 +26,23 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model.objectgroup;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Object mapping VersionsResponse
  */
-public class VersionsJson {
+//@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class VersionsModel {
 
     @JsonProperty("_rank")
     private int rank;
@@ -42,17 +53,17 @@ public class VersionsJson {
     @JsonProperty("DataObjectVersion")
     private String dataObjectVersion;
 
-    @JsonProperty("DataObjectGroupId ")
+    @JsonProperty("DataObjectGroupId")
     private String dataObjectGroupId;
 
     @JsonProperty("FormatIdentification")
-    private FormatIdentificationJson formatIdentification;
+    private FormatIdentificationModel formatIdentification;
 
     @JsonProperty("FileInfo")
-    private FileInfoJson fileInfoResponse;
+    private FileInfoModel fileInfoModel;
 
     @JsonProperty("Metadata")
-    private MetadataJson metadataResponse;
+    private MetadataModel metadata;
 
     @JsonProperty("Size")
     private int size;
@@ -68,6 +79,42 @@ public class VersionsJson {
 
     @JsonProperty("_storage")
     private StorageJson storage;
+
+    @JsonProperty("PhysicalDimensions")
+    private PhysicalDimensionsModel physicalDimensionsModel;
+
+    @JsonProperty("PhysicalId")
+    private String physicalId;
+
+    @JsonIgnore
+    private Map<String, Object> any = new HashMap<>();
+
+    @JsonAnyGetter
+    public Map<String, Object> getAny() {
+        return any;
+    }
+
+    @JsonAnySetter
+    public void setAny(String key, Object value) {
+        this.any.put(key, value);
+    }
+
+    public String getPhysicalId() {
+        return physicalId;
+    }
+
+    public void setPhysicalId(String physicalId) {
+        this.physicalId = physicalId;
+    }
+
+    public PhysicalDimensionsModel getPhysicalDimensionsModel() {
+        return physicalDimensionsModel;
+    }
+
+    public void setPhysicalDimensionsModel(
+        PhysicalDimensionsModel physicalDimensionsModel) {
+        this.physicalDimensionsModel = physicalDimensionsModel;
+    }
 
     public int getRank() {
         return rank;
@@ -93,20 +140,20 @@ public class VersionsJson {
         this.dataObjectVersion = dataObjectVersion;
     }
 
-    public FormatIdentificationJson getFormatIdentification() {
+    public FormatIdentificationModel getFormatIdentification() {
         return formatIdentification;
     }
 
-    public void setFormatIdentification(FormatIdentificationJson formatIdentification) {
+    public void setFormatIdentification(FormatIdentificationModel formatIdentification) {
         this.formatIdentification = formatIdentification;
     }
 
-    public FileInfoJson getFileInfoResponse() {
-        return fileInfoResponse;
+    public FileInfoModel getFileInfoModel() {
+        return fileInfoModel;
     }
 
-    public void setFileInfoResponse(FileInfoJson fileInfoResponse) {
-        this.fileInfoResponse = fileInfoResponse;
+    public void setFileInfoModel(FileInfoModel fileInfoModel) {
+        this.fileInfoModel = fileInfoModel;
     }
 
     public String getDataObjectGroupId() {
@@ -117,12 +164,12 @@ public class VersionsJson {
         this.dataObjectGroupId = dataObjectGroupId;
     }
 
-    public MetadataJson getMetadataResponse() {
-        return metadataResponse;
+    public MetadataModel getMetadata() {
+        return metadata;
     }
 
-    public void setMetadataResponse(MetadataJson metadataResponse) {
-        this.metadataResponse = metadataResponse;
+    public void setMetadata(MetadataModel metadata) {
+        this.metadata = metadata;
     }
 
     public int getSize() {

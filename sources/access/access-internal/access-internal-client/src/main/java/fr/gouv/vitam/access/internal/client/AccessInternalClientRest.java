@@ -27,12 +27,6 @@
 
 package fr.gouv.vitam.access.internal.client;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
@@ -55,6 +49,12 @@ import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 /**
  * Access client <br>
@@ -84,6 +84,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     private static final String LOGBOOK_CHECK = "/traceability/check";
 
     private static final String CHECKS_OPERATION_TRACEABILITY_OK = "Checks operation traceability is OK";
+    public static final String OBJECTS = "objects/";
 
     AccessInternalClientRest(AccessInternalClientFactory factory) {
         super(factory);
@@ -206,7 +207,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         Response response = null;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            response = performRequest(HttpMethod.GET, "objects/" + objectId, headers, selectObjectQuery,
+            response = performRequest(HttpMethod.GET, OBJECTS + objectId, headers, selectObjectQuery,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             final Response.Status status = Status.fromStatusCode(response.getStatus());
             if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
@@ -246,7 +247,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             headers.add(GlobalDataRest.X_QUALIFIER, usage);
             headers.add(GlobalDataRest.X_VERSION, version);
-            response = performRequest(HttpMethod.GET, "objects/" + objectGroupId, headers, selectObjectQuery,
+            response = performRequest(HttpMethod.GET, OBJECTS + objectGroupId, headers, selectObjectQuery,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE);
             status = Status.fromStatusCode(response.getStatus());
             switch (status) {
@@ -509,17 +510,6 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         try {
             response = performRequest(HttpMethod.GET, "units/" + idUnit, null, queryDsl,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_XML_TYPE);
-
-            if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-                throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR); // access-common
-            } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) { // access-common
-                throw new AccessInternalClientNotFoundException(NOT_FOUND_EXCEPTION);
-            } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
-                throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);// common
-            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
-            }
-
             return response;
         } catch (final VitamClientInternalException e) {
             consumeAnyEntityAndClose(response);
@@ -530,4 +520,46 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         }
     }
 
+
+    @Override
+    public Response getObjectByIdWithXMLFormat(JsonNode queryDsl, String objectId)
+        throws AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
+        InvalidParseOperationException {
+        // TODO implement client
+        ParametersChecker.checkParameter(BLANK_DSL, queryDsl);
+        ParametersChecker.checkParameter(BLANK_UNIT_ID, objectId);
+        VitamThreadUtils.getVitamSession().checkValidRequestId();
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, OBJECTS + objectId, null, queryDsl,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_XML_TYPE);
+            return response;
+        } catch (final VitamClientInternalException e) {
+            consumeAnyEntityAndClose(response);
+            throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
+        } catch (final Exception e) {
+            consumeAnyEntityAndClose(response);
+            throw e;
+        }
+    }
+
+    @Override public Response getObjectByUnitIdWithXMLFormat(JsonNode queryDsl, String unitId)
+        throws AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
+        InvalidParseOperationException {
+        ParametersChecker.checkParameter(BLANK_DSL, queryDsl);
+        ParametersChecker.checkParameter(BLANK_UNIT_ID, unitId);
+        VitamThreadUtils.getVitamSession().checkValidRequestId();
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, OBJECTS + unitId, null, queryDsl,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_XML_TYPE);
+            return response;
+        } catch (final VitamClientInternalException e) {
+            consumeAnyEntityAndClose(response);
+            throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
+        } catch (final Exception e) {
+            consumeAnyEntityAndClose(response);
+            throw e;
+        }
+    }
 }

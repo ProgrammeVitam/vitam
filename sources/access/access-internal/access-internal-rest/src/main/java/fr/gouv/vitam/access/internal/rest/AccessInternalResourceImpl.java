@@ -26,34 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.rest;
 
-import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCIES;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.datatype.DatatypeConfigurationException;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.StringWriter;
-import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
@@ -61,16 +35,19 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
 import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
 import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.api.AccessInternalResource;
+import fr.gouv.vitam.access.internal.api.DipService;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
 import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
 import fr.gouv.vitam.access.internal.core.AccessInternalModuleImpl;
 import fr.gouv.vitam.access.internal.core.ArchiveUnitMapper;
+import fr.gouv.vitam.access.internal.core.ObjectGroupDipServiceImpl;
+import fr.gouv.vitam.access.internal.core.ObjectGroupMapper;
+import fr.gouv.vitam.access.internal.core.UnitDipServiceImpl;
 import fr.gouv.vitam.access.internal.core.serializer.IdentifierTypeDeserializer;
 import fr.gouv.vitam.access.internal.core.serializer.LevelTypeDeserializer;
 import fr.gouv.vitam.access.internal.core.serializer.TextByLangDeserializer;
@@ -92,7 +69,6 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
-import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
 import fr.gouv.vitam.common.model.unit.TextByLang;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
@@ -104,6 +80,29 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.Set;
+
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCIES;
 
 
 /**
@@ -117,6 +116,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessInternalResourceImpl.class);
 
     private static JAXBContext jaxbContext;
+    // DIP
+    private static DipService unitDipService;
+    private static DipService objectDipService;
 
     static {
         try {
@@ -136,6 +138,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
     private final AccessInternalModule accessModule;
     private ArchiveUnitMapper archiveUnitMapper;
+    private ObjectGroupMapper objectGroupMapper;
 
     private ObjectMapper objectMapper;
 
@@ -146,8 +149,11 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         accessModule = new AccessInternalModuleImpl(configuration);
         WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace());
         archiveUnitMapper = new ArchiveUnitMapper();
+        objectGroupMapper = new ObjectGroupMapper();
         LOGGER.debug(ACCESS_RESOURCE_INITIALIZED);
         this.objectMapper = buildObjectMapper();
+        this.unitDipService = new UnitDipServiceImpl(archiveUnitMapper, objectMapper);
+        this.objectDipService = new ObjectGroupDipServiceImpl(objectGroupMapper, objectMapper);
     }
 
     /**
@@ -158,8 +164,11 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     AccessInternalResourceImpl(AccessInternalModule accessModule) {
         this.accessModule = accessModule;
         archiveUnitMapper = new ArchiveUnitMapper();
+        objectGroupMapper = new ObjectGroupMapper();
         LOGGER.debug(ACCESS_RESOURCE_INITIALIZED);
         this.objectMapper = buildObjectMapper();
+        this.unitDipService = new UnitDipServiceImpl(archiveUnitMapper, objectMapper);
+        this.objectDipService = new ObjectGroupDipServiceImpl(objectGroupMapper, objectMapper);
     }
 
 
@@ -182,7 +191,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         try {
             SanityChecker.checkJsonAll(queryDsl);
             checkEmptyQuery(queryDsl);
-            JsonNode result = accessModule.selectUnit(addProdServicesToQuery(queryDsl));
+            JsonNode result = accessModule.selectUnit(addProdServicesToQueryForUnit(queryDsl));
             LOGGER.debug("DEBUG {}", result);
             resetQuery(result, queryDsl);
 
@@ -207,7 +216,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
      * get Archive Unit list by query based on identifier
      *
      * @param queryDsl as JsonNode
-     * @param idUnit identifier
+     * @param idUnit   identifier
      * @return an archive unit result list
      */
 
@@ -226,7 +235,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
             SanityChecker.checkJsonAll(queryDsl);
             SanityChecker.checkParameter(idUnit);
-            JsonNode result = accessModule.selectUnitbyId(addProdServicesToQuery(queryDsl), idUnit);
+            JsonNode result = accessModule.selectUnitbyId(addProdServicesToQueryForUnit(queryDsl), idUnit);
             resetQuery(result, queryDsl);
 
             LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
@@ -253,60 +262,36 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         try {
             SanityChecker.checkParameter(idUnit);
             SanityChecker.checkJsonAll(queryDsl);
-
-            JsonNode result = accessModule.selectUnitbyId(addProdServicesToQuery(queryDsl), idUnit);
+            //
+            JsonNode result = accessModule.selectUnitbyId(addProdServicesToQueryForUnit(queryDsl), idUnit);
             ArrayNode results = (ArrayNode) result.get("$results");
             JsonNode unit = results.get(0);
-
-            // TODO: 8/18/17 refactor and create a service transform json to DIp, to be used any where needed
-            ArchiveUnitModel archiveUnitModel = objectMapper.treeToValue(unit, ArchiveUnitModel.class);
-
-            final ArchiveUnitType xmlUnit = archiveUnitMapper.map(archiveUnitModel);
-
-            Marshaller marshaller = jaxbContext.createMarshaller();
-
-            StringWriter writer = new StringWriter();
-            marshaller.marshal(xmlUnit, writer);
-
+            Response responseXmlFormat = unitDipService.jsonToXml(unit, idUnit);
             resetQuery(result, queryDsl);
             LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
-            return Response.status(Status.OK).entity(writer.toString()).build();
+            return responseXmlFormat;
         } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
             // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
-            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
+            return Response.status(status).entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getMessage())))
+                .build();
         } catch (final AccessInternalExecutionException e) {
             LOGGER.error(e.getMessage(), e);
             status = Status.METHOD_NOT_ALLOWED;
-            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
-        } catch (JsonProcessingException e) {
-            // TODO un truc a faire
-            LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            // Unprocessable Entity not implemented by Jersey
-            status = Status.BAD_REQUEST;
-            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
-        } catch (JAXBException e) {
-            // TODO un truc a faire
-            LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            // Unprocessable Entity not implemented by Jersey
-            status = Status.BAD_REQUEST;
-            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
-        } catch (DatatypeConfigurationException e) {
-            // TODO un truc a faire
-            LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            // Unprocessable Entity not implemented by Jersey
-            status = Status.BAD_REQUEST;
-            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
+            return Response.status(status).entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getMessage())))
+                .build();
         }
     }
+
+
 
     /**
      * update archive units by Id with Json query
      *
      * @param requestId request identifier
-     * @param queryDsl DSK, null not allowed
-     * @param idUnit units identifier
+     * @param queryDsl  DSK, null not allowed
+     * @param idUnit    units identifier
      * @return a archive unit result list
      */
     @Override
@@ -316,9 +301,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateUnitById(JsonNode queryDsl,
         @PathParam("id_unit") String idUnit, @HeaderParam(GlobalDataRest.X_REQUEST_ID) String requestId) {
-
         LOGGER.debug(EXECUTION_OF_DSL_VITAM_FROM_ACCESS_ONGOING);
-
         Status status;
         try {
             SanityChecker.checkJsonAll(queryDsl);
@@ -383,11 +366,75 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         }
     }
 
+    @GET
+    @Path("/objects/{id_object_group}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_XML)
+    @Override
+    public Response getObjectByIdWithXMLFormat(JsonNode dslQuery, @PathParam("id_object_group") String objectId) {
+        Status status;
+        try {
+            SanityChecker.checkParameter(objectId);
+            SanityChecker.checkJsonAll(dslQuery);
+            final JsonNode result =
+                accessModule.selectObjectGroupById(addProdServicesToQueryForObjectGroup(dslQuery), objectId);
+            ArrayNode results = (ArrayNode) result.get("$results");
+            JsonNode objectGroup = results.get(0);
+            Response responseXmlFormat = objectDipService.jsonToXml(objectGroup, objectId);
+            return responseXmlFormat;
+        } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
+            LOGGER.error(e);
+            status = Status.BAD_REQUEST;
+            return Response.status(status).entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getMessage())))
+                .build();
+        } catch (AccessInternalExecutionException e) {
+            LOGGER.error(e.getMessage(), e);
+            status = Status.METHOD_NOT_ALLOWED;
+            return Response.status(status).entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getMessage())))
+                .build();
+        }
+    }
+
+    @GET
+    @Path("/units/{id_unit}/object")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_XML)
+    @Override
+    public Response getObjectByUnitIdWithXMLFormat(JsonNode queryDsl, @PathParam("id_unit") String idUnit) {
+        Status status;
+        try {
+            SanityChecker.checkParameter(idUnit);
+            SanityChecker.checkJsonAll(queryDsl);
+            //
+            JsonNode result = accessModule.selectUnitbyId(addProdServicesToQueryForUnit(queryDsl), idUnit);
+            ArrayNode results = (ArrayNode) result.get("$results");
+            JsonNode objectGroup = results.get(0);
+            //            Response responseXmlFormat = unitDipService.jsonToXml(unit, idUnit);
+            Response responseXmlFormat = objectDipService.jsonToXml(objectGroup, idUnit);
+            resetQuery(result, queryDsl);
+            LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
+            return responseXmlFormat;
+        } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION, e);
+            // Unprocessable Entity not implemented by Jersey
+            status = Status.BAD_REQUEST;
+            return Response.status(status).entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getMessage())))
+                .build();
+        } catch (final AccessInternalExecutionException e) {
+            LOGGER.error(e.getMessage(), e);
+            status = Status.METHOD_NOT_ALLOWED;
+            return Response.status(status).entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getMessage())))
+                .build();
+        }
+    }
+
+
+
     private void asyncObjectStream(AsyncResponse asyncResponse, MultivaluedMap<String, String> multipleMap,
         String idObjectGroup,
         JsonNode query, boolean post) {
 
-        if (post) {            
+        if (post) {
             if (!multipleMap.containsKey(GlobalDataRest.X_HTTP_METHOD_OVERRIDE)) {
                 AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                     Response.status(Status.PRECONDITION_FAILED)
@@ -409,7 +456,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                             ")"))
                     .build());
             return;
-        }        
+        }
         final String xQualifier = multipleMap.get(GlobalDataRest.X_QUALIFIER).get(0);
         final String xVersion = multipleMap.get(GlobalDataRest.X_VERSION).get(0);
 
@@ -464,7 +511,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         return false;
     }
 
-    private JsonNode addProdServicesToQuery(JsonNode queryDsl)
+    private JsonNode addProdServicesToQueryForUnit(JsonNode queryDsl)
         throws InvalidParseOperationException, InvalidCreateOperationException {
         final AccessContractModel contract = VitamThreadUtils.getVitamSession().getContract();
         Set<String> prodServices = contract.getOriginatingAgencies();
@@ -477,6 +524,23 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 .add(QueryHelper.in(
                     ORIGINATING_AGENCIES.exactToken(), prodServices.toArray(new String[0])))
                 .add(QueryHelper.eq(PROJECTIONARGS.UNITTYPE.exactToken(), UnitType.HOLDING_UNIT.name()))
+                .setDepthLimit(0));
+            return parser.getRequest().getFinalSelect();
+        }
+    }
+
+    private JsonNode addProdServicesToQueryForObjectGroup(JsonNode queryDsl)
+        throws InvalidParseOperationException, InvalidCreateOperationException {
+        final AccessContractModel contract = VitamThreadUtils.getVitamSession().getContract();
+        Set<String> prodServices = contract.getOriginatingAgencies();
+        if (contract.getEveryOriginatingAgency()) {
+            return queryDsl;
+        } else {
+            final SelectParserMultiple parser = new SelectParserMultiple();
+            parser.parse(queryDsl);
+            parser.getRequest().addQueries(QueryHelper.or()
+                .add(QueryHelper.in(
+                    ORIGINATING_AGENCIES.exactToken(), prodServices.toArray(new String[0])))
                 .setDepthLimit(0));
             return parser.getRequest().getFinalSelect();
         }

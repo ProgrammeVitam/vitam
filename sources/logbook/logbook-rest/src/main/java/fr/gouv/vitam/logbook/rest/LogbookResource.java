@@ -239,7 +239,6 @@ public class LogbookResource extends ApplicationStatusResource {
                         new RequestResponseOK<LogbookOperation>(queryDsl).addResult(result)
                             .setHttpCode(Status.OK.getStatusCode()))
                     .build();
-
             } else {
                 final List<LogbookOperation> result = logbookOperation.select(queryDsl, false);
                 if (result.size() != 1) {
@@ -252,8 +251,6 @@ public class LogbookResource extends ApplicationStatusResource {
                         .setHttpCode(Status.OK.getStatusCode()))
                     .build();
             }
-
-
         } catch (final LogbookNotFoundException exc) {
             LOGGER.error(exc);
             status = Status.NOT_FOUND;

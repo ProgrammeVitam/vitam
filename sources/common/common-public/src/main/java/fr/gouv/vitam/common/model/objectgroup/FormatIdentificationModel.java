@@ -24,36 +24,56 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.access.internal.core.serializer;
+package fr.gouv.vitam.common.model.objectgroup;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
-
-import java.io.IOException;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Deserialize a (json, xml, string) representation to IdentifierType
- * To be registered in jackson objectMapper
+ * Object mapping FormatIdentificationResponse
  */
-public class IdentifierTypeDeserializer extends JsonDeserializer<IdentifierType> {
-    /**
-     *
-     * @param jp representation (json, xml, string)
-     * @param ctxt
-     * @return
-     * @throws IOException
-     */
-    @Override
-    public IdentifierType deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
-        JsonNode node = jp.getCodec().readTree(jp);
+public class FormatIdentificationModel {
 
-        IdentifierType identifierType = new IdentifierType();
-        identifierType.setValue(node.asText());
+    @JsonProperty("FormatLitteral")
+    private String formatLitteral;
 
-        return identifierType;
+    @JsonProperty("MimeType")
+    private String mimeType;
+
+    @JsonProperty("FormatId")
+    private String formatId;
+
+    @JsonProperty("Encoding")
+    private String encoding;
+
+    public String getEncoding() {
+        return encoding;
     }
 
+    public void setEncoding(String encoding) {
+        this.encoding = encoding;
+    }
+
+    public String getFormatLitteral() {
+        return formatLitteral;
+    }
+
+    public void setFormatLitteral(String formatLitteral) {
+        this.formatLitteral = formatLitteral;
+    }
+
+    public String getMimeType() {
+        return mimeType;
+    }
+
+    public void setMimeType(String mimeType) {
+        this.mimeType = mimeType;
+    }
+
+    public String getFormatId() {
+        return formatId;
+    }
+
+    public void setFormatId(String formatId) {
+        this.formatId = formatId;
+    }
 }

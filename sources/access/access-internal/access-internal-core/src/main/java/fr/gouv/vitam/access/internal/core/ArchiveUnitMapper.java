@@ -26,8 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.core;
 
-import javax.xml.datatype.DatatypeConfigurationException;
-
 import fr.gouv.culture.archivesdefrance.seda.v2.AccessRuleType;
 import fr.gouv.culture.archivesdefrance.seda.v2.AppraisalRuleType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
@@ -38,6 +36,13 @@ import fr.gouv.culture.archivesdefrance.seda.v2.ReuseRuleType;
 import fr.gouv.culture.archivesdefrance.seda.v2.StorageRuleType;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
 
+import javax.xml.datatype.DatatypeConfigurationException;
+
+/**
+ * Map the object ArchiveUnitModel generated from Unit data base model
+ * To a jaxb object ArchiveUnitType
+ * This help convert ArchiveUnitModel to xml using jaxb
+ */
 public class ArchiveUnitMapper {
 
     private DescriptiveMetadataMapper descriptiveMetadataMapper;
@@ -57,7 +62,6 @@ public class ArchiveUnitMapper {
         if (model.getArchiveUnitProfile() != null) {
             IdentifierType identifierType = new IdentifierType();
             identifierType.setValue(model.getArchiveUnitProfile());
-
             archiveUnitType.setArchiveUnitProfile(identifierType);
         }
 
@@ -65,9 +69,12 @@ public class ArchiveUnitMapper {
         ArchiveUnitType.Management management = new ArchiveUnitType.Management();
 
         management.setAccessRule(ruleMapper.fillCommonRule(model.getManagement().getAccess(), AccessRuleType::new));
-        management.setAppraisalRule(ruleMapper.fillCommonRule(model.getManagement().getAppraisal(), AppraisalRuleType::new));
-        management.setClassificationRule(ruleMapper.fillCommonRule(model.getManagement().getClassification(), ClassificationRuleType::new));
-        management.setDisseminationRule(ruleMapper.fillCommonRule(model.getManagement().getDissemination(), DisseminationRuleType::new));
+        management
+            .setAppraisalRule(ruleMapper.fillCommonRule(model.getManagement().getAppraisal(), AppraisalRuleType::new));
+        management.setClassificationRule(
+            ruleMapper.fillCommonRule(model.getManagement().getClassification(), ClassificationRuleType::new));
+        management.setDisseminationRule(
+            ruleMapper.fillCommonRule(model.getManagement().getDissemination(), DisseminationRuleType::new));
         management.setReuseRule(ruleMapper.fillCommonRule(model.getManagement().getReuse(), ReuseRuleType::new));
         management.setStorageRule(ruleMapper.fillCommonRule(model.getManagement().getStorage(), StorageRuleType::new));
 

@@ -53,11 +53,11 @@ public interface AccessInternalClient extends MockOrRestClient {
      *
      * @param selectQuery the query used to select units
      * @return a response containing a json node object including DSL queries and results
-     * @throws InvalidParseOperationException if the query is not well formatted
-     * @throws AccessInternalClientServerException if the server encountered an exception
+     * @throws InvalidParseOperationException        if the query is not well formatted
+     * @throws AccessInternalClientServerException   if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested unit does not exist
-     * @throws AccessUnauthorizedException 
-     * @throws BadRequestException if empty query is found
+     * @throws AccessUnauthorizedException
+     * @throws BadRequestException                   if empty query is found
      */
     RequestResponse<JsonNode> selectUnits(JsonNode selectQuery)
         throws InvalidParseOperationException, AccessInternalClientServerException,
@@ -67,12 +67,12 @@ public interface AccessInternalClient extends MockOrRestClient {
      * select Unit By Id
      *
      * @param sqlQuery the query to be executed
-     * @param id the id of the unit
+     * @param id       the id of the unit
      * @return a response containing a json node object including DSL queries, context and results
-     * @throws InvalidParseOperationException if the query is not well formatted
-     * @throws AccessInternalClientServerException if the server encountered an exception
+     * @throws InvalidParseOperationException        if the query is not well formatted
+     * @throws AccessInternalClientServerException   if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested unit does not exist
-     * @throws AccessUnauthorizedException 
+     * @throws AccessUnauthorizedException
      */
     RequestResponse<JsonNode> selectUnitbyId(JsonNode sqlQuery, String id)
         throws InvalidParseOperationException, AccessInternalClientServerException,
@@ -82,13 +82,13 @@ public interface AccessInternalClient extends MockOrRestClient {
      * update Unit By Id
      *
      * @param updateQuery the query to be executed as an update
-     * @param unitId the id of the unit
+     * @param unitId      the id of the unit
      * @return a response containing a json node object including DSL queries, context and results
-     * @throws InvalidParseOperationException if the query is not well formatted
-     * @throws AccessInternalClientServerException if the server encountered an exception
+     * @throws InvalidParseOperationException        if the query is not well formatted
+     * @throws AccessInternalClientServerException   if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested unit does not exist
-     * @throws AccessUnauthorizedException 
-     * @throws AccessInternalRuleExecutionException 
+     * @throws AccessUnauthorizedException
+     * @throws AccessInternalRuleExecutionException
      */
     RequestResponse<JsonNode> updateUnitbyId(JsonNode updateQuery, String unitId)
         throws InvalidParseOperationException, AccessInternalClientServerException,
@@ -98,12 +98,12 @@ public interface AccessInternalClient extends MockOrRestClient {
      * Retrieve an ObjectGroup as Json data based on the provided ObjectGroup id
      *
      * @param selectObjectQuery the query to be executed
-     * @param objectId the Id of the ObjectGroup
+     * @param objectId          the Id of the ObjectGroup
      * @return a response containing a json node object including DSL queries, context and results
-     * @throws InvalidParseOperationException if the query is not well formatted
-     * @throws AccessInternalClientServerException if the server encountered an exception
+     * @throws InvalidParseOperationException        if the query is not well formatted
+     * @throws AccessInternalClientServerException   if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested object does not exist
-     * @throws AccessUnauthorizedException 
+     * @throws AccessUnauthorizedException
      */
     RequestResponse<JsonNode> selectObjectbyId(JsonNode selectObjectQuery, String objectId)
         throws InvalidParseOperationException, AccessInternalClientServerException,
@@ -113,14 +113,14 @@ public interface AccessInternalClient extends MockOrRestClient {
      * Retrieve an Object data as an input stream
      *
      * @param selectObjectQuery the query to be executed
-     * @param objectGroupId the Id of the ObjectGroup
-     * @param usage the requested usage
-     * @param version the requested version of the usage
+     * @param objectGroupId     the Id of the ObjectGroup
+     * @param usage             the requested usage
+     * @param version           the requested version of the usage
      * @return Response containing InputStream for the object data
-     * @throws InvalidParseOperationException if the query is not well formatted
-     * @throws AccessInternalClientServerException if the server encountered an exception
+     * @throws InvalidParseOperationException        if the query is not well formatted
+     * @throws AccessInternalClientServerException   if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested object does not exist
-     * @throws AccessUnauthorizedException 
+     * @throws AccessUnauthorizedException
      */
     Response getObject(JsonNode selectObjectQuery, String objectGroupId, String usage, int version)
         throws InvalidParseOperationException, AccessInternalClientServerException,
@@ -134,19 +134,20 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @return a response containing a json node
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
-     * @throws AccessUnauthorizedException 
+     * @throws AccessUnauthorizedException
      */
-    RequestResponse<JsonNode> selectOperation(JsonNode select) throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException;
+    RequestResponse<JsonNode> selectOperation(JsonNode select)
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException;
 
     /**
      * selectOperationbyId
      *
      * @param processId ID of the operation
-     * @param queryDsl query to be executed
+     * @param queryDsl  query to be executed
      * @return a response containing a json node
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
-     * @throws AccessUnauthorizedException 
+     * @throws AccessUnauthorizedException
      */
     RequestResponse<JsonNode> selectOperationById(String processId, JsonNode queryDsl)
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException;
@@ -159,7 +160,7 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @return a response containing a json node
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
-     * @throws AccessUnauthorizedException 
+     * @throws AccessUnauthorizedException
      */
     RequestResponse<JsonNode> selectUnitLifeCycleById(String idUnit, JsonNode queryDsl)
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException;
@@ -171,9 +172,10 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @return a response containing a json node
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
-     * @throws AccessUnauthorizedException 
+     * @throws AccessUnauthorizedException
      */
-    RequestResponse<JsonNode> selectUnitLifeCycle(JsonNode queryDsl) throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException;
+    RequestResponse<JsonNode> selectUnitLifeCycle(JsonNode queryDsl)
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException;
 
     /**
      * selectObjectGroupLifeCycleById
@@ -183,18 +185,18 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @return a response containing a json node
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
-     * @throws AccessUnauthorizedException 
+     * @throws AccessUnauthorizedException
      */
     RequestResponse<JsonNode> selectObjectGroupLifeCycleById(String idObject, JsonNode queryDsl)
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException;
 
     /**
      * Checks operation traceability
-     * 
+     *
      * @param query to be executed
      * @return a response containing a json node
      * @throws LogbookClientServerException
-     * @throws AccessUnauthorizedException 
+     * @throws AccessUnauthorizedException
      */
     RequestResponse<JsonNode> checkTraceabilityOperation(JsonNode query)
         throws LogbookClientServerException, InvalidParseOperationException, AccessUnauthorizedException;
@@ -202,21 +204,41 @@ public interface AccessInternalClient extends MockOrRestClient {
     /**
      * @param operationId
      * @return a response containing the traceability file
-     * @throws AccessUnauthorizedException 
+     * @throws AccessUnauthorizedException
      */
     Response downloadTraceabilityFile(String operationId)
         throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
         InvalidParseOperationException, AccessUnauthorizedException;
 
     /**
-     *
      * @param queryDsl
      * @param idUnit
      * @return unit with a xml representation
      */
-    Response getUnitByIdWithXMLFormat(JsonNode queryDsl, @PathParam("id_unit") String idUnit)
+    Response getUnitByIdWithXMLFormat(JsonNode queryDsl, String idUnit)
         throws AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
         InvalidParseOperationException;
 
 
+    /**
+     * Retrieve object group by id with XML format (DIP)
+     *
+     * @param queryDsl the given query dsl
+     * @param objectId the given object group id
+     * @return unit with a xml representation
+     */
+    Response getObjectByIdWithXMLFormat(JsonNode queryDsl, String objectId)
+        throws AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
+        InvalidParseOperationException;
+
+    /**
+     * Retrieve object group by unit id with XML format (DIP)
+     *
+     * @param queryDsl the given query dsl
+     * @param unitId the given object group id
+     * @return unit with a xml representation
+     */
+    Response getObjectByUnitIdWithXMLFormat(JsonNode queryDsl, String unitId)
+        throws AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
+        InvalidParseOperationException;
 }

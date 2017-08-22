@@ -24,36 +24,47 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.access.internal.core.serializer;
+package fr.gouv.vitam.common.model.objectgroup;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.io.IOException;
+import java.util.List;
 
 /**
- * Deserialize a (json, xml, string) representation to IdentifierType
- * To be registered in jackson objectMapper
+ * DTO for map #storage in objectGroup
  */
-public class IdentifierTypeDeserializer extends JsonDeserializer<IdentifierType> {
-    /**
-     *
-     * @param jp representation (json, xml, string)
-     * @param ctxt
-     * @return
-     * @throws IOException
-     */
-    @Override
-    public IdentifierType deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
-        JsonNode node = jp.getCodec().readTree(jp);
+public class StorageRacineModel {
 
-        IdentifierType identifierType = new IdentifierType();
-        identifierType.setValue(node.asText());
+    @JsonProperty("strategyId")
+    private String strategyId;
 
-        return identifierType;
+    @JsonProperty("_nbc")
+    private List<String> nbc;
+
+    @JsonProperty("offerIds")
+    private List<String> offerIds;
+
+    public String getStrategyId() {
+        return strategyId;
     }
 
+    public void setStrategyId(String strategyId) {
+        this.strategyId = strategyId;
+    }
+
+    public List<String> getNbc() {
+        return nbc;
+    }
+
+    public void setNbc(List<String> nbc) {
+        this.nbc = nbc;
+    }
+
+    public List<String> getOfferIds() {
+        return offerIds;
+    }
+
+    public void setOfferIds(List<String> offerIds) {
+        this.offerIds = offerIds;
+    }
 }

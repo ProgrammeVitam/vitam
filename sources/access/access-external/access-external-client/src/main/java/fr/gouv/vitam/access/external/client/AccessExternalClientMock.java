@@ -105,6 +105,17 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
         }
     }
 
+    @Override public Response getObjectGroupByIdWithXMLFormat(JsonNode queryDsl, String idUnit, Integer tenantId,
+        String contractName) throws AccessExternalClientServerException {
+        try (InputStream resourceAsStream = getClass().getResourceAsStream("/object_group.xml")){
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            IOUtils.copy(resourceAsStream, byteArrayOutputStream);
+            return Response.ok().entity(byteArrayOutputStream.toByteArray()).build();
+        } catch (IOException e) {
+            throw new AccessExternalClientServerException(e);
+        }
+    }
+
     @Override
     public Response getUnitObject(JsonNode selectQuery, String unitId, String usage, int version, Integer tenantId,
         String contractName)

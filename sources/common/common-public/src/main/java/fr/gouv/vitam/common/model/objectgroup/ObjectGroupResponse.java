@@ -33,17 +33,137 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * Object Mapping for object group used in AccessInternalModuleImp
  */
-public class ObjectGroupResponse extends ObjectGroup {
+public class ObjectGroupResponse {
 
     @JsonProperty("#qualifiers")
-    private List<QualifiersJson> qualifiers;
+    private List<QualifiersModel> qualifiers;
 
+    @JsonProperty("#id")
+    private String id;
 
-    public List<QualifiersJson> getQualifiers() {
+    @JsonProperty("#tenant")
+    private int tenant;
+
+    @JsonProperty("FileInfo")
+    private FileInfoModel fileInfo;
+
+    @JsonProperty("#unitups")
+    private List<String> up;
+
+    @JsonProperty("#nbobjects")
+    private int nbc;
+
+    @JsonProperty("#operations")
+    private List<String> ops;
+
+    @JsonProperty("#originating_agency")
+    private String originatingAgency;
+
+    @JsonProperty("#originating_agencies")
+    private List<String> originatingAgencies;
+
+    @JsonProperty("#version")
+    private String version;
+
+    @JsonProperty("#type")
+    private String type;
+
+    @JsonProperty("#storage")
+    private StorageRacineModel storage;
+
+    public StorageRacineModel getStorage() {
+        return storage;
+    }
+
+    public void setStorage(StorageRacineModel storage) {
+        this.storage = storage;
+    }
+
+    public List<QualifiersModel> getQualifiers() {
         return qualifiers;
     }
 
-    public void setQualifiers(List<QualifiersJson> qualifiers) {
+    public void setQualifiers(List<QualifiersModel> qualifiers) {
         this.qualifiers = qualifiers;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public int getTenant() {
+        return tenant;
+    }
+
+    public void setTenant(int tenant) {
+        this.tenant = tenant;
+    }
+
+    public FileInfoModel getFileInfo() {
+        return fileInfo;
+    }
+
+    public void setFileInfo(FileInfoModel fileInfo) {
+        this.fileInfo = fileInfo;
+    }
+
+    public List<String> getUp() {
+        return up;
+    }
+
+    public void setUp(List<String> up) {
+        this.up = up;
+    }
+
+    public int getNbc() {
+        return nbc;
+    }
+
+    public void setNbc(int nbc) {
+        this.nbc = nbc;
+    }
+
+    public List<String> getOps() {
+        return ops;
+    }
+
+    public void setOps(List<String> ops) {
+        this.ops = ops;
+    }
+
+    public String getOriginatingAgency() {
+        return originatingAgency;
+    }
+
+    public void setOriginatingAgency(String originatingAgency) {
+        this.originatingAgency = originatingAgency;
+    }
+
+    public List<String> getOriginatingAgencies() {
+        return originatingAgencies;
+    }
+
+    public void setOriginatingAgencies(List<String> originatingAgencies) {
+        this.originatingAgencies = originatingAgencies;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 }

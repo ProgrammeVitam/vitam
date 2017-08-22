@@ -24,79 +24,33 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.model.objectgroup;
+package fr.gouv.vitam.access.internal.core.serializer;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 
-/**
- * Object mapping FileInfoResponse
- */
-public class FileInfoJson {
+import java.io.IOException;
 
-    @JsonProperty("Filename")
-    private String filename;
+public class TextTypeDeSerializer extends JsonDeserializer<TextType> {
 
-    @JsonProperty("CreatingApplicationName")
-    private String creatingApplicationName;
+    /**
+     * Convert json, xml, string to TextType
+     *
+     * @param jp   (json, xml, string) representation
+     * @param ctxt
+     * @return
+     * @throws java.io.IOException
+     */
+    @Override
+    public TextType deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+        JsonNode node = jp.getCodec().readTree(jp);
 
-    @JsonProperty("CreatingApplicationVersion")
-    private String creatingApplicationVersion;
+        TextType textType = new TextType();
+        textType.setValue(node.asText());
 
-    @JsonProperty("CreatingOs")
-    private String creatingOs;
-
-    @JsonProperty("CreatingOsVersion")
-    private String creatingOsVersion;
-
-    @JsonProperty("LastModified")
-    private String lastModified;
-
-    public String getFilename() {
-        return filename;
+        return textType;
     }
-
-    public void setFilename(String filename) {
-        this.filename = filename;
-    }
-
-    public String getCreatingApplicationName() {
-        return creatingApplicationName;
-    }
-
-    public void setCreatingApplicationName(String creatingApplicationName) {
-        this.creatingApplicationName = creatingApplicationName;
-    }
-
-    public String getCreatingApplicationVersion() {
-        return creatingApplicationVersion;
-    }
-
-    public void setCreatingApplicationVersion(String creatingApplicationVersion) {
-        this.creatingApplicationVersion = creatingApplicationVersion;
-    }
-
-    public String getCreatingOs() {
-        return creatingOs;
-    }
-
-    public void setCreatingOs(String creatingOs) {
-        this.creatingOs = creatingOs;
-    }
-
-    public String getCreatingOsVersion() {
-        return creatingOsVersion;
-    }
-
-    public void setCreatingOsVersion(String creatingOsVersion) {
-        this.creatingOsVersion = creatingOsVersion;
-    }
-
-    public String getLastModified() {
-        return lastModified;
-    }
-
-    public void setLastModified(String lastModified) {
-        this.lastModified = lastModified;
-    }
-    
 }

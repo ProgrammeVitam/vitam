@@ -26,29 +26,26 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.client;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
-import org.apache.commons.io.IOUtils;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import org.apache.commons.io.IOUtils;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Mock client implementation for access
@@ -147,6 +144,30 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     @Override
     public Response getUnitByIdWithXMLFormat(JsonNode queryDsl, String idUnit) throws AccessInternalClientServerException {
         try (InputStream resourceAsStream = getClass().getResourceAsStream("/unit.xml")){
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            IOUtils.copy(resourceAsStream, byteArrayOutputStream);
+            return Response.ok().entity(byteArrayOutputStream.toByteArray()).build();
+        } catch (IOException e) {
+            throw new AccessInternalClientServerException(e);
+        }
+    }
+
+    @Override public Response getObjectByIdWithXMLFormat(JsonNode queryDsl, String objectId)
+        throws AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
+        InvalidParseOperationException {
+        try (InputStream resourceAsStream = getClass().getResourceAsStream("/objectGroup.xml")){
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            IOUtils.copy(resourceAsStream, byteArrayOutputStream);
+            return Response.ok().entity(byteArrayOutputStream.toByteArray()).build();
+        } catch (IOException e) {
+            throw new AccessInternalClientServerException(e);
+        }
+    }
+
+    @Override public Response getObjectByUnitIdWithXMLFormat(JsonNode queryDsl, String unitId)
+        throws AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
+        InvalidParseOperationException {
+        try (InputStream resourceAsStream = getClass().getResourceAsStream("/objectGroup.xml")){
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             IOUtils.copy(resourceAsStream, byteArrayOutputStream);
             return Response.ok().entity(byteArrayOutputStream.toByteArray()).build();

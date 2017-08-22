@@ -29,40 +29,85 @@ package fr.gouv.vitam.common.model.objectgroup;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Object mapping FormatIdentificationResponse
+ * Object mapping FileInfoResponse
  */
-public class FormatIdentificationJson {
+public class FileInfoModel {
 
-    @JsonProperty("FormatIdentificationResponse")
-    private String formatLitteral;
+    @JsonProperty("Filename")
+    private String filename;
 
-    @JsonProperty("MimeType")
-    private String mimeType;
+    @JsonProperty("CreatingApplicationName")
+    private String creatingApplicationName;
 
-    @JsonProperty("FormatId")
-    private String formatId;
+    @JsonProperty("CreatingApplicationVersion")
+    private String creatingApplicationVersion;
 
-    public String getFormatLitteral() {
-        return formatLitteral;
+    @JsonProperty("CreatingOs")
+    private String creatingOs;
+
+    @JsonProperty("CreatingOsVersion")
+    private String creatingOsVersion;
+
+    @JsonProperty("LastModified")
+    private String lastModified;
+
+    @JsonProperty("DateCreatedByApplication")
+    private String dateCreatedByApplication;
+
+    public String getDateCreatedByApplication() {
+        return dateCreatedByApplication;
     }
 
-    public void setFormatLitteral(String formatLitteral) {
-        this.formatLitteral = formatLitteral;
+    public void setDateCreatedByApplication(String dateCreatedByApplication) {
+        this.dateCreatedByApplication = dateCreatedByApplication;
     }
 
-    public String getMimeType() {
-        return mimeType;
+    public String getFilename() {
+        return filename;
     }
 
-    public void setMimeType(String mimeType) {
-        this.mimeType = mimeType;
+    public void setFilename(String filename) {
+        this.filename = filename;
     }
 
-    public String getFormatId() {
-        return formatId;
+    public String getCreatingApplicationName() {
+        return creatingApplicationName;
     }
 
-    public void setFormatId(String formatId) {
-        this.formatId = formatId;
+    public void setCreatingApplicationName(String creatingApplicationName) {
+        this.creatingApplicationName = creatingApplicationName;
     }
+
+    public String getCreatingApplicationVersion() {
+        return creatingApplicationVersion;
+    }
+
+    public void setCreatingApplicationVersion(String creatingApplicationVersion) {
+        this.creatingApplicationVersion = creatingApplicationVersion;
+    }
+
+    public String getCreatingOs() {
+        return creatingOs;
+    }
+
+    public void setCreatingOs(String creatingOs) {
+        this.creatingOs = creatingOs;
+    }
+
+    public String getCreatingOsVersion() {
+        return creatingOsVersion;
+    }
+
+    public void setCreatingOsVersion(String creatingOsVersion) {
+        this.creatingOsVersion = creatingOsVersion;
+    }
+
+    public String getLastModified() {
+        return lastModified;
+    }
+
+    public void setLastModified(String lastModified) {
+        this.lastModified = lastModified;
+    }
+
 }

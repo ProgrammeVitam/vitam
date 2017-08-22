@@ -1,6 +1,10 @@
 package fr.gouv.vitam.access.internal.core;
 
-import static javax.xml.datatype.DatatypeFactory.newInstance;
+import fr.gouv.culture.archivesdefrance.seda.v2.RuleIdType;
+import fr.gouv.vitam.common.model.unit.CommonRule;
+import fr.gouv.vitam.common.model.unit.InheritanceModel;
+import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
+import fr.gouv.vitam.common.model.unit.RuleModel;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -9,11 +13,7 @@ import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import fr.gouv.culture.archivesdefrance.seda.v2.RuleIdType;
-import fr.gouv.vitam.common.model.unit.CommonRule;
-import fr.gouv.vitam.common.model.unit.InheritanceModel;
-import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
-import fr.gouv.vitam.common.model.unit.RuleModel;
+import static javax.xml.datatype.DatatypeFactory.newInstance;
 
 /**
  * Map data base representation of rules to a jaxb representation

@@ -488,10 +488,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         } catch (VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);
             throw new VitamClientException(e);
-        } finally {
-            consumeAnyEntityAndClose(response);
         }
-
     }
 
 
@@ -510,11 +507,29 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         try {
             response = performRequest(HttpMethod.GET, "units/" + idUnit, headers, queryDsl,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_XML_TYPE);
-
             return response;
         } catch (VitamClientInternalException e) {
             consumeAnyEntityAndClose(response);
             LOGGER.error("Error while getUnitByIdWithXMLFormat ", e);
+            throw new AccessExternalClientServerException(e);
+        }
+    }
+
+    @Override public Response getObjectGroupByIdWithXMLFormat(JsonNode queryDsl, String idUnit, Integer tenantId,
+        String contractName) throws AccessExternalClientServerException {
+        ParametersChecker.checkParameter(BLANK_DSL, queryDsl);
+        ParametersChecker.checkParameter(BLANK_UNIT_ID, idUnit);
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, "units/" + idUnit + "/object", headers, queryDsl,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_XML_TYPE);
+            return response;
+        } catch (VitamClientInternalException e) {
+            consumeAnyEntityAndClose(response);
+            LOGGER.error("Error while getObjectGroupByIdWithXMLFormat ", e);
             throw new AccessExternalClientServerException(e);
         }
     }
