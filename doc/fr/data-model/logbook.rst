@@ -214,7 +214,9 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 
 "obId" (object Identifier): identifiant Vitam du lot d’objets auquel s’applique l’opération (lot correspondant à une liste).
     Il s'agit d'une chaîne de 36 caractères.
-    Dans le cas d’une opération d'entrée, il s’agit du GUID de l’entrée (evIdProc). Dans le cas d’une opération ‘Audit’, il s’agit par exemple du nom d’un lot d’archives prédéfini
+    Dans le cas d’une opération d'entrée, il s’agit du GUID de l’entrée (evIdProc). 
+    Dans le cas d’une opération ‘Audit’, il s’agit par exemple du nom d’un lot d’archives prédéfini.
+    Dans le cas d’une opération d'update, il s’agit du GUID de l'objet mis à jour.
 
     *Ce champ existe pour les structures incluantes et incluses*
 
