@@ -254,7 +254,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
         }
 
         if (metricsConfiguration.hasMetricsJersey()) {
-            metrics.put(VitamMetricsType.JERSEY, new VitamMetrics(VitamMetricsType.JERSEY, metricsConfiguration));
+            metrics.put(VitamMetricsType.REST, new VitamMetrics(VitamMetricsType.REST, metricsConfiguration));
         }
         if (metricsConfiguration.hasMetricsJVM()) {
             metrics.put(VitamMetricsType.JVM, new VitamMetrics(VitamMetricsType.JVM, metricsConfiguration));
@@ -263,9 +263,9 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
     }
 
     protected void checkJerseyMetrics(final ResourceConfig resourceConfig) {
-        if (metrics.containsKey(VitamMetricsType.JERSEY)) {
+        if (metrics.containsKey(VitamMetricsType.REST)) {
             resourceConfig.register(new VitamInstrumentedResourceMethodApplicationListener(
-                metrics.get(VitamMetricsType.JERSEY).getRegistry()));
+                metrics.get(VitamMetricsType.REST).getRegistry()));
         }
     }
 

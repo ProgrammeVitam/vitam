@@ -16,6 +16,8 @@ import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 
 public class BusinessApplication extends Application {
 
+    private final CommonBusinessApplication commonBusinessApplication;
+
     private Set<Object> singletons;
 
     public BusinessApplication(@Context ServletConfig servletConfig) {
@@ -24,7 +26,7 @@ public class BusinessApplication extends Application {
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
             final LogbookConfiguration
                 configuration = PropertiesUtils.readYaml(yamlIS, LogbookConfiguration.class);
-            CommonBusinessApplication commonBusinessApplication = new CommonBusinessApplication();
+            commonBusinessApplication = new CommonBusinessApplication();
 
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());
@@ -33,6 +35,11 @@ public class BusinessApplication extends Application {
             throw new RuntimeException(e);
         }
 
+    }
+
+    @Override
+    public Set<Class<?>> getClasses() {
+        return commonBusinessApplication.getClasses();
     }
 
     @Override

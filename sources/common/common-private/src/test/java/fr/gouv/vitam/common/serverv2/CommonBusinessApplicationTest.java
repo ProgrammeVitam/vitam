@@ -42,6 +42,6 @@ public class CommonBusinessApplicationTest {
         Assert.assertNotNull(applicationTest);
         Set<Object> set = applicationTest.getResources();
         Assert.assertNotNull(set);
-        Assert.assertEquals(3, set.size());
+        Assert.assertEquals(2, set.size());
     }
 }

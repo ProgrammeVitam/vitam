@@ -26,22 +26,22 @@
  */
 package fr.gouv.vitam.common.serverv2.application;
 
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.metrics.VitamMetrics;
+import fr.gouv.vitam.common.metrics.VitamMetricsType;
+import fr.gouv.vitam.common.server.HeaderIdContainerFilter;
+import fr.gouv.vitam.common.server.application.GenericExceptionMapper;
+import fr.gouv.vitam.common.server.application.configuration.VitamMetricsConfiguration;
+import fr.gouv.vitam.common.serverv2.metrics.MetricsFeature;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.metrics.VitamInstrumentedResourceMethodApplicationListener;
-import fr.gouv.vitam.common.metrics.VitamMetrics;
-import fr.gouv.vitam.common.metrics.VitamMetricsType;
-import fr.gouv.vitam.common.server.HeaderIdContainerFilter;
-import fr.gouv.vitam.common.server.application.GenericExceptionMapper;
-import fr.gouv.vitam.common.server.application.configuration.VitamMetricsConfiguration;
 
 /**
  * list of all business application
@@ -52,20 +52,31 @@ public class CommonBusinessApplication {
 
     private static final String METRICS_CONF_FILE_NAME = "vitam.metrics.conf";
 
-    private static final Map<VitamMetricsType, VitamMetrics> metrics = new ConcurrentHashMap<>();
+    public static final Map<VitamMetricsType, VitamMetrics> metrics = new ConcurrentHashMap<>();
 
     private Set<Object> resources;
+
+
+    private Set<Class<?>> classes;
 
     public CommonBusinessApplication() {
         this.resources = new HashSet<>();
         resources.add(new HeaderIdContainerFilter());
         resources.add(new GenericExceptionMapper());
         clearAndconfigureMetrics();
-        if (metrics.containsKey(VitamMetricsType.JERSEY)) {
-            resources.add(new VitamInstrumentedResourceMethodApplicationListener(
-                metrics.get(VitamMetricsType.JERSEY).getRegistry()));
-        }
+
         startMetrics();
+
+        // Register metrics for resources
+        classes = new HashSet<>();
+        final VitamMetrics vitamMetrics = metrics.get(VitamMetricsType.REST);
+        if (null != vitamMetrics) {
+            classes.add(MetricsFeature.class);
+        }
+    }
+
+    public Set<Class<?>> getClasses() {
+        return classes;
     }
 
     public Set<Object> getResources() {
@@ -88,7 +99,7 @@ public class CommonBusinessApplication {
         }
 
         if (metricsConfiguration.hasMetricsJersey()) {
-            metrics.put(VitamMetricsType.JERSEY, new VitamMetrics(VitamMetricsType.JERSEY, metricsConfiguration));
+            metrics.put(VitamMetricsType.REST, new VitamMetrics(VitamMetricsType.REST, metricsConfiguration));
         }
         if (metricsConfiguration.hasMetricsJVM()) {
             metrics.put(VitamMetricsType.JVM, new VitamMetrics(VitamMetricsType.JVM, metricsConfiguration));

@@ -48,11 +48,12 @@ import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
 
 public class BusinessApplication extends Application {
 
+    private final CommonBusinessApplication commonBusinessApplication;
     private Set<Object> singletons;
 
     public BusinessApplication(@Context ServletConfig servletConfig) {
         String configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
-        CommonBusinessApplication commonBusinessApplication = new CommonBusinessApplication();
+        commonBusinessApplication = new CommonBusinessApplication();
 
         singletons = new HashSet<>();
         singletons.addAll(commonBusinessApplication.getResources());
@@ -80,6 +81,11 @@ public class BusinessApplication extends Application {
         } catch (IOException | VitamException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public Set<Class<?>> getClasses() {
+        return commonBusinessApplication.getClasses();
     }
 
     @Override
