@@ -27,10 +27,64 @@
 package fr.gouv.vitam.ihmdemo.appserver;
 
 
+
+import static fr.gouv.vitam.common.server.application.AsyncInputStreamHelper.asyncResponseResume;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.security.InvalidParameterException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.CookieParam;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.shiro.authc.UsernamePasswordToken;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.util.ThreadContext;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Iterables;
+
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.api.ErrorMessage;
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
@@ -79,6 +133,7 @@ import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server.application.resources.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.ihmdemo.common.api.IhmDataRest;
 import fr.gouv.vitam.ihmdemo.common.api.IhmWebAppHeader;
 import fr.gouv.vitam.ihmdemo.common.pagination.OffsetBasedPagination;
@@ -94,56 +149,6 @@ import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
-import org.apache.commons.lang.StringUtils;
-import org.apache.shiro.authc.UsernamePasswordToken;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
-import org.apache.shiro.subject.Subject;
-import org.apache.shiro.util.ThreadContext;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.CookieParam;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-import java.security.InvalidParameterException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-
-import static fr.gouv.vitam.common.server.application.AsyncInputStreamHelper.asyncResponseResume;
 
 /**
  * Web Application Resource class
@@ -151,6 +156,10 @@ import static fr.gouv.vitam.common.server.application.AsyncInputStreamHelper.asy
 @Path("/v1/api")
 public class WebApplicationResource extends ApplicationStatusResource {
 
+    private static final String APPLICATION_OCTET_STREAM = "application/octet-stream";
+    private static final String CONTENT_TYPE = "Content-Type";
+    private static final String CONTENT_DISPOSITION = "Content-Disposition";
+    private static final String ATTACHMENT_FILENAME_ERROR_REPORT_JSON = "attachment; filename=ErrorReport.json";
     private static final String IDENTIFIER = "Identifier";
     public static final String X_SIZE_TOTAL = "X-Size-Total";
     public static final String X_CHUNK_OFFSET = "X-Chunk-Offset";
@@ -605,7 +614,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(((String) responseDetails.get(2)).getBytes(CharsetUtils.UTF8))
                 .type(MediaType.APPLICATION_OCTET_STREAM_TYPE)
-                .header("Content-Disposition",
+                .header(CONTENT_DISPOSITION,
                     "attachment; filename=ATR_" + operationId + ".xml")
                 .header(GlobalDataRest.X_REQUEST_ID, operationId).build();
         }
@@ -629,7 +638,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                             int status = getStatus(lastEvent);
                             return Response.status(status).entity(new FileInputStream(file))
                                 .type(MediaType.APPLICATION_OCTET_STREAM_TYPE)
-                                .header("Content-Disposition",
+                                .header(CONTENT_DISPOSITION,
                                     "attachment; filename=ATR_" + id + ".xml")
                                 .header(GlobalDataRest.X_REQUEST_ID, operationId).build();
                         }
@@ -870,8 +879,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @RequiresPermissions("format:check")
     public Response checkRefFormat(@Context HttpHeaders headers, InputStream input) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-            Status status = adminClient.checkDocuments(AdminCollections.FORMATS, input, getTenantId(headers));
-            return Response.status(status).build();
+            Response response = adminClient.checkDocuments(AdminCollections.FORMATS, input, getTenantId(headers));
+            return response;
         } catch (final AccessExternalClientNotFoundException e) {
             LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
             return Response.status(Status.NOT_FOUND).build();
@@ -1057,13 +1066,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 Response.status(Status.PRECONDITION_FAILED).build());
             return;
         }
-
         try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
             IngestCollection collection = IngestCollection.valueOf(type.toUpperCase());
             Response response = client.downloadObjectAsync(objectId, collection, tenantId);
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
             if (response.getStatus() == Status.OK.getStatusCode()) {
-                helper.writeResponse(Response.ok().header("Content-Disposition", "filename=" + objectId + ".xml"));
+                helper.writeResponse(Response.ok().header(CONTENT_DISPOSITION, "filename=" + objectId + ".xml"));
             } else {
                 helper.writeResponse(Response.status(response.getStatus()));
             }
@@ -1238,6 +1246,52 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
+
+    @GET
+    @Path("/rules/report/download/{id}")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response downloadRulesReport(@Context HttpHeaders headers, @PathParam("id") String id) {
+        final String tenantIdHeader = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
+        try {
+            File file = downloadAndSaveFilesRulesReport(id, Integer.parseInt(tenantIdHeader));
+            if (file != null) {
+                return Response.ok().entity(new FileInputStream(file))
+                    .type(MediaType.APPLICATION_OCTET_STREAM_TYPE)
+                    .header(CONTENT_DISPOSITION,
+                        "attachment; filename=" + id + ".json")
+                    .build();
+            } else {
+                return Response.status(Status.NO_CONTENT).build();
+            }
+        } catch (Exception e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+        }
+    }
+
+    private File downloadAndSaveFilesRulesReport(String guid, Integer tenantId)
+        throws VitamClientException, IngestExternalException, IngestExternalClientServerException,
+        IngestExternalClientNotFoundException, InvalidParseOperationException {
+        File file = null;
+        Response response = null;                
+        try (IngestExternalClient ingestExternalClient = IngestExternalClientFactory.getInstance().getClient()) {
+            response = ingestExternalClient
+                .downloadObjectAsync(guid, IngestCollection.RULES, tenantId);
+            InputStream inputStream = response.readEntity(InputStream.class);
+            if (inputStream != null) {
+                file = PropertiesUtils.fileFromTmpFolder( guid + ".json");
+                try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+                    StreamUtils.copy(inputStream, fileOutputStream);
+                } catch (IOException e) {
+                    throw new VitamClientException("Error during Report generation");
+                }
+            }
+        } finally {
+            DefaultClient.staticConsumeAnyEntityAndClose(response);
+        }
+        return file;
+    }
+
     /***
      * check the referential rules
      *
@@ -1248,18 +1302,43 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @POST
     @Path("/rules/check")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @RequiresPermissions("rules:create")
-    public Response checkRefRule(@Context HttpHeaders headers, InputStream input) {
-        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-            Status status =
-                adminClient.checkDocuments(AdminCollections.RULES, input, getTenantId(headers));
-            return Response.status(status).build();
-        } catch (final AccessExternalClientException e) {
-            return Response.status(Status.FORBIDDEN).build();
-        } catch (final Exception e) {
-            LOGGER.error(e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+    public void checkRefRule(@Context HttpHeaders headers, InputStream input,
+        @Suspended final AsyncResponse asyncResponse) {
+        VitamThreadPoolExecutor.getDefaultExecutor()
+            .execute(() -> asyncDownloadErrorReport(input, getTenantId(headers), asyncResponse));
+    }
+
+
+
+    /**
+     * async Download Error Report
+     * 
+     * @param document the input stream to test
+     * @param tenant the given tenant
+     * @param asyncResponse asyncResponse
+     */
+    private void asyncDownloadErrorReport(InputStream document, int tenant, final AsyncResponse asyncResponse) {
+        AsyncInputStreamHelper helper;
+        try (AdminExternalClient client = AdminExternalClientFactory.getInstance().getClient()) {
+            final Response response = client.checkDocuments(AdminCollections.RULES, document, tenant);
+            helper = new AsyncInputStreamHelper(asyncResponse, response);
+            final Response.ResponseBuilder responseBuilder =
+                Response.status(response.getStatus())
+                    .header(CONTENT_DISPOSITION, ATTACHMENT_FILENAME_ERROR_REPORT_JSON)
+                    .header(CONTENT_TYPE, APPLICATION_OCTET_STREAM);
+            helper.writeResponse(responseBuilder);
+        } catch (final AccessExternalClientException exc) {
+            LOGGER.error(exc.getMessage(), exc);
+            asyncResponseResume(asyncResponse,
+                Response.status(Status.INTERNAL_SERVER_ERROR)
+                    .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exc.getMessage()).toString()).build());
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+            asyncResponseResume(asyncResponse,
+                Response.status(Status.INTERNAL_SERVER_ERROR)
+                    .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage()).toString()).build());
         }
     }
 
@@ -1621,7 +1700,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                         int status = getStatus(lastEvent);
                         return Response.status(status).entity(new FileInputStream(file))
                             .type(MediaType.APPLICATION_OCTET_STREAM_TYPE)
-                            .header("Content-Disposition",
+                            .header(CONTENT_DISPOSITION,
                                 "attachment; filename=ATR_" + id + ".xml")
                             .header(GlobalDataRest.X_REQUEST_ID, id)
                             .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, itemStatus.getGlobalState())
@@ -2193,7 +2272,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             helper = new AsyncInputStreamHelper(asyncResponse, response);
             final Response.ResponseBuilder responseBuilder =
                 Response.status(Status.OK)
-                    .header("Content-Disposition", response.getHeaderString("Content-Disposition"))
+                    .header(CONTENT_DISPOSITION, response.getHeaderString(CONTENT_DISPOSITION))
                     .type(response.getMediaType());
             helper.writeResponse(responseBuilder);
         } catch (final AccessExternalNotFoundException exc) {
@@ -2431,7 +2510,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
             if (response.getStatus() == Status.OK.getStatusCode()) {
                 helper.writeResponse(
-                    Response.ok().header("Content-Disposition", response.getHeaderString("Content-Disposition")));
+                    Response.ok().header(CONTENT_DISPOSITION, response.getHeaderString(CONTENT_DISPOSITION)));
             } else {
                 helper.writeResponse(Response.status(response.getStatus()));
             }

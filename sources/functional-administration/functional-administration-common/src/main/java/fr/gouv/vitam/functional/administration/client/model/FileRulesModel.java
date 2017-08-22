@@ -182,4 +182,14 @@ public class FileRulesModel {
         }
         return same;
     }
+
+    @Override
+    public String toString() {
+        return "FileRulesModel [id=" + id + ", tenant=" + tenant + ", ruleId=" + ruleId + ", ruleType=" + ruleType +
+            ", ruleValue=" + ruleValue + ", ruleDescription=" + ruleDescription + ", ruleDuration=" + ruleDuration +
+            ", ruleMeasurement=" + ruleMeasurement + ", creationDate=" + creationDate + ", updateDate=" + updateDate +
+            ", version=" + version + "]";
+    }
+
+
 }

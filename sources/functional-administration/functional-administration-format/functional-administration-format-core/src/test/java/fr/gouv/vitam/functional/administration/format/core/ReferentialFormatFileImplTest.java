@@ -35,7 +35,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.bson.Document;
 import org.junit.AfterClass;
@@ -69,6 +71,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.ErrorReport;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
@@ -146,12 +149,14 @@ public class ReferentialFormatFileImplTest {
 
     @Test
     public void testFormatXML() throws FileNotFoundException, ReferentialException {
-        formatFile.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
+        Map<Integer, List<ErrorReport>> errors = new HashMap<>();
+        formatFile.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)), errors, null, null, null, null);
     }
 
     @Test(expected = ReferentialException.class)
     public void testFormatXMLKO() throws FileNotFoundException, ReferentialException {
-        formatFile.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_KO)));
+        Map<Integer, List<ErrorReport>> errors = new HashMap<>();
+        formatFile.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_KO)), errors, null, null, null, null);
     }
 
     @Test

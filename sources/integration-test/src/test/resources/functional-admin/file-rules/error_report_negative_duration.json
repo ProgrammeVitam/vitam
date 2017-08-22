@@ -1,0 +1,17 @@
+{
+	"JDO": {
+		"evType": "STP_IMPORT_RULES",
+		"evDateTime": "2017-08-08T12:53:26.381"
+	},
+	"error": {
+		"line 2": [
+			{
+				"Code": "STP_IMPORT_RULES_WRONG_RULEDURATION.KO",
+				"Message": "Au moins un champs RuleDuration \u00E0 une valeur incorrecte. La valeur doit \u00EAtre un entier positif ou nul, ou \u00EAtre indiqu\u00E9e unlimited",
+				"Information additionnelle": "-80"
+			}
+		]
+	},
+	"usedDeletedRules": [],
+	"usedUpdatedRules": []
+}

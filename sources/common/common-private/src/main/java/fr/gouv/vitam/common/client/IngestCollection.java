@@ -37,7 +37,11 @@ public enum IngestCollection {
     /**
      * Manifests collection
      */
-    MANIFESTS("manifests");
+    MANIFESTS("manifests"),
+    /**
+     * Ugly hack for homogeneity download Reports
+     */
+    RULES("rules");
 
     /**
      * Name

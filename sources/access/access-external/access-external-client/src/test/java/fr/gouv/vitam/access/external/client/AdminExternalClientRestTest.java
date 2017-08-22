@@ -23,7 +23,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -32,6 +31,7 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
+import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
@@ -126,7 +126,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         @PUT
         @Path("{collections}")
         @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-        @Produces(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_OCTET_STREAM)
         public Response checkDocument(@PathParam("collections") String collection, InputStream document) {
             return expectedResponse.put();
         }
@@ -202,24 +202,30 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     public void testCheckDocument()
         throws Exception {
         when(mock.put()).thenReturn(Response.status(Status.OK).build());
-        assertEquals(
-            client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID),
-            Status.OK);
+        Response checkDocumentsResponse = client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID);
+        assertEquals(Status.OK.getStatusCode(), checkDocumentsResponse.getStatus());
+        // assertEquals(
+        // client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID),
+        // Status.OK);
     }
 
     @Test(expected = AccessExternalClientNotFoundException.class)
     public void testCheckDocumentAccessExternalClientNotFoundException()
         throws Exception {
         when(mock.put()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID);
+        Response checkDocuments = client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID);
     }
+    
+   
 
     @Test
     public void testCheckDocumentAccessExternalClientException()
         throws Exception {
         when(mock.put()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        assertEquals(Status.BAD_REQUEST,
-            client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID));
+        Response checkDocumentsResponse = client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID);
+        assertEquals(Status.BAD_REQUEST.getStatusCode(), checkDocumentsResponse.getStatus());
+        // assertEquals(Status.BAD_REQUEST,
+        // client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID));
     }
 
     @Test

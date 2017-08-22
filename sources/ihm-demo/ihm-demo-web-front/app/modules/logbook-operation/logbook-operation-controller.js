@@ -28,7 +28,8 @@
 'use strict';
 
 angular.module('ihm.demo')
-  .controller('logbookOperationController', function($scope, $mdDialog, $filter, $window, ihmDemoCLient, ITEM_PER_PAGE, loadStaticValues,$translate, processSearchService, resultStartService) {
+  .controller('logbookOperationController', function($scope, $mdDialog, $filter, $window, $http, ihmDemoCLient, ITEM_PER_PAGE,
+  loadStaticValues,$translate, processSearchService, resultStartService, authVitamService) {
     var defaultSearchType = "--";
 
     $scope.startFormat = resultStartService.startFormat;
@@ -77,6 +78,9 @@ angular.module('ihm.demo')
           id: id, label: 'operation.logbook.displayField.' + id
         });
       }
+      result.push({
+        id: 'report', label: 'operation.logbook.displayField.report'
+      })
       return result;
     }
 
@@ -128,4 +132,39 @@ angular.module('ihm.demo')
     $scope.getList = searchService.processSearch;
     $scope.reinitForm = searchService.processReinit;
     $scope.onInputChange = searchService.onInputChange;
+
+
+    // *************** Download report ************** //
+
+    var successDownloadReport = function(response) {
+        var a = document.createElement("a");
+        document.body.appendChild(a);
+        var url = URL.createObjectURL(new Blob([response.data], { type: 'application/octet-stream', responseType: 'arraybuffer'}));
+        a.href = url;
+
+        if(response.headers('content-disposition')!== undefined && response.headers('content-disposition')!== null){
+          a.download = response.headers('content-disposition').split('filename=')[1];
+          a.click();
+        }
+      };
+
+    var getFile = function(idReport) {
+        var IHM_BASE = '/ihm-demo/v1/api';
+        var Download_operation_ROOT = '/rules/report/download/';
+
+        return $http.get(IHM_BASE + Download_operation_ROOT + idReport,
+                 {headers: {'X-Tenant-Id': authVitamService.cookieValue(authVitamService.COOKIE_TENANT_ID)},
+                  responseType: 'arraybuffer'}
+               );
+    }
+
+    $scope.downloadReport = function(idReport) {
+      return getFile(idReport).then(
+        function(response) {
+          successDownloadReport(response);
+        }, function (error) {
+          return error;
+        })
+    }
+
   });

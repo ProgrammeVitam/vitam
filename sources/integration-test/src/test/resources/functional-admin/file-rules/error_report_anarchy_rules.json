@@ -1,0 +1,17 @@
+{
+	"JDO": {
+		"evType": "STP_IMPORT_RULES",
+		"evDateTime": "2017-08-08T12:34:09.970"
+	},
+	"error": {
+		"line 2": [
+			{
+				"Code": "STP_IMPORT_RULES_WRONG_RULETYPE_UNKNOW.KO",
+				"Message": "Au moins une RuleType est incorrecte. RuleType autoris\u00E9s : AppraisalRule, AccessRule, StorageRule, DisseminationRule, ReuseRule, ClassificationRule",
+				"Information additionnelle": "AnarchyRule"
+			}
+		]
+	},
+	"usedDeletedRules": [],
+	"usedUpdatedRules": []
+}

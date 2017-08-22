@@ -36,10 +36,12 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
@@ -58,6 +60,7 @@ import org.junit.rules.TemporaryFolder;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.jayway.restassured.RestAssured;
 
@@ -79,6 +82,7 @@ import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -227,7 +231,37 @@ public class IngestInternalIT {
         "integration-processing/SIP_2467_SERVICE_LEVEL.zip";
     private static String SIP_OK_WITHOUT_SERVICE_LEVEL =
         "integration-processing/SIP_2467_WITHOUT_SERVICE_LEVEL.zip";
-    private static final String FILE_TO_TEST_OK = "jeu_donnees_OK_regles_CSV.csv";
+    private static final String FILE_RULES_OK = "functional-admin/file-rules/jeu_donnees_OK_regles_CSV.csv";
+    private static final String FILE_RULES_KO_DUPLICATED_REFERENCE =
+        "functional-admin/file-rules/jeu_donnees_KO_regles_CSV_DuplicatedReference.csv";
+    private static final String FILE_RULES_KO_UNKNOWN_DURATION =
+        "functional-admin/file-rules/jeu_donnees_KO_regles_CSV_UNKNOWN_Duration.csv";
+    private static final String FILE_RULES_KO_REFERENCE_WITH_WRONG_COMMA =
+        "functional-admin/file-rules/jeu_donnees_KO_regles_CSV_ReferenceWithWrongComma.csv";
+    private static final String FILE_RULES_KO_NEGATIVE_DURATION =
+        "functional-admin/file-rules/jeu_donnees_KO_regles_CSV_Negative_Duration.csv";
+    private static final String FILE_RULES_KO_DECADE_MEASURE =
+        "functional-admin/file-rules/jeu_donnees_KO_regles_CSV_Decade_Measure.csv";
+    private static final String FILE_RULES_KO_ANARCHY_RULE =
+        "functional-admin/file-rules/jeu_donnees_KO_regles_CSV_AnarchyRule.csv";
+    private static final String FILE_RULES_KO_90000_YEAR =
+        "functional-admin/file-rules/jeu_donnees_KO_regles_CSV_90000_YEAR.csv";
+    private static final String FILE_RULES_KO_600000_DAY =
+        "functional-admin/file-rules/jeu_donnees_KO_regles_600000_DAY.csv";
+
+    private static final String ERROR_REPORT_CONTENT = "functional-admin/file-rules/error_report_content.json";
+    private static final String ERROR_REPORT_6000_DAYS = "functional-admin/file-rules/error_report_6000_days.json";
+    private static final String ERROR_REPORT_9000_YEARS = "functional-admin/file-rules/error_report_9000_years.json";
+    private static final String ERROR_REPORT_ANARCHY_RULE =
+        "functional-admin/file-rules/error_report_anarchy_rules.json";
+    private static final String ERROR_REPORT_DECADE_MEASURE =
+        "functional-admin/file-rules/error_report_decade_measure.json";
+    private static final String ERROR_REPORT_NEGATIVE_DURATION =
+        "functional-admin/file-rules/error_report_negative_duration.json";
+    private static final String ERROR_REPORT_REFERENCE_WITH_WRONG_COMA =
+        "functional-admin/file-rules/error_report_reference_with_wrong_coma.json";
+    private static final String ERROR_REPORT_UNKNOW_DURATION =
+        "functional-admin/file-rules/error_report_unknow_duration.json";
 
     private static String SIP_OK_PHYSICAL_ARCHIVE = "integration-ingest-internal/OK_ArchivesPhysiques.zip";
 
@@ -1467,10 +1501,9 @@ public class IngestInternalIT {
     public void shouldImportRulesFile() {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         try {
-            // TODO check logbook
-            FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK));
+            FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(FILE_RULES_OK));
             AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
-            final Status status = client.importRulesFile(stream, FILE_TO_TEST_OK);
+            final Status status = client.importRulesFile(stream, FILE_RULES_OK);
             ResponseBuilder ResponseBuilder = Response.status(status);
             Response response = ResponseBuilder.build();
             assertEquals(response.getStatus(), Status.CREATED.getStatusCode());
@@ -1486,6 +1519,113 @@ public class IngestInternalIT {
         } catch (FileNotFoundException e) {
             LOGGER.error(e);
             fail(String.format("FileNotFoundException %s", e.getCause()));
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void shouldRetrieveReportWhenCheckFileRules() throws WebApplicationException, IOException {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(FILE_RULES_KO_DUPLICATED_REFERENCE));
+        FileInputStream streamErrorReport = new FileInputStream(PropertiesUtils.findFile(ERROR_REPORT_CONTENT));
+        checkFileRulesWithCustomReferential(stream, streamErrorReport);
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void shouldRetrieveReportWhencheckFileRulesError6000Day() throws WebApplicationException, IOException {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(FILE_RULES_KO_600000_DAY));
+        FileInputStream streamErrorReport = new FileInputStream(PropertiesUtils.findFile(ERROR_REPORT_6000_DAYS));
+        checkFileRulesWithCustomReferential(stream, streamErrorReport);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void shouldRetrieveReportWhencheckFileRulesError9000Years() throws WebApplicationException, IOException {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(FILE_RULES_KO_90000_YEAR));
+        FileInputStream streamErrorReport = new FileInputStream(PropertiesUtils.findFile(ERROR_REPORT_9000_YEARS));
+        checkFileRulesWithCustomReferential(stream, streamErrorReport);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void shouldRetrieveReportWhenCheckFileRulesErrorAnarchyRules() throws WebApplicationException, IOException {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(FILE_RULES_KO_ANARCHY_RULE));
+        FileInputStream streamErrorReport =
+            new FileInputStream(PropertiesUtils.findFile(ERROR_REPORT_ANARCHY_RULE));
+        checkFileRulesWithCustomReferential(stream, streamErrorReport);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void shouldRetrieveReportWhenCheckFileRulesDecadeMeasurement() throws WebApplicationException, IOException {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(FILE_RULES_KO_DECADE_MEASURE));
+        FileInputStream streamErrorReport =
+            new FileInputStream(PropertiesUtils.findFile(ERROR_REPORT_DECADE_MEASURE));
+        checkFileRulesWithCustomReferential(stream, streamErrorReport);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void shouldRetrieveReportWhenCheckFileRulesErrorNegativeDuration()
+        throws WebApplicationException, IOException {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(FILE_RULES_KO_NEGATIVE_DURATION));
+        FileInputStream streamErrorReport =
+            new FileInputStream(PropertiesUtils.findFile(ERROR_REPORT_NEGATIVE_DURATION));
+        checkFileRulesWithCustomReferential(stream, streamErrorReport);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void shouldRetrieveReportWhenCheckFileRulesErrorWrongComa() throws WebApplicationException, IOException {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        FileInputStream stream =
+            new FileInputStream(PropertiesUtils.findFile(FILE_RULES_KO_REFERENCE_WITH_WRONG_COMMA));
+        FileInputStream streamErrorReport =
+            new FileInputStream(PropertiesUtils.findFile(ERROR_REPORT_REFERENCE_WITH_WRONG_COMA));
+        AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+        checkFileRulesWithCustomReferential(stream, streamErrorReport);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void shouldRetrieveReportWhenCheckFileRulesErrorUnknowDuration()
+        throws WebApplicationException, IOException {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        final FileInputStream stream =
+            new FileInputStream(PropertiesUtils.findFile(FILE_RULES_KO_UNKNOWN_DURATION));
+        final FileInputStream expectedStreamErrorReport =
+            new FileInputStream(PropertiesUtils.findFile(ERROR_REPORT_UNKNOW_DURATION));
+        checkFileRulesWithCustomReferential(stream, expectedStreamErrorReport);
+    }
+
+    /**
+     * Check error report 
+     * 
+     * @param fileInputStreamToImport the given FileInputStream
+     * @param expectedStreamErrorReport expected Stream error report
+     */
+    private void checkFileRulesWithCustomReferential(final FileInputStream fileInputStreamToImport,
+        final FileInputStream expectedStreamErrorReport) {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();) {
+            final Response response = client.checkRulesFile(fileInputStreamToImport);
+            final String readEntity = response.readEntity(String.class);
+            final JsonNode responseEntityNode = JsonHandler.getFromString(readEntity);
+            final JsonNode responseError = responseEntityNode.get("error");
+            final JsonNode expectedNode = JsonHandler.getFromInputStream(expectedStreamErrorReport);
+            final JsonNode expectedError = expectedNode.get("error");
+            assertEquals(expectedError, responseError);
+            assertEquals(response.getStatus(), Status.BAD_REQUEST.getStatusCode());
+        } catch (final ReferentialException e) {
+            fail(String.format("ReferentialException %s", e.getCause()));
+        } catch (InvalidParseOperationException e) {
+            fail(String.format("InvalidParseOperationException %s", e.getCause()));
         }
     }
 }

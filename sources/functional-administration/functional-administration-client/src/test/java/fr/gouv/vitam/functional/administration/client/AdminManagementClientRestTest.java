@@ -363,7 +363,8 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     public void givenInputstreamOKWhenCheckThenReturnOK() throws ReferentialException, FileNotFoundException {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
         final InputStream stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
-        assertEquals(Status.OK, client.checkFormat(stream));
+        Response checkFormatReponse = client.checkFormat(stream);
+        assertEquals(Status.OK.getStatusCode(), checkFormatReponse.getStatus());
     }
 
     @Test(expected = ReferentialException.class)
@@ -412,17 +413,20 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
         final InputStream stream =
             PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
-        assertEquals(Status.OK, client.checkRulesFile(stream));
+        Response responseCheckRulesFile = client.checkRulesFile(stream);
+        assertNotNull(responseCheckRulesFile);
     }
 
 
-    @Test(expected = ReferentialException.class)
+    @Test()
     public void givenInputstreamKORulesFileWhenCheckThenReturnKO() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         final InputStream stream =
             PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_CSV_StringToNumber.csv");
-        assertEquals(Status.BAD_REQUEST, client.checkRulesFile(stream));
-
+        when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
+        Response response = client.checkRulesFile(stream);
+        assertEquals(406, response.getStatus());
+        assertNotNull(response);
     }
 
 
@@ -583,7 +587,6 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     public void importIngestContractsWithCorrectJsonReturnCreated()
         throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-
         when(mock.post()).thenReturn(Response.status(Status.CREATED)
             .entity(new RequestResponseOK<IngestContractModel>().addAllResults(getIngestContracts())).build());
         Status resp = client.importIngestContracts(new ArrayList<>());
@@ -645,7 +648,6 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException,
         ReferentialNotFoundException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-
         when(mock.get())
             .thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<IngestContractModel>()).build());
         RequestResponse resp = client.findIngestContractsByID("fakeId");
@@ -656,7 +658,6 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     public void importAccessContractsWithCorrectJsonReturnCreated()
         throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-
         when(mock.post()).thenReturn(Response.status(Status.CREATED)
             .entity(new RequestResponseOK<AccessContractModel>().addAllResults(getAccessContracts())).build());
         Status resp = client.importAccessContracts(new ArrayList<>());
@@ -676,7 +677,6 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     public void findAllAccessContractsThenReturnEmpty()
         throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-
         when(mock.get())
             .thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<AccessContractModel>()).build());
         RequestResponse resp = client.findAccessContracts(JsonHandler.createObjectNode());
@@ -697,7 +697,6 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     public void findAllAccessContractsThenReturnTwo()
         throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-
         when(mock.get()).thenReturn(Response.status(Status.OK)
             .entity(new RequestResponseOK<AccessContractModel>().addAllResults(getAccessContracts())).build());
         RequestResponse resp = client.findAccessContracts(JsonHandler.createObjectNode());
@@ -720,7 +719,6 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException,
         ReferentialNotFoundException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-
         when(mock.get())
             .thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<AccessContractModel>()).build());
         RequestResponse resp = client.findAccessContractsByID("fakeId");
@@ -746,7 +744,6 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     public void createProfilesWithCorrectJsonReturnCreated()
         throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-
         when(mock.post()).thenReturn(Response.status(Status.CREATED)
             .entity(new RequestResponseOK<ProfileModel>().addAllResults(getProfiles())).build());
         RequestResponse resp = client.createProfiles(new ArrayList<>());
@@ -759,7 +756,6 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     public void importProfileFileWithFakeFileReturnCreated()
         throws FileNotFoundException, InvalidParseOperationException, ReferentialException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-
         when(mock.put()).thenReturn(Response.status(Status.CREATED)
             .entity(new RequestResponseOK<>().setHttpCode(Status.CREATED.getStatusCode())).build());
         RequestResponse resp = client.importProfileFile("fakeId", new FakeInputStream(0l));
@@ -798,7 +794,6 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     public void findAllProfilesThenReturnTwo()
         throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-
         when(mock.get()).thenReturn(Response.status(Status.OK)
             .entity(new RequestResponseOK<ProfileModel>().addAllResults(getProfiles())).build());
         RequestResponse resp = client.findProfiles(JsonHandler.createObjectNode());
@@ -847,7 +842,6 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     public void importContextsWithCorrectJsonReturnCreated()
         throws ReferentialException, FileNotFoundException, InvalidParseOperationException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-
         when(mock.post()).thenReturn(Response.status(Status.CREATED)
             .entity(new RequestResponseOK<ContextModel>().addAllResults(getContexts())).build());
         Status resp = client.importContexts(new ArrayList<>());

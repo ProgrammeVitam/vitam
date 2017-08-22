@@ -52,12 +52,12 @@ public interface AdminExternalClient extends BasicClient {
      * @param documentType
      * @param stream
      * @param tenantId
-     * @return the status
+     * @return response 
      * @throws AccessExternalClientNotFoundException
      * @throws AccessExternalClientException
      * @throws AccessExternalClientServerException
      */
-    Status checkDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
+    Response checkDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
         throws AccessExternalClientNotFoundException,
         AccessExternalClientException, AccessExternalClientServerException;
 
@@ -91,9 +91,7 @@ public interface AdminExternalClient extends BasicClient {
         throws AccessExternalClientException, InvalidParseOperationException;
 
     /**
-     * findDocuments
-     * with contractName
-     * used by accesion-registers
+     * findDocuments with contractName used by accesion-registers
      *
      * @param documentType
      * @param select
@@ -159,6 +157,7 @@ public interface AdminExternalClient extends BasicClient {
 
     /**
      * Update the given access contract by query dsl
+     * 
      * @param id the given id of the access contract
      * @param queryDsl the given dsl query
      * @param tenantId
@@ -172,6 +171,7 @@ public interface AdminExternalClient extends BasicClient {
 
     /**
      * Update the given ingest contract by query dsl
+     * 
      * @param id the given id of the ingest contract
      * @param queryDsl the given dsl query
      * @param tenantId
@@ -185,9 +185,8 @@ public interface AdminExternalClient extends BasicClient {
 
 
     /**
-     * Create a profile metadata after passing the validation steps.
-     * If profile are json and valid, they are stored in the collection and indexed.
-     * </BR> The input is invalid in the following situations : </BR>
+     * Create a profile metadata after passing the validation steps. If profile are json and valid, they are stored in
+     * the collection and indexed. </BR> The input is invalid in the following situations : </BR>
      * <ul>
      * <li>The json of file is invalid</li>
      * <li>One or more mandatory field is missing</li>
@@ -206,8 +205,8 @@ public interface AdminExternalClient extends BasicClient {
 
 
     /**
-     * Save profile file (xsd, rng, ...) corresponding to the profile metadata.
-     * As the id of profile metadata is required, this method should be called after creation of profile metadata
+     * Save profile file (xsd, rng, ...) corresponding to the profile metadata. As the id of profile metadata is
+     * required, this method should be called after creation of profile metadata
      *
      * The profile file will be saved in storage with the name of id of profile metadata
      *
@@ -224,11 +223,13 @@ public interface AdminExternalClient extends BasicClient {
 
     /**
      * Download the profile file according to profileMetadataId
+     * 
      * @param tenantId
      * @param profileMetadataId
      * @return Response
      */
-    Response downloadProfileFile(String profileMetadataId, Integer tenantId) throws AccessExternalClientException, AccessExternalNotFoundException;
+    Response downloadProfileFile(String profileMetadataId, Integer tenantId)
+        throws AccessExternalClientException, AccessExternalNotFoundException;
 
     /**
      * import a set of context
@@ -239,7 +240,8 @@ public interface AdminExternalClient extends BasicClient {
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
      */
-    RequestResponse importContexts(InputStream contexts, Integer tenantId) throws InvalidParseOperationException, AccessExternalClientServerException;
+    RequestResponse importContexts(InputStream contexts, Integer tenantId)
+        throws InvalidParseOperationException, AccessExternalClientServerException;
 
     /**
      * Update the context by query dsl
@@ -248,9 +250,10 @@ public interface AdminExternalClient extends BasicClient {
      * @param queryDsl
      * @return Vitam response
      * @throws AccessExternalClientException
-     * @throws InvalidParseOperationException 
+     * @throws InvalidParseOperationException
      */
-    RequestResponse updateContext(String id, JsonNode queryDsl, Integer tenantId) throws AccessExternalClientException, InvalidParseOperationException;
+    RequestResponse updateContext(String id, JsonNode queryDsl, Integer tenantId)
+        throws AccessExternalClientException, InvalidParseOperationException;
 
     /**
      * @param query

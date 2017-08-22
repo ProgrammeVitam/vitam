@@ -38,6 +38,7 @@
   "operation.logbook.displayField.agIdSubm": "Identifiant du service versant",
   "operation.logbook.displayField.agIdOrig": "Identifiant du service producteur",
   "operation.logbook.displayField.agIdAppSession": "Identifiant donné par l'application externe",
+  "operation.logbook.displayField.report": "Rapport",
 
   "ingest.logbook.displayField.EvDetailReq": "Intitulé",
   "ingest.logbook.displayField.MessageIdentifier": "Identifiant de la demande",

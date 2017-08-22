@@ -78,11 +78,11 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementClientMock.class);
 
     @Override
-    public Status checkFormat(InputStream stream) throws FileFormatException {
+    public Response checkFormat(InputStream stream) throws FileFormatException {
         ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, stream);
         LOGGER.debug("Check file format request:");
         StreamUtils.closeSilently(stream);
-        return Status.OK;
+        return Response.ok().build();
     }
 
     @Override
@@ -111,11 +111,13 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     }
 
     @Override
-    public Status checkRulesFile(InputStream stream) throws FileRulesException {
+    public Response checkRulesFile(InputStream stream) throws FileRulesException {
         ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, stream);
         LOGGER.debug("Check file rules  request:");
         StreamUtils.closeSilently(stream);
-        return Status.OK;
+        // return Status.OK;
+        return new AbstractMockClient.FakeInboundResponse(Status.OK, IOUtils.toInputStream("Vitam Test"),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
     }
 
     @Override

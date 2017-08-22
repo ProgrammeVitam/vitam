@@ -85,7 +85,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
  * </pre>
  */
 
-public final class LogbookOperationsClientFactory extends VitamClientFactory<LogbookOperationsClient> {
+public class LogbookOperationsClientFactory extends VitamClientFactory<LogbookOperationsClient> {
 
 
     private static final String CONFIGURATION_FILENAME = "logbook-client.conf";

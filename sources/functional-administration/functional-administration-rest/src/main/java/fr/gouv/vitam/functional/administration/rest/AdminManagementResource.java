@@ -26,9 +26,43 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.rest;
 
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URLDecoder;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.CacheControl;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.EntityTag;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Request;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
+
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -55,15 +89,19 @@ import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server.application.resources.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.accession.register.core.ReferentialAccessionRegisterImpl;
+import fr.gouv.vitam.functional.administration.client.model.FileRulesModel;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
+import fr.gouv.vitam.functional.administration.common.ErrorReport;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
@@ -97,30 +135,8 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.apache.commons.lang3.StringUtils;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.CacheControl;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.EntityTag;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URLDecoder;
-import java.util.Set;
-
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 
 /**
  * FormatManagementResourceImpl implements AccessResource
@@ -128,6 +144,11 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 @Path("/adminmanagement/v1")
 @javax.ws.rs.ApplicationPath("webresources")
 public class AdminManagementResource extends ApplicationStatusResource {
+
+    private static final String CONTENT_TYPE = "Content-Type";
+    private static final String CONTENT_DISPOSITION = "Content-Disposition";
+    private static final String APPLICATION_OCTET_STREAM = "application/octet-stream";
+    private static final String ATTACHEMENT_FILENAME = "attachment; filename=ErrorReport.json";
 
     private static final String SELECT_IS_A_MANDATORY_PARAMETER = "select is a mandatory parameter";
 
@@ -143,6 +164,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
     private final ElasticsearchAccessFunctionalAdmin elasticsearchAccess;
     private VitamCounterService vitamCounterService;
     private RulesSecurisator securisator = new RulesSecurisator();
+    private static StorageClientFactory storageClientFactory;
+    private static WorkspaceClientFactory workspaceClientFactory;
 
     /**
      * Constructor
@@ -161,7 +184,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 new DbConfigurationImpl(configuration.getMongoDbNodes(),
                     configuration.getDbName());
         }
-        /// FIXME: 3/31/17 Factories mustn't be created here !!!
+        // / FIXME: 3/31/17 Factories mustn't be created here !!!
         elasticsearchAccess = ElasticsearchAccessAdminFactory.create(configuration);
         mongoAccess = MongoDbAccessAdminFactory.create(adminConfiguration);
         WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl());
@@ -197,19 +220,26 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response checkFormat(InputStream xmlPronom) {
+    public void checkFormat(InputStream xmlPronom,
+        @Suspended final AsyncResponse asyncResponse) {
         ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", xmlPronom);
+        VitamThreadPoolExecutor.getDefaultExecutor()
+            .execute(() -> asyncCheckFormat(asyncResponse, xmlPronom));
+    }
+
+    private void asyncCheckFormat(final AsyncResponse asyncResponse, InputStream xmlPronom) {
+        Map<Integer, List<ErrorReport>> errors = new HashMap<>();
         try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(mongoAccess)) {
-            formatManagement.checkFile(xmlPronom);
-            return Response.status(Status.OK).build();
+            formatManagement.checkFile(xmlPronom, errors, null, null, null, null);
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.OK).build());          
         } catch (final ReferentialException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build());
         } catch (final Exception e) {
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build(), xmlPronom);
             LOGGER.error(e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
-        } finally {
-            StreamUtils.closeSilently(xmlPronom);
         }
     }
 
@@ -354,27 +384,70 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @Path("rules/check")
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response checkRulesFile(InputStream rulesStream)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public void checkRulesFile(InputStream rulesStream,
+        @Suspended final AsyncResponse asyncResponse)
         throws IOException, ReferentialException, InvalidParseOperationException, InvalidCreateOperationException {
         ParametersChecker.checkParameter("rulesStream is a mandatory parameter", rulesStream);
-        try (RulesManagerFileImpl rulesManagerFileImpl = new RulesManagerFileImpl(mongoAccess, vitamCounterService,
-            securisator)) {
-            rulesManagerFileImpl.checkFile(rulesStream);
-            return Response.status(Status.OK).build();
-        } catch (final FileRulesException e) {
-            LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (final Exception e) {
-            LOGGER.error(e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
-        } finally {
-            StreamUtils.closeSilently(rulesStream);
-        }
-
-
+        VitamThreadPoolExecutor.getDefaultExecutor()
+            .execute(() -> asyncDownloadErrorReport(rulesStream, asyncResponse));
     }
 
+
+
+    /**
+     * async Download Report
+     * 
+     * @param document the document to check
+     * @param asyncResponse asyncResponse
+     */
+    private void asyncDownloadErrorReport(InputStream document, final AsyncResponse asyncResponse) {
+        Map<Integer, List<ErrorReport>> errors = new HashMap<Integer, List<ErrorReport>>();
+        List<FileRulesModel> usedDeletedRules = new ArrayList<>();
+        List<FileRulesModel> usedUpdatedRules = new ArrayList<>();
+        Set<String> notUsedDeletedRules = new HashSet<>();
+        Set<String> notUsedUpdatedRules = new HashSet<>();
+        try (RulesManagerFileImpl rulesManagerFileImpl = new RulesManagerFileImpl(mongoAccess, vitamCounterService,
+            securisator)) {
+            rulesManagerFileImpl.checkFile(document, errors, usedDeletedRules, usedUpdatedRules,
+                notUsedDeletedRules, notUsedUpdatedRules);
+            InputStream errorReportInputStream =
+                rulesManagerFileImpl.generateErrorReport(errors, usedDeletedRules, usedUpdatedRules);
+            final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, errorReportInputStream);
+            helper.writeResponse(Response.status(Status.OK)
+                .header(CONTENT_DISPOSITION, ATTACHEMENT_FILENAME)
+                .header(CONTENT_TYPE, APPLICATION_OCTET_STREAM));
+        } catch (Exception e) {
+            handleGenerateReport(asyncResponse, errors, usedDeletedRules, usedUpdatedRules);
+        }
+    }
+
+    /**
+     * Handle Generation of the report in case of exception
+     * 
+     * @param asyncResponse
+     * @param errors
+     * @param usedDeletedRules
+     * @param usedUpdatedRules
+     */
+    private void handleGenerateReport(final AsyncResponse asyncResponse, Map<Integer, List<ErrorReport>> errors,
+        List<FileRulesModel> usedDeletedRules, List<FileRulesModel> usedUpdatedRules) {
+        InputStream errorReportInputStream = null;
+        try (RulesManagerFileImpl rulesManagerFileImpl = new RulesManagerFileImpl(mongoAccess, vitamCounterService,
+            securisator)) {
+            errorReportInputStream =
+                rulesManagerFileImpl.generateErrorReport(errors, usedDeletedRules, usedUpdatedRules);
+            final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, errorReportInputStream);
+            helper.writeResponse(Response.status(Status.BAD_REQUEST)
+                .header(CONTENT_DISPOSITION, ATTACHEMENT_FILENAME)
+                .header(CONTENT_TYPE, APPLICATION_OCTET_STREAM));
+        } catch (FileRulesException e1) {
+            LOGGER.error(e1.getMessage(), e1);
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                Response.status(Status.INTERNAL_SERVER_ERROR).build(),
+                errorReportInputStream);
+        }
+    }
 
     /**
      * import the rules file

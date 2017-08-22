@@ -57,25 +57,24 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
 
     // FIXME replace Response by RequestResponse
     @Override
-    public Status checkDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
+    public Response checkDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
         throws AccessExternalClientException {
         Response response = null;
+        Status status = Status.OK;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         try {
             response = performRequest(HttpMethod.PUT, documentType.getName(), headers,
                 stream, MediaType.APPLICATION_OCTET_STREAM_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
+                MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            status = Status.fromStatusCode(response.getStatus());
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                 throw new AccessExternalClientNotFoundException(URI_NOT_FOUND);
             }
-            final Status status = Status.fromStatusCode(response.getStatus());
-            return status;
+            return response;
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            consumeAnyEntityAndClose(response);
         }
     }
 

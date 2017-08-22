@@ -5,6 +5,7 @@ import static org.junit.Assert.assertNotNull;
 
 import java.io.ByteArrayInputStream;
 
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.junit.Before;
@@ -37,10 +38,10 @@ public class AdminExternalClientMockTest {
     @Test
     public void testMockClient()
         throws Exception {
-        assertEquals(
-            client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID),
-            Status.OK);
 
+        Response checkDocumentsResponse =
+            client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID);
+        assertEquals(Status.OK.getStatusCode(), checkDocumentsResponse.getStatus());
         assertEquals(
             client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), "test.xml",
                 TENANT_ID),

@@ -14,6 +14,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.junit.AfterClass;
@@ -277,7 +278,7 @@ public class AdminManagementExternalResourceImplTest {
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
         doThrow(new ReferentialException("")).when(adminCLient).importFormat(anyObject(), anyObject());
-        doReturn(Status.OK).when(adminCLient).checkFormat(anyObject());
+        doReturn(Response.ok().build()).when(adminCLient).checkFormat(anyObject());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)

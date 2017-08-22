@@ -122,6 +122,8 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 @javax.ws.rs.ApplicationPath("webresources")
 public class IngestInternalResource extends ApplicationStatusResource {
 
+    private static final String JSON = ".json";
+
     private static final String INGEST = "ingest";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalResource.class);
@@ -692,6 +694,10 @@ public class IngestInternalResource extends ApplicationStatusResource {
             StorageCollectionType documentType = StorageCollectionType.valueOf(type.toUpperCase());
             if (documentType == StorageCollectionType.MANIFESTS || documentType == StorageCollectionType.REPORTS) {
                 objectId += XML;
+            } else if (documentType == StorageCollectionType.RULES) {
+                // #2940 Ugly hack for use the same point of API for all report
+                objectId += JSON;
+                documentType = StorageCollectionType.REPORTS;
             } else {
                 AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                     Response.status(Status.METHOD_NOT_ALLOWED).build());

@@ -1,0 +1,12 @@
+{
+"JDO":{
+"evType":"STP_IMPORT_RULES",
+"evDateTime":"2017-08-07T17:10:12.850"},
+"error":{
+"line 3":[
+{"Code":"STP_IMPORT_RULES_RULEID_DUPLICATION.KO",
+"Message":"Il existe plusieurs fois le même RuleId. Ce RuleId doit être unique dans lensemble du référentiel",
+"Information additionnelle":"APP-00001"}
+]},
+"usedDeletedRules":[],"usedUpdatedRules":[]
+}

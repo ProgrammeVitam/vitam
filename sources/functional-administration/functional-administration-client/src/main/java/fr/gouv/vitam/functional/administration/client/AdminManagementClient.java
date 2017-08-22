@@ -65,7 +65,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @return Response
      * @throws ReferentialException when check exception occurs
      */
-    Status checkFormat(InputStream stream) throws ReferentialException;
+    Response checkFormat(InputStream stream) throws ReferentialException;
 
     /**
      * @param stream as InputStream
@@ -105,8 +105,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws FileRulesException
      * @throws AdminManagementClientServerException
      */
-    Status checkRulesFile(InputStream stream)
-        throws FileRulesException, AdminManagementClientServerException;
+    Response checkRulesFile(InputStream stream) throws FileRulesException, AdminManagementClientServerException;
 
     /**
      * Import a the set of rules for a given tenant
