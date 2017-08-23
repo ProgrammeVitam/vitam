@@ -239,6 +239,7 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 
 "_tenant": identifiant du tenant.
       Il s'agit d'un entier.
+
       *Ce champ existe uniquement pour la structure incluante.*
 
 Détail des champs du JSON stocké en base spécifiques à une opération de sécurisation
@@ -357,7 +358,6 @@ Extrait d'un JSON correspondant à un journal de cycle de vie d'une unité archi
             "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1041627981,\"SiteId\":1,\"GlobalPlatformId\":236321613}",
             "obId": "aeaqaaaaaehbl62nabqkwak3k7qg5tiaaaaq",
             "evDetData": null,
-            "_tenant": 1
         },
         {
             "evId": "aedqaaaaaghbl62nabqkwak3k7qg5tiaaabq",
@@ -371,7 +371,6 @@ Extrait d'un JSON correspondant à un journal de cycle de vie d'une unité archi
             "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1041627981,\"SiteId\":1,\"GlobalPlatformId\":236321613}",
             "obId": "aeaqaaaaaehbl62nabqkwak3k7qg5tiaaaaq",
             "evDetData": null,
-            "_tenant": 1
         },{
 
         [...]
@@ -476,7 +475,8 @@ En outre, lors de l'historisation de la sauvegarde de l'unité archivistique sur
 
 "_tenant": identifiant du tenant
     Il s'agit d'un entier.
-    *Ce champ existe pour les structures incluantes et incluses*
+
+    *Ce champ existe uniquement pour la structure incluante.*
 
 "_v": version de l'objet décrit
 	Il s'agit d'un entier.
@@ -546,7 +546,6 @@ Exemple de JSON stocké en base
             "agId": "{\"Name\":\"vitam-iaas-worker-01\",\"Role\":\"worker\",\"PlatformId\":425367}",
             "obId": "aeaaaaaaaaaam7mxaap44akyf7hurgaaaaba",
             "evDetData": null,
-            "_tenant": 0
         },
         {
             "evId": "\"aeaaaaaaaaaam7mxaap44akyf7hurgaaaaba\"",
@@ -562,7 +561,6 @@ Exemple de JSON stocké en base
             "evDetData": "{\"MessageDigest\":\"0f1de441a7d44a277e265eb741e748ea18c96a59c8c0385f938b9768a42e375716dfa3b20cc125905636
             5aa0d3541f6128389ad60c8effbdc63b94df9a2e02bb\",\"Algorithm\": \"SHA512\", \"SystemMessageDigest\": \"SHA-512\", \"SystemAlgorithm\": \"0f1de441a7d44a277e265eb741e748ea18c96a59c8c0385f938b9768a42e375716dfa3b20cc125905636
             5aa0d3541f6128389ad60c8effbdc63b94df9a2e02bb\"} ",
-            "_tenant": 0
         },
         {
             
@@ -680,7 +678,7 @@ Pour l'événement LFC.OG_METADATA_STORAGE, on utilise ce champ pour tracer les 
 "_tenant": identifiant du tenant.
     Il s'agit d'un entier.
 
-    *Ce champ existe pour les structures incluantes et incluses*
+    *Ce champ existe uniquement pour la structure incluante.*
 
 "_v": version de l'objet décrit.
     Il s'agit d'un entier.
