@@ -140,7 +140,7 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
             itemStatus.increment(StatusCode.FATAL);
         } catch (InvalidParseOperationException e) {
             LOGGER.error("Cannot parse json", e);
-            itemStatus.increment(StatusCode.KO);            
+            itemStatus.increment(StatusCode.KO);
         } finally {
             processManagementClient.close();
             metaDataClient.close();
@@ -154,7 +154,7 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
         try {
             JsonNode rulesUpdated = JsonHandler.getFromInputStream(this.handlerIO.getInputStreamFromWorkspace(
                 UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.UPDATED_RULES_JSON));
-            for (final JsonNode rule : rulesUpdated) {                
+            for (final JsonNode rule : rulesUpdated) {
                 if (!updatedRulesByType.containsKey(rule.get("RuleType").asText())) {
                     List<JsonNode> listRulesByType = new ArrayList<JsonNode>();
                     listRulesByType.add(rule);
@@ -231,8 +231,10 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
                             int nbUpdates = 0;
                             for (String key : updatedRulesByType.keySet()) {
                                 JsonNode categoryNode = managementNode.get(key);
-                                if (categoryNode.get(RULES_KEY) != null) {
-                                    if (archiveUnitUpdateUtils.updateCategoryRules((ArrayNode) categoryNode.get(RULES_KEY),
+                                if (categoryNode != null &&
+                                    categoryNode.get(RULES_KEY) != null) {
+                                    if (archiveUnitUpdateUtils.updateCategoryRules(
+                                        (ArrayNode) categoryNode.get(RULES_KEY),
                                         updatedRulesByType.get(key), query, key)) {
                                         nbUpdates++;
                                     }
@@ -273,7 +275,7 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
             InvalidCreateOperationException e) {
             throw new ProcessingException(e);
         }
-    }    
+    }
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
