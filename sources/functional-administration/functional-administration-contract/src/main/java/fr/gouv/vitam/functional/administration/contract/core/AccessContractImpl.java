@@ -642,7 +642,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
 
             return error;
         }
-        manager.logUpdateSuccess(id, updateDiffs.get(accContractModel.getId()));
+        manager.logUpdateSuccess(accContractModel.getId(), updateDiffs.get(accContractModel.getId()));
         return new RequestResponseOK<AccessContractModel>();
     }
 
