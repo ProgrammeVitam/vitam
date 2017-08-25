@@ -24,65 +24,96 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.processing.common.model;
+package fr.gouv.vitam.common.model.processing;
+
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import fr.gouv.vitam.common.ParametersChecker;
 
 /**
- * Distribution object in each step of workflow processing
+ * IOParameter for action or step
  */
-
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class Distribution {
-
-    private DistributionKind kind;
-    private String element;
+@JsonIgnoreProperties(ignoreUnknown = false)
+public class IOParameter {
+    @JsonProperty("name")
+    private String name;
+    @JsonProperty("uri")
+    private ProcessingUri uri;
+    @JsonProperty("optional")
+    private boolean optional;
+    private String value;
 
     /**
-     * getKind(), get the object kind
-     *
-     * @return the reference of DistributionKind
+     * @return name
      */
-    public DistributionKind getKind() {
-        if (kind == null) {            
-            return DistributionKind.REF;
-        }
-        return kind;
+    public String getName() {
+        return name;
     }
 
     /**
-     * setKind, set the kind of Distribution object
-     *
-     * @param kind of DistributionKind
-     * @return Distribution object with kind setted
+     * @param name the value to set
+     * @return this
      */
-    public Distribution setKind(DistributionKind kind) {
-        this.kind = kind;
+    public IOParameter setName(String name) {
+        ParametersChecker.checkParameter("Name is a mandatory parameter", name);
+        this.name = name;
         return this;
     }
 
     /**
-     * getElement(), return the element of Distribution
-     *
-     * @return the element as String
+     * @return uri
      */
-    public String getElement() {
-        if (element == null) {
-            return "";
-        }
-        return element;
+    public ProcessingUri getUri() {
+        return uri;
     }
 
     /**
-     * setElement, set the value of element
-     *
-     * @param element as String
-     * @return Distribution instance with element setted
+     * @return value
      */
-    public Distribution setElement(String element) {
-        this.element = element;
+    public String getValue() {
+        return value;
+    }
+
+    /**
+     *
+     * @return optional
+     */
+    public boolean getOptional() {
+        return optional;
+    }
+
+    /**
+     * @param uri the value to set
+     * @return this
+     */
+    public IOParameter setUri(ProcessingUri uri) {
+        ParametersChecker.checkParameter("Uri is a mandatory parameter", uri);
+        this.uri = uri;
         return this;
     }
-    
-    
+
+    /**
+     * @param value the value to set
+     *
+     * @return this
+     */
+    public IOParameter setValue(String value) {
+        ParametersChecker.checkParameter("Value is a mandatory parameter", value);
+        this.value = value;
+        return this;
+    }
+
+    /**
+     * Set the optional.
+     *
+     * @param optional the optional to set
+     *
+     * @return this
+     */
+    public IOParameter setOptional(boolean optional) {
+        this.optional = optional;
+        return this;
+    }
 }

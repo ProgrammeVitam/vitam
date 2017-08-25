@@ -24,39 +24,27 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.processing.common.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+package fr.gouv.vitam.common.model.processing;
 
 /**
- *
- * Action class containing an actionDefinition
- *
+ * Step Type
  */
-@JsonIgnoreProperties(ignoreUnknown = false)
-public class Action {
-
-    @JsonProperty("action")
-    private ActionDefinition actionDefinition;
-
+public enum ProcessBehavior {
     /**
-     *
-     * @return the definition of the Action
+     * Blocking type step
      */
-    public ActionDefinition getActionDefinition() {
-        return actionDefinition;
-    }
-
+    BLOCKING,
     /**
-     * set the action definition
-     *
-     * @param actionDefinition the definition of the action
-     * @return Action object updated
+     * No Blocking type step
      */
-    public Action setActionDefinition(ActionDefinition actionDefinition) {
-        this.actionDefinition = actionDefinition;
-        return this;
-    }
-
+    NOBLOCKING,
+    /**
+     * Pausing type step
+     */
+    PAUSE,
+    /**
+     * Final step type
+     */
+    FINALLY
 }

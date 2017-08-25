@@ -1,7 +1,5 @@
 package fr.gouv.vitam.common.client;
 
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.exception.BadRequestException;
@@ -12,6 +10,7 @@ import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.processing.WorkFlow;
 
 
 /**
@@ -149,9 +148,9 @@ public interface OperationManagementClient extends MockOrRestClient {
     /**
      * Retrieve all the workflow definitions.
      * 
-     * @return map of workflow definitions by id
+     * @return workflow definitions
      * @throws VitamClientException
      */
-    RequestResponse<JsonNode> getWorkflowDefinitions() throws VitamClientException;
+    RequestResponse<WorkFlow> getWorkflowDefinitions() throws VitamClientException;
 
 }

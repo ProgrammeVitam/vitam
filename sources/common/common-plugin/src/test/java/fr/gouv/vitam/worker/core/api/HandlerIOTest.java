@@ -25,9 +25,9 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.processing.common.model.IOParameter;
-import fr.gouv.vitam.processing.common.model.ProcessingUri;
-import fr.gouv.vitam.processing.common.model.UriPrefix;
+import fr.gouv.vitam.common.model.processing.IOParameter;
+import fr.gouv.vitam.common.model.processing.ProcessingUri;
+import fr.gouv.vitam.common.model.processing.UriPrefix;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;

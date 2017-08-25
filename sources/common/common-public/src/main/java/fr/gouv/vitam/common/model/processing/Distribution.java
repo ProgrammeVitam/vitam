@@ -1,4 +1,4 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,97 +23,69 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
-package fr.gouv.vitam.processing.common.model;
+ *******************************************************************************/
+package fr.gouv.vitam.common.model.processing;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Processing Uri format
+ * Distribution object in each step of workflow processing
  */
-@JsonIgnoreProperties(ignoreUnknown = false)
-public class ProcessingUri {
-    @JsonProperty("prefix")
-    private UriPrefix prefix;
-    @JsonProperty("path")
-    private String path;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class Distribution {
+
+    @JsonProperty("kind")
+    private DistributionKind kind;
+    @JsonProperty("element")
+    private String element;
 
     /**
-     * Empty Constructor
+     * getKind(), get the object kind
      *
+     * @return the reference of DistributionKind
      */
-    public ProcessingUri() {
-        // empty constructor
+    public DistributionKind getKind() {
+        if (kind == null) {            
+            return DistributionKind.REF;
+        }
+        return kind;
     }
 
     /**
-     * Constructor with prefix and path
+     * setKind, set the kind of Distribution object
      *
-     * @param prefix of processing uri
-     * @param path of processing uri
+     * @param kind of DistributionKind
+     * @return Distribution object with kind setted
      */
-    public ProcessingUri(String prefix, String path) {
-        this(UriPrefix.valueOf(prefix), path);
-    }
-
-    /**
-     * Constructor with prefix and path
-     *
-     * @param prefix of processing uri
-     * @param path of processing uri
-     */
-    public ProcessingUri(UriPrefix prefix, String path) {
-        setPrefix(prefix);
-        setPath(path);
-    }
-
-    /**
-     * Constructor with String
-     *
-     * @param uri of processing
-     */
-    public ProcessingUri(String uri) {
-        this(uri.split(":")[0], uri.split(":")[1]);
-    }
-
-    /**
-     * @return the prefix
-     */
-    public UriPrefix getPrefix() {
-        return prefix;
-    }
-
-    /**
-     * @param prefix the prefix to set
-     *
-     * @return this
-     */
-    public ProcessingUri setPrefix(UriPrefix prefix) {
-        this.prefix = prefix;
+    public Distribution setKind(DistributionKind kind) {
+        this.kind = kind;
         return this;
     }
 
     /**
-     * @return the path
+     * getElement(), return the element of Distribution
+     *
+     * @return the element as String
      */
-    public String getPath() {
-        return path;
+    public String getElement() {
+        if (element == null) {
+            return "";
+        }
+        return element;
     }
 
     /**
-     * @param path the path to set
+     * setElement, set the value of element
      *
-     * @return this
+     * @param element as String
+     * @return Distribution instance with element setted
      */
-    public ProcessingUri setPath(String path) {
-        this.path = path;
+    public Distribution setElement(String element) {
+        this.element = element;
         return this;
     }
-
-    @Override
-    public String toString() {
-        return prefix + ":" + path;
-    }
+    
+    
 }

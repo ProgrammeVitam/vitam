@@ -27,15 +27,17 @@
 
 package fr.gouv.vitam.processing.distributor.v2;
 
+import java.util.function.Supplier;
+
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.processing.PauseOrCancelAction;
+import fr.gouv.vitam.common.model.processing.Step;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.processing.common.model.PauseOrCancelAction;
-import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.processing.common.model.WorkerTaskState;
 import fr.gouv.vitam.worker.client.WorkerClient;
@@ -46,8 +48,6 @@ import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
 import fr.gouv.vitam.worker.client.exception.WorkerServerClientException;
 import fr.gouv.vitam.worker.client.exception.WorkerUnreachableException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
-
-import java.util.function.Supplier;
 
 // Task simulating a call to a worker
 public class WorkerTask implements Supplier<ItemStatus> {

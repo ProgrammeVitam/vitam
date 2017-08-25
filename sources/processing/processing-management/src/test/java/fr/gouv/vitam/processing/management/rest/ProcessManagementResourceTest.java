@@ -317,7 +317,7 @@ public class ProcessManagementResourceTest {
             .headers(GlobalDataRest.X_REQUEST_ID, ID, GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().get(WORKFLOWS_URI).then()
             .statusCode(Status.OK.getStatusCode()).assertThat()
-            .body(EXITS_WORKFLOW_ID + ".identifier", containsString(EXITS_WORKFLOW_ID));
+            .body(containsString(EXITS_WORKFLOW_ID));
 
     }
 }

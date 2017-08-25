@@ -24,54 +24,42 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.api;
+package fr.gouv.vitam.common.model.processing;
 
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.VitamAutoCloseable;
+import static org.junit.Assert.assertEquals;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.junit.Test;
+
+import fr.gouv.vitam.common.model.processing.Action;
+import fr.gouv.vitam.common.model.processing.Distribution;
+import fr.gouv.vitam.common.model.processing.DistributionKind;
+import fr.gouv.vitam.common.model.processing.ProcessBehavior;
 import fr.gouv.vitam.common.model.processing.Step;
-import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
-/**
- * Worker Interface.
- */
-public interface Worker extends VitamAutoCloseable {
+public class StepTest {
 
-    /**
-     * Worker execute the step's actions
-     *
-     * @param step {@link Step} null not allowed
-     * @param workParams {@link WorkerParameters} (one and only workItem will be in workParams)
-     * @return List EngineResponse {@link EngineResponse} : list of action response {OK,KO,FATAL...}
-     *
-     * @throws IllegalArgumentException throws when arguments are null
-     * @throws HandlerNotFoundException throws when handler not found
-     * @throws ProcessingException throws when error in execution
-     * @throws ContentAddressableStorageServerException
-     */
-    ItemStatus run(WorkerParameters workParams, Step step)
-        throws IllegalArgumentException, HandlerNotFoundException, ProcessingException,
-        ContentAddressableStorageServerException;
+    private static final String TEST = "test";
 
+    @Test
+    public void testConstructor() {
+        assertEquals("", new Step().getStepName());
+        assertEquals(null, new Step().getBehavior());
+        assertEquals("DefaultWorker", new Step().getWorkerGroupId());
+        assertEquals(true, new Step().getActions().isEmpty());
+        assertEquals(DistributionKind.REF, new Step().getDistribution().getKind());
+        assertEquals(DistributionKind.LIST,
+            new Step().setDistribution(new Distribution().setKind(DistributionKind.LIST))
+                .getDistribution().getKind());
 
-    /**
-     * Constructor for test.
-     *
-     * @param actionName action name
-     * @param actionHandler action handler
-     * @return the worker instance
-     */
-    Worker addActionHandler(String actionName, ActionHandler actionHandler);
+        final List<Action> actions = new ArrayList<>();
+        actions.add(new Action());
+        assertEquals(TEST, new Step().setStepName(TEST).getStepName());
+        assertEquals(ProcessBehavior.BLOCKING, new Step().setBehavior(ProcessBehavior.BLOCKING).getBehavior());
+        assertEquals(TEST, new Step().setWorkerGroupId(TEST).getWorkerGroupId());
+        assertEquals(false, new Step().setActions(actions).getActions().isEmpty());
+    }
 
-
-    /**
-     * get Worker Id
-     *
-     * @return id
-     */
-    public String getWorkerId();
 }

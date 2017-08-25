@@ -24,23 +24,39 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.common.model.processing;
 
-package fr.gouv.vitam.processing.common.model;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * HandlerIO argument Types
+ *
+ * Action class containing an actionDefinition
+ *
  */
-public enum UriPrefix {
+@JsonIgnoreProperties(ignoreUnknown = false)
+public class Action {
+
+    @JsonProperty("action")
+    private ActionDefinition actionDefinition;
+
     /**
-     * Workspace based argument
+     *
+     * @return the definition of the Action
      */
-    WORKSPACE,
+    public ActionDefinition getActionDefinition() {
+        return actionDefinition;
+    }
+
     /**
-     * Memory based argument
+     * set the action definition
+     *
+     * @param actionDefinition the definition of the action
+     * @return Action object updated
      */
-    MEMORY,
-    /**
-     * Fixe value based argument
-     */
-    VALUE
+    public Action setActionDefinition(ActionDefinition actionDefinition) {
+        this.actionDefinition = actionDefinition;
+        return this;
+    }
+
 }

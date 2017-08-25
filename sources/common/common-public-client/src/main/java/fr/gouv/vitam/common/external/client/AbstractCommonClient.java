@@ -56,6 +56,7 @@ import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
 import fr.gouv.vitam.common.exception.VitamApplicationServerDisconnectException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -98,7 +99,7 @@ abstract class AbstractCommonClient implements BasicClient {
         clientNotChunked = getClient(false);
         // External client or with no Session context are excluded
     }
-    
+
     protected Client getClient(boolean chunked) throws IllegalStateException {
         Client clientToCreate;
         if (chunked) {
@@ -266,7 +267,8 @@ abstract class AbstractCommonClient implements BasicClient {
      * @throws VitamClientInternalException
      */
     protected Response performRequest(String httpMethod, String path, MultivaluedHashMap<String, Object> headers,
-        MediaType accept) throws VitamClientInternalException {
+        MediaType accept)
+        throws VitamClientInternalException {
         try {
             final Builder builder = buildRequest(httpMethod, path, headers, accept, false);
             return retryIfNecessary(httpMethod, null, null, builder);
@@ -288,8 +290,8 @@ abstract class AbstractCommonClient implements BasicClient {
      * @throws VitamClientInternalException
      */
     protected Response performRequest(String httpMethod, String path, MultivaluedHashMap<String, Object> headers,
-        Object body,
-        MediaType contentType, MediaType accept) throws VitamClientInternalException {
+        Object body, MediaType contentType, MediaType accept)
+        throws VitamClientInternalException {
         if (body == null) {
             return performRequest(httpMethod, path, headers, accept);
         }
@@ -316,8 +318,8 @@ abstract class AbstractCommonClient implements BasicClient {
      * @throws VitamClientInternalException
      */
     protected Response performRequest(String httpMethod, String path, MultivaluedHashMap<String, Object> headers,
-        Object body,
-        MediaType contentType, MediaType accept, boolean chunkedMode) throws VitamClientInternalException {
+        Object body, MediaType contentType, MediaType accept, boolean chunkedMode)
+        throws VitamClientInternalException {
         if (body == null) {
             return performRequest(httpMethod, path, headers, accept);
         }
@@ -341,7 +343,8 @@ abstract class AbstractCommonClient implements BasicClient {
      * @return the response from the server as Future
      * @throws VitamClientInternalException if retry is not possible and http call is failed
      */
-    private final <T> Future<T> retryIfNecessary(String httpMethod, Object body, MediaType contentType, AsyncInvoker builder, InvocationCallback<T> callback)
+    private final <T> Future<T> retryIfNecessary(String httpMethod, Object body, MediaType contentType,
+        AsyncInvoker builder, InvocationCallback<T> callback)
         throws VitamClientInternalException {
         ProcessingException lastException = null;
         if (body instanceof InputStream) {
@@ -392,8 +395,8 @@ abstract class AbstractCommonClient implements BasicClient {
      * @throws VitamClientInternalException
      */
     protected <T> Future<T> performAsyncRequest(String httpMethod, String path,
-        MultivaluedHashMap<String, Object> headers,
-        Object body, MediaType contentType, MediaType accept, InvocationCallback<T> callback)
+        MultivaluedHashMap<String, Object> headers, Object body, MediaType contentType, MediaType accept,
+        InvocationCallback<T> callback)
         throws VitamClientInternalException {
         try {
             ParametersChecker.checkParameter(ARGUMENT_CANNOT_BE_NULL_EXCEPT_HEADERS, callback);
@@ -421,7 +424,8 @@ abstract class AbstractCommonClient implements BasicClient {
      * @return the response from the server as Future
      * @throws VitamClientInternalException if retry is not possible and http call is failed
      */
-    private final Future<Response> retryIfNecessary(String httpMethod, Object body, MediaType contentType, AsyncInvoker builder)
+    private final Future<Response> retryIfNecessary(String httpMethod, Object body, MediaType contentType,
+        AsyncInvoker builder)
         throws VitamClientInternalException {
         ProcessingException lastException = null;
         if (body instanceof InputStream) {
@@ -456,6 +460,7 @@ abstract class AbstractCommonClient implements BasicClient {
             throw new VitamClientInternalException(UNKNOWN_ERROR_IN_CLIENT);
         }
     }
+
     /**
      * Perform an Async HTTP request to the server with full control of action on caller
      *
@@ -469,8 +474,8 @@ abstract class AbstractCommonClient implements BasicClient {
      * @throws VitamClientInternalException
      */
     protected Future<Response> performAsyncRequest(String httpMethod, String path,
-        MultivaluedHashMap<String, Object> headers,
-        Object body, MediaType contentType, MediaType accept) throws VitamClientInternalException {
+        MultivaluedHashMap<String, Object> headers, Object body, MediaType contentType, MediaType accept)
+        throws VitamClientInternalException {
         try {
             if (body != null) {
                 ParametersChecker.checkParameter(BODY_AND_CONTENT_TYPE_CANNOT_BE_NULL, body, contentType);
@@ -483,6 +488,23 @@ abstract class AbstractCommonClient implements BasicClient {
         } catch (final ProcessingException e) {
             throw new VitamClientInternalException(e);
         }
+    }
+
+    /**
+     * Handle all errors and throw a VitamClientException in case the response does not contains a vitamError type
+     * result.
+     * 
+     * @param response response
+     * @return VitamClientException exception thrown for the response
+     */
+    protected VitamClientException createExceptionFromResponse(Response response) {
+        VitamClientException exception = new VitamClientException(INTERNAL_SERVER_ERROR);
+        if (response != null && response.getStatusInfo() != null) {
+            exception = new VitamClientException(response.getStatusInfo().getReasonPhrase());
+        } else if (response != null && Status.fromStatusCode(response.getStatus()) != null) {
+            exception = new VitamClientException(Status.fromStatusCode(response.getStatus()).getReasonPhrase());
+        }
+        return exception;
     }
 
     @Override

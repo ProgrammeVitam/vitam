@@ -27,6 +27,7 @@
 package fr.gouv.vitam.ingest.external.client;
 
 import java.io.InputStream;
+import java.util.Map;
 
 import javax.ws.rs.core.Response;
 
@@ -43,6 +44,7 @@ import fr.gouv.vitam.common.external.client.IngestCollection;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientNotFoundException;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientServerException;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
@@ -135,7 +137,7 @@ public interface IngestExternalClient extends MockOrRestClient, PoolingStatusCli
 
     /**
      * Cancel the operation
-     *  
+     * 
      * @param id
      * @param tenantId
      * @return the status
@@ -206,5 +208,5 @@ public interface IngestExternalClient extends MockOrRestClient, PoolingStatusCli
      * @return the Workflow definitions
      * @throws VitamClientException
      */
-    RequestResponse<JsonNode> getWorkflowDefinitions(Integer tenantId) throws VitamClientException;
+    RequestResponse<WorkFlow> getWorkflowDefinitions(Integer tenantId) throws VitamClientException;
 }

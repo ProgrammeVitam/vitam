@@ -38,8 +38,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.processing.common.model.ProcessBehavior;
-import fr.gouv.vitam.processing.common.model.Step;
+import fr.gouv.vitam.common.model.processing.ProcessBehavior;
+import fr.gouv.vitam.common.model.processing.Step;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.DescriptionStep;
 

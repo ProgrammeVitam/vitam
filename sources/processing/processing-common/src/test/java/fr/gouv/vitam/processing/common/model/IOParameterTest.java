@@ -6,6 +6,10 @@ import java.net.URISyntaxException;
 
 import org.junit.Test;
 
+import fr.gouv.vitam.common.model.processing.IOParameter;
+import fr.gouv.vitam.common.model.processing.ProcessingUri;
+import fr.gouv.vitam.common.model.processing.UriPrefix;
+
 public class IOParameterTest {
 
     private static final String WORKSPACE_FILE = "WORKSPACE:file";

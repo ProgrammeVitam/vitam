@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.processing.common.model;
+package fr.gouv.vitam.common.model.processing;
 
 import static org.junit.Assert.assertEquals;
 
@@ -33,27 +33,33 @@ import java.util.List;
 
 import org.junit.Test;
 
-public class StepTest {
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+
+public class WorkFlowTest {
     private static final String TEST = "test";
 
     @Test
     public void testConstructor() {
-        assertEquals("", new Step().getStepName());
-        assertEquals(null, new Step().getBehavior());
-        assertEquals("DefaultWorker", new Step().getWorkerGroupId());
-        assertEquals(true, new Step().getActions().isEmpty());
-        assertEquals(DistributionKind.REF, new Step().getDistribution().getKind());
-        assertEquals(DistributionKind.LIST,
-            new Step().setDistribution(new Distribution().setKind(DistributionKind.LIST))
-                .getDistribution().getKind());
+        assertEquals("", new WorkFlow().getComment());
+        assertEquals("", new WorkFlow().getId());
+        assertEquals(true, new WorkFlow().getSteps().isEmpty());
 
-        final List<Action> actions = new ArrayList<>();
-        actions.add(new Action());
-        assertEquals(TEST, new Step().setStepName(TEST).getStepName());
-        assertEquals(ProcessBehavior.BLOCKING, new Step().setBehavior(ProcessBehavior.BLOCKING).getBehavior());
-        assertEquals(TEST, new Step().setWorkerGroupId(TEST).getWorkerGroupId());
-        assertEquals(false, new Step().setActions(actions).getActions().isEmpty());
+        final List<Step> steps = new ArrayList<>();
+        steps.add(new Step().setStepName(TEST));
+
+        assertEquals(TEST, new WorkFlow().setComment(TEST).getComment());
+        assertEquals(TEST, new WorkFlow().setId(TEST).getId());
+        assertEquals(false, new WorkFlow().setSteps(steps).getSteps().isEmpty());
+        assertEquals("ID=test\nname=test\nidentifier=test\ntypeProc=test\ncomments=test\n",
+            new WorkFlow().setId(TEST).setIdentifier(TEST).setName(TEST).setTypeProc(TEST).setComment(TEST).toString());
+
+        WorkFlow workflow =
+            new WorkFlow().setId(TEST).setIdentifier(TEST).setName(TEST).setTypeProc(TEST).setComment(TEST);
+
     }
 
 }

@@ -33,11 +33,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -54,7 +50,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.assertj.core.api.Assertions;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 
@@ -64,19 +59,18 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
-import fr.gouv.vitam.processing.common.exception.ProcessingUnauthorizeException;
-import fr.gouv.vitam.processing.common.model.WorkFlow;
 
 
 public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
@@ -269,7 +263,8 @@ public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
     @Test
     public void givenUnauthorizedOperationWhenUpdatingByIdThenReturnUnauthorized() throws Exception {
         when(mock.put()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
-        assertThatThrownBy(() -> client.updateOperationActionProcess(ACTION_ID, ID)).isInstanceOf(InternalServerException.class);
+        assertThatThrownBy(() -> client.updateOperationActionProcess(ACTION_ID, ID))
+            .isInstanceOf(InternalServerException.class);
 
     }
 
@@ -361,7 +356,8 @@ public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
     public void givenBadRequestWhenCancelProcessingOperationThenReturnBadRequest() throws Exception {
         final ItemStatus desired = new ItemStatus("ID");
         when(mock.delete()).thenReturn(Response.status(Status.UNAUTHORIZED).entity(desired).build());
-        assertThatThrownBy(() -> client.cancelOperationProcessExecution(ID)).isInstanceOf(InternalServerException.class);
+        assertThatThrownBy(() -> client.cancelOperationProcessExecution(ID))
+            .isInstanceOf(InternalServerException.class);
     }
 
     @Test(expected = InternalServerException.class)
@@ -545,34 +541,44 @@ public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
 
     @Test
     public void givenOKWhenDefinitionsWorkflowThenReturnMap() throws Exception {
-        Map<String, WorkFlow> desired = new HashMap<>();
-        desired.put("TEST", new WorkFlow().setId("TEST").setComment("TEST comment"));
-        when(mock.get()).thenReturn(Response.status(Status.OK).entity(desired).build());
-        client.getWorkflowDefinitions();
+        List<WorkFlow> desired = new ArrayList<>();
+        desired.add(new WorkFlow().setId("TEST").setComment("TEST comment"));
+        RequestResponseOK<WorkFlow> expected = new RequestResponseOK<>();
+        expected.addAllResults(desired);
+        expected.setHits(1, 0, 1, 1);
+        expected.setHttpCode(Status.OK.getStatusCode());
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(expected).build());
+        RequestResponse<WorkFlow> requestResponse = client.getWorkflowDefinitions();
+        assertEquals(expected.getHttpCode(), requestResponse.getHttpCode());
     }
 
-    @Test(expected = VitamClientException.class)
-    public void givenNotFoundWhenDefinitionsWorkflowThenReturnInternalServerException() throws Exception {
+    @Test
+    public void givenNotFoundWhenDefinitionsWorkflowThenReturnVitamError() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.getWorkflowDefinitions();
+        RequestResponse<WorkFlow> requestReponse = client.getWorkflowDefinitions();
+        assertEquals(Status.NOT_FOUND.getStatusCode(), requestReponse.getHttpCode());
     }
 
-    @Test(expected = VitamClientException.class)
-    public void givenPreconditionFailedWhenDefinitionsWorkflowThenReturnIllegalArgumentException() throws Exception {
+    @Test
+    public void givenPreconditionFailedWhenDefinitionsWorkflowThenReturnVitamError() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.getWorkflowDefinitions();
+        RequestResponse<WorkFlow> requestReponse = client.getWorkflowDefinitions();
+        assertEquals(Status.PRECONDITION_FAILED.getStatusCode(), requestReponse.getHttpCode());
     }
 
-    @Test(expected = VitamClientException.class)
-    public void givenUnauthaurizedWhenDefinitionsWorkflowThenReturnNotAuthorizedException() throws Exception {
+    @Test
+    public void givenUnauthaurizedWhenDefinitionsWorkflowThenReturnVitamError() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
-        client.getWorkflowDefinitions();
+        RequestResponse<WorkFlow> requestReponse = client.getWorkflowDefinitions();
+        assertEquals(Status.UNAUTHORIZED.getStatusCode(), requestReponse.getHttpCode());
     }
 
-    @Test(expected = VitamClientException.class)
-    public void givenInternalServerErrorWhenDefinitionsWorkflowThenReturnInternalServerException() throws Exception {
+    @Test
+    public void givenInternalServerErrorWhenDefinitionsWorkflowThenReturnVitamError() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        client.getWorkflowDefinitions();
+        RequestResponse<WorkFlow> requestReponse = client.getWorkflowDefinitions();
+        assertEquals(Status.INTERNAL_SERVER_ERROR.getStatusCode(), requestReponse.getHttpCode());
+
     }
 
 }

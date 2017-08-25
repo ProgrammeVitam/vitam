@@ -32,12 +32,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
@@ -52,7 +49,10 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 
@@ -120,7 +120,8 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
     }
 
     @Override
-    public RequestResponse<ItemStatus> updateOperationActionProcess(String actionId, String operationId) throws VitamClientException {
+    public RequestResponse<ItemStatus> updateOperationActionProcess(String actionId, String operationId)
+        throws VitamClientException {
         return new RequestResponseOK<ItemStatus>();
     }
 
@@ -152,8 +153,9 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
     }
 
     @Override
-    public RequestResponse<JsonNode> getWorkflowDefinitions() throws VitamClientException {
-        return RequestResponse.parseFromResponse(Response.status(Status.OK).build());
+    public RequestResponse<WorkFlow> getWorkflowDefinitions() throws VitamClientException {
+        return RequestResponse.parseFromResponse(Response.status(Status.OK).entity(new WorkFlow()).build(),
+            WorkFlow.class);
     }
 
 

@@ -207,15 +207,13 @@ angular.module('workflows')
 
     var initWorkflowCategories = function(results) {
       $scope.workflowCategories = [{name: 'Tous', id: ''}];
-      for (var workProp in results) {
-        if (results.hasOwnProperty(workProp)) {
-          var workflow = results[workProp];
-          $scope.workflowCategories.push({name: workflow.name, id: workflow.identifier});
-          for (var stepProp in workflow.steps) {
-            if (workflow.steps.hasOwnProperty(stepProp)) {
-              var step = workflow.steps[stepProp];
-              $scope.workflowSteps.push({parent: workflow.identifier, name: step.stepName, id: step.stepName});
-            }
+      for (var i = 0, len = results.length; i < len; i++) {
+        var workflow = results[i];
+        $scope.workflowCategories.push({name: workflow.name, id: workflow.identifier});
+        for (var stepProp in workflow.steps) {
+          if (workflow.steps.hasOwnProperty(stepProp)) {
+            var step = workflow.steps[stepProp];
+            $scope.workflowSteps.push({parent: workflow.identifier, name: step.stepName, id: step.stepName});
           }
         }
       }
@@ -242,7 +240,7 @@ angular.module('workflows')
     var getWorkflowsDefinition = function() {
       ihmDemoFactory.getWorkflowsDefinition().then(
         function onSuccess(result) {
-          initWorkflowCategories(result.data.$results[0]);
+          initWorkflowCategories(result.data.$results);
           $scope.updateSelectableSteps($scope.search.form.categories);
         }
       );

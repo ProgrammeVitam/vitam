@@ -38,11 +38,11 @@ import javax.ws.rs.core.Response.Status;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.external.client.AbstractMockClient;
+import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.external.client.IngestCollection;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -52,6 +52,7 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 
@@ -164,8 +165,9 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
     }
 
     @Override
-    public RequestResponse<JsonNode> getWorkflowDefinitions(Integer tenantId) throws VitamClientException {
-        return RequestResponse.parseFromResponse(Response.status(Status.OK).build());
+    public RequestResponse<WorkFlow> getWorkflowDefinitions(Integer tenantId) throws VitamClientException {
+        return RequestResponse.parseFromResponse(Response.status(Status.OK).entity(new WorkFlow()).build(),
+            WorkFlow.class);
     }
 
     @Override

@@ -64,6 +64,7 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientNotFoundException;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientServerException;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
@@ -112,7 +113,8 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
             switch (status) {
                 case ACCEPTED:
                     LOGGER.debug(Status.ACCEPTED.getReasonPhrase());
-                    return new RequestResponseOK<JsonNode>().parseHeadersFromResponse(response).setHttpCode(response.getStatus());
+                    return new RequestResponseOK<JsonNode>().parseHeadersFromResponse(response)
+                        .setHttpCode(response.getStatus());
                 case BAD_REQUEST:
                 case PARTIAL_CONTENT:
                 case INTERNAL_SERVER_ERROR:
@@ -123,8 +125,8 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
                         .setContext(INGEST_EXTERNAL_MODULE);
 
                     return vitamError.setHttpCode(status.getStatusCode())
-                    .setDescription(VitamCode.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage() + " Cause : " +
-                        status.getReasonPhrase());
+                        .setDescription(VitamCode.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage() + " Cause : " +
+                            status.getReasonPhrase());
                 case SERVICE_UNAVAILABLE:
                     LOGGER.error(ErrorMessage.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage());
                     final VitamError vitamErrorFatal = new VitamError(VitamCode.INGEST_EXTERNAL_UPLOAD_ERROR.getItem())
@@ -133,8 +135,8 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
                         .setContext("IngestExternalModule");
 
                     return vitamErrorFatal.setHttpCode(status.getStatusCode())
-                    .setDescription(VitamCode.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage() + " Cause : " +
-                        status.getReasonPhrase());
+                        .setDescription(VitamCode.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage() + " Cause : " +
+                            status.getReasonPhrase());
                 default:
                     throw new IngestExternalException("Unknown error: " + status.getReasonPhrase());
             }
@@ -628,16 +630,18 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     }
 
     @Override
-    public RequestResponse<JsonNode> getWorkflowDefinitions(Integer tenantId) throws VitamClientException {
+    public RequestResponse<WorkFlow> getWorkflowDefinitions(Integer tenantId) throws VitamClientException {
         Response response = null;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
 
-            response = performRequest(HttpMethod.GET, WORKFLOWS_URI, headers,
-                MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(HttpMethod.GET, WORKFLOWS_URI, headers, MediaType.APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response, WorkFlow.class);
 
-            return RequestResponse.parseFromResponse(response);
+        } catch (IllegalStateException e) {
+            LOGGER.error("Could not parse server response ", e);
+            throw createExceptionFromResponse(response);
         } catch (VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);
             throw new VitamClientException(e);

@@ -55,6 +55,7 @@ import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.error.ServiceName;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
@@ -1292,7 +1293,27 @@ public class IngestInternalResource extends ApplicationStatusResource {
             }
             return processingClient.getWorkflowDefinitions().toResponse();
         } catch (VitamClientException e) {
-            return Response.serverError().entity(e).build();
+            return Response.serverError().entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null))
+                .build();
         }
+    }
+
+    /**
+     * Construct the error following input
+     *
+     * @param status Http error status
+     * @param message The functional error message, if absent the http reason phrase will be used instead
+     * @param code The functional error code, if absent the http code will be used instead
+     * @return VitamError
+     */
+    // FIXME 2905 : refacto as a common code
+    private VitamError getErrorEntity(Status status, String message, String code) {
+        String aMessage =
+            (message != null && !message.trim().isEmpty()) ? message
+                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        String aCode = (code != null) ? code : String.valueOf(status.getStatusCode());
+        return new VitamError(aCode).setHttpCode(status.getStatusCode())
+            .setContext(ServiceName.INTERNAL_INGEST.getName())
+            .setState("KO").setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
 }

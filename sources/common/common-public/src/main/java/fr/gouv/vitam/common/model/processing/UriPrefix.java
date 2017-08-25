@@ -25,26 +25,22 @@
  * accept its terms.
  *******************************************************************************/
 
-package fr.gouv.vitam.processing.common.model;
+package fr.gouv.vitam.common.model.processing;
 
 /**
- * Step Type
+ * HandlerIO argument Types
  */
-public enum ProcessBehavior {
+public enum UriPrefix {
     /**
-     * Blocking type step
+     * Workspace based argument
      */
-    BLOCKING,
+    WORKSPACE,
     /**
-     * No Blocking type step
+     * Memory based argument
      */
-    NOBLOCKING,
+    MEMORY,
     /**
-     * Pausing type step
+     * Fixe value based argument
      */
-    PAUSE,
-    /**
-     * Final step type
-     */
-    FINALLY
+    VALUE
 }

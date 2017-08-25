@@ -26,6 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
@@ -41,10 +44,6 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.json.Views;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Abstract RequestResponse for all request response in Vitam
@@ -184,7 +183,7 @@ public abstract class RequestResponse<T> {
                     final RequestResponseOK ret = JsonHandler.getFromString(result, RequestResponseOK.class, clazz);
                     return ret.parseHeadersFromResponse(response);
                 } catch (final InvalidParseOperationException e) {
-                    // Issue, trying VitamError model
+                    // Issue, trying RequestResponseOK model
                     LOGGER.warn("Issue while decoding RequestResponseOk", e);
                 }
             } else if (result.contains("httpCode")) {

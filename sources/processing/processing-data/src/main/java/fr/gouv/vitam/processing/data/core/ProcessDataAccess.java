@@ -31,10 +31,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
-import fr.gouv.vitam.processing.common.model.WorkFlow;
 
 /**
  * Process Data Access Interface offers services
