@@ -114,9 +114,13 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 @PowerMockIgnore({"javax.*", "org.xml.*"})
 @PrepareForTest({LogbookOperationsClientFactory.class})
 public class RulesManagerFileImplTest {
+    private static final String ACCESS_RULE = "AccessRule";
+    private static final String ACC_00003 = "ACC-00003";
+    private static final String APPRAISAL_RULE = "AppraisalRule";
     String FILE_TO_TEST_OK = "jeu_ok.csv";
     String FILE_TO_TEST_KO = "jeu_donnees_KO_regles_CSV_DuplicatedReference.csv";
     private static final String FILE_TO_COMPARE = "jeu_donnees_OK_regles_CSV.csv";
+    private static final String FILE_UPDATE_RULE_TYPE = "jeu_donnees_OK_regles_CSV_update_ruleType.csv";
     private static final Integer TENANT_ID = 0;
 
     @Rule
@@ -421,6 +425,50 @@ public class RulesManagerFileImplTest {
             List<FileRules> fileRulesAfterInsert =
                 convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
             assertEquals(22, fileRulesAfterInsert.size());
+
+        } catch (ReferentialException | InvalidParseOperationException | IOException |
+            InvalidCreateOperationException e) {
+            fail("ReferentialException " + e.getCause());
+            e.printStackTrace();
+        }
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void shouldUpdateRulesType() {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final Select select = new Select();
+        try {
+            List<FileRules> fileRules = new ArrayList<FileRules>();
+            try {
+                select.setQuery(eq("#tenant", TENANT_ID));
+                fileRules = convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
+            } catch (ReferentialException e) {}
+            if (fileRules.size() == 0) {
+                rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)),
+                    FILE_TO_TEST_OK);
+            }
+            List<FileRules> fileRulesAfterImport =
+                convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
+            assertEquals(22, fileRulesAfterImport.size());
+            for (FileRules fileRulesAfter : fileRulesAfterImport) {
+                if (ACC_00003.equals(fileRulesAfter.getRuleid())) {
+                    assertEquals(ACCESS_RULE, fileRulesAfter.getRuletype());
+                }    
+            }
+            // FILE_TO_COMPARE => insert 1 rule, delete 1 rule, update 1 rule
+            rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_UPDATE_RULE_TYPE)),
+                FILE_UPDATE_RULE_TYPE);
+            List<FileRules> fileRulesAfterInsert =
+                convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
+            assertEquals(22, fileRulesAfterInsert.size());
+            for (FileRules fileRulesUpdated : fileRulesAfterInsert) {
+                if (ACC_00003.equals(fileRulesUpdated.getRuleid())) {
+                    assertEquals(APPRAISAL_RULE, fileRulesUpdated.getRuletype());
+                }
+            }
+
 
         } catch (ReferentialException | InvalidParseOperationException | IOException |
             InvalidCreateOperationException e) {

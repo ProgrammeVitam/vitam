@@ -47,13 +47,13 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -243,7 +243,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
                                 updateCheckFileRulesLogbookOperationForDelete(CHECK_RULES, StatusCode.KO,
                                     fileRulesIdLinkedToUnitForDelete,
                                     eip);
-                                String joined = StringUtils.join(fileRulesIdLinkedToUnitForDelete);
+
+                                String joined = fileRulesIdLinkedToUnitForDelete.stream().collect(Collectors.joining());
                                 LOGGER.error(String.format(DELETE_RULES_LINKED_TO_UNIT, joined));
                                 throw new FileRulesException(
                                     String.format(DELETE_RULES_LINKED_TO_UNIT, joined));
@@ -257,7 +258,9 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
                                 updateCheckFileRulesLogbookOperationForUpdate(fileRulesIdLinkedToUnit,
                                     fileRulesNotLinkedToUnitForDelete,
                                     eip);
-                                LOGGER.warn(UPDATE_RULES_LINKED_TO_UNIT, StringUtils.join(fileRulesIdLinkedToUnit));
+
+                                LOGGER.warn(UPDATE_RULES_LINKED_TO_UNIT,
+                                    fileRulesIdLinkedToUnit.stream().collect(Collectors.joining()));
 
                             } else {
                                 updateCheckFileRulesLogbookOperationOk(CHECK_RULES, StatusCode.OK,
@@ -269,7 +272,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
                                 fileRulesNotLinkedToUnitForDelete,
                                 eip);
                         }
-                        boolean commitOk = commitRules(fileRulesModelToUpdate, fileRulesModelToDelete, validatedRules,
+                        commitRules(fileRulesModelToUpdate, fileRulesModelToDelete, validatedRules,
                             fileRulesModelToInsert,
                             fileRulesModelsToImport, eip);
 
@@ -402,7 +405,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
             for (FileRulesModel fileRulesModel : fileRulesModelToUpdate) {
                 updateFileRules(fileRulesModel, sequence);
             }
-            if (fileRulesModelToInsert.containsAll(fileRulesModelsToImport)) {
+            if (!fileRulesModelToInsert.isEmpty() && fileRulesModelToInsert.containsAll(fileRulesModelsToImport)) {
                 commit(validatedRules);
                 secureRules = true;
             } else if (fileRulesModelToInsert.size() > 0) {
@@ -720,7 +723,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
                     (!fileRulesModelInDb.getRuleDuration().equals(fileRulesModel.getRuleDuration()) ||
                         !fileRulesModelInDb.getRuleMeasurement().equals(fileRulesModel.getRuleMeasurement()) ||
                         !fileRulesModelInDb.getRuleDescription().equals(fileRulesModel.getRuleDescription()) ||
-                        !fileRulesModelInDb.getRuleValue().equals(fileRulesModel.getRuleValue()))) {
+                        !fileRulesModelInDb.getRuleValue().equals(fileRulesModel.getRuleValue()) ||
+                        !fileRulesModelInDb.getRuleType().equals(fileRulesModel.getRuleType()))) {
                     fileRulesModelToUpdate.add(fileRulesModel);
                 }
             }
@@ -839,6 +843,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         actions.add(setRuleMeasurement);
         SetAction setRuleDuration = new SetAction(RULE_DURATION, fileRulesModel.getRuleDuration());
         actions.add(setRuleDuration);
+        SetAction setRuleType = new SetAction(RULE_TYPE, fileRulesModel.getRuleType());
+        actions.add(setRuleType);
         updateFileRules.setQuery(eq(RULE_ID, fileRulesModel.getRuleId()));
         updateFileRules.addActions(actions.toArray(new SetAction[actions.size()]));
         updateParser.parse(updateFileRules.getFinalUpdate());
