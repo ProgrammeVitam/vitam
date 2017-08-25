@@ -81,7 +81,7 @@ public enum LogbookMongoDbName {
     /**
      * agentIdentifierApplicationSession
      */
-    agentIdentifierApplicationSession("agIdAppSession", LogbookParameterName.agentIdentifierApplicationSession),
+    agentIdentifierApplicationSession("evIdAppSession", LogbookParameterName.agentIdentifierApplicationSession),
     /**
      * eventIdentifierRequest
      */
@@ -151,7 +151,7 @@ public enum LogbookMongoDbName {
                 return LogbookMongoDbName.agentIdentifier;
             case "agIdApp":
                 return LogbookMongoDbName.agentIdentifierApplication;
-            case "agIdAppSession":
+            case "evIdAppSession":
                 return LogbookMongoDbName.agentIdentifierApplicationSession;
             case "agIdOrig":
                 return LogbookMongoDbName.agentIdentifierOriginating;

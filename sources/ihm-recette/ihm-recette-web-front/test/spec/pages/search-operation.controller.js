@@ -44,7 +44,7 @@ describe('searchOperationController', function() {
     "outMessg": "Début de la sécurisation des journaux",
     "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"logbook\",\"PlatformId\":425367}",
     "agIdApp": null,
-    "agIdAppSession": null,
+    "evIdAppSession": null,
     "evIdReq": "aecaaaaaacaam7mxaah6gak2e6oycvyaaaaq",
     "agIdSubm": null,
     "agIdOrig": null,

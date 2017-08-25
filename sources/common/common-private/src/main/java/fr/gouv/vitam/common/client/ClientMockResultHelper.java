@@ -75,7 +75,7 @@ public class ClientMockResultHelper {
                     "\"outMessg\": \"SIP entry : SIP.zip\"," +
                     "\"agId\": \"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"ingest-external\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\"," +
                     "\"agIdApp\": null," +
-                    "\"agIdAppSession\": null," +
+                    "\"evIdAppSession\": null," +
                     "\"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
                     "\"agIdSubm\": null," +
                     "\"agIdOrig\": null," +
@@ -110,7 +110,7 @@ public class ClientMockResultHelper {
                     "\"outMessg\": \"SIP entry : SIP.zip\"," +
                     "\"agId\": \"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"ingest-external\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\"," +
                     "\"agIdApp\": null," +
-                    "\"agIdAppSession\": null," +
+                    "\"evIdAppSession\": null," +
                     "\"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
                     "\"agIdSubm\": null," +
                     "\"agIdOrig\": null," +
@@ -262,7 +262,7 @@ public class ClientMockResultHelper {
             "\"outMessg\": \"SIP entry : SIP.zip\"," +
             "\"agId\": \"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"storage\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\"," +
             "\"agIdApp\": null," +
-            "\"agIdAppSession\": null," +
+            "\"evIdAppSession\": null," +
             "\"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
             "\"agIdSubm\": null," +
             "\"agIdOrig\": null," +

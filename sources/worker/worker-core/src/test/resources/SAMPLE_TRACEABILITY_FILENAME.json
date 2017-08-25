@@ -11,7 +11,7 @@
     "outMessg": "Début de la sécurisation des journaux",
     "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"logbook\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
     "agIdApp": null,
-    "agIdAppSession": null,
+    "evIdAppSession": null,
     "evIdReq": "aecaaaaaachgxr27absisak3tofyf4yaaaaq",
     "agIdSubm": null,
     "agIdOrig": null,
