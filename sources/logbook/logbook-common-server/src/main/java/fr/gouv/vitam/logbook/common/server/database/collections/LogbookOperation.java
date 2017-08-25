@@ -59,6 +59,8 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
      * Events
      */
     public static final String EVENTS = "events";
+    public static final String RIGHTS_STATEMENT_IDENTIFIER = "rightsStatementIdentifier";
+
 
     /**
      * Mapping of this Collection.
@@ -115,6 +117,7 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
             append(name.getDbname(), map.get(name.getLogbookParameterName()));
         }
         append(LogbookDocument.EVENTS, Arrays.asList(new String[0]));
+        append(RIGHTS_STATEMENT_IDENTIFIER, new ArrayList<String>());
         checkId();
     }
 
