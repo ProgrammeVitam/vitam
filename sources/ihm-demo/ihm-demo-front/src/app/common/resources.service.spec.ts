@@ -1,4 +1,5 @@
 import { TestBed, inject } from '@angular/core/testing';
+import { NO_ERRORS_SCHEMA } from "@angular/core";
 
 import { ResourcesService } from './resources.service';
 import {CookieService} from 'angular2-cookie/core';
@@ -21,7 +22,8 @@ describe('ResourcesService', () => {
             return new Http(mockBackend, defaultOptions);
           },
           deps: [MockBackend, BaseRequestOptions]         }
-        ]
+        ],
+      schemas: [NO_ERRORS_SCHEMA]
     });
   });
 

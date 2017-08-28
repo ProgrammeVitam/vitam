@@ -1,0 +1,48 @@
+<p-panel [toggleable]="true" *ngIf="dataToDisplay">
+  <p-header>
+    <div class="ui-g-4"></div>
+    <span class="ui-g-4" style="padding: 0">Description principale</span>
+    <div class="ui-g-3" style="padding: 0; text-align: right">
+      <button pButton class="ui-button secondaryButton" (click)="console.log('Test LFC')" label="Journal de Cycle de vie"
+              icon="fa-chrome" iconPos="left"></button>
+    </div>
+  </p-header>
+  <div class="ui-g">
+    <div class="ui-g-8"></div>
+    <div class="ui-g-2" *ngIf="!update"></div>
+    <div class="ui-g-2" *ngIf="!update">
+      <button pButton class="ui-button" (click)="switchUpdateMode()" label="Modifier"
+              icon="fa-edit" iconPos="left"></button>
+    </div>
+    <div class="ui-g-2" *ngIf="update">
+      <button pButton class="ui-button secondaryButton" (click)="switchUpdateMode()" label="Annuler"
+              icon="fa-close" iconPos="left"></button>
+    </div>
+    <div class="ui-g-2" *ngIf="update">
+      <button pButton class="ui-button" (click)="saveUpdate()" label="Sauvegarder"
+              icon="fa-save" iconPos="left"></button>
+    </div>
+  </div>
+  <div class="ui-g" *ngIf="dataToDisplay">
+    <vitam-metadata-field [title]="'Identifiant'" [originalTitle]="'#id'" [value]="dataToDisplay['#id']" [translate]="translate" [labelSize]="2"
+                         class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields" [canUpdate]="false"></vitam-metadata-field>
+    <vitam-metadata-field [title]="'Date de début'" [originalTitle]="'StartDate'" [value]="dataToDisplay.StartDate" [translate]="translate" [labelSize]="6"
+                         class="ui-g-3 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+    <vitam-metadata-field [title]="'Date de fin'" [originalTitle]="'EndDate'" [value]="dataToDisplay.EndDate" [translate]="translate" [labelSize]="5"
+                         class="ui-g-3 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+    <vitam-metadata-field [title]="'Titre'" [originalTitle]="'Title'" [value]="dataToDisplay.Title" [translate]="translate" [labelSize]="2"
+                         class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+    <vitam-metadata-field [title]="'Niveau de description'" [originalTitle]="'DescriptionLevel'" [value]="dataToDisplay.DescriptionLevel" [translate]="translate"
+                         class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+    <vitam-metadata-field [title]="'Service versant'" [originalTitle]="'#management.SubmissionAgency'" [labelSize]="2"
+                         [value]="dataToDisplay['#management'].SubmissionAgency" [translate]="translate"
+                         class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+    <vitam-metadata-field [title]="'Service producteur'" [originalTitle]="'#management.OriginatingAgency'"
+                         [value]="dataToDisplay['#management'].OriginatingAgency" [translate]="translate"
+                         class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+    <vitam-metadata-field [title]="'Description'" [originalTitle]="'Description'" [value]="dataToDisplay.Description" [translate]="translate" [labelSize]="2"
+                         class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+    <vitam-metadata-field [title]="'Type d\'archive'" [originalTitle]="'#unitType'" [value]="archiveUnitHelper.transformType(dataToDisplay['_unitType'])" [translate]="translate"
+                         class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+  </div>
+</p-panel>

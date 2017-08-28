@@ -1,7 +1,7 @@
 {
   "name": "ihm-demo",
   "version": "0.0.0",
-  "license": "MIT",
+  "license": "CeCILL 2.1",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --proxy-config proxy.conf.json",
@@ -24,11 +24,15 @@
     "@angular/platform-browser-dynamic": "^4.0.0",
     "@angular/router": "^4.0.0",
     "angular2-cookie": "^1.2.6",
+    "angular2-file-drop": "^0.2.0",
+    "class-transformer": "^0.1.7",
     "core-js": "^2.4.1",
     "font-awesome": "^4.7.0",
+    "intl": "^1.2.5",
     "karma-phantomjs-launcher": "^1.0.4",
     "primeng": "^4.1.2",
     "rxjs": "^5.1.0",
+    "sass": "^1.0.0-beta.2",
     "zone.js": "^0.8.4"
   },
   "devDependencies": {

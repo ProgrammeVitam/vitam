@@ -1,11 +1,13 @@
 import { TestBed, inject } from '@angular/core/testing';
+import { NO_ERRORS_SCHEMA } from "@angular/core";
 
 import { BreadcrumbService } from './breadcrumb.service';
 
 describe('BreadcrumbService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [BreadcrumbService]
+      providers: [BreadcrumbService],
+      schemas: [NO_ERRORS_SCHEMA]
     });
   });
 

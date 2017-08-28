@@ -1,0 +1,12 @@
+<p-panel [header]="'Contexte de l\'unité archivistique'" [toggleable]="true" [collapsed]="false">
+  <div class="root">
+    <vitam-tree-parent [node]="root"></vitam-tree-parent>
+
+    <span class="fa fa-fw"></span>
+    <span class="fa fa-fw fa-home"></span>
+    <span class="rootLabel">{{root.label}}</span>
+
+    <vitam-tree-child [node]="root"></vitam-tree-child>
+
+  </div>
+</p-panel>

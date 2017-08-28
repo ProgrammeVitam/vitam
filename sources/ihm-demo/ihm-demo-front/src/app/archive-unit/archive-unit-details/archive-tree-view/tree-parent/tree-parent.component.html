@@ -1,0 +1,29 @@
+<div #panelTarget style="position: absolute; left: -900px; top: -150px"></div>
+
+<ng-template [ngIf]="node">
+  <div *ngIf="node.data.haveMore" style="position: relative; left: -10px;" (click)="parentSearchPanel.show($event, panelTarget)">
+    <span class="fa fa-fw fa-ellipsis-h"></span>
+    <span class="fa fa-fw"></span>
+    <span>Plus de parents ({{node.label}})</span>
+  </div>
+
+  <div *ngFor="let parent of node.parents" class="parent">
+    <ng-template [ngIf]="parent.expended">
+      <vitam-tree-parent [node]="parent" [level]="1+level"></vitam-tree-parent>
+    </ng-template>
+
+    <ng-template [ngIf]="!parent.leaf">
+      <span *ngIf="!parent.expended" class="fa fa-fw fa-chevron-up" (click)="switchParent(parent)"></span>
+      <span *ngIf="parent.expended" class="fa fa-fw fa-chevron-down" (click)="switchParent(parent)"></span>
+    </ng-template>
+    <span *ngIf="parent.leaf" class="fa fa-fw"></span>
+    <span *ngIf="parent.data.type=='HOLDING_UNIT'" class="fa fa-fw fa-tree"></span>
+    <span *ngIf="parent.data.type=='FILING_UNIT'" class="fa fa-fw fa-square-o"></span>
+    <span *ngIf="parent.data.type=='INGEST'" class="fa fa-fw fa-archive"></span>
+    <a [routerLink]="'/search/archiveUnit/' + parent.id"><span><!--{{level}}] -->{{parent.label}}</span></a>
+  </div>
+</ng-template>
+
+<p-overlayPanel #parentSearchPanel [style]="{'width': '125%'}" [dismissable]="false" [showCloseIcon]="true">
+  <vitam-tree-search></vitam-tree-search>
+</p-overlayPanel>

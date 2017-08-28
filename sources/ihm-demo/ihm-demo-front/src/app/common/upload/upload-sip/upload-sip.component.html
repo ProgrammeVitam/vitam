@@ -1,0 +1,60 @@
+<div class="ui-grid-row">
+  <div class="ui-grid-col-6 ui-widget-content uploadSIPBackground"
+       [ngClass]="{'file-is-over': fileIsOver}" fileDrop (onFileDrop)="onFileDrop($event)">
+    <div class="uploadSIPText">
+      <i class="fa fa-cloud-upload veryBigIcon"  aria-hidden="true"></i>
+      <p>Glissez un fichier ou</p>
+      <div style="display: inline-block; color:#0099FF; text-align: center">
+        importez
+        <input #file (change)="onChange(file.files) "type="file" class="uploadFileInput"/>
+      </div>
+      <p *ngIf="fileUpload">Nom du fichier: {{fileUpload.name}}</p>
+      <p *ngIf="!fileUpload">Aucun fichier est choisi</p>
+    </div>
+  </div>
+  <div class="ui-grid-col-6 ui-widget-content uploadSIPOption">
+    <div style="min-height: 245px">
+      <h3 class="first">Mode d'exécution</h3>
+      <div class="ui-g ingest-option">
+        <div class="ui-g-12"><p-radioButton value="RESUME" label="En continu" [(ngModel)]="action" inputId="opt1"></p-radioButton></div>
+        <div class="ui-g-12" ><p-radioButton value="NEXT" label="Pas à pas" [(ngModel)]="action" inputId="opt2"></p-radioButton></div>
+      </div>
+      <h3 class="first">Destination</h3>
+      <div class="ui-g ingest-option">
+        <div class="ui-g-12">
+          <p-radioButton value="{{uploadType}}" label="En production" [(ngModel)]="contextId" inputId="opt3"></p-radioButton>
+        </div>
+        <div class="ui-g-12">
+          <p-radioButton value="BLANK_TEST" label="A blanc" [(ngModel)]="contextId" inputId="opt5"  [hidden]="uploadType != 'DEFAULT_WORKFLOW' " ></p-radioButton>
+        </div>
+      </div>
+    </div>
+    <button pButton type="button" (click)="uploadFile()" label="Valider" [disabled]="!fileUpload"></button>
+  </div>
+</div>
+
+<div *ngIf="fileUpload">
+  <div class="ui-g ui-widget-header" style="margin-top: 20px">
+    <div class="ui-g-4">Nom du fichier</div>
+    <div class="ui-g-4">Taille</div>
+    <div class="ui-g-4">Statut</div>
+  </div>
+  <div class="ui-g">
+    <div class="ui-g-4">{{fileUpload.name}}</div>
+    <div class="ui-g-4">{{fileUpload.size}} kB</div>
+    <div class="ui-g-4" *ngIf="ingestInProgess"><img src="assets/images/loading_36.gif"/></div>
+    <div class="ui-g-4" *ngIf="!ingestInProgess"><i class="fa"  [ngClass]="ingestIcon" aria-hidden="true"></i></div>
+  </div>
+</div>
+<div *ngIf="uploadInProgess" style="margin-top: 20px">
+  <label>Téléchargement en cours :</label>
+  <p-progressBar [value]="uploadProgress"></p-progressBar>
+</div>
+
+<p-dialog header="Fichier invalide" [(visible)]="displayDialog" modal="modal" [responsive]="true">
+  <p>Votre fichier n'est pas valide : {{fileName}}</p>
+  <p-footer>
+    <button type="button" pButton icon="fa-check" (click)="displayDialog=false" label="OK"></button>
+  </p-footer>
+</p-dialog>
+

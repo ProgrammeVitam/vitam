@@ -21,5 +21,22 @@
 }
 
 a {
-  text-decoration: none;
+    color: black;
+}
+
+.logout-icon {
+    color: #AD9FFF;
+    margin-left: 40px;
+    cursor: pointer;
+}
+
+#accessContract {
+    float: right;
+    max-width: 200px;
+}
+
+.userInfo {
+    float: right;
+    width: 180px;
+    padding-bottom: 10px;
 }

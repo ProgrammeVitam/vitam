@@ -1,0 +1,10 @@
+<div class="ui-g-12 import-panel">
+    <label class="ui-g-12 import-label">Référentiel à importer : </label>
+    <p-dropdown [style.width]="'40%'" [style.margin-bottom]="'40px'" placeholder="Sélectionner la collection"
+                [options]="referentialTypes" [(ngModel)]="referentialType" (onChange)="navigateToPage('import')"></p-dropdown>
+    <vitam-upload-referentials [extensions]="extensions" [uploadAPI]="uploadAPI"
+                    [importSucessMsg]="importSucessMsg" [importErrorMsg]="importErrorMsg"></vitam-upload-referentials>
+</div>
+
+
+<button  class="ui-grid-col-2 ui-g-offset-7" pButton type="button" (click)="navigateToPage('search')" label="Accèder au référentiel" ></button>

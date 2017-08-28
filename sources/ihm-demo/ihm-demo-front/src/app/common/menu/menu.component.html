@@ -8,9 +8,15 @@
       <span class="title">vitam</span>
     </a>
   </div>
-  Tenant: <b>{{tenantChosen ? tenantChosen : '-'}}</b> | Sélection:
-  <select [(ngModel)]="tenantId" #ctrl="ngModel" style="display: inline; margin: 0 0 0 10px">
-    <option *ngFor='let tenant of tenants' value="{{tenant}}">{{tenant}}</option>
-  </select>
-  <button pButton type="button" (click)="setCurrentTenant(tenantId)" label="Acceder"></button>
+  <div class="userInfo" *ngIf="isAuthenticated" >
+    Tenant: <b>{{tenantChosen ? tenantChosen : '-'}}</b>
+    <i class="fa fa-power-off logout-icon" (click)="logOut()">
+      <a id="logout-text">Déconnexion</a>
+    </i>
+  </div>
+  <div id="accessContract" *ngIf="isAuthenticated" >
+    <p-dropdown [style]="{'width':'240px'}" placeholder="Sélectionner un contrat" [options]="accessContracts"
+                [(ngModel)]="accessContract" (onChange)="updateContract()"></p-dropdown>
+  </div>
+
 </p-menubar>

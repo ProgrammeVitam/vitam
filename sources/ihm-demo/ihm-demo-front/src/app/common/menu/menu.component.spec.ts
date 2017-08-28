@@ -1,12 +1,15 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-
-import { MenuComponent } from './menu.component';
+import {Observable} from 'rxjs/Observable';
+import 'rxjs/add/observable/of';
 import {ButtonModule, GrowlModule, MenubarModule} from 'primeng/primeng';
 import {RouterTestingModule} from '@angular/router/testing';
 import {FormsModule} from '@angular/forms';
+import { NO_ERRORS_SCHEMA } from "@angular/core";
+
+import { MenuComponent } from './menu.component';
 import {ResourcesService} from '../resources.service';
-import {Observable} from 'rxjs/Observable';
-import 'rxjs/add/observable/of';
+import { AuthenticationService } from '../../authentication/authentication.service';
+import { AccessContractService } from '../access-contract.service';
 
 const cookies = {};
 const ResourcesServiceStub = {
@@ -18,6 +21,14 @@ const ResourcesServiceStub = {
   getTenant: () => cookies['tenant']
 };
 
+const AuthenticationServiceStub = {
+  getLoginState: () => Observable.of(''),
+  logIn: () => Observable.of({ status : 200 }),
+  loggedIn: () => {},
+  loggedOut: () => {},
+  logOut: () => Observable.of('')
+};
+
 describe('MenuComponent', () => {
   let component: MenuComponent;
   let fixture: ComponentFixture<MenuComponent>;
@@ -25,10 +36,21 @@ describe('MenuComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [ MenuComponent ],
-      imports: [ MenubarModule, ButtonModule, RouterTestingModule, GrowlModule, FormsModule ],
+      imports: [
+        MenubarModule,
+        ButtonModule,
+        RouterTestingModule.withRoutes([
+          { path: 'login', component: MenuComponent }
+        ]),
+        GrowlModule,
+        FormsModule
+      ],
       providers: [
-        { provide: ResourcesService, useValue: ResourcesServiceStub }
-      ]
+        AccessContractService,
+        { provide: ResourcesService, useValue: ResourcesServiceStub },
+        { provide: AuthenticationService, useValue: AuthenticationServiceStub }
+      ],
+      schemas: [NO_ERRORS_SCHEMA]
     })
     .compileComponents();
   }));

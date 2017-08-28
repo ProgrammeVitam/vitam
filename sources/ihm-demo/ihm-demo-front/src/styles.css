@@ -15,8 +15,6 @@
   border: 1px solid #D5D5D5;
   background: #ffffff;
   color: #222222; }
-  .ui-widget-content a {
-    color: #222222; }
 
 .ui-widget-header {
   border: 1px solid #d9d9d9;
@@ -165,18 +163,20 @@
   .ui-dropdown-panel .ui-dropdown-item:not(.ui-state-highlight):hover a {
     color: #212121; }
 
-.ui-listbox .ui-listbox-header .ui-listbox-filter-container .fa {
-  color: #222222; }
-.ui-listbox:not(.ui-state-disabled) .ui-listbox-item:not(.ui-state-highlight):hover {
-  border-color: #c0c0c0;
-  background: #eeeeee;
-  color: #212121; }
-  .ui-listbox:not(.ui-state-disabled) .ui-listbox-item:not(.ui-state-highlight):hover a {
+.ui-listbox {
+  width: 100%; }
+  .ui-listbox .ui-listbox-header .ui-listbox-filter-container .fa {
+    color: #222222; }
+  .ui-listbox:not(.ui-state-disabled) .ui-listbox-item:not(.ui-state-highlight):hover {
+    border-color: #c0c0c0;
+    background: #eeeeee;
     color: #212121; }
-.ui-listbox.ui-state-disabled .ui-chkbox-box:not(.ui-state-active):hover {
-  border-color: #d6d6d6;
-  background: #ffffff;
-  color: #555555; }
+    .ui-listbox:not(.ui-state-disabled) .ui-listbox-item:not(.ui-state-highlight):hover a {
+      color: #212121; }
+  .ui-listbox.ui-state-disabled .ui-chkbox-box:not(.ui-state-active):hover {
+    border-color: #d6d6d6;
+    background: #ffffff;
+    color: #555555; }
 
 .ui-multiselect:not(.ui-state-disabled):hover {
   border-color: #c0c0c0;
@@ -353,8 +353,10 @@
   .ui-inplace .ui-inplace-display:hover a {
     color: #212121; }
 
-.ui-breadcrumb a {
-  color: #1b1d1f; }
+.ui-breadcrumb {
+  text-align: left; }
+  .ui-breadcrumb a {
+    color: #1b1d1f; }
 
 .ui-menu .ui-menuitem .ui-menuitem-link {
   color: #222222; }
@@ -605,7 +607,7 @@ p-togglebutton.ng-dirty.ng-invalid .ui-button {
 
 .ui-spinner:not(.ui-state-disabled) .ui-spinner-button:enabled:active {
   border: 1px solid #6f4dff;
-  background: #FF507F;
+  background: #8A6EFF;
   color: #ffffff; }
 
 .ui-slider {
@@ -716,7 +718,7 @@ p-togglebutton.ng-dirty.ng-invalid .ui-button {
   .ui-widget.ui-button:enabled:active,
   .ui-button:enabled:active {
     border: 1px solid #6f4dff;
-    background: #FF507F;
+    background: #6f4dff;
     color: #ffffff; }
 
 .ui-fileupload-choose:not(.ui-state-disabled):hover,
@@ -728,14 +730,14 @@ p-togglebutton.ng-dirty.ng-invalid .ui-button {
 
 .ui-fileupload-choose:not(.ui-state-disabled):active {
   border: 1px solid #6f4dff;
-  background: #FF507F;
+  background: #6f4dff;
   color: #ffffff; }
 
 /* Checkbox and Radio */
 .ui-chkbox-box.ui-state-active,
 .ui-radiobutton-box.ui-state-active {
   border: 1px solid #6f4dff;
-  background: #FF507F;
+  background: #6f4dff;
   color: #FFFFFF; }
 
 .ui-chkbox-box.ui-state-focus,
@@ -745,7 +747,7 @@ p-togglebutton.ng-dirty.ng-invalid .ui-button {
   box-shadow: 0px 0px 5px #AD9FFF; }
 
 .ui-chkbox-box.ui-state-focus.ui-state-active {
-  background: #FF507F; }
+  background: #8A6EFF; }
 
 /* Inputs */
 .ui-inputtext {
@@ -763,11 +765,11 @@ p-togglebutton.ng-dirty.ng-invalid .ui-button {
 
 /* InputSwitch */
 .ui-inputswitch-on {
-  background: #FF507F !important;
+  background: #8A6EFF !important;
   color: #ffffff !important; }
 
 .ui-paginator .ui-paginator-page.ui-state-active {
-  background: #FF507F;
+  background: #8A6EFF;
   color: #ffffff;
   border-color: #6f4dff; }
 
@@ -779,7 +781,7 @@ p-togglebutton.ng-dirty.ng-invalid .ui-button {
   background: #d3d5d8;
   border-color: #d9d9d9; }
 .ui-datatable th.ui-state-active {
-  background: #FF507F;
+  background: #8A6EFF;
   color: #ffffff; }
 .ui-datatable tbody > tr.ui-widget-content {
   border-color: #d9d9d9; }
@@ -838,7 +840,7 @@ p-togglebutton.ng-dirty.ng-invalid .ui-button {
 .ui-togglebutton.ui-button.ui-state-active,
 .ui-selectbutton .ui-button.ui-state-active {
   border: 1px solid #6f4dff;
-  background: #FF507F;
+  background: #8A6EFF;
   color: #FFFFFF; }
 
 .ui-multiselect .ui-multiselect-label {
@@ -918,7 +920,7 @@ p-togglebutton.ng-dirty.ng-invalid .ui-button {
 .ui-panelmenu .ui-panelmenu-header.ui-state-active,
 .ui-panelmenu .ui-panelmenu-header.ui-state-active a {
   border-color: #6f4dff;
-  background: #FF507F;
+  background: #8A6EFF;
   color: #FFFFFF; }
 
 /* DatePicker */
@@ -949,7 +951,7 @@ p-togglebutton.ng-dirty.ng-invalid .ui-button {
           background-color: #d6d6d6;
           color: #212121; }
         .ui-datepicker.ui-widget .ui-datepicker-calendar td a.ui-state-active {
-          background-color: #FF507F;
+          background-color: #8A6EFF;
           color: #ffffff; }
     .ui-datepicker.ui-widget .ui-datepicker-calendar tr:last-child td {
       border-bottom: 0 none; }
@@ -985,5 +987,48 @@ p-togglebutton.ng-dirty.ng-invalid .ui-button {
 
 .clickableDiv:hover {
   cursor: pointer; }
+
+.ui-tabview-nav {
+  border: none; }
+
+.fa {
+  color: #AD9FFF; }
+
+.fa.greyColor {
+  color: lightgrey; }
+
+.ui-menubar {
+  min-height: 50px; }
+
+.ui-widget.ui-button.secondaryButton {
+  background-color: #C8BAFF;
+  border-color: #C8BAFF;
+  color: black; }
+
+.ui-paginator-next > span:before {
+  content: "\f04b"; }
+
+.ui-paginator-prev > span {
+  -ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=0, mirror=1)";
+  -webkit-transform: scale(-1, 1);
+  -ms-transform: scale(-1, 1);
+  transform: scale(-1, 1); }
+
+.ui-paginator-prev > span:before {
+  content: "\f04b"; }
+
+a {
+  color: #8A6EFF;
+  text-decoration: none; }
+
+a:hover {
+  text-decoration: underline; }
+
+.textAlignLeft {
+  text-align: left; }
+
+.fieldLabel {
+  font-size: 14px;
+  font-weight: 700; }
 
 /*# sourceMappingURL=styles.css.map */

@@ -1,0 +1,4 @@
+<vitam-search label="Recherche d'archives" [service]="service" [data]="archiveUnitFields" [preSearch]="preSearchFunction"
+              [submitFunction]="initialSearch" (responseEvent)="onNotify($event)" [advancedData]="advancedSearchFields"></vitam-search>
+<vitam-results [data]="response" [cols]="columns" [extraCols]="extraColumns" [service]="service"
+               [searchFunction]="paginationSearch" [searchForm]="searchForm" [path]="'/search/archiveUnit'"></vitam-results>

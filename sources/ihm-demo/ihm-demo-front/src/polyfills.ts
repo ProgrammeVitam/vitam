@@ -33,6 +33,7 @@
 // import 'core-js/es6/map';
 // import 'core-js/es6/weak-map';
 // import 'core-js/es6/set';
+import 'core-js/client/shim';
 
 /** IE10 and IE11 requires the following for NgClass support on SVG elements */
 // import 'classlist.js';  // Run `npm install --save classlist.js`.
@@ -66,8 +67,8 @@ import 'zone.js/dist/zone';  // Included with Angular CLI.
  * Date, currency, decimal and percent pipes.
  * Needed for: All but Chrome, Firefox, Edge, IE11 and Safari 10
  */
-// import 'intl';  // Run `npm install --save intl`.
+import 'intl';  // Run `npm install --save intl`.
 /**
  * Need to import at least one locale-data with intl.
  */
-// import 'intl/locale-data/jsonp/en';
+import 'intl/locale-data/jsonp/en';

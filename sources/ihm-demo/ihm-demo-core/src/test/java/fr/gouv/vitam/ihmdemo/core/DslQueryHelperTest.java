@@ -40,6 +40,7 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserHelper;
@@ -260,10 +261,10 @@ public class DslQueryHelperTest {
      */
     @Test
     public void testCreateUpdateDSLQuery() throws InvalidParseOperationException, InvalidCreateOperationException {
-        final Map<String, String> queryMap = new HashMap();
-        queryMap.put("title", "Archive2");
-        queryMap.put("date", "09/09/2015");
-        queryMap.put(UiConstants.SELECT_BY_ID.toString(), "#id");
+        final Map<String, JsonNode> queryMap = new HashMap();
+        queryMap.put("title", new TextNode("Archive2"));
+        queryMap.put("date", new TextNode("09/09/2015"));
+        queryMap.put(UiConstants.SELECT_BY_ID.toString(), new TextNode("#id"));
         final Map<String, JsonNode> rulesMap = new HashMap();
         final JsonNode updateRequest = DslQueryHelper.createUpdateDSLQuery(queryMap, rulesMap);
         assertNotNull(updateRequest);
@@ -283,8 +284,8 @@ public class DslQueryHelperTest {
      */
     @Test
     public void testUpdateEmptyQueries() throws InvalidParseOperationException, InvalidCreateOperationException {
-        final Map<String, String> queryMap = new HashMap();
-        queryMap.put("title", "Mosqueteers");
+        final Map<String, JsonNode> queryMap = new HashMap();
+        queryMap.put("title", new TextNode("Mosqueteers"));
         final Map<String, JsonNode> rulesMap = new HashMap();
 
         final JsonNode updateRequest = DslQueryHelper.createUpdateDSLQuery(queryMap, rulesMap);
@@ -304,8 +305,8 @@ public class DslQueryHelperTest {
     @Test(expected = InvalidParseOperationException.class)
     public void testUpdateQueryInvalidParseOperationExceptionWithEmptyKey()
         throws InvalidParseOperationException, InvalidCreateOperationException {
-        final Map<String, String> queryMap = new HashMap();
-        queryMap.put("", "value");
+        final Map<String, JsonNode> queryMap = new HashMap();
+        queryMap.put("", new TextNode("value"));
         final Map<String, JsonNode> rulesMap = new HashMap();
         DslQueryHelper.createUpdateDSLQuery(queryMap, rulesMap);
     }

@@ -73,6 +73,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.config.EncoderConfig;
 import com.jayway.restassured.http.ContentType;
@@ -559,9 +560,9 @@ public class WebApplicationResourceTest {
     @Test
     public void testUpdateArchiveUnitDetailsDsl()
         throws InvalidParseOperationException, InvalidCreateOperationException {
-        final Map<String, String> updateCriteriaMap = new HashMap<>();
-        updateCriteriaMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
-        updateCriteriaMap.put("title", "archive1");
+        final Map<String, JsonNode> updateCriteriaMap = new HashMap<>();
+        updateCriteriaMap.put(UiConstants.SELECT_BY_ID.toString(), new TextNode("1"));
+        updateCriteriaMap.put("title", new TextNode("archive1"));
 
         // DslqQueryHelper Exceptions : InvalidParseOperationException,
         // InvalidCreateOperationException

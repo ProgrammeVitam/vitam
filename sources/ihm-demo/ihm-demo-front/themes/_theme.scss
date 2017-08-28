@@ -46,10 +46,6 @@
     border: $contentBorderWidth solid $contentBorderColor;
     background: $contentBgColor;
     color: $contentTextColor;
-
-    a {
-        color: $contentTextColor;
-    }
 }
 
 .ui-widget-header {
@@ -235,7 +231,10 @@
     @include hover-element();
 }
 
+
 .ui-listbox {
+    width: 100%;
+
     .ui-listbox-header {
         .ui-listbox-filter-container {
             .fa {
@@ -459,6 +458,7 @@
     a {
         color: $headerTextColor;
     }
+    text-align: left;
 }
 
 .ui-menu {

@@ -1,10 +1,14 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { BreadcrumbComponent } from './breadcrumb.component';
 import {BreadcrumbModule, DialogModule, FieldsetModule, PanelModule} from 'primeng/primeng';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
-import {BreadcrumbElement, BreadcrumbService} from '../breadcrumb.service';
 import {Observable} from 'rxjs/Observable';
+import { BehaviorSubject } from "rxjs/BehaviorSubject"
+import { NO_ERRORS_SCHEMA } from "@angular/core";
+
+import { BreadcrumbComponent } from './breadcrumb.component';
+import {BreadcrumbElement, BreadcrumbService} from '../breadcrumb.service';
+import { AuthenticationService } from '../../authentication/authentication.service';
 
 let value: BreadcrumbElement[];
 const BreadcrumbServiceStub = {
@@ -12,6 +16,10 @@ const BreadcrumbServiceStub = {
     value = myChange;
   },
   getState: () => Observable.of(value)
+};
+
+const AuthenticationServiceStub = {
+  getLoginState: () => new BehaviorSubject<boolean>(false)
 };
 
 describe('BreadcrumbComponent', () => {
@@ -23,8 +31,10 @@ describe('BreadcrumbComponent', () => {
       declarations: [ BreadcrumbComponent ],
       imports: [BreadcrumbModule, PanelModule, BrowserAnimationsModule],
       providers: [
-        {provide: BreadcrumbService, useValue: BreadcrumbServiceStub}
-      ]
+        {provide: BreadcrumbService, useValue: BreadcrumbServiceStub},
+        {provide: AuthenticationService, useValue : AuthenticationServiceStub}
+      ],
+      schemas: [NO_ERRORS_SCHEMA]
     })
     .compileComponents();
   }));

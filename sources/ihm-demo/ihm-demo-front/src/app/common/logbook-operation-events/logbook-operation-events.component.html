@@ -1,0 +1,11 @@
+<div style="text-align: left">
+  <p-fieldset legend="Détails d'une opération d'entrée">
+    <div class="ui-g">
+      <div class="ui-g-12">
+        <div *ngFor="let event of events | slice:1" class="">
+          <vitam-event-display [event]="event"></vitam-event-display>
+        </div>
+      </div>
+    </div>
+  </p-fieldset>
+</div>

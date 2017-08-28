@@ -55,9 +55,10 @@ $invalidInputBorderColor: #f44336;
 $inputGroupTextColor: #222222;
 
 //Global Theme Colors
+$secondaryActions: #C8BAFF;
 $globalHoverPurple: #AD9FFF;
+$globalActivePurple: #8A6EFF;
 $globalDarkPurple: #6f4dff;
-$globalActivePurple: #FF507F;
 
 @import '../_theme';
 
@@ -202,7 +203,7 @@ $globalActivePurple: #FF507F;
 
     &:enabled:active {
         border: 1px solid $globalDarkPurple;
-    	background: $globalActivePurple;
+    	background: $globalDarkPurple;
         color: #ffffff;
     }
 }
@@ -217,7 +218,7 @@ $globalActivePurple: #FF507F;
 
 .ui-fileupload-choose:not(.ui-state-disabled):active {
     border: 1px solid $globalDarkPurple;
-    background: $globalActivePurple;
+    background: $globalDarkPurple;
     color: #ffffff;
 }
 
@@ -225,7 +226,7 @@ $globalActivePurple: #FF507F;
 .ui-chkbox-box.ui-state-active,
 .ui-radiobutton-box.ui-state-active {
     border: 1px solid $globalDarkPurple;
-    background: $globalActivePurple;
+    background: $globalDarkPurple;
     color: #FFFFFF;
 }
 
@@ -587,4 +588,59 @@ $globalActivePurple: #FF507F;
 
 .clickableDiv:hover {
     cursor: pointer;
+}
+
+.ui-tabview-nav {
+  border: none;
+}
+
+.fa {
+  color: $globalHoverPurple;
+}
+
+.fa.greyColor {
+    color: lightgrey;
+}
+
+.ui-menubar {
+  min-height: 50px;
+}
+
+.ui-widget.ui-button.secondaryButton {
+  background-color: $secondaryActions;
+  border-color: $secondaryActions;
+  color: black;
+}
+
+.ui-paginator-next > span:before {
+    content: "\f04b";
+}
+
+.ui-paginator-prev > span  {
+    -ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=0, mirror=1)";
+    -webkit-transform: scale(-1, 1);
+    -ms-transform: scale(-1, 1);
+    transform: scale(-1, 1);
+}
+
+.ui-paginator-prev > span:before  {
+    content: "\f04b";
+}
+
+a {
+    color: #8A6EFF;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.textAlignLeft {
+  text-align: left;
+}
+
+.fieldLabel {
+  font-size:14px;
+  font-weight: 700;
 }

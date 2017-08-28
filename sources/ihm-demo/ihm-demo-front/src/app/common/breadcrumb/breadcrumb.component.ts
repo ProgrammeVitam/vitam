@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import {BreadcrumbService} from '../breadcrumb.service';
+import { AuthenticationService } from '../../authentication/authentication.service';
 
 @Component({
   selector: 'vitam-breadcrumb',
@@ -8,7 +9,8 @@ import {BreadcrumbService} from '../breadcrumb.service';
 })
 export class BreadcrumbComponent implements OnInit {
   items = [];
-  constructor(private breadcrumbService: BreadcrumbService) {
+  isAuthenticated = false;
+  constructor(private breadcrumbService: BreadcrumbService, private authenticationService : AuthenticationService) {
     this.items = [];
     this.breadcrumbService.getState().subscribe(
       (breadcrumb) => {
@@ -18,6 +20,13 @@ export class BreadcrumbComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.authenticationService.getLoginState().subscribe((value) => {
+      if (value) {
+        this.isAuthenticated = true;
+      } else {
+        this.isAuthenticated = false;
+      }
+    });
   }
 
 }

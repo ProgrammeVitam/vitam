@@ -1,0 +1,4 @@
+<vitam-search label="Recherche d'une opération d'entrée" [service]="logbookService" [data]="logbookData" [preSearch]="preSearchFunction"
+              [submitFunction]="initialSearch" (responseEvent)="onNotify($event)"></vitam-search>
+<vitam-results [data]="response" [cols]="columns" [extraCols]="extraColumns" [service]="logbookService"
+               [searchFunction]="paginationSearch" [searchForm]="searchForm" [path]="'/ingest/logbook'" [identifier]="'evIdProc'"></vitam-results>
