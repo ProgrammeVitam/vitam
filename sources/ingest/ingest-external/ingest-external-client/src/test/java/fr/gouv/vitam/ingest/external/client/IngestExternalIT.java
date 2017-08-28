@@ -35,7 +35,7 @@ import org.junit.Test;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.external.client.configuration.SecureClientConfiguration;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.ingest.external.rest.IngestExternalApplication;
+import fr.gouv.vitam.ingest.external.rest.IngestExternalMain;
 
 /**
  *
@@ -48,7 +48,7 @@ public class IngestExternalIT {
         "ingest-external-client-secure_notgranted.conf";
     private static final String INGEST_EXTERNAL_CLIENT_CONF_EXPIRED = "ingest-external-client-secure_expired.conf";
 
-    private static IngestExternalApplication application;
+    private static IngestExternalMain application;
     private static JunitHelper junitHelper;
     private static int serverPort;
 
@@ -60,7 +60,7 @@ public class IngestExternalIT {
 
         // TODO verifier la compatibilité avec les tests parallèles sur jenkins
 
-        application = new IngestExternalApplication(INGEST_EXTERNAL_CONF);
+        application = new IngestExternalMain(INGEST_EXTERNAL_CONF);
         try {
             application.start();
         } catch (final VitamApplicationServerException e) {

@@ -34,7 +34,6 @@ import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplica
 public class IngestExternalConfiguration extends DefaultVitamApplicationConfiguration {
 
     private String path;
-    private boolean authentication = true;
     private String antiVirusScriptName;
     private long timeoutScanDelay;
 
@@ -53,7 +52,7 @@ public class IngestExternalConfiguration extends DefaultVitamApplicationConfigur
     }
 
     /**
-     * @param path to set to configuration  
+     * @param path to set to configuration
      * @return IngestExternalConfiguration
      */
     public IngestExternalConfiguration setPath(String path) {
@@ -61,22 +60,7 @@ public class IngestExternalConfiguration extends DefaultVitamApplicationConfigur
         return this;
     }
 
-    /**
-     * @return the authentication
-     */
-    public boolean isAuthentication() {
-        return authentication;
-    }
-
-    /**
-     * @param authentication the authentication to set
-     *
-     * @return this
-     */
-    public IngestExternalConfiguration setAuthentication(boolean authentication) {
-        this.authentication = authentication;
-        return this;
-    }
+    
 
     /**
      * @return antiVirusScriptName
@@ -109,5 +93,4 @@ public class IngestExternalConfiguration extends DefaultVitamApplicationConfigur
         this.timeoutScanDelay = timeoutScanDelay;
         return this;
     }
-
 }

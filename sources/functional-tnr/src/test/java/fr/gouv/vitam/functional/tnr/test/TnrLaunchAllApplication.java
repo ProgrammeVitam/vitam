@@ -33,9 +33,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.gouv.vitam.logbook.rest.LogbookMain;
-import fr.gouv.vitam.metadata.rest.MetadataMain;
-import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -63,11 +60,14 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.ingest.external.rest.IngestExternalApplication;
+import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
+import fr.gouv.vitam.ingest.external.rest.IngestExternalMain;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalApplication;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.logbook.rest.LogbookMain;
+import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.exception.PluginException;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementApplication;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
@@ -207,7 +207,7 @@ public class TnrLaunchAllApplication {
     private static ProcessManagementApplication processManagementApplication;
     private static IngestInternalApplication ingestInternalApplication;
     private static AccessInternalApplication accessInternalApplication;
-    private static IngestExternalApplication ingestExternalApplication;
+    private static IngestExternalMain ingestExternalApplication;
     private static AccessExternalApplication accessExternalApplication;
     private static StorageMain storageMain;
     private static DefaultOfferApplication defaultOfferApplication;
@@ -494,7 +494,7 @@ public class TnrLaunchAllApplication {
         // launch ingest-external
         LOGGER.warn("Start Ingest external");
         SystemPropertyUtil.set(JETTY_INGEST_EXTERNAL_PORT, Integer.toString(PORT_SERVICE_INGEST_EXTERNAL));
-        ingestExternalApplication = new IngestExternalApplication(CONFIG_INGEST_EXTERNAL_PATH);
+        ingestExternalApplication = new IngestExternalMain(CONFIG_INGEST_EXTERNAL_PATH);
         try {
             ingestExternalApplication.start();
         } catch (VitamApplicationServerException e) {

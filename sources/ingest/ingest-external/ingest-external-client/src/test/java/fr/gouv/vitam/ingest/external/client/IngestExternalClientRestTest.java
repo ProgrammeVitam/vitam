@@ -36,12 +36,15 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
@@ -63,6 +66,7 @@ import fr.gouv.vitam.common.external.client.IngestCollection;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -181,6 +185,21 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
         public Response getWorkFlowExecutionStatus(@PathParam("id") String id) {
             return expectedResponse.head();
         }
+
+        @Path("operations/{id}")
+        @DELETE
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response interruptWorkFlowExecution(@PathParam("id") String id) {
+            return expectedResponse.delete();
+        }
+
+        @GET
+        @Path("/operations")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response listOperationsDetails(@Context HttpHeaders headers, ProcessQuery query) {
+            return expectedResponse.get();
+        }
     }
 
 
@@ -244,6 +263,41 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
 
         assertEquals(resp.getGlobalStatus().getEquivalentHttpStatus(), Status.OK);
 
+    }
+
+    @Test
+    public void cancelOperationTest()
+        throws Exception {
+        when(mock.delete()).thenReturn(
+            Response.status(Status.OK).build());
+        RequestResponse<JsonNode> resp = client.cancelOperationProcessExecution(ID, 0);
+        assertEquals(resp.getStatus(), Status.OK.getStatusCode());
+
+        when(mock.delete()).thenReturn(
+            Response.status(Status.PRECONDITION_FAILED).build());
+        resp = client.cancelOperationProcessExecution(ID, 0);
+        assertEquals(resp.getStatus(), Status.PRECONDITION_FAILED.getStatusCode());
+
+        when(mock.delete()).thenReturn(
+            Response.status(Status.UNAUTHORIZED).build());
+        resp = client.cancelOperationProcessExecution(ID, 0);
+        assertEquals(resp.getStatus(), Status.UNAUTHORIZED.getStatusCode());
+
+        when(mock.delete()).thenReturn(
+            Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        resp = client.cancelOperationProcessExecution(ID, 0);
+        assertEquals(resp.getStatus(), Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    public void listOperationsDetailsTest() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.OK).build());
+        RequestResponse<JsonNode> resp = client.listOperationsDetails(0, new ProcessQuery());
+        assertEquals(resp.getStatus(), Status.OK.getStatusCode());
+
+        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        resp = client.listOperationsDetails(0, new ProcessQuery());
+        assertEquals(resp.getStatus(), Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
 }

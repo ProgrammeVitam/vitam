@@ -105,7 +105,7 @@ public class IngestInternalClientMockTest {
     }
 
     @Test
-    public void givenNonEmptyStreamWhenDownloadSuccess() throws Exception {
+    public void givenNonEmptyStreamWhenDownloadSuccess() throws Exception {        
         IngestInternalClientFactory.changeMode(null);
 
         final IngestInternalClient client =

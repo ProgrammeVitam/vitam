@@ -26,22 +26,35 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.rest;
 
+import java.io.File;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 
 public class IngestExternalApplicationTest {
 
-    private IngestExternalApplication application;
+    private IngestExternalMain application;
     private final JunitHelper junitHelper = JunitHelper.getInstance();
     private int portAvailable;
+    private static IngestExternalConfiguration realIngest;
+    @ClassRule
+    public static TemporaryFolder temporaryFolder = new TemporaryFolder();
+    private String configurationFile;
 
     @Before
     public void setUpBeforeMethod() throws Exception {
         portAvailable = junitHelper.findAvailablePort();
+        File file = temporaryFolder.newFile();
+        configurationFile = file.getAbsolutePath();
+        PropertiesUtils.writeYaml(file, realIngest);
     }
 
     @After
@@ -52,44 +65,44 @@ public class IngestExternalApplicationTest {
         junitHelper.releasePort(portAvailable);
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void shouldRaiseAnExceptionWhenConfigureApplicationWithEmptyArgs() throws Exception {
-        application = new IngestExternalApplication((String) null);
+        application = new IngestExternalMain((String) null);
     }
 
     @Test(expected = IllegalStateException.class)
     public void shouldRaiseAnExceptionWhenConfigureApplicationWithFileNotFound() throws Exception {
-        application = new IngestExternalApplication("notFound.conf");
+        application = new IngestExternalMain("notFound.conf");
     }
 
     @Test(expected = IllegalStateException.class)
     public void shouldRaiseAnExceptionWhenConfigureApplicationWithWrongConfigurationFile() throws Exception {
-        application = new IngestExternalApplication("ingest-external-err1.conf");
+        application = new IngestExternalMain("ingest-external-err1.conf");
     }
-    
+
     @Test(expected = IllegalStateException.class)
     public void shouldRaiseAnExceptionWhenConfigureApplicationWithoutTenant() throws Exception {
-        application = new IngestExternalApplication("ingest-external-test-no-tenant.conf");
-        Assert.assertFalse(application.getVitamServer().getServer().isStarted());
+        application = new IngestExternalMain("ingest-external-test-no-tenant.conf");
+        Assert.assertFalse(application.getVitamStarter().isStarted());
     }
 
     @Test
     public void shouldRunServerWhenConfigureApplicationWithFileExists() throws Exception {
-        application = new IngestExternalApplication("ingest-external-test.conf");
-        Assert.assertFalse(application.getVitamServer().isStarted());
+        application = new IngestExternalMain("ingest-external-test.conf");
+        Assert.assertFalse(application.getVitamStarter().isStarted());
         application.start();
-        Assert.assertTrue(application.getVitamServer().isStarted());
+        Assert.assertTrue(application.getVitamStarter().isStarted());
         application.stop();
-        Assert.assertFalse(application.getVitamServer().isStarted());
+        Assert.assertFalse(application.getVitamStarter().isStarted());
     }
 
     @Test
     public void shouldRunServerWhenConfigureApplicationWithSslConfiguration() throws Exception {
-        application = new IngestExternalApplication("ingest-external-ssl1-test.conf");
-        Assert.assertFalse(application.getVitamServer().isStarted());
+        application = new IngestExternalMain("ingest-external-ssl1-test.conf");
+        Assert.assertFalse(application.getVitamStarter().isStarted());
         application.start();
-        Assert.assertTrue(application.getVitamServer().isStarted());
+        Assert.assertTrue(application.getVitamStarter().isStarted());
         application.stop();
-        Assert.assertFalse(application.getVitamServer().isStarted());
+        Assert.assertFalse(application.getVitamStarter().isStarted());
     }
 }

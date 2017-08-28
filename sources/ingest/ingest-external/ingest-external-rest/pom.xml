@@ -139,7 +139,7 @@
 					<archive>
 						<manifest>
 							<addClasspath>true</addClasspath>
-							<mainClass>fr.gouv.vitam.ingest.external.rest.IngestExternalApplication</mainClass>
+							<mainClass>fr.gouv.vitam.ingest.external.rest.IngestExternalMain</mainClass>
 						</manifest>
 					</archive>
 				</configuration>

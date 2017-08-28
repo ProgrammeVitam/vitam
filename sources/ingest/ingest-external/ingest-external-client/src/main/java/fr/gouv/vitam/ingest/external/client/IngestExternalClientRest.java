@@ -437,7 +437,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
                         .setMessage(VitamCode.INGEST_EXTERNAL_CANCEL_OPERATION_PROCESS_EXECUTION_ERROR.getMessage())
                         .setState(StatusCode.KO.name())
                         .setContext(INGEST_EXTERNAL_MODULE)
-                        .setDescription("");
+                        .setDescription(VitamCode.INGEST_EXTERNAL_CANCEL_OPERATION_PROCESS_EXECUTION_ERROR.getMessage());
 
                 if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                     LOGGER.warn("SIP Warning : " + Response.Status.NOT_FOUND.getReasonPhrase());
