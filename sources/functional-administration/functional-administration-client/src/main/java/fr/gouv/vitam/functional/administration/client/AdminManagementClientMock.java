@@ -115,7 +115,6 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
         ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, stream);
         LOGGER.debug("Check file rules  request:");
         StreamUtils.closeSilently(stream);
-        // return Status.OK;
         return new AbstractMockClient.FakeInboundResponse(Status.OK, IOUtils.toInputStream("Vitam Test"),
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
     }

@@ -26,9 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common.exception;
 
+/**
+ * Exception thrown when user want to be delete a unit linked to a fileRules
+ */
 public class FileRulesDeleteException extends ReferentialException {
 
-     private static final long serialVersionUID = 1L;
 
     /**
      * @param message message to associate with the exception
@@ -38,14 +40,14 @@ public class FileRulesDeleteException extends ReferentialException {
     }
 
     /**
-     * @param cause cause to associate with the exception
+     * @param message message to associate with the exception
+     * @param cause   cause to associate with the exception
      */
     public FileRulesDeleteException(String message, Throwable cause) {
         super(message, cause);
     }
 
     /**
-     * @param message message to associate with the exception
      * @param cause cause to associate with the exception
      */
     public FileRulesDeleteException(Throwable cause) {

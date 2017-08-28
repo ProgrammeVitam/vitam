@@ -53,6 +53,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.jayway.restassured.specification.RequestSpecification;
 import org.apache.commons.io.IOUtils;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -987,8 +988,8 @@ public class WebApplicationResourceTest {
 
         PowerMockito.when(
             DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(
-                JsonHandler
-                    .getFromString(FAKE_STRING_RETURN));
+            JsonHandler
+                .getFromString(FAKE_STRING_RETURN));
         PowerMockito.when(
             UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject(), anyObject()))
             .thenReturn(RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN));
@@ -1032,8 +1033,8 @@ public class WebApplicationResourceTest {
         throws Exception {
         PowerMockito.when(
             DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(
-                JsonHandler
-                    .getFromString(FAKE_STRING_RETURN));
+            JsonHandler
+                .getFromString(FAKE_STRING_RETURN));
         PowerMockito.when(
             UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject(), anyObject()))
             .thenThrow(AccessExternalClientServerException.class);
@@ -1049,8 +1050,8 @@ public class WebApplicationResourceTest {
         throws Exception {
         PowerMockito.when(
             DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(
-                JsonHandler
-                    .getFromString(FAKE_STRING_RETURN));
+            JsonHandler
+                .getFromString(FAKE_STRING_RETURN));
 
         PowerMockito.when(
             UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject(), anyObject()))
@@ -1067,7 +1068,7 @@ public class WebApplicationResourceTest {
         throws InvalidCreateOperationException, VitamException {
         PowerMockito.when(
             DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(
-                JsonHandler.getFromString(FAKE_STRING_RETURN));
+            JsonHandler.getFromString(FAKE_STRING_RETURN));
         PowerMockito.when(
             UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject(), anyObject()))
             .thenReturn(RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN));
@@ -1217,29 +1218,23 @@ public class WebApplicationResourceTest {
         String jsonReturn = "{test: \"ok\"}";
         InputStream inputStream =
             new ByteArrayInputStream(jsonReturn.getBytes(StandardCharsets.UTF_8));
-
         final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
         final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
-        PowerMockito.when(adminClient.checkDocuments(anyObject(), anyObject(), anyObject()))
-            .thenReturn(Response.ok().build());
+        when(adminClient.checkDocuments(anyObject(), anyObject(), anyObject()))
+            .thenReturn(ClientMockResultHelper.getObjectStream());
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject()))
             .thenReturn(JsonHandler.getFromString(OPTIONS));
-
-
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
-
         final InputStream stream = PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_CSV_Parameters.csv");
+
         // Need for test
         IOUtils.toByteArray(stream);
-
-        // given()
-        // .contentType(ContentType.BINARY)
-        // .config(RestAssured.config().encoderConfig(
-        // EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
-        // .content(stream).expect().
-        // .statusCode(Response.ok()).when()
-        // .post("/rules/check");
+        final com.jayway.restassured.response.Response response = given().contentType(ContentType.BINARY)
+            .config(RestAssured.config().encoderConfig(
+                EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
+            .content(stream).post("/rules/check");
+        assertEquals(Status.OK.getStatusCode(), response.getStatusCode());
     }
 
     @Test
@@ -1507,9 +1502,9 @@ public class WebApplicationResourceTest {
             .statusCode(Status.BAD_REQUEST.getStatusCode()).when()
             .post("/traceability/extractTimestamp");
     }
-    
+
     @Test
-    public void testLaunchAudit() throws AccessExternalClientServerException, InvalidParseOperationException{
+    public void testLaunchAudit() throws AccessExternalClientServerException, InvalidParseOperationException {
         AdminExternalClient adminExternalClient = Mockito.mock(AdminExternalClient.class);
 
         final AdminExternalClientFactory adminExternalClientFactory =
@@ -1520,7 +1515,7 @@ public class WebApplicationResourceTest {
         JsonNode auditOption = JsonHandler.getFromString(AUDIT_OPTION);
         PowerMockito
             .when(adminExternalClient.launchAudit(Mockito.anyObject(),
-                    (Integer) anyInt(), anyString()))
+                (Integer) anyInt(), anyString()))
             .thenReturn(Status.OK);
 
         given().contentType(ContentType.JSON).body(auditOption).expect()

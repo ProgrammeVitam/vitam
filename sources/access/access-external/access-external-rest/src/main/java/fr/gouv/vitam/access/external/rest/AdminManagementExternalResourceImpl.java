@@ -105,7 +105,6 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 public class AdminManagementExternalResourceImpl {
     private static final String CONTENT_TYPE = "Content-Type";
     private static final String CONTENT_DISPOSITION = "Content-Disposition";
-    private static final String APPLICATION_OCTET_STREAM = "application/octet-stream";
     private static final String ATTACHEMENT_FILENAME = "attachment; filename=ErrorReport.json";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementExternalResourceImpl.class);
     private static final String ACCESS_EXTERNAL_MODULE = "ADMIN_EXTERNAL";
@@ -187,7 +186,7 @@ public class AdminManagementExternalResourceImpl {
             final ResponseBuilder responseBuilder =
                 Response.status(response.getStatus())
                     .header(CONTENT_DISPOSITION, ATTACHEMENT_FILENAME)
-                    .header(CONTENT_TYPE, APPLICATION_OCTET_STREAM);
+                    .header(CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);
             helper.writeResponse(responseBuilder);
         } catch (Exception e) {
             asyncResponseResume(asyncResponse, e, document);
@@ -197,9 +196,9 @@ public class AdminManagementExternalResourceImpl {
     /**
      * Resume the asyncResponse in case of Exception
      * 
-     * @param asyncResponse
-     * @param ex
-     * @param document TODO
+     * @param asyncResponse the given asyncResponse
+     * @param ex exception to handle
+     * @param document the given document to import
      */
     private void asyncResponseResume(AsyncResponse asyncResponse, Exception ex, InputStream document) {
         LOGGER.error(ex);

@@ -147,7 +147,6 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
     private static final String CONTENT_TYPE = "Content-Type";
     private static final String CONTENT_DISPOSITION = "Content-Disposition";
-    private static final String APPLICATION_OCTET_STREAM = "application/octet-stream";
     private static final String ATTACHEMENT_FILENAME = "attachment; filename=ErrorReport.json";
 
     private static final String SELECT_IS_A_MANDATORY_PARAMETER = "select is a mandatory parameter";
@@ -192,8 +191,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         LOGGER.debug("init Admin Management Resource server");
     }
 
-    @VisibleForTesting
-    AdminManagementResource(AdminManagementConfiguration configuration,
+    @VisibleForTesting AdminManagementResource(AdminManagementConfiguration configuration,
         RulesSecurisator securisator) {
         this(configuration);
         this.securisator = securisator;
@@ -231,7 +229,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         Map<Integer, List<ErrorReport>> errors = new HashMap<>();
         try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(mongoAccess)) {
             formatManagement.checkFile(xmlPronom, errors, null, null, null, null);
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.OK).build());          
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.OK).build());
         } catch (final ReferentialException e) {
             LOGGER.error(e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
@@ -247,7 +245,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     /**
      * import the file format
      *
-     * @param headers http headers
+     * @param headers   http headers
      * @param xmlPronom as InputStream
      * @return Response jersey response
      */
@@ -288,7 +286,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
      * @param formatId path param as String
      * @return Response jersey response
      * @throws InvalidParseOperationException when transform result to json exception occurred
-     * @throws IOException when error json occurs
+     * @throws IOException                    when error json occurs
      */
     @GET
     @Path("format/{id_format:.+}")
@@ -338,7 +336,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
      *
      * @param select as String the query to get format
      * @return Response jersey Response
-     * @throws IOException when error json occurs
+     * @throws IOException                    when error json occurs
      * @throws InvalidParseOperationException when error json occurs
      */
     @Path("format/document")
@@ -376,10 +374,10 @@ public class AdminManagementResource extends ApplicationStatusResource {
      *
      * @param rulesStream as InputStream
      * @return Response response jersey
-     * @throws IOException convert inputstream rule to File exception occurred
+     * @throws IOException                     convert inputstream rule to File exception occurred
      * @throws InvalidCreateOperationException if exception occurred when create query
-     * @throws InvalidParseOperationException if parsing json data exception occurred
-     * @throws ReferentialException if exception occurred when create rule file manager
+     * @throws InvalidParseOperationException  if parsing json data exception occurred
+     * @throws ReferentialException            if exception occurred when create rule file manager
      */
     @Path("rules/check")
     @POST
@@ -397,8 +395,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
     /**
      * async Download Report
-     * 
-     * @param document the document to check
+     *
+     * @param document      the document to check
      * @param asyncResponse asyncResponse
      */
     private void asyncDownloadErrorReport(InputStream document, final AsyncResponse asyncResponse) {
@@ -416,7 +414,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, errorReportInputStream);
             helper.writeResponse(Response.status(Status.OK)
                 .header(CONTENT_DISPOSITION, ATTACHEMENT_FILENAME)
-                .header(CONTENT_TYPE, APPLICATION_OCTET_STREAM));
+                .header(CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM));
         } catch (Exception e) {
             handleGenerateReport(asyncResponse, errors, usedDeletedRules, usedUpdatedRules);
         }
@@ -424,7 +422,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
     /**
      * Handle Generation of the report in case of exception
-     * 
+     *
      * @param asyncResponse
      * @param errors
      * @param usedDeletedRules
@@ -440,7 +438,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, errorReportInputStream);
             helper.writeResponse(Response.status(Status.BAD_REQUEST)
                 .header(CONTENT_DISPOSITION, ATTACHEMENT_FILENAME)
-                .header(CONTENT_TYPE, APPLICATION_OCTET_STREAM));
+                .header(CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM));
         } catch (FileRulesException e1) {
             LOGGER.error(e1.getMessage(), e1);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
@@ -451,13 +449,13 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
     /**
      * import the rules file
-     * 
-     * @param headers http headers
+     *
+     * @param headers     http headers
      * @param rulesStream as InputStream
      * @return Response jersey response
-     * @throws IOException when error json occurs
+     * @throws IOException                    when error json occurs
      * @throws InvalidParseOperationException when error json occurs
-     * @throws ReferentialException when the mongo insert throw error
+     * @throws ReferentialException           when the mongo insert throw error
      */
     @Path("rules/import")
     @POST
@@ -496,12 +494,12 @@ public class AdminManagementResource extends ApplicationStatusResource {
     /**
      * findRuleByID : find the rules details based on a given Id
      *
-     * @param ruleId path param as String
+     * @param ruleId  path param as String
      * @param request the request
      * @return Response jersey response
-     * @throws InvalidParseOperationException if exception occurred when transform json rule id
-     * @throws IOException when error json occurs
-     * @throws ReferentialException when the mongo search throw error or search result is null
+     * @throws InvalidParseOperationException  if exception occurred when transform json rule id
+     * @throws IOException                     when error json occurs
+     * @throws ReferentialException            when the mongo search throw error or search result is null
      * @throws InvalidCreateOperationException if exception occurred when create query
      */
     @GET
@@ -555,7 +553,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
      *
      * @param select as String
      * @return Response jersey Response
-     * @throws IOException when error json occurs
+     * @throws IOException                    when error json occurs
      * @throws InvalidParseOperationException when error json occurs
      */
     @Path("rules/document")
@@ -623,9 +621,9 @@ public class AdminManagementResource extends ApplicationStatusResource {
      *
      * @param select as String the query to find accession register
      * @return Response jersey Response
-     * @throws IOException when error json occurs
+     * @throws IOException                    when error json occurs
      * @throws InvalidParseOperationException when error json occurs
-     * @throws ReferentialException when the mongo search throw error or search result is null
+     * @throws ReferentialException           when the mongo search throw error or search result is null
      */
     @Path("accession-register/document")
     @POST
@@ -698,11 +696,11 @@ public class AdminManagementResource extends ApplicationStatusResource {
      * retrieve accession register detail based on a given dsl query
      *
      * @param documentId
-     * @param select as String the query to find the accession register
+     * @param select     as String the query to find the accession register
      * @return Response jersey Response
-     * @throws IOException when error json occurs
+     * @throws IOException                    when error json occurs
      * @throws InvalidParseOperationException when error json occurs
-     * @throws ReferentialException when the mongo search throw error or search result is null
+     * @throws ReferentialException           when the mongo search throw error or search result is null
      */
     @Path("accession-register/detail/{id}")
     @POST
@@ -768,7 +766,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response launchAudit(JsonNode options) {
         ParametersChecker.checkParameter(OPTIONS_IS_MANDATORY_PATAMETER, options);
-        try (ProcessingManagementClient processingClient = ProcessingManagementClientFactory.getInstance().getClient()) {
+        try (ProcessingManagementClient processingClient = ProcessingManagementClientFactory.getInstance()
+            .getClient()) {
             createAuditLogbookOperation();
             final int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
             final ProcessingEntry entry = new ProcessingEntry(VitamThreadUtils.getVitamSession().getRequestId(),

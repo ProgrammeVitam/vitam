@@ -54,7 +54,6 @@ angular.module('ihm.demo')
     });
 
     uploader.onSuccessItem = function(fileItem, response, status, headers) {
-      console.info('onSuccessItem', fileItem, response, status, headers);
       if (uploader.queue[0].url == serviceURI + checkRules) {
         uploader.downloadReport(response, headers);
         var confirm = $mdDialog.confirm()
@@ -85,7 +84,6 @@ angular.module('ihm.demo')
     };
 
     uploader.onErrorItem = function(fileItem, response, status, headers) {
-      console.info('onErrorItem', fileItem, response, status, headers);
       if (uploader.queue[0].url == serviceURI + checkRules) {
         uploader.downloadReport(response, headers);
         var alert = $mdDialog.alert()
@@ -129,7 +127,6 @@ angular.module('ihm.demo')
     }
 
     function cancelAction() {
-      console.log('Canceled');
       $route.reload();
     }
   });

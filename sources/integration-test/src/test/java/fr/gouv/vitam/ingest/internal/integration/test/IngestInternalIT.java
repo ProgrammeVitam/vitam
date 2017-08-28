@@ -1589,7 +1589,6 @@ public class IngestInternalIT {
             new FileInputStream(PropertiesUtils.findFile(FILE_RULES_KO_REFERENCE_WITH_WRONG_COMMA));
         FileInputStream streamErrorReport =
             new FileInputStream(PropertiesUtils.findFile(ERROR_REPORT_REFERENCE_WITH_WRONG_COMA));
-        AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
         checkFileRulesWithCustomReferential(stream, streamErrorReport);
     }
 

@@ -241,7 +241,6 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             response = performRequest(HttpMethod.POST, RULESMANAGER_CHECK_URL, null,
                 stream, MediaType.APPLICATION_OCTET_STREAM_TYPE,
                 MediaType.APPLICATION_OCTET_STREAM_TYPE);
-            // Return the report #2940
             return response;
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);

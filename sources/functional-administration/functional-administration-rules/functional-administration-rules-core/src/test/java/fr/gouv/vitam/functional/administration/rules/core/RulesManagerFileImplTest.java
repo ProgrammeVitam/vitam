@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -117,8 +118,8 @@ public class RulesManagerFileImplTest {
     private static final String ACCESS_RULE = "AccessRule";
     private static final String ACC_00003 = "ACC-00003";
     private static final String APPRAISAL_RULE = "AppraisalRule";
-    String FILE_TO_TEST_OK = "jeu_ok.csv";
-    String FILE_TO_TEST_KO = "jeu_donnees_KO_regles_CSV_DuplicatedReference.csv";
+    private static final String FILE_TO_TEST_OK = "jeu_ok.csv";
+    private static final String FILE_TO_TEST_KO = "jeu_donnees_KO_regles_CSV_DuplicatedReference.csv";
     private static final String FILE_TO_COMPARE = "jeu_donnees_OK_regles_CSV.csv";
     private static final String FILE_UPDATE_RULE_TYPE = "jeu_donnees_OK_regles_CSV_update_ruleType.csv";
     private static final Integer TENANT_ID = 0;
@@ -463,7 +464,8 @@ public class RulesManagerFileImplTest {
             try {
                 select.setQuery(eq("#tenant", TENANT_ID));
                 fileRules = convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
-            } catch (ReferentialException e) {}
+            } catch (ReferentialException e) {
+            }
             if (fileRules.size() == 0) {
                 rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)),
                     FILE_TO_TEST_OK);
@@ -491,11 +493,24 @@ public class RulesManagerFileImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final Select select = new Select();
         try {
-            List<FileRules> fileRules = new ArrayList<FileRules>();
+            LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
+            when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
+            when(logbookOperationsclient.selectOperation(Matchers.anyObject()))
+                .thenReturn(getJsonResult(StatusCode.OK.name(), TENANT_ID));
+
+            WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
+            when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+
+            StorageClient storageClient = mock(StorageClient.class);
+            when(storageClientFactory.getClient()).thenReturn(storageClient);
+
+
+            List<FileRules> fileRules = new ArrayList<>();
             try {
                 select.setQuery(eq("#tenant", TENANT_ID));
                 fileRules = convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
-            } catch (ReferentialException e) {}
+            } catch (ReferentialException e) {
+            }
             if (fileRules.size() == 0) {
                 rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)),
                     FILE_TO_TEST_OK);
@@ -506,7 +521,7 @@ public class RulesManagerFileImplTest {
             for (FileRules fileRulesAfter : fileRulesAfterImport) {
                 if (ACC_00003.equals(fileRulesAfter.getRuleid())) {
                     assertEquals(ACCESS_RULE, fileRulesAfter.getRuletype());
-                }    
+                }
             }
             // FILE_TO_COMPARE => insert 1 rule, delete 1 rule, update 1 rule
             rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_UPDATE_RULE_TYPE)),
@@ -522,8 +537,11 @@ public class RulesManagerFileImplTest {
 
 
         } catch (ReferentialException | InvalidParseOperationException | IOException |
-            InvalidCreateOperationException e) {
+            InvalidCreateOperationException | LogbookClientException e) {
             fail("ReferentialException " + e.getCause());
+            e.printStackTrace();
+        } catch (Exception e) {
+            fail("Exception " + e.getCause());
             e.printStackTrace();
         }
     }

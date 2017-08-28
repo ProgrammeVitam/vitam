@@ -156,7 +156,6 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 @Path("/v1/api")
 public class WebApplicationResource extends ApplicationStatusResource {
 
-    private static final String APPLICATION_OCTET_STREAM = "application/octet-stream";
     private static final String CONTENT_TYPE = "Content-Type";
     private static final String CONTENT_DISPOSITION = "Content-Disposition";
     private static final String ATTACHMENT_FILENAME_ERROR_REPORT_JSON = "attachment; filename=ErrorReport.json";
@@ -1273,13 +1272,13 @@ public class WebApplicationResource extends ApplicationStatusResource {
         throws VitamClientException, IngestExternalException, IngestExternalClientServerException,
         IngestExternalClientNotFoundException, InvalidParseOperationException {
         File file = null;
-        Response response = null;                
+        Response response = null;
         try (IngestExternalClient ingestExternalClient = IngestExternalClientFactory.getInstance().getClient()) {
             response = ingestExternalClient
                 .downloadObjectAsync(guid, IngestCollection.RULES, tenantId);
             InputStream inputStream = response.readEntity(InputStream.class);
             if (inputStream != null) {
-                file = PropertiesUtils.fileFromTmpFolder( guid + ".json");
+                file = PropertiesUtils.fileFromTmpFolder(guid + ".json");
                 try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
                     StreamUtils.copy(inputStream, fileOutputStream);
                 } catch (IOException e) {
@@ -1314,9 +1313,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     /**
      * async Download Error Report
-     * 
-     * @param document the input stream to test
-     * @param tenant the given tenant
+     *
+     * @param document      the input stream to test
+     * @param tenant        the given tenant
      * @param asyncResponse asyncResponse
      */
     private void asyncDownloadErrorReport(InputStream document, int tenant, final AsyncResponse asyncResponse) {
@@ -1327,7 +1326,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             final Response.ResponseBuilder responseBuilder =
                 Response.status(response.getStatus())
                     .header(CONTENT_DISPOSITION, ATTACHMENT_FILENAME_ERROR_REPORT_JSON)
-                    .header(CONTENT_TYPE, APPLICATION_OCTET_STREAM);
+                    .header(CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);
             helper.writeResponse(responseBuilder);
         } catch (final AccessExternalClientException exc) {
             LOGGER.error(exc.getMessage(), exc);

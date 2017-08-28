@@ -43,7 +43,6 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.text.ParseException;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -151,12 +150,9 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
@@ -245,8 +241,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
             WorkspaceClientFactory.getInstance());
     }
 
-    @VisibleForTesting
-    RulesManagerFileImpl(MongoDbAccessAdminImpl dbConfiguration,
+    @VisibleForTesting RulesManagerFileImpl(MongoDbAccessAdminImpl dbConfiguration,
         VitamCounterService vitamCounterService,
         RulesSecurisator securisator, LogbookOperationsClientFactory logbookOperationsClientFactory,
         StorageClientFactory storageClientFactory, WorkspaceClientFactory workspaceClientFactory) {
@@ -322,7 +317,6 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         throws IOException, FileNotFoundException, ReferentialException, InvalidParseOperationException,
         InvalidCreateOperationException, FileRulesException {
         List<FileRulesModel> fileRulesModelsToImport;
-        // #1737 : List of file rules to delete, update, insert
         List<FileRules> fileRulesInDb = findAllFileRulesQueryBuilder();
         List<FileRulesModel> fileRulesModelsInDb = transformFileRulesToFileRulesModel(fileRulesInDb);
         fileRulesModelsToImport = transformJsonNodeToFileRulesModel(validatedRules);
@@ -332,7 +326,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
             updateCheckFileRulesLogbookOperationOk(CHECK_RULES, StatusCode.OK,
                 notUsedDeletedRulesForReport,
                 eip);
-            generateReport(errors, eip, new ArrayList<FileRulesModel>(), new ArrayList<FileRulesModel>());
+            generateReport(errors, eip, new ArrayList<>(), new ArrayList<>());
             commitRules(fileRulesModelToUpdate, fileRulesModelToDelete, validatedRules,
                 fileRulesModelToInsert,
                 fileRulesModelsToImport, eip);
@@ -343,7 +337,6 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
             store(eip, new FileInputStream(file), CSV, digest.toString());
             storeJson(eip);
             updateStpImportRulesLogbookOperation(eip, eip1, StatusCode.OK, filename);
-
         } catch (final FileRulesException e) {
             LOGGER.error(e);
             throw e;
@@ -358,20 +351,20 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
 
     /**
      * Generate Report When FileRules Updated Exception Append
-     * 
-     * @param file to import
-     * @param errors errors of the report to build
-     * @param eip eip for logbookOperation
-     * @param eip1 eip1 for logbookOperation
-     * @param usedDeletedRulesForReport used Deleted Rules For Report
-     * @param usedUpdateRulesForReport used Update Rules For Report
+     *
+     * @param file                         to import
+     * @param errors                       errors of the report to build
+     * @param eip                          eip for logbookOperation
+     * @param eip1                         eip1 for logbookOperation
+     * @param usedDeletedRulesForReport    used Deleted Rules For Report
+     * @param usedUpdateRulesForReport     used Update Rules For Report
      * @param notUsedDeletedRulesForReport not Used Deleted Rules For Report
-     * @param fileRulesModelToInsert Rules Model To Insert
-     * @param fileRulesModelToDelete Rules Model To Delete
-     * @param fileRulesModelToUpdate Rules Model To Update
-     * @param fileRulesModelsToImport Rules Models To Import
-     * @param validatedRules Rules to import
-     * @param fileName TODO
+     * @param fileRulesModelToInsert       Rules Model To Insert
+     * @param fileRulesModelToDelete       Rules Model To Delete
+     * @param fileRulesModelToUpdate       Rules Model To Update
+     * @param fileRulesModelsToImport      Rules Models To Import
+     * @param validatedRules               Rules to import
+     * @param filename                     the filename of the file to import
      * @throws IOException
      * @throws FileNotFoundException
      * @throws ReferentialException
@@ -388,7 +381,6 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         throws IOException, FileNotFoundException, ReferentialException, InvalidParseOperationException,
         InvalidCreateOperationException, FileRulesException {
         try {
-            // #2940 : Generate error report
             generateReport(errors, eip, usedDeletedRulesForReport, usedUpdateRulesForReport);
             Set<String> usedUpdateRules = new HashSet<>();
             for (FileRulesModel fileRuleModel : usedUpdateRulesForReport) {
@@ -398,7 +390,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
                 notUsedDeletedRulesForReport,
                 eip);
 
-            commitRules(fileRulesModelToUpdate, fileRulesModelToDelete, validatedRules,
+            commitRules(usedUpdateRulesForReport, fileRulesModelToDelete, validatedRules,
                 fileRulesModelToInsert,
                 fileRulesModelsToImport, eip);
 
@@ -426,20 +418,20 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
 
     /**
      * Generate Report When File Rules Deleted Exception Append
-     * 
-     * @param file
-     * @param errors
-     * @param eip
-     * @param eip1
-     * @param usedDeletedRulesForReport
-     * @param usedUpdateRulesForReport
-     * @param notUsedDeletedRulesForReport
-     * @param fileRulesModelToInsert
-     * @param fileRulesModelToDelete
-     * @param fileRulesModelToUpdate
-     * @param fileRulesModelsToImport
-     * @param validatedRules
-     * @param fileName TODO
+     *
+     * @param file                         to import
+     * @param errors                       errors of the report to build
+     * @param eip                          eip for logbookOperation
+     * @param eip1                         eip1 for logbookOperation
+     * @param usedDeletedRulesForReport    used Deleted Rules For Report
+     * @param usedUpdateRulesForReport     used Update Rules For Report
+     * @param notUsedDeletedRulesForReport not Used Deleted Rules For Report
+     * @param fileRulesModelToInsert       Rules Model To Insert
+     * @param fileRulesModelToDelete       Rules Model To Delete
+     * @param fileRulesModelToUpdate       Rules Model To Update
+     * @param fileRulesModelsToImport      Rules Models To Import
+     * @param validatedRules               Rules to import
+     * @param filename                     filename of the file to import
      * @throws IOException
      * @throws FileNotFoundException
      * @throws ReferentialException
@@ -477,9 +469,9 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     /**
      * Check File Linked To Au for generated errors report
      *
-     * @param validatedRules the rules to check
-     * @param filesRulesDeleted file rules deleted
-     * @param filesRulesUpdated file rules updated
+     * @param validatedRules                    the rules to check
+     * @param filesRulesDeleted                 file rules deleted
+     * @param filesRulesUpdated                 file rules updated
      * @param fileRulesNotLinkedToUnitForDelete file rules not linked to unit for delete
      * @param fileRulesNotLinkedToUnitForUpdate file rules not linked to unit for update
      * @throws FileRulesException
@@ -491,7 +483,6 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         throws FileRulesException, InvalidParseOperationException {
         List<FileRules> fileRulesInDb = findAllFileRulesQueryBuilder();
         List<FileRulesModel> fileRulesModelsInDb = transformFileRulesToFileRulesModel(fileRulesInDb);
-        // #1737 : List of file rules to delete, update, insert
         List<FileRulesModel> fileRulesModelToDelete = new ArrayList<>();
         List<FileRulesModel> fileRulesModelToInsert = new ArrayList<>();
         List<FileRulesModel> fileRulesModelToUpdate = new ArrayList<>();
@@ -526,8 +517,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     /**
      * update STP_IMPORT_RULES LogbookOperation
      *
-     * @param eip GUID master
-     * @param eip1 GUID of the eventIdentifier
+     * @param eip    GUID master
+     * @param eip1   GUID of the eventIdentifier
      * @param status Logbook status
      * @throws InvalidParseOperationException
      */
@@ -545,7 +536,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     /**
      * Init logbook operation STP_IMPORT_RULES
      *
-     * @param eip
+     * @param eip GUID master
      */
     private void initStpImportRulesLogbookOperation(final GUID eip) {
         final LogbookOperationParameters logbookParametersStart = LogbookParametersFactory
@@ -557,8 +548,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
 
     /**
      * Method that is responsible of launching workflow that will update archive units after rules has been updated
-     * 
-     * @param fileRulesModelToUpdate
+     *
+     * @param usedUpdateRulesForReport file rules used to a unit
      * @throws InvalidParseOperationException
      */
     private void launchWorkflow(List<FileRulesModel> usedUpdateRulesForReport) throws InvalidParseOperationException {
@@ -617,11 +608,11 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     /**
      * Commit in mongo/elastic for update, delete, insert
      *
-     * @param fileRulesModelToUpdate
-     * @param fileRulesModelToDelete
-     * @param validatedRules
-     * @param fileRulesModelToInsert
-     * @param fileRulesModelsToImport
+     * @param fileRulesModelToUpdate  fileRulesModelToUpdate
+     * @param fileRulesModelToDelete  fileRulesModelToDelete
+     * @param validatedRules          all the given rules to import
+     * @param fileRulesModelToInsert  fileRulesModelToInsert
+     * @param fileRulesModelsToImport fileRulesModelsToImport
      * @return true if commited
      * @throws FileRulesException
      */
@@ -642,7 +633,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
             if (!fileRulesModelToInsert.isEmpty() && fileRulesModelToInsert.containsAll(fileRulesModelsToImport)) {
                 commit(validatedRules);
                 secureRules = true;
-            } else if (fileRulesModelToInsert.size() > 0) {
+            } else if (!fileRulesModelToInsert.isEmpty()) {
                 final JsonNode fileRulesNodeToInsert = JsonHandler.toJsonNode(fileRulesModelToInsert);
                 if (fileRulesNodeToInsert != null && fileRulesNodeToInsert.isArray()) {
                     final ArrayNode fileRulesArrayToInsert = (ArrayNode) fileRulesNodeToInsert;
@@ -705,7 +696,6 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
      *
      * @param operationFileRules
      * @param statusCode
-     * @return
      */
     private void initCommitFileRulesLogbookOperation(String operationFileRules, StatusCode statusCode, GUID eipMaster) {
         final GUID eipTask = GUIDFactory.newOperationLogbookGUID(getTenant());
@@ -723,7 +713,6 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
      *
      * @param operationFileRules
      * @param statusCode
-     * @return
      */
     private void initCheckFileRulesLogbookOperation(String operationFileRules, StatusCode statusCode, GUID eipMaster) {
         final GUID eipTask = GUIDFactory.newOperationLogbookGUID(getTenant());
@@ -805,7 +794,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
                     LogbookTypeProcess.MASTERDATA,
                     statusCode,
                     VitamLogbookMessages.getCodeOp(CHECK_RULES, statusCode), evid);
-        if (fileRulesIdsLinkedToUnit.size() > 0) {
+        if (!fileRulesIdsLinkedToUnit.isEmpty()) {
             final ObjectNode usedDeleteRuleIds = JsonHandler.createObjectNode();
             final ArrayNode arrayNode = JsonHandler.createArrayNode();
             for (String fileRulesId : fileRulesIdsLinkedToUnit) {
@@ -922,8 +911,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         ParametersChecker.checkParameter(RULES_FILE_STREAM_IS_A_MANDATORY_PARAMETER, rulesFileStream);
         File csvFileReader = convertInputStreamToFile(rulesFileStream, TXT);
         try (FileReader reader = new FileReader(csvFileReader)) {
-            @SuppressWarnings("resource")
-            final CSVParser parser =
+            @SuppressWarnings("resource") final CSVParser parser =
                 new CSVParser(reader, CSVFormat.DEFAULT.withHeader());
             final HashSet<String> ruleIdSet = new HashSet<>();
             int lineNumber = 1;
@@ -988,9 +976,18 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         throw new FileRulesException(INVALID_CSV_FILE);
     }
 
+
     /**
      * Save the error report in storage
      *
+     * @param errors           the given of errors to consume for generate error report
+     * @param eipMaster        GUID of the process
+     * @param usedDeletedRules list of fileRules that attempt to be deleted but have reference to unit
+     * @param usedUpdatedRules list of fileRules that attempt to be updated but have reference to unit
+     * @throws StorageException
+     * @throws LogbookClientServerException
+     * @throws LogbookClientBadRequestException
+     * @throws LogbookClientAlreadyExistsException
      * @throws FileRulesException
      */
     private void generateReport(Map<Integer, List<ErrorReport>> errors, GUID eipMaster,
@@ -1009,13 +1006,10 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
                             RULES_REPORT, StatusCode.STARTED),
                         eip1);
             updateLogBookEntry(logbookParametersStart);
-            // final String fileName =
-            // String.format("%d_" + STORAGE_ERROR_REPORT_NAME + "_%s.json", tenantId,
-            // LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddhhmmss")));
             final String fileName = eipMaster + ".json";
             final String uri = String.format("%s/%s", STORAGE_RULES_WORKSPACE, fileName);
             InputStream stream = null;
-            if (!errors.isEmpty() || usedDeletedRules.size() > 0 || usedUpdatedRules.size() > 0) {
+            if (!errors.isEmpty() || !usedDeletedRules.isEmpty() || !usedUpdatedRules.isEmpty()) {
                 stream = generateErrorReport(errors, usedDeletedRules, usedUpdatedRules);
             } else {
                 stream = generateReportOK(errors, usedDeletedRules, usedUpdatedRules, eipMaster);
@@ -1080,11 +1074,11 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     /**
      * Check Referential To Import for create ruleFiles to delete, update, insert
      *
-     * @param fileRulesModelsToImport
-     * @param fileRulesModelsInDb
-     * @param fileRulesModelToDelete
-     * @param fileRulesModelToUpdate
-     * @param fileRulesModelToInsert
+     * @param fileRulesModelsToImport the given list with all fileRules to import
+     * @param fileRulesModelsInDb     the given list with all fileRulesInDb
+     * @param fileRulesModelToDelete  the given list with fileRules to delete
+     * @param fileRulesModelToUpdate  the given list with fileRules to update
+     * @param fileRulesModelToInsert  the given list with fileRules to insert
      */
     private void createListToimportUpdateDelete(List<FileRulesModel> fileRulesModelsToImport,
         List<FileRulesModel> fileRulesModelsInDb, List<FileRulesModel> fileRulesModelToDelete,
@@ -1150,9 +1144,14 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     }
 
 
+
     /**
      * Check existance of file rules linked to unit in database
      *
+     * @param fileRulesModelToCheck fileRulesModelToCheck
+     * @param rulesLinkedToUnit     rulesLinkedToUnit
+     * @param rulesNotLinkedToUnit  rulesNotLinkedToUnit
+     * @return true if a given FileRules is linked to a unit, false if none of them are linked to a unit
      * @throws InvalidParseOperationException
      */
     public boolean checkUnitLinkedToFileRules(List<FileRulesModel> fileRulesModelToCheck,
@@ -1228,7 +1227,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
      * Delete fileRules by id
      *
      * @param fileRulesModel fileRulesModel to delete
-     * @param collection the given FunctionalAdminCollections
+     * @param collection     the given FunctionalAdminCollections
      */
     public void deleteFileRules(FileRulesModel fileRulesModel, FunctionalAdminCollections collection) {
         final Delete delete = new Delete();
@@ -1292,7 +1291,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     /**
      * checkifTheCollectionIsEmptyBeforeImport : Check if the Collection is empty .
      *
-     * @return
+     * @return true if the given collection is empty for the given tenant false if it's not
      * @throws InvalidParseOperationException
      * @throws InvalidCreateOperationException
      * @throws ReferentialException
@@ -1310,7 +1309,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
      *
      * @return the JsonNode answer
      * @throws InvalidCreateOperationException if exception occurred when create query
-     * @throws InvalidParseOperationException if parse json query exception occurred
+     * @throws InvalidParseOperationException  if parse json query exception occurred
      */
     public JsonNode findExistsRuleQueryBuilder()
         throws InvalidCreateOperationException, InvalidParseOperationException {
@@ -1327,8 +1326,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     /**
      * Check if the rule duration is integer
      *
-     * @param errors TODO
-     * @param line TODO
+     * @param errors list of errors to set
+     * @param line   the given line to treat
      * @throws FileRulesException
      */
     private void checkRuleDuration(FileRulesModel fileRulesModel, List<ErrorReport> errors, int line) {
@@ -1344,7 +1343,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         }
     }
 
-    int parseWithDefault(String s) {
+    private int parseWithDefault(String s) {
         try {
             return Integer.parseInt(s);
         } catch (NumberFormatException err) {
@@ -1355,13 +1354,13 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     /**
      * check if Records are not Empty
      *
-     * @param ruleId
-     * @param ruleType
-     * @param ruleValue
-     * @param ruleDuration
-     * @param ruleMeasurementValue
-     * @param errors TODO
-     * @param line TODO
+     * @param ruleId               ruleId
+     * @param ruleType             ruleType
+     * @param ruleValue            ruleValue
+     * @param ruleDuration         ruleDuration
+     * @param ruleMeasurementValue ruleMeasurementValue
+     * @param errors               list of errors to set
+     * @param line                 the given line to treat
      * @throws FileRulesException thrown if one ore more parameters are missing
      */
     private void checkParametersNotEmpty(String ruleId, String ruleType, String ruleValue, String ruleDuration,
@@ -1391,8 +1390,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     /**
      * Check if Records is not null
      *
-     * @param record
-     * @return
+     * @param record the given record to import
+     * @return true if no parameters of the csv is empty false if one or more parameters is empty
      */
     private boolean checkRecords(CSVRecord record) {
         return record.get(RULE_ID) != null && record.get(RULE_TYPE) != null && record.get(RULE_VALUE) != null &&
@@ -1404,9 +1403,9 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     /**
      * Check if Rule duration associated to rule measurement respect the limit of 999 years
      *
-     * @param record the list of record to check
-     * @param errors the list of errors
-     * @param line the current line
+     * @param record        the list of record to check
+     * @param errors        the list of errors
+     * @param line          the current line
      * @param fileRuleModel the current object that contains all the record to check
      * @throws FileRulesException
      */
@@ -1434,12 +1433,12 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     /**
      * Check if RuleMeasurement is included in the Enumeration
      *
-     * @param test
-     * @return
+     * @param ruleMeasurement ruleMeasurement to test
+     * @return true if ruleMeasurement is in the authorise RuleMeasurementEnum false if it's not
      */
-    private static boolean containsRuleMeasurement(String test) {
+    private static boolean containsRuleMeasurement(String ruleMeasurement) {
         for (final RuleMeasurementEnum c : RuleMeasurementEnum.values()) {
-            if (c.getType().equalsIgnoreCase(test)) {
+            if (c.getType().equalsIgnoreCase(ruleMeasurement)) {
                 return true;
             }
         }
@@ -1449,12 +1448,12 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     /**
      * Check if RuleType is included in the Enumeration
      *
-     * @param test
-     * @return
+     * @param ruleType ruleType
+     * @return true if ruleType is in the authorise RuleTypeEnum false if it's not
      */
-    private static boolean containsRuleType(String test) {
+    private static boolean containsRuleType(String ruleType) {
         for (final RuleTypeEnum c : RuleTypeEnum.values()) {
-            if (c.getType().equalsIgnoreCase(test)) {
+            if (c.getType().equalsIgnoreCase(ruleType)) {
                 return true;
             }
         }
@@ -1548,11 +1547,11 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     /**
      * find document based on DSL query with DbRequest multiple
      *
-     * @param select query
+     * @param select      query
      * @param ruleFilesId Identifier
      * @return vitam document list
      * @throws FileFormatNotFoundException when no results found
-     * @throws ReferentialException when error occurs
+     * @throws ReferentialException        when error occurs
      */
     private ArrayNode checkUnitLinkedtofileRules(JsonNode select, String ruleFilesId)
         throws FileFormatNotFoundException, ReferentialException {
@@ -1572,16 +1571,15 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     /**
      * generate Error Report
      *
-     * @param errors the list of error for generated errors
-     * @param usedDeletedRules TODO
-     * @param usedUpdatedRules TODO
+     * @param errors           the list of error for generated errors
+     * @param usedDeletedRules list of fileRules that attempt to be deleted but have reference to unit
+     * @param usedUpdatedRules list of fileRules that attempt to be updated but have reference to unit
      * @return the error report inputStream
      * @throws FileRulesException
      */
     public InputStream generateErrorReport(Map<Integer, List<ErrorReport>> errors,
         List<FileRulesModel> usedDeletedRules, List<FileRulesModel> usedUpdatedRules)
         throws FileRulesException {
-        // #2940 : Generate error report
         final ObjectNode reportFinal = JsonHandler.createObjectNode();
         final ArrayNode messagesArrayNode = JsonHandler.createArrayNode();
         final ObjectNode guidmasterNode = JsonHandler.createObjectNode();
@@ -1651,16 +1649,15 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     /**
      * generate Error Report
      *
-     * @param errors the list of error for generated errors
-     * @param usedDeletedRules TODO
-     * @param usedUpdatedRules TODO
+     * @param errors           the list of error for generated errors
+     * @param usedDeletedRules list of fileRules that attempt to be deleted but have reference to unit
+     * @param usedUpdatedRules list of fileRules that attempt to be updated but have reference to unit
      * @return the error report inputStream
      * @throws FileRulesException
      */
     private InputStream generateReportOK(Map<Integer, List<ErrorReport>> errors,
         List<FileRulesModel> usedDeletedRules, List<FileRulesModel> usedUpdatedRules, GUID eip)
         throws FileRulesException {
-        // #2940 : Generate error report
         final ObjectNode reportFinal = JsonHandler.createObjectNode();
         final ObjectNode guidmasterNode = JsonHandler.createObjectNode();
         final ArrayNode usedDeletedArrayNode = JsonHandler.createArrayNode();

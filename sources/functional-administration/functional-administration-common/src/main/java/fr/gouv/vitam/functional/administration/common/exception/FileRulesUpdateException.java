@@ -26,9 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common.exception;
 
+/**
+ * Exception Throw when attempt to update a fileRules that is linked to a Unit
+ */
 public class FileRulesUpdateException extends ReferentialException {
-
-    private static final long serialVersionUID = 1L;
 
     /**
      * @param message message to associate with the exception
@@ -38,14 +39,13 @@ public class FileRulesUpdateException extends ReferentialException {
     }
 
     /**
-     * @param cause cause to associate with the exception
+     * @param message cause to associate with the exception
      */
     public FileRulesUpdateException(String message) {
         super(message);
     }
 
     /**
-     * @param message message to associate with the exception
      * @param cause cause to associate with the exception
      */
     public FileRulesUpdateException(Throwable cause) {

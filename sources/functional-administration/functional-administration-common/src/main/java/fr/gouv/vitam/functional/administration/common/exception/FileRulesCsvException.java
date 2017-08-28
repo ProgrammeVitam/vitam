@@ -26,18 +26,28 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common.exception;
 
+/**
+ * Exception throw when csv to import is not well format or is bad to parse
+ */
 public class FileRulesCsvException extends ReferentialException {
-
-    private static final long serialVersionUID = 1L;
-
+    /**
+     * @param message message to associate with the exception
+     * @param cause   cause to associate with the exception
+     */
     public FileRulesCsvException(String message, Throwable cause) {
         super(message, cause);
     }
 
+    /**
+     * @param message message to associate with the exception
+     */
     public FileRulesCsvException(String message) {
         super(message);
     }
 
+    /**
+     * @param cause cause to associate with the exception
+     */
     public FileRulesCsvException(Throwable cause) {
         super(cause);
     }

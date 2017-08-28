@@ -111,9 +111,12 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
             return false;
         }
     }
+
+
     // Define your Configuration class if necessary
     public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
     }
+
 
     @Path("/admin-external/v1/")
     public static class MockResource {
@@ -188,7 +191,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
             throws InvalidParseOperationException {
             return expectedResponse.get();
         }
-        
+
         @POST
         @Path(AccessExtAPI.AUDITS)
         @Produces(MediaType.APPLICATION_JSON)
@@ -202,30 +205,28 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     public void testCheckDocument()
         throws Exception {
         when(mock.put()).thenReturn(Response.status(Status.OK).build());
-        Response checkDocumentsResponse = client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID);
+        Response checkDocumentsResponse =
+            client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID);
         assertEquals(Status.OK.getStatusCode(), checkDocumentsResponse.getStatus());
-        // assertEquals(
-        // client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID),
-        // Status.OK);
     }
 
     @Test(expected = AccessExternalClientNotFoundException.class)
     public void testCheckDocumentAccessExternalClientNotFoundException()
         throws Exception {
         when(mock.put()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        Response checkDocuments = client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID);
+        Response checkDocuments =
+            client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID);
     }
-    
-   
+
+
 
     @Test
     public void testCheckDocumentAccessExternalClientException()
         throws Exception {
         when(mock.put()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        Response checkDocumentsResponse = client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID);
+        Response checkDocumentsResponse =
+            client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID);
         assertEquals(Status.BAD_REQUEST.getStatusCode(), checkDocumentsResponse.getStatus());
-        // assertEquals(Status.BAD_REQUEST,
-        // client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID));
     }
 
     @Test
@@ -398,7 +399,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
 
     /**
      * Test that findAccessContracts is reachable and does not return elements
-     * 
+     *
      * @throws FileNotFoundException
      * @throws InvalidParseOperationException
      * @throws VitamClientInternalException
@@ -420,7 +421,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
 
     /**
      * Test that findAccessContracts is reachable and return two elements as expected
-     * 
+     *
      * @throws FileNotFoundException
      * @throws InvalidParseOperationException
      * @throws VitamClientInternalException
@@ -459,7 +460,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
 
     /**
      * Test that findAccessContractsByID is reachable
-     * 
+     *
      * @throws FileNotFoundException
      * @throws InvalidParseOperationException
      * @throws VitamClientInternalException
@@ -608,7 +609,6 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     }
 
     /**
-     *
      * @throws FileNotFoundException
      * @throws InvalidParseOperationException
      * @throws VitamClientInternalException
@@ -701,10 +701,10 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
         client.downloadTraceabilityOperationFile(ID, TENANT_ID, CONTRACT);
     }
-    
+
     @Test
-    public void testCheckExistenceAudit() 
-        throws Exception{
+    public void testCheckExistenceAudit()
+        throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
         JsonNode auditOption = JsonHandler.getFromString(AUDIT_OPTION);
         assertThat(client.launchAudit(auditOption, TENANT_ID, CONTRACT)).isEqualTo(Status.OK);
