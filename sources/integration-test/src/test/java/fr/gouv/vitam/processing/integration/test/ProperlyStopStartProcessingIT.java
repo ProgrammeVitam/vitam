@@ -63,7 +63,7 @@ import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
-import fr.gouv.vitam.processing.management.rest.ProcessManagementApplication;
+import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
@@ -122,7 +122,7 @@ public class ProperlyStopStartProcessingIT {
     private static final String PROCESSING_URL = "http://localhost:" + PORT_SERVICE_PROCESSING;
 
     private static WorkspaceMain workspaceMain;
-    private static ProcessManagementApplication processManagementApplication;
+    private static ProcessManagementMain processManagementApplication;
 
     private WorkspaceClient workspaceClient;
     private ProcessingManagementClient processingClient;
@@ -179,11 +179,11 @@ public class ProperlyStopStartProcessingIT {
         WorkspaceClientFactory.changeMode(WORKSPACE_URL);
 
         // launch processing
-        SystemPropertyUtil.set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT,
+        SystemPropertyUtil.set(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_PROCESSING));
-        processManagementApplication = new ProcessManagementApplication(CONFIG_PROCESSING_PATH);
+        processManagementApplication = new ProcessManagementMain(CONFIG_PROCESSING_PATH);
         processManagementApplication.start();
-        SystemPropertyUtil.clear(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT);
+        SystemPropertyUtil.clear(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT);
 
         ProcessingManagementClientFactory.changeConfigurationUrl(PROCESSING_URL);
     }
@@ -306,11 +306,11 @@ public class ProperlyStopStartProcessingIT {
         assertThat(distributorIndex.getItemStatus().getItemsStatus()).isNotEmpty();
 
         // restart processing
-        SystemPropertyUtil.set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT,
+        SystemPropertyUtil.set(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_PROCESSING));
-        processManagementApplication = new ProcessManagementApplication(CONFIG_PROCESSING_PATH);
+        processManagementApplication = new ProcessManagementMain(CONFIG_PROCESSING_PATH);
         processManagementApplication.start();
-        SystemPropertyUtil.clear(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT);
+        SystemPropertyUtil.clear(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT);
 
         // wait a little bit until jetty start
         waitServerStart();

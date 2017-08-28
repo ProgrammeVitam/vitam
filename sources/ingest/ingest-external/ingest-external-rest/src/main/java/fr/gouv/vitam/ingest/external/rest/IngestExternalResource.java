@@ -26,28 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.rest;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.Produces;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -88,6 +66,27 @@ import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientNotFou
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServerException;
 import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
 
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.Produces;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+
 /**
  * The Ingest External Resource
  */
@@ -101,7 +100,6 @@ public class IngestExternalResource extends ApplicationStatusResource {
      * Constructor IngestExternalResource
      *
      * @param ingestExternalConfiguration the configuration of server resource
-     *
      */
     public IngestExternalResource(IngestExternalConfiguration ingestExternalConfiguration) {
         this.ingestExternalConfiguration = ingestExternalConfiguration;
@@ -111,12 +109,10 @@ public class IngestExternalResource extends ApplicationStatusResource {
     /**
      * upload the file in local
      *
-     * @param contextId the context id of upload
-     * @param action in workflow
+     * @param contextId           the context id of upload
+     * @param action              in workflow
      * @param uploadedInputStream data input stream
-     * @param asyncResponse the asynchronized response
-     *
-     *
+     * @param asyncResponse       the asynchronized response
      */
     @Path("ingests")
     @POST
@@ -158,8 +154,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
                     .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED)
                     .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.FATAL)
                     .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, exc.getLocalizedMessage()))
-                    .build(),
-                uploadedInputStream);
+                    .build(), uploadedInputStream);
         }
     }
 
@@ -170,11 +165,9 @@ public class IngestExternalResource extends ApplicationStatusResource {
      * <br/>
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
      *
-     *
-     * @param objectId the id of object to download
-     * @param type of collection
+     * @param objectId      the id of object to download
+     * @param type          of collection
      * @param asyncResponse the asynchronized response
-     *
      */
     @GET
     @Path("/ingests/{objectId}/{type}")
@@ -219,7 +212,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
 
     /**
      * @param headers the http header of request
-     * @param query the filter query
+     * @param query   the filter query
      * @return the list of Operations details
      */
     @GET
@@ -240,18 +233,18 @@ public class IngestExternalResource extends ApplicationStatusResource {
     }
 
     // FIXME: 4/18/17 why uploadedInputStream ? should we remove this parameter? ItemStatus resp also is not used ?!!
+
     /**
-     *
      * Execute the process of an operation related to the id.
      *
-     * @param headers contain X-Action and X-Context-ID
-     * @param id operation identifier
+     * @param headers             contain X-Action and X-Context-ID
+     * @param id                  operation identifier
      * @param uploadedInputStream input stream to upload
      * @return http response
-     * @throws InternalServerException if request resources server exception
-     * @throws VitamClientException if the server is unreachable
+     * @throws InternalServerException       if request resources server exception
+     * @throws VitamClientException          if the server is unreachable
      * @throws InvalidGuidOperationException if error when create guid
-     * @throws ProcessingException if error in workflow execution
+     * @throws ProcessingException           if error in workflow execution
      * @deprecated use PUT method /operation/id
      */
     @Path("/operations/{id}")
@@ -321,7 +314,6 @@ public class IngestExternalResource extends ApplicationStatusResource {
     }
 
     /**
-     *
      * @param id operation identifier
      * @return http response
      */
@@ -364,7 +356,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
     /**
      * get the workflow status
      *
-     * @param id operation identifier
+     * @param id    operation identifier
      * @param query the query
      * @return http response
      */
@@ -416,8 +408,8 @@ public class IngestExternalResource extends ApplicationStatusResource {
     /**
      * Update the status of an operation.
      *
-     * @param headers contain X-Action and X-Context-ID
-     * @param id operation identifier
+     * @param headers       contain X-Action and X-Context-ID
+     * @param id            operation identifier
      * @param asyncResponse asyncResponse
      * @return http response
      */

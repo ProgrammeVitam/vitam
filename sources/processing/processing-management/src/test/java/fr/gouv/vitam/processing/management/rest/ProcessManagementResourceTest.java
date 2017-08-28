@@ -72,20 +72,19 @@ import static org.powermock.api.mockito.PowerMockito.when;
 @PrepareForTest({WorkspaceClientFactory.class, WorkspaceProcessDataManagement.class})
 public class ProcessManagementResourceTest {
 
+    private static final String CONF_FILE_NAME = "processing.conf";
+
     private static final String DATA_URI = "/processing/v1";
     private static final String NOT_EXITS_WORKFLOW_ID = "workflowJSONv3";
     private static final String EXITS_WORKFLOW_ID = "PROCESS_SIP_UNITARY";
-    private static final String URL_METADATA = "http://localhost:8086";
-    private static final String URL_WORKSPACE = "http://localhost:8084";
     private static final String CONTAINER_NAME = "sipContainer";
     private static final String OPERATION_URI = "/operations";
     private static final String WORKFLOWS_URI = "/workflows";
     private static final String OPERATION_ID_URI = "/operations/xyz";
     private static final String ID = "identifier4";
-    private static final String JETTY_CONFIG = "jetty-config-test.xml";
     private static JunitHelper junitHelper;
     private static int port;
-    private static ProcessManagementApplication application = null;
+    private static ProcessManagementMain application = null;
     private static final Integer TENANT_ID = 0;
 
     private static final String CONTEXT_ID = "DEFAULT_WORKFLOW";
@@ -97,16 +96,12 @@ public class ProcessManagementResourceTest {
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
 
-        final ServerConfiguration configuration = new ServerConfiguration();
-        configuration.setUrlMetadata(URL_METADATA);
-        configuration.setUrlWorkspace(URL_WORKSPACE);
-        configuration.setJettyConfig(JETTY_CONFIG);
         PowerMockito.mockStatic(WorkspaceProcessDataManagement.class);
         processDataManagement = PowerMockito.mock(WorkspaceProcessDataManagement.class);
         PowerMockito.when(WorkspaceProcessDataManagement.getInstance()).thenReturn(processDataManagement);
         PowerMockito.when(processDataManagement.getProcessWorkflowFor(Matchers.eq(1), Matchers.anyString()))
             .thenReturn(new HashMap<>());
-        application = new ProcessManagementApplication(configuration);
+        application = new ProcessManagementMain(CONF_FILE_NAME);
         application.start();
         RestAssured.port = port;
         RestAssured.basePath = DATA_URI;
@@ -119,7 +114,8 @@ public class ProcessManagementResourceTest {
             if (application != null) {
                 application.stop();
             }
-        } catch (final Exception e) {}
+        } catch (final Exception e) {
+        }
         junitHelper.releasePort(port);
     }
 
@@ -159,14 +155,14 @@ public class ProcessManagementResourceTest {
         given()
             .contentType(ContentType.JSON)
             .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.INIT.getValue(),
-                GlobalDataRest.X_REQUEST_ID, processId, GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                GlobalDataRest.X_REQUEST_ID, processId.toString(), GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(new ProcessingEntry(processId.getId(), EXITS_WORKFLOW_ID)).when()
             .post(operationByIdURI).then()
             .statusCode(Status.CREATED.getStatusCode());
         given()
             .contentType(ContentType.JSON)
             .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.RESUME.getValue(),
-                GlobalDataRest.X_REQUEST_ID, processId, GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                GlobalDataRest.X_REQUEST_ID, processId.toString(), GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(new ProcessingEntry(processId.getId(), EXITS_WORKFLOW_ID)).when()
             .post(operationByIdURI).then()
             .statusCode(Status.ACCEPTED.getStatusCode());
@@ -192,14 +188,14 @@ public class ProcessManagementResourceTest {
         given()
             .contentType(ContentType.JSON)
             .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.INIT.getValue(),
-                GlobalDataRest.X_REQUEST_ID, processId, GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                GlobalDataRest.X_REQUEST_ID, processId.toString(), GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(new ProcessingEntry(CONTAINER_NAME, NOT_EXITS_WORKFLOW_ID)).when()
             .post(OPERATION_ID_URI).then()
             .statusCode(Status.CREATED.getStatusCode());
         given()
             .contentType(ContentType.JSON)
             .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.RESUME.getValue(),
-                GlobalDataRest.X_REQUEST_ID, processId, GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                GlobalDataRest.X_REQUEST_ID, processId.toString(), GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(new ProcessingEntry(CONTAINER_NAME, NOT_EXITS_WORKFLOW_ID)).when()
             .post(OPERATION_ID_URI).then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
@@ -239,14 +235,14 @@ public class ProcessManagementResourceTest {
         given()
             .contentType(ContentType.JSON)
             .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.INIT.getValue(),
-                GlobalDataRest.X_REQUEST_ID, processId, GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                GlobalDataRest.X_REQUEST_ID, processId.toString(), GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(new ProcessingEntry(processId.getId(), EXITS_WORKFLOW_ID)).when()
             .post(operationByIdURI).then()
             .statusCode(Status.CREATED.getStatusCode());
         given()
             .contentType(ContentType.JSON)
             .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.RESUME.getValue(),
-                GlobalDataRest.X_REQUEST_ID, processId, GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                GlobalDataRest.X_REQUEST_ID, processId.toString(), GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(new ProcessingEntry(processId.getId(), EXITS_WORKFLOW_ID)).when()
             .post(operationByIdURI).then()
             .statusCode(Status.ACCEPTED.getStatusCode());
@@ -254,7 +250,7 @@ public class ProcessManagementResourceTest {
         given()
             .contentType(ContentType.JSON)
             .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.RESUME.getValue(),
-                GlobalDataRest.X_REQUEST_ID, processId, GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                GlobalDataRest.X_REQUEST_ID, processId.toString(), GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(new ProcessingEntry(processId.getId(), EXITS_WORKFLOW_ID)).when()
             .post(operationByIdURI).then()
             .statusCode(Status.UNAUTHORIZED.getStatusCode());

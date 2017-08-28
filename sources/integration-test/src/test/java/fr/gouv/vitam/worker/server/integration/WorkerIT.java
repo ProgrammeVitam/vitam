@@ -26,6 +26,31 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.server.integration;
 
+import static com.jayway.restassured.RestAssured.get;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Map;
+
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.stream.FactoryConfigurationError;
+import javax.xml.transform.TransformerFactoryConfigurationError;
+
+import fr.gouv.vitam.logbook.rest.LogbookMain;
+import fr.gouv.vitam.metadata.rest.MetadataMain;
+import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
+import org.apache.commons.io.IOUtils;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.restassured.RestAssured;
 import de.flapdoodle.embed.mongo.MongodExecutable;
@@ -68,7 +93,6 @@ import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
-import fr.gouv.vitam.processing.management.rest.ProcessManagementApplication;
 import fr.gouv.vitam.worker.client.WorkerClient;
 import fr.gouv.vitam.worker.client.WorkerClientConfiguration;
 import fr.gouv.vitam.worker.client.WorkerClientFactory;
@@ -141,7 +165,7 @@ public class WorkerIT {
     private static MetadataMain metadataApplication;
     private static WorkspaceMain workspaceMain;
     private static WorkerMain wkrapplication;
-    private static ProcessManagementApplication processManagementApplication;
+    private static ProcessManagementMain processManagementApplication;
 
     private WorkspaceClient workspaceClient;
     private static LogbookMain logbookMain;
@@ -208,8 +232,8 @@ public class WorkerIT {
 
         // launch processing
         SystemPropertyUtil
-            .set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_PROCESSING));
-        processManagementApplication = new ProcessManagementApplication(CONFIG_PROCESSING_PATH);
+            .set(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_PROCESSING));
+        processManagementApplication = new ProcessManagementMain(CONFIG_PROCESSING_PATH);
         processManagementApplication.start();
         ProcessingManagementClientFactory.changeConfigurationUrl(PROCESSING_URL);
 

@@ -26,21 +26,49 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.rest;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.junit.JunitHelper;
 import org.junit.AfterClass;
-import org.junit.Assert;
+import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.SystemPropertyUtil;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.processing.common.config.ServerConfiguration;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 
-public class ProcessManagementApplicationTest {
 
-    private ProcessManagementApplication application;
+public class ProcessManagementMainTest {
+
+    private ProcessManagementMain application;
     private static JunitHelper junitHelper;
     private static int port;
     private static final String CONF = "processing.conf";
+
+
+    @ClassRule
+    public static WireMockClassRule wireMockRule = new WireMockClassRule(8084);
+
+    @Rule
+    public WireMockClassRule instanceRule = wireMockRule;
+
+
+    @Before
+    public void setUp() throws Exception {
+
+        instanceRule.stubFor(WireMock.get(urlMatching("/workspace/v1/containers/process/folders/1"))
+            .willReturn(
+                aResponse()
+                    .withStatus(200)
+                    .withBody(JsonHandler.createArrayNode().toString())
+                    .withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(1))
+                    .withHeader("Content-Type", "application/json")));
+    }
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -54,37 +82,31 @@ public class ProcessManagementApplicationTest {
     }
 
 
-    @Test(expected = IllegalStateException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void givenEmptyArgsWhenConfigureApplicationOThenRaiseAnException() throws Exception {
-        application = new ProcessManagementApplication((String) null);
+        application = new ProcessManagementMain((String) null);
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void givenEmptyArgsConfWhenConfigureApplicationOThenRaiseAnException() throws Exception {
-        application = new ProcessManagementApplication((ServerConfiguration) null);
+        application = new ProcessManagementMain(null);
     }
 
     @Test(expected = IllegalStateException.class)
     public void givenFileNotFoundWhenConfigureApplicationThenRaiseAnException() throws Exception {
-        application = new ProcessManagementApplication("notFound.conf");
+        application = new ProcessManagementMain("notFound.conf");
     }
 
     @Test
     public void givenFileExistsWhenConfigureApplicationThenRunServer() throws Exception {
-        application = new ProcessManagementApplication(CONF);
-    }
-
-    @Test
-    public void givenConfigFileWhenGetConfigThenReturnCorrectConfig() {
-        application = new ProcessManagementApplication(CONF);
-        Assert.assertEquals(CONF, application.getConfigFilename());
+        application = new ProcessManagementMain(CONF);
     }
 
     @Test
     public void givenFileExistsWhenStartupApplicationThenRunServer() throws Exception {
         SystemPropertyUtil
-            .set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(port));
-        application = new ProcessManagementApplication(CONF);
+            .set(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(port));
+        application = new ProcessManagementMain(CONF);
         application.start();
         application.stop();
     }

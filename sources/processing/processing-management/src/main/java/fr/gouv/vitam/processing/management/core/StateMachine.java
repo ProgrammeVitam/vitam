@@ -112,10 +112,12 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
 
 
     public StateMachine(ProcessWorkflow processWorkflow, ProcessEngine processEngine) {
-        if (null == processWorkflow)
+        if (null == processWorkflow) {
             throw new IllegalArgumentException("The parameter processWorkflow must not be null");
-        if (null == processEngine)
+        }
+        if (null == processEngine) {
             throw new IllegalArgumentException("The parameter processEngine must not be null");
+        }
 
         this.processWorkflow = processWorkflow;
         this.state = processWorkflow.getState();
@@ -150,7 +152,18 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             }
         }
 
-        if (stepIndex + 1 <= stepTotal - 1) {
+        /**
+         * Initialize currentStep needed for processWorkflow stopped from API PauseRecover.RECOVER_FROM_API_PAUSE
+         * when execute the currentStep from stopped processWorkflow two possible case:
+         * 1: Start from stopped processWorkflow without server restart
+         * 2: Start from stopped processWorkflow when server restarts
+         * As executeSteps check the current step PauseOrCancelAction, currentStep is null when server restart.
+         * This is why we have to initialize in the constructor the current step.
+         * This is valable only for processWorkflow where PauseRecover is PauseRecover.RECOVER_FROM_API_PAUSE
+         *
+         */
+        if (PauseRecover.RECOVER_FROM_API_PAUSE.equals(processWorkflow.getPauseRecover()) &&
+            stepIndex + 1 <= stepTotal - 1) {
             currentStep = steps.get(stepIndex + 1);
         }
     }
@@ -402,6 +415,21 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
                  */
 
                 stepIndex++;
+
+                /**
+                 * In case where ActionPause was occurred,
+                 * But the distributor has completed the current executed step
+                 * In this case, the distributor update PauseOrCancelAction of the step to be ACTION_COMPLETE
+                 * So, we have a processWorkflow in RECOVER_FROM_API_PAUSE but the current step is ACTION_COMPLETE
+                 * As the current step is ACTION_COMPLETE, we have to execute the next step
+                 * but without using the distributorIndex
+                 * To prevent "You run the wrong step" exception thrown by the distributor
+                 * when using the distributorIndex but the step id persisted in the index
+                 * do not match the current executed step
+                 * To disable using distributorIndex, in this cas, we have to start engine with PauseRecover.NO_RECOVER
+                 */
+                pauseRecover = PauseRecover.NO_RECOVER;
+                processWorkflow.setPauseRecover(PauseRecover.NO_RECOVER);
             }
         } else {
             stepIndex++;
