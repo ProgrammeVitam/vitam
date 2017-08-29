@@ -96,7 +96,7 @@ public class AccessExternalResourceImplTest {
     private static final String ACCESS_RESOURCE_URI = "access-external/v1";
     private static final String ACCESS_UNITS_ID_URI = "/units/xyz";
     private static final String ACCESS_OBJECTS_ID_URI = "/units/xyz/object";
-    private static AccessExternalApplication application;
+    private static AccessExternalMain application;
     private static VitamServer vitamServer;
 
     // LOGGER
@@ -173,7 +173,7 @@ public class AccessExternalResourceImplTest {
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
         try {
-            application = new AccessExternalApplication(ACCESS_CONF);
+            application = new AccessExternalMain(ACCESS_CONF);
             application.start();
             RestAssured.port = port;
             RestAssured.basePath = ACCESS_RESOURCE_URI;

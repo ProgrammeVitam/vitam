@@ -104,7 +104,7 @@
 					<archive>
 						<manifest>
 							<addClasspath>true</addClasspath>
-							<mainClass>fr.gouv.vitam.access.internal.rest.AccessInternalApplication</mainClass>
+							<mainClass>fr.gouv.vitam.access.internal.rest.AccessInternalMain</mainClass>
 						</manifest>
 					</archive>
 				</configuration>

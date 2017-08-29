@@ -47,7 +47,7 @@ public class LogbookExternalResourceImplTest {
     // URI
     private static final String ACCESS_RESOURCE_URI = "access-external/v1";
 
-    private static AccessExternalApplication application;
+    private static AccessExternalMain application;
     private static VitamServer vitamServer;
 
     // LOGGER
@@ -101,7 +101,7 @@ public class LogbookExternalResourceImplTest {
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
         try {
-            application = new AccessExternalApplication(ACCESS_CONF);
+            application = new AccessExternalMain(ACCESS_CONF);
             application.start();
             RestAssured.port = port;
             RestAssured.basePath = ACCESS_RESOURCE_URI;

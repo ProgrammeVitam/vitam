@@ -43,6 +43,7 @@ import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
@@ -492,23 +493,24 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         JsonNode query, final AsyncResponse asyncResponse, boolean post) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        MultivaluedMap<String, String> multipleMap = headers.getRequestHeaders();
         VitamThreadPoolExecutor.getDefaultExecutor()
-            .execute(() -> asyncObjectStream(asyncResponse, headers, idObjectGroup, query, post));
+            .execute(() -> asyncObjectStream(asyncResponse, multipleMap, idObjectGroup, query, post));
     }
 
-    private void asyncObjectStream(AsyncResponse asyncResponse, HttpHeaders headers, String idObjectGroup,
+    private void asyncObjectStream(AsyncResponse asyncResponse, MultivaluedMap<String, String> multipleMap, String idObjectGroup,
         JsonNode query, boolean post) {
 
         try {
             if (post) {
-                if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.METHOD_OVERRIDE)) {
+                if (!multipleMap.containsKey(GlobalDataRest.X_HTTP_METHOD_OVERRIDE)) {
                     AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                         Response.status(Status.PRECONDITION_FAILED)
                             .entity(getErrorStream(Status.PRECONDITION_FAILED, MISSING_XHTTPOVERRIDE).toString())
                             .build());
                     return;
                 }
-                final String xHttpOverride = headers.getRequestHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE).get(0);
+                final String xHttpOverride = multipleMap.get(GlobalDataRest.X_HTTP_METHOD_OVERRIDE).get(0);
                 if (!HttpMethod.GET.equalsIgnoreCase(xHttpOverride)) {
                     AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                         Response.status(Status.METHOD_NOT_ALLOWED)
@@ -518,8 +520,8 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
                     return;
                 }
             }
-            if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.QUALIFIER) ||
-                !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.VERSION)) {
+            if (!multipleMap.containsKey(GlobalDataRest.X_QUALIFIER) ||
+                !multipleMap.containsKey(GlobalDataRest.X_VERSION)) {
                 LOGGER.error("At least one required header is missing. Required headers: (" +
                     VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() + ")");
                 AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
@@ -537,12 +539,12 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             return;
         }
 
-        final String xQualifier = headers.getRequestHeader(GlobalDataRest.X_QUALIFIER).get(0);
-        final String xVersion = headers.getRequestHeader(GlobalDataRest.X_VERSION).get(0);
+        final String xQualifier = multipleMap.get(GlobalDataRest.X_QUALIFIER).get(0);
+        final String xVersion = multipleMap.get(GlobalDataRest.X_VERSION).get(0);
         AsyncInputStreamHelper helper;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(query);
-            HttpHeaderHelper.checkVitamHeaders(headers);
+            HttpHeaderHelper.checkVitamHeadersMap(multipleMap);
             final Response response =
                 client.getObject(query, idObjectGroup, xQualifier,
                     Integer.valueOf(xVersion));

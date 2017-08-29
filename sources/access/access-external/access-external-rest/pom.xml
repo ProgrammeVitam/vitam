@@ -146,7 +146,7 @@
 					<archive>
 						<manifest>
 							<addClasspath>true</addClasspath>
-							<mainClass>fr.gouv.vitam.access.external.rest.AccessExternalApplication</mainClass>
+							<mainClass>fr.gouv.vitam.access.external.rest.AccessExternalMain</mainClass>
 						</manifest>
 					</archive>
 				</configuration>

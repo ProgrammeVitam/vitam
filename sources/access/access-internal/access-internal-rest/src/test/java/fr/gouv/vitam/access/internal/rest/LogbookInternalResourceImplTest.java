@@ -89,7 +89,7 @@ public class LogbookInternalResourceImplTest {
     private static final String ACCESS_CONF = "access-test.conf";
     private static final String ACCESS_RESOURCE_URI = "access-internal/v1";
 
-    private static AccessInternalApplication application;
+    private static AccessInternalMain application;
     private static final Integer TENANT_ID = 0;
 
 
@@ -114,7 +114,7 @@ public class LogbookInternalResourceImplTest {
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
         try {
-            application = new AccessInternalApplication(ACCESS_CONF);
+            application = new AccessInternalMain(ACCESS_CONF);
             application.start();
             RestAssured.port = port;
             RestAssured.basePath = ACCESS_RESOURCE_URI;

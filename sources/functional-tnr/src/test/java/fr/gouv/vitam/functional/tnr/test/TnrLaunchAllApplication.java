@@ -46,8 +46,8 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
-import fr.gouv.vitam.access.external.rest.AccessExternalApplication;
-import fr.gouv.vitam.access.internal.rest.AccessInternalApplication;
+import fr.gouv.vitam.access.external.rest.AccessExternalMain;
+import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
@@ -206,9 +206,9 @@ public class TnrLaunchAllApplication {
     private static WorkspaceApplication workspaceApplication;
     private static ProcessManagementApplication processManagementApplication;
     private static IngestInternalApplication ingestInternalApplication;
-    private static AccessInternalApplication accessInternalApplication;
+    private static AccessInternalMain accessInternalApplication;
     private static IngestExternalMain ingestExternalApplication;
-    private static AccessExternalApplication accessExternalApplication;
+    private static AccessExternalMain accessExternalApplication;
     private static StorageMain storageMain;
     private static DefaultOfferApplication defaultOfferApplication;
     private static DefaultOfferApplication defaultOfferApplication2;
@@ -454,7 +454,7 @@ public class TnrLaunchAllApplication {
         LOGGER.warn("Start Access Internal");
         SystemPropertyUtil.set(JETTY_ACCESS_INTERNAL_PORT, Integer.toString(PORT_SERVICE_ACCESS_INTERNAL));
         accessInternalApplication =
-            new AccessInternalApplication(CONFIG_ACCESS_INTERNAL_PATH);
+            new AccessInternalMain(CONFIG_ACCESS_INTERNAL_PATH);
         try {
             accessInternalApplication.start();
         } catch (VitamApplicationServerException e) {
@@ -468,7 +468,7 @@ public class TnrLaunchAllApplication {
         LOGGER.warn("Start Access External");
         SystemPropertyUtil.set(JETTY_ACCESS_EXTERNAL_PORT, Integer.toString(PORT_SERVICE_ACCESS_EXTERNAL));
         accessExternalApplication =
-            new AccessExternalApplication(CONFIG_ACCESS_EXTERNAL_PATH);
+            new AccessExternalMain(CONFIG_ACCESS_EXTERNAL_PATH);
         try {
             accessExternalApplication.start();
         } catch (VitamApplicationServerException e) {

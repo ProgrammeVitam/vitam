@@ -38,7 +38,7 @@ import fr.gouv.vitam.common.junit.JunitHelper;
  */
 public class AccessInternalApplicationTest {
 
-    private AccessInternalApplication application;
+    private AccessInternalMain application;
     private final JunitHelper junitHelper = JunitHelper.getInstance();
     private int portAvailable;
 
@@ -49,41 +49,40 @@ public class AccessInternalApplicationTest {
 
     @After
     public void tearDown() throws Exception {
-        if (application != null && application.getVitamServer().getServer() != null) {
-            application.getVitamServer().getServer().stop();
+        if (application != null && application.getVitamServer() != null) {
+            application.getVitamServer().stop();
         }
         junitHelper.releasePort(portAvailable);
     }
 
     @Test(expected = Exception.class)
     public void shouldRaiseAnExceptionWhenConfigureApplicationWithEmptyArgs() throws Exception {
-        application = new AccessInternalApplication("");
+        application = new AccessInternalMain("");
     }
 
     @Test(expected = IllegalStateException.class)
     public void shouldRaiseAnExceptionWhenConfigureApplicationWithFileNotFound() throws Exception {
-        application = new AccessInternalApplication("notFound.conf");
+        application = new AccessInternalMain("notFound.conf");
     }
 
     @Test
     public void shouldRunServerWhenConfigureApplicationWithFileExists() throws Exception {
-        application = new AccessInternalApplication("access-test.conf");
+        application = new AccessInternalMain("access-test.conf");
         application.start();
-        Assert.assertTrue(application.getVitamServer().getServer().isStarted());
+        Assert.assertTrue(application.getVitamServer().isStarted());
     }
 
     @Test(expected = IllegalStateException.class)
     public void shouldThrowExceptionWhenConfigureApplicationWithFileErr1() throws Exception {
-        application = new AccessInternalApplication("access-test-err1.conf");
+        application = new AccessInternalMain("access-test-err1.conf");
     }
 
     @Test
     public void shouldStopServerWhenStopApplicationWithFileExistsAndRun() throws Exception {
-        application = new AccessInternalApplication("access-test.conf");
+        application = new AccessInternalMain("access-test.conf");
         application.start();
-        Assert.assertTrue(application.getVitamServer().getServer().isStarted());
+        Assert.assertTrue(application.getVitamServer().isStarted());
 
         application.stop();
-        Assert.assertTrue(application.getVitamServer().getServer().isStopped());
     }
 }

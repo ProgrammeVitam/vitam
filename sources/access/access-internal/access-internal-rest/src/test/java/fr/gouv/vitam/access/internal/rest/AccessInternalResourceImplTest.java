@@ -107,7 +107,7 @@ public class AccessInternalResourceImplTest {
     private static final String ACCESS_UNITS_ID_URI = "/units/xyz";
     private static final String ACCESS_UPDATE_UNITS_ID_URI = "/units/xyz";
 
-    private static AccessInternalApplication application;
+    private static AccessInternalMain application;
 
     // QUERIES AND DSL
     // TODO P1
@@ -149,9 +149,9 @@ public class AccessInternalResourceImplTest {
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
         mock = mock(AccessInternalModule.class);
-        AccessInternalApplication.mock = mock;
+        BusinessApplication.mock = mock;
         try {
-            application = new AccessInternalApplication(ACCESS_CONF);
+            application = new AccessInternalMain(ACCESS_CONF);
             application.start();
             RestAssured.port = port;
             RestAssured.basePath = ACCESS_RESOURCE_URI;
@@ -368,7 +368,7 @@ public class AccessInternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .body("").header(GlobalDataRest.X_REQUEST_ID, "aeaqaaaaaaag3r7kjkkkkkmfjfikiaaaaq")
+            .header(GlobalDataRest.X_REQUEST_ID, "aeaqaaaaaaag3r7kjkkkkkmfjfikiaaaaq").body("")
             .when()
             .put("/units/" + ID_UNIT)
             .then()
@@ -442,18 +442,19 @@ public class AccessInternalResourceImplTest {
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .when().get(OBJECTS_URI +
-            OBJECT_ID)
+                OBJECT_ID)
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
     public void getObjectGroupBadRequest() {
+        // since resteasy rejects the query because it's not a proper json format, 412 is thrown now
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .body("test").when()
+            .body("").when()
             .get(OBJECTS_URI + OBJECT_ID).then()
-            .statusCode(Status.BAD_REQUEST.getStatusCode());
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
@@ -482,32 +483,25 @@ public class AccessInternalResourceImplTest {
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
-
     @Test
     public void getObjectStreamPreconditionFailed() {
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .header(GlobalDataRest.X_QUALIFIER, "qualif").header(GlobalDataRest.X_VERSION, 1).when()
+            .header(GlobalDataRest.X_QUALIFIER, "qualif").header(GlobalDataRest.X_VERSION, 1).body(BODY_TEST).when()
             .get(OBJECTS_URI + OBJECT_ID).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .header(GlobalDataRest.X_QUALIFIER, "qualif").header(GlobalDataRest.X_TENANT_ID, "0").when()
+            .header(GlobalDataRest.X_QUALIFIER, "qualif").header(GlobalDataRest.X_TENANT_ID, "0").body(BODY_TEST).when()
             .get(OBJECTS_URI + OBJECT_ID).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .header(GlobalDataRest.X_TENANT_ID, "0").header(GlobalDataRest.X_VERSION, 1).when()
+            .header(GlobalDataRest.X_TENANT_ID, "0").header(GlobalDataRest.X_VERSION, 1).body(BODY_TEST).when()
             .get(OBJECTS_URI + OBJECT_ID).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .when().get(OBJECTS_URI + OBJECT_ID).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .header(GlobalDataRest.X_QUALIFIER, "BinaryMaster_1")
-            .headers(getStreamHeaders())
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all").body(BODY_TEST)
             .when().get(OBJECTS_URI + OBJECT_ID).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 

@@ -59,7 +59,7 @@ public class AccessExternalIT {
         final File conf = PropertiesUtils.findFile(ACCESS_EXTERNAL_CONF);
 
         try {
-            final AccessExternalApplication application = new AccessExternalApplication(conf.getAbsolutePath());
+            final AccessExternalMain application = new AccessExternalMain(conf.getAbsolutePath());
             application.start();
         } catch (final VitamApplicationServerException e) {
             throw new IllegalStateException(

@@ -35,9 +35,7 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 
-import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientException;
-import fr.gouv.vitam.access.internal.rest.AccessInternalApplication;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
@@ -52,7 +50,7 @@ public class AccessResourceTest {
     private static final String ACCESS_RESOURCE_URI = "access/v1";
 
     private static final String ACCESS_CONF = "access-test.conf";
-    private static AccessInternalApplication application;
+    private static AccessInternalMain application;
     private static final String ID = "identifier8";
 
     private static JunitHelper junitHelper;
@@ -63,7 +61,7 @@ public class AccessResourceTest {
     public static void setUpBeforeClass() throws Exception {
         junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();
-        application = new AccessInternalApplication(ACCESS_CONF);
+        application = new AccessInternalMain(ACCESS_CONF);
         application.start();
         RestAssured.port = serverPort;
         RestAssured.basePath = ACCESS_RESOURCE_URI;
