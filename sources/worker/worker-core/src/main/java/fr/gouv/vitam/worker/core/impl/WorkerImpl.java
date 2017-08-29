@@ -68,7 +68,31 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.LogbookLifecycleWorkerHelper;
 import fr.gouv.vitam.worker.core.api.Worker;
-import fr.gouv.vitam.worker.core.handler.*;
+import fr.gouv.vitam.worker.core.handler.AccessionRegisterActionHandler;
+import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.worker.core.handler.CheckDataObjectPackageActionHandler;
+import fr.gouv.vitam.worker.core.handler.CheckHeaderActionHandler;
+import fr.gouv.vitam.worker.core.handler.CheckIngestContractActionHandler;
+import fr.gouv.vitam.worker.core.handler.CheckNoObjectsActionHandler;
+import fr.gouv.vitam.worker.core.handler.CheckObjectUnitConsistencyActionHandler;
+import fr.gouv.vitam.worker.core.handler.CheckObjectsNumberActionHandler;
+import fr.gouv.vitam.worker.core.handler.CheckSedaActionHandler;
+import fr.gouv.vitam.worker.core.handler.CheckStorageAvailabilityActionHandler;
+import fr.gouv.vitam.worker.core.handler.CheckVersionActionHandler;
+import fr.gouv.vitam.worker.core.handler.CommitLifeCycleObjectGroupActionHandler;
+import fr.gouv.vitam.worker.core.handler.CommitLifeCycleUnitActionHandler;
+import fr.gouv.vitam.worker.core.handler.DummyHandler;
+import fr.gouv.vitam.worker.core.handler.ExtractSedaActionHandler;
+import fr.gouv.vitam.worker.core.handler.FinalizeLifecycleTraceabilityActionHandler;
+import fr.gouv.vitam.worker.core.handler.ListArchiveUnitsActionHandler;
+import fr.gouv.vitam.worker.core.handler.ListLifecycleTraceabilityActionHandler;
+import fr.gouv.vitam.worker.core.handler.ListRunningIngestsActionHandler;
+import fr.gouv.vitam.worker.core.handler.PrepareAuditActionHandler;
+import fr.gouv.vitam.worker.core.handler.PrepareTraceabilityCheckProcessActionHandler;
+import fr.gouv.vitam.worker.core.handler.RollBackActionHandler;
+import fr.gouv.vitam.worker.core.handler.TransferNotificationActionHandler;
+import fr.gouv.vitam.worker.core.handler.VerifyMerkleTreeActionHandler;
+import fr.gouv.vitam.worker.core.handler.VerifyTimeStampActionHandler;
 import fr.gouv.vitam.worker.core.plugin.PluginLoader;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
@@ -85,6 +109,7 @@ public class WorkerImpl implements Worker {
     private static final String STEP_NULL = "step paramaters is null";
     private static final String HANDLER_NOT_FOUND = ": handler not found exception: ";
     private static final String UNIT_LIST_WITHOUT_LEVEL = "UnitsWithoutLevel";
+    private static final String OG_LIST_WITHOUT_LEVEL = "ObjectGroupWithoutLevel";    
     private final Map<String, ActionHandler> actions = new HashMap<>();
     private final String workerId;
     private final PluginLoader pluginLoader;
@@ -165,6 +190,10 @@ public class WorkerImpl implements Worker {
         actions.put(PrepareAuditActionHandler.getId(),
             new PrepareAuditActionHandler());
 
+        actions.put(ListLifecycleTraceabilityActionHandler.getId(),
+            new ListLifecycleTraceabilityActionHandler());
+        actions.put(FinalizeLifecycleTraceabilityActionHandler.getId(),
+            new FinalizeLifecycleTraceabilityActionHandler());
     }
 
     @Override
@@ -209,8 +238,8 @@ public class WorkerImpl implements Worker {
                         LOGGER.debug("START plugin ", actionDefinition.getActionKey(), step.getStepName());
                         boolean shouldWriteLFC = (step.getDistribution().getKind().equals(DistributionKind.LIST)
                             || step.getDistribution().getKind().equals(DistributionKind.LIST_IN_FILE))
-                            && !step.getDistribution().getElement().equals(UNIT_LIST_WITHOUT_LEVEL);
-
+                            && !step.getDistribution().getElement().equals(UNIT_LIST_WITHOUT_LEVEL)
+                            && !step.getDistribution().getElement().equals(OG_LIST_WITHOUT_LEVEL);
                         if (shouldWriteLFC) {
                             LogbookLifeCycleParameters lfcParam = createStartLogbookLfc(step, handlerName, workParams);
                             logbookLfcClient.update(lfcParam);

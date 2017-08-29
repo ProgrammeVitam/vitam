@@ -108,8 +108,13 @@ angular
               $scope.ctrl.results = response.data.$hits.total;
               for (var i = 0, len = $scope.ctrl.operationList.length; i < len; i++) {
                 var operation = $scope.ctrl.operationList[i];
+                if (operation.evDetData !=null) {
+                	$scope.ctrl.operationList[i].events[operation.events.length-1].evDetData =
+                        JSON.parse(operation.evDetData);
+                } else {
                 $scope.ctrl.operationList[i].events[operation.events.length-1].evDetData =
                   JSON.parse($scope.ctrl.operationList[i].events[operation.events.length-1].evDetData);
+                }
               }
             },
             function() {

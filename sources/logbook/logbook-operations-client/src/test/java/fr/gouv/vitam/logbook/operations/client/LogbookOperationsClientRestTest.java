@@ -171,6 +171,13 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
         public Response traceability() {
             return expectedResponse.post();
         }
+        
+        @POST
+        @Path("/lifecycles/traceability")
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response traceabilityLFC() {
+            return expectedResponse.post();
+        }
 
         @POST
         @Path("/operations")
@@ -267,6 +274,29 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
                         "    \"_tenant\" : 0" + "}")
                     .build());
         client.traceability();
+    }
+    
+    @RunWithCustomExecutor
+    @Test
+    public void traceabilityLFC() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        when(mock.post())
+            .thenReturn(
+                Response.status(Status.OK).entity(
+                    "{" + "    \"_id\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," +
+                        "    \"evId\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," +
+                        "    \"evType\" : \"PROCESS_SIP_UNITARY\"," +
+                        "    \"evDateTime\" : \"2016-10-27T13:37:05.646\"," + "    \"evDetData\" : null," +
+                        "    \"evIdProc\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," +
+                        "    \"evTypeProc\" : \"INGEST\"," + "    \"outcome\" : \"STARTED\"," +
+                        "    \"outDetail\" : null," + "    \"outMessg\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," +
+                        "    \"agIdApp\" : null," + "    \"agIdAppSession\" : null," +
+                        "    \"evIdReq\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," + "    \"agIdSubm\" : null," +
+                        "    \"agIdOrig\" : null," + "    \"obId\" : null," + "    \"obIdReq\" : null," +
+                        "    \"obIdIn\" : null," + "    \"events\" : [ " + "        " + "    ]," +
+                        "    \"_tenant\" : 0" + "}")
+                    .build());
+        client.traceabilityLFC();
     }
 
 

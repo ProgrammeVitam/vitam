@@ -53,8 +53,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
@@ -71,6 +69,7 @@ public class WebApplicationResourceTest {
     // take it from conf file
     private static final String DEFAULT_WEB_APP_CONTEXT = "/ihm-recette";
     private static final String TRACEABILITY_URI = "/operations/traceability";
+    private static final String TRACEABILITY_LFC_URI = "/lifecycles/traceability";
     private static final String FAKE_OPERATION_ID = "1";
     private static JsonNode sampleLogbookOperation;
     private static final String SAMPLE_LOGBOOKOPERATION_FILENAME = "logbookoperation_sample.json";
@@ -127,7 +126,8 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testGetLogbookStatisticsWithSuccess() throws Exception {
-        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, TENANT_ID, DEFAULT_CONTRACT_NAME))
+        PowerMockito.when(
+            UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, TENANT_ID, DEFAULT_CONTRACT_NAME))
             .thenReturn(RequestResponseOK.getFromJsonNode(sampleLogbookOperation));
         given().param("id_op", FAKE_OPERATION_ID).expect().statusCode(Status.OK.getStatusCode()).when()
             .get("/stat/" + FAKE_OPERATION_ID);
@@ -137,7 +137,8 @@ public class WebApplicationResourceTest {
     @Test
     public void testGetLogbookStatisticsWithNotFoundWhenLogbookClientException()
         throws Exception {
-        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, TENANT_ID, DEFAULT_CONTRACT_NAME))
+        PowerMockito.when(
+            UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, TENANT_ID, DEFAULT_CONTRACT_NAME))
             .thenThrow(LogbookClientException.class);
         given().param("id_op", FAKE_OPERATION_ID).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .get("/stat/" + FAKE_OPERATION_ID);
@@ -147,7 +148,8 @@ public class WebApplicationResourceTest {
     @Test
     public void testGetLogbookStatisticsWithInternalServerErrorWhenInvalidParseOperationException()
         throws Exception {
-        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, TENANT_ID, DEFAULT_CONTRACT_NAME))
+        PowerMockito.when(
+            UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, TENANT_ID, DEFAULT_CONTRACT_NAME))
             .thenThrow(InvalidParseOperationException.class);
         given().param("id_op", FAKE_OPERATION_ID).expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
             .when()
@@ -165,6 +167,16 @@ public class WebApplicationResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, "0")
             .body("")
             .post(TRACEABILITY_URI)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
+    }
+
+    @Test
+    public final void testTraceabilityLFCEndpointIsWorking() {
+        given()
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .body("")
+            .post(TRACEABILITY_LFC_URI)
             .then()
             .statusCode(Status.OK.getStatusCode());
     }

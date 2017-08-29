@@ -176,6 +176,7 @@ public class LogBookLifeCycleUnitTest {
             logbookConf.setP12LogbookFile("tsa.p12");
             logbookConf.setP12LogbookPassword("1234");
             logbookConf.setWorkspaceUrl("http://localhost:8001");
+            logbookConf.setProcessingUrl("http://localhost:8002");
             logbookConf.setClusterName(ES_CLUSTER_NAME);
             logbookConf.setElasticsearchNodes(esNodes);
             logbookConf.setTenants(tenantList);

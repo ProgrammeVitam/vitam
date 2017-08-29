@@ -134,6 +134,7 @@
   roles:
     - {role: vitam, vitam_component: logbook, vitam_timestamp_usage: secure-logbook, java_args: /vitam/conf/logbook/logbook.conf, port_http: "{{vitam_logbook_port}}", port_http_admin: "{{vitam_logbook_port_admin}}", cluster_name: elasticsearch-data, secret_platform: "true" }
     - logbook_secure_operations
+    - logbook_secure_lifecycles
 
 - hosts: hosts-functional-administration
   roles:

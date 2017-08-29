@@ -276,6 +276,35 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
+    /**
+     * launch the traceabiity for lifecycles
+     * 
+     * @param xTenantId the tenant id
+     * @return the response of the request
+     * @throws LogbookClientServerException if logbook internal resources exception occurred
+     */
+    @POST
+    @Path("/lifecycles/traceability")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response traceabilityLFC(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId)
+        throws LogbookClientServerException {
+
+        try (final LogbookOperationsClient logbookOperationsClient =
+            LogbookOperationsClientFactory.getInstance().getClient()) {
+            RequestResponseOK result;
+            try {
+                // TODO add tenantId as param
+                VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
+                result = logbookOperationsClient.traceabilityLFC();
+            } catch (final InvalidParseOperationException e) {
+                LOGGER.error("The reporting json can't be created", e);
+                return Response.status(Status.INTERNAL_SERVER_ERROR)
+                    .build();
+            }
+            return Response.status(Status.OK).entity(result).build();
+        }
+    }
+
 
     /**
      * Post used because Angular not support Get with body
@@ -334,7 +363,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
         try {
             tenantId = Integer.parseInt(xTenantId);
-//            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            // VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             pagination = new OffsetBasedPagination(headers);
         } catch (final VitamException e) {
             LOGGER.error("Bad request Exception ", e);
@@ -528,7 +557,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 RequestResponse response =
                     adminClient.findDocuments(AdminCollections.ACCESS_CONTRACTS, query, getTenantId(headers));
                 if (response != null && response instanceof RequestResponseOK) {
-                   return Response.status(Status.OK).entity(response).build();
+                    return Response.status(Status.OK).entity(response).build();
                 }
                 if (response != null && response instanceof VitamError) {
                     LOGGER.error(response.toString());
@@ -589,8 +618,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             try {
                 AdminCollections requestedAdminCollection = existsInAdminCollections(requestedCollection);
                 if (requestedCollection != null && requestedAdminCollection == null) {
-                    if ( !(requestedCollection.equalsIgnoreCase(WORKFLOW_OPERATIONS)
-                        || requestedCollection.equalsIgnoreCase(WORKFLOWS))) {
+                    if (!(requestedCollection.equalsIgnoreCase(WORKFLOW_OPERATIONS) ||
+                        requestedCollection.equalsIgnoreCase(WORKFLOWS))) {
                         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
                             if (requestedCollection.equalsIgnoreCase(UNIT_COLLECTION)) {
                                 switch (requestMethod) {
@@ -715,8 +744,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                         }
                                     case HTTP_DELETE:
                                         if (!StringUtils.isBlank(objectID)) {
-//                                            requestId = GUIDFactory.newRequestIdGUID(tenantId).toString();
-                                            result = ingestExternalClient.cancelOperationProcessExecution(objectID, tenantId);
+                                            // requestId = GUIDFactory.newRequestIdGUID(tenantId).toString();
+                                            result = ingestExternalClient.cancelOperationProcessExecution(objectID,
+                                                tenantId);
                                             break;
                                         } else {
                                             throw new InvalidParseOperationException(
@@ -746,8 +776,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
                         AdminExternalClientFactory.getInstance().getClient()) {
                         switch (requestMethod) {
                             case HTTP_GET:
-                                contractId = AdminCollections.ACCESSION_REGISTERS.equals(requestedAdminCollection) ?
-                                    contractId : null;
+                                contractId = AdminCollections.ACCESSION_REGISTERS.equals(requestedAdminCollection)
+                                    ? contractId : null;
                                 if (StringUtils.isBlank(objectID)) {
                                     result = adminExternalClient.findDocuments(requestedAdminCollection, criteria,
                                         tenantId, contractId);
@@ -756,8 +786,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                         result = adminExternalClient.getAccessionRegisterDetail(objectID, criteria,
                                             tenantId, contractId);
                                     } else {
-                                        result = adminExternalClient.findDocumentById(requestedAdminCollection, objectID,
-                                            tenantId);
+                                        result =
+                                            adminExternalClient.findDocumentById(requestedAdminCollection, objectID,
+                                                tenantId);
                                     }
                                 }
                                 break;

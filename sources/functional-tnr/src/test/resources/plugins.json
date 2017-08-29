@@ -37,7 +37,7 @@
 	"CHECK_UNIT_SCHEMA": {
 		"className": "fr.gouv.vitam.worker.core.plugin.CheckArchiveUnitSchemaActionPlugin",
 		"propertiesFile": "check_archive_unit_schema_plugin.properties"
-	}
+	},
 	"UPDATE_UNIT_RULES": {
 		"className": "fr.gouv.vitam.worker.core.plugin.ArchiveUnitRulesUpdateActionPlugin",
 		"propertiesFile": "archive_units_rules_update_plugin.properties"
@@ -45,6 +45,17 @@
 	"UPDATE_RUNNING_INGESTS": {
 		"className": "fr.gouv.vitam.worker.core.plugin.RunningIngestsUpdateActionPlugin",
 		"propertiesFile": "running_ingests_update_plugin.properties"
+	},
+	"AUDIT_FILE_EXISTING": {
+		"className": "fr.gouv.vitam.worker.core.plugin.CheckExistenceObjectPlugin",
+		"propertiesFile": "audit_existence_object_plugin.properties"
+	},
+	"OG_CREATE_SECURED_FILE": {
+		"className": "fr.gouv.vitam.worker.core.plugin.CreateObjectSecureFileActionPlugin",
+		"propertiesFile": "create_object_secure_file_plugin.properties"
+	},
+	"UNITS_CREATE_SECURED_FILE": {
+		"className": "fr.gouv.vitam.worker.core.plugin.CreateUnitSecureFileActionPlugin",
+		"propertiesFile": "create_unit_secure_file_plugin.properties"
 	}
 }
-

@@ -1,0 +1,68 @@
+{
+  "$query": {
+    
+  },
+  "$hits": {
+    "total": 2,
+    "offset": 0,
+    "limit": 100
+  },
+  "$results": [
+    {
+    "_id": "aedqaaaaacaam7mxaaaamakvhiv4rsiaaa0",
+    "evId": "aedqaaaaacggo2kdaamz6ak5xswm3uiaaaaq",
+    "evType": "LFC.LFC_CREATION",
+    "evDateTime": "2017-08-07T12:30:27.793",
+    "evIdProc": "aedqaaaaacgcs7j2aa3oeak5xswlyaqaaaaq",
+    "evTypeProc": "INGEST",
+    "outcome": "STARTED",
+    "outDetail": "LFC.LFC_CREATION.STARTED",
+    "outMessg": "!LFC.LFC_CREATION.STARTED!",
+    "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1048375580,\"SiteId\":1,\"GlobalPlatformId\":243069212}",
+    "obId": "aeaqaaaaaaggo2kdaamz6ak5xswm3jaaaaba",
+    "evDetData": null,
+    "events": [{
+            "evId": "aedqaaaaashgausqab7boak55n34aniaaaaq",
+            "evType": "LFC.UNIT_METADATA_STORAGE",
+            "evDateTime": "2017-08-16T14:34:40.426",
+            "evIdProc": "aedqaaaaasgxm4z4abt3gak55nwzxtyaaaba",
+            "evTypeProc": "INGEST",
+            "outcome": "OK",
+            "outDetail": "LFC.UNIT_METADATA_STORAGE.OK",
+            "outMessg": "Succès de l'enregistrement des métadonnées de l'unité archivistique",
+            "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1851806288,\"SiteId\":1,\"GlobalPlatformId\":241193552}",
+            "obId": "aeaqaaaaaqhgausqab7boak55nw5vqaaaaaq",
+            "evDetData": null,
+            "_tenant": 4
+        }]
+  },
+  {
+    "_id": "aedqaaaaacaam7mxaaaamakvhiv4rsiaaa1",
+    "evId": "aedqaaaaacggo2kdaamz6ak5xswm3uiaaaaq",
+    "evType": "LFC.LFC_CREATION",
+    "evDateTime": "2017-08-07T12:30:27.793",
+    "evIdProc": "aedqaaaaacgcs7j2aa3oeak5xswlyaqaaaaq",
+    "evTypeProc": "INGEST",
+    "outcome": "STARTED",
+    "outDetail": "LFC.LFC_CREATION.STARTED",
+    "outMessg": "!LFC.LFC_CREATION.STARTED!",
+    "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1048375580,\"SiteId\":1,\"GlobalPlatformId\":243069212}",
+    "obId": "aeaqaaaaaaggo2kdaamz6ak5xswm3jaaaaba",
+    "evDetData": null,
+    "events": [{
+            "evId": "aedqaaaaashgausqab7boak55n34aniaaaaq",
+            "evType": "LFC.UNIT_METADATA_STORAGE",
+            "evDateTime": "2017-08-16T14:34:40.426",
+            "evIdProc": "aedqaaaaasgxm4z4abt3gak55nwzxtyaaaba",
+            "evTypeProc": "INGEST",
+            "outcome": "OK",
+            "outDetail": "LFC.UNIT_METADATA_STORAGE.OK",
+            "outMessg": "Succès de l'enregistrement des métadonnées de l'unité archivistique",
+            "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1851806288,\"SiteId\":1,\"GlobalPlatformId\":241193552}",
+            "obId": "aeaqaaaaaqhgausqab7boak55nw5vqaaaaaq",
+            "evDetData": null,
+            "_tenant": 4
+        }]
+  }
+  ]
+}

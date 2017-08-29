@@ -537,6 +537,16 @@ public class SedaConstants {
      */
     public static final String TRACEABILITY_OPERATION_DIRECTORY = "traceabilityOperation";
 
+    /**
+     * LFC OBJECTS FOLDER path
+     */
+    public static final String LFC_OBJECTS_FOLDER = "LFCObjects";
+    
+    /**
+     * LFC UNITS FOLDER path
+     */
+    public static final String LFC_UNITS_FOLDER = "LFCUnits";
+    
     private SedaConstants() {
         // Empty constructor
     }

@@ -83,6 +83,21 @@ public class ClientMockResultHelper {
                     "\"obIdReq\": null," +
                     "\"obIdIn\": null," +
                     "\"events\": []}";
+    
+    
+    private static final String LOGBOOK_LIFECYCLE =
+        "\"evId\": \"aedqaaaaacggo2kdaamz6ak5xswm3uiaaaaq\"," +
+        "\"evType\": \"LFC.LFC_CREATION\"," +
+        "\"evDateTime\": \"2017-08-07T12:30:27.793\"," +
+        "\"evIdProc\": \"aedqaaaaacgcs7j2aa3oeak5xswlyaqaaaaq\"," +
+        "\"evTypeProc\": \"INGEST\"," +
+        "\"outcome\": \"STARTED\"," +
+        "\"outDetail\": \"LFC.LFC_CREATION.STARTED\"," +
+        "\"outMessg\": \"!LFC.LFC_CREATION.STARTED!\"," +
+        "\"agId\": \"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"ingest-external\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\"," +
+        "\"obId\": \"aeaqaaaaaaggo2kdaamz6ak5xswm3jaaaaba\"," +
+        "\"evDetData\": null,"+
+        "\"events\": []}";
 
     private static final String LOGBOOK_OPERATION_WITH_OBID =
             "\"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
@@ -311,6 +326,15 @@ public class ClientMockResultHelper {
     public static JsonNode getLogbookOperation() throws InvalidParseOperationException {
         return JsonHandler
                 .getFromString(RESULT + "[{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa0\"," + LOGBOOK_OPERATION + "]}");
+    }
+    
+    /**
+     * @return a default Logbook Operation
+     * @throws InvalidParseOperationException
+     */
+    public static JsonNode getLogbookLifecycle() throws InvalidParseOperationException {
+        return JsonHandler
+                .getFromString(RESULT + "[{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa0\"," + LOGBOOK_LIFECYCLE + "]}");
     }
     
     public static RequestResponse<JsonNode> getMetaDataResult() throws InvalidParseOperationException{

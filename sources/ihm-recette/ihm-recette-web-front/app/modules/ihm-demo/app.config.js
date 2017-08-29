@@ -49,6 +49,10 @@ module('ihm.demo').
           template: '<operation-traceability></operation-traceability>',
           title: 'Génération journal des opérations sécurisé'
       }).
+      when('/lifecycleTraceability', {
+          template: '<lifecycle-traceability></lifecycle-traceability>',
+          title: 'Génération journal des cycles de vie sécurisé'
+      }).
       when('/applicativeTest', {
         template: '<functional-test></functional-test>',
         title: 'Tests fonctionnels'

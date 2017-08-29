@@ -41,6 +41,7 @@ public class DistributionTest {
         assertEquals(DistributionKind.LIST.value(),
             new Distribution().setKind(DistributionKind.LIST).getKind().value());
         assertEquals(Test, new Distribution().setElement(Test).getElement());
+        
     }
 
 }

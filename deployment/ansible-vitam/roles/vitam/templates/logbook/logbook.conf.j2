@@ -14,6 +14,7 @@ tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]
 p12LogbookPassword: {{keystores.timestamping.secure_logbook}}
 p12LogbookFile: keystore_secure-logbook.p12
 workspaceUrl: {{vitam_workspace_baseurl}}
+processingUrl: {{vitam_processing_baseurl}}
 
 # ElasticSearch
 clusterName: {{cluster_name}}

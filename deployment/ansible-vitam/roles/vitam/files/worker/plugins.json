@@ -49,6 +49,14 @@
 	"AUDIT_FILE_EXISTING": {
 		"className": "fr.gouv.vitam.worker.core.plugin.CheckExistenceObjectPlugin",
 		"propertiesFile": "audit_existence_object_plugin.properties"
+	},
+	"OG_CREATE_SECURED_FILE": {
+		"className": "fr.gouv.vitam.worker.core.plugin.CreateObjectSecureFileActionPlugin",
+		"propertiesFile": "create_object_secure_file_plugin.properties"
+	},
+	"UNITS_CREATE_SECURED_FILE": {
+		"className": "fr.gouv.vitam.worker.core.plugin.CreateUnitSecureFileActionPlugin",
+		"propertiesFile": "create_unit_secure_file_plugin.properties"
 	}
 }
 

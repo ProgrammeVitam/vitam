@@ -8,6 +8,11 @@ public enum TraceabilityType {
     /**
      * Operation
      */
-    OPERATION;
+    OPERATION, 
+    
+    /**
+     * Lifecycle
+     */
+    LIFECYCLE;
 
 }

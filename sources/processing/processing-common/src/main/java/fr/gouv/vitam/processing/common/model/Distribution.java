@@ -44,7 +44,7 @@ public class Distribution {
      * @return the reference of DistributionKind
      */
     public DistributionKind getKind() {
-        if (kind == null) {
+        if (kind == null) {            
             return DistributionKind.REF;
         }
         return kind;
@@ -83,4 +83,6 @@ public class Distribution {
         this.element = element;
         return this;
     }
+    
+    
 }
