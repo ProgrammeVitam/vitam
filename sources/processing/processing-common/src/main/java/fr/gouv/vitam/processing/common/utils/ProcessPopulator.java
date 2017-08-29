@@ -32,7 +32,8 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.processing.common.model.WorkFlow;
+import fr.gouv.vitam.common.model.processing.WorkFlow;
+
 import org.apache.commons.io.IOUtils;
 
 import java.io.File;

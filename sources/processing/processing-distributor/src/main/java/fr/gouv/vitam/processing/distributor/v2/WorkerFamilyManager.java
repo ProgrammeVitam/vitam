@@ -27,14 +27,14 @@
 
 package fr.gouv.vitam.processing.distributor.v2;
 
-import fr.gouv.vitam.common.thread.VitamThreadFactory;
-import fr.gouv.vitam.processing.common.model.WorkerBean;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
+
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
+import fr.gouv.vitam.processing.common.model.WorkerBean;
 
 // manage many worker per worker family
 public class WorkerFamilyManager implements Executor {

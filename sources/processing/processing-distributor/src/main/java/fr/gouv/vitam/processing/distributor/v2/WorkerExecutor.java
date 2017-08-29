@@ -27,13 +27,13 @@
 
 package fr.gouv.vitam.processing.distributor.v2;
 
+import java.util.concurrent.BlockingQueue;
+import java.util.stream.IntStream;
+
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.worker.client.exception.WorkerExecutorException;
-
-import java.util.concurrent.BlockingQueue;
-import java.util.stream.IntStream;
 
 /**
  * manage one worker with n thread

@@ -35,7 +35,7 @@ import org.junit.Test;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.processing.common.model.Step;
+import fr.gouv.vitam.common.model.processing.Step;
 import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;

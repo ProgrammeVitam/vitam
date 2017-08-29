@@ -28,9 +28,7 @@ package fr.gouv.vitam.processing.management.client;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -54,19 +52,19 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.processing.Action;
+import fr.gouv.vitam.common.model.processing.ActionDefinition;
+import fr.gouv.vitam.common.model.processing.Distribution;
+import fr.gouv.vitam.common.model.processing.DistributionKind;
+import fr.gouv.vitam.common.model.processing.IOParameter;
+import fr.gouv.vitam.common.model.processing.ProcessBehavior;
+import fr.gouv.vitam.common.model.processing.ProcessingUri;
+import fr.gouv.vitam.common.model.processing.Step;
+import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
-import fr.gouv.vitam.processing.common.model.Action;
-import fr.gouv.vitam.processing.common.model.ActionDefinition;
-import fr.gouv.vitam.processing.common.model.Distribution;
-import fr.gouv.vitam.processing.common.model.DistributionKind;
-import fr.gouv.vitam.processing.common.model.IOParameter;
-import fr.gouv.vitam.processing.common.model.ProcessBehavior;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
-import fr.gouv.vitam.processing.common.model.ProcessingUri;
-import fr.gouv.vitam.processing.common.model.Step;
-import fr.gouv.vitam.processing.common.model.WorkFlow;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 
 /**
@@ -225,8 +223,8 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
     }
 
     @Override
-    public RequestResponse<JsonNode> getWorkflowDefinitions() throws VitamClientException {
-        Map<String, WorkFlow> workflowDefinitions = new HashMap<>();
+    public RequestResponse<WorkFlow> getWorkflowDefinitions() throws VitamClientException {
+        List<WorkFlow> workflowDefinitions = new ArrayList<>();
         WorkFlow workflow = new WorkFlow();
 
         List<Action> actions = new ArrayList<>();
@@ -249,14 +247,9 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
         workflow.setTypeProc("INGEST");
         workflow.setComment("DefaultIngestWorkflow comment");
         workflow.setSteps(steps);
-        workflowDefinitions.put(workflow.getIdentifier(), workflow);
+        workflowDefinitions.add(workflow);
 
-        try {
-            return new RequestResponseOK().addResult(JsonHandler.toJsonNode(workflowDefinitions))
-                .setHttpCode(Status.OK.getStatusCode());
-        } catch (InvalidParseOperationException e) {
-            throw new VitamClientException(e.getMessage());
-        }
+        return new RequestResponseOK().addResult(workflowDefinitions).setHttpCode(Status.OK.getStatusCode());
     }
 
     @Override

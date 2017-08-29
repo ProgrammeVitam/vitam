@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,97 +23,97 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.processing.common.model;
-
+ */
+package fr.gouv.vitam.common.model.processing;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import fr.gouv.vitam.common.ParametersChecker;
-
 /**
- * IOParameter for action or step
+ * Processing Uri format
  */
 @JsonIgnoreProperties(ignoreUnknown = false)
-public class IOParameter {
-    @JsonProperty("name")
-    private String name;
-    @JsonProperty("uri")
-    private ProcessingUri uri;
-    @JsonProperty("optional")
-    private boolean optional;
-    private String value;
+public class ProcessingUri {
+    @JsonProperty("prefix")
+    private UriPrefix prefix;
+    @JsonProperty("path")
+    private String path;
+
 
     /**
-     * @return name
+     * Empty Constructor
+     *
      */
-    public String getName() {
-        return name;
+    public ProcessingUri() {
+        // empty constructor
     }
 
     /**
-     * @param name the value to set
+     * Constructor with prefix and path
+     *
+     * @param prefix of processing uri
+     * @param path of processing uri
+     */
+    public ProcessingUri(String prefix, String path) {
+        this(UriPrefix.valueOf(prefix), path);
+    }
+
+    /**
+     * Constructor with prefix and path
+     *
+     * @param prefix of processing uri
+     * @param path of processing uri
+     */
+    public ProcessingUri(UriPrefix prefix, String path) {
+        setPrefix(prefix);
+        setPath(path);
+    }
+
+    /**
+     * Constructor with String
+     *
+     * @param uri of processing
+     */
+    public ProcessingUri(String uri) {
+        this(uri.split(":")[0], uri.split(":")[1]);
+    }
+
+    /**
+     * @return the prefix
+     */
+    public UriPrefix getPrefix() {
+        return prefix;
+    }
+
+    /**
+     * @param prefix the prefix to set
+     *
      * @return this
      */
-    public IOParameter setName(String name) {
-        ParametersChecker.checkParameter("Name is a mandatory parameter", name);
-        this.name = name;
+    public ProcessingUri setPrefix(UriPrefix prefix) {
+        this.prefix = prefix;
         return this;
     }
 
     /**
-     * @return uri
+     * @return the path
      */
-    public ProcessingUri getUri() {
-        return uri;
+    public String getPath() {
+        return path;
     }
 
     /**
-     * @return value
-     */
-    public String getValue() {
-        return value;
-    }
-
-    /**
-     *
-     * @return optional
-     */
-    public boolean getOptional() {
-        return optional;
-    }
-
-    /**
-     * @param uri the value to set
-     * @return this
-     */
-    public IOParameter setUri(ProcessingUri uri) {
-        ParametersChecker.checkParameter("Uri is a mandatory parameter", uri);
-        this.uri = uri;
-        return this;
-    }
-
-    /**
-     * @param value the value to set
+     * @param path the path to set
      *
      * @return this
      */
-    public IOParameter setValue(String value) {
-        ParametersChecker.checkParameter("Value is a mandatory parameter", value);
-        this.value = value;
+    public ProcessingUri setPath(String path) {
+        this.path = path;
         return this;
     }
 
-    /**
-     * Set the optional.
-     *
-     * @param optional the optional to set
-     *
-     * @return this
-     */
-    public IOParameter setOptional(boolean optional) {
-        this.optional = optional;
-        return this;
+    @Override
+    public String toString() {
+        return prefix + ":" + path;
     }
 }

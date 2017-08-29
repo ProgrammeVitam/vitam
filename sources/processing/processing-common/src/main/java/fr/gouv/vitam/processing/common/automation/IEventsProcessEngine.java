@@ -29,7 +29,7 @@ package fr.gouv.vitam.processing.common.automation;
 
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.model.PauseOrCancelAction;
+import fr.gouv.vitam.common.model.processing.PauseOrCancelAction;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 
 /**

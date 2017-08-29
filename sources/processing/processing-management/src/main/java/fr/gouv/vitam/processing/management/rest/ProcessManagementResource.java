@@ -26,39 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.rest;
 
-import com.codahale.metrics.Gauge;
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.StateNotAllowedException;
-import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
-import fr.gouv.vitam.common.lifecycle.ProcessLifeCycle;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.ProcessAction;
-import fr.gouv.vitam.common.model.ProcessQuery;
-import fr.gouv.vitam.common.model.ProcessState;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.logbook.common.parameters.Contexts;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.processing.common.ProcessingEntry;
-import fr.gouv.vitam.processing.common.config.ServerConfiguration;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
-import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
-import fr.gouv.vitam.processing.common.model.WorkFlow;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
-import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
-import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoring;
-import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
-import fr.gouv.vitam.processing.management.api.ProcessManagement;
-import fr.gouv.vitam.processing.management.core.ProcessManagementImpl;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
@@ -75,9 +47,42 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
+
+import com.codahale.metrics.Gauge;
+import com.fasterxml.jackson.databind.JsonNode;
+
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.StateNotAllowedException;
+import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.common.lifecycle.ProcessLifeCycle;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.ProcessQuery;
+import fr.gouv.vitam.common.model.ProcessState;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.processing.WorkFlow;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.parameters.Contexts;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.processing.common.ProcessingEntry;
+import fr.gouv.vitam.processing.common.config.ServerConfiguration;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
+import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
+import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
+import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoring;
+import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
+import fr.gouv.vitam.processing.management.api.ProcessManagement;
+import fr.gouv.vitam.processing.management.core.ProcessManagementImpl;
 
 
 /**
@@ -168,11 +173,15 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getWorkflowDefinitions() {
         try {
-
-            Map<String, WorkFlow> workflowDefinitions = processManagement.getWorkflowDefinitions();
-            return Response.status(Status.OK).entity(workflowDefinitions).build();
+            List<WorkFlow> workflowDefinitions =
+                new ArrayList<WorkFlow>(processManagement.getWorkflowDefinitions().values());
+            RequestResponseOK<WorkFlow> response = new RequestResponseOK<>();
+            response.addAllResults(workflowDefinitions)
+                .setHits(workflowDefinitions.size(), 0, workflowDefinitions.size(), workflowDefinitions.size())
+                .setHttpCode(Status.OK.getStatusCode());
+            return Response.status(Status.OK).entity(response).build();
         } catch (Exception e) {
-            LOGGER.error(e);
+            LOGGER.error("Error while retrieving workflow definitions : ", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, "Error while finding Workflow definitions",
                     "Error : " + e.getMessage()))

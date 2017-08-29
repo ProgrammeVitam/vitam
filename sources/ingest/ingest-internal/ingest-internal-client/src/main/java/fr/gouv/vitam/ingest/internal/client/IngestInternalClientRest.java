@@ -60,6 +60,7 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientNotFoundException;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -280,7 +281,8 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
 
 
     @Override
-    public RequestResponse<ItemStatus> updateOperationActionProcess(String actionId, String operationId) throws VitamClientException {
+    public RequestResponse<ItemStatus> updateOperationActionProcess(String actionId, String operationId)
+        throws VitamClientException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, operationId);
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
@@ -515,23 +517,16 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     }
 
     @Override
-    public RequestResponse<JsonNode> getWorkflowDefinitions() throws VitamClientException {
+    public RequestResponse<WorkFlow> getWorkflowDefinitions() throws VitamClientException {
         Response response = null;
         try {
+
             response = performRequest(HttpMethod.GET, WORKFLOWS_URI, null, MediaType.APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response, WorkFlow.class);
 
-            if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                throw new VitamClientInternalException(REQUEST_PRECONDITION_FAILED);
-            } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                throw new VitamClientInternalException(NOT_FOUND_EXCEPTION);
-            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                throw new VitamClientInternalException(UNAUTHORIZED);
-            } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-                throw new VitamClientInternalException(INTERNAL_SERVER_ERROR);
-            }
-
-            return RequestResponse.parseFromResponse(response);
-
+        } catch (IllegalStateException e) {
+            LOGGER.error("Could not parse server response ", e);
+            throw createExceptionFromResponse(response);
         } catch (VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);
             throw new VitamClientException(e);
@@ -539,5 +534,4 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
             consumeAnyEntityAndClose(response);
         }
     }
-
 }

@@ -233,8 +233,6 @@ public enum VitamCode {
         Status.BAD_REQUEST,
         "Ingest external client error in cancelOperationProcessExecution method.");
 
-
-
     private final ServiceName service;
     private final DomainName domain;
     private final String item;

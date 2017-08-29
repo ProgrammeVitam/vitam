@@ -24,39 +24,27 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.processing.common.model;
+package fr.gouv.vitam.common.model.processing;
 
-/**
- * Enum of kind for distributor
- */
-public enum DistributionKind {
-    // TODO P1 comment on each lines + since each is the same enum = String, remove String
-    /**
-     * Distribution by reference, so 1 item only
-     */
-    REF("REF"),
-    /**
-     * Distribution by List (workspace or other kind of lists)
-     */
-    LIST_IN_FILE("LIST_IN_FILE"),
-    /**
-     * Distribution by List defined in a file
-     */
-    LIST("LIST");
+import static org.junit.Assert.assertEquals;
 
-    private String value;
+import org.junit.Test;
 
-    private DistributionKind(String value) {
-        this.value = value;
-    }
+import fr.gouv.vitam.common.model.processing.Distribution;
+import fr.gouv.vitam.common.model.processing.DistributionKind;
 
-    /**
-     * value(), get the value of DistributionKind
-     *
-     * @return the value as String
-     */
-    public String value() {
-        return value;
+public class DistributionTest {
+
+    private static final String Test = "test";
+
+    @Test
+    public void testConstructor() {
+        assertEquals("", new Distribution().getElement());
+        assertEquals(DistributionKind.REF, new Distribution().getKind());
+        assertEquals(DistributionKind.LIST.value(),
+            new Distribution().setKind(DistributionKind.LIST).getKind().value());
+        assertEquals(Test, new Distribution().setElement(Test).getElement());
+        
     }
 
 }

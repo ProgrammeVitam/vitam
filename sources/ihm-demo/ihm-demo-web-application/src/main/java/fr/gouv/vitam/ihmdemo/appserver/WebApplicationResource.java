@@ -72,6 +72,7 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.VitamConstants;
+import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
@@ -186,7 +187,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Constructor
      *
      * @param webApplicationConfig the web server ihm-demo configuration
-     * @param permissions          list of permissions
+     * @param permissions list of permissions
      */
     public WebApplicationResource(WebApplicationConfig webApplicationConfig, Set<String> permissions) {
         super(new BasicVitamStatusServiceImpl(), webApplicationConfig.getTenants());
@@ -211,9 +212,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
-     * @param headers   needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
+     * @param headers needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
      * @param sessionId json session id from shiro
-     * @param criteria  criteria search for units
+     * @param criteria criteria search for units
      * @return Reponse
      */
     @POST
@@ -290,7 +291,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     /**
      * @param headers needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
-     * @param unitId  archive unit id
+     * @param unitId archive unit id
      * @return archive unit details
      */
     @GET
@@ -332,9 +333,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
 
     /**
-     * @param headers   header needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
+     * @param headers header needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
      * @param sessionId json session id from shiro
-     * @param options   the queries for searching
+     * @param options the queries for searching
      * @return Response
      */
     @POST
@@ -405,9 +406,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
-     * @param headers     needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
+     * @param headers needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
      * @param operationId id of operation
-     * @param options     the queries for searching
+     * @param options the queries for searching
      * @return Response
      */
     @POST
@@ -451,10 +452,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * <li>Flow-Total-Chunks => The number of chunks</li>
      * </ul>
      *
-     * @param request  the http servlet request
+     * @param request the http servlet request
      * @param response the http servlet response
-     * @param stream   data input stream for the current chunk
-     * @param headers  HTTP Headers containing chunk information
+     * @param stream data input stream for the current chunk
+     * @param headers HTTP Headers containing chunk information
      * @return Response
      */
     @Path("ingest/upload")
@@ -715,9 +716,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Update Archive Units
      *
-     * @param headers   HTTP Headers
+     * @param headers HTTP Headers
      * @param updateSet contains updated field
-     * @param unitId    archive unit id
+     * @param unitId archive unit id
      * @return archive unit details
      */
     @POST
@@ -786,9 +787,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
-     * @param headers   HTTP header needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
+     * @param headers HTTP header needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
      * @param sessionId json session id from shiro
-     * @param options   the queries for searching
+     * @param options the queries for searching
      * @return Response
      */
     @POST
@@ -823,9 +824,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
-     * @param headers  HTTP Headers
+     * @param headers HTTP Headers
      * @param formatId id of format
-     * @param options  the queries for searching
+     * @param options the queries for searching
      * @return Response
      */
     @POST
@@ -886,7 +887,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Upload the referential format in the base
      *
      * @param headers HTTP Headers
-     * @param input   the format file xml
+     * @param input the format file xml
      * @return Response
      */
     @POST
@@ -912,7 +913,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Retrieve an ObjectGroup as Json data based on the provided ObjectGroup id
      *
-     * @param headers       HTTP Headers
+     * @param headers HTTP Headers
      * @param objectGroupId the object group Id
      * @return a response containing a json with informations about usages and versions for an object group
      */
@@ -956,12 +957,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Retrieve an Object data as an input stream. Download by access.
      *
-     * @param headers       HTTP Headers
-     * @param unitId        the unit Id
-     * @param usage         additional mandatory parameters usage
-     * @param filename      additional mandatory parameters filename
-     * @param tenantId      the tenant id
-     * @param contractId    the contract id
+     * @param headers HTTP Headers
+     * @param unitId the unit Id
+     * @param usage additional mandatory parameters usage
+     * @param filename additional mandatory parameters filename
+     * @param tenantId the tenant id
+     * @param contractId the contract id
      * @param asyncResponse will return the inputstream
      */
     @GET
@@ -981,6 +982,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     /**
      * Get unit as xml format
+     * 
      * @param headers
      * @param queryJson
      * @param idUnit
@@ -1010,7 +1012,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 client.getUnitByIdWithXMLFormat(preparedQueryDsl, idUnit, getTenantId(headers),
                     getAccessContractId(headers));
             return xmlFormat;
-        } catch (final AccessExternalClientServerException | InvalidParseOperationException | InvalidCreateOperationException e) {
+        } catch (final AccessExternalClientServerException | InvalidParseOperationException |
+            InvalidCreateOperationException e) {
             LOGGER.error("Error selectUnitByIdOnXML :", e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
@@ -1020,9 +1023,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Retrieve an Object data stored by ingest operation as an input stream. Download by ingests.
      *
-     * @param headers       HTTP Headers
-     * @param objectId      the object id to get
-     * @param type          of collection
+     * @param headers HTTP Headers
+     * @param objectId the object id to get
+     * @param type of collection
      * @param asyncResponse request asynchronized response
      */
     @GET
@@ -1128,9 +1131,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /***** rules Management ************/
 
     /**
-     * @param headers   HTTP header needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
+     * @param headers HTTP header needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
      * @param sessionId json session id from shiro
-     * @param options   the queries for searching
+     * @param options the queries for searching
      * @return Response
      */
     @POST
@@ -1205,7 +1208,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     /**
      * @param headers HTTP Headers
-     * @param ruleId  id of rule
+     * @param ruleId id of rule
      * @param options the queries for searching
      * @return Response
      */
@@ -1264,7 +1267,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Upload the referential rules in the base
      *
      * @param headers HTTP Headers
-     * @param input   the format file CSV
+     * @param input the format file CSV
      * @return Response
      */
     @POST
@@ -1289,9 +1292,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Get the action registers filtered with option query
      *
-     * @param headers   HTTP header needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
+     * @param headers HTTP header needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
      * @param sessionId json session id from shiro
-     * @param options   the queries for searching
+     * @param options the queries for searching
      * @return Response
      */
     @POST
@@ -1363,7 +1366,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Get the detail of an accessionregister matching options query
      *
      * @param headers HTTP Headers
-     * @param id      of accession response to get
+     * @param id of accession response to get
      * @param options query criteria
      * @return accession register details
      */
@@ -1397,8 +1400,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * This resource returns all paths relative to a unit
      *
-     * @param headers    HTTP Headers
-     * @param unitId     the unit id
+     * @param headers HTTP Headers
+     * @param unitId the unit id
      * @param allParents all parents unit
      * @return all paths relative to a unit
      */
@@ -1456,7 +1459,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     /**
      * @param headers HTTP Headers
-     * @param object  user credentials
+     * @param object user credentials
      * @return Response OK if login success
      */
     @POST
@@ -1495,7 +1498,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * returns the unit life cycle based on its id
      *
-     * @param headers         HTTP Headers
+     * @param headers HTTP Headers
      * @param unitLifeCycleId the unit id (== unit life cycle id)
      * @return the unit life cycle
      */
@@ -1525,7 +1528,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * returns the object group life cycle based on its id
      *
-     * @param headers                HTTP Headers
+     * @param headers HTTP Headers
      * @param objectGroupLifeCycleId the object group id (== object group life cycle id)
      * @return the object group life cycle
      */
@@ -1581,7 +1584,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Update the status of an operation.
      *
      * @param headers contain X-Action and X-Context-ID
-     * @param id      operation identifier
+     * @param id operation identifier
      * @return http response
      */
     @Path("operations/{id}")
@@ -1676,7 +1679,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Upload contracts
      *
      * @param headers HTTP Headers
-     * @param input   the format file CSV
+     * @param input the format file CSV
      * @return Response
      */
     @POST
@@ -1707,7 +1710,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Gets contracts
      *
      * @param headers HTTP Headers
-     * @param select  the query
+     * @param select the query
      * @return Response
      */
     @POST
@@ -1772,7 +1775,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Upload Access contracts
      *
-     * @param headers    HTTP Headers
+     * @param headers HTTP Headers
      * @param contractId the id of ingest contract
      * @return Response
      */
@@ -1821,7 +1824,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Upload Access contracts
      *
      * @param headers HTTP Headers
-     * @param input   the format file CSV
+     * @param input the format file CSV
      * @return Response
      */
     @POST
@@ -1853,7 +1856,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Query to get Access contracts
      *
      * @param headers HTTP Headers
-     * @param select  the query to find access contracts
+     * @param select the query to find access contracts
      * @return Response
      */
     @POST
@@ -1890,7 +1893,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Query to Access contracts by id
      *
      * @param headers HTTP Headers
-     * @param id      of the requested access contract
+     * @param id of the requested access contract
      * @return Response
      */
     @GET
@@ -1920,7 +1923,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Update Access contracts
      *
-     * @param headers    HTTP Headers
+     * @param headers HTTP Headers
      * @param contractId the id of access contract
      * @return Response
      */
@@ -1966,7 +1969,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Update context
      *
-     * @param headers   HTTP Headers
+     * @param headers HTTP Headers
      * @param contextId the id of context
      * @return Response
      */
@@ -2014,7 +2017,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * upload context
      *
      * @param headers HTTP Headers
-     * @param input   the file json
+     * @param input the file json
      * @return Response
      */
     @POST
@@ -2110,7 +2113,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Create profiles metadata
      *
      * @param headers HTTP Headers
-     * @param input   the format file CSV
+     * @param input the format file CSV
      * @return Response
      */
     @POST
@@ -2142,7 +2145,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Upload profile xsd or rng
      *
      * @param headers HTTP Headers
-     * @param input   the format file CSV
+     * @param input the format file CSV
      * @return Response
      */
     @PUT
@@ -2215,7 +2218,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Query to get profiles
      *
      * @param headers HTTP Headers
-     * @param select  the query to find access contracts
+     * @param select the query to find access contracts
      * @return Response
      */
     @POST
@@ -2252,7 +2255,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Query to Access contracts by id
      *
      * @param headers HTTP Headers
-     * @param id      of the requested access contract
+     * @param id of the requested access contract
      * @return Response
      */
     @GET
@@ -2326,7 +2329,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Starts a TRACEABILITY check process
      *
-     * @param headers           default headers received from Front side (TenantId, user ...)
+     * @param headers default headers received from Front side (TenantId, user ...)
      * @param operationCriteria a DSLQuery to find the TRACEABILITY operation to verify
      * @return TRACEABILITY check process : the logbookOperation created during this process
      */
@@ -2388,9 +2391,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Download the Traceability Operation file
      *
-     * @param headers       request headers
-     * @param operationId   the TRACEABILITY operation identifier
-     * @param contractId    the contractId
+     * @param headers request headers
+     * @param operationId the TRACEABILITY operation identifier
+     * @param contractId the contractId
      * @param tenantIdParam theTenantId
      * @param asyncResponse the async response
      */
@@ -2478,7 +2481,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response getWorkflowDefinitions(@Context HttpHeaders headers) {
 
         try (IngestExternalClient ingestExternalClient = IngestExternalClientFactory.getInstance().getClient()) {
-            RequestResponse<JsonNode> result = ingestExternalClient.getWorkflowDefinitions(getTenantId(headers));
+            RequestResponse<WorkFlow> result = ingestExternalClient.getWorkflowDefinitions(getTenantId(headers));
             return Response.status(Status.OK).entity(result).build();
         } catch (VitamClientException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
@@ -2486,7 +2489,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
 
     }
-    
+
     @POST
     @Path("/audits")
     @Consumes(MediaType.APPLICATION_JSON)

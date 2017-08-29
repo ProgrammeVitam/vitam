@@ -16,9 +16,11 @@
  * reading this means that you have had knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
 package fr.gouv.vitam.processing.distributor.v2;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -27,16 +29,16 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AuditWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.processing.DistributionKind;
+import fr.gouv.vitam.common.model.processing.PauseOrCancelAction;
+import fr.gouv.vitam.common.model.processing.Step;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
 import fr.gouv.vitam.processing.common.exception.WorkerNotFoundException;
-import fr.gouv.vitam.processing.common.model.DistributionKind;
 import fr.gouv.vitam.processing.common.model.DistributorIndex;
-import fr.gouv.vitam.processing.common.model.PauseOrCancelAction;
 import fr.gouv.vitam.processing.common.model.PauseRecover;
-import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -65,6 +67,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
+
 /**
  * The Process Distributor call the workers and intercept the response for manage a post actions step
  * <p>

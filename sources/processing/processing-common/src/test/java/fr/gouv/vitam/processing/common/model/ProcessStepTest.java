@@ -32,6 +32,7 @@ import static org.junit.Assert.assertNotEquals;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.processing.Step;
 
 public class ProcessStepTest {
     @Test

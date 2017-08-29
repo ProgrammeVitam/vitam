@@ -24,33 +24,39 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.processing.common.model;
+package fr.gouv.vitam.common.model.processing;
 
-import static org.junit.Assert.assertEquals;
+/**
+ * Enum of kind for distributor
+ */
+public enum DistributionKind {
+    // TODO P1 comment on each lines + since each is the same enum = String, remove String
+    /**
+     * Distribution by reference, so 1 item only
+     */
+    REF("REF"),
+    /**
+     * Distribution by List (workspace or other kind of lists)
+     */
+    LIST_IN_FILE("LIST_IN_FILE"),
+    /**
+     * Distribution by List defined in a file
+     */
+    LIST("LIST");
 
-import java.util.ArrayList;
-import java.util.List;
+    private String value;
 
-import org.junit.Test;
+    private DistributionKind(String value) {
+        this.value = value;
+    }
 
-public class WorkFlowTest {
-    private static final String TEST = "test";
-
-    @Test
-    public void testConstructor() {
-        assertEquals("", new WorkFlow().getComment());
-        assertEquals("", new WorkFlow().getId());
-        assertEquals(true, new WorkFlow().getSteps().isEmpty());
-
-        final List<Step> steps = new ArrayList<>();
-        steps.add(new Step().setStepName(TEST));
-
-        assertEquals(TEST, new WorkFlow().setComment(TEST).getComment());
-        assertEquals(TEST, new WorkFlow().setId(TEST).getId());
-        assertEquals(false, new WorkFlow().setSteps(steps).getSteps().isEmpty());
-        assertEquals("ID=test\nname=test\nidentifier=test\ntypeProc=test\ncomments=test\n",
-                new WorkFlow().setId(TEST).setIdentifier(TEST).setName(TEST).
-                        setTypeProc(TEST).setComment(TEST).toString());
+    /**
+     * value(), get the value of DistributionKind
+     *
+     * @return the value as String
+     */
+    public String value() {
+        return value;
     }
 
 }

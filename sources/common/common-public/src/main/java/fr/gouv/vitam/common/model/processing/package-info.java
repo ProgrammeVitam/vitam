@@ -24,25 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.processing.common.model;
-
-import static org.junit.Assert.assertEquals;
-
-import org.junit.Test;
-
-public class ActionTest {
-    private static final String TEST = "test";
-
-    @Test
-    public void testConstructor() {
-        final ActionDefinition actionDefinition = new ActionDefinition();
-        final Action action = new Action();
-        assertEquals("", actionDefinition.getActionKey());
-        actionDefinition.setActionKey(TEST);
-        actionDefinition.setBehavior(ProcessBehavior.BLOCKING);
-        action.setActionDefinition(actionDefinition);
-        assertEquals(TEST, action.getActionDefinition().getActionKey());
-        assertEquals(ProcessBehavior.BLOCKING, action.getActionDefinition().getBehavior());
-    }
-
-}
+/**
+ * Provides common public Model classes for the Processing module.
+ */
+package fr.gouv.vitam.common.model.processing;

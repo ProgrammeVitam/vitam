@@ -27,7 +27,7 @@
 
 package fr.gouv.vitam.worker.client.exception;
 
-import fr.gouv.vitam.processing.common.model.PauseOrCancelAction;
+import fr.gouv.vitam.common.model.processing.PauseOrCancelAction;
 
 public class PauseCancelException extends RuntimeException {
 

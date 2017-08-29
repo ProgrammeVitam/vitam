@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.processing.common.model;
+package fr.gouv.vitam.common.model.processing;
 
 import java.util.List;
 
@@ -42,10 +42,15 @@ import fr.gouv.vitam.common.SingletonUtils;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class WorkFlow {
 
+    @JsonProperty("id")
     private String id;
+    @JsonProperty("name")
     private String name;
+    @JsonProperty("identifier")
     private String identifier;
+    @JsonProperty("typeProc")
     private String typeProc;
+    @JsonProperty("comment")
     private String comment;
 
     /**

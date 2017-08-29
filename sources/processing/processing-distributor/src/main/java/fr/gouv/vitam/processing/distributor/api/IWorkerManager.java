@@ -26,15 +26,16 @@
  */
 package fr.gouv.vitam.processing.distributor.api;
 
+import java.io.File;
+import java.util.List;
+
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
+
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
@@ -45,9 +46,6 @@ import fr.gouv.vitam.processing.distributor.v2.WorkerFamilyManager;
 import fr.gouv.vitam.worker.client.WorkerClient;
 import fr.gouv.vitam.worker.client.WorkerClientConfiguration;
 import fr.gouv.vitam.worker.client.WorkerClientFactory;
-
-import java.io.File;
-import java.util.List;
 
 /**
  * Manage the parallelism calls to worker in the same distributor

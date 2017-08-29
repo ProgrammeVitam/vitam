@@ -58,6 +58,7 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
@@ -74,7 +75,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     private static final String PROCESSING_INTERNAL_SERVER_ERROR = "Processing Internal Server Error";
     private static final String INTERNAL_SERVER_ERROR2 = "Internal Server Error";
     private static final String ILLEGAL_ARGUMENT = "Illegal Argument";
-    private static final String WORKFLOW_NOT_FOUND = "Workflow Not Found";
+    private static final String NOT_FOUND = "Not Found";
     private static final String BAD_REQUEST_EXCEPTION = "Bad Request Exception";
 
     private static final String OPERATION_URI = "/operations";
@@ -120,7 +121,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
                 MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                throw new WorkflowNotFoundException(WORKFLOW_NOT_FOUND);
+                throw new WorkflowNotFoundException(NOT_FOUND);
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
                 throw new IllegalArgumentException(ILLEGAL_ARGUMENT);
             } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
@@ -158,7 +159,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
                     JsonHandler.toJsonNode(new ProcessingEntry(container, workflow)), MediaType.APPLICATION_JSON_TYPE,
                     MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                throw new WorkflowNotFoundException(WORKFLOW_NOT_FOUND);
+                throw new WorkflowNotFoundException(NOT_FOUND);
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
                 throw new IllegalArgumentException(ILLEGAL_ARGUMENT);
             } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
@@ -202,7 +203,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
                     JsonHandler.toJsonNode(new ProcessingEntry(operationId, workflow)), MediaType.APPLICATION_JSON_TYPE,
                     MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                throw new WorkflowNotFoundException(WORKFLOW_NOT_FOUND);
+                throw new WorkflowNotFoundException(NOT_FOUND);
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
                 throw new IllegalArgumentException(ILLEGAL_ARGUMENT);
             } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
@@ -230,7 +231,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
      * Generate the default header map
      *
      * @param contextId the context id
-     * @param actionId  the storage action id
+     * @param actionId the storage action id
      * @return header map
      */
     private MultivaluedHashMap<String, Object> getDefaultHeaders(String contextId, String actionId) {
@@ -253,12 +254,12 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
                     null, MediaType.APPLICATION_JSON_TYPE,
                     MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                throw new WorkflowNotFoundException(WORKFLOW_NOT_FOUND);
+                throw new WorkflowNotFoundException(NOT_FOUND);
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
                 throw new IllegalArgumentException(ILLEGAL_ARGUMENT);
             } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new InternalServerException(INTERNAL_SERVER_ERROR2);
-            }else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
                 throw new InternalServerException(INTERNAL_SERVER_ERROR2);
             }
 
@@ -288,7 +289,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
                     null,
                     MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                throw new WorkflowNotFoundException(WORKFLOW_NOT_FOUND);
+                throw new WorkflowNotFoundException(NOT_FOUND);
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
                 throw new IllegalArgumentException(ILLEGAL_ARGUMENT);
             } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
@@ -306,7 +307,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
 
         } catch (final WorkflowNotFoundException e) {
             LOGGER.error(e);
-            throw new WorkflowNotFoundException(WORKFLOW_NOT_FOUND, e);
+            throw new WorkflowNotFoundException(NOT_FOUND, e);
         } catch (final javax.ws.rs.ProcessingException e) {
             LOGGER.error(e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
@@ -367,7 +368,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
                     null, query,
                     MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                throw new WorkflowNotFoundException(WORKFLOW_NOT_FOUND);
+                throw new WorkflowNotFoundException(NOT_FOUND);
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
                 throw new IllegalArgumentException(ILLEGAL_ARGUMENT);
             } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
@@ -383,7 +384,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             return response.readEntity(ItemStatus.class);
         } catch (final WorkflowNotFoundException e) {
             LOGGER.error(e);
-            throw new WorkflowNotFoundException(WORKFLOW_NOT_FOUND, e);
+            throw new WorkflowNotFoundException(NOT_FOUND, e);
         } catch (final javax.ws.rs.ProcessingException e) {
             LOGGER.error(e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
@@ -405,7 +406,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
                 performRequest(HttpMethod.DELETE, OPERATION_URI + "/" + id,
                     null, MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                throw new WorkflowNotFoundException(WORKFLOW_NOT_FOUND);
+                throw new WorkflowNotFoundException(NOT_FOUND);
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
                 throw new IllegalArgumentException(ILLEGAL_ARGUMENT);
             } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
@@ -492,7 +493,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             response = performRequest(HttpMethod.POST, OPERATION_URI, headers,
                 MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                throw new WorkflowNotFoundException(WORKFLOW_NOT_FOUND);
+                throw new WorkflowNotFoundException(NOT_FOUND);
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
                 throw new IllegalArgumentException(ILLEGAL_ARGUMENT);
             } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
@@ -527,7 +528,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             }
 
             List<JsonNode> list =
-                JsonHandler.getFromString(response.readEntity(String.class), List.class, JsonNode.class);
+                JsonHandler.getFromString(response.readEntity(String.class), List.class, WorkFlow.class);
 
             return new RequestResponseOK<JsonNode>().addAllResults(list).parseHeadersFromResponse(response);
         } catch (VitamClientInternalException e) {
@@ -566,7 +567,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
                     MediaType.APPLICATION_JSON_TYPE);
 
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                throw new WorkflowNotFoundException(WORKFLOW_NOT_FOUND);
+                throw new WorkflowNotFoundException(NOT_FOUND);
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
                 throw new IllegalArgumentException(ILLEGAL_ARGUMENT);
             } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
@@ -589,34 +590,21 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     }
 
     @Override
-    public RequestResponse<JsonNode> getWorkflowDefinitions() throws VitamClientException {
-
+    public RequestResponse<WorkFlow> getWorkflowDefinitions() throws VitamClientException {
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, WORKFLOWS_URI, null, null, null,
-                MediaType.APPLICATION_JSON_TYPE);
 
-            if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                throw new VitamClientException(ILLEGAL_ARGUMENT);
-            } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                throw new VitamClientException(WORKFLOW_NOT_FOUND);
-            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                throw new VitamClientException(ILLEGAL_ARGUMENT);
-            } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-                throw new VitamClientException(INTERNAL_SERVER_ERROR2);
-            }
+            response = performRequest(HttpMethod.GET, WORKFLOWS_URI, null, null, null, MediaType.APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response, WorkFlow.class);
 
-            JsonNode workFlow =
-                JsonHandler.getFromString(response.readEntity(String.class), JsonNode.class);
-
-            return new RequestResponseOK<JsonNode>().addResult(workFlow)
-                .parseHeadersFromResponse(response);
-        } catch (VitamClientInternalException | InvalidParseOperationException e) {
+        } catch (IllegalStateException e) {
+            LOGGER.error("Could not parse server response ", e);
+            throw createExceptionFromResponse(response);
+        } catch (VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);
             throw new VitamClientException(e);
         } finally {
             consumeAnyEntityAndClose(response);
         }
     }
-
 }

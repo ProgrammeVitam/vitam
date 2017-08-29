@@ -24,15 +24,16 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  ******************************************************************************/
-package fr.gouv.vitam.processing.common.model;
+package fr.gouv.vitam.common.model.processing;
+
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import fr.gouv.vitam.common.SingletonUtils;
 import fr.gouv.vitam.common.model.ItemStatus;
-
-import java.util.List;
 
 /**
  * Step Object in process workflow
@@ -40,11 +41,15 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Step {
 
+    @JsonProperty("id")
     private String id;
-
+    @JsonProperty("workerGroupId")
     private String workerGroupId = "DefaultWorker";
+    @JsonProperty("stepName")
     private String stepName;
+    @JsonProperty("behavior")
     private ProcessBehavior behavior;
+    @JsonProperty("distribution")
     private Distribution distribution;
     @JsonProperty("actions")
     private List<Action> actions;
