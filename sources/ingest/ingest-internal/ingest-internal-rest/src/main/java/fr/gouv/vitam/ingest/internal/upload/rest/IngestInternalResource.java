@@ -477,14 +477,12 @@ public class IngestInternalResource extends ApplicationStatusResource {
     }
 
     /**
-     * TODO FIXE ME HEAD METHOD no entity get the operation status
      *
      * @param id operation identifier
      * @return http response
      */
     @Path("/operations/{id}")
     @HEAD
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getWorkFlowExecutionStatus(@PathParam("id") String id) {
         try (ProcessingManagementClient processManagementClient =
@@ -530,6 +528,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
      */
     @Path("/operations/{id}")
     @GET
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getWorkFlowStatus(@PathParam("id") String id) {
         Status status;
@@ -589,7 +588,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
      */
     @Path("/operations/{id}")
     @DELETE
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response interruptWorkFlowExecution(@PathParam("id") String id) {
         Status status;

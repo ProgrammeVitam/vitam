@@ -398,6 +398,8 @@ public class IngestInternalResourceTest {
         RestAssured.given()
             .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.RESUME,
                 GlobalDataRest.X_CONTEXT_ID, DEFAULT_CONTEXT)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(JsonHandler.createObjectNode())
             .when().get(OPERATION_URL)
             .then().statusCode(Status.OK.getStatusCode());
     }

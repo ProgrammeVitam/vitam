@@ -87,7 +87,7 @@ import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementApplication;
-import fr.gouv.vitam.worker.server.rest.WorkerApplication;
+import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
@@ -154,7 +154,7 @@ public class PausedProcessingIT {
     private static final String PROCESSING_URL = "http://localhost:" + PORT_SERVICE_PROCESSING;
 
     private static MetadataMain metadataApplication;
-    private static WorkerApplication workerApplication;
+    private static WorkerMain workerApplication;
     private static AdminManagementMain adminManagementApplication;
     private static LogbookMain logbookApplication;
     private static WorkspaceApplication workspaceApplication;
@@ -236,7 +236,7 @@ public class PausedProcessingIT {
 
         // launch worker
         SystemPropertyUtil.set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
-        workerApplication = new WorkerApplication(CONFIG_WORKER_PATH);
+        workerApplication = new WorkerMain(CONFIG_WORKER_PATH);
         workerApplication.start();
         SystemPropertyUtil.clear("jetty.worker.port");
 

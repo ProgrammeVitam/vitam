@@ -102,7 +102,7 @@ public class VitamServerTest {
 
         @Override
         public VitamApplicationConfigurationInterface setAuthentication(boolean authentication) {
-            return null;
+            return this;
         }
 
         @Override
@@ -112,7 +112,7 @@ public class VitamServerTest {
 
         @Override
         public VitamApplicationConfigurationInterface setTenantFilter(boolean tenantFilter) {
-            return null;
+            return this;
         }
 
     }

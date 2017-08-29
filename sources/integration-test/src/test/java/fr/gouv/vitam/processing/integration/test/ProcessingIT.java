@@ -150,7 +150,7 @@ import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementApplication;
-import fr.gouv.vitam.worker.server.rest.WorkerApplication;
+import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
@@ -211,7 +211,7 @@ public class ProcessingIT {
 
     // private static VitamServer workerApplication;
     private static MetadataMain metadataMain;
-    private static WorkerApplication workerApplication;
+    private static WorkerMain workerApplication;
     private static AdminManagementMain adminApplication;
     private static LogbookMain logbookApplication;
     private static WorkspaceApplication workspaceApplication;
@@ -358,7 +358,7 @@ public class ProcessingIT {
 
         // launch worker
         SystemPropertyUtil.set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
-        workerApplication = new WorkerApplication(CONFIG_WORKER_PATH);
+        workerApplication = new WorkerMain(CONFIG_WORKER_PATH);
         workerApplication.start();
         SystemPropertyUtil.clear("jetty.worker.port");
 
@@ -2010,7 +2010,7 @@ public class ProcessingIT {
         // FIXME Sleep to be removed when asynchronous mode is implemented
         // Thread.sleep(8500);
         SystemPropertyUtil.set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
-        workerApplication = new WorkerApplication(CONFIG_BIG_WORKER_PATH);
+        workerApplication = new WorkerMain(CONFIG_BIG_WORKER_PATH);
         workerApplication.start();
         try {
             final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
@@ -2052,7 +2052,7 @@ public class ProcessingIT {
 
         workerApplication.stop();
         SystemPropertyUtil.set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
-        workerApplication = new WorkerApplication(CONFIG_WORKER_PATH);
+        workerApplication = new WorkerMain(CONFIG_WORKER_PATH);
         workerApplication.start();
     }
 
@@ -2111,7 +2111,7 @@ public class ProcessingIT {
 
             // 2. Start the worker this will register the worker
             SystemPropertyUtil.set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
-            workerApplication = new WorkerApplication(CONFIG_WORKER_PATH);
+            workerApplication = new WorkerMain(CONFIG_WORKER_PATH);
             workerApplication.start();
             Thread.sleep(500);
 

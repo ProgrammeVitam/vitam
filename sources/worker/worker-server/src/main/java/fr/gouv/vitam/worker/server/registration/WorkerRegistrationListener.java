@@ -37,7 +37,7 @@ import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFact
 import fr.gouv.vitam.worker.server.rest.WorkerConfiguration;
 
 /**
- * Listener used for regitration between the current worker and the processing server
+ * Listener used for registration between the current worker and the processing server
  */
 public class WorkerRegistrationListener implements ServletContextListener {
 

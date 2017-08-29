@@ -83,7 +83,7 @@
         <archive>
             <manifest>
                 <addClasspath>true</addClasspath>
-                <mainClass>fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalApplication</mainClass>
+                <mainClass>fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain</mainClass>
             </manifest>
         </archive>
     </configuration>

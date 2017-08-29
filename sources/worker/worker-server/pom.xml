@@ -170,7 +170,7 @@
 					<archive>
 						<manifest>
 							<addClasspath>true</addClasspath>
-							<mainClass>fr.gouv.vitam.worker.server.rest.WorkerApplication</mainClass>
+							<mainClass>fr.gouv.vitam.worker.server.rest.WorkerMain</mainClass>
 						</manifest>
 					</archive>
 				</configuration>

@@ -30,13 +30,20 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Rule;
 import org.junit.Test;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -127,7 +134,9 @@ public class WorkerClientRestTest extends VitamJerseyTest {
 
         @POST
         @Path("/tasks")
-        public Response submitStep() {
+        @Produces(MediaType.APPLICATION_JSON)
+        @Consumes(MediaType.APPLICATION_JSON)
+        public Response submitStep(@Context HttpHeaders headers, JsonNode descriptionStepJson) {
             return expectedResponse.post();
         }
     }

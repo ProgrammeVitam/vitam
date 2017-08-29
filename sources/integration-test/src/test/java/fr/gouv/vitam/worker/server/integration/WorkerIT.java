@@ -97,7 +97,7 @@ import fr.gouv.vitam.worker.client.WorkerClientConfiguration;
 import fr.gouv.vitam.worker.client.WorkerClientFactory;
 import fr.gouv.vitam.worker.common.DescriptionStep;
 import fr.gouv.vitam.worker.server.registration.WorkerRegister;
-import fr.gouv.vitam.worker.server.rest.WorkerApplication;
+import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
@@ -142,7 +142,7 @@ public class WorkerIT {
     private static String CONFIG_PROCESSING_PATH = "";
     private static String CONFIG_LOGBOOK_PATH = "";
     private static MetadataMain metadataApplication;
-    private static WorkerApplication wkrapplication;
+    private static WorkerMain wkrapplication;
     private static WorkspaceApplication workspaceApplication;
     private static ProcessManagementApplication processManagementApplication;
 
@@ -219,7 +219,7 @@ public class WorkerIT {
         // launch worker
         SystemPropertyUtil
             .set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
-        wkrapplication = new WorkerApplication(CONFIG_WORKER_PATH);
+        wkrapplication = new WorkerMain(CONFIG_WORKER_PATH);
         wkrapplication.start();
         WorkerClientFactory.changeMode(getWorkerClientConfiguration());
     }

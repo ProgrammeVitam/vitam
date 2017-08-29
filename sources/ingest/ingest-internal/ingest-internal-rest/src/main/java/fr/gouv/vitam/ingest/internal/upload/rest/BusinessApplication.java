@@ -25,71 +25,59 @@
  * accept its terms.
  *******************************************************************************/
 
-package fr.gouv.vitam.common.server.application.configuration;
+package fr.gouv.vitam.ingest.internal.upload.rest;
 
-import java.util.List;
+import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.servlet.ServletConfig;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Context;
+
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 
 /**
- * Common interface for all application configuration.
+ * Business Application for Ingest Internal
  */
-public interface VitamApplicationConfigurationInterface {
+public class BusinessApplication extends Application {
+
+    private final CommonBusinessApplication commonBusinessApplication;
+
+    private Set<Object> singletons;
 
     /**
-     * getter jettyConfig
-     *
-     * @return the Jetty config filename
-     */
-    String getJettyConfig();
-
-    /**
-     * setter jettyConfig
-     *
-     * @param jettyConfig the jetty config to set
-     * @return this
-     */
-    VitamApplicationConfigurationInterface setJettyConfig(String jettyConfig);
-
-    /**
-     * getter tenants
-     *
-     * @return the tenant list
-     */
-    List<Integer> getTenants();
-
-    /**
-     * setter tenants
-     *
-     * @param tenants the list of tenants
-     * @return this
-     */
-    VitamApplicationConfigurationInterface setTenants(List<Integer> tenants);
-
-    /**
-     * getter authentication
+     * BusinessApplication Constructor 
      * 
-     * @return true if authentication is on for the application, false if not
+     * @param servletConfig
      */
-    boolean isAuthentication();
+    public BusinessApplication(@Context ServletConfig servletConfig) {
+        String configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
 
-    /**
-     * @param authentication the authentication to set
-     *
-     * @return this
-     */
-    public VitamApplicationConfigurationInterface setAuthentication(boolean authentication);
+        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
+            final IngestInternalConfiguration configuration =
+                PropertiesUtils.readYaml(yamlIS, IngestInternalConfiguration.class);
+            commonBusinessApplication = new CommonBusinessApplication();
+            singletons = new HashSet<>();
+            singletons.addAll(commonBusinessApplication.getResources());
+            singletons.add(new IngestInternalResource(configuration));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
-    /**
-     * getter tenantFilter
-     * 
-     * @return true if tenant Filtering is on for the application, false if not
-     */
-    boolean isTenantFilter();
+    }
 
-    /**
-     * @param tenantFilter the tenantFilter to set
-     *
-     * @return this
-     */
-    public VitamApplicationConfigurationInterface setTenantFilter(boolean tenantFilter);
+    @Override
+    public Set<Class<?>> getClasses() {
+        return commonBusinessApplication.getClasses();
+    }
 
+    @Override
+    public Set<Object> getSingletons() {
+        return singletons;
+    }
 }

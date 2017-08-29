@@ -63,6 +63,7 @@ import org.junit.Test;
 
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.FileUtil;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.client.IngestCollection;
@@ -73,7 +74,9 @@ import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -200,6 +203,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
 
         @Path("/operations/{id}")
         @GET
+        @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response getWorkFlowStatus(@PathParam("id") String id) {
             return expectedResponse.get();
@@ -216,7 +220,6 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
 
         @Path("/operations/{id}")
         @HEAD
-        @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response getWorkFlowExecutionStatus(@PathParam("id") String id) {
             return expectedResponse.head();
@@ -224,7 +227,6 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
 
         @Path("/operations/{id}")
         @DELETE
-        @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response InterruptWorkFlowExecution(@PathParam("id") String id) {
             return expectedResponse.delete();
@@ -468,6 +470,21 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
 
     }
 
+    @Test
+    public void givenHeadOperationOKThenOK()
+        throws Exception {
+
+        Response.ResponseBuilder builder = Response.status(Status.ACCEPTED)
+            .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED)
+            .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.OK)
+            .header(GlobalDataRest.X_CONTEXT_ID, LogbookTypeProcess.INGEST.toString());
+        when(mock.head())
+            .thenReturn(builder.build());
+        ItemStatus status = client.getOperationProcessStatus(ID);
+        assertEquals(status.getGlobalStatus(), StatusCode.OK);
+
+    }
+
     @Test(expected = VitamClientInternalException.class)
     public void givenGetOperationStatusThenThrowInternalServerError()
         throws Exception {
@@ -545,6 +562,16 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
 
         when(mock.delete()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         client.cancelOperationProcessExecution(ID);
+
+    }
+
+    @Test
+    public void givenDeleteOKThenOK()
+        throws Exception {
+        when(mock.delete())
+            .thenReturn(Response.status(Status.OK).entity(new ItemStatus().increment(StatusCode.OK)).build());
+        ItemStatus status = client.cancelOperationProcessExecution(ID);
+        assertEquals(status.getGlobalStatus(), StatusCode.OK);
 
     }
 

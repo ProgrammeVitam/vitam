@@ -60,7 +60,6 @@ import org.junit.rules.TemporaryFolder;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.jayway.restassured.RestAssured;
 
@@ -82,7 +81,10 @@ import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -93,6 +95,7 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AccessContractModel;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -111,7 +114,7 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
-import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalApplication;
+import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -136,7 +139,7 @@ import fr.gouv.vitam.processing.management.rest.ProcessManagementApplication;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
-import fr.gouv.vitam.worker.server.rest.WorkerApplication;
+import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
 
@@ -185,6 +188,7 @@ public class IngestInternalIT {
     private static final String INGEST_INTERNAL_PATH = "/ingest/v1";
     private static final String ACCESS_INTERNAL_PATH = "/access-internal/v1";
     private static final String CONTEXT_ID = "DEFAULT_WORKFLOW_RESUME";
+    private static final String CONTEXT_ID_NEXT = "DEFAULT_WORKFLOW_NEXT";
 
 
     private static String CONFIG_WORKER_PATH = "";
@@ -199,13 +203,13 @@ public class IngestInternalIT {
 
     // private static VitamServer workerApplication;
     private static MetadataMain medtadataApplication;
-    private static WorkerApplication wkrapplication;
+    private static WorkerMain wkrapplication;
     private static AdminManagementMain adminApplication;
     private static LogbookMain logbookApplication;
     private static WorkspaceApplication workspaceApplication;
     private static ProcessManagementApplication processManagementApplication;
-    private static IngestInternalApplication ingestInternalApplication;
     private static AccessInternalMain accessInternalApplication;
+    private static IngestInternalMain ingestInternalApplication;
 
     private static final String WORKSPACE_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE;
     private static String SIP_TREE = "integration-ingest-internal/test_arbre.zip";
@@ -345,7 +349,7 @@ public class IngestInternalIT {
 
         // launch worker
         SystemPropertyUtil.set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
-        wkrapplication = new WorkerApplication(CONFIG_WORKER_PATH);
+        wkrapplication = new WorkerMain(CONFIG_WORKER_PATH);
         wkrapplication.start();
         SystemPropertyUtil.clear("jetty.worker.port");
 
@@ -353,7 +357,7 @@ public class IngestInternalIT {
 
         // launch ingest-internal
         SystemPropertyUtil.set("jetty.ingest-internal.port", Integer.toString(PORT_SERVICE_INGEST_INTERNAL));
-        ingestInternalApplication = new IngestInternalApplication(CONFIG_INGEST_INTERNAL_PATH);
+        ingestInternalApplication = new IngestInternalMain(CONFIG_INGEST_INTERNAL_PATH);
         ingestInternalApplication.start();
         SystemPropertyUtil.clear("jetty.ingest-internal.port");
 
@@ -489,6 +493,8 @@ public class IngestInternalIT {
             fail("should not raized an exception");
         }
     }
+
+
 
     @RunWithCustomExecutor
     @Test
@@ -1605,7 +1611,7 @@ public class IngestInternalIT {
     }
 
     /**
-     * Check error report 
+     * Check error report
      * 
      * @param fileInputStreamToImport the given FileInputStream
      * @param expectedStreamErrorReport expected Stream error report
@@ -1627,4 +1633,93 @@ public class IngestInternalIT {
             fail(String.format("InvalidParseOperationException %s", e.getCause()));
         }
     }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestInternalMultipleActions() throws Exception {
+
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        try {
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+            tryImportFile();
+            // workspace client dezip SIP in workspace
+            RestAssured.port = PORT_SERVICE_WORKSPACE;
+            RestAssured.basePath = WORKSPACE_PATH;
+            final InputStream zipInputStreamSipObject =
+                PropertiesUtils.getResourceAsStream(SIP_OK_PHYSICAL_ARCHIVE);
+
+            // init default logbook operation
+            final List<LogbookOperationParameters> params = new ArrayList<>();
+            final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+                operationGuid, "Process_SIP_unitary", operationGuid,
+                LogbookTypeProcess.INGEST, StatusCode.STARTED,
+                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+                operationGuid);
+            params.add(initParameters);
+            LOGGER.debug(initParameters.toString());
+
+            // call ingest
+            IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
+            final IngestInternalClient client2 = IngestInternalClientFactory.getInstance().getClient();
+            final Response response2 = client2.uploadInitialLogbook(params);
+            assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+
+            // init workflow before execution
+            client2.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+
+            client2.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID_NEXT);
+
+            // lets wait till the step is finished
+            waitStep(operationGuid.toString(), client2);
+
+            ProcessWorkflow processWorkflow =
+                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.PAUSE, processWorkflow.getState());
+            assertEquals(StatusCode.OK, processWorkflow.getStatus());
+
+            ItemStatus itemStatus1 =
+                client2.getOperationProcessExecutionDetails(operationGuid.toString());
+            assertEquals(StatusCode.OK, itemStatus1.getGlobalStatus());
+
+            assertNotNull(client2.getWorkflowDefinitions());
+
+            // then finally we cancel the ingest
+            ItemStatus itemStatusFinal = client2.cancelOperationProcessExecution(operationGuid.toString());
+            // FATAL is thrown but this could be a bug somewher, so when it is fixed, change the value here
+            assertEquals(StatusCode.FATAL, itemStatusFinal.getGlobalStatus());
+
+        } catch (final Exception e) {
+            LOGGER.error(e);
+            try (LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
+                fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
+                    new fr.gouv.vitam.common.database.builder.request.single.Select();
+                selectQuery.setQuery(QueryHelper.eq("evIdProc", operationGuid.getId()));
+                JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
+                LOGGER.error(JsonHandler.prettyPrint(logbookResult));
+            }
+            fail("should not raized an exception");
+        }
+
+    }
+
+    private void waitStep(String operationId, IngestInternalClient client) {
+        int nbTry = 0;
+        while (true) {
+            try {
+                ItemStatus itemStatus = client.getOperationProcessStatus(operationId);
+                if (itemStatus.getGlobalStatus() == StatusCode.OK) {
+                    break;
+                }
+                Thread.sleep(SLEEP_TIME);
+            } catch (VitamClientException | InternalServerException | BadRequestException | InterruptedException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
+            if (nbTry == NB_TRY)
+                break;
+            nbTry++;
+        }
+    }
+
 }
