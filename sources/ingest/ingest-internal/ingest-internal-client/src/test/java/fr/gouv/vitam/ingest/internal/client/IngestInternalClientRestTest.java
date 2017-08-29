@@ -61,8 +61,6 @@ import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -75,7 +73,6 @@ import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -204,7 +201,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         @Path("/operations/{id}")
         @GET
         @Produces(MediaType.APPLICATION_JSON)
-        public Response getWorkFlowStatus(@PathParam("id") String id, JsonNode query) {
+        public Response getWorkFlowStatus(@PathParam("id") String id) {
             return expectedResponse.get();
         }
 
@@ -457,10 +454,8 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
     public void givenGetOperationStatusThenThrowVitamClientInternalException()
         throws Exception {
 
-        JsonNode query = JsonHandler.createObjectNode();
-
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.getOperationProcessExecutionDetails(ID, query);
+        client.getOperationProcessExecutionDetails(ID);
 
     }
 
@@ -477,10 +472,8 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
     public void givenGetOperationStatusThenThrowInternalServerError()
         throws Exception {
 
-        JsonNode query = JsonHandler.createObjectNode();
-
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        client.getOperationProcessExecutionDetails(ID, query);
+        client.getOperationProcessExecutionDetails(ID);
 
     }
 
@@ -506,10 +499,8 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
     public void givenGetOperationStatusThenThrowUnauthorized()
         throws Exception {
 
-        JsonNode query = JsonHandler.createObjectNode();
-
         when(mock.get()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
-        client.getOperationProcessExecutionDetails(ID, query);
+        client.getOperationProcessExecutionDetails(ID);
 
     }
 
@@ -517,10 +508,8 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
     public void givenGetPreconditionFailedStatusThenThrowUnauthorized()
         throws Exception {
 
-        JsonNode query = JsonHandler.createObjectNode();
-
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.getOperationProcessExecutionDetails(ID, query);
+        client.getOperationProcessExecutionDetails(ID);
 
     }
 

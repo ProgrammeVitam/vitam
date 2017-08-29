@@ -52,6 +52,7 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
@@ -76,7 +77,7 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
         }
         StreamUtils.closeSilently(stream);
 
-        RequestResponseOK r = new RequestResponseOK<JsonNode>();
+        RequestResponseOK<JsonNode> r = new RequestResponseOK<>();
         r.setHttpCode(Status.ACCEPTED.getStatusCode());
         r.addHeader(FAKE_X_REQUEST_ID, X_REQUEST_ID);
 
@@ -89,6 +90,7 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
      * @param requestId fake x-request-id
      * @return header map
      */
+    @Deprecated
     private MultivaluedHashMap<String, Object> getDefaultHeaders(String requestId, Integer tenantId) {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(X_REQUEST_ID, requestId);
@@ -103,7 +105,7 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
     }
 
     @Override
-    public ItemStatus getOperationProcessStatus(String id, Integer tenantId)
+    public RequestResponse<ItemStatus> getOperationProcessStatus(String id, Integer tenantId)
         throws VitamClientException {
         ItemStatus pwork = null;
         try {
@@ -112,28 +114,25 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
             LOGGER.error(e);
             throw new VitamClientException(e.getMessage(), e);
         }
-        return pwork;
-    }
-    // TODO FIXE ME query never user
-
-    @Override
-    public ItemStatus getOperationProcessExecutionDetails(String id, JsonNode query, Integer tenantId)
-        throws VitamClientException {
-        return new ItemStatus(ID);
+        return new RequestResponseOK().addResult(pwork).setHttpCode(Status.OK.getStatusCode());
     }
 
     @Override
-    public RequestResponse<JsonNode> cancelOperationProcessExecution(String id, Integer tenantId)
+    public RequestResponse<ItemStatus> getOperationProcessExecutionDetails(String id, Integer tenantId)
         throws VitamClientException {
-        // return new ItemStatus(ID);
-
-        return new RequestResponseOK().setHttpCode(Status.OK.getStatusCode());
+        return new RequestResponseOK().addResult(new ItemStatus(ID)).setHttpCode(Status.OK.getStatusCode());
     }
 
     @Override
-    public Response updateOperationActionProcess(String actionId, String id, Integer tenantId)
+    public RequestResponse<ItemStatus> cancelOperationProcessExecution(String id, Integer tenantId)
         throws VitamClientException {
-        return Response.status(Status.OK).build();
+        return new RequestResponseOK().addResult(new ItemStatus(ID)).setHttpCode(Status.OK.getStatusCode());
+    }
+
+    @Override
+    public RequestResponse<ItemStatus> updateOperationActionProcess(String actionId, String id, Integer tenantId)
+        throws VitamClientException {
+        return new RequestResponseOK().addResult(new ItemStatus(ID)).setHttpCode(Status.OK.getStatusCode());
     }
 
     @Override
@@ -145,9 +144,11 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
     }
 
     @Override
+    @Deprecated
     public void initWorkFlow(String contextId, Integer tenantId) throws VitamException {}
 
     @Override
+    @Deprecated
     public ItemStatus updateVitamProcess(String contextId, String actionId, String container, String workflow,
         Integer tenantId)
         throws VitamClientException {
@@ -155,19 +156,20 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
     }
 
     @Override
+    @Deprecated
     public void initVitamProcess(String contextId, String container, String workflow, Integer tenantId)
         throws VitamClientException {}
 
     @Override
-    public RequestResponse<JsonNode> listOperationsDetails(Integer tenantId, ProcessQuery query)
+    public RequestResponse<ProcessDetail> listOperationsDetails(Integer tenantId, ProcessQuery query)
         throws VitamClientException {
-        return RequestResponse.parseFromResponse(Response.status(Status.OK).build());
+        return new RequestResponseOK<ProcessDetail>().addResult(new ProcessDetail())
+            .setHttpCode(Status.OK.getStatusCode());
     }
 
     @Override
     public RequestResponse<WorkFlow> getWorkflowDefinitions(Integer tenantId) throws VitamClientException {
-        return RequestResponse.parseFromResponse(Response.status(Status.OK).entity(new WorkFlow()).build(),
-            WorkFlow.class);
+        return new RequestResponseOK<WorkFlow>().addResult(new WorkFlow()).setHttpCode(Status.OK.getStatusCode());
     }
 
     @Override

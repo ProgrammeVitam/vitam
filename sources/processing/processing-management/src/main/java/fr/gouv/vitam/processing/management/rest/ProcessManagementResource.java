@@ -53,9 +53,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.lifecycle.ProcessLifeCycle;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -64,6 +67,7 @@ import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
@@ -183,8 +187,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
         } catch (Exception e) {
             LOGGER.error("Error while retrieving workflow definitions : ", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, "Error while finding Workflow definitions",
-                    "Error : " + e.getMessage()))
+                .entity(VitamCodeHelper.toVitamError(VitamCode.WORKFLOW_DEFINITION_ERROR, e.getLocalizedMessage()))
                 .build();
         }
     }
@@ -310,7 +313,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     @Path("operations/{id}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getOperationProcessExecutionDetails(@PathParam("id") String id, JsonNode query) {
+    public Response getOperationProcessExecutionDetails(@PathParam("id") String id) {
 
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         try {
@@ -510,17 +513,19 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     public Response findProcessWorkflows(ProcessQuery query) {
         try {
 
-
             Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-            return Response.status(Status.OK).entity(processManagement.getFilteredProcess(query, tenantId)).build();
+            List<ProcessDetail> processDetails = processManagement.getFilteredProcess(query, tenantId);
+            RequestResponseOK<ProcessDetail> response = new RequestResponseOK<>(JsonHandler.toJsonNode(query));
+            response.addAllResults(processDetails)
+                .setHits(processDetails.size(), 0, processDetails.size(), processDetails.size())
+                .setHttpCode(Status.OK.getStatusCode());
+            return Response.status(Status.OK).entity(response).build();
 
-        } catch (Exception exc) {
-            LOGGER.error(exc);
+        } catch (Exception e) {
+            LOGGER.error("Error while finding existing workflow process: ", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, "Error while finding existing workflow process",
-                    "Error : " + exc.getMessage()))
+                .entity(VitamCodeHelper.toVitamError(VitamCode.WORKFLOW_PROCESSES_ERROR, e.getLocalizedMessage()))
                 .build();
         }
     }
-
 }

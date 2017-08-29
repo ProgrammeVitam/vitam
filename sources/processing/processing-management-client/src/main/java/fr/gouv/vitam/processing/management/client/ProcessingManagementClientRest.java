@@ -27,7 +27,6 @@
 package fr.gouv.vitam.processing.management.client;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.HttpMethod;
@@ -58,6 +57,7 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
@@ -356,17 +356,15 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         }
     }
 
-    // TODO FIXE ME query never user
     @Override
-    public ItemStatus getOperationProcessExecutionDetails(String id, JsonNode query)
+    public ItemStatus getOperationProcessExecutionDetails(String id)
         throws InternalServerException, BadRequestException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);
         Response response = null;
         try {
             response =
                 performRequest(HttpMethod.GET, OPERATION_URI + "/" + id,
-                    null, query,
-                    MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                    null, MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 throw new WorkflowNotFoundException(NOT_FOUND);
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
@@ -516,21 +514,14 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     }
 
     @Override
-    public RequestResponse<JsonNode> listOperationsDetails(ProcessQuery query) throws VitamClientException {
+    public RequestResponse<ProcessDetail> listOperationsDetails(ProcessQuery query) throws VitamClientException {
         Response response = null;
         try {
             response =
                 performRequest(HttpMethod.GET, "/operations", null, JsonHandler.toJsonNode(query),
                     MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response, ProcessDetail.class);
 
-            if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                throw new VitamClientException(ILLEGAL_ARGUMENT);
-            }
-
-            List<JsonNode> list =
-                JsonHandler.getFromString(response.readEntity(String.class), List.class, WorkFlow.class);
-
-            return new RequestResponseOK<JsonNode>().addAllResults(list).parseHeadersFromResponse(response);
         } catch (VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);
             throw new VitamClientException(e);

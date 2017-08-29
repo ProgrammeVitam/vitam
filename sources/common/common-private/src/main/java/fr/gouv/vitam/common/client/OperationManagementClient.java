@@ -10,6 +10,7 @@ import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 
 
@@ -39,14 +40,13 @@ public interface OperationManagementClient extends MockOrRestClient {
      * getOperationProcessExecutionDetails : get operation processing execution details
      * 
      * @param id : operation identifier
-     * @param query : query identifier
      * @return Engine response containing message and status
      * @throws VitamClientException
      * @throws InternalServerException
      * @throws BadRequestException
      */
 
-    ItemStatus getOperationProcessExecutionDetails(String id, JsonNode query)
+    ItemStatus getOperationProcessExecutionDetails(String id)
         throws VitamClientException, InternalServerException, BadRequestException;
 
     /**
@@ -117,7 +117,7 @@ public interface OperationManagementClient extends MockOrRestClient {
      * @throws VitamClientException
      */
 
-    @Deprecated // Not used
+    @Deprecated // FIXME clean lors de la 2745
     ItemStatus updateVitamProcess(String contextId, String actionId, String container, String workflow)
         throws InternalServerException, BadRequestException, VitamClientException;
 
@@ -142,7 +142,7 @@ public interface OperationManagementClient extends MockOrRestClient {
      * @return All details of the operations
      * @throws VitamClientException
      */
-    RequestResponse<JsonNode> listOperationsDetails(ProcessQuery query) throws VitamClientException;
+    RequestResponse<ProcessDetail> listOperationsDetails(ProcessQuery query) throws VitamClientException;
 
 
     /**

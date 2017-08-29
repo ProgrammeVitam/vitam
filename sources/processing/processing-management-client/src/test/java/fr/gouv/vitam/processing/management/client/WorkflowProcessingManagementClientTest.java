@@ -60,7 +60,6 @@ import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -424,31 +423,27 @@ public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
     @Test(expected = WorkflowNotFoundException.class)
     public void givenNotFoundWorkflowWhenGETProcessingOperationStatusThenReturnNotFound() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        JsonNode body = JsonHandler.createObjectNode();
-        client.getOperationProcessExecutionDetails(ID, body);
+        client.getOperationProcessExecutionDetails(ID);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void givenIllegalArgumementWhenGETProcessingOperationStatusThenReturnIllegalPrecondtionFailed()
         throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        JsonNode body = JsonHandler.createObjectNode();
-        client.getOperationProcessExecutionDetails(ID, body);
+        client.getOperationProcessExecutionDetails(ID);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void givenUnauthorizedOperationWhenGETProcessingOperationStatusThenReturnUnauthorized() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
-        JsonNode body = JsonHandler.createObjectNode();
-        client.getOperationProcessExecutionDetails(ID, body);
+        client.getOperationProcessExecutionDetails(ID);
     }
 
     @Test(expected = BadRequestException.class)
     public void givenBadRequestWhenGETProcessingOperationStatusThenReturnBadRequest() throws Exception {
         final ItemStatus desired = new ItemStatus("ID");
         when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).entity(desired).build());
-        JsonNode body = JsonHandler.createObjectNode();
-        final ItemStatus ret = client.getOperationProcessExecutionDetails(ID, body);
+        final ItemStatus ret = client.getOperationProcessExecutionDetails(ID);
         assertNotNull(ret);
         assertEquals(desired.getGlobalStatus(), ret.getGlobalStatus());
     }
@@ -457,16 +452,14 @@ public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
     public void givenInternalServerErrorWhenGETProcessingOperationStatusThenReturnInternalServerError()
         throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        JsonNode body = JsonHandler.createObjectNode();
-        client.getOperationProcessExecutionDetails(ID, body);
+        client.getOperationProcessExecutionDetails(ID);
     }
 
     @Test
     public void GETProcessingOperationStatusOk() throws Exception {
         final ItemStatus desired = new ItemStatus("ID");
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(desired).build());
-        JsonNode body = JsonHandler.createObjectNode();
-        final ItemStatus ret = client.getOperationProcessExecutionDetails(ID, body);
+        final ItemStatus ret = client.getOperationProcessExecutionDetails(ID);
         assertNotNull(ret);
         assertEquals(desired.getGlobalStatus(), ret.getGlobalStatus());
     }

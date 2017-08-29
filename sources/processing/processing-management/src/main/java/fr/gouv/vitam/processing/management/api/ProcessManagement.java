@@ -23,13 +23,12 @@ package fr.gouv.vitam.processing.management.api;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
 import fr.gouv.vitam.common.lifecycle.ProcessLifeCycle;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
+import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.common.automation.IEventsState;
@@ -144,7 +143,7 @@ public interface ProcessManagement extends ProcessLifeCycle, VitamAutoCloseable 
      * @param tenantId the tenandId
      * @return filtered process list
      */
-    List<JsonNode> getFilteredProcess(ProcessQuery query, Integer tenantId);
+    List<ProcessDetail> getFilteredProcess(ProcessQuery query, Integer tenantId);
 
     /**
      *

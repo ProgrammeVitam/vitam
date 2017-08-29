@@ -48,13 +48,13 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.error.ServiceName;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
@@ -94,8 +94,6 @@ import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
 @Path("/ingest-external/v1")
 @javax.ws.rs.ApplicationPath("webresources")
 public class IngestExternalResource extends ApplicationStatusResource {
-
-    private static final String INGEST_EXTERNAL = "INGEST_EXTERNAL";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalResource.class);
     private final IngestExternalConfiguration ingestExternalConfiguration;
 
@@ -127,7 +125,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
         @HeaderParam(GlobalDataRest.X_ACTION) String action, InputStream uploadedInputStream,
         @Suspended final AsyncResponse asyncResponse) {
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
-        Integer tenantId = ParameterHelper.getTenantParameter();        
+        Integer tenantId = ParameterHelper.getTenantParameter();
 
         VitamThreadPoolExecutor.getDefaultExecutor()
             .execute(() -> uploadAsync(uploadedInputStream, asyncResponse, tenantId, contextId, action, guid));
@@ -231,11 +229,13 @@ public class IngestExternalResource extends ApplicationStatusResource {
     public Response listOperationsDetails(@Context HttpHeaders headers, ProcessQuery query) {
         LOGGER.error("ProcessQuery: " + JsonHandler.prettyPrint(query));
         try (IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient()) {
-            RequestResponse response = client.listOperationsDetails(query);
-            return Response.status(Status.OK).entity(response).build();
-        } catch (Exception e) {
-            LOGGER.error(e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+            return client.listOperationsDetails(query).toResponse();
+        } catch (VitamClientException e) {
+            return Response.serverError()
+                .entity(
+                    VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_INTERNAL_CLIENT_ERROR,
+                        e.getLocalizedMessage()))
+                .build();
         }
     }
 
@@ -305,16 +305,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
 
     }
 
-    private VitamError getErrorEntity(Status status, String message) {
-        String aMessage =
-            (message != null && !message.trim().isEmpty()) ? message
-                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
-        return new VitamError(status.name()).setHttpCode(status.getStatusCode())
-            .setContext(INGEST_EXTERNAL)
-            .setState("code_vitam")
-            .setMessage(status.getReasonPhrase())
-            .setDescription(aMessage);
-    }
+
 
     private InputStream getErrorStream(Status status, String message) {
         String aMessage =
@@ -322,7 +313,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
                 : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
         try {
             return JsonHandler.writeToInpustream(new VitamError(status.name())
-                .setHttpCode(status.getStatusCode()).setContext(INGEST_EXTERNAL)
+                .setHttpCode(status.getStatusCode()).setContext(ServiceName.EXTERNAL_INGEST.getName())
                 .setState("code_vitam").setMessage(status.getReasonPhrase()).setDescription(aMessage));
         } catch (InvalidParseOperationException e) {
             return new ByteArrayInputStream("{ 'message' : 'Invalid VitamError message' }".getBytes());
@@ -345,7 +336,6 @@ public class IngestExternalResource extends ApplicationStatusResource {
             Response.ResponseBuilder builder = Response.status(Status.ACCEPTED);
             if (ProcessState.COMPLETED.equals(itemStatus.getGlobalState())) {
                 builder.status(Status.OK);
-
             } else {
                 builder.status(Status.ACCEPTED);
             }
@@ -380,51 +370,47 @@ public class IngestExternalResource extends ApplicationStatusResource {
      */
     @Path("operations/{id}")
     @GET
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getWorkFlowStatus(@PathParam("id") String id, JsonNode query) {
+    public Response getOperationProcessExecutionDetails(@PathParam("id") String id) {
         Status status;
         ItemStatus itemStatus = null;
         try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
-            itemStatus = ingestInternalClient.getOperationProcessExecutionDetails(id, query);
+            itemStatus = ingestInternalClient.getOperationProcessExecutionDetails(id);
+            return new RequestResponseOK<ItemStatus>().addResult(itemStatus).setHttpCode(Status.OK.getStatusCode())
+                .toResponse();
         } catch (final IllegalArgumentException e) {
-            // if the entry argument if illegal
-            LOGGER.error(e);
+            LOGGER.error("Illegal argument: " + e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
-                .entity(getErrorEntity(status, e.getLocalizedMessage()))
+                .entity(VitamCodeHelper
+                    .toVitamError(VitamCode.INGEST_EXTERNAL_GET_OPERATION_PROCESS_DETAIL_ERROR, e.getLocalizedMessage())
+                    .setHttpCode(status.getStatusCode()))
                 .build();
-
-        } catch (final WorkflowNotFoundException e) {
-            // if the entry argument if illegal
-            LOGGER.error(e);
-            status = Status.NO_CONTENT;
+        } catch (InternalServerException e) {
+            LOGGER.error("Cound get operation detail: " + e);
+            status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(getErrorEntity(status, e.getLocalizedMessage()))
+                .entity(VitamCodeHelper
+                    .toVitamError(VitamCode.INGEST_EXTERNAL_GET_OPERATION_PROCESS_DETAIL_ERROR, e.getLocalizedMessage())
+                    .setHttpCode(status.getStatusCode()))
                 .build();
-
+        } catch (BadRequestException e) {
+            LOGGER.error("Request invalid while trying to get operation detail: " + e);
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                .entity(VitamCodeHelper
+                    .toVitamError(VitamCode.INGEST_EXTERNAL_GET_OPERATION_PROCESS_DETAIL_ERROR, e.getLocalizedMessage())
+                    .setHttpCode(status.getStatusCode()))
+                .build();
         } catch (VitamClientException e) {
             LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(getErrorEntity(status, e.getLocalizedMessage()))
-                .build();
-        } catch (InternalServerException e) {
-            LOGGER.error(e);
-            status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
-                .entity(getErrorEntity(status, e.getLocalizedMessage()))
-                .build();
-        } catch (BadRequestException e) {
-            LOGGER.error(e);
-            status = Status.BAD_REQUEST;
-            return Response.status(status)
-                .entity(getErrorEntity(status, e.getLocalizedMessage()))
+                .entity(VitamCodeHelper
+                    .toVitamError(VitamCode.INGEST_EXTERNAL_GET_OPERATION_PROCESS_DETAIL_ERROR, e.getLocalizedMessage())
+                    .setHttpCode(status.getStatusCode()))
                 .build();
         }
-
-        // TODO : manage missing itemStatus with 404 http error
-        return Response.status(Status.OK).entity(itemStatus).build();
     }
 
     /**
@@ -464,24 +450,23 @@ public class IngestExternalResource extends ApplicationStatusResource {
             AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
             helper.writeAsyncResponse(Response.fromResponse(response), Status.fromStatusCode(response.getStatus()));
         } catch (final ProcessingException e) {
-            // if there is an unauthorized action
-            LOGGER.error(e);
+            LOGGER.error("Unauthorized action for update ", e);
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, VitamCodeHelper
+                .toVitamError(VitamCode.INGEST_EXTERNAL_UNAUTHORIZED, e.getLocalizedMessage()).toResponse());
+        } catch (InternalServerException e) {
+            LOGGER.error("Could not update operation process ", e);
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, VitamCodeHelper
+                .toVitamError(VitamCode.INGEST_EXTERNAL_INTERNAL_SERVER_ERROR, e.getLocalizedMessage()).toResponse());
+        } catch (VitamClientException e) {
+            LOGGER.error("Client exception while trying to update operation process ", e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.UNAUTHORIZED)
-                    .entity(getErrorEntity(Status.UNAUTHORIZED, e.getLocalizedMessage()))
-                    .build());
-        } catch (InternalServerException | VitamClientException e) {
-            LOGGER.error(e);
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.INTERNAL_SERVER_ERROR)
-                    .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getLocalizedMessage()))
-                    .build());
+                VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_INTERNAL_CLIENT_ERROR, e.getLocalizedMessage())
+                    .toResponse());
         } catch (BadRequestException e) {
-            LOGGER.error(e);
+            LOGGER.error("Request invalid while trying to update operation process ", e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getLocalizedMessage()))
-                    .build());
+                VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_BAD_REQUEST, e.getLocalizedMessage())
+                    .toResponse());
         }
     }
 
@@ -497,49 +482,35 @@ public class IngestExternalResource extends ApplicationStatusResource {
     public Response interruptWorkFlowExecution(@PathParam("id") String id) {
 
         ParametersChecker.checkParameter("operationId must not be null", id);
-        Status status;
+        VitamError vitamError;
         try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkParameter(id);
             VitamThreadUtils.getVitamSession().setRequestId(id);
 
-            final ItemStatus itemStatus = ingestInternalClient.cancelOperationProcessExecution(id);            
-            RequestResponseOK<ItemStatus> responseOK = new RequestResponseOK<ItemStatus>()
-                .addResult(itemStatus);
-            responseOK.setHttpCode(Status.OK.getStatusCode());
-            return responseOK.toResponse();
+            final ItemStatus itemStatus = ingestInternalClient.cancelOperationProcessExecution(id);
+            return new RequestResponseOK<ItemStatus>().addResult(itemStatus).setHttpCode(Status.OK.getStatusCode())
+                .toResponse();
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
-            // if the entry argument if illegal            
-            LOGGER.error(e);
-            status = Status.PRECONDITION_FAILED;
-            return Response.status(status)
-                .entity(getErrorEntity(status, e.getLocalizedMessage()))
-                .build();
+            LOGGER.error("Illegal argument: " + e);
+            vitamError =
+                VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_ILLEGAL_ARGUMENT, e.getLocalizedMessage());
         } catch (WorkflowNotFoundException e) {
-            LOGGER.error(e);
-            status = Status.NOT_FOUND;
-            return Response.status(status)
-                .entity(getErrorEntity(status, e.getLocalizedMessage()))
-                .build();
-
+            LOGGER.error("Cound not find workflow: " + e);
+            vitamError = VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_NOT_FOUND, e.getLocalizedMessage());
         } catch (InternalServerException e) {
-            LOGGER.error(e);
-            status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
-                .entity(getErrorEntity(status, e.getLocalizedMessage()))
-                .build();
+            LOGGER.error("Cound not cancel operation: " + e);
+            vitamError =
+                VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         } catch (BadRequestException e) {
-            LOGGER.error(e);
-            status = Status.UNAUTHORIZED;
-            return Response.status(status)
-                .entity(getErrorEntity(status, e.getLocalizedMessage()))
-                .build();
+            LOGGER.error("Request invalid while trying to cancel operation: " + e);
+            vitamError = VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_UNAUTHORIZED, e.getLocalizedMessage());
         } catch (VitamClientException e) {
-            LOGGER.error(e);
-            status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
-                .entity(getErrorEntity(status, e.getLocalizedMessage()))
-                .build();
+            LOGGER.error("Client exception while trying to cancel operation: " + e);
+            vitamError =
+                VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_INTERNAL_CLIENT_ERROR, e.getLocalizedMessage());
         }
+
+        return Response.status(vitamError.getHttpCode()).entity(vitamError).build();
     }
 
 
@@ -554,27 +525,10 @@ public class IngestExternalResource extends ApplicationStatusResource {
         try (IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient()) {
             return client.getWorkflowDefinitions().toResponse();
         } catch (VitamClientException e) {
-            return Response.serverError().entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null))
+            return Response.serverError()
+                .entity(VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_INTERNAL_CLIENT_ERROR,
+                    e.getLocalizedMessage()))
                 .build();
         }
-    }
-
-    /**
-     * Construct the error following input
-     *
-     * @param status Http error status
-     * @param message The functional error message, if absent the http reason phrase will be used instead
-     * @param code The functional error code, if absent the http code will be used instead
-     * @return VitamError
-     */
-    //FIXME 2905 : refacto as a common code
-    private VitamError getErrorEntity(Status status, String message, String code) {
-        String aMessage =
-            (message != null && !message.trim().isEmpty()) ? message
-                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
-        String aCode = (code != null) ? code : String.valueOf(status.getStatusCode());
-        return new VitamError(aCode).setHttpCode(status.getStatusCode())
-            .setContext(ServiceName.EXTERNAL_INGEST.getName())
-            .setState("KO").setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
 }

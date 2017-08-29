@@ -60,6 +60,7 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientNotFoundException;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServerException;
@@ -349,15 +350,13 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     }
 
     @Override
-    public ItemStatus getOperationProcessExecutionDetails(String id, JsonNode query) throws VitamClientException {
+    public ItemStatus getOperationProcessExecutionDetails(String id) throws VitamClientException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);
         Response response = null;
         try {
             response =
                 performRequest(HttpMethod.GET, OPERATION_URI + "/" + id,
-                    null,
-                    query,
-                    MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                    null, MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 LOGGER.warn("SIP Warning : " + Response.Status.NOT_FOUND.getReasonPhrase());
                 throw new VitamClientInternalException(NOT_FOUND_EXCEPTION);
@@ -499,18 +498,22 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     }
 
     @Override
-    public RequestResponse<JsonNode> listOperationsDetails(ProcessQuery query) throws VitamClientException {
+    public RequestResponse<ProcessDetail> listOperationsDetails(ProcessQuery query) throws VitamClientException {
         Response response = null;
         try {
             response = performRequest(HttpMethod.GET, OPERATION_URI, null, JsonHandler.toJsonNode(query),
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response, ProcessDetail.class);
 
-            return RequestResponse.parseFromResponse(response);
+        } catch (IllegalStateException e) {
+            LOGGER.error("Could not parse server response ", e);
+            throw createExceptionFromResponse(response);
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error("Could not parse query ", e);
+            throw new VitamClientException(e);
         } catch (VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);
             throw new VitamClientException(e);
-        } catch (final InvalidParseOperationException e) {
-            throw new VitamClientException("VitamClientException: ", e);
         } finally {
             consumeAnyEntityAndClose(response);
         }

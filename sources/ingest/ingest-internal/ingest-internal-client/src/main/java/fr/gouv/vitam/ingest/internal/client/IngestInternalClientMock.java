@@ -55,6 +55,7 @@ import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -110,9 +111,8 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
         return new ItemStatus(ID);
     }
 
-    // TODO FIXE ME query never user
     @Override
-    public ItemStatus getOperationProcessExecutionDetails(String id, JsonNode query) throws VitamClientException {
+    public ItemStatus getOperationProcessExecutionDetails(String id) throws VitamClientException {
         return new ItemStatus(ID);
     }
 
@@ -157,13 +157,15 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
         throws InternalServerException, VitamClientException, BadRequestException {}
 
     @Override
-    public RequestResponse<JsonNode> listOperationsDetails(ProcessQuery query) throws VitamClientInternalException {
-        return new RequestResponseOK<>();
+    public RequestResponse<ProcessDetail> listOperationsDetails(ProcessQuery query)
+        throws VitamClientInternalException {
+        return new RequestResponseOK<ProcessDetail>().addResult(new ProcessDetail())
+            .setHttpCode(Status.OK.getStatusCode());
     }
 
     @Override
     public RequestResponse<WorkFlow> getWorkflowDefinitions() throws VitamClientException {
-        return new RequestResponseOK<WorkFlow>().setHttpCode(Status.OK.getStatusCode());
+        return new RequestResponseOK<WorkFlow>().addResult(new WorkFlow()).setHttpCode(Status.OK.getStatusCode());
     }
 
 

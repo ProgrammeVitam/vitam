@@ -27,7 +27,6 @@
 package fr.gouv.vitam.ingest.external.client;
 
 import java.io.InputStream;
-import java.util.Map;
 
 import javax.ws.rs.core.Response;
 
@@ -44,6 +43,7 @@ import fr.gouv.vitam.common.external.client.IngestCollection;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientNotFoundException;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientServerException;
@@ -64,7 +64,6 @@ public interface IngestExternalClient extends MockOrRestClient, PoolingStatusCli
      * @throws IngestExternalException
      */
     // TODO P0 : add file name
-
     RequestResponse<JsonNode> upload(InputStream stream, Integer tenantId, String contextId, String action)
         throws IngestExternalException;
 
@@ -98,6 +97,7 @@ public interface IngestExternalClient extends MockOrRestClient, PoolingStatusCli
      * @throws VitamClientException
      * @deprecated use updateOperationActionProcess
      */
+    // FIXME clean lors de la 2745
     @Deprecated
     RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId,
         String actionId, Integer tenantId)
@@ -112,7 +112,7 @@ public interface IngestExternalClient extends MockOrRestClient, PoolingStatusCli
      * @return the status
      * @throws VitamClientException
      */
-    Response updateOperationActionProcess(String actionId, String operationId, Integer tenantId)
+    RequestResponse<ItemStatus> updateOperationActionProcess(String actionId, String operationId, Integer tenantId)
         throws VitamClientException;
 
     /**
@@ -122,7 +122,7 @@ public interface IngestExternalClient extends MockOrRestClient, PoolingStatusCli
      * @return the status of the operation (HEAD only)
      * @throws VitamClientException
      */
-    ItemStatus getOperationProcessStatus(String id, Integer tenantId) throws VitamClientException;
+    RequestResponse<ItemStatus> getOperationProcessStatus(String id, Integer tenantId) throws VitamClientException;
 
     /**
      * 
@@ -132,7 +132,7 @@ public interface IngestExternalClient extends MockOrRestClient, PoolingStatusCli
      * @return the details of the operation
      * @throws VitamClientException
      */
-    ItemStatus getOperationProcessExecutionDetails(String id, JsonNode query, Integer tenantId)
+    RequestResponse<ItemStatus> getOperationProcessExecutionDetails(String id, Integer tenantId)
         throws VitamClientException;
 
     /**
@@ -142,10 +142,10 @@ public interface IngestExternalClient extends MockOrRestClient, PoolingStatusCli
      * @param tenantId
      * @return the status
      * @throws VitamClientException
-     * @throws BadRequestException
+     * @throws IllegalArgumentException
      */
-    RequestResponse<JsonNode> cancelOperationProcessExecution(String id, Integer tenantId)
-        throws VitamClientException, BadRequestException;
+    RequestResponse<ItemStatus> cancelOperationProcessExecution(String id, Integer tenantId)
+        throws VitamClientException, IllegalArgumentException;
 
     /**
      * Use updateOperationActionProcess
@@ -161,7 +161,8 @@ public interface IngestExternalClient extends MockOrRestClient, PoolingStatusCli
      * @throws VitamClientException
      * @deprecated use updateOperationActionProcess
      */
-    @Deprecated // Not used
+    // FIXME clean lors de la 2745
+    @Deprecated
     ItemStatus updateVitamProcess(String contextId, String actionId, String container, String workflow,
         Integer tenantId)
         throws InternalServerException, BadRequestException, VitamClientException;
@@ -176,6 +177,7 @@ public interface IngestExternalClient extends MockOrRestClient, PoolingStatusCli
      * @throws VitamClientException
      * @deprecated use updateOperationActionProcess
      */
+    // FIXME clean lors de la 2745
     @Deprecated
     void initVitamProcess(String contextId, String container, String workFlow, Integer tenantId)
         throws InternalServerException, VitamClientException;
@@ -188,6 +190,7 @@ public interface IngestExternalClient extends MockOrRestClient, PoolingStatusCli
      * @throws VitamException
      * @deprecated use updateOperationActionProcess
      */
+    // FIXME clean lors de la 2745
     @Deprecated
     void initWorkFlow(String contextId, Integer tenantId) throws VitamException;
 
@@ -199,7 +202,8 @@ public interface IngestExternalClient extends MockOrRestClient, PoolingStatusCli
      * @return list of operations details
      * @throws VitamClientException
      */
-    RequestResponse<JsonNode> listOperationsDetails(Integer tenantId, ProcessQuery query) throws VitamClientException;
+    RequestResponse<ProcessDetail> listOperationsDetails(Integer tenantId, ProcessQuery query)
+        throws VitamClientException;
 
     // FIXME P1 : is tenant really necessary ?
     /**

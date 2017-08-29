@@ -26,12 +26,34 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.core;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.eq;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.when;
+
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Matchers;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
@@ -42,6 +64,7 @@ import fr.gouv.vitam.common.model.processing.Distribution;
 import fr.gouv.vitam.common.model.processing.DistributionKind;
 import fr.gouv.vitam.common.model.processing.IOParameter;
 import fr.gouv.vitam.common.model.processing.ProcessBehavior;
+import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.Step;
 import fr.gouv.vitam.common.model.processing.UriPrefix;
@@ -62,30 +85,6 @@ import fr.gouv.vitam.processing.distributor.api.IWorkerManager;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImpl;
 import fr.gouv.vitam.processing.distributor.core.WorkerManager;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Matchers;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
-import java.time.LocalDate;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.eq;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"javax.net.ssl.*"})
@@ -200,7 +199,7 @@ public class ProcessManagementImplTest {
 
         ProcessQuery pq = new ProcessQuery();
 
-        List<JsonNode> results = processManagementImpl.getFilteredProcess(pq, 0);
+        List<ProcessDetail> results = processManagementImpl.getFilteredProcess(pq, 0);
         assertThat(results).hasSize(5);
 
         LocalDate date = LocalDate.now(ZoneOffset.UTC);

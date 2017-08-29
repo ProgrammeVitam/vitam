@@ -85,11 +85,11 @@
             <table class="table">
               <tr>
                 <th>
-                  <a href="" ng-click="oldOrderBy = orderByField; orderByField = 'operation_id'; oldOrderBy !== orderByField ? reverseSort = false : reverseSort === false ? reverseSort = true : reverseSort = false">
+                  <a href="" ng-click="oldOrderBy = orderByField; orderByField = 'operationId'; oldOrderBy !== orderByField ? reverseSort = false : reverseSort === false ? reverseSort = true : reverseSort = false">
                     Identifiant de l'opération
                   </a>
-                  <span ng-show="orderByField == 'operation_id' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
-                  <span ng-show="orderByField == 'operation_id' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+                  <span ng-show="orderByField == 'operationId' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+                  <span ng-show="orderByField == 'operationId' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
                 </th>
                 <th>
                   <a href="" ng-click="oldOrderBy = orderByField; orderByField ='processType'; oldOrderBy !== orderByField ? reverseSort = false : reverseSort === false ? reverseSort = true : reverseSort = false">
@@ -147,7 +147,7 @@
 
               <tbody ng-repeat="operation in search.response.data | startFrom: startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage, search.pagination.startOffset) | orderBy:orderByFunction:reverseSort | limitTo:search.pagination.itemsPerPage">
                 <tr class="workflow">
-                  <td>{{operation.operation_id}}</td>
+                  <td>{{operation.operationId}}</td>
                   <td>{{operation.processType}}</td>
                   <td>{{operation.processDate | vitamFormatDate}}</td>
                   <td>{{operation.globalState === 'RUNNING'? (operation.stepByStep? 'Pas à pas' : 'En continue'): ''}}</td>
@@ -157,16 +157,16 @@
                   <td>{{operation.previousStep | translate}}</td>
                   <td>{{operation.nextStep | translate}}</td>
                   <td>
-                    <button type="button" data-toggle="tooltip" data-placement="top" title="Suivant" class="btn btn-xs" ng-click="executeAction($event, operation.operation_id, 'NEXT', $index)">
+                    <button type="button" data-toggle="tooltip" data-placement="top" title="Suivant" class="btn btn-xs" ng-click="executeAction($event, operation.operationId, 'NEXT', $index)">
                       <i class="material-icons">skip_next</i>
                     </button>
-                    <button type="button" data-toggle="tooltip" data-placement="top" title="Pause" class="btn btn-xs" ng-click="executeAction($event, operation.operation_id, 'PAUSE', $index)">
+                    <button type="button" data-toggle="tooltip" data-placement="top" title="Pause" class="btn btn-xs" ng-click="executeAction($event, operation.operationId, 'PAUSE', $index)">
                       <i class="material-icons">pause_circle_filled</i>
                     </button>
-                    <button type="button" data-toggle="tooltip" data-placement="top" title="Reprise" class="btn btn-xs" ng-click="executeAction($event, operation.operation_id, 'RESUME', $index)">
+                    <button type="button" data-toggle="tooltip" data-placement="top" title="Reprise" class="btn btn-xs" ng-click="executeAction($event, operation.operationId, 'RESUME', $index)">
                       <i class="material-icons">play_arrow</i>
                     </button>
-                    <button type="button" data-toggle="tooltip" data-placement="top" title="Annuler" class="btn btn-xs" ng-click="stopProcess($event, operation.operation_id, $index)">
+                    <button type="button" data-toggle="tooltip" data-placement="top" title="Annuler" class="btn btn-xs" ng-click="stopProcess($event, operation.operationId, $index)">
                       <i class="material-icons">stop</i>
                     </button>
 

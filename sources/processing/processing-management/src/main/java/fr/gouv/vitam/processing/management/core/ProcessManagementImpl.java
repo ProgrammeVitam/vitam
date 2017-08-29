@@ -26,8 +26,23 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.core;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.ServerIdentity;
@@ -35,13 +50,13 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -64,20 +79,6 @@ import fr.gouv.vitam.processing.engine.api.ProcessEngine;
 import fr.gouv.vitam.processing.engine.core.ProcessEngineFactory;
 import fr.gouv.vitam.processing.management.api.ProcessManagement;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -107,12 +108,13 @@ public class ProcessManagementImpl implements ProcessManagement {
     /**
      * constructor of ProcessManagementImpl
      *
-     * @param config             configuration of process engine server
+     * @param config configuration of process engine server
      * @param processDistributor
      * @throws ProcessingStorageWorkspaceException thrown when error occurred on loading paused process
      */
     public ProcessManagementImpl(ServerConfiguration config,
-        ProcessDistributor processDistributor) throws ProcessingStorageWorkspaceException {
+        ProcessDistributor processDistributor)
+        throws ProcessingStorageWorkspaceException {
 
         ParametersChecker.checkParameter("Server config cannot be null", config);
         this.config = config;
@@ -136,8 +138,8 @@ public class ProcessManagementImpl implements ProcessManagement {
     public void startProcess() {
 
         /**
-         *  Do not start process in test mode
-         *  Before test you should add SystemPropertyUtil.set("vitam.test.junit", "true");
+         * Do not start process in test mode Before test you should add SystemPropertyUtil.set("vitam.test.junit",
+         * "true");
          */
         if (VitamConfiguration.isIntegrationTest()) {
             return;
@@ -174,12 +176,9 @@ public class ProcessManagementImpl implements ProcessManagement {
     }
 
     /**
-     * This method is used to properly stop all processworklfow
-     * Call stop on all running process workflow and propagate this stop to the distributor
-     * The distributor should :
-     * - Unregister all worker and complete all opened connections to the workers
-     * - Stop properly waiting tasks
-     * - Save index of element to be used in the next start
+     * This method is used to properly stop all processworklfow Call stop on all running process workflow and propagate
+     * this stop to the distributor The distributor should : - Unregister all worker and complete all opened connections
+     * to the workers - Stop properly waiting tasks - Save index of element to be used in the next start
      */
     @Override
     public void stopProcess() {
@@ -243,7 +242,8 @@ public class ProcessManagementImpl implements ProcessManagement {
     }
 
     @Override
-    public ItemStatus next(WorkerParameters workerParameters, Integer tenantId) throws ProcessingException,
+    public ItemStatus next(WorkerParameters workerParameters, Integer tenantId)
+        throws ProcessingException,
         StateNotAllowedException {
 
         final String operationId = workerParameters.getContainerName();
@@ -417,7 +417,7 @@ public class ProcessManagementImpl implements ProcessManagement {
                         // TODO: just log error is the good solution (here, we set to failed and unknown status on wrong
                         // persisted process) ?
                         LOGGER.error("Cannot set UNKNONW status and FAILED execution status on workflow {}, check " +
-                                "processing datas",
+                            "processing datas",
                             operationId, e);
                     }
                 }
@@ -431,23 +431,22 @@ public class ProcessManagementImpl implements ProcessManagement {
         for (ProcessStep processStep : steps) {
             // Actually the first step in UNKNOWN status is the next step to start
             // This is an ugly method to retrieve it, but there are no more informations
-            if (processStep.getElementProcessed() == 0
-                && processStep.getElementToProcess() == 0
-                && processStep.getStepStatusCode().equals(StatusCode.UNKNOWN)) {
+            if (processStep.getElementProcessed() == 0 && processStep.getElementToProcess() == 0 &&
+                processStep.getStepStatusCode().equals(StatusCode.UNKNOWN)) {
                 return processStep.getId();
             }
         }
         return null;
     }
 
-    public List<JsonNode> getFilteredProcess(ProcessQuery query, Integer tenantId) {
+    public List<ProcessDetail> getFilteredProcess(ProcessQuery query, Integer tenantId) {
         List<ProcessWorkflow> listWorkflows = this.findAllProcessWorkflow(tenantId);
         listWorkflows.sort((a, b) -> b.getProcessDate().compareTo(a.getProcessDate()));
 
-        List<JsonNode> results = new ArrayList<>();
+        List<ProcessDetail> results = new ArrayList<>();
 
         for (ProcessWorkflow processWorkflow : listWorkflows) {
-            ObjectNode workflow = JsonHandler.createObjectNode();
+            ProcessDetail workflow = new ProcessDetail();
             workflow = getNextAndPreviousSteps(processWorkflow, workflow);
             if (query.getId() != null && !query.getId().equals(processWorkflow.getOperationId())) {
                 continue;
@@ -478,20 +477,20 @@ public class ProcessManagementImpl implements ProcessManagement {
                     continue;
                 }
             }
-            workflow.put(PROCESS_ID_FIELD, processWorkflow.getOperationId());
-            workflow.put(PROCESS_TYPE_FIELD, processWorkflow.getLogbookTypeProcess().toString());
-            workflow.put(STEP_BY_STEP_FIELD, processWorkflow.isStepByStep());
-            workflow.put(GLOBAL_EXECUTION_STATE_FIELD, processWorkflow.getState().name());
-            workflow.put(STEP_EXECUTION_STATUS_FIELD, processWorkflow.getStatus().name());
-            workflow.put(PROCESS_DATE_FIELD, LocalDateUtil.getFormattedDate(processWorkflow.getProcessDate()));
+            workflow.setOperationId(processWorkflow.getOperationId());
+            workflow.setProcessType(processWorkflow.getLogbookTypeProcess().toString());
+            workflow.setStepByStep(processWorkflow.isStepByStep());
+            workflow.setGlobalState(processWorkflow.getState().name());
+            workflow.setStepStatus(processWorkflow.getStatus().name());
+            workflow.setProcessDate(LocalDateUtil.getFormattedDate(processWorkflow.getProcessDate()));
             results.add(workflow);
         }
         return results;
     }
 
-    private boolean isContainsStep(List<String> stepsName, ObjectNode workflow) {
-        JsonNode previous = workflow.get(PREVIOUS_STEP);
-        return previous != null && previous.asText() != null && stepsName.contains(previous.asText());
+    private boolean isContainsStep(List<String> stepsName, ProcessDetail workflow) {
+        String previous = workflow.getPreviousStep();
+        return previous != null && !previous.isEmpty() && stepsName.contains(previous);
     }
 
     private boolean isStartDateIn(String startDateMin, String startDateMax, ProcessWorkflow processWorkflow) {
@@ -501,12 +500,12 @@ public class ProcessManagementImpl implements ProcessManagement {
         LocalDate ldt = LocalDateTime.ofInstant(date.toInstant(), ZoneOffset.UTC).toLocalDate();
         LocalDate startDateTimeMin = LocalDate.parse(startDateMin, formatter);
         LocalDate startDateTimeMax = LocalDate.parse(startDateMax, formatter);
-        return ((ldt.isBefore(startDateTimeMax) || ldt.isEqual(startDateTimeMax)) && (ldt.isAfter(startDateTimeMin)
-            || ldt.isEqual(startDateTimeMin)));
+        return ((ldt.isBefore(startDateTimeMax) || ldt.isEqual(startDateTimeMax)) &&
+            (ldt.isAfter(startDateTimeMin) || ldt.isEqual(startDateTimeMin)));
     }
 
     // TODO: 5/27/17 refactor the following
-    private ObjectNode getNextAndPreviousSteps(ProcessWorkflow processWorkflow, ObjectNode workflow) {
+    private ProcessDetail getNextAndPreviousSteps(ProcessWorkflow processWorkflow, ProcessDetail workflow) {
         String previousStep = "";
         String nextStep = "";
         String temporaryPreviousTask = "";
@@ -523,7 +522,7 @@ public class ProcessManagementImpl implements ProcessManagement {
                     if (processStep.getStepStatusCode() == StatusCode.STARTED) {
                         previousStep = processStep.getStepName();
                         nextStep = pwIterator.hasNext() ? pwIterator.next().getStepName() : "";
-                        workflow.put(STEP_EXECUTION_STATUS_FIELD, "STARTED");
+                        workflow.setStepStatus("STARTED");
                         currentStepFound = true;
                     } else {
                         if (processStep.getStepStatusCode() == StatusCode.UNKNOWN) {
@@ -533,16 +532,16 @@ public class ProcessManagementImpl implements ProcessManagement {
                         }
                     }
                     break;
-                case COMPLETED:                   
+                case COMPLETED:
                     if (processStep.getStepStatusCode() == StatusCode.KO ||
                         processStep.getStepStatusCode() == StatusCode.STARTED) {
                         previousStep = processStep.getStepName();
-                        workflow.put(STEP_EXECUTION_STATUS_FIELD, StatusCode.KO.toString());
+                        workflow.setStepStatus(StatusCode.KO.toString());
                         currentStepFound = true;
                     } else {
                         if (processStep.getStepStatusCode() == StatusCode.UNKNOWN) {
                             previousStep = temporaryPreviousTask;
-                            workflow.put(STEP_EXECUTION_STATUS_FIELD, StatusCode.KO.toString());
+                            workflow.setStepStatus(StatusCode.KO.toString());
                             currentStepFound = true;
                         }
                     }
@@ -552,8 +551,8 @@ public class ProcessManagementImpl implements ProcessManagement {
             }
             temporaryPreviousTask = processStep.getStepName();
 
-            workflow.put(PREVIOUS_STEP, previousStep);
-            workflow.put(NEXT_STEP, nextStep);
+            workflow.setPreviousStep(previousStep);
+            workflow.setNextStep(nextStep);
         }
         return workflow;
     }
