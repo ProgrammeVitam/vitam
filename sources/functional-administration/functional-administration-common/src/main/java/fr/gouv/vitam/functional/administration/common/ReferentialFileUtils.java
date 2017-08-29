@@ -31,8 +31,9 @@ public final class ReferentialFileUtils {
                 !logbookParameters.getParameterValue(LogbookParameterName.eventDetailData).isEmpty()) {
                 evDetData = (ObjectNode) JsonHandler
                     .getFromString(logbookParameters.getParameterValue(LogbookParameterName.eventDetailData));
+            } else {
+                evDetData = JsonHandler.createObjectNode();
             }
-            evDetData = JsonHandler.createObjectNode();
             evDetData.put("FileName", filename);
             logbookParameters.putParameterValue(LogbookParameterName.eventDetailData,
                 JsonHandler.unprettyPrint(evDetData));

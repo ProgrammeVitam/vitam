@@ -39,12 +39,28 @@ public class CycleFoundException extends VitamException {
     private static final long serialVersionUID = -2684023194234768369L;
 
     /**
+     * List of vertex in the cycle
+     */
+    private String cycle;
+
+    /**
      * Basic constructor to indicate a simple error message without stacktrace
      *
      * @param message message to log
      */
     public CycleFoundException(String message) {
         super(message);
+    }
+
+    /**
+     * Basic constructor to indicate a simple error message without stacktrace
+     *
+     * @param message message to log
+     * @param cycle detail of the cycle
+     */
+    public CycleFoundException(String message, String cycle) {
+        super(message);
+        this.cycle = cycle;
     }
 
     /**
@@ -66,4 +82,12 @@ public class CycleFoundException extends VitamException {
         super(message, throwable);
     }
 
+    /**
+     * Get the cycle's list of vertex
+     * 
+     * @return the cycle's list of vertex
+     */
+    public String getCycle() {
+        return cycle;
+    }
 }

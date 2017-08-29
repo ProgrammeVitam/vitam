@@ -117,8 +117,7 @@ public class ProcessEngineImpl implements ProcessEngine {
         if (null == callback)
             throw new ProcessingEngineException("IEventsProcessEngine is required");
         if (null == step)
-            throw new ProcessingEngineException("The paramter step cannot be null");
-        ;
+            throw new ProcessingEngineException("The paramter step cannot be null");;
 
         if (null != params)
             this.engineParams = params;
@@ -173,7 +172,7 @@ public class ProcessEngineImpl implements ProcessEngine {
             // When the distributor responds, finalize the logbook persistence
             .thenApply(distributorResponse -> {
                 try {
-                    //Do not log if stop or cancel occurs
+                    // Do not log if stop or cancel occurs
 
                     ItemStatus pauseCancel =
                         distributorResponse.getItemsStatus().get(PauseOrCancelAction.ACTION_PAUSE.name());
@@ -285,7 +284,7 @@ public class ProcessEngineImpl implements ProcessEngine {
 
     /**
      * Log operation after distributor response
-     *
+     * 
      * @param step
      * @param workParams
      * @param tenantId
@@ -321,8 +320,7 @@ public class ProcessEngineImpl implements ProcessEngine {
                         GUIDReader.getGUID(workParams.getContainerName()));
                 actionParameters.putParameterValue(
                     LogbookParameterName.outcomeDetail, messageLogbookEngineHelper
-                        .getOutcomeDetail(handlerId, StatusCode
-                            .STARTED));
+                        .getOutcomeDetail(handlerId, StatusCode.STARTED));
                 helper.updateDelegate(actionParameters);
                 if (itemStatus instanceof ItemStatus) {
                     final ItemStatus actionStatus = itemStatus;
@@ -352,6 +350,17 @@ public class ProcessEngineImpl implements ProcessEngine {
                                 sub.getGlobalStatus(),
                                 null, " Detail= " + sub.computeStatusMeterMessage(),
                                 GUIDReader.getGUID(workParams.getContainerName()));
+
+                        if (sub.getGlobalOutcomeDetailSubcode() != null) {
+                            sublogbook.putParameterValue(LogbookParameterName.outcomeDetail,
+                                messageLogbookEngineHelper.getOutcomeDetail(
+                                    handlerId + "." + sub.getItemId() + "." + sub.getGlobalOutcomeDetailSubcode(),
+                                    sub.getGlobalStatus()));
+                            sublogbook.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                                messageLogbookEngineHelper.getLabelOp(
+                                    handlerId + "." + sub.getItemId() + "." + sub.getGlobalOutcomeDetailSubcode(),
+                                    sub.getGlobalStatus()) + " Detail= " + sub.computeStatusMeterMessage());
+                        }
 
                         helper.updateDelegate(sublogbook);
                     }

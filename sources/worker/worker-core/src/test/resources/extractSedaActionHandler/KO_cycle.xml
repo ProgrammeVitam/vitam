@@ -1,0 +1,1028 @@
+<?xml version="1.0" ?>
+<ArchiveTransfer xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:pr="info:lc/xmlns/premis-v2" xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 seda-2.0-main.xsd" xml:id="ID1">
+	<Comment>SIP KO - Arbo récursif</Comment>
+	<Date>2016-11-28T08:09:46</Date>
+	<MessageIdentifier>SIP KO - Arbo récursif</MessageIdentifier>
+	<ArchivalAgreement>ArchivalAgreement0</ArchivalAgreement>
+	<CodeListVersions>
+		<ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
+		<MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion>
+		<MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
+		<EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion>
+		<FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
+		<CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
+		<DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
+		<StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
+		<AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
+		<AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
+		<DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
+		<ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
+		<ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
+		<AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
+		<RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
+	</CodeListVersions>
+	<DataObjectPackage xml:id="ID2">
+		<BinaryDataObject id="ID5">
+			<DataObjectGroupId>ID4</DataObjectGroupId>
+			<DataObjectVersion>BinaryMaster</DataObjectVersion>
+			<Uri>Content/ID5.pdf</Uri>
+			<MessageDigest algorithm="SHA-512">22cec6b35be7b6eab27fc190d074d425b136d7563daec1800c742cdc2865d1f2a9842020b5cbbe670160c69caf77183f6c93af1231409f6ab296c8ea76e245d3</MessageDigest>
+			<Size>43279</Size>
+			<FormatIdentification>
+				<FormatLitteral>Acrobat PDF 1.4 - Portable Document Format</FormatLitteral>
+				<MimeType>application/pdf</MimeType>
+				<FormatId>fmt/18</FormatId>
+			</FormatIdentification>
+			<FileInfo>
+				<Filename>Code civil - Article 1348.pdf</Filename>
+				<LastModified>2015-08-25T12:56:53.139+02:00</LastModified>
+			</FileInfo>
+		</BinaryDataObject>
+		<BinaryDataObject id="ID9">
+			<DataObjectGroupId>ID8</DataObjectGroupId>
+			<DataObjectVersion>BinaryMaster</DataObjectVersion>
+			<Uri>Content/ID9.pdf</Uri>
+			<MessageDigest algorithm="SHA-512">512daa161d5d142bed8e23d22b1b5c5d37e34a67dc5f30400c4688310b0e71836464323546b2b64742f6b43a2fc8c503b86e5d28a568e31d08838b9cdd41dc3f</MessageDigest>
+			<Size>34282</Size>
+			<FormatIdentification>
+				<FormatLitteral>Acrobat PDF 1.4 - Portable Document Format</FormatLitteral>
+				<MimeType>application/pdf</MimeType>
+				<FormatId>fmt/18</FormatId>
+			</FormatIdentification>
+			<FileInfo>
+				<Filename>Code civil 1316.pdf</Filename>
+				<LastModified>2015-05-04T12:24:26.161+02:00</LastModified>
+			</FileInfo>
+		</BinaryDataObject>
+		<BinaryDataObject id="ID13">
+			<DataObjectGroupId>ID12</DataObjectGroupId>
+			<DataObjectVersion>BinaryMaster</DataObjectVersion>
+			<Uri>Content/ID13.pdf</Uri>
+			<MessageDigest algorithm="SHA-512">6a8e120b7dc0a5e375b0b1e10cce33d92311dc3ae1d903da1cb7eb27f7c4fffdca5d25bbc5857348b4a7f35adfc9e4d41ed2d567da418f6d42fee4c6f08dfa0f</MessageDigest>
+			<Size>42287</Size>
+			<FormatIdentification>
+				<FormatLitteral>Acrobat PDF 1.4 - Portable Document Format</FormatLitteral>
+				<MimeType>application/pdf</MimeType>
+				<FormatId>fmt/18</FormatId>
+			</FormatIdentification>
+			<FileInfo>
+				<Filename>Code de procédure pénale - Article 801-1.pdf</Filename>
+				<LastModified>2015-07-31T15:52:50.042+02:00</LastModified>
+			</FileInfo>
+		</BinaryDataObject>
+		<BinaryDataObject id="ID17">
+			<DataObjectGroupId>ID16</DataObjectGroupId>
+			<DataObjectVersion>BinaryMaster</DataObjectVersion>
+			<Uri>Content/ID17.pdf</Uri>
+			<MessageDigest algorithm="SHA-512">06787aae77441cdb615947f9b91936e3b84233f519777a8c0609d91cdbc838fad071dddba7657cb2a07891c6ef5d313cb41562a68ae34b8980f688412c47adae</MessageDigest>
+			<Size>114710</Size>
+			<FormatIdentification>
+				<FormatLitteral>Acrobat PDF 1.3 - Portable Document Format</FormatLitteral>
+				<MimeType>application/pdf</MimeType>
+				<FormatId>fmt/17</FormatId>
+			</FormatIdentification>
+			<FileInfo>
+				<Filename>decret_2011_144.pdf</Filename>
+				<LastModified>2015-07-31T15:49:06.624+02:00</LastModified>
+			</FileInfo>
+		</BinaryDataObject>
+		<BinaryDataObject id="ID21">
+			<DataObjectGroupId>ID20</DataObjectGroupId>
+			<DataObjectVersion>BinaryMaster</DataObjectVersion>
+			<Uri>Content/ID21.pdf</Uri>
+			<MessageDigest algorithm="SHA-512">34862979be59244031470ad302d1404dfc448be379cc29466a4bf055f55d68307fdde808d717abc17b1141d552ba335aede320e497445b9dc2dabb8706bb5e61</MessageDigest>
+			<Size>115836</Size>
+			<FormatIdentification>
+				<FormatLitteral>Acrobat PDF 1.3 - Portable Document Format</FormatLitteral>
+				<MimeType>application/pdf</MimeType>
+				<FormatId>fmt/17</FormatId>
+			</FormatIdentification>
+			<FileInfo>
+				<Filename>decret_2011_434.pdf</Filename>
+				<LastModified>2015-07-31T15:49:22.718+02:00</LastModified>
+			</FileInfo>
+		</BinaryDataObject>
+		<BinaryDataObject id="ID25">
+			<DataObjectGroupId>ID24</DataObjectGroupId>
+			<DataObjectVersion>BinaryMaster</DataObjectVersion>
+			<Uri>Content/ID25.pdf</Uri>
+			<MessageDigest algorithm="SHA-512">70bf9d147b29672feb278181875d729c92ea18c21ef30faa96275f1d87ddd641b19b3ed4b37a79f9f306acca633a177dd618c8ef1e6514d21894c0ba3fe80300</MessageDigest>
+			<Size>89567</Size>
+			<FormatIdentification>
+				<FormatLitteral>Acrobat PDF 1.4 - Portable Document Format</FormatLitteral>
+				<MimeType>application/pdf</MimeType>
+				<FormatId>fmt/18</FormatId>
+			</FormatIdentification>
+			<FileInfo>
+				<Filename>Décret n° 2010-112.pdf</Filename>
+				<LastModified>2015-07-31T16:44:55.990+02:00</LastModified>
+			</FileInfo>
+		</BinaryDataObject>
+		<BinaryDataObject id="ID29">
+			<DataObjectGroupId>ID28</DataObjectGroupId>
+			<DataObjectVersion>BinaryMaster</DataObjectVersion>
+			<Uri>Content/ID29.pdf</Uri>
+			<MessageDigest algorithm="SHA-512">3f548398e019842f8e87b0070fb765110f220ad8a99f19192080d4daab8f1e4c98230689ebcf77280f3568c215d35ff7e46af4915cc11b1979be75733235dbb2</MessageDigest>
+			<Size>77221</Size>
+			<FormatIdentification>
+				<FormatLitteral>Acrobat PDF 1.4 - Portable Document Format</FormatLitteral>
+				<MimeType>application/pdf</MimeType>
+				<FormatId>fmt/18</FormatId>
+			</FormatIdentification>
+			<FileInfo>
+				<Filename>Décret n°2001-272.pdf</Filename>
+				<LastModified>2015-07-31T16:47:08.837+02:00</LastModified>
+			</FileInfo>
+		</BinaryDataObject>
+		<BinaryDataObject id="ID33">
+			<DataObjectGroupId>ID32</DataObjectGroupId>
+			<DataObjectVersion>BinaryMaster</DataObjectVersion>
+			<Uri>Content/ID33.pdf</Uri>
+			<MessageDigest algorithm="SHA-512">37b51695e493c5b34be4ddf9e34bd00bfa76efbb8258e16451a7845de9af984f9b22c876ed1f092ea1460260d0f2e876645dd3e17060aa11511dfe836ee4597a</MessageDigest>
+			<Size>378878</Size>
+			<FormatIdentification>
+				<FormatLitteral>Acrobat PDF 1.4 - Portable Document Format</FormatLitteral>
+				<MimeType>application/pdf</MimeType>
+				<FormatId>fmt/18</FormatId>
+			</FormatIdentification>
+			<FileInfo>
+				<Filename>Décret n°56-222 du 29 février 1956.pdf</Filename>
+				<LastModified>2015-07-31T16:46:25.077+02:00</LastModified>
+			</FileInfo>
+		</BinaryDataObject>
+		<BinaryDataObject id="ID37">
+			<DataObjectGroupId>ID36</DataObjectGroupId>
+			<DataObjectVersion>BinaryMaster</DataObjectVersion>
+			<Uri>Content/ID37.pdf</Uri>
+			<MessageDigest algorithm="SHA-512">ca5bca7115a91325a5e7c30bd13689fbea1ecb066c4d38d83fe793d326aa3d3c3eb6c5f8d4f3fab0dbd643d70aca1b1173db34acc67a95808404704c866b1ea2</MessageDigest>
+			<Size>138290</Size>
+			<FormatIdentification>
+				<FormatLitteral>Acrobat PDF 1.4 - Portable Document Format</FormatLitteral>
+				<MimeType>application/pdf</MimeType>
+				<FormatId>fmt/18</FormatId>
+			</FormatIdentification>
+			<FileInfo>
+				<Filename>Décret n°71-941 du 26 novembre 1971 relatif aux actes établis par les notaires.pdf</Filename>
+				<LastModified>2015-07-31T15:55:34.120+02:00</LastModified>
+			</FileInfo>
+		</BinaryDataObject>
+		<BinaryDataObject id="ID43">
+			<DataObjectGroupId>ID42</DataObjectGroupId>
+			<DataObjectVersion>BinaryMaster</DataObjectVersion>
+			<Uri>Content/ID43.doc</Uri>
+			<MessageDigest algorithm="SHA-512">88af63fbf70a285b435f37e21f2e8c5723de308a3e24599a240fdb9ce5978b75576817202da7167605431cfbfa68e6ae5da53f608651c16ca0ca8928b7698b74</MessageDigest>
+			<Size>38400</Size>
+			<FormatIdentification>
+				<FormatLitteral>Microsoft Word Document</FormatLitteral>
+				<MimeType>application/msword</MimeType>
+				<FormatId>fmt/40</FormatId>
+			</FormatIdentification>
+			<FileInfo>
+				<Filename>20150407_NP_MCC-SIAF_eIDAS-position-art-34.doc</Filename>
+				<LastModified>2015-08-25T13:15:15.988+02:00</LastModified>
+			</FileInfo>
+		</BinaryDataObject>
+		<BinaryDataObject id="ID47">
+			<DataObjectGroupId>ID46</DataObjectGroupId>
+			<DataObjectVersion>BinaryMaster</DataObjectVersion>
+			<Uri>Content/ID47.pdf</Uri>
+			<MessageDigest algorithm="SHA-512">ba0adbeb6ab17d927c89579b93283ddf386b795e4153bbb955dd5ccc70831316a0c3f7fa0f61b8cf65453ee6f9e2d8638d0277b5aa2a858cbd18c21a5bc00510</MessageDigest>
+			<Size>101334</Size>
+			<FormatIdentification>
+				<FormatLitteral>Acrobat PDF 1.4 - Portable Document Format</FormatLitteral>
+				<MimeType>application/pdf</MimeType>
+				<FormatId>fmt/18</FormatId>
+			</FormatIdentification>
+			<FileInfo>
+				<Filename>20150619_MCC-SIAF_eIDAS.pdf</Filename>
+				<LastModified>2015-08-25T12:19:32.915+02:00</LastModified>
+			</FileInfo>
+		</BinaryDataObject>
+		<BinaryDataObject id="ID51">
+			<DataObjectGroupId>ID50</DataObjectGroupId>
+			<DataObjectVersion>BinaryMaster</DataObjectVersion>
+			<Uri>Content/ID51.pdf</Uri>
+			<MessageDigest algorithm="SHA-512">7a572f0efb8b733dcbb84bc94b99407edd720e5e1e46825a35c684ce83a5bb9943c7e4c38aca8304fa09f790811797c0bc9db69f8df352b74d9f18670d742bca</MessageDigest>
+			<Size>100440</Size>
+			<FormatIdentification>
+				<FormatLitteral>Acrobat PDF 1.4 - Portable Document Format</FormatLitteral>
+				<MimeType>application/pdf</MimeType>
+				<FormatId>fmt/18</FormatId>
+			</FormatIdentification>
+			<FileInfo>
+				<Filename>20150826_NP_MCC-SIAF_eIDAS-demande-avis-reponse-GT.pdf</Filename>
+				<LastModified>2015-08-26T16:24:10.802+02:00</LastModified>
+			</FileInfo>
+		</BinaryDataObject>
+		<BinaryDataObject id="ID55">
+			<DataObjectGroupId>ID54</DataObjectGroupId>
+			<DataObjectVersion>BinaryMaster</DataObjectVersion>
+			<Uri>Content/ID55.pdf</Uri>
+			<MessageDigest algorithm="SHA-512">df1082481052e0f076dea24367d0ea4e430dac9fe682550dcb7f63ead190a311aa8d2f8550eff2fab0723c9c41a9dd35f41f1be289231475fde8eb657bc6e68d</MessageDigest>
+			<Size>92455</Size>
+			<FormatIdentification>
+				<FormatLitteral>Acrobat PDF 1.4 - Portable Document Format</FormatLitteral>
+				<MimeType>application/pdf</MimeType>
+				<FormatId>fmt/18</FormatId>
+			</FormatIdentification>
+			<FileInfo>
+				<Filename>20150826_NP_Vitam_eIDAS-reponse-demande-avis-SIAF.pdf</Filename>
+				<LastModified>2015-08-26T17:25:58.182+02:00</LastModified>
+			</FileInfo>
+		</BinaryDataObject>
+		<BinaryDataObject id="ID59">
+			<DataObjectGroupId>ID58</DataObjectGroupId>
+			<DataObjectVersion>BinaryMaster</DataObjectVersion>
+			<Uri>Content/ID59.pdf</Uri>
+			<MessageDigest algorithm="SHA-512">79dc0bd8012f8a32eafe25be58a95a278d8bf7bdd501b6b2ca62fa7a2837653af79060accb81a376339b114a1b6703f85bff52881ce44eceb789802e8db4d028</MessageDigest>
+			<Size>155601</Size>
+			<FormatIdentification>
+				<FormatLitteral>Acrobat PDF 1.4 - Portable Document Format</FormatLitteral>
+				<MimeType>application/pdf</MimeType>
+				<FormatId>fmt/18</FormatId>
+			</FormatIdentification>
+			<FileInfo>
+				<Filename>20150827_NP_MCC-SIAF_eIDAS-GT-CR.pdf</Filename>
+				<LastModified>2015-08-27T17:54:31.399+02:00</LastModified>
+			</FileInfo>
+		</BinaryDataObject>
+		<BinaryDataObject id="ID63">
+			<DataObjectGroupId>ID62</DataObjectGroupId>
+			<DataObjectVersion>BinaryMaster</DataObjectVersion>
+			<Uri>Content/ID63.pdf</Uri>
+			<MessageDigest algorithm="SHA-512">1116b601e8c266accd2e8ceb2907c2dd54374bf36220ed0f1d578f56b372af986436d9b65b5793065eaeba378d47247f3719017d493b9eaa6b5cd953400fffac</MessageDigest>
+			<Size>138164</Size>
+			<FormatIdentification>
+				<FormatLitteral>Acrobat PDF 1.4 - Portable Document Format</FormatLitteral>
+				<MimeType>application/pdf</MimeType>
+				<FormatId>fmt/18</FormatId>
+			</FormatIdentification>
+			<FileInfo>
+				<Filename>20150827_NP_MCC-SIAF_eIDAS_commentaire-reponse-vitam-demande-avis.pdf</Filename>
+				<LastModified>2015-08-27T09:18:15.157+02:00</LastModified>
+			</FileInfo>
+		</BinaryDataObject>
+		<BinaryDataObject id="ID67">
+			<DataObjectGroupId>ID66</DataObjectGroupId>
+			<DataObjectVersion>BinaryMaster</DataObjectVersion>
+			<Uri>Content/ID67.pdf</Uri>
+			<MessageDigest algorithm="SHA-512">ea61e5cb0fd3ecc0a3a6a40a4b07a06a63812304f011c936306fe39a932536afa6944fa07c6205caa1c74a1ea3b3f45d72a6e3990967308e1fd099007051227f</MessageDigest>
+			<Size>266570</Size>
+			<FormatIdentification>
+				<FormatLitteral>Acrobat PDF 1.4 - Portable Document Format</FormatLitteral>
+				<MimeType>application/pdf</MimeType>
+				<FormatId>fmt/18</FormatId>
+			</FormatIdentification>
+			<FileInfo>
+				<Filename>Appel public à commentaires, relatif aux impacts du règlement européen eIDAS sur la réglementation nationale _ Agence nationale de la sécurité des systèmes d'information.pdf</Filename>
+				<LastModified>2015-08-25T12:18:31.934+02:00</LastModified>
+			</FileInfo>
+		</BinaryDataObject>
+		<BinaryDataObject id="ID71">
+			<DataObjectGroupId>ID70</DataObjectGroupId>
+			<DataObjectVersion>BinaryMaster</DataObjectVersion>
+			<Uri>Content/ID71.pdf</Uri>
+			<MessageDigest algorithm="SHA-512">6d590d6f2757d38a2e8fea2ae94d560fd36dc7b107ea66f6877578d9a7ae8ae546a71e57c7e79450bda344f2172e9c17b4ac3066e4716723f77f87eb6bb72e05</MessageDigest>
+			<Size>1051241</Size>
+			<FormatIdentification>
+				<FormatLitteral>Acrobat PDF/A - Portable Document Format</FormatLitteral>
+				<MimeType>application/pdf</MimeType>
+				<FormatId>fmt/95</FormatId>
+			</FormatIdentification>
+			<FileInfo>
+				<Filename>CELEX_32014R0910_FR_TXT.pdf</Filename>
+				<LastModified>2015-03-10T11:11:40.859+01:00</LastModified>
+			</FileInfo>
+		</BinaryDataObject>
+		<BinaryDataObject id="ID75">
+			<DataObjectGroupId>ID74</DataObjectGroupId>
+			<DataObjectVersion>BinaryMaster</DataObjectVersion>
+			<Uri>Content/ID75.odt</Uri>
+			<MessageDigest algorithm="SHA-512">f7357d632a5044cebe9823e5bb7021da832f61c8f413ee85b608405e676ba0eb954154801e52940ea68818a022b9a61a9871768a93f889745f0af542bad8436e</MessageDigest>
+			<Size>33834</Size>
+			<FormatIdentification>
+				<FormatLitteral>OpenDocument Text</FormatLitteral>
+				<MimeType>application/vnd.oasis.opendocument.text</MimeType>
+				<FormatId>fmt/291</FormatId>
+			</FormatIdentification>
+			<FileInfo>
+				<Filename>eIDAS_GT_FR_livrable_20150722_partie_ANSSI_revuSIAF.odt</Filename>
+				<LastModified>2015-08-26T16:23:18.110+02:00</LastModified>
+			</FileInfo>
+		</BinaryDataObject>
+		<BinaryDataObject id="ID79">
+			<DataObjectGroupId>ID78</DataObjectGroupId>
+			<DataObjectVersion>BinaryMaster</DataObjectVersion>
+			<Uri>Content/ID79.doc</Uri>
+			<MessageDigest algorithm="SHA-512">e7dda67b0d75a3705105b2ed4e16c6fb9067d5638ab3f89248bc29caefe5678310f4421543e62a7b6592fd6e0fcb655656ed4fe0c1223253d8f12e448b6479fa</MessageDigest>
+			<Size>72704</Size>
+			<FormatIdentification>
+				<FormatLitteral>Microsoft Word Document</FormatLitteral>
+				<MimeType>application/msword</MimeType>
+				<FormatId>fmt/40</FormatId>
+			</FormatIdentification>
+			<FileInfo>
+				<Filename>eIDAS_GT_FR_livrable_20150824_partie_MCC_v2.doc</Filename>
+				<LastModified>2015-08-26T16:23:14.368+02:00</LastModified>
+			</FileInfo>
+		</BinaryDataObject>
+		<BinaryDataObject id="ID83">
+			<DataObjectGroupId>ID82</DataObjectGroupId>
+			<DataObjectVersion>BinaryMaster</DataObjectVersion>
+			<Uri>Content/ID83.doc</Uri>
+			<MessageDigest algorithm="SHA-512">cf3f8e4c26fc20e8ebb3cb7f35c19bfb70e29486f84d27a91d5e78b4787a7bd862e43b3ac8244146e34298782f38135fdb29f64edd0d0dd1e530f5674d6a605b</MessageDigest>
+			<Size>72704</Size>
+			<FormatIdentification>
+				<FormatLitteral>Microsoft Word Document</FormatLitteral>
+				<MimeType>application/msword</MimeType>
+				<FormatId>fmt/40</FormatId>
+			</FormatIdentification>
+			<FileInfo>
+				<Filename>eIDAS_GT_FR_livrable_20150826_partie_MCC_v2.1.doc</Filename>
+				<LastModified>2015-08-27T09:16:39.402+02:00</LastModified>
+			</FileInfo>
+		</BinaryDataObject>
+		<BinaryDataObject id="ID87">
+			<DataObjectGroupId>ID86</DataObjectGroupId>
+			<DataObjectVersion>BinaryMaster</DataObjectVersion>
+			<Uri>Content/ID87.odt</Uri>
+			<MessageDigest algorithm="SHA-512">5a1a2f739f423da2d6fb3d142859c6a6d57258c21e0ed392ad8a986a8ca5c4799a1aabcb24c50c40627a5d5dc7a19e6c71e69cc08272943a4eff2128ee06ff5c</MessageDigest>
+			<Size>75170</Size>
+			<FormatIdentification>
+				<FormatLitteral>OpenDocument Text</FormatLitteral>
+				<MimeType>application/vnd.oasis.opendocument.text</MimeType>
+				<FormatId>fmt/291</FormatId>
+			</FormatIdentification>
+			<FileInfo>
+				<Filename>eIDAS_GT_reunion_20150521_CR_VD.odt</Filename>
+				<LastModified>2015-05-29T09:03:16.150+02:00</LastModified>
+			</FileInfo>
+		</BinaryDataObject>
+		<BinaryDataObject id="ID91">
+			<DataObjectGroupId>ID90</DataObjectGroupId>
+			<DataObjectVersion>BinaryMaster</DataObjectVersion>
+			<Uri>Content/ID91.pdf</Uri>
+			<MessageDigest algorithm="SHA-512">0fea9e97958a2cde0d677fda32882abcfe27115847ed39f7ab162007c78e6e83cf96932c0f38a3bfc4ecc2e4b7514bf3c42134e2841728abd47234ca8d285c40</MessageDigest>
+			<Size>395567</Size>
+			<FormatIdentification>
+				<FormatLitteral>Acrobat PDF 1.5 - Portable Document Format</FormatLitteral>
+				<MimeType>application/pdf</MimeType>
+				<FormatId>fmt/19</FormatId>
+			</FormatIdentification>
+			<FileInfo>
+				<Filename>ts_10153301v010101p.pdf</Filename>
+				<LastModified>2015-03-10T11:16:50.201+01:00</LastModified>
+			</FileInfo>
+		</BinaryDataObject>
+		<BinaryDataObject id="ID95">
+			<DataObjectGroupId>ID94</DataObjectGroupId>
+			<DataObjectVersion>BinaryMaster</DataObjectVersion>
+			<Uri>Content/ID95.pdf</Uri>
+			<MessageDigest algorithm="SHA-512">b4599803e8c3df911d8e0a547d0c04064084239e15fa7d56123b2a28e02a789014a0c69aa602d2824ef28091c56b8c8de69f7493828106c45e053367e40a97b9</MessageDigest>
+			<Size>129379</Size>
+			<FormatIdentification>
+				<FormatLitteral>Acrobat PDF 1.3 - Portable Document Format</FormatLitteral>
+				<MimeType>application/pdf</MimeType>
+				<FormatId>fmt/17</FormatId>
+			</FormatIdentification>
+			<FileInfo>
+				<Filename>joe_20131113_0001.pdf</Filename>
+				<LastModified>2015-07-31T16:42:25.333+02:00</LastModified>
+			</FileInfo>
+		</BinaryDataObject>
+		<BinaryDataObject id="ID99">
+			<DataObjectGroupId>ID98</DataObjectGroupId>
+			<DataObjectVersion>BinaryMaster</DataObjectVersion>
+			<Uri>Content/ID99.pdf</Uri>
+			<MessageDigest algorithm="SHA-512">97a105e659fa0455c5cd620670cb5c372ba8b712c74440920af1fd5d7443b87e4723ecbbf2f87465fc90bbb4027c40e08db0087e6b673e9c335f59379766df02</MessageDigest>
+			<Size>88668</Size>
+			<FormatIdentification>
+				<FormatLitteral>Acrobat PDF 1.4 - Portable Document Format</FormatLitteral>
+				<MimeType>application/pdf</MimeType>
+				<FormatId>fmt/18</FormatId>
+			</FormatIdentification>
+			<FileInfo>
+				<Filename>ordonnance_2005_1516.pdf</Filename>
+				<LastModified>2015-07-31T15:51:02.127+02:00</LastModified>
+			</FileInfo>
+		</BinaryDataObject>
+		<BinaryDataObject id="ID105">
+			<DataObjectGroupId>ID104</DataObjectGroupId>
+			<DataObjectVersion>BinaryMaster</DataObjectVersion>
+			<Uri>Content/ID105.pdf</Uri>
+			<MessageDigest algorithm="SHA-512">106af42dd0d26cbfd5d8fa4ad0b887997a3259ea0b30f4c2dc13abff9f8b7305bc931e5a0b7d7ebe88261fa5d096db043833d7de9d361ef63124d80b61cde065</MessageDigest>
+			<Size>86572</Size>
+			<FormatIdentification>
+				<FormatLitteral>Acrobat PDF 1.4 - Portable Document Format</FormatLitteral>
+				<MimeType>application/pdf</MimeType>
+				<FormatId>fmt/18</FormatId>
+			</FormatIdentification>
+			<FileInfo>
+				<Filename>droit_preuve_reforme_2015_ordonnance_20150430_reaction_SIAF_vd.pdf</Filename>
+				<LastModified>2015-05-29T09:03:45.590+02:00</LastModified>
+			</FileInfo>
+		</BinaryDataObject>
+		<BinaryDataObject id="ID111">
+			<DataObjectGroupId>ID110</DataObjectGroupId>
+			<DataObjectVersion>BinaryMaster</DataObjectVersion>
+			<Uri>Content/ID111.pdf</Uri>
+			<MessageDigest algorithm="SHA-512">5f213591ab2323f4321be2d9fa889a091b6cb7711fec6f09f726c47a9cb6b825445878d91ff9a7ff7da91ac004e21663fb5cd3b6e097e3dddd2bbb714365e198</MessageDigest>
+			<Size>629088</Size>
+			<FormatIdentification>
+				<FormatLitteral>Acrobat PDF 1.4 - Portable Document Format</FormatLitteral>
+				<MimeType>application/pdf</MimeType>
+				<FormatId>fmt/18</FormatId>
+			</FormatIdentification>
+			<FileInfo>
+				<Filename>ArchivageSecurise-CahierDesCharges-2006-05-16.pdf</Filename>
+				<LastModified>2015-05-04T12:23:22.036+02:00</LastModified>
+			</FileInfo>
+		</BinaryDataObject>
+		<BinaryDataObject id="ID115">
+			<DataObjectGroupId>ID114</DataObjectGroupId>
+			<DataObjectVersion>BinaryMaster</DataObjectVersion>
+			<Uri>Content/ID115.pdf</Uri>
+			<MessageDigest algorithm="SHA-512">4a4bfb22f202be6a6a715868a934f4c457531fdc68606c0fa7d100c059a139abf8b84b8b340866484a81309936f670c0bc4ac4cf26035e62113a5d4fb6c3a569</MessageDigest>
+			<Size>787095</Size>
+			<FormatIdentification>
+				<FormatLitteral>Acrobat PDF 1.4 - Portable Document Format</FormatLitteral>
+				<MimeType>application/pdf</MimeType>
+				<FormatId>fmt/18</FormatId>
+			</FormatIdentification>
+			<FileInfo>
+				<Filename>ArchivageSecurise-EnjeuxJuridiques-2006-05-16.pdf</Filename>
+				<LastModified>2015-05-04T12:23:33.003+02:00</LastModified>
+			</FileInfo>
+		</BinaryDataObject>
+		<BinaryDataObject id="ID119">
+			<DataObjectGroupId>ID118</DataObjectGroupId>
+			<DataObjectVersion>BinaryMaster</DataObjectVersion>
+			<Uri>Content/ID119.pdf</Uri>
+			<MessageDigest algorithm="SHA-512">8515e276b4e1f3d633938d0bce6621f36d34880bca61ac27fd94d86a94e90010c486b71560b9a565f0ce8cc677800b360e84427d69b689ca97c1d0439b90ac64</MessageDigest>
+			<Size>1058207</Size>
+			<FormatIdentification>
+				<FormatLitteral>Acrobat PDF 1.4 - Portable Document Format</FormatLitteral>
+				<MimeType>application/pdf</MimeType>
+				<FormatId>fmt/18</FormatId>
+			</FormatIdentification>
+			<FileInfo>
+				<Filename>ArchivageSecurise-EtatDeLArt-2006-11-29.pdf</Filename>
+				<LastModified>2015-05-04T12:23:46.898+02:00</LastModified>
+			</FileInfo>
+		</BinaryDataObject>
+		<BinaryDataObject id="ID123">
+			<DataObjectGroupId>ID122</DataObjectGroupId>
+			<DataObjectVersion>BinaryMaster</DataObjectVersion>
+			<Uri>Content/ID123.pdf</Uri>
+			<MessageDigest algorithm="SHA-512">9e54a38ffd1c975784d1ce46c83bcb5fce2d4d96efb390f213440531920e89362e993704ffa30b2ff16f4d5a42cfd2fd6721d1ada00aa15b7e6da621886af38f</MessageDigest>
+			<Size>290110</Size>
+			<FormatIdentification>
+				<FormatLitteral>Acrobat PDF 1.4 - Portable Document Format</FormatLitteral>
+				<MimeType>application/pdf</MimeType>
+				<FormatId>fmt/18</FormatId>
+			</FormatIdentification>
+			<FileInfo>
+				<Filename>ArchivageSecurise-Memento-2006-05-16.pdf</Filename>
+				<LastModified>2015-05-04T12:23:55.691+02:00</LastModified>
+			</FileInfo>
+		</BinaryDataObject>
+		<BinaryDataObject id="ID127">
+			<DataObjectGroupId>ID126</DataObjectGroupId>
+			<DataObjectVersion>BinaryMaster</DataObjectVersion>
+			<Uri>Content/ID127.pdf</Uri>
+			<MessageDigest algorithm="SHA-512">37b2b1e029a5de6236254216db32c43bf7413b64b5659c8f7b5fd4d85a86d58ef26088ec7f1c3a6d6bd50de2a5438867833dea2c3eb96c489a5a61195b529cc2</MessageDigest>
+			<Size>563988</Size>
+			<FormatIdentification>
+				<FormatLitteral>Acrobat PDF 1.4 - Portable Document Format</FormatLitteral>
+				<MimeType>application/pdf</MimeType>
+				<FormatId>fmt/18</FormatId>
+			</FormatIdentification>
+			<FileInfo>
+				<Filename>ArchivageSecurise-P2A-2006-07-24.pdf</Filename>
+				<LastModified>2015-05-04T12:24:05.875+02:00</LastModified>
+			</FileInfo>
+		</BinaryDataObject>
+		<BinaryDataObject id="ID131">
+			<DataObjectGroupId>ID130</DataObjectGroupId>
+			<DataObjectVersion>BinaryMaster</DataObjectVersion>
+			<Uri>Content/ID131.pdf</Uri>
+			<MessageDigest algorithm="SHA-512">a5d9c3c93a3061868700302ef6dcc7cae6b15f6070f56d33c13fef2fa5f38e1cc785d65971d6312a613a7bbe061668d8b786e35e8d717d78554672f80452fb2d</MessageDigest>
+			<Size>81440</Size>
+			<FormatIdentification>
+				<FormatLitteral>Acrobat PDF 1.4 - Portable Document Format</FormatLitteral>
+				<MimeType>application/pdf</MimeType>
+				<FormatId>fmt/18</FormatId>
+			</FormatIdentification>
+			<FileInfo>
+				<Filename>ArchivageSecurise-Plaquette-2006-08-18.pdf</Filename>
+				<LastModified>2015-05-04T12:24:17.147+02:00</LastModified>
+			</FileInfo>
+		</BinaryDataObject>
+		<DescriptiveMetadata>
+			<ArchiveUnit id="ID3">
+				<Content>
+					<DescriptionLevel>RecordGrp</DescriptionLevel>
+					<Title>viverra</Title>
+					<Description>Nunc ut nisl id arcu maximus tempor. Donec hendrerit, mi aliquam mattis facilisis</Description>
+					<StartDate>2015-03-10T11:11:40</StartDate>
+					<EndDate>2015-08-27T17:54:31</EndDate>
+				</Content>
+				<ArchiveUnit id="ID7">
+					<ArchiveUnitRefId>ID6</ArchiveUnitRefId>
+				</ArchiveUnit>
+				<ArchiveUnit id="ID11">
+					<ArchiveUnitRefId>ID10</ArchiveUnitRefId>
+				</ArchiveUnit>
+				<ArchiveUnit id="ID15">
+					<ArchiveUnitRefId>ID14</ArchiveUnitRefId>
+				</ArchiveUnit>
+				<ArchiveUnit id="ID19">
+					<ArchiveUnitRefId>ID18</ArchiveUnitRefId>
+				</ArchiveUnit>
+				<ArchiveUnit id="ID23">
+					<ArchiveUnitRefId>ID22</ArchiveUnitRefId>
+				</ArchiveUnit>
+				<ArchiveUnit id="ID27">
+					<ArchiveUnitRefId>ID26</ArchiveUnitRefId>
+				</ArchiveUnit>
+				<ArchiveUnit id="ID31">
+					<ArchiveUnitRefId>ID30</ArchiveUnitRefId>
+				</ArchiveUnit>
+				<ArchiveUnit id="ID35">
+					<ArchiveUnitRefId>ID34</ArchiveUnitRefId>
+				</ArchiveUnit>
+				<ArchiveUnit id="ID39">
+					<ArchiveUnitRefId>ID38</ArchiveUnitRefId>
+				</ArchiveUnit>
+				<ArchiveUnit id="ID41">
+					<ArchiveUnitRefId>ID40</ArchiveUnitRefId>
+				</ArchiveUnit>
+				<ArchiveUnit id="ID97">
+					<ArchiveUnitRefId>ID96</ArchiveUnitRefId>
+				</ArchiveUnit>
+				<ArchiveUnit id="ID101">
+					<ArchiveUnitRefId>ID100</ArchiveUnitRefId>
+				</ArchiveUnit>
+				<ArchiveUnit id="ID103">
+					<ArchiveUnitRefId>ID102</ArchiveUnitRefId>
+				</ArchiveUnit>
+				<ArchiveUnit id="ID109">
+					<ArchiveUnitRefId>ID108</ArchiveUnitRefId>
+				</ArchiveUnit>
+				<ArchiveUnit id="ID135">
+					<ArchiveUnitRefId>ID134</ArchiveUnitRefId>
+				</ArchiveUnit>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID6">
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>Morbi eu blandit enim</Title>
+					<Description>Sed et gravida leo. Maecenas maximus hendrerit viverra.</Description>
+					<TransactedDate>2015-08-25T12:56:53</TransactedDate>
+				</Content>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID4</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID10">
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>In vitae congue purus</Title>
+					<Description>Integer rutrum ornare neque, eget ornare lorem eleifend quis. </Description>
+					<TransactedDate>2015-05-04T12:24:26</TransactedDate>
+				</Content>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID8</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID14">
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>iaculis consequat</Title>
+					<Description>Donec non sagittis nunc</Description>
+					<TransactedDate>2015-07-31T15:52:50</TransactedDate>
+				</Content>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID12</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID18">
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>fermentum lobortis, magna urn</Title>
+					<Description>Sed vitae condimentum leo.</Description>
+					<TransactedDate>2015-07-31T15:49:06</TransactedDate>
+				</Content>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID16</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID22">
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>et tempor purus est a nisl</Title>
+					<Description>Fusce purus lectus, rhoncus quis sollicitudin et, volutpat non mi.</Description>
+					<TransactedDate>2015-07-31T15:49:22</TransactedDate>
+				</Content>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID20</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID26">
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>Curabitur faucibus auctor aliquet</Title>
+					<Description>Suspendisse feugiat, velit non pulvinar semper, turpis lectus gravida arcu</Description>
+					<TransactedDate>2015-07-31T16:44:55</TransactedDate>
+				</Content>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID24</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID30">
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title> Aliquam venenatis, ipsum nec tempus mattis</Title>
+					<Description>semper sapien, ut suscipit augue. Cras ut tincidunt leo, at aliq</Description>
+					<TransactedDate>2015-07-31T16:47:08</TransactedDate>
+				</Content>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID28</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID34">
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title> Suspendisse pharetra sem</Title>
+					<Description>Pellentesque gravida massa tortor, non posuere orci ultrices vitae.</Description>
+					<TransactedDate>2015-07-31T16:46:25</TransactedDate>
+				</Content>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID32</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID38">
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>Curabitur faucibus auctor alique</Title>
+					<Description>Vestibulum sagittis scelerisque suscipit.</Description>
+					<TransactedDate>2015-07-31T15:55:34</TransactedDate>
+				</Content>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID36</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID40">
+				<Content>
+					<DescriptionLevel>RecordGrp</DescriptionLevel>
+					<Title>eidas</Title>
+					<Description>Maecenas eu vehicula augue.</Description>
+					<StartDate>2015-03-10T11:11:40</StartDate>
+					<EndDate>2015-08-27T17:54:31</EndDate>
+				</Content>
+				<ArchiveUnit id="ID45">
+					<ArchiveUnitRefId>ID44</ArchiveUnitRefId>
+				</ArchiveUnit>
+				<ArchiveUnit id="ID49">
+					<ArchiveUnitRefId>ID48</ArchiveUnitRefId>
+				</ArchiveUnit>
+				<ArchiveUnit id="ID53">
+					<ArchiveUnitRefId>ID52</ArchiveUnitRefId>
+				</ArchiveUnit>
+				<ArchiveUnit id="ID57">
+					<ArchiveUnitRefId>ID56</ArchiveUnitRefId>
+				</ArchiveUnit>
+				<ArchiveUnit id="ID61">
+					<ArchiveUnitRefId>ID60</ArchiveUnitRefId>
+				</ArchiveUnit>
+				<ArchiveUnit id="ID65">
+					<ArchiveUnitRefId>ID64</ArchiveUnitRefId>
+				</ArchiveUnit>
+				<ArchiveUnit id="ID69">
+					<ArchiveUnitRefId>ID68</ArchiveUnitRefId>
+				</ArchiveUnit>
+				<ArchiveUnit id="ID73">
+					<ArchiveUnitRefId>ID72</ArchiveUnitRefId>
+				</ArchiveUnit>
+				<ArchiveUnit id="ID77">
+					<ArchiveUnitRefId>ID76</ArchiveUnitRefId>
+				</ArchiveUnit>
+				<ArchiveUnit id="ID81">
+					<ArchiveUnitRefId>ID80</ArchiveUnitRefId>
+				</ArchiveUnit>
+				<ArchiveUnit id="ID85">
+					<ArchiveUnitRefId>ID84</ArchiveUnitRefId>
+				</ArchiveUnit>
+				<ArchiveUnit id="ID89">
+					<ArchiveUnitRefId>ID88</ArchiveUnitRefId>
+				</ArchiveUnit>
+				<ArchiveUnit id="ID93">
+					<ArchiveUnitRefId>ID92</ArchiveUnitRefId>
+				</ArchiveUnit>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID44">
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>na erat ullamcorper nunc, ac</Title>
+					<Description>Suspendisse feugiat, velit non pulvinar semper, turpis lectus gravida arcu</Description>
+					<TransactedDate>2015-08-25T13:15:15</TransactedDate>
+				</Content>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID42</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID48">
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>Curabitur faucibus auctor aliquet.</Title>
+					<Description>mcorper nunc, ac porttitor dui nulla at leo. Ut vitae elementum dolor, a maximus eros. Donec eu maximus urna, sed porta dolor. Suspendisse a</Description>
+					<TransactedDate>2015-08-25T12:19:32</TransactedDate>
+				</Content>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID46</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID52">
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>fermentum lobortis</Title>
+					<Description>Pellentesque gravida massa tortor, non posuere orci ultrices vitae.</Description>
+					<TransactedDate>2015-08-26T16:24:10</TransactedDate>
+				</Content>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID50</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID56">
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>us bibendum, magna</Title>
+					<Description>Aenean ipsum nisl, molestie quis leo id, varius molestie sapien.</Description>
+					<TransactedDate>2015-08-26T17:25:58</TransactedDate>
+				</Content>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID54</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID60">
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>Aliquam venenatis, ipsum</Title>
+					<Description>n eu semper sapien, ut suscipit augue. Cras ut tincidunt leo, at aliquet arcu. Quisque hendrerit, justo nec fermentum lobortis, magna urna tincidunt </Description>
+					<TransactedDate>2015-08-27T17:54:31</TransactedDate>
+				</Content>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID58</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID64">
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>na, sed porta dolo</Title>
+					<Description>Sed vitae condimentum leo. Fusce purus lectus, rhoncus quis sollicitudin e</Description>
+					<TransactedDate>2015-08-27T09:18:15</TransactedDate>
+				</Content>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID62</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID68">
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>magna urna tincidunt dui, et tempo</Title>
+					<Description>vehicula neque auctor a. Suspendisse feugiat, velit non pulvinar semper</Description>
+					<TransactedDate>2015-08-25T12:18:31</TransactedDate>
+				</Content>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID66</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID72">
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>fermentum lobortis</Title>
+					<Description>Vestibulum sagittis scelerisque suscipit.</Description>
+					<TransactedDate>2015-03-10T11:11:40</TransactedDate>
+				</Content>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID70</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID76">
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>cipit augue. Cras ut tincidun</Title>
+					<Description>s urna, sed porta dolor. Suspendisse ac lacus eget libero tristique pellentesque. Suspendisse aliquam tellus eu ex finibus pulvinar. Suspendisse pharetra se</Description>
+					<TransactedDate>2015-08-26T16:23:18</TransactedDate>
+				</Content>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID74</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID80">
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>Aliquam venenatis, ipsum</Title>
+					<Description>Maecenas eu vehicula augue.</Description>
+					<TransactedDate>2015-08-26T16:23:14</TransactedDate>
+				</Content>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID78</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID84">
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>honcus viverra. Morbi</Title>
+					<Description>Proin sodales velit vel turpis mattis, et gravida turpis luctus.</Description>
+					<TransactedDate>2015-08-27T09:16:39</TransactedDate>
+				</Content>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID82</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID88">
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>Mauris rutrum consequat lectus</Title>
+					<Description>Donec elementum eros quis neque tincidunt aliquet. Mauris quis molestie ex. Fusce id luctus velit, in ornare orci. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices</Description>
+					<TransactedDate>2015-05-29T09:03:16</TransactedDate>
+				</Content>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID86</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID92">
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>Aenean eu lectus eu lectus ultrices</Title>
+					<Description>Nam imperdiet sed neque ut varius.</Description>
+					<TransactedDate>2015-03-10T11:16:50</TransactedDate>
+				</Content>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID90</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID96">
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>Proin rutrum justo dui</Title>
+					<Description>Quisque consectetur justo nec enim luctus ultrices.</Description>
+					<TransactedDate>2015-07-31T16:42:25</TransactedDate>
+				</Content>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID94</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID100">
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>Nulla pellentesque eu enim</Title>
+					<Description>Praesent interdum viverra lectus, nec facilisis orci pharetra et.</Description>
+					<TransactedDate>2015-07-31T15:51:02</TransactedDate>
+				</Content>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID98</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID102">
+				<Content>
+					<DescriptionLevel>RecordGrp</DescriptionLevel>
+					<Title>Pellentesque quis nunc</Title>
+					<Description>Duis laoreet, leo eu auctor tincidunt, neque odio suscipit est</Description>
+					<StartDate>2015-05-29T09:03:45</StartDate>
+					<EndDate>2015-05-29T09:03:45</EndDate>
+				</Content>
+				<ArchiveUnit id="ID107">
+					<ArchiveUnitRefId>ID106</ArchiveUnitRefId>
+				</ArchiveUnit>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID106">
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>nec vestibulum urna odio eu odio</Title>
+					<Description>Praesent posuere sem arcu, eu hendrerit</Description>
+					<TransactedDate>2015-05-29T09:03:45</TransactedDate>
+				</Content>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID104</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID108">
+				<Content>
+					<DescriptionLevel>RecordGrp</DescriptionLevel>
+					<Title>Suspendisse facilisis vehicula finibus</Title>
+					<Description>Duis laoreet, leo eu auctor tincidunt, neque odio suscipi</Description>
+					<StartDate>2015-05-04T12:23:22</StartDate>
+					<EndDate>2015-05-04T12:24:17</EndDate>
+				</Content>
+				<ArchiveUnit id="ID113">
+					<ArchiveUnitRefId>ID112</ArchiveUnitRefId>
+				</ArchiveUnit>
+				<ArchiveUnit id="ID117">
+					<ArchiveUnitRefId>ID116</ArchiveUnitRefId>
+				</ArchiveUnit>
+				<ArchiveUnit id="ID121">
+					<ArchiveUnitRefId>ID120</ArchiveUnitRefId>
+				</ArchiveUnit>
+				<ArchiveUnit id="ID125">
+					<ArchiveUnitRefId>ID124</ArchiveUnitRefId>
+				</ArchiveUnit>
+				<ArchiveUnit id="ID129">
+					<ArchiveUnitRefId>ID128</ArchiveUnitRefId>
+				</ArchiveUnit>
+				<ArchiveUnit id="ID133">
+					<ArchiveUnitRefId>ID132</ArchiveUnitRefId>
+				</ArchiveUnit>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID112">
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>Suspendisse nec sodales neque</Title>
+					<Description>auris eu mauris maximus, venenatis lectus sed, feugiat est. Nulla id massa eu diam faucibus tincidunt malesuada ut leo. Aliquam maximus vitae purus et ultrices</Description>
+					<TransactedDate>2015-05-04T12:23:22</TransactedDate>
+				</Content>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID110</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID116">
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>Sed egestas, purus a egestas egestas</Title>
+					<Description>Quisque consectetur justo nec enim luctus ultrices.</Description>
+					<TransactedDate>2015-05-04T12:23:33</TransactedDate>
+				</Content>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID114</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID120">
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>Quisque sed vulputate neque.</Title>
+					<Description>Nam imperdiet sed neque ut varius.</Description>
+					<TransactedDate>2015-05-04T12:23:46</TransactedDate>
+				</Content>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID118</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID124">
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>Donec erat nisl, finibus ac lectus luctus</Title>
+					<Description>Proin consectetur finibus nunc sed bibendum. Aenean bibendum libero a nisi placerat, sit amet faucibus metus malesuada. Quisque nec tellus lorem.</Description>
+					<TransactedDate>2015-05-04T12:23:55</TransactedDate>
+				</Content>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID122</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID128">
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>Vivamus at odio et augue interdum congue sed ac risus</Title>
+					<Description>Praesent posuere sem arcu, eu hendrerit nunc scelerisque in.</Description>
+					<TransactedDate>2015-05-04T12:24:05</TransactedDate>
+				</Content>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID126</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID132">
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>Morbi eu augue id mauris elementum bibendum non quis massa</Title>
+					<Description>Nam feugiat turpis ac lobortis dignissim. Proin a orci vel felis fermentum rutrum. Nulla facilisi. Nunc hendrerit eros vitae sapien feugiat luctus.</Description>
+					<TransactedDate>2015-05-04T12:24:17</TransactedDate>
+				</Content>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID130</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID134">
+				<Content>
+					<DescriptionLevel>RecordGrp</DescriptionLevel>
+					<Title>Curabitur sed sollicitudin tellus</Title>
+					<Description>Praesent posuere sem arcu, eu hendrerit nunc scelerisque in.</Description>
+					<StartDate>2015-05-04T12:24:57</StartDate>
+					<EndDate>2015-05-04T12:25:06</EndDate>
+				</Content>
+				<ArchiveUnit id="ID139">
+					<ArchiveUnitRefId>ID3</ArchiveUnitRefId>
+				</ArchiveUnit>
+			</ArchiveUnit>
+		</DescriptiveMetadata>
+		<ManagementMetadata>
+			<OriginatingAgencyIdentifier>Vitam</OriginatingAgencyIdentifier>
+			<SubmissionAgencyIdentifier>Vitam</SubmissionAgencyIdentifier>
+		</ManagementMetadata>
+	</DataObjectPackage>
+	<ArchivalAgency>
+		<Identifier>Identifier4</Identifier>
+	</ArchivalAgency>
+	<TransferringAgency>
+		<Identifier>Identifier5</Identifier>
+	</TransferringAgency>
+</ArchiveTransfer>

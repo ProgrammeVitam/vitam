@@ -103,7 +103,6 @@ angular.module('ihm.demo')
 	};
 
 	function uploadAction() {
-		console.log(uploader.queue[0]._file);
 		uploader = $scope.uploader;
 		uploader.queue[0].url = serviceURI + uploadRules;
 		uploader.queue[0].headers['X-Filename'] = uploader.queue[0]._file.name;

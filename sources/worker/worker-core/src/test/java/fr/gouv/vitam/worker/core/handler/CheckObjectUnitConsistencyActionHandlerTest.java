@@ -155,7 +155,8 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
 
         assertEquals(CheckObjectUnitConsistencyActionHandler.getId(), HANDLER_ID);
         final ItemStatus response = handler.execute(params, action);
-        assertEquals(response.getGlobalStatus(), StatusCode.KO);
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
+        assertEquals("CHECK_CONSISTANCY_ORPHAN_OBJECT", response.getGlobalOutcomeDetailSubcode());
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel()))
             .isEqualTo(1);
         action.close();
@@ -171,14 +172,4 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
         handler.execute(params, action);
     }
 
-    // @Test(expected = ProcessingException.class)
-    // public void givenObjectUnitConsistencyWithOnlytOneInputThrowsException()
-    // throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
-    // InvalidParseOperationException, IOException, ProcessingException {
-    //
-    // HandlerIO action = new HandlerIO("", "");
-    // action.addInput(PropertiesUtils.getResourceFile(OG_AU));
-    // handler = new CheckObjectUnitConsistencyActionHandler();
-    // handler.execute(params, action);
-    // }
 }

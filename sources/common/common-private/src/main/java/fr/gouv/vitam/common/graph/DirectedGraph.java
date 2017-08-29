@@ -242,4 +242,15 @@ public class DirectedGraph {
         }
         return count;
     }
+
+    /**
+     * Retrieve the id mapping the index
+     * 
+     * @param index index
+     * @return id
+     */
+    public String getId(Integer index) {
+        return indexMapping.get(index);
+
+    }
 }
