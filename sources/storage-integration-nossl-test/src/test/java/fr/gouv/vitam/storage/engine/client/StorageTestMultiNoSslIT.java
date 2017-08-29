@@ -45,6 +45,7 @@ import java.util.regex.Pattern;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
 import org.apache.commons.io.FileUtils;
 import org.jhades.JHades;
 import org.junit.AfterClass;
@@ -78,7 +79,6 @@ import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
-import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferApplication;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -91,7 +91,7 @@ public class StorageTestMultiNoSslIT {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageTestMultiNoSslIT.class);
 
-    private static DefaultOfferApplication defaultOfferApplication;
+    private static DefaultOfferMain defaultOfferApplication;
     private static final String DEFAULT_OFFER_CONF = "storage-test/storage-default-offer-nossl.conf";
     private static final String OFFER_FOLDER = "offer";
 
@@ -125,10 +125,7 @@ public class StorageTestMultiNoSslIT {
         WorkspaceClientFactory.changeMode("http://localhost:" + workspacePort);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
 
-        // first offer
-        final fr.gouv.vitam.common.storage.StorageConfiguration offerConfiguration = PropertiesUtils
-                .readYaml(PropertiesUtils.findFile(DEFAULT_OFFER_CONF), fr.gouv.vitam.common.storage.StorageConfiguration.class);
-        defaultOfferApplication = new DefaultOfferApplication(offerConfiguration);
+        defaultOfferApplication = new DefaultOfferMain(DEFAULT_OFFER_CONF);
         defaultOfferApplication.start();
 
         // storage engine

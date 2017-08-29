@@ -103,7 +103,7 @@ public class DefaultOfferResourceTest {
     private static final String ARCHIVE_FILE_TXT = "archivefile.txt";
 
     private static final ObjectMapper OBJECT_MAPPER;
-    private static DefaultOfferApplication application;
+    private static DefaultOfferMain application;
 
     static {
 
@@ -130,7 +130,7 @@ public class DefaultOfferResourceTest {
         PropertiesUtils.writeYaml(newWorkspaceOfferConf, realWorkspaceOffer);
 
         try {
-            application = new DefaultOfferApplication(WORKSPACE_OFFER_CONF);
+            application = new DefaultOfferMain(workspaceOffer.getAbsolutePath());
             application.start();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
@@ -178,7 +178,7 @@ public class DefaultOfferResourceTest {
         // test
         given().header(GlobalDataRest.X_TENANT_ID, 1).when().head(OBJECTS_URI + "/" + UNIT_CODE).then().statusCode(200);
     }
-    
+
     @Test
     public void getCapacityTestNoContainers() {
         // test
@@ -222,7 +222,27 @@ public class DefaultOfferResourceTest {
                 .statusCode(Status.OK.getStatusCode()).when()
                 .get(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, OBJECT_CODE, "id1");
     }
+    @Test
+    public void getObjectWithdot() throws Exception {
 
+        final ObjectInit objectInit = new ObjectInit();
+        objectInit.setType(DataCategory.OBJECT);
+        with().header(GlobalDataRest.X_TENANT_ID, "1").header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_INIT)
+                .contentType(MediaType.APPLICATION_JSON).content(objectInit).when()
+                .post(OBJECTS_URI + "/" + OBJECT_CODE + "/" + "id1.xml");
+
+        try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
+            assertNotNull(in);
+            with().header(GlobalDataRest.X_TENANT_ID, "1").header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_END)
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM).content(in).when()
+                    .put(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, OBJECT_CODE, "id1.xml");
+        }
+
+        // found
+        given().header(GlobalDataRest.X_TENANT_ID, "1").contentType(MediaType.APPLICATION_JSON).then()
+                .statusCode(Status.OK.getStatusCode()).when()
+                .get(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, OBJECT_CODE, "id1.xml");
+    }
     @Test
     public void getObjectChunkTestOK() throws Exception {
 
@@ -620,15 +640,16 @@ public class DefaultOfferResourceTest {
     @Test
     public void countObjectsTestKOBadRequest() throws FileNotFoundException, IOException {
         // test
-        given().contentType(MediaType.APPLICATION_JSON).when().get(OBJECTS_URI + "/" + DataCategory.UNIT.name() + "/count").then()
-                .statusCode(400);
+        given().contentType(MediaType.APPLICATION_JSON).when()
+            .get("/count" + OBJECTS_URI + "/" + DataCategory.UNIT.name()).then()
+            .statusCode(400);
     }
 
     @Test
     public void countObjectsTestKONotFound() throws FileNotFoundException, IOException {
         // test
         given().header(GlobalDataRest.X_TENANT_ID, "0").contentType(MediaType.APPLICATION_JSON).when()
-                .get(OBJECTS_URI + "/" + DataCategory.UNIT.name() + "/count").then().statusCode(404);
+            .get("/count" + OBJECTS_URI + "/" + DataCategory.UNIT.name()).then().statusCode(404);
     }
 
     @Test
@@ -649,7 +670,7 @@ public class DefaultOfferResourceTest {
 
         // test
         given().header(GlobalDataRest.X_TENANT_ID, "1").contentType(MediaType.APPLICATION_JSON).when()
-                .get(OBJECTS_URI + "/" + DataCategory.UNIT.name() + "/count").then().statusCode(200);
+                .get("/count"+OBJECTS_URI + "/"+ DataCategory.UNIT.name() ).then().statusCode(200);
     }
 
     @Test
@@ -669,6 +690,12 @@ public class DefaultOfferResourceTest {
         // test
         given().header(GlobalDataRest.X_TENANT_ID, 1).when().get(OBJECTS_URI + "/" + UNIT_CODE + "/" + "id1" + METADATA).then()
                 .statusCode(200);
+    }
+    @Test
+    public void getObjectMetadataKO() throws FileNotFoundException, IOException {
+        // test
+        given().header(GlobalDataRest.X_TENANT_ID, 1).when().get(OBJECTS_URI + "/" + UNIT_CODE + "/" + "" + METADATA).then()
+            .statusCode(404);
     }
 
     @Test

@@ -26,44 +26,46 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.common.rest;
 
-import static org.junit.Assert.fail;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 
-import org.junit.Test;
+import javax.servlet.ServletContext;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Context;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Set;
 
-/**
- * DefaultOfferMain Test
- */
-public class DefaultOfferApplicationTest {
-    private static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not raized an exception";
+import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
 
-    private static final String DEFAULT_OFFER_CONF = "storage-default-offer.conf";
-    private static final String WORKSPACE_OFFER_CONF = "workspace-offer2.conf";
+public class BusinessApplication extends Application {
 
-    @Test
-    public final void testFictiveLaunch() {
+    private final CommonBusinessApplication commonBusinessApplication;
+    private Set<Object> singletons;
+
+    public BusinessApplication(@Context ServletContext ServletContext) {
         try {
-            new DefaultOfferMain(DEFAULT_OFFER_CONF);
-        } catch (final IllegalStateException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        }
+            commonBusinessApplication = new CommonBusinessApplication();
+            singletons = new HashSet<>();
+            singletons.addAll(commonBusinessApplication.getResources());
+            final DefaultOfferResource defaultOfferResource = new DefaultOfferResource();
+            singletons.add(defaultOfferResource);
 
-        try {
-            new DefaultOfferMain(DEFAULT_OFFER_CONF);
-        } catch (final IllegalStateException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        }
-
-        try {
-            new DefaultOfferMain(WORKSPACE_OFFER_CONF);
-            fail("Should raize an IllegalStateException");
-        } catch (final IllegalStateException exc) {
-            // Result Expected
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
-
-    @Test
-    public void shouldActivateShiroFilter() {
-        new DefaultOfferMain("src/test/resources/storage-default-offer-ssl.conf");
+    @Override
+    public Set<Class<?>> getClasses() {
+        return commonBusinessApplication.getClasses();
     }
+
+    @Override
+    public Set<Object> getSingletons() {
+        return singletons;
+    }
+
 }

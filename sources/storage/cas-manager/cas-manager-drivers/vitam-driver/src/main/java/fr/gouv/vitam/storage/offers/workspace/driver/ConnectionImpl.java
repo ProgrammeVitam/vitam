@@ -171,7 +171,7 @@ public class ConnectionImpl extends AbstractConnection {
         ParametersChecker.checkParameter(FOLDER_IS_A_MANDATORY_PARAMETER, request.getType());
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, OBJECTS_PATH + "/" + request.getType() + COUNT_PATH,
+            response = performRequest(HttpMethod.GET,  COUNT_PATH + OBJECTS_PATH +"/"+ request.getType(),
                 getDefaultHeaders(request.getTenantId(), null, null, null),
                 MediaType.APPLICATION_JSON_TYPE);
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
@@ -356,9 +356,9 @@ public class ConnectionImpl extends AbstractConnection {
     /**
      * Common method to handle response status
      *
-     * @param response the response to be handled
+     * @param response     the response to be handled
      * @param responseType the type to map the response into
-     * @param <R> the class type to be returned
+     * @param <R>          the class type to be returned
      * @return the response mapped as a POJO
      * @throws StorageDriverException if any from the server
      */
@@ -392,9 +392,9 @@ public class ConnectionImpl extends AbstractConnection {
     /**
      * Generate the default header map
      *
-     * @param tenantId the tenantId
-     * @param command the command to be added
-     * @param digest the digest of the object to be added
+     * @param tenantId   the tenantId
+     * @param command    the command to be added
+     * @param digest     the digest of the object to be added
      * @param digestType the type of the digest to be added
      * @return header map
      */
@@ -419,8 +419,8 @@ public class ConnectionImpl extends AbstractConnection {
     /**
      * Method performing a PutRequests
      *
-     * @param stream the stream to be chunked if necessary
-     * @param result the result received from the server after the init
+     * @param stream   the stream to be chunked if necessary
+     * @param result   the result received from the server after the init
      * @param tenantId the tenant id
      * @return a PutObjectResult the final result received from the server
      * @throws StorageDriverException in case the server encounters an exception
