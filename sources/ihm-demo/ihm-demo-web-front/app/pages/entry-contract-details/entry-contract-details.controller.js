@@ -36,7 +36,7 @@ angular.module('entryContracts')
 
     self.isEditMode = true;
     $scope.updateStatus = function() {
-        $scope.tmpVars.Status = $scope.tmpVars.isActive? 'ACTIVE': 'INACTIVE';
+        $scope.tmpVars.Status = $scope.isActive ? 'ACTIVE': 'INACTIVE';
     };
     
     var getDetails = function (id) {
@@ -48,7 +48,7 @@ angular.module('entryContracts')
                   $scope.contract.ArchiveProfiles = [];
                 }
                 $scope.tmpVars = angular.copy($scope.contract);
-                $scope.tmpVars.isActive = $scope.contract.Status === 'ACTIVE';
+                $scope.isActive = $scope.contract.Status === 'ACTIVE';
             }
         });
     };
@@ -59,7 +59,7 @@ angular.module('entryContracts')
 
       if ($scope.editMode == false) {
         $scope.tmpVars = angular.copy($scope.contract);
-        $scope.tmpVars.isActive = $scope.contract.Status === 'ACTIVE';
+        $scope.isActive = $scope.contract.Status === 'ACTIVE';
       }
     };
 
