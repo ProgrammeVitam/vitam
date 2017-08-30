@@ -247,7 +247,7 @@ Ce fichier permet de définir une liste de repositories. Décommenter et adapter
 
 Pour mettre en place ces repositories sur les machines cibles, lancer la commande :
 
-.. code-block::
+.. code-block:: bash
 
   ansible-playbook ansible-vitam-extra/bootstrap.yml -i environments/<fichier d'inventaire>  --ask-vault-pass
 

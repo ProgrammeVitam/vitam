@@ -98,7 +98,7 @@ Glossaire
       L'attaque de l'homme du milieu (HDM) ou `man-in-the-middle attack` (MITM) est une attaque qui a pour but d'intercepter les communications entre deux parties, sans que ni l'une ni l'autre ne puisse se douter que le canal de communication entre elles a été compromis. Le canal le plus courant est une connexion à Internet de l'internaute lambda. L'attaquant doit d'abord être capable d'observer et d'intercepter les messages d'une victime à l'autre. L'attaque « homme du milieu » est particulièrement applicable dans la méthode d'échange de clés Diffie-Hellman, quand cet échange est utilisé sans authentification. Avec authentification, Diffie-Hellman est en revanche invulnérable aux écoutes du canal, et est d'ailleurs conçu pour cela. `Explication <https://fr.wikipedia.org/wiki/Attaque_de_l'homme_du_milieu>`_
 
    NoSQL
-      Base de données non-basée sur un paradigme classique des bases relationnelles. `Définition <https://fr.wikipedia.org/wiki/NoSQL>`_
+      Base de données non-basée sur un paradigme classique des bases relationnelles. `Définition NoSQL <https://fr.wikipedia.org/wiki/NoSQL>`_
 
    OAIS
       `Open Archival Information System`, acronyme anglais pour Systèmes de transfert des informations et données spatiales -- Système ouvert d'archivage d'information (SOAI) - Modèle de référence.
@@ -110,7 +110,7 @@ Glossaire
       Une infrastructure à clés publiques (ICP) ou infrastructure de gestion de clés (IGC) ou encore Public Key Infrastructure (PKI), est un ensemble de composants physiques (des ordinateurs, des équipements cryptographiques logiciels ou matériel type HSM ou encore des cartes à puces), de procédures humaines (vérifications, validation) et de logiciels (système et application) en vue de gérer le cycle de vie des certificats numériques ou certificats électroniques. `Définition PKI <https://fr.wikipedia.org/wiki/Infrastructure_%C3%A0_cl%C3%A9s_publiques>`_
 
    REST
-      REpresentational State Transfer : type d'architecture d'échanges. Appliqué aux services web, en se basant sur les appels http standard, il permet de fournir des API dites "RESTful" qui présentent un certain nombre d'avantages en termes d'indépendance, d'universalité, de maintenabilité et de gestion de charge. `Définition <https://fr.wikipedia.org/wiki/Representational_state_transfer>`_
+      REpresentational State Transfer : type d'architecture d'échanges. Appliqué aux services web, en se basant sur les appels http standard, il permet de fournir des API dites "RESTful" qui présentent un certain nombre d'avantages en termes d'indépendance, d'universalité, de maintenabilité et de gestion de charge. `Définition REST <https://fr.wikipedia.org/wiki/Representational_state_transfer>`_
 
    RPM
       Red Hat Package Manager ; il s'agit du format de packets logiciels nativement utilisé par les distributions CentOS (entre autres)

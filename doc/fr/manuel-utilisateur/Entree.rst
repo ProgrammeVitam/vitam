@@ -81,7 +81,7 @@ Les blocs <event> sont composés des balises suivantes :
 La notification comprend ensuite la liste des erreurs rencontrées (échec ou avertissement), au niveau des unités archivistiques comme au niveau des groupes d'objets, sous la forme de blocs <event>.
 
 Transfert d'un SIP de plan de classement
-=======================================
+=========================================
 
 Le transfert d'un plan de classement dans Vitam s'effectue depuis l'écran "Transfert du plan de classement", accessible depuis le menu "Entrée" puis en cliquant sur le sous-menu du même nom.
 

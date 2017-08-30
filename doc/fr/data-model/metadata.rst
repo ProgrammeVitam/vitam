@@ -277,42 +277,42 @@ Exemple de Json stocké en base
             ]
         },
         {
-            "qualifier": "BinaryMaster",
-            "_nbc": 1,
-            "versions": [
-                {
-                    "_id": "aeaaaaaaaahbjs5eabbboak4d7shg4aaaaaq",
-                    "DataObjectGroupId": "aebaaaaaaahbjs5eabbboak4d7shg4aaaaba",
-                    "DataObjectVersion": "BinaryMaster_1",
-                    "FormatIdentification": {
-                        "FormatLitteral": "Acrobat PDF 1.4 - Portable Document Format",
-                        "MimeType": "application/pdf",
-                        "FormatId": "fmt/18"
-                    },
-                    "FileInfo": {
-                        "Filename": "Filename0",
-                        "CreatingApplicationName": "CreatingApplicationName0",
-                        "CreatingApplicationVersion": "CreatingApplicationVersion0",
-                        "DateCreatedByApplication": "2006-05-04T18:13:51.0",
-                        "CreatingOs": "CreatingOs0",
-                        "CreatingOsVersion": "CreatingOsVersion0",
-                        "LastModified": "2006-05-04T18:13:51.0"
-                    },
-                    "Size": 29403,
-                    "Uri": "Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf",
-                    "MessageDigest": "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266
-                    c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
-                    "Algorithm": "SHA-512",
-                    "_storage": {
-                        "_nbc": 2,
-                        "offerIds": [
-                            "vitam-iaas-app-03.int",
-                            "vitam-iaas-app-02.int"
-                        ],
-                        "strategyId": "default"
-                    }
+          "qualifier": "BinaryMaster",
+          "_nbc": 1,
+          "versions": [
+              {
+                "_id": "aeaaaaaaaahbjs5eabbboak4d7shg4aaaaaq",
+                "DataObjectGroupId": "aebaaaaaaahbjs5eabbboak4d7shg4aaaaba",
+                "DataObjectVersion": "BinaryMaster_1",
+                "FormatIdentification": {
+                    "FormatLitteral": "Acrobat PDF 1.4 - Portable Document Format",
+                    "MimeType": "application/pdf",
+                    "FormatId": "fmt/18"
+                },
+                "FileInfo": {
+                    "Filename": "Filename0",
+                    "CreatingApplicationName": "CreatingApplicationName0",
+                    "CreatingApplicationVersion": "CreatingApplicationVersion0",
+                    "DateCreatedByApplication": "2006-05-04T18:13:51.0",
+                    "CreatingOs": "CreatingOs0",
+                    "CreatingOsVersion": "CreatingOsVersion0",
+                    "LastModified": "2006-05-04T18:13:51.0"
+                },
+                "Size": 29403,
+                "Uri": "Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf",
+                "MessageDigest": "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266
+                c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
+                "Algorithm": "SHA-512",
+                "_storage": {
+                    "_nbc": 2,
+                    "offerIds": [
+                        "vitam-iaas-app-03.int",
+                        "vitam-iaas-app-02.int"
+                    ],
+                    "strategyId": "default"
                 }
-            ]
+              }
+          ]
         }
     ],
     "_up": [
@@ -377,18 +377,18 @@ Détail des champs du JSON
 
   - "qualifier": usage de l'objet.
     Ceci correspond à la valeur contenue dans le champ <DataObjectVersion> du bordereau. Par exemple pour <DataObjectVersion>BinaryMaster_1</DataObjectVersion>. C'est la valeur "BinaryMaster" qui est reportée.
-      - "nb": nombre d'objets correspondant à cet usage.
-      - "versions": tableau des objets par version (une version = une entrée dans le tableau). Ces informations sont toutes issues du bordereau.
-          - "_id": identifiant de l'objet. Il s'agit d'une chaîne de 36 caractères corresppondant à un GUID.
-          - "DataObjectGroupId": identifiant du groupe d'objets. Chaîne de 36 caractères.
-          - "DataObjectVersion": version de l'objet par rapport à son usage.
+    - "nb": nombre d'objets correspondant à cet usage.
+    - "versions": tableau des objets par version (une version = une entrée dans le tableau). Ces informations sont toutes issues du bordereau.
+      - "_id": identifiant de l'objet. Il s'agit d'une chaîne de 36 caractères corresppondant à un GUID.
+      - "DataObjectGroupId": identifiant du groupe d'objets. Chaîne de 36 caractères.
+      - "DataObjectVersion": version de l'objet par rapport à son usage.
 
       Par exemple, si on a *binaryMaster* sur l'usage, on aura au moins un objet *binarymaster_1*. Ces champs sont renseignés avec les valeurs récupérées dans les balises <DataObjectVersion> du bordereau.
 
       - "FormatIdentification": Contient trois champs qui permettent d'identifier le format du fichier. Une vérification de la cohérence entre ce qui est déclaré dans le XML, ce qui existe dans le référentiel pronom et les valeurs que porte le document est faite.
-          - "FormatLitteral" : nom du format. C'est une reprise de la valeur située entre les balises <FormatLitteral> du message ArchiveTransfer.
-          - "MimeType" : type Mime. C'est une reprise de la valeur située entre les balises <MimeType> du message ArchiveTransfer ou des valeurs correspondant au format tel qu'identifié par la solution logicielle Vitam.
-          - "FormatId" : PUID du format de l'objet. Il est défini par la solution logicielle Vitam à l'aide du référentiel PRONOM maintenu par The National Archives (UK) et correspondant à la valeur du champ PUID de la collection FileFormat.
+        - "FormatLitteral" : nom du format. C'est une reprise de la valeur située entre les balises <FormatLitteral> du message ArchiveTransfer.
+        - "MimeType" : type Mime. C'est une reprise de la valeur située entre les balises <MimeType> du message ArchiveTransfer ou des valeurs correspondant au format tel qu'identifié par la solution logicielle Vitam.
+        - "FormatId" : PUID du format de l'objet. Il est défini par la solution logicielle Vitam à l'aide du référentiel PRONOM maintenu par The National Archives (UK) et correspondant à la valeur du champ PUID de la collection FileFormat.
 
       - "FileInfo": Contient les informations sur les fichiers.
           - "Filename": nom de l'objet
