@@ -26,33 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.server.integration;
 
-import static com.jayway.restassured.RestAssured.get;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Map;
-
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.stream.FactoryConfigurationError;
-import javax.xml.transform.TransformerFactoryConfigurationError;
-
-import fr.gouv.vitam.logbook.rest.LogbookMain;
-import fr.gouv.vitam.metadata.rest.MetadataMain;
-import org.apache.commons.io.IOUtils;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.restassured.RestAssured;
-
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -83,7 +58,9 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.processing.common.model.WorkerRemoteConfiguration;
@@ -100,7 +77,27 @@ import fr.gouv.vitam.worker.server.registration.WorkerRegister;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
+import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import org.apache.commons.io.IOUtils;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.stream.FactoryConfigurationError;
+import javax.xml.transform.TransformerFactoryConfigurationError;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Map;
+
+import static com.jayway.restassured.RestAssured.get;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 /**
  * Worker integration test TODO P1 : do a "worker-integration" module
@@ -142,8 +139,8 @@ public class WorkerIT {
     private static String CONFIG_PROCESSING_PATH = "";
     private static String CONFIG_LOGBOOK_PATH = "";
     private static MetadataMain metadataApplication;
+    private static WorkspaceMain workspaceMain;
     private static WorkerMain wkrapplication;
-    private static WorkspaceApplication workspaceApplication;
     private static ProcessManagementApplication processManagementApplication;
 
     private WorkspaceClient workspaceClient;
@@ -204,9 +201,9 @@ public class WorkerIT {
 
         // launch workspace
         SystemPropertyUtil
-            .set(WorkspaceApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_WORKSPACE));
-        workspaceApplication = new WorkspaceApplication(CONFIG_WORKSPACE_PATH);
-        workspaceApplication.start();
+            .set(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_WORKSPACE));
+        workspaceMain = new WorkspaceMain(CONFIG_WORKSPACE_PATH);
+        workspaceMain.start();
         WorkspaceClientFactory.changeMode(WORKSPACE_URL);
 
         // launch processing
@@ -236,7 +233,7 @@ public class WorkerIT {
         mongod.stop();
         mongodExecutable.stop();
         try {
-            workspaceApplication.stop();
+            workspaceMain.stop();
             wkrapplication.stop();
             logbookMain.stop();
             processManagementApplication.stop();
@@ -279,16 +276,22 @@ public class WorkerIT {
 
     private void printAndCheckXmlConfiguration() {
         LOGGER.warn("XML Configuration: " +
-            "\n\tjavax.xml.parsers.SAXParserFactory: " + SystemPropertyUtil.getNoCheck("javax.xml.parsers.SAXParserFactory") +
+            "\n\tjavax.xml.parsers.SAXParserFactory: " +
+            SystemPropertyUtil.getNoCheck("javax.xml.parsers.SAXParserFactory") +
             "\n\tjavax.xml.parsers.DocumentBuilderFactory: " +
             SystemPropertyUtil.getNoCheck("javax.xml.parsers.DocumentBuilderFactory") +
-            "\n\tjavax.xml.datatype.DatatypeFactory: " + SystemPropertyUtil.getNoCheck("javax.xml.datatype.DatatypeFactory") +
-            "\n\tjavax.xml.stream.XMLEventFactory: " + SystemPropertyUtil.getNoCheck("javax.xml.stream.XMLEventFactory") +
-            "\n\tjavax.xml.stream.XMLInputFactory: " + SystemPropertyUtil.getNoCheck("javax.xml.stream.XMLInputFactory") +
-            "\n\tjavax.xml.stream.XMLOutputFactory: " + SystemPropertyUtil.getNoCheck("javax.xml.stream.XMLOutputFactory") +
+            "\n\tjavax.xml.datatype.DatatypeFactory: " +
+            SystemPropertyUtil.getNoCheck("javax.xml.datatype.DatatypeFactory") +
+            "\n\tjavax.xml.stream.XMLEventFactory: " +
+            SystemPropertyUtil.getNoCheck("javax.xml.stream.XMLEventFactory") +
+            "\n\tjavax.xml.stream.XMLInputFactory: " +
+            SystemPropertyUtil.getNoCheck("javax.xml.stream.XMLInputFactory") +
+            "\n\tjavax.xml.stream.XMLOutputFactory: " +
+            SystemPropertyUtil.getNoCheck("javax.xml.stream.XMLOutputFactory") +
             "\n\tjavax.xml.transform.TransformerFactory: " +
             SystemPropertyUtil.getNoCheck("javax.xml.transform.TransformerFactory") +
-            "\n\tjavax.xml.validation.SchemaFactory: " + SystemPropertyUtil.getNoCheck("javax.xml.validation.SchemaFactory") +
+            "\n\tjavax.xml.validation.SchemaFactory: " +
+            SystemPropertyUtil.getNoCheck("javax.xml.validation.SchemaFactory") +
             "\n\tjavax.xml.xpath.XPathFactory: " + SystemPropertyUtil.getNoCheck("javax.xml.xpath.XPathFactory"));
         try {
             LOGGER.warn("XML Implementation: " +
@@ -507,7 +510,7 @@ public class WorkerIT {
                 new WorkerBean("name", WorkerRegister.DEFAULT_FAMILY, 1, 1L, "active", remoteConfiguration);
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             try {
-                processingClient.registerWorker(WorkerRegister.DEFAULT_FAMILY,workerId , workerBean);
+                processingClient.registerWorker(WorkerRegister.DEFAULT_FAMILY, workerId, workerBean);
                 fail("Should have raized an exception");
             } catch (final WorkerAlreadyExistsException e) {
                 processingClient.unregisterWorker(WorkerRegister.DEFAULT_FAMILY, workerId);
@@ -559,8 +562,7 @@ public class WorkerIT {
                 "UnitsLevel/ingestLevelStack.json").getEntity();
             final Map<String, Object> map = JsonHandler.getMapFromString(IOUtils.toString(stream, "UTF-8"));
 
-            @SuppressWarnings("rawtypes")
-            final ArrayList levelUnits = (ArrayList) map.values().iterator().next();
+            @SuppressWarnings("rawtypes") final ArrayList levelUnits = (ArrayList) map.values().iterator().next();
             if (levelUnits.size() > 0) {
                 unitName = (String) levelUnits.get(0);
             }

@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -25,19 +25,6 @@
  * accept its terms.
  */
 package fr.gouv.vitam.functional.tnr.test;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
@@ -70,9 +57,21 @@ import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.exception.PluginException;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementApplication;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
-import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
-import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
+import fr.gouv.vitam.worker.server.rest.WorkerMain;
+import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This class aims to help to launch locally the TNR by launching all necessary components
@@ -202,7 +201,7 @@ public class TnrLaunchAllApplication {
     private static WorkerMain wkrapplication;
     private static AdminManagementMain adminApplication;
     private static LogbookMain logbookMain;
-    private static WorkspaceApplication workspaceApplication;
+    private static WorkspaceMain workspaceMain;
     private static ProcessManagementApplication processManagementApplication;
     private static AccessInternalMain accessInternalApplication;
     private static IngestInternalMain ingestInternalApplication;
@@ -315,16 +314,16 @@ public class TnrLaunchAllApplication {
 
         // launch workspace
         LOGGER.warn("Start Workspace");
-        SystemPropertyUtil.set(WorkspaceApplication.PARAMETER_JETTY_SERVER_PORT,
+        SystemPropertyUtil.set(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_WORKSPACE));
-        workspaceApplication = new WorkspaceApplication(CONFIG_WORKSPACE_PATH);
+        workspaceMain = new WorkspaceMain(CONFIG_WORKSPACE_PATH);
         try {
-            workspaceApplication.start();
+            workspaceMain.start();
         } catch (VitamApplicationServerException e1) {
             LOGGER.error(e1);
             earlyShutdown();
         }
-        SystemPropertyUtil.clear(WorkspaceApplication.PARAMETER_JETTY_SERVER_PORT);
+        SystemPropertyUtil.clear(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT);
 
         // launch storage
 
@@ -601,9 +600,9 @@ public class TnrLaunchAllApplication {
             LOGGER.error(e);
         }
         try {
-            if (workspaceApplication != null) {
+            if (workspaceMain != null) {
                 LOGGER.warn("try to shutdown WORKSPACE");
-                workspaceApplication.stop();
+                workspaceMain.stop();
             }
         } catch (Exception e) {
             LOGGER.error(e);

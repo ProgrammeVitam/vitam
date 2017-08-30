@@ -90,7 +90,7 @@ import fr.gouv.vitam.processing.management.rest.ProcessManagementApplication;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
+import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -157,7 +157,7 @@ public class PausedProcessingIT {
     private static WorkerMain workerApplication;
     private static AdminManagementMain adminManagementApplication;
     private static LogbookMain logbookApplication;
-    private static WorkspaceApplication workspaceApplication;
+    private static WorkspaceMain workspaceMain;
     private static ProcessManagementApplication processManagementApplication;
 
     private static JunitHelper.ElasticsearchTestConfiguration configES;
@@ -207,11 +207,11 @@ public class PausedProcessingIT {
         MetaDataClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_METADATA));
 
         // launch workspace
-        SystemPropertyUtil.set(WorkspaceApplication.PARAMETER_JETTY_SERVER_PORT,
+        SystemPropertyUtil.set(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_WORKSPACE));
-        workspaceApplication = new WorkspaceApplication(CONFIG_WORKSPACE_PATH);
-        workspaceApplication.start();
-        SystemPropertyUtil.clear(WorkspaceApplication.PARAMETER_JETTY_SERVER_PORT);
+        workspaceMain = new WorkspaceMain(CONFIG_WORKSPACE_PATH);
+        workspaceMain.start();
+        SystemPropertyUtil.clear(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT);
 
         WorkspaceClientFactory.changeMode(WORKSPACE_URL);
 
@@ -260,7 +260,7 @@ public class PausedProcessingIT {
         mongod.stop();
         mongodExecutable.stop();
         try {
-            workspaceApplication.stop();
+            workspaceMain.stop();
             adminManagementApplication.stop();
             workerApplication.stop();
             logbookApplication.stop();

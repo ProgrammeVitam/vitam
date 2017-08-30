@@ -35,17 +35,6 @@
 			<artifactId>rest-assured</artifactId>
 			<scope>test</scope>
 		</dependency>
-
-		<dependency>
-			<groupId>org.glassfish.jersey.test-framework.providers</groupId>
-			<artifactId>jersey-test-framework-provider-grizzly2</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.glassfish.jersey.test-framework.providers</groupId>
-			<artifactId>jersey-test-framework-provider-jetty</artifactId>
-			<scope>test</scope>
-		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>common-junit</artifactId>
@@ -122,7 +111,7 @@
 					<archive>
 						<manifest>
 							<addClasspath>true</addClasspath>
-							<mainClass>fr.gouv.vitam.workspace.rest.WorkspaceApplication</mainClass>
+							<mainClass>fr.gouv.vitam.workspace.rest.WorkspaceMain</mainClass>
 						</manifest>
 					</archive>
 				</configuration>

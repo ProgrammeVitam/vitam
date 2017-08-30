@@ -27,37 +27,7 @@
 
 package fr.gouv.vitam.storage.engine.client;
 
-import static org.junit.Assert.assertTrue;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
-import org.apache.commons.io.FileUtils;
-import org.jhades.JHades;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
@@ -79,12 +49,39 @@ import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
+import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
+import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import junit.framework.TestCase;
+import org.apache.commons.io.FileUtils;
+import org.jhades.JHades;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static org.junit.Assert.assertTrue;
 
 public class StorageTestMultiNoSslIT {
     private static final int NB_MULTIPLE_THREADS = 100;
@@ -99,7 +96,7 @@ public class StorageTestMultiNoSslIT {
     private static StorageClient storageClient;
     private static final String STORAGE_CONF = "storage-test/storage-engine.conf";
 
-    private static WorkspaceApplication workspaceApplication;
+    private static WorkspaceMain workspaceMain;
     private static WorkspaceClient workspaceClient;
     private static int workspacePort = 8987;
     private static final String WORKSPACE_CONF = "storage-test/workspace.conf";
@@ -111,7 +108,8 @@ public class StorageTestMultiNoSslIT {
     private static int size = 500;
     static TemporaryFolder folder = new TemporaryFolder();
     @Rule
-    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @BeforeClass
     public static void setupBeforeClass() throws Exception {
@@ -119,8 +117,8 @@ public class StorageTestMultiNoSslIT {
         new JHades().overlappingJarsReport();
 
         // workspace
-        workspaceApplication = new WorkspaceApplication(WORKSPACE_CONF);
-        workspaceApplication.start();
+        workspaceMain = new WorkspaceMain(WORKSPACE_CONF);
+        workspaceMain.start();
 
         WorkspaceClientFactory.changeMode("http://localhost:" + workspacePort);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
@@ -132,14 +130,15 @@ public class StorageTestMultiNoSslIT {
         File storageConfigurationFile = PropertiesUtils.findFile(STORAGE_CONF);
         final StorageConfiguration serverConfiguration = PropertiesUtils.readYaml(
             storageConfigurationFile,
-                StorageConfiguration.class);
+            StorageConfiguration.class);
         final Pattern compiledPattern = Pattern.compile(":(\\d+)");
         final Matcher matcher = compiledPattern.matcher(serverConfiguration.getUrlWorkspace());
         if (matcher.find()) {
             final String seg[] = serverConfiguration.getUrlWorkspace().split(":(\\d+)");
             serverConfiguration.setUrlWorkspace(seg[0]);
         }
-        serverConfiguration.setUrlWorkspace(serverConfiguration.getUrlWorkspace() + ":" + Integer.toString(workspacePort));
+        serverConfiguration
+            .setUrlWorkspace(serverConfiguration.getUrlWorkspace() + ":" + Integer.toString(workspacePort));
 
         folder.create();
         serverConfiguration.setZippingDirecorty(folder.newFolder().getAbsolutePath());
@@ -176,7 +175,7 @@ public class StorageTestMultiNoSslIT {
             }
         }
         workspaceClient.close();
-        workspaceApplication.stop();
+        workspaceMain.stop();
         cleanOffers();
         // delete offer parent folder
         File offerFolder = new File(OFFER_FOLDER);
@@ -289,7 +288,7 @@ public class StorageTestMultiNoSslIT {
             assert (false);
         }
     }
-    
+
     @RunWithCustomExecutor
     @Test
     public void test() {
@@ -488,14 +487,16 @@ public class StorageTestMultiNoSslIT {
             description.setWorkspaceObjectURI(objectId.getId());
             try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
                 try {
-                    storageClient.storeFileFromWorkspace("default", StorageCollectionType.OBJECTS, storageId.getId(), description);
+                    storageClient.storeFileFromWorkspace("default", StorageCollectionType.OBJECTS, storageId.getId(),
+                        description);
                 } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e) {
                     LOGGER.error("Size: " + size, e);
                     return false;
                 }
                 Response response = null;
                 try {
-                    response = storageClient.getContainerAsync("default", storageId.getId(), StorageCollectionType.OBJECTS);
+                    response =
+                        storageClient.getContainerAsync("default", storageId.getId(), StorageCollectionType.OBJECTS);
                     final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
                     if (status == Status.OK && response.hasEntity()) {
                         return true;
