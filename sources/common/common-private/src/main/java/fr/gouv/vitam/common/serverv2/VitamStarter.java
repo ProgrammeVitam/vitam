@@ -28,18 +28,18 @@ package fr.gouv.vitam.common.serverv2;
 
 import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
 
-import com.google.common.base.Strings;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.ServerIdentity;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.VitamConfigurationParameters;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.security.filter.AuthorizationFilter;
-import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.common.server.VitamServerFactory;
-import fr.gouv.vitam.common.server.application.configuration.VitamApplicationConfiguration;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.EnumSet;
+import java.util.List;
+
+import javax.servlet.DispatcherType;
+import javax.ws.rs.core.Application;
+
+import org.apache.shiro.web.env.EnvironmentLoaderListener;
+import org.apache.shiro.web.servlet.ShiroFilter;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.StatisticsHandler;
@@ -47,11 +47,24 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher;
 
-import javax.servlet.DispatcherType;
-import javax.ws.rs.core.Application;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.EnumSet;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.base.Strings;
+
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.VitamConfigurationParameters;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.security.filter.AuthorizationFilter;
+import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.server.VitamServerFactory;
+import fr.gouv.vitam.common.server.application.configuration.VitamApplicationConfiguration;
+import fr.gouv.vitam.common.tenant.filter.TenantFilter;
 
 /**
  * launch vitam server
@@ -61,6 +74,7 @@ public class VitamStarter {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamStarter.class);
 
     private static final String VITAM_CONF_FILE_NAME = "vitam.conf";
+    private static final String SHIRO_FILE = "shiro.ini";
 
     private final String role = ServerIdentity.getInstance().getRole();
 
@@ -84,9 +98,10 @@ public class VitamStarter {
 
     protected final void configure(String configurationFile) {
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-            final VitamApplicationConfiguration buildConfiguration = PropertiesUtils.readYaml(yamlIS, getConfigurationType());
+            final VitamApplicationConfiguration buildConfiguration =
+                PropertiesUtils.readYaml(yamlIS, getConfigurationType());
             configure(buildConfiguration, configurationFile);
-        }  catch (final IOException e) {
+        } catch (final IOException e) {
             LOGGER.error(e);
             throw new IllegalStateException("Cannot start the " + role + " Application Server", e);
         }
@@ -103,13 +118,16 @@ public class VitamStarter {
         try {
 
             configureVitamParameters();
-
             platformSecretConfiguration();
 
             ContextHandlerCollection applicationHandlers = new ContextHandlerCollection();
 
-            applicationHandlers.addHandler(buildApplicationHandler(configurationFile));
-            applicationHandlers.addHandler(buildAdminHandler(configurationFile));
+            applicationHandlers
+                .addHandler(buildApplicationHandler(configurationFile, configuration.isAuthentication(),
+                    configuration.isTenantFilter(), configuration.getTenants()));
+            applicationHandlers.addHandler(
+                buildAdminHandler(configurationFile, configuration.isAuthentication(),
+                    configuration.isTenantFilter(), configuration.getTenants()));
 
             final String jettyConfig = configuration.getJettyConfig();
 
@@ -141,7 +159,7 @@ public class VitamStarter {
     }
 
     /**
-     *  Allow override Vitam parameters
+     * Allow override Vitam parameters
      */
     protected void configureVitamParameters() {
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(VITAM_CONF_FILE_NAME)) {
@@ -169,8 +187,13 @@ public class VitamStarter {
      * @return the generated Handler
      * @throws VitamApplicationServerException
      * @param configurationFile
+     * @param authentication
+     * @param tenantFilter
+     * @param tenantList
      */
-    protected Handler buildApplicationHandler(String configurationFile) throws VitamApplicationServerException {
+    protected Handler buildApplicationHandler(String configurationFile, boolean authentication,
+        boolean tenantFilter, List<Integer> tenantList)
+        throws VitamApplicationServerException {
         final ServletHolder servletHolder = new ServletHolder(new HttpServletDispatcher());
 
         servletHolder.setInitParameter("javax.ws.rs.Application", businessApplication.getName());
@@ -189,13 +212,20 @@ public class VitamStarter {
 
         context.setVirtualHosts(new String[] {"@business"});
 
+        if (authentication) {
+            addShiroFilter(context);
+        }
+        if (tenantFilter) {
+            addTenantFilter(context, tenantList);
+        }
         StatisticsHandler stats = new StatisticsHandler();
         stats.setHandler(context);
-
         return stats;
     }
 
-    protected Handler buildAdminHandler(String configurationFile) throws VitamApplicationServerException {
+    protected Handler buildAdminHandler(String configurationFile, boolean authentication,
+        boolean tenantFilter, List<Integer> tenantList)
+        throws VitamApplicationServerException {
         final ServletHolder servletHolder = new ServletHolder(new HttpServletDispatcher());
 
         servletHolder.setInitParameter("javax.ws.rs.Application", adminApplication.getName());
@@ -206,10 +236,47 @@ public class VitamStarter {
 
         context.setVirtualHosts(new String[] {"@admin"});
 
+        if (authentication) {
+            addShiroFilter(context);
+        }
+        if (tenantFilter) {
+            addTenantFilter(context, tenantList);
+        }
         StatisticsHandler stats = new StatisticsHandler();
         stats.setHandler(context);
-
         return stats;
+    }
+
+    private void addShiroFilter(ServletContextHandler context) throws VitamApplicationServerException {
+
+        File shiroFile = null;
+        try {
+            shiroFile = PropertiesUtils.findFile(SHIRO_FILE);
+        } catch (final FileNotFoundException e) {
+            LOGGER.error(e.getMessage(), e);
+            throw new VitamApplicationServerException(e.getMessage());
+        }
+        context.setInitParameter("shiroConfigLocations", "file:" + shiroFile.getAbsolutePath());
+        context.addEventListener(new EnvironmentLoaderListener());
+        context.addFilter(ShiroFilter.class, "/*", EnumSet.of(
+            DispatcherType.INCLUDE, DispatcherType.REQUEST,
+            DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
+
+    }
+
+    private void addTenantFilter(ServletContextHandler context, List<Integer> tenantList)
+        throws VitamApplicationServerException {
+        // Tenant Filter
+        try {
+            JsonNode node = JsonHandler.toJsonNode(tenantList);
+            context.setInitParameter(GlobalDataRest.TENANT_LIST, JsonHandler.unprettyPrint(node));
+            context.addFilter(TenantFilter.class, "/*", EnumSet.of(
+                DispatcherType.INCLUDE, DispatcherType.REQUEST,
+                DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error(e.getMessage(), e);
+            throw new VitamApplicationServerException(e.getMessage());
+        }
     }
 
     /**

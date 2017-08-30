@@ -37,6 +37,8 @@ public abstract class DefaultVitamApplicationConfiguration implements VitamAppli
     protected static final String IS_A_MANDATORY_PARAMETER = " is a mandatory parameter";
     protected String jettyConfig;
     protected List<Integer> tenants;
+    private boolean authentication = false;
+    private boolean tenantFilter = false;
 
     @Override
     public String getJettyConfig() {
@@ -49,7 +51,7 @@ public abstract class DefaultVitamApplicationConfiguration implements VitamAppli
         this.jettyConfig = jettyConfig;
         return this;
     }
-    
+
     @Override
     public List<Integer> getTenants() {
         return tenants;
@@ -61,5 +63,47 @@ public abstract class DefaultVitamApplicationConfiguration implements VitamAppli
         this.tenants = tenants;
         return this;
     }
+
+    /**
+     * @return the authentication
+     */
+    @Override
+    public boolean isAuthentication() {
+        return authentication;
+    }
+
+
+    /**
+     * @param authentication the authentication to set
+     *
+     * @return this
+     */
+    @Override
+    public VitamApplicationConfiguration setAuthentication(boolean authentication) {
+        this.authentication = authentication;
+        return this;
+    }
+    
+    /**
+     * @return the tenantFilter
+     */
+    @Override
+    public boolean isTenantFilter() {
+        return tenantFilter;
+    }
+
+
+    /**
+     * @param tenantFilter the tenantFilter to set
+     *
+     * @return this
+     */
+    @Override
+    public VitamApplicationConfiguration setTenantFilter(boolean tenantFilter) {
+        this.tenantFilter = tenantFilter;
+        return this;
+    }
+
+
 
 }

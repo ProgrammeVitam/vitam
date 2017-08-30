@@ -63,7 +63,9 @@ import fr.gouv.vitam.common.format.identification.siegfried.FormatIdentifierSieg
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessQuery;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 
@@ -85,7 +87,8 @@ public class IngestExternalResourceTest {
     private static JunitHelper junitHelper;
     private static int serverPort;
 
-    private static IngestExternalApplication application;
+    private static IngestExternalMain application;
+
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -95,9 +98,8 @@ public class IngestExternalResourceTest {
 
         RestAssured.port = serverPort;
         RestAssured.basePath = RESOURCE_URI;
-
         try {
-            application = new IngestExternalApplication(INGEST_EXTERNAL_CONF);
+            application = new IngestExternalMain(INGEST_EXTERNAL_CONF);
             application.start();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
@@ -132,6 +134,7 @@ public class IngestExternalResourceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void givenRequestWithoutTenantIdThenReturnPreconditionFailed()
         throws Exception {
         stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
@@ -231,5 +234,72 @@ public class IngestExternalResourceTest {
             .then().statusCode(Status.OK.getStatusCode());
     }
 
+
+    @Test
+    public void cancelOperationTest()
+        throws Exception {
+        RestAssured.given()
+            .accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().delete("operations/1")
+            .then().statusCode(Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void getWorkFlowExecutionStatusTest()
+        throws Exception {
+        RestAssured.given()
+            .accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().head("operations/1")
+            .then().statusCode(Status.ACCEPTED.getStatusCode());
+    }
+
+    @Test
+    public void getWorkFlowStatusTest()
+        throws Exception {
+        RestAssured.given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(new ProcessQuery())
+            .when().get("operations/1")
+            .then().statusCode(Status.OK.getStatusCode());
+    }
+    
+    @Test
+    public void getWorkflowDefinitionsTest()
+        throws Exception {
+        RestAssured.given()
+            .accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get("workflows/")
+            .then().statusCode(Status.OK.getStatusCode());
+    }  
+    
+    @Test
+    public void updateWorkFlowStatusTest()
+        throws Exception {
+        RestAssured.given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_ACTION, ProcessAction.PAUSE.getValue())
+            .body(new ProcessQuery())
+            .when().put("operations/1")
+            .then().statusCode(Status.OK.getStatusCode());
+    }
+    
+    @Test
+    public void updateWorkFlowStatusWithoutHeadersTest()
+        throws Exception {
+        RestAssured.given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(new ProcessQuery())
+            .when().put("operations/1")
+            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
 
 }

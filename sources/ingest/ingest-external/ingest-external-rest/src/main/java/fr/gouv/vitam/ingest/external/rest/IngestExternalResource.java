@@ -127,7 +127,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
         @HeaderParam(GlobalDataRest.X_ACTION) String action, InputStream uploadedInputStream,
         @Suspended final AsyncResponse asyncResponse) {
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
-        Integer tenantId = ParameterHelper.getTenantParameter();
+        Integer tenantId = ParameterHelper.getTenantParameter();        
 
         VitamThreadPoolExecutor.getDefaultExecutor()
             .execute(() -> uploadAsync(uploadedInputStream, asyncResponse, tenantId, contextId, action, guid));
@@ -336,7 +336,6 @@ public class IngestExternalResource extends ApplicationStatusResource {
      */
     @Path("operations/{id}")
     @HEAD
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getWorkFlowExecutionStatus(@PathParam("id") String id) {
         try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
@@ -376,10 +375,12 @@ public class IngestExternalResource extends ApplicationStatusResource {
      * get the workflow status
      *
      * @param id operation identifier
+     * @param query the query
      * @return http response
      */
     @Path("operations/{id}")
     @GET
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getWorkFlowStatus(@PathParam("id") String id, JsonNode query) {
         Status status;
@@ -492,7 +493,6 @@ public class IngestExternalResource extends ApplicationStatusResource {
      */
     @Path("operations/{id}")
     @DELETE
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response interruptWorkFlowExecution(@PathParam("id") String id) {
 
@@ -502,10 +502,13 @@ public class IngestExternalResource extends ApplicationStatusResource {
             SanityChecker.checkParameter(id);
             VitamThreadUtils.getVitamSession().setRequestId(id);
 
-            final ItemStatus itemStatus = ingestInternalClient.cancelOperationProcessExecution(id);
-            return new RequestResponseOK<ItemStatus>().addResult(itemStatus).toResponse();
+            final ItemStatus itemStatus = ingestInternalClient.cancelOperationProcessExecution(id);            
+            RequestResponseOK<ItemStatus> responseOK = new RequestResponseOK<ItemStatus>()
+                .addResult(itemStatus);
+            responseOK.setHttpCode(Status.OK.getStatusCode());
+            return responseOK.toResponse();
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
-            // if the entry argument if illegal
+            // if the entry argument if illegal            
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)

@@ -48,7 +48,7 @@ public interface VitamApplicationConfigurationInterface {
      * @return this
      */
     VitamApplicationConfigurationInterface setJettyConfig(String jettyConfig);
-    
+
     /**
      * getter tenants
      *
@@ -62,5 +62,34 @@ public interface VitamApplicationConfigurationInterface {
      * @param tenants the list of tenants
      * @return this
      */
-    VitamApplicationConfigurationInterface setTenants(List<Integer> tenants);	
+    VitamApplicationConfigurationInterface setTenants(List<Integer> tenants);
+
+    /**
+     * getter authentication
+     * 
+     * @return true if authentication is on for the application, false if not
+     */
+    boolean isAuthentication();
+
+    /**
+     * @param authentication the authentication to set
+     *
+     * @return this
+     */
+    public VitamApplicationConfigurationInterface setAuthentication(boolean authentication);
+    
+    /**
+     * getter tenantFilter
+     * 
+     * @return true if tenant Filtering is on for the application, false if not
+     */
+    boolean isTenantFilter();
+
+    /**
+     * @param tenantFilter the tenantFilter to set
+     *
+     * @return this
+     */
+    public VitamApplicationConfigurationInterface setTenantFilter(boolean tenantFilter);
+    
 }

@@ -95,6 +95,26 @@ public class VitamServerTest {
             return this;
         }
 
+        @Override
+        public boolean isAuthentication() {
+            return false;
+        }
+
+        @Override
+        public VitamApplicationConfigurationInterface setAuthentication(boolean authentication) {
+            return null;
+        }
+
+        @Override
+        public boolean isTenantFilter() {
+            return false;
+        }
+
+        @Override
+        public VitamApplicationConfigurationInterface setTenantFilter(boolean tenantFilter) {
+            return null;
+        }
+
     }
     private static abstract class ApplicationAbstractTest<A extends VitamApplicationInterface<A, C>, C extends VitamApplicationConfigurationInterface>
         implements VitamApplicationInterface<A, C> {

@@ -2,5 +2,6 @@ path: {{vitam_folder_data}}
 jettyConfig: jetty-config.xml
 tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]
 authentication: true
+tenantFilter : true
 antiVirusScriptName: scan-clamav.sh
 timeoutScanDelay: 60000

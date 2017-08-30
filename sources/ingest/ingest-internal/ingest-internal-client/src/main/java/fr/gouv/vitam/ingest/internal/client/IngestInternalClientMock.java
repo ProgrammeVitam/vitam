@@ -27,6 +27,8 @@
 package fr.gouv.vitam.ingest.internal.client;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -36,6 +38,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.SingletonUtils;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.client.IngestCollection;
@@ -115,14 +118,20 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
 
     @Override
     public ItemStatus cancelOperationProcessExecution(String id) throws VitamClientException {
-        // return new ItemStatus(ID);
-        return new ItemStatus(ID);
+        final List<Integer> status = new ArrayList<>();
+        status.add(Status.OK.getStatusCode());
+        final ItemStatus itemStatus =
+            new ItemStatus(id, "FakeMessage - The operation has been canceled", StatusCode.OK, status,
+                SingletonUtils.singletonMap(), null,
+                null, null);
+        return itemStatus;
     }
 
     @Override
     public RequestResponse<ItemStatus> updateOperationActionProcess(String actionId, String operationId)
         throws VitamClientException {
-        return new RequestResponseOK<ItemStatus>();
+        return new RequestResponseOK<JsonNode>().addHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATE,
+            FAKE_EXECUTION_STATUS).setHttpCode(Status.OK.getStatusCode());
     }
 
     @Override
@@ -130,7 +139,7 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
         String actionId)
         throws VitamClientException {
         return new RequestResponseOK<JsonNode>().addHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATE,
-            FAKE_EXECUTION_STATUS);
+            FAKE_EXECUTION_STATUS).setHttpCode(Status.OK.getStatusCode());
 
     }
 
@@ -154,8 +163,7 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
 
     @Override
     public RequestResponse<WorkFlow> getWorkflowDefinitions() throws VitamClientException {
-        return RequestResponse.parseFromResponse(Response.status(Status.OK).entity(new WorkFlow()).build(),
-            WorkFlow.class);
+        return new RequestResponseOK<WorkFlow>().setHttpCode(Status.OK.getStatusCode());
     }
 
 
