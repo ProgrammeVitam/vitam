@@ -1,21 +1,26 @@
 
+{% for host in groups['mongod'] %}
+{% if hostvars[host]['shard_id'] == shard_id %}
+{% if hostvars[host]['rs_member_id'] == (hostvars[host]['replica_number'] - 1) %}
+
 rs.initiate(
     {
-        _id: "shard{{shard_id}}",
+        _id: "shard{{ hostvars[host]['shard_id'] }}",
         members:
         [
-        {% set i = 0 %}
-        {% for item in groups['mongod'] %}
-        {% if shard_id == shard_id %}
-        { _id: {{ i }}, host: "{{hostvars[item]['ip_service']}}:{{mongod_port}}" }
-        {% set i = i + 1 %}
-        {% if i < groups['mongod']|length %},{% endif %}
-        {% endif %}
-        {% endfor %}
+            {% for item in groups['mongod'] %}
+                {% if shard_id == hostvars[item]['shard_id'] %}
+                { _id: {{ hostvars[item]['rs_member_id'] }}, host: "{{ hostvars[item]['ip_service'] }}:{{mongod_port}}" }
+                {% if hostvars[item]['rs_member_id'] < (hostvars[item]['replica_number'] - 1) %},{% endif %}
+                {% endif %}
+            {% endfor %}
         ],
         settings: {
-    		getLastErrorDefaults : { w: "majority"}
-		}
+    		    getLastErrorDefaults : { w: "majority" }
+		    }
     }
 )
 
+{% endif %}
+{% endif %}
+{% endfor %}

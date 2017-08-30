@@ -100,17 +100,32 @@
 
 - name: Wait for the service port to be open
   wait_for: port={{mongod_port}} timeout="{{service_restart_timeout}}"
-  when: inventory_hostname == "{{ groups['mongod']|last }}"
+  when: inventory_hostname == groups['mongod']|last
 
 - name: Copy the script which initiate the replica set
   template:
     src: "init-replica.js.j2"
-    dest: "{{vitam_folder_root}}/app/init-replica.js"
+    dest: "{{vitam_folder_root}}/app/mongod/init-replica.js"
     owner: "{{vitamdb_user}}"
     group: "{{vitam_group}}"
     mode: "{{vitam_conf_permission}}"
-  when: inventory_hostname == "{{ groups['mongod']|last }}"
+  when: "rs_member_id == {{replica_number - 1}}"
 
 - name: Initiate the replica set
-  command: mongo --port {{mongod_port}} {{vitam_folder_root}}/app/init-replica.js
-  when: inventory_hostname == "{{ groups['mongod']|last }}"
+  command: mongo --port {{mongod_port}} {{vitam_folder_root}}/app/mongod/init-replica.js
+  when: "rs_member_id == {{replica_number - 1}}"
+
+# Create the local shard admin user
+
+- name: Copy the script which create the local users
+  template:
+    src: "local-user.js.j2"
+    dest: "{{vitam_folder_root}}/app/mongod/local-user.js"
+    owner: "{{vitamdb_user}}"
+    group: "{{vitam_group}}"
+    mode: "{{vitam_conf_permission}}"
+  when: "rs_member_id == {{replica_number - 1}}"
+
+- name: Create the local shard user
+  command: "mongo --host shard{{shard_id}}/localhost:27019 {{vitam_folder_root}}/app/mongod/local-user.js"
+  when: "rs_member_id == {{replica_number - 1}}"

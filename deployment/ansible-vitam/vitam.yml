@@ -87,7 +87,7 @@
 # Mongod replicas configuration
 - hosts: mongod
   roles:
-    - {role: mongod, mongo_bin: mongod, shard_id: 0}
+    - {role: mongod, mongo_bin: mongod}
 
 # Mongos configuration
 - hosts: mongos
@@ -97,7 +97,7 @@
 # Mongo cluster configuration, database & users declaration
 - hosts: mongos
   roles:
-    - {role: mongo_configure, shard_id: 0}
+    - {role: mongo_configure}
 
 - hosts: hosts-mongoclient
   roles:

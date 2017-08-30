@@ -21,11 +21,13 @@
   set_fact:
     mongo_credentials: ""
     mongo_no_auth: false
+  run_once: true
 
 - name: Set mongo_no_auth fact to true
   set_fact:
     mongo_no_auth: true
   when: "mongo_authent_enabled.rc != 0"
+  run_once: true
 
 # When authentication is required, we set mongodb admin credentials
 - name: Set mongodb authentication credentials
@@ -33,6 +35,7 @@
     mongo_credentials: " -u {{mongoAdminUser}} -p {{mongoAdminPassword}} --quiet"
   when: "mongo_authent_enabled.rc == 0"
   no_log: true
+  run_once: true
 
 # Copy the mongodb scripts
 
@@ -44,6 +47,7 @@
     group: "{{vitam_group}}"
     mode: "{{vitam_conf_permission}}"
   with_items: "{{ lookup('pipe','find {{role_path}}/templates/ -type f  -exec basename {} .j2 \\;').split('\n') }}"
+  run_once: true
 
 # Enable sharding for specific databases and collections
 

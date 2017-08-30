@@ -159,18 +159,25 @@ mongoc
 mongod
 
 [mongos]
-# TODO: Put here servers where this service will be deployed : mongos cluster ; add after name shard_id=0
-# Example : vitam-iaas-mongos-01.int shard_id=0
+# TODO: Put here servers where this service will be deployed : mongos cluster
 
 [mongoc]
 # TODO: Put here servers where this service will be deployed : mongoc cluster
 
 
-[mongod] # mongod declaration ; add machines name after ; add after shard_id=0 & rs_member_id=<increasing number, starting from 0, for each line>
-# TODO: Put here servers where this service will be deployed : mongod cluster ; add after name shard_id=0
-# Example : vitam-iaas-db-01.int rs_member_id=0 shard_id=0
-# Example : vitam-iaas-db-02.int rs_member_id=1 shard_id=0
-# Example : vitam-iaas-db-03.int rs_member_id=2 shard_id=0
+[mongod] # mongod declaration ; add host name after
+# TODO: Put here servers where this service will be deployed : mongod cluster
+# Each host need 3 vars:
+#     - replica_number: number of replicas in the current replica set (mongodb recommendation: 3 for production servers)
+#     - shard_id: id of the current shard, increment by 1 from 0 to n
+#     - rs_member_id: id of the member of the replica set, increment by 1 from 0 to n
+# Example:
+# vitam-iaas-db-01.int  replica_number=3    shard_id=0  rs_member_id=0
+# vitam-iaas-db-02.int  replica_number=3    shard_id=0  rs_member_id=1
+# vitam-iaas-db-03.int  replica_number=3    shard_id=0  rs_member_id=2
+# vitam-iaas-db-04.int  replica_number=3    shard_id=1  rs_member_id=0
+# vitam-iaas-db-05.int  replica_number=3    shard_id=1  rs_member_id=1
+# vitam-iaas-db-06.int  replica_number=3    shard_id=1  rs_member_id=2
 
 ###### Zone admin
 
@@ -270,4 +277,3 @@ vitam_tenant_ids=[0,1,2]
 
 # Pour les Tests de Non-Regression (en git LFS), si URL et branche définies, récupération des jeux de tests
 vitam_swift_uid=
-
