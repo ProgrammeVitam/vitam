@@ -1,8 +1,8 @@
 
 admin = db.getSiblingDB("admin")
 
-if (! db.getUser("{{mongoLocalAdminUser}}")) {
-    db.createUser(
+if (! admin.getUser("{{mongoLocalAdminUser}}")) {
+    admin.createUser(
         {
             user: "{{mongoLocalAdminUser}}",
             pwd: "{{mongoLocalAdminPassword}}",
