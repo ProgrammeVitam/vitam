@@ -37,6 +37,8 @@ public final class ReferentialFileUtils {
             evDetData.put("FileName", filename);
             logbookParameters.putParameterValue(LogbookParameterName.eventDetailData,
                 JsonHandler.unprettyPrint(evDetData));
+            logbookParameters.putParameterValue(LogbookParameterName.masterData,
+                JsonHandler.unprettyPrint(evDetData));
         }
     }
 }

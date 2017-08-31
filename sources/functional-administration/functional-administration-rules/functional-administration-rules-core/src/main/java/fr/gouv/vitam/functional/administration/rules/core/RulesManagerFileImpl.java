@@ -1050,7 +1050,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
                 final ObjectNode evDetData = JsonHandler.createObjectNode();
                 evDetData.put(FILE_NAME, fileName);
                 logbookParametersEnd.putParameterValue(LogbookParameterName.eventDetailData,
-                    JsonHandler.unprettyPrint(evDetData));
+                    JsonHandler.unprettyPrint(evDetData));                
                 updateLogBookEntry(logbookParametersEnd);
             } catch (ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException e) {
                 LOGGER.error("unable to create container or store file in workspace", e);

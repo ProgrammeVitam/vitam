@@ -450,6 +450,16 @@ public class ProcessingIT {
                 client.importRulesFile(
                     PropertiesUtils.getResourceAsStream("integration-processing/jeu_donnees_OK_regles_CSV_regles.csv"),
                     "jeu_donnees_OK_regles_CSV_regles.csv");
+                
+                // lets check evdetdata for rules import
+                LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
+                fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
+                    new fr.gouv.vitam.common.database.builder.request.single.Select();
+                selectQuery.setQuery(QueryHelper.eq("evType", "STP_IMPORT_RULES"));
+                JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
+                assertNotNull(logbookResult.get("$results").get(0).get("evDetData"));
+                assertTrue(JsonHandler.writeAsString(logbookResult.get("$results").get(0).get("evDetData"))
+                    .contains("jeu_donnees_OK_regles_CSV_regles"));
 
                 File fileProfiles = PropertiesUtils.getResourceFile("integration-processing/OK_profil.json");
                 List<ProfileModel> profileModelList =
