@@ -628,6 +628,7 @@ public class AdminManagementExternalResourceImpl {
      */
     @Path("/{collection}/{id_document:.+}")
     @GET
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response findDocumentByID(@PathParam("collection") String collection,
         @PathParam("id_document") String documentId, JsonNode select) {

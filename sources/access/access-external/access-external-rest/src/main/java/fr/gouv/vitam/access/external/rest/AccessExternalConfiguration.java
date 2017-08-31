@@ -32,23 +32,12 @@ import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplica
  * AccessConfiguration contains database access informations
  */
 public class AccessExternalConfiguration extends DefaultVitamApplicationConfiguration {
-    private boolean authentication;
 
     /**
-     * @return the authentication
+     * AccessExternalConfiguration empty constructor for YAMLFactory
      */
-    public boolean isAuthentication() {
-        return authentication;
-    }
-
-    /**
-     * @param authentication the authentication to set
-     *
-     * @return this
-     */
-    public AccessExternalConfiguration setAuthentication(boolean authentication) {
-        this.authentication = authentication;
-        return this;
+    public AccessExternalConfiguration() {
+        // Empty constructor
     }
 
 }

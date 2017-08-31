@@ -40,6 +40,7 @@ import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.bind.JAXBContext;
@@ -206,7 +207,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
      * get Archive Unit list by query based on identifier
      *
      * @param queryDsl as JsonNode
-     * @param idUnit   identifier
+     * @param idUnit identifier
      * @return an archive unit result list
      */
 
@@ -304,8 +305,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
      * update archive units by Id with Json query
      *
      * @param requestId request identifier
-     * @param queryDsl  DSK, null not allowed
-     * @param idUnit    units identifier
+     * @param queryDsl DSK, null not allowed
+     * @param idUnit units identifier
      * @return a archive unit result list
      */
     @Override
@@ -370,7 +371,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 result = accessModule.selectObjectGroupById(parser.getRequest().getFinalSelect(), idObjectGroup);
             }
             return Response.status(Status.OK).entity(result).build();
-        } catch (final InvalidParseOperationException | IllegalArgumentException | InvalidCreateOperationException exc) {
+        } catch (final InvalidParseOperationException | IllegalArgumentException |
+            InvalidCreateOperationException exc) {
             LOGGER.error(exc);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status).entity(getErrorEntity(status, exc.getMessage())).build();
@@ -381,21 +383,22 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         }
     }
 
-    private void asyncObjectStream(AsyncResponse asyncResponse, HttpHeaders headers, String idObjectGroup,
+    private void asyncObjectStream(AsyncResponse asyncResponse, MultivaluedMap<String, String> multipleMap,
+        String idObjectGroup,
         JsonNode query, boolean post) {
 
-        if (post) {
-            if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.METHOD_OVERRIDE)) {
+        if (post) {            
+            if (!multipleMap.containsKey(GlobalDataRest.X_HTTP_METHOD_OVERRIDE)) {
                 AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                     Response.status(Status.PRECONDITION_FAILED)
-                        .entity(getErrorStream(Status.PRECONDITION_FAILED, "method POST without Override = GET")
-                        ).build());
+                        .entity(getErrorStream(Status.PRECONDITION_FAILED, "method POST without Override = GET"))
+                        .build());
                 return;
             }
         }
-        if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.TENANT_ID) ||
-            !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.QUALIFIER) ||
-            !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.VERSION)) {
+        if (!multipleMap.containsKey(GlobalDataRest.X_TENANT_ID) ||
+            !multipleMap.containsKey(GlobalDataRest.X_QUALIFIER) ||
+            !multipleMap.containsKey(GlobalDataRest.X_VERSION)) {
             LOGGER.error("At least one required header is missing. Required headers: (" + VitamHttpHeader.TENANT_ID
                 .name() + ", " + VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() + ")");
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
@@ -403,11 +406,12 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                     .entity(getErrorStream(Status.PRECONDITION_FAILED,
                         "At least one required header is missing. Required headers: (" + VitamHttpHeader.TENANT_ID
                             .name() + ", " + VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() +
-                            ")")).build());
+                            ")"))
+                    .build());
             return;
-        }
-        final String xQualifier = headers.getRequestHeader(GlobalDataRest.X_QUALIFIER).get(0);
-        final String xVersion = headers.getRequestHeader(GlobalDataRest.X_VERSION).get(0);
+        }        
+        final String xQualifier = multipleMap.get(GlobalDataRest.X_QUALIFIER).get(0);
+        final String xVersion = multipleMap.get(GlobalDataRest.X_VERSION).get(0);
 
         if (!VitamThreadUtils.getVitamSession().getContract().isEveryDataObjectVersion() &&
             !validUsage(xQualifier.split("_")[0])) {
@@ -419,8 +423,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         }
 
         try {
-            SanityChecker.checkHeaders(headers);
-            HttpHeaderHelper.checkVitamHeaders(headers);
+            SanityChecker.checkHeadersMap(multipleMap);
+            HttpHeaderHelper.checkVitamHeadersMap(multipleMap);
             SanityChecker.checkJsonAll(query);
             SanityChecker.checkParameter(idObjectGroup);
             accessModule.getOneObjectFromObjectGroup(asyncResponse, idObjectGroup, query, xQualifier,
@@ -494,12 +498,12 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void getObjectStreamAsync(@Context HttpHeaders headers, @PathParam("id_object_group") String idObjectGroup,
         JsonNode query, @Suspended final AsyncResponse asyncResponse) {
-
+        MultivaluedMap<String, String> multipleMap = headers.getRequestHeaders();
         VitamThreadPoolExecutor.getDefaultExecutor().execute(new Runnable() {
 
             @Override
             public void run() {
-                asyncObjectStream(asyncResponse, headers, idObjectGroup, query, false);
+                asyncObjectStream(asyncResponse, multipleMap, idObjectGroup, query, false);
             }
         });
     }

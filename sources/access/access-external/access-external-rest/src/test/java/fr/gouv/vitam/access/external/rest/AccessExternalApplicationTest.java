@@ -17,7 +17,7 @@ import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 
 public class AccessExternalApplicationTest {
-    private AccessExternalApplication application;
+    private AccessExternalMain application;
     private final JunitHelper junitHelper = JunitHelper.getInstance();
     private int portAvailable;
 
@@ -31,7 +31,7 @@ public class AccessExternalApplicationTest {
     @After
     public void tearDown() throws Exception {
         if (application != null && application.getVitamServer() != null &&
-            application.getVitamServer().getServer() != null) {
+            application.getVitamServer() != null) {
 
             application.stop();
         }
@@ -40,39 +40,38 @@ public class AccessExternalApplicationTest {
 
     @Test(expected = Exception.class)
     public void shouldRaiseAnExceptionWhenConfigureApplicationWithEmptyArgs() throws Exception {
-        application = new AccessExternalApplication("");
+        application = new AccessExternalMain("");
     }
 
     @Test(expected = IllegalStateException.class)
     public void shouldRaiseAnExceptionWhenConfigureApplicationWithFileNotFound() throws Exception {
-        application = new AccessExternalApplication("notFound.conf");
+        application = new AccessExternalMain("notFound.conf");
     }
 
     @Test(expected = IllegalStateException.class)
     public void shouldThrowExceptionWhenConfigureApplicationWithFileErr1() throws Exception {
-        application = new AccessExternalApplication("access-external-test-err1.conf");
-        Assert.assertFalse(application.getVitamServer().getServer().isStarted());
+        application = new AccessExternalMain("access-external-test-err1.conf");
+        Assert.assertFalse(application.getVitamServer().isStarted());
     }
     
     @Test(expected = IllegalStateException.class)
     public void shouldThrowExceptionWhenConfigureApplicationWithoutTenant() throws Exception {
-        application = new AccessExternalApplication("access-external-test-no-tenant.conf");
-        Assert.assertFalse(application.getVitamServer().getServer().isStarted());
+        application = new AccessExternalMain("access-external-test-no-tenant.conf");
+        Assert.assertFalse(application.getVitamServer().isStarted());
     }
 
     @Test
     public void shouldStartAndStopServerWhenStopApplicationWithFileExistsAndRun() throws Exception {
-        application = new AccessExternalApplication("access-external-test.conf");
+        application = new AccessExternalMain("access-external-test.conf");
         application.start();
-        Assert.assertTrue(application.getVitamServer().getServer().isStarted());
+        Assert.assertTrue(application.getVitamServer().isStarted());
 
         application.stop();
-        Assert.assertTrue(application.getVitamServer().getServer().isStopped());
     }
 
     @Test
     public void shouldHeaderStripXSSWhenFilterThenReturnReturnNotAcceptable() throws VitamException {
-        application = new AccessExternalApplication("src/test/resources/access-external-test.conf");
+        application = new AccessExternalMain("src/test/resources/access-external-test.conf");
         application.start();
 
         given()
@@ -120,7 +119,7 @@ public class AccessExternalApplicationTest {
 
     @Test
     public void shouldActivateShiroFilter() throws VitamException {
-        application = new AccessExternalApplication("src/test/resources/access-external-test-ssl.conf");
+        application = new AccessExternalMain("src/test/resources/access-external-test-ssl.conf");
         application.start();
     }
 }

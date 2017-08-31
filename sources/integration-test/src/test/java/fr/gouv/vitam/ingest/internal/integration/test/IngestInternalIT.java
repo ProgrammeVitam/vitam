@@ -73,7 +73,7 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
-import fr.gouv.vitam.access.internal.rest.AccessInternalApplication;
+import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
@@ -205,7 +205,7 @@ public class IngestInternalIT {
     private static WorkspaceApplication workspaceApplication;
     private static ProcessManagementApplication processManagementApplication;
     private static IngestInternalApplication ingestInternalApplication;
-    private static AccessInternalApplication accessInternalApplication;
+    private static AccessInternalMain accessInternalApplication;
 
     private static final String WORKSPACE_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE;
     private static String SIP_TREE = "integration-ingest-internal/test_arbre.zip";
@@ -367,7 +367,7 @@ public class IngestInternalIT {
 
         SystemPropertyUtil.set("jetty.access-internal.port", Integer.toString(PORT_SERVICE_ACCESS_INTERNAL));
         accessInternalApplication =
-            new AccessInternalApplication(CONFIG_ACCESS_INTERNAL_PATH);
+            new AccessInternalMain(CONFIG_ACCESS_INTERNAL_PATH);
         accessInternalApplication.start();
         SystemPropertyUtil.clear("jetty.access-internal.port");
         AccessInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_ACCESS_INTERNAL);

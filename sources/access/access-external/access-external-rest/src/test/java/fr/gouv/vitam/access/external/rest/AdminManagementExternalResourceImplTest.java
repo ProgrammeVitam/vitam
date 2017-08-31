@@ -14,6 +14,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -95,7 +96,7 @@ public class AdminManagementExternalResourceImplTest {
     private InputStream stream;
     private static JunitHelper junitHelper;
     private static int serverPort;
-    private static AccessExternalApplication application;
+    private static AccessExternalMain application;
     private static AdminManagementClient adminCLient;
 
     @BeforeClass
@@ -108,7 +109,7 @@ public class AdminManagementExternalResourceImplTest {
         RestAssured.basePath = RESOURCE_URI;
 
         try {
-            application = new AccessExternalApplication("access-external-test.conf");
+            application = new AccessExternalMain("access-external-test.conf");
             application.start();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
@@ -120,7 +121,7 @@ public class AdminManagementExternalResourceImplTest {
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         if (application != null && application.getVitamServer() != null &&
-            application.getVitamServer().getServer() != null) {
+            application.getVitamServer() != null) {
 
             application.stop();
         }
@@ -490,22 +491,6 @@ public class AdminManagementExternalResourceImplTest {
             .body(select.getFinalSelect())
             .when().post(ACCESSION_REGISTER_DETAIL_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-
-        given()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
-            .body(select.getFinalSelect())
-            .when().post(ACCESSION_REGISTER_DETAIL_URI)
-            .then().statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
-
-        given()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
-            .body(select.getFinalSelect())
-            .when().post(ACCESSION_REGISTER_DETAIL_URI)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-
     }
 
     @Test
@@ -808,7 +793,7 @@ public class AdminManagementExternalResourceImplTest {
 
     @Test
     public void testDownloadTraceabilityOperationFile() throws InvalidParseOperationException {
-        given()
+        given().accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
             .get(TRACEABILITY_OPERATION_BASE_URI + TRACEABILITY_OPERATION_ID)
