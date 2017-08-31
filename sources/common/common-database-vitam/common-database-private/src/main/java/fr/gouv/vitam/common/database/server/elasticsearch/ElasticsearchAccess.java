@@ -186,7 +186,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
     }
 
     @Override
-    public String toString() {
+    public String getInfo() {
         return clusterName;
     }
     

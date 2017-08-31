@@ -166,7 +166,7 @@ public abstract class MongoDbAccess implements DatabaseConnection {
     }
 
     @Override
-    public String toString() {
+    public String getInfo() {
         return dbname;
     }
 

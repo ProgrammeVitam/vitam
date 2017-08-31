@@ -80,27 +80,27 @@ public class AdminAutotestStatusResourceImplTest {
         VitamConfiguration.setConnectTimeout(100);
         TestApplication.serviceRegistry = new VitamServiceRegistry();
         final MinimalTestVitamApplicationFactory<TestApplication> testFactory =
-                new MinimalTestVitamApplicationFactory<TestApplication>() {
+            new MinimalTestVitamApplicationFactory<TestApplication>() {
 
-                    @Override
-                    public StartApplicationResponse<TestApplication> startVitamApplication(int reservedPort)
-                            throws IllegalStateException {
-                        final TestApplication application = new TestApplication(TEST_CONF);
-                        return startAndReturn(application);
-                    }
+                @Override
+                public StartApplicationResponse<TestApplication> startVitamApplication(int reservedPort)
+                    throws IllegalStateException {
+                    final TestApplication application = new TestApplication(TEST_CONF);
+                    return startAndReturn(application);
+                }
 
-                };
+            };
 
         serverAdminPort = junitHelper.findAvailablePort(JunitHelper.PARAMETER_JETTY_SERVER_PORT_ADMIN);
 
         final StartApplicationResponse<TestApplication> response =
-                testFactory.findAvailablePortSetToApplication();
+            testFactory.findAvailablePortSetToApplication();
         serverPort = response.getServerPort();
         application = response.getApplication();
         factory = new TestVitamAdminClientFactory(serverAdminPort, ADMIN_STATUS_URI);
         final DatabaseConnectionImpl fakeDb = new DatabaseConnectionImpl();
         TestApplication.serviceRegistry.register(factory).register((DatabaseConnection) null)
-                .register((VitamStatusService) null).register(fakeDb);
+            .register((VitamStatusService) null).register(fakeDb);
         LOGGER.debug("Beginning tests");
     }
 
@@ -152,6 +152,11 @@ public class AdminAutotestStatusResourceImplTest {
         @Override
         public boolean checkConnection() {
             return status;
+        }
+
+        @Override
+        public String getInfo() {
+            return "info";
         }
 
     }
