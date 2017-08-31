@@ -33,6 +33,9 @@ import fr.gouv.vitam.common.model.processing.DistributionKind;
 import fr.gouv.vitam.common.model.processing.PauseOrCancelAction;
 import fr.gouv.vitam.common.model.processing.Step;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
@@ -174,6 +177,17 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             PauseOrCancelAction.ACTION_RECOVER.equals(step.getPauseOrCancelAction());
         final int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         step.setStepResponses(new ItemStatus(step.getStepName()));
+        // Explicitly flush ElasticSearch indexes for the current tenant
+        try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
+            try {
+                metadataClient.flushUnits();
+                metadataClient.flushObjectGroups();
+            } catch (MetaDataClientServerException e) {
+                step.getStepResponses().increment(StatusCode.FATAL);
+                LOGGER.error("Illegal Argument Exception", e);
+                return step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_COMPLETE).getStepResponses();
+            }
+        }
         try {
             currentSteps.put(operationId, step);
             // update workParams

@@ -48,7 +48,7 @@ public class WorkerFamilyManager implements Executor {
         if (queueSize < 2) {
             throw new IllegalArgumentException("queue size must be greater than 2");
         }
-        queue = new ArrayBlockingQueue<>(queueSize);
+        queue = new ArrayBlockingQueue<>(queueSize, true);
     }
 
     public void registerWorker(WorkerBean workerBean) {

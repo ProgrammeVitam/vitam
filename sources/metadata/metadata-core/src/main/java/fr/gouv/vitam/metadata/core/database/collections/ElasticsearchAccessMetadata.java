@@ -37,6 +37,7 @@ import org.bson.json.JsonWriterSettings;
 import org.elasticsearch.action.ListenableActionFuture;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.flush.FlushRequest;
+import org.elasticsearch.action.admin.indices.flush.FlushResponse;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -153,11 +154,13 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @param tenantId the tenant for operation
      */
     public final void refreshIndex(final MetadataCollections collection, Integer tenantId) {
+        String allIndexes = getIndexName(collection, tenantId);
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("refreshIndex: " + collection.getName().toLowerCase() + "_" + tenantId);
+            LOGGER.debug("refreshIndex: " + allIndexes);
         }
-        client.admin().indices().flush(new FlushRequest(getIndexName(collection, tenantId)).force(true)).actionGet();
-
+        FlushResponse response =
+            client.admin().indices().flush(new FlushRequest(allIndexes).force(true)).actionGet();
+        LOGGER.debug("Flush request executed with {} successfull shards", response.getSuccessfulShards());
     }
 
     /**
@@ -339,7 +342,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
                 .setSource(toInsert));
             if (max == 0) {
                 max = VitamConfiguration.getMaxElasticsearchBulk();
-                final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
+                final BulkResponse bulkResponse = bulkRequest.setRefresh(false).execute().actionGet(); // new
                 // thread
                 if (bulkResponse.hasFailures()) {
                     int duplicates = 0;
@@ -356,7 +359,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             }
         }
         if (bulkRequest.numberOfActions() > 0) {
-            final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
+            final BulkResponse bulkResponse = bulkRequest.setRefresh(false).execute().actionGet(); // new
             // thread
             if (bulkResponse.hasFailures()) {
                 int duplicates = 0;
@@ -408,7 +411,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
                     .setDoc(toUpdate));
             if (max == 0) {
                 max = VitamConfiguration.getMaxElasticsearchBulk();
-                final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
+                final BulkResponse bulkResponse = bulkRequest.setRefresh(false).execute().actionGet(); // new
                 // thread
                 if (bulkResponse.hasFailures()) {
                     LOGGER.error("ES update in error: " + bulkResponse.buildFailureMessage());
@@ -418,7 +421,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             }
         }
         if (bulkRequest.numberOfActions() > 0) {
-            final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
+            final BulkResponse bulkResponse = bulkRequest.setRefresh(false).execute().actionGet(); // new
             // thread
             if (bulkResponse.hasFailures()) {
                 LOGGER.error("ES update in error: " + bulkResponse.buildFailureMessage());
@@ -583,7 +586,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
                 .setSource(toInsert));
             if (max == 0) {
                 max = VitamConfiguration.getMaxElasticsearchBulk();
-                final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
+                final BulkResponse bulkResponse = bulkRequest.setRefresh(false).execute().actionGet(); // new
                 // thread
                 if (bulkResponse.hasFailures()) {
                     int duplicates = 0;
@@ -600,7 +603,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             }
         }
         if (bulkRequest.numberOfActions() > 0) {
-            final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
+            final BulkResponse bulkResponse = bulkRequest.setRefresh(false).execute().actionGet(); // new
             // thread
             if (bulkResponse.hasFailures()) {
                 int duplicates = 0;
@@ -651,7 +654,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
                 VitamCollection.getTypeunique(), id).setDoc(toUpdate));
             if (max == 0) {
                 max = VitamConfiguration.getMaxElasticsearchBulk();
-                final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
+                final BulkResponse bulkResponse = bulkRequest.setRefresh(false).execute().actionGet(); // new
                 // thread
                 if (bulkResponse.hasFailures()) {
                     LOGGER.error("ES update in error: " + bulkResponse.buildFailureMessage());
@@ -661,7 +664,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             }
         }
         if (bulkRequest.numberOfActions() > 0) {
-            final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
+            final BulkResponse bulkResponse = bulkRequest.setRefresh(false).execute().actionGet(); // new
             // thread
             if (bulkResponse.hasFailures()) {
                 LOGGER.error("ES update in error: " + bulkResponse.buildFailureMessage());
@@ -715,7 +718,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
                 VitamCollection.getTypeunique(), id));
             if (max == 0) {
                 max = VitamConfiguration.getMaxElasticsearchBulk();
-                final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
+                final BulkResponse bulkResponse = bulkRequest.setRefresh(false).execute().actionGet(); // new
                 // thread
                 if (bulkResponse.hasFailures()) {
                     LOGGER.error("ES delete in error: " + bulkResponse.buildFailureMessage());
@@ -759,7 +762,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
                 .add(client.prepareDelete(getIndexName(MetadataCollections.C_UNIT, tenantId), VitamCollection.getTypeunique(), id));
             if (max == 0) {
                 max = VitamConfiguration.getMaxElasticsearchBulk();
-                final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
+                final BulkResponse bulkResponse = bulkRequest.setRefresh(false).execute().actionGet(); // new
                 // thread
                 if (bulkResponse.hasFailures()) {
                     LOGGER.error("ES delete in error: " + bulkResponse.buildFailureMessage());

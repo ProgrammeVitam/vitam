@@ -103,4 +103,14 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
         // Empty
     }
 
+    @Override
+    public boolean flushUnits() {
+        return true;
+    }
+
+    @Override
+    public boolean flushObjectGroups() {
+        return true;
+    }
+
 }
