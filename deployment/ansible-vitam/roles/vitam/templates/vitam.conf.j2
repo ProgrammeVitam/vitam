@@ -1,2 +1,6 @@
 secret : {{plateforme_secret}}
 filterActivation : {{secret_platform}}
+{% if inventory_hostname in groups['hosts-processing'] %}
+distributeurBatchSize: 80
+{% endif %}
+
