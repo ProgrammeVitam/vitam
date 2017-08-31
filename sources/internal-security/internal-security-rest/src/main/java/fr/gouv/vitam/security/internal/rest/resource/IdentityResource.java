@@ -30,9 +30,12 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.security.internal.common.model.IdentityModel;
 import fr.gouv.vitam.security.internal.rest.service.IdentityService;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 import java.security.cert.CertificateException;
 
 /**
@@ -57,6 +60,8 @@ public class IdentityResource {
      * @throws InvalidParseOperationException
      */
     @GET
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_JSON)
     public IdentityModel findIdentityByCertificate(byte[] certificate)
         throws InvalidParseOperationException, CertificateException {
         return identityService.findIdentity(certificate).orElseThrow(NotFoundException::new);

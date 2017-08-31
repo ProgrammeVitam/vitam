@@ -26,11 +26,20 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.exception;
 
+import fr.gouv.vitam.common.error.VitamError;
+
 /**
  * Main Vitam Exception
  */
 public class VitamException extends Exception {
+
+    private VitamError vitamError;
+
     private static final long serialVersionUID = 1939529482757363926L;
+
+    public VitamException(VitamError vitamError) {
+        this.vitamError = vitamError;
+    }
 
     /**
      * @param message associated message
@@ -52,5 +61,13 @@ public class VitamException extends Exception {
      */
     public VitamException(String message, Throwable cause) {
         super(message, cause);
+    }
+
+    public VitamError getVitamError() {
+        return vitamError;
+    }
+
+    public void setVitamError(VitamError vitamError) {
+        this.vitamError = vitamError;
     }
 }

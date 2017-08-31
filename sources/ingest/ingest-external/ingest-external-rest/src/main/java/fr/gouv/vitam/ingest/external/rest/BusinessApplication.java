@@ -18,6 +18,7 @@ import fr.gouv.vitam.common.security.waf.SanityCheckerCommonFilter;
 import fr.gouv.vitam.common.security.waf.SanityDynamicFeature;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
+import fr.gouv.vitam.security.internal.filter.InternalSecurityFilter;
 
 public class BusinessApplication extends Application {
 
@@ -36,6 +37,7 @@ public class BusinessApplication extends Application {
                 PropertiesUtils.readYaml(yamlIS, IngestExternalConfiguration.class);
             commonBusinessApplication = new CommonBusinessApplication();
             singletons = new HashSet<>();
+            singletons.add(new InternalSecurityFilter());
             singletons.addAll(commonBusinessApplication.getResources());
             singletons.add(new IngestExternalResource(configuration, secureEndpointRegistry));
             singletons.add(new SanityCheckerCommonFilter());

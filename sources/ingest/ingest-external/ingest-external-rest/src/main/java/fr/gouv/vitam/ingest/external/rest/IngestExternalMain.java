@@ -38,6 +38,8 @@ import fr.gouv.vitam.common.serverv2.VitamStarter;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 
+import javax.ws.rs.core.Application;
+
 /**
  * Ingest External web application
  */
@@ -60,6 +62,29 @@ public class IngestExternalMain {
         vitamStarter = new VitamStarter(IngestExternalConfiguration.class, configurationFile,
             BusinessApplication.class, AdminApplication.class);
     }
+
+    /**
+     * This constructor is used for test
+     * @param configurationFile
+     * @param testBusinessApplication Custom BusinessApplication
+     * @param testAdminApplication Custom AdminApplication
+     */
+    public IngestExternalMain(String configurationFile,
+        Class<? extends Application> testBusinessApplication,
+        Class<? extends Application> testAdminApplication) {
+        ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
+            CONF_FILE_NAME), configurationFile);
+        if (null == testBusinessApplication) {
+            testBusinessApplication =  BusinessApplication.class;
+        }
+
+        if (null == testAdminApplication) {
+            testAdminApplication =  AdminApplication.class;
+        }
+        vitamStarter = new VitamStarter(IngestExternalConfiguration.class, configurationFile,
+            testBusinessApplication, testAdminApplication);
+    }
+
 
     /**
      * Main method to run the application (doing start and join)

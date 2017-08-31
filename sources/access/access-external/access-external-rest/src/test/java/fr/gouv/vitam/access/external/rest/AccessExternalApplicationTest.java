@@ -1,20 +1,19 @@
 package fr.gouv.vitam.access.external.rest;
 
-import static com.jayway.restassured.RestAssured.given;
-
-import javax.ws.rs.core.Response.Status;
-
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
+import javax.ws.rs.core.Response.Status;
+
+import static com.jayway.restassured.RestAssured.given;
 
 public class AccessExternalApplicationTest {
     private AccessExternalMain application;
@@ -71,7 +70,7 @@ public class AccessExternalApplicationTest {
 
     @Test
     public void shouldHeaderStripXSSWhenFilterThenReturnReturnNotAcceptable() throws VitamException {
-        application = new AccessExternalMain("src/test/resources/access-external-test.conf");
+        application = new AccessExternalMain("src/test/resources/access-external-test.conf", BusinessApplicationTest.class,null);
         application.start();
 
         given()

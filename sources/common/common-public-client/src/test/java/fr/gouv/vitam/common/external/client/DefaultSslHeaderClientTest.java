@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.common.external.client;
 
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.auth.web.filter.X509AuthenticationFilter;
@@ -68,6 +69,7 @@ import java.util.Enumeration;
 import java.util.List;
 
 import static org.junit.Assert.fail;
+
 
 public class DefaultSslHeaderClientTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultSslHeaderClientTest.class);
@@ -298,7 +300,7 @@ public class DefaultSslHeaderClientTest {
                 List<Object> objectList = new ArrayList<>();
                 objectList.add(pem);
 
-                headers.put(X509AuthenticationFilter.X_SSL_CLIENT_CERT, objectList);
+                headers.put(GlobalDataRest.X_SSL_CLIENT_CERT, objectList);
                 client.checkStatus(headers);
             } catch (final VitamException e) {
                 LOGGER.error("THIS SHOULD NOT RAIZED AN EXCEPTION", e);
@@ -335,7 +337,7 @@ public class DefaultSslHeaderClientTest {
                 List<Object> objectList = new ArrayList<>();
                 objectList.add(pemExpired);
 
-                headers.put(X509AuthenticationFilter.X_SSL_CLIENT_CERT, objectList);
+                headers.put(GlobalDataRest.X_SSL_CLIENT_CERT, objectList);
                 client.checkStatus(headers);
                 fail("SHould Raized an exception");
             } catch (final VitamException e) {
@@ -369,7 +371,7 @@ public class DefaultSslHeaderClientTest {
                 List<Object> objectList = new ArrayList<>();
                 objectList.add(pemNotGranted);
 
-                headers.put(X509AuthenticationFilter.X_SSL_CLIENT_CERT, objectList);
+                headers.put(GlobalDataRest.X_SSL_CLIENT_CERT, objectList);
                 client.checkStatus(headers);
                 fail("SHould Raized an exception");
             } catch (final VitamException e) {

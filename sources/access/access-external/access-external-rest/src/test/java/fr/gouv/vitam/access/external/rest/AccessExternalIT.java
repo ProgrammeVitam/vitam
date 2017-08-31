@@ -26,22 +26,21 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.external.rest;
 
-import static org.junit.Assert.fail;
+import fr.gouv.vitam.access.external.client.AccessExternalClient;
+import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.external.client.configuration.SecureClientConfigurationImpl;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import fr.gouv.vitam.access.external.client.AccessExternalClient;
-import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.external.client.configuration.SecureClientConfigurationImpl;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.junit.JunitHelper;
+import static org.junit.Assert.fail;
 
 public class AccessExternalIT {
 
@@ -59,7 +58,7 @@ public class AccessExternalIT {
         final File conf = PropertiesUtils.findFile(ACCESS_EXTERNAL_CONF);
 
         try {
-            final AccessExternalMain application = new AccessExternalMain(conf.getAbsolutePath());
+            final AccessExternalMain application = new AccessExternalMain(conf.getAbsolutePath(), BusinessApplicationTest.class, null);
             application.start();
         } catch (final VitamApplicationServerException e) {
             throw new IllegalStateException(
