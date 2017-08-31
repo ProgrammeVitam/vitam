@@ -319,6 +319,7 @@ public abstract class VitamJerseyTest<A> implements VitamApplicationTestFactory<
 
     /**
      * End the application only
+     * 
      * @throws VitamApplicationServerException
      */
     public final void endApplication() throws VitamApplicationServerException {
@@ -326,6 +327,7 @@ public abstract class VitamJerseyTest<A> implements VitamApplicationTestFactory<
             ((VitamApplicationInterface<?, ?>) response.getApplication()).stop();
         }
     }
+
     /**
      * End the Application.
      *

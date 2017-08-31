@@ -1,0 +1,32 @@
+{
+	"JDO": {
+		"evType": "STP_IMPORT_RULES",
+		"evDateTime": "2017-08-08T15:27:30.189"
+	},
+	"error": {
+		"line 3": [
+			{
+				"Code": "STP_IMPORT_RULES_MISSING_INFORMATION.KO",
+				"Message": "Au moins une valeur obligatoire est manquante. Valeurs obligatoires : RuleID, RuleType, RuleValue, RuleDuration, RuleMeasurement  ",
+				"Information additionnelle": "RuleType"
+			},
+			{
+				"Code": "STP_IMPORT_RULES_WRONG_RULEDURATION.KO",
+				"Message": "Au moins un champs RuleDuration \u00E0 une valeur incorrecte. La valeur doit \u00EAtre un entier positif ou nul, ou \u00EAtre indiqu\u00E9e unlimited",
+				"Information additionnelle": "Dur\u00E9e de conservation des offres non retenues des march\u00E9s publics\nL\u2019\u00E9ch\u00E9ance est calcul\u00E9e \u00E0 partir de la date de notification du march\u00E9 au titulaire"
+			},
+			{
+				"Code": "STP_IMPORT_RULES_WRONG_RULEMEASUREMENT.KO",
+				"Message": "Au moins un champs RuleDuration \u00E0 une valeur incorrecte. La valeur doit \u00EAtre un entier positif ou nul, ou \u00EAtre indiqu\u00E9e unlimited",
+				"Information additionnelle": "5"
+			},
+			{
+				"Code": "STP_IMPORT_RULES_WRONG_RULETYPE_UNKNOW.KO",
+				"Message": "Au moins une RuleType est incorrecte. RuleType autoris\u00E9s : AppraisalRule, AccessRule, StorageRule, DisseminationRule, ReuseRule, ClassificationRule",
+				"Information additionnelle": ""
+			}
+		]
+	},
+	"usedDeletedRules": [],
+	"usedUpdatedRules": []
+}

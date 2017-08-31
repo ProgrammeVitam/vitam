@@ -10,6 +10,8 @@ L’échéance est calculée à partir de la date de levée des réserves",10,YE
 APP-00005,AppraisalRule,Pièces comptables (comptable),"Durée de conservation des pièces comptables pour le comptable
 l’échéance est calculée à partir de la date de solde comptable",6,YEAR
 ACC-00001,AccessRule,Libre communicabilité,Durée de communicabilité par défaut,0,YEAR
+ACC-00002,AccessRule,Communicabilité des informations portant atteinte au secret des délibérations du gouvernement et des autorités responsables relevant du pouvoir exécutif (date du document le plus récent dans le dossier),"Durée de communicabilité applicable aux informations portant atteinte au secret des délibérations du gouvernement et des autorités responsables relevant du pouvoir exécutif
+L’échéance est calculée à partir de la date du document le plus récent du dossier",25,YEAR
 ACC-00003,AccessRule,Communicabilité des informations portant atteinte au secret des délibérations du gouvernement et des autorités responsables relevant du pouvoir exécutif (date du document),"Durée de communicabilité applicable aux informations portant atteinte au secret des délibérations du gouvernement et des autorités responsables relevant du pouvoir exécutif
 L’échéance est calculée à partir de la date du document",25,YEAR
 ACC-00004,AccessRule,Incommunicabilité,"Durée de communicabilité applicables aux documents dont la communication est susceptible d’entraîner la diffusion d’informations permettant de concevoir, fabriquer, utiliser ou localiser des armes nucléaires, biologiques, chimiques ou toutes autres armes ayant des effets directs ou indirects de destruction d’un niveau analogue
@@ -37,4 +39,3 @@ REU-00001,ReuseRule,Actes de décès,"Durée d’exclusivité accordé à la soc
 L’échéance est calculée à partir de la date de signature du contrat",10,YEAR
 CLASS-00001,ClassificationRule,Réévaluation par défaut de la classification,"Délai de réévaluation par défaut du niveau de protection d’un document au titre du secret de la défense nationale
 L’échéance est calculée à partir de la date d’émission du document",10,YEAR
-ACC-00008,AccessRule,Plop,plop,80,YEAR

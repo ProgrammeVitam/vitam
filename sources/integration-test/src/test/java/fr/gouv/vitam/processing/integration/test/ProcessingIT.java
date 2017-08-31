@@ -444,7 +444,6 @@ public class ProcessingIT {
                 client.importFormat(
                     PropertiesUtils.getResourceAsStream("integration-processing/DROID_SignatureFile_V88.xml"),
                     "DROID_SignatureFile_V88.xml");
-
                 // Import Rules
                 client.importRulesFile(
                     PropertiesUtils.getResourceAsStream("integration-processing/jeu_donnees_OK_regles_CSV_regles.csv"),
@@ -984,8 +983,8 @@ public class ProcessingIT {
                     .put(GLOBAL.RULES.exactToken(), 1).put("Title", 1)
                     .put(PROJECTIONARGS.MANAGEMENT.exactToken(), 1)));
             JsonNode result = metaDataClient.selectUnits(query.getFinalSelect());
-            assertNotNull(
-                result.get("$results").get(0).get(UnitInheritedRule.INHERITED_RULE).get("StorageRule").get("R1"));
+            assertNotNull(result.get("$results").get(0).get(UnitInheritedRule.INHERITED_RULE).get("StorageRule")
+                .get("R1"));
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
@@ -1040,8 +1039,8 @@ public class ProcessingIT {
                     .put(GLOBAL.RULES.exactToken(), 1).put("Title", 1)
                     .put(PROJECTIONARGS.MANAGEMENT.exactToken(), 1)));
             JsonNode result = metaDataClient.selectUnits(query.getFinalSelect());
-            assertNotNull(
-                result.get("$results").get(0).get(UnitInheritedRule.INHERITED_RULE).get("StorageRule").get("R1"));
+            assertNotNull(result.get("$results").get(0).get(UnitInheritedRule.INHERITED_RULE).get("StorageRule")
+                .get("R1"));
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
@@ -1286,7 +1285,7 @@ public class ProcessingIT {
         // call processing
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
-        ///////
+        // /////
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
 
@@ -1726,7 +1725,7 @@ public class ProcessingIT {
         // call processing
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
-        ///////
+        // /////
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
         final RequestResponse<JsonNode> ret =
@@ -2034,8 +2033,9 @@ public class ProcessingIT {
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, BIG_WORFKLOW_NAME);
 
-            final RequestResponse<JsonNode> ret = processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            final RequestResponse<JsonNode> ret =
+                processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
+                    Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
             assertNotNull(ret);
             assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 

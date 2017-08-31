@@ -37,7 +37,12 @@ public enum IngestCollection {
     /**
      * Manifests collection
      */
-    MANIFESTS("manifests");
+    MANIFESTS("manifests"),
+
+    /**
+     * rules collection
+     */
+    RULES("rules");
 
     /**
      * Name

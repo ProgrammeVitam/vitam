@@ -28,91 +28,105 @@
 'use strict';
 
 angular.module('ihm.demo')
-.controller('rulesController', function($scope, FileUploader, $mdDialog, $route, authVitamService){
-	$scope.mustShow = false;
+  .controller('rulesController', function($scope, FileUploader, $mdDialog, $route, authVitamService) {
+    $scope.mustShow = false;
 
-	var serviceURI = "/ihm-demo/v1/api/rules";
-	var checkRules = "/check";
-	var uploadRules = "/upload";
+    var serviceURI = "/ihm-demo/v1/api/rules";
+    var checkRules = "/check";
+    var uploadRules = "/upload";
 
-	var uploader = $scope.uploader = new FileUploader({
-    url : serviceURI + checkRules,
-    headers: {
-      'content-type': 'application/octet-stream',
-      'accept' : 'application/json',
-      'X-Tenant-Id': authVitamService.cookieValue(authVitamService.COOKIE_TENANT_ID)
-    },
-    disableMultipart: true
-  });
-
+    var uploader = $scope.uploader = new FileUploader({
+      url: serviceURI + checkRules,
+      headers: {
+        'content-type': 'application/octet-stream',
+        'accept': 'application/octet-stream',
+        'X-Tenant-Id': authVitamService.cookieValue(authVitamService.COOKIE_TENANT_ID)
+      },
+      disableMultipart: true
+    });
+ 
     // FILTERS
     uploader.filters.push({
-        name: 'customFilter',
-        fn: function(item, options) {
-            return this.queue.length < 10;
-        }
+      name: 'customFilter',
+      fn: function(item, options) {
+        return this.queue.length < 10;
+      }
     });
 
     uploader.onSuccessItem = function(fileItem, response, status, headers) {
-    	console.info('onSuccessItem', fileItem, response, status, headers);
-    	if (uploader.queue[0].url == serviceURI + checkRules){
-    		var confirm = $mdDialog.confirm()
-    			.title('Fichier valide')
-    			.ok('Lancer l\'import')
-    			.cancel('Annuler l\'import');
-    		$mdDialog.show(confirm).then(uploadAction, cancelAction);
-    	} else if (uploader.queue[0].url == serviceURI + uploadRules) {
-    		var alert = $mdDialog.alert()
-    			.title(' Le référentiel des règles de gestion est importé')
-    			.ok("Fermer");
-    		$mdDialog.show(alert);
-    	}
+      if (uploader.queue[0].url == serviceURI + checkRules) {
+        uploader.downloadReport(response, headers);
+        var confirm = $mdDialog.confirm()
+          .title('Fichier valide')
+          .ok('Lancer l\'import')
+          .cancel('Annuler l\'import');
+        $mdDialog.show(confirm).then(uploadAction, cancelAction);
+      } else if (uploader.queue[0].url == serviceURI + uploadRules) {
+        var alert = $mdDialog.alert()
+          .title(' Le référentiel des règles de gestion est importé')
+          .ok("Fermer");
+        $mdDialog.show(alert);
+      }
 
+    };
+
+    uploader.downloadReport = function(response, headers) {
+      var a = document.createElement("a");
+      document.body.appendChild(a);
+
+      var url = URL.createObjectURL(new Blob([JSON.stringify(response)], {type: 'application/octet-stream'}));
+      a.href = url;
+
+      if (headers['content-disposition'] !== undefined && headers['content-disposition'] !== null) {
+        a.download = headers['content-disposition'].split('filename=')[1];
+        a.click();
+      }
     };
 
     uploader.onErrorItem = function(fileItem, response, status, headers) {
-    	console.info('onErrorItem', fileItem, response, status, headers);
-    	if (uploader.queue[0].url == serviceURI + checkRules){
-    		var alert = $mdDialog.alert()
-				.title('Fichier invalide ou référentiel des règles de gestion déjà existant')
-				.ok("Fermer");
-    		$mdDialog.show(alert).then(function(){
-    			$route.reload();
-    		});
-    	} else if (uploader.queue[0].url == serviceURI + uploadRules) {
-    	    if (status === 403) {
-                var alert = $mdDialog.alert()
-                                .title("Un import de règles est déjà en cours, veuillez attendre qu'il se termine.")
-                                .ok("Fermer");
-    	    } else {
-                var alert = $mdDialog.alert()
-                    .title("Echec de l'import du référentiel des règles de gestion.")
-                    .ok("Fermer");
-			}
-    		$mdDialog.show(alert)
-    	}
+      if (uploader.queue[0].url == serviceURI + checkRules) {
+        uploader.downloadReport(response, headers);
+        var alert = $mdDialog.alert()
+          .title('Fichier invalide ou référentiel des règles de gestion déjà existant')
+          .ok("Fermer");
+        $mdDialog.show(alert).then(function() {
+          $route.reload();
+        });
+      } else if (uploader.queue[0].url == serviceURI + uploadRules) {
+        if (status === 403) {
+          var alert = $mdDialog.alert()
+            .title("Un import de règles est déjà en cours, veuillez attendre qu'il se termine.")
+            .ok("Fermer");
+        } else {
+          var alert = $mdDialog.alert()
+            .title("Echec de l'import du référentiel des règles de gestion.")
+            .ok("Fermer");
+        }
+        $mdDialog.show(alert)
+      }
 
     };
 
+    $scope.validAction = function() {
+      uploader = $scope.uploader;
+      uploader.queue[0].url = serviceURI + checkRules;
+      uploader.queue[0].headers['X-Filename'] = uploader.queue[0]._file.name;
+      uploader.queue[0].upload();
+    };
 
-	$scope.validAction = function(){
-		uploader = $scope.uploader;
-		uploader.queue[0].url = serviceURI + checkRules;
-		uploader.queue[0].headers['X-Filename'] = uploader.queue[0]._file.name;
-		uploader.queue[0].upload();
-	};
-
-	function uploadAction() {
-		uploader = $scope.uploader;
-		uploader.queue[0].url = serviceURI + uploadRules;
-		uploader.queue[0].headers['X-Filename'] = uploader.queue[0]._file.name;
-		uploader.queue[0].upload();
-
-		$scope.checked = true;
-	}
+    function uploadAction() {
+      uploader = $scope.uploader;
+      uploader.queue[0].url = serviceURI + uploadRules;
+      uploader.queue[0].headers = 
+      {'content-type': 'application/octet-stream',
+      'accept': 'application/json',
+      'X-Filename': uploader.queue[0]._file.name,
+      'X-Tenant-Id': authVitamService.cookieValue(authVitamService.COOKIE_TENANT_ID)};
+      uploader.queue[0].upload();
+      $scope.checked = true;
+    }
 
     function cancelAction() {
-    	console.log('Canceled');
-    	$route.reload();
+      $route.reload();
     }
-});
+  });

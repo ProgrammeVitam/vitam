@@ -31,11 +31,12 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
 
 
     @Override
-    public Status checkDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
+    public Response checkDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
         throws AccessExternalClientNotFoundException, AccessExternalClientException {
         StreamUtils.closeSilently(stream);
         if (AdminCollections.RULES.equals(documentType) || AdminCollections.FORMATS.equals(documentType)) {
-            return Status.OK;
+            return new AbstractMockClient.FakeInboundResponse(Status.OK, IOUtils.toInputStream("Vitam Test"),
+                MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
         }
         throw new AccessExternalClientNotFoundException(COLLECTION_NOT_VALID);
     }
@@ -145,9 +146,9 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     @Override
     public RequestResponse updateContext(String id, JsonNode queryDsl, Integer tenantId)
         throws AccessExternalClientException, InvalidParseOperationException {
-        return ClientMockResultHelper
-            .createReponse(ClientMockResultHelper.getContexts(Status.CREATED.getStatusCode()).toJsonNode())
-            .setHttpCode(Status.CREATED.getStatusCode());
+        return ClientMockResultHelper.createReponse(
+            ClientMockResultHelper.getContexts(Status.CREATED.getStatusCode()).toJsonNode()).setHttpCode(
+                Status.CREATED.getStatusCode());
     }
 
     @Override

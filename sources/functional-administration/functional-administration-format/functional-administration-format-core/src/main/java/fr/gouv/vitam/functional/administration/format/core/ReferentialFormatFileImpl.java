@@ -27,6 +27,11 @@
 package fr.gouv.vitam.functional.administration.format.core;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -44,6 +49,8 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.functional.administration.client.model.FileRulesModel;
+import fr.gouv.vitam.functional.administration.common.ErrorReport;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.ReferentialFile;
 import fr.gouv.vitam.functional.administration.common.ReferentialFileUtils;
@@ -88,8 +95,9 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
     @Override
     public void importFile(InputStream xmlPronom, String filename)
         throws ReferentialException, DatabaseConflictException, InvalidParseOperationException {
+        Map<Integer, List<ErrorReport>> errors = new HashMap<>();
         ParametersChecker.checkParameter("Pronom file is a mandatory parameter", xmlPronom);
-        final ArrayNode pronomList = checkFile(xmlPronom);
+        final ArrayNode pronomList = checkFile(xmlPronom, errors, null, null, null, null);
         try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
             final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParametersStart = LogbookParametersFactory
@@ -160,7 +168,10 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
     }
 
     @Override
-    public ArrayNode checkFile(InputStream xmlPronom) throws ReferentialException {
+    public ArrayNode checkFile(InputStream xmlPronom, Map<Integer, List<ErrorReport>> errorsMap,
+        List<FileRulesModel> usedDeletedRules, List<FileRulesModel> usedUpdatedRules, Set<String> notUsedDeletedRules,
+        Set<String> notUsedUpdatedRules)
+        throws ReferentialException {
         ParametersChecker.checkParameter("Pronom file is a mandatory parameter", xmlPronom);
         /*
          * Deserialize as json arrayNode, this operation will will ensure the format is valid first, else Exception is

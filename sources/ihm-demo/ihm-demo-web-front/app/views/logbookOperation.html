@@ -72,21 +72,28 @@
 					</tr>
 
 					<tbody ng-repeat="log in search.response.data | startFrom:startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage, search.pagination.startOffset) | limitTo:search.pagination.itemsPerPage">
-					<tr ng-click="goToDetails(log.evIdProc)">
-						<td>{{log.evTypeProc}}</td>
-						<td>{{log.evType}}</td>
-						<td>{{log.evDateTime | vitamFormatDate}}</td>
+					<tr>
+						<td ng-click="goToDetails(log.evIdProc)">{{log.evTypeProc}}</td>
+						<td ng-click="goToDetails(log.evIdProc)">{{log.evType}}</td>
+						<td ng-click="goToDetails(log.evIdProc)">{{log.evDateTime | vitamFormatDate}}</td>
 
-						<td ng-if = "log.events[log.events.length-1].outcome.toUpperCase() === 'OK'">Succès</td>
-						<td ng-if = "log.events[log.events.length-1].outcome.toUpperCase() === 'STARTED'">En cours</td>
-						<td ng-if = "log.events[log.events.length-1].outcome.toUpperCase() === 'KO' || log.events[log.events.length-1].outcome.toUpperCase() == 'FATAL'">Erreur</td>
+						<td ng-if = "log.events[log.events.length-1].outcome.toUpperCase() === 'OK'"
+							ng-click="goToDetails(log.evIdProc)">Succès</td>
+						<td ng-if = "log.events[log.events.length-1].outcome.toUpperCase() === 'STARTED'"
+							ng-click="goToDetails(log.evIdProc)">En cours</td>
+						<td ng-if = "log.events[log.events.length-1].outcome.toUpperCase() === 'KO' || log.events[log.events.length-1].outcome.toUpperCase() == 'FATAL'"
+							ng-click="goToDetails(log.evIdProc)">Erreur</td>
 						<td ng-if = "log.events[log.events.length-1].outcome.toUpperCase() !== 'KO' && log.events[log.events.length-1].outcome.toUpperCase() !== 'FATAL' && log.events[log.events.length-1].outcome.toUpperCase() !== 'OK'
-                        && log.events[log.events.length-1].outcome.toUpperCase() !== 'STARTED'">Avertissement</td>
+                        && log.events[log.events.length-1].outcome.toUpperCase() !== 'STARTED'"
+							ng-click="goToDetails(log.evIdProc)">Avertissement</td>
 						<td>{{log.outMessg}}</td>
 
 						<!-- Dynamic columns values -->
 						<td ng-repeat = "column in dynamicTable.selectedObjects">
 							<span >{{log[column.id]}}</span>
+							<span ng-if="column.id === 'report' && log.evType === 'STP_IMPORT_RULES'" ng-click="downloadReport(log.evIdProc)">
+								<i class="material-icons">file_download</i>
+							</span>
 						</td>
 					</tr>
 					</tbody>

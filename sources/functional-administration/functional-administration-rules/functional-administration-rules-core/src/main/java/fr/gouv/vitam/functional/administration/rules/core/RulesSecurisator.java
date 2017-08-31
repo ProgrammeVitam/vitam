@@ -108,7 +108,6 @@ public class RulesSecurisator {
 
         throws StorageException, LogbookClientServerException, LogbookClientBadRequestException,
         LogbookClientAlreadyExistsException {
-        final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         Integer tenantId = ParameterHelper.getTenantParameter();
         try (
             WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
@@ -183,10 +182,8 @@ public class RulesSecurisator {
             } finally {
                 StreamUtils.closeSilently(stream);
             }
-
         }
     }
-
 
     public void copyFilesOnWorkspaceUpdateWorkflow(InputStream stream, String containerName)
         throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageServerException {
@@ -199,5 +196,4 @@ public class RulesSecurisator {
         }
 
     }
-
 }

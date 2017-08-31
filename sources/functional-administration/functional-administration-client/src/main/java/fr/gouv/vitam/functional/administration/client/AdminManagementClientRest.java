@@ -111,13 +111,14 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     // régles
     // de gestions, contrat , etc)
     @Override
-    public Status checkFormat(InputStream stream) throws ReferentialException {
+    public Response checkFormat(InputStream stream) throws ReferentialException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
         Response response = null;
+        Status status = null;
         try {
             response = performRequest(HttpMethod.POST, FORMAT_CHECK_URL, null,
                 stream, MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_JSON_TYPE);
-            final Status status = Status.fromStatusCode(response.getStatus());
+            status = Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
                     LOGGER.debug(Response.Status.OK.getReasonPhrase());
@@ -131,12 +132,10 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 default:
                     break;
             }
-            return status;
+            return response;
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
         }
     }
 
@@ -235,34 +234,17 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
 
     @Override
-    public Status checkRulesFile(InputStream stream)
-        throws FileRulesException, AdminManagementClientServerException {
+    public Response checkRulesFile(InputStream stream) throws FileRulesException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
         Response response = null;
         try {
             response = performRequest(HttpMethod.POST, RULESMANAGER_CHECK_URL, null,
-                stream, MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_JSON_TYPE);
-
-            final Status status = Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case OK:
-                    LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                    break;
-                /* BAD_REQUEST status is more suitable when rules are not well formated */
-                case BAD_REQUEST:
-                    String reason = (response.hasEntity()) ? response.readEntity(String.class)
-                        : Response.Status.BAD_REQUEST.getReasonPhrase();
-                    LOGGER.error(reason);
-                    throw new FileRulesException(reason);
-                default:
-                    break;
-            }
-            return status;
+                stream, MediaType.APPLICATION_OCTET_STREAM_TYPE,
+                MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            return response;
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
         }
     }
 
@@ -491,7 +473,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             accessionRegisterDetail.setTotalUnits(totalUnits);
         }
         if (model.getTotalObjects() != null) {
-            totalObjects.setTotal(model.getTotalObjects().getTotal()).setRemained(model.getTotalObjects().getRemained())
+            totalObjects.setTotal(model.getTotalObjects().getTotal())
+                .setRemained(model.getTotalObjects().getRemained())
                 .setDeleted(model.getTotalObjects().getDeleted());
 
             accessionRegisterDetail.setTotalObjects(totalObjects);
@@ -734,8 +717,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         ParametersChecker.checkParameter("Profile id is required", profileMetadataId);
 
         Response response = null;
-
-        Status status = Status.BAD_REQUEST;
+        Status status = null;
         try {
             response = performRequest(HttpMethod.GET, PROFILE_URI + "/" + profileMetadataId, null, null,
                 null, MediaType.APPLICATION_OCTET_STREAM_TYPE);

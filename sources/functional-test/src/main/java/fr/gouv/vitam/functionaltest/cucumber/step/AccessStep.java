@@ -166,21 +166,18 @@ public class AccessStep {
             } else {
                 if (isArray) {
                     Set<String> resultArray =
-                        JsonHandler.getFromStringAsTypeRefence(resultValue, new TypeReference<Set<String>>() {
-                        });
+                        JsonHandler.getFromStringAsTypeRefence(resultValue, new TypeReference<Set<String>>() {});
 
                     Set<String> expectedrray =
-                        JsonHandler.getFromStringAsTypeRefence(resultExpected, new TypeReference<Set<String>>() {
-                        });
+                        JsonHandler.getFromStringAsTypeRefence(resultExpected, new TypeReference<Set<String>>() {});
                     assertThat(resultArray).isEqualTo(expectedrray);
                 } else {
                     Set<Set<String>> resultArray =
-                        JsonHandler.getFromStringAsTypeRefence(resultValue, new TypeReference<Set<Set<String>>>() {
-                        });
+                        JsonHandler.getFromStringAsTypeRefence(resultValue, new TypeReference<Set<Set<String>>>() {});
 
                     Set<Set<String>> expectedrray =
-                        JsonHandler.getFromStringAsTypeRefence(resultExpected, new TypeReference<Set<Set<String>>>() {
-                        });
+                        JsonHandler
+                            .getFromStringAsTypeRefence(resultExpected, new TypeReference<Set<Set<String>>>() {});
 
                     assertThat(expectedrray).isEqualTo(resultArray);
                 }
@@ -284,7 +281,7 @@ public class AccessStep {
     /**
      * Get a specific field value from a result identified by its index
      *
-     * @param field     field name
+     * @param field field name
      * @param numResult number of the result in results
      * @return value if found or null
      * @throws Throwable
@@ -458,8 +455,8 @@ public class AccessStep {
 
 
     /**
-     * Search an archive unit and retrieve object groups according to the query define before.
-     * Search object group with archive unit Id
+     * Search an archive unit and retrieve object groups according to the query define before. Search object group with
+     * archive unit Id
      *
      * @throws Throwable
      */
@@ -520,8 +517,8 @@ public class AccessStep {
     /**
      * Import or Check an admin referential file
      *
-     * @param action     the action we want to execute : "vérifie" for check / "importe" for import
-     * @param filename   name of the file to import or check
+     * @param action the action we want to execute : "vérifie" for check / "importe" for import
+     * @param filename name of the file to import or check
      * @param collection name of the collection
      * @throws Throwable
      */
@@ -534,8 +531,8 @@ public class AccessStep {
             Status status = null;
             results = new ArrayList<>();
             if ("vérifie".equals(action)) {
-                status =
-                    world.getAdminClient().checkDocuments(adminCollection, inputStream, world.getTenantId());
+                // status =
+                world.getAdminClient().checkDocuments(adminCollection, inputStream, world.getTenantId());
             } else if ("importe".equals(action)) {
                 status =
                     world.getAdminClient().createDocuments(adminCollection, inputStream, filename, world.getTenantId());
@@ -628,7 +625,7 @@ public class AccessStep {
     /**
      * check if the status is valid for a list of event type according to logbook lifecycle
      *
-     * @param eventNames  list of event
+     * @param eventNames list of event
      * @param eventStatus status of event
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
@@ -677,8 +674,8 @@ public class AccessStep {
     @Then("^le status de la réponse est (.*)$")
     public void checkStatut(String status) throws Throwable {
         if (status.equals("UNAUTHORIZED")) {
-            assertThat(
-                Response.Status.UNAUTHORIZED.getStatusCode() == statusCode.getEquivalentHttpStatus().getStatusCode());
+            assertThat(Response.Status.UNAUTHORIZED.getStatusCode() == statusCode.getEquivalentHttpStatus()
+                .getStatusCode());
         } else if (status.equals("OK")) {
             assertThat(Response.Status.OK.getStatusCode() == statusCode.getEquivalentHttpStatus().getStatusCode());
         }

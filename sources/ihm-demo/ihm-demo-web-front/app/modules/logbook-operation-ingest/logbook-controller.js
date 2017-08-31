@@ -88,7 +88,6 @@ angular.module('ihm.demo')
       ihmDemoCLient.getClient('ingests').one(objectId).one(type).get().then(function (response) {
         var a = document.createElement("a");
         document.body.appendChild(a);
-
         var url = URL.createObjectURL(new Blob([response.data], {type: 'application/xml'}));
         a.href = url;
 

@@ -28,14 +28,8 @@ package fr.gouv.vitam.functional.administration.common.exception;
 
 /**
  * FileRulesException manage File Rules Exception
- *
  */
 public class FileRulesException extends ReferentialException {
-
-    /**
-     * RulesManagerException error
-     */
-    private static final long serialVersionUID = 1L;
 
     /**
      * @param message message to associate with the exception
@@ -53,7 +47,7 @@ public class FileRulesException extends ReferentialException {
 
     /**
      * @param message message to associate with the exception
-     * @param cause cause to associate with the exception
+     * @param cause   cause to associate with the exception
      */
     public FileRulesException(String message, Throwable cause) {
         super(message, cause);

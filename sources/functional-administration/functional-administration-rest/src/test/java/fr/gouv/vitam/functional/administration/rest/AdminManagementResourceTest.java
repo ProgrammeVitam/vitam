@@ -33,6 +33,7 @@ import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.with;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
@@ -55,12 +56,13 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import com.google.common.collect.Sets;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
-
+import com.jayway.restassured.response.Response;
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -97,6 +99,10 @@ import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminF
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 
 public class AdminManagementResourceTest {
@@ -127,6 +133,7 @@ public class AdminManagementResourceTest {
     private static final String FILE_TEST_OK = "jeu_donnees_OK_regles_CSV.csv";
 
     private static final int TENANT_ID = 0;
+    private static final String ERROR_REPORT_CONTENT = "error_report_content.json";
 
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
@@ -141,6 +148,7 @@ public class AdminManagementResourceTest {
     private static int serverPort;
     private static int databasePort;
     private static File adminConfigFile;
+
     private static AdminManagementMain application;
 
     private static int workspacePort = junitHelper.findAvailablePort();
@@ -162,6 +170,7 @@ public class AdminManagementResourceTest {
     private final static String CLUSTER_NAME = "vitam-cluster";
     private static ElasticsearchAccessFunctionalAdmin esClient;
     private final static String originatingAgency = "OriginatingAgency";
+    private InputStream streamErrorReport;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -213,9 +222,12 @@ public class AdminManagementResourceTest {
 
         RestAssured.port = serverPort;
         RestAssured.basePath = RESOURCE_URI;
+
+        
         dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
 
         try {
+
             application = new AdminManagementMain(adminConfigFile.getAbsolutePath());
             application.start();
             JunitHelper.unsetJettyPortSystemProperty();
@@ -480,13 +492,19 @@ public class AdminManagementResourceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenANotWellFormedCSVInputstreamCheckThenReturnKO() throws FileNotFoundException {
+    public void givenANotWellFormedCSVInputstreamCheckThenReturnKO() throws IOException, InvalidParseOperationException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        streamErrorReport = PropertiesUtils.getResourceAsStream(ERROR_REPORT_CONTENT);
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_CSV_DuplicatedReference.csv");
-        given().contentType(ContentType.BINARY).body(stream)
+        Response rr = given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(CHECK_RULES_URI)
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+            .when().post(CHECK_RULES_URI);
+        rr.then().statusCode(Status.BAD_REQUEST.getStatusCode());
+        JsonNode responseInputStream = JsonHandler.getFromInputStream(rr.asInputStream());        
+        ArrayNode responseArrayNode = (ArrayNode) responseInputStream.get("error").get("line 3");
+        JsonNode expectedInputStream = JsonHandler.getFromInputStream(streamErrorReport);
+        ArrayNode expectedArrayNode = (ArrayNode) expectedInputStream.get("error").get("line 3");
+        assertEquals(responseArrayNode.get(0), expectedArrayNode.get(0));
     }
 
     @Test
