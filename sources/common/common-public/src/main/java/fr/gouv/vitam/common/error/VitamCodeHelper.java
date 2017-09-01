@@ -257,4 +257,20 @@ public class VitamCodeHelper {
         ParametersChecker.checkParameter(INVALID_ARGUMENT_TO_RETRIEVE_ERROR_MESSAGE, vitamCode);
         return String.format("[%s] %s", getCode(vitamCode), getParametrizedMessageFromVitamCode(vitamCode, params));
     }
+
+    /**
+     * Transform a vitamCode to a VitamError with the given description
+     * 
+     * @param vitamCode the vitamCode
+     * @param description the description
+     * @return the vitamError
+     */
+    public static VitamError toVitamError(VitamCode vitamCode, String description) {
+        return new VitamError(VitamCodeHelper.getCode(vitamCode))
+            .setContext(vitamCode.getService().getName())
+            .setState(vitamCode.getDomain().getName())
+            .setHttpCode(vitamCode.getStatus().getStatusCode())
+            .setMessage(vitamCode.getMessage())
+            .setDescription(description);
+    }
 }

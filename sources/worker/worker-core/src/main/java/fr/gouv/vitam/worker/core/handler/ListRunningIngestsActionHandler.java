@@ -30,8 +30,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -42,6 +40,7 @@ import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -102,11 +101,11 @@ public class ListRunningIngestsActionHandler extends ActionHandler {
         pq.setListProcessTypes(listProcessTypes);
         try (ProcessingManagementClient processManagementClient =
             ProcessingManagementClientFactory.getInstance().getClient()) {
-            RequestResponseOK<JsonNode> response =
-                (RequestResponseOK<JsonNode>) processManagementClient.listOperationsDetails(pq);
-            List<JsonNode> ingestsAsJson = response.getResults();
+            RequestResponseOK<ProcessDetail> response =
+                (RequestResponseOK<ProcessDetail>) processManagementClient.listOperationsDetails(pq);
+            List<ProcessDetail> ingestsInProcess = response.getResults();
             File tempFile = handlerIO.getNewLocalFile(handlerIO.getOutput(RANK_FILE).getPath());
-            JsonHandler.writeAsFile(ingestsAsJson, tempFile);
+            JsonHandler.writeAsFile(ingestsInProcess, tempFile);
             handlerIO.addOuputResult(RANK_FILE, tempFile, true, asyncIO);
 
         } catch (VitamClientException e) {
@@ -120,7 +119,7 @@ public class ListRunningIngestsActionHandler extends ActionHandler {
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         // Nothing to check
     }
-    
+
     /**
      * @return HANDLER_ID
      */

@@ -2,7 +2,7 @@
   {
     "previousStep": "STP_INGEST_CONTROL_SIP",
     "nextStep": "STP_OG_CHECK_AND_TRANSFORME",
-    "operation_id": "aedaaaaaaccve2koabiquak5un2q3iiaaaba",
+    "operationId": "aedaaaaaaccve2koabiquak5un2q3iiaaaba",
     "processType": "INGEST",
     "stepByStep": true,
     "globalState": "PAUSE",
@@ -12,7 +12,7 @@
   {
     "previousStep": "STP_INGEST_CONTROL_SIP",
     "nextStep": "STP_OG_CHECK_AND_TRANSFORME",
-    "operation_id": "aedaaaaaaccve2koabiquak5un2q3iiaaabb",
+    "operationId": "aedaaaaaaccve2koabiquak5un2q3iiaaabb",
     "processType": "INGEST",
     "stepByStep": true,
     "globalState": "PAUSE",
@@ -22,7 +22,7 @@
   {
     "previousStep": "STP_INGEST_CONTROL_SIP",
     "nextStep": "STP_OG_CHECK_AND_TRANSFORME",
-    "operation_id": "aedaaaaaaccve2koabiquak5un2q3iiaaabc",
+    "operationId": "aedaaaaaaccve2koabiquak5un2q3iiaaabc",
     "processType": "INGEST",
     "stepByStep": true,
     "globalState": "PAUSE",
@@ -32,7 +32,7 @@
   {
     "previousStep": "STP_INGEST_CONTROL_SIP",
     "nextStep": "STP_OG_CHECK_AND_TRANSFORME",
-    "operation_id": "aedaaaaaaccve2koabiquak5un2q3iiaaabd",
+    "operationId": "aedaaaaaaccve2koabiquak5un2q3iiaaabd",
     "processType": "INGEST",
     "stepByStep": true,
     "globalState": "PAUSE",

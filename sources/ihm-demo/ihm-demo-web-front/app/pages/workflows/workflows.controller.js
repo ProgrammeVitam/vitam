@@ -277,11 +277,12 @@ angular.module('workflows')
     $scope.executeAction = function($event, operationId, action, $index) {
       $scope.$index = $index;
       var a = _.find($scope.search.response.data, function(o) {
-        return o.operation_id === operationId;
+        return o.operationId === operationId;
       });
       a.inProgress = true;
-      ihmDemoFactory.executeAction(a.operation_id, action)
+      ihmDemoFactory.executeAction(a.operationId, action)
         .then(function(response) {
+        	console.log('updateAction',action);
           // Update operation status
           // Download ATR eventually
           a.stepStatus = response.status;
@@ -314,6 +315,7 @@ angular.module('workflows')
           // Update operation status
           $scope.search.response.data[$index].stepStatus = response.status;
           $scope.search.response.data[$index].globalStatus = response.headers('x-global-execution-status');
+          $scope.getList();
         },
         function(error) {
           // Display error message

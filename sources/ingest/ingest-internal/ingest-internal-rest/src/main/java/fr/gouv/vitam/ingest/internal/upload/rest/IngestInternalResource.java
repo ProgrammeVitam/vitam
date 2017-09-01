@@ -273,7 +273,8 @@ public class IngestInternalResource extends ApplicationStatusResource {
     public Response updateWorkFlowStatus(@Context HttpHeaders headers, @PathParam("id") String id,
         @Suspended final AsyncResponse asyncResponse) {
         Status status;
-
+        // FIXME : can we really have a response AND an asyncResponse
+        // FIXME : can we have a produces APPLICATION_JSON and add an ATR file when COMPLETE in the asyncResponse 
         ParametersChecker.checkParameter("Action Id Request must not be null",
             headers.getRequestHeader(GlobalDataRest.X_ACTION));
         final String xAction = headers.getRequestHeader(GlobalDataRest.X_ACTION).get(0);
@@ -530,12 +531,12 @@ public class IngestInternalResource extends ApplicationStatusResource {
     @Path("/operations/{id}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getWorkFlowStatus(@PathParam("id") String id, JsonNode query) {
+    public Response getWorkFlowStatus(@PathParam("id") String id) {
         Status status;
         ItemStatus itemStatus = null;
         try (ProcessingManagementClient processManagementClient =
             ProcessingManagementClientFactory.getInstance().getClient()) {
-            itemStatus = processManagementClient.getOperationProcessExecutionDetails(id, query);
+            itemStatus = processManagementClient.getOperationProcessExecutionDetails(id);
         } catch (final IllegalArgumentException e) {
             // if the entry argument if illegal
             LOGGER.error(e);
@@ -1027,6 +1028,8 @@ public class IngestInternalResource extends ApplicationStatusResource {
                             containerGUID.getId() + XML,
                             StorageCollectionType.REPORTS);
                 }
+            } else {
+                response = Response.status(stepExecutionStatus).entity(updateResponse).build();
             }
             // Add Global execution status to response
             response.getHeaders().add(GlobalDataRest.X_GLOBAL_EXECUTION_STATE,
@@ -1279,7 +1282,8 @@ public class IngestInternalResource extends ApplicationStatusResource {
             try {
                 return processManagementClient.listOperationsDetails(query).toResponse();
             } catch (VitamClientException e) {
-                return Response.serverError().entity(e).build();
+                return Response.serverError().entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null))
+                    .build();
             }
         }
     }

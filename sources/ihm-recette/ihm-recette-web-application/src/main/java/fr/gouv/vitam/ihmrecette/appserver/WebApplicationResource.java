@@ -719,35 +719,24 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
                                             return Response.status(Status.OK).entity(result).build();
                                         } else {
-                                            ItemStatus itemStatus =
+                                            result =
                                                 ingestExternalClient
-                                                    .getOperationProcessExecutionDetails(objectID, criteria,
-                                                        tenantId);
-                                            return Response
-                                                .status(itemStatus.getGlobalStatus().getEquivalentHttpStatus())
-                                                .entity(itemStatus).build();
+                                                    .getOperationProcessExecutionDetails(objectID, tenantId);
+                                            return result.toResponse();
                                         }
                                     case HTTP_PUT:
                                         if (!StringUtils.isBlank(objectID)) {
-                                            ingestExternalClient.updateOperationActionProcess(xAction,
-                                                objectID, tenantId);
-                                            ItemStatus itemStatus =
-                                                ingestExternalClient
-                                                    .getOperationProcessExecutionDetails(objectID, criteria,
-                                                        tenantId);
-                                            return Response
-                                                .status(itemStatus.getGlobalStatus().getEquivalentHttpStatus())
-                                                .entity(itemStatus).build();
+                                            ingestExternalClient.updateOperationActionProcess(xAction, objectID, tenantId);
+                                            result = ingestExternalClient.getOperationProcessExecutionDetails(objectID, tenantId);
+                                            return result.toResponse();
                                         } else {
                                             throw new InvalidParseOperationException(
                                                 "Operation ID should be filled");
                                         }
                                     case HTTP_DELETE:
                                         if (!StringUtils.isBlank(objectID)) {
-                                            // requestId = GUIDFactory.newRequestIdGUID(tenantId).toString();
-                                            result = ingestExternalClient.cancelOperationProcessExecution(objectID,
-                                                tenantId);
-                                            break;
+                                            result = ingestExternalClient.cancelOperationProcessExecution(objectID, tenantId);
+                                            return result.toResponse();
                                         } else {
                                             throw new InvalidParseOperationException(
                                                 "Operation ID should be filled");
@@ -777,7 +766,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
                         switch (requestMethod) {
                             case HTTP_GET:
                                 contractId = AdminCollections.ACCESSION_REGISTERS.equals(requestedAdminCollection)
-                                    ? contractId : null;
+                                    ? contractId
+                                    : null;
                                 if (StringUtils.isBlank(objectID)) {
                                     result = adminExternalClient.findDocuments(requestedAdminCollection, criteria,
                                         tenantId, contractId);

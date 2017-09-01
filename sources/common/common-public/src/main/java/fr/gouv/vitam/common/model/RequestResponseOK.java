@@ -94,8 +94,8 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
             if (null != queryDTO) {
                 QueryFilter queryFilter = queryDTO.getFilter();
                 if (null != queryFilter) {
-                    offset  = queryFilter.getOffset();
-                    limit  = queryFilter.getLimit();
+                    offset = queryFilter.getOffset();
+                    limit = queryFilter.getLimit();
                 }
             }
         } catch (Exception e) {
@@ -177,7 +177,8 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
 
 
     /**
-     * Should  be used only with hints of elasticsearch
+     * Should be used only with hints of elasticsearch
+     * 
      * @param total
      * @return
      */
@@ -191,7 +192,7 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
 
 
     /**
-     * @return the result of RequestResponse as a list of String
+     * @return the result of RequestResponse as a list of <T>
      */
     public List<T> getResults() {
         return results;
@@ -203,6 +204,17 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
      */
     public JsonNode getQuery() {
         return query;
+    }
+
+    /**
+     * @return the first result of RequestResponse as a <T>
+     */
+    @JsonIgnore
+    public T getFirstResult() {
+        if (results != null && !results.isEmpty()) {
+            return results.get(0);
+        }
+        return null;
     }
 
     /**

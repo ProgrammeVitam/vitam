@@ -31,22 +31,15 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
@@ -61,12 +54,9 @@ import fr.gouv.vitam.common.model.processing.Step;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
-import fr.gouv.vitam.worker.common.PluginProperties;
 import fr.gouv.vitam.worker.core.api.Worker;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.handler.DummyHandler;
 import fr.gouv.vitam.worker.core.handler.ExtractSedaActionHandler;
-import fr.gouv.vitam.worker.core.plugin.PluginHelper;
 import fr.gouv.vitam.worker.core.plugin.PluginLoader;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
@@ -119,7 +109,7 @@ public class WorkerImplTest {
     public void givenWorkerImplementWhenEmptyActionsInStepThenThrowsIllegalArgumentException()
         throws IllegalArgumentException, HandlerNotFoundException, ProcessingException,
         ContentAddressableStorageServerException {
-        workerImpl = WorkerFactory.getInstance(pluginLoader).create();;
+        workerImpl = WorkerFactory.getInstance(pluginLoader).create();
         workerImpl.run(
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                 .setUrlMetadata("http://localhost:8083")
@@ -131,7 +121,7 @@ public class WorkerImplTest {
     public void givenWorkerImplementWhenActionIsNullThenThrowsHandlerNotFoundException()
         throws IllegalArgumentException, ProcessingException,
         ContentAddressableStorageServerException {
-        workerImpl = WorkerFactory.getInstance(pluginLoader).create();;
+        workerImpl = WorkerFactory.getInstance(pluginLoader).create();
         final Step step = new Step();
         final List<Action> actions = new ArrayList<>();
         final Action action = new Action();

@@ -27,6 +27,7 @@
 package fr.gouv.vitam.ingest.external.client;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -40,6 +41,7 @@ import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -61,6 +63,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.external.client.IngestCollection;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -69,7 +72,9 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
@@ -85,7 +90,6 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
     protected IngestExternalClientRest client;
     private static final String MOCK_INPUTSTREAM_CONTENT = "VITAM-Ingest External Client Rest Mock InputStream";
     private static final String FAKE_X_REQUEST_ID = GUIDFactory.newRequestIdGUID(0).getId();
-    private static final String MOCK_RESPONSE_STREAM = "VITAM-Ingest External Client Rest Mock Response";
     final int TENANT_ID = 0;
     private static final String CONTEXT_ID = "defaultContext";
     private static final String EXECUTION_MODE = "defaultContext";
@@ -140,12 +144,10 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
         }
     }
 
-
     // Define your Configuration class if necessary
     public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
 
     }
-
 
     @Path("/ingest-external/v1")
     public static class MockResource {
@@ -173,9 +175,8 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
         @Path("/operations/{id}")
         @GET
         @Produces(MediaType.APPLICATION_JSON)
-        public Response getWorkFlowStatus(@PathParam("id") String id, JsonNode query) {
-            ItemStatus pwok = new ItemStatus();
-            return Response.accepted().entity(pwok.setGlobalState(ProcessState.COMPLETED)).build();
+        public Response getOperationProcessExecutionDetails(@PathParam("id") String id) {
+            return expectedResponse.get();
         }
 
         @Path("/operations/{id}")
@@ -200,6 +201,14 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
         public Response listOperationsDetails(@Context HttpHeaders headers, ProcessQuery query) {
             return expectedResponse.get();
         }
+
+        @Path("operations/{id}")
+        @PUT
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response updateWorkFlowStatus(@PathParam("id") String id) {
+            return expectedResponse.put();
+        }
     }
 
 
@@ -211,15 +220,30 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
         ObjectNode objectNode = JsonHandler.createObjectNode();
         objectNode.put(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID);
 
-
         when(mock.post())
             .thenReturn(Response.accepted().header(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID).build());
-
 
         final InputStream streamToUpload = IOUtils.toInputStream(MOCK_INPUTSTREAM_CONTENT);
         RequestResponse<JsonNode> resp = client.upload(streamToUpload, TENANT_ID, CONTEXT_ID, EXECUTION_MODE);
 
         assertEquals(resp.getHttpCode(), Status.ACCEPTED.getStatusCode());
+    }
+
+    @Test
+    public void givenOKWhenGetOperationDetailThenReturnOK() throws VitamClientException, IllegalArgumentException {
+        when(mock.get()).thenReturn(Response.status(Status.OK.getStatusCode())
+            .entity(new RequestResponseOK<ItemStatus>().addResult(new ItemStatus())).build());
+        RequestResponse<ItemStatus> result = client.getOperationProcessExecutionDetails(ID, TENANT_ID);
+        assertEquals(result.getHttpCode(), Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void givenOKWhenCancelOperationThenReturnOK() throws VitamClientException, IllegalArgumentException {
+        when(mock.delete()).thenReturn(Response.status(Status.OK.getStatusCode())
+            .entity(new RequestResponseOK<ItemStatus>().addResult(new ItemStatus())).build());
+        RequestResponse<ItemStatus> result = client.cancelOperationProcessExecution(ID, TENANT_ID);
+        assertEquals(result.getHttpCode(), Status.OK.getStatusCode());
+
     }
 
     @Test(expected = IngestExternalClientNotFoundException.class)
@@ -259,45 +283,68 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
                 .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED)
                 .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.OK)
                 .header(GlobalDataRest.X_CONTEXT_ID, "Fake").build());
-        ItemStatus resp = client.getOperationProcessStatus(ID, 0);
-
-        assertEquals(resp.getGlobalStatus().getEquivalentHttpStatus(), Status.OK);
+        RequestResponse<ItemStatus> resp = client.getOperationProcessStatus(ID, 0);
+        assertEquals(true, resp.isOk());
+        ItemStatus itemStatus = ((RequestResponseOK<ItemStatus>) resp).getResults().get(0);
+        assertEquals(StatusCode.OK, itemStatus.getGlobalStatus());
+        assertEquals(Status.OK, itemStatus.getGlobalStatus().getEquivalentHttpStatus());
+        assertEquals(ProcessState.COMPLETED, itemStatus.getGlobalState());
 
     }
 
     @Test
     public void cancelOperationTest()
         throws Exception {
-        when(mock.delete()).thenReturn(
-            Response.status(Status.OK).build());
-        RequestResponse<JsonNode> resp = client.cancelOperationProcessExecution(ID, 0);
+        when(mock.delete()).thenReturn(Response.status(Status.OK)
+            .entity(new RequestResponseOK<>().addResult(new ItemStatus()).setHttpCode(Status.OK.getStatusCode()))
+            .build());
+        RequestResponse<ItemStatus> resp = client.cancelOperationProcessExecution(ID, 0);
+        assertTrue(resp.isOk());
         assertEquals(resp.getStatus(), Status.OK.getStatusCode());
 
-        when(mock.delete()).thenReturn(
-            Response.status(Status.PRECONDITION_FAILED).build());
+        when(mock.delete()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         resp = client.cancelOperationProcessExecution(ID, 0);
+        assertFalse(resp.isOk());
         assertEquals(resp.getStatus(), Status.PRECONDITION_FAILED.getStatusCode());
 
-        when(mock.delete()).thenReturn(
-            Response.status(Status.UNAUTHORIZED).build());
+        when(mock.delete()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
         resp = client.cancelOperationProcessExecution(ID, 0);
+        assertFalse(resp.isOk());
         assertEquals(resp.getStatus(), Status.UNAUTHORIZED.getStatusCode());
 
-        when(mock.delete()).thenReturn(
-            Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        when(mock.delete()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         resp = client.cancelOperationProcessExecution(ID, 0);
+        assertFalse(resp.isOk());
         assertEquals(resp.getStatus(), Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
     @Test
     public void listOperationsDetailsTest() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.OK).build());
-        RequestResponse<JsonNode> resp = client.listOperationsDetails(0, new ProcessQuery());
+
+        when(mock.get()).thenReturn(Response.status(Status.OK)
+            .entity(new RequestResponseOK<>().addResult(new ProcessDetail()).setHttpCode(Status.OK.getStatusCode()))
+            .build());
+        RequestResponse<ProcessDetail> resp = client.listOperationsDetails(0, new ProcessQuery());
         assertEquals(resp.getStatus(), Status.OK.getStatusCode());
 
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        resp = client.listOperationsDetails(0, new ProcessQuery());
-        assertEquals(resp.getStatus(), Status.INTERNAL_SERVER_ERROR.getStatusCode());
+        RequestResponse<ProcessDetail> resp2 = client.listOperationsDetails(0, new ProcessQuery());
+        assertEquals(resp2.getStatus(), Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    public void updateOperationActionProcessTest() throws Exception {
+        when(mock.put()).thenReturn(Response.status(Status.OK)
+            .entity(new RequestResponseOK<>().addResult(new ItemStatus()).setHttpCode(Status.OK.getStatusCode()))
+            .build());
+        RequestResponse<ItemStatus> resp = client.updateOperationActionProcess("NEXT", ID, 0);
+        assertTrue(resp.isOk());
+        assertEquals(Status.OK.getStatusCode(), resp.getStatus());
+
+        when(mock.put()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        RequestResponse<ItemStatus> resp2 = client.updateOperationActionProcess("NEXT", ID, 0);
+        assertFalse(resp2.isOk());
+        assertEquals(Status.INTERNAL_SERVER_ERROR.getStatusCode(), resp2.getStatus());
     }
 
 }

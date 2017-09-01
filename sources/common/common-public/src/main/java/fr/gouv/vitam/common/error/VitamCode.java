@@ -101,6 +101,11 @@ public enum VitamCode {
         Status.INTERNAL_SERVER_ERROR,
         "Format identifier internal error"),
 
+    WORKFLOW_DEFINITION_ERROR(ServiceName.PROCESSING, DomainName.VALIDATION, "00", Status.INTERNAL_SERVER_ERROR,
+        "Find workflow definitions in error"),
+    WORKFLOW_PROCESSES_ERROR(ServiceName.PROCESSING, DomainName.VALIDATION, "01", Status.INTERNAL_SERVER_ERROR,
+        "Find workflow processes in error"),
+
     CONTRACT_VALIDATION_ERROR(ServiceName.FUNCTIONAL_ADMINISTRATION, DomainName.VALIDATION, "08",
         Status.BAD_REQUEST,
         "Request validation error"),
@@ -221,17 +226,29 @@ public enum VitamCode {
         Status.BAD_REQUEST,
         "Access internal error while check update on rules: Can't update rule with a startDate > 9000"),
 
-    INGEST_EXTERNAL_UPLOAD_ERROR(ServiceName.EXTERNAL_INGEST, DomainName.IO, "00",
-        Status.BAD_REQUEST,
+    INGEST_EXTERNAL_ILLEGAL_ARGUMENT(ServiceName.EXTERNAL_INGEST, DomainName.IO, "00", Status.PRECONDITION_FAILED,
+        "Ingest external illegal argument"),
+    INGEST_EXTERNAL_PRECONDITION_FAILED(ServiceName.EXTERNAL_INGEST, DomainName.IO, "01", Status.PRECONDITION_FAILED,
+        "Ingest external precondition failed"),
+    INGEST_EXTERNAL_NOT_FOUND(ServiceName.EXTERNAL_INGEST, DomainName.IO, "02", Status.NOT_FOUND,
+        "Ingest external not found"),
+    INGEST_EXTERNAL_UNAUTHORIZED(ServiceName.EXTERNAL_INGEST, DomainName.IO, "03", Status.UNAUTHORIZED,
+        "Ingest external unauthorized"),
+    INGEST_EXTERNAL_BAD_REQUEST(ServiceName.EXTERNAL_INGEST, DomainName.IO, "04", Status.BAD_REQUEST,
+        "Ingest external bad request"),
+    INGEST_EXTERNAL_INTERNAL_SERVER_ERROR(ServiceName.EXTERNAL_INGEST, DomainName.IO, "05",
+        Status.INTERNAL_SERVER_ERROR,
+        "Ingest external internal server error"),
+    INGEST_EXTERNAL_INTERNAL_CLIENT_ERROR(ServiceName.EXTERNAL_INGEST, DomainName.IO, "06",
+        Status.INTERNAL_SERVER_ERROR, "Ingest external internal client error"),
+    INGEST_EXTERNAL_UPLOAD_ERROR(ServiceName.EXTERNAL_INGEST, DomainName.IO, "07", Status.BAD_REQUEST,
         "Ingest external client error in upload method."),
-
-    INGEST_EXTERNAL_EXECUTE_OPERATION_PROCESS_ERROR(ServiceName.EXTERNAL_INGEST, DomainName.IO, "01",
+    INGEST_EXTERNAL_EXECUTE_OPERATION_PROCESS_ERROR(ServiceName.EXTERNAL_INGEST, DomainName.IO, "08",
         Status.BAD_REQUEST,
         "Ingest external client error in executeOperationProcess method."),
-
-    INGEST_EXTERNAL_CANCEL_OPERATION_PROCESS_EXECUTION_ERROR(ServiceName.EXTERNAL_INGEST, DomainName.IO, "02",
+    INGEST_EXTERNAL_GET_OPERATION_PROCESS_DETAIL_ERROR(ServiceName.EXTERNAL_INGEST, DomainName.IO, "09",
         Status.BAD_REQUEST,
-        "Ingest external client error in cancelOperationProcessExecution method.");
+        "Ingest external client error in getOperationProcessExecutionDetails method.");
 
     private final ServiceName service;
     private final DomainName domain;

@@ -27,7 +27,6 @@
 package fr.gouv.vitam.ihmdemo.appserver;
 
 
-
 import static fr.gouv.vitam.common.server.application.AsyncInputStreamHelper.asyncResponseResume;
 
 import java.io.File;
@@ -126,6 +125,7 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.VitamConstants;
+import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
@@ -626,26 +626,31 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
                 if (client.wait(tenantId, id, 30, 1000L, TimeUnit.MILLISECONDS)) {
 
-                    final ItemStatus itemStatus =
-                        client.getOperationProcessExecutionDetails(id, JsonHandler.createObjectNode(), tenantId);
-                    if (ProcessState.COMPLETED.equals(itemStatus.getGlobalState())) {
-                        File file = downloadAndSaveATR(id, tenantId);
+                    final RequestResponse<ItemStatus> requestResponse =
+                        client.getOperationProcessExecutionDetails(id, tenantId);
+                    if (requestResponse.isOk()) {
+                        ItemStatus itemStatus = ((RequestResponseOK<ItemStatus>) requestResponse).getResults().get(0);
+                        if (ProcessState.COMPLETED.equals(itemStatus.getGlobalState())) {
+                            File file = downloadAndSaveATR(id, tenantId);
 
-                        if (file != null) {
-                            JsonNode lastEvent = getlogBookOperationStatus(id, tenantId, contractName);
-                            // ingestExternalClient client
-                            int status = getStatus(lastEvent);
-                            return Response.status(status).entity(new FileInputStream(file))
-                                .type(MediaType.APPLICATION_OCTET_STREAM_TYPE)
-                                .header(CONTENT_DISPOSITION,
-                                    "attachment; filename=ATR_" + id + ".xml")
-                                .header(GlobalDataRest.X_REQUEST_ID, operationId).build();
+                            if (file != null) {
+                                JsonNode lastEvent = getlogBookOperationStatus(id, tenantId, contractName);
+                                // ingestExternalClient client
+                                int status = getStatus(lastEvent);
+                                return Response.status(status).entity(new FileInputStream(file))
+                                    .type(MediaType.APPLICATION_OCTET_STREAM_TYPE)
+                                    .header(CONTENT_DISPOSITION,
+                                        "attachment; filename=ATR_" + id + ".xml")
+                                    .header(GlobalDataRest.X_REQUEST_ID, operationId).build();
+                            }
+                        } else if (ProcessState.PAUSE.equals(itemStatus.getGlobalState())) {
+                            return Response.status(itemStatus.getGlobalStatus().getEquivalentHttpStatus()).build();
+                        } else {
+                            return Response.status(Status.NO_CONTENT).header(GlobalDataRest.X_REQUEST_ID, operationId)
+                                .build();
                         }
-                    } else if (ProcessState.PAUSE.equals(itemStatus.getGlobalState())) {
-                        return Response.status(itemStatus.getGlobalStatus().getEquivalentHttpStatus()).build();
                     } else {
-                        return Response.status(Status.NO_CONTENT).header(GlobalDataRest.X_REQUEST_ID, operationId)
-                            .build();
+                        return requestResponse.toResponse();
                     }
                 } else {
                     return Response.status(Status.NO_CONTENT).header(GlobalDataRest.X_REQUEST_ID, operationId).build();
@@ -1649,7 +1654,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
             String tenantIdHeader = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
             System.out.println("query: " + query.toString());
-            RequestResponse<JsonNode> response =
+            RequestResponse<ProcessDetail> response =
                 client.listOperationsDetails(Integer.parseInt(tenantIdHeader), query);
             return Response.status(Status.OK).entity(response).build();
         } catch (VitamClientException e) {
@@ -1678,19 +1683,25 @@ public class WebApplicationResource extends ApplicationStatusResource {
         String contractName = headers.getHeaderString(GlobalDataRest.X_ACCESS_CONTRAT_ID);
         final int tenantId = Integer.parseInt(tenantIdHeader);
         try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
-            Response response = client.updateOperationActionProcess(xAction, id, tenantId);
+            RequestResponse<ItemStatus> response = client.updateOperationActionProcess(xAction, id, tenantId);
 
+            if (!response.isOk()) {
+                return response.toResponse();
+            }
+
+            ItemStatus itemStatusUpdate = ((RequestResponseOK<ItemStatus>) response).getResults().get(0);
             final String globalExecutionState =
-                response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATE);
-            final String globalExecutionStatus =
-                response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS);
-
-            DefaultClient.staticConsumeAnyEntityAndClose(response);
+                response.getHeaderString(itemStatusUpdate.getGlobalState().name());
+            final String globalExecutionStatus = response.getHeaderString(itemStatusUpdate.getGlobalStatus().name());
 
             if (client.wait(tenantId, id, 2000, 3000l, TimeUnit.MILLISECONDS)) {
 
-                final ItemStatus itemStatus =
-                    client.getOperationProcessExecutionDetails(id, JsonHandler.createObjectNode(), tenantId);
+                final RequestResponse<ItemStatus> requestResponse =
+                    client.getOperationProcessExecutionDetails(id, tenantId);
+                if (!requestResponse.isOk()) {
+                    return requestResponse.toResponse();
+                }
+                ItemStatus itemStatus = ((RequestResponseOK<ItemStatus>) requestResponse).getResults().get(0);
                 if (ProcessState.COMPLETED.equals(itemStatus.getGlobalState())) {
                     File file = downloadAndSaveATR(id, tenantId);
                     if (file != null) {
@@ -1715,6 +1726,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                         .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, itemStatus.getGlobalStatus())
                         .build();
                 }
+
             } else {
                 return Response.status(Status.NO_CONTENT)
                     .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, globalExecutionState)
@@ -1741,13 +1753,18 @@ public class WebApplicationResource extends ApplicationStatusResource {
         String tenantIdHeader = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
 
         try (IngestExternalClient ingestExternalClient = IngestExternalClientFactory.getInstance().getClient()) {
-            RequestResponse<JsonNode> resp =
+            RequestResponse<ItemStatus> resp =
                 ingestExternalClient.cancelOperationProcessExecution(id, Integer.parseInt(tenantIdHeader));
-            return Response.status(Status.OK).entity(resp).build();
-        } catch (VitamClientException | ProcessingException e) {
+            if (resp.isOk()) {
+                return Response.status(Status.OK).entity(((RequestResponseOK<ItemStatus>) resp).getResults().get(0))
+                    .build();
+            } else {
+                return Response.status(resp.getHttpCode()).entity(((VitamError) resp).getMessage()).build();
+            }
+        } catch (VitamClientException | IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
-        } catch (BadRequestException e) {
+        } catch (ProcessingException e) {
             LOGGER.error(e);
             return Response.status(Status.UNAUTHORIZED).entity(e.getMessage()).build();
         }

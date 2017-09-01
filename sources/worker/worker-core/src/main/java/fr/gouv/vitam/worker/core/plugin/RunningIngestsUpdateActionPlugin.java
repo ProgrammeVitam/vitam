@@ -111,7 +111,7 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
     private static final long SLEEP_TIME = 10000l;
     private static final long NB_TRY = 600; // equivalent to 60 minutes
 
-    private static final String PROCESS_ID_FIELD = "operation_id";
+    private static final String PROCESS_ID_FIELD = "operationId";
 
     /**
      * Empty constructor UnitsRulesComputePlugin

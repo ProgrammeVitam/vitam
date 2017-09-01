@@ -40,12 +40,10 @@ import fr.gouv.vitam.common.SingletonUtils;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
@@ -58,13 +56,13 @@ import fr.gouv.vitam.common.model.processing.Distribution;
 import fr.gouv.vitam.common.model.processing.DistributionKind;
 import fr.gouv.vitam.common.model.processing.IOParameter;
 import fr.gouv.vitam.common.model.processing.ProcessBehavior;
+import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.Step;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
-import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 
 /**
@@ -98,9 +96,8 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
     }
 
 
-    // TODO FIXE ME query never user
     @Override
-    public ItemStatus getOperationProcessExecutionDetails(String id, JsonNode query)
+    public ItemStatus getOperationProcessExecutionDetails(String id)
         throws VitamClientException, InternalServerException, BadRequestException {
         final List<Integer> status = new ArrayList<>();
         status.add(0);
@@ -200,18 +197,12 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
 
 
     @Override
-    public RequestResponse<JsonNode> listOperationsDetails(ProcessQuery query) throws VitamClientException {
-        ProcessWorkflow pw = new ProcessWorkflow();
+    public RequestResponse<ProcessDetail> listOperationsDetails(ProcessQuery query) throws VitamClientException {
+        ProcessDetail pw = new ProcessDetail();
         pw.setOperationId(GUIDFactory.newOperationLogbookGUID(0).toString());
-        pw.setState(ProcessState.RUNNING);
-        pw.setStatus(StatusCode.STARTED);
-        List<JsonNode> list = new ArrayList<JsonNode>();
-        try {
-            list.add(JsonHandler.toJsonNode(pw));
-        } catch (InvalidParseOperationException e) {
-            throw new VitamClientException(e.getMessage());
-        }
-        return new RequestResponseOK<JsonNode>().addAllResults(list);
+        pw.setGlobalState(ProcessState.RUNNING.toString());
+        pw.setStepStatus(StatusCode.STARTED.toString());
+        return new RequestResponseOK<ProcessDetail>().addResult(pw);
     }
 
     @Override

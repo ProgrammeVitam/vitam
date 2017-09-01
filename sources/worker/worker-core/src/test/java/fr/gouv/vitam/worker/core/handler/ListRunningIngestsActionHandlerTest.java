@@ -63,10 +63,10 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
 import fr.gouv.vitam.common.model.processing.IOParameter;
+import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.UriPrefix;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
@@ -86,12 +86,12 @@ public class ListRunningIngestsActionHandlerTest {
     private ProcessingManagementClientFactory processManagementClientFactory;
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
-    private List<JsonNode> list;
+    private List<ProcessDetail> list;
 
     private HandlerIOImpl action;
     private GUID guid = GUIDFactory.newGUID();
     private List<IOParameter> out;
-    private ProcessWorkflow pw = new ProcessWorkflow();
+    private ProcessDetail pw = new ProcessDetail();
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
@@ -133,14 +133,10 @@ public class ListRunningIngestsActionHandlerTest {
             UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.RUNNING_INGESTS_JSON)));
 
         pw.setOperationId(GUIDFactory.newOperationLogbookGUID(0).toString());
-        pw.setState(ProcessState.RUNNING);
-        pw.setStatus(StatusCode.STARTED);
-        list = new ArrayList<JsonNode>();
-        try {
-            list.add(JsonHandler.toJsonNode(pw));
-        } catch (InvalidParseOperationException e) {
-            throw new VitamClientException(e.getMessage());
-        }
+        pw.setGlobalState(ProcessState.RUNNING.toString());
+        pw.setStepStatus(StatusCode.STARTED.toString());
+        list = new ArrayList<ProcessDetail>();
+        list.add(pw);
     }
 
     @After
@@ -153,18 +149,18 @@ public class ListRunningIngestsActionHandlerTest {
     public void givenRunningProcessWhenExecuteThenReturnResponseOK() throws Exception {
         action.addOutIOParameters(out);
         when(processManagementClient.listOperationsDetails(anyObject()))
-            .thenReturn(new RequestResponseOK<JsonNode>().addAllResults(list));
+            .thenReturn(new RequestResponseOK<ProcessDetail>().addAllResults(list));
         saveWorkspacePutObject(
             UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.RUNNING_INGESTS_JSON);
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
         JsonNode listRunning = getSavedWorkspaceObject(
             UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.RUNNING_INGESTS_JSON);
-        ProcessWorkflow process = null;
+        ProcessDetail process = null;
         int numberOfProcesses = 0;
         for (final JsonNode objNode : listRunning) {
             numberOfProcesses++;
-            process = JsonHandler.getFromJsonNode(objNode, ProcessWorkflow.class);
+            process = JsonHandler.getFromJsonNode(objNode, ProcessDetail.class);
         }
         assertEquals(1, numberOfProcesses);
         assertEquals(pw.getOperationId(), process.getOperationId());
@@ -174,20 +170,16 @@ public class ListRunningIngestsActionHandlerTest {
     public void givenRunningProcessesWhenExecuteThenReturnResponseOK() throws Exception {
         action.addOutIOParameters(out);
 
-        ProcessWorkflow pw2 = new ProcessWorkflow();
+        ProcessDetail pw2 = new ProcessDetail();
         pw2.setOperationId(GUIDFactory.newOperationLogbookGUID(0).toString());
-        pw2.setState(ProcessState.RUNNING);
-        pw2.setStatus(StatusCode.STARTED);
-        list = new ArrayList<JsonNode>();
-        try {
-            list.add(JsonHandler.toJsonNode(pw));
-            list.add(JsonHandler.toJsonNode(pw2));
-        } catch (InvalidParseOperationException e) {
-            throw new VitamClientException(e.getMessage());
-        }
+        pw2.setGlobalState(ProcessState.RUNNING.toString());
+        pw2.setStepStatus(StatusCode.STARTED.toString());
+        list = new ArrayList<ProcessDetail>();
+        list.add(pw);
+        list.add(pw2);
 
         when(processManagementClient.listOperationsDetails(anyObject()))
-            .thenReturn(new RequestResponseOK<JsonNode>().addAllResults(list));
+            .thenReturn(new RequestResponseOK<ProcessDetail>().addAllResults(list));
         saveWorkspacePutObject(
             UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.RUNNING_INGESTS_JSON);
         final ItemStatus response = plugin.execute(params, action);

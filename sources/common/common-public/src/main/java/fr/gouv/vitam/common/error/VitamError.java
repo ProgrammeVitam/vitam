@@ -79,7 +79,7 @@ public class VitamError extends RequestResponse {
         this.code = code;
         errors = new ArrayList<>();
     }
-
+    
     /**
      * @param code of error as integer
      * @return the VitamError object with the code is setted
