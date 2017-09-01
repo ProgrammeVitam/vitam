@@ -53,7 +53,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import com.jayway.restassured.specification.RequestSpecification;
 import org.apache.commons.io.IOUtils;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -92,6 +91,7 @@ import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
@@ -321,11 +321,11 @@ public class WebApplicationResourceTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testGetLogbookResultByIdLogbookClientException()
+    public void testGetLogbookResultByIdVitamClientException()
         throws Exception {
         String contractName = "test_contract";
         PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId("1", TENANT_ID, contractName))
-            .thenThrow(LogbookClientException.class);
+            .thenThrow(VitamClientException.class);
 
         given().param("idOperation", "1").header(new Header(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName)).expect()
             .statusCode(Status.NOT_FOUND.getStatusCode()).when()
@@ -1264,25 +1264,11 @@ public class WebApplicationResourceTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testGetUnitLifeCycleByIdWithBadRequestWhenInvalidParseOperationException()
+    public void testGetUnitLifeCycleByIdWithBadRequestWhenVitamClientException()
         throws Exception {
         PowerMockito
             .when(UserInterfaceTransactionManager.selectUnitLifeCycleById(FAKE_UNIT_LF_ID, TENANT_ID, CONTRACT_NAME))
-            .thenThrow(InvalidParseOperationException.class);
-
-        given().param("id_lc", FAKE_UNIT_LF_ID).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_NAME).expect()
-            .statusCode(Status.BAD_REQUEST.getStatusCode()).when()
-            .get("/unitlifecycles/" + FAKE_UNIT_LF_ID);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Test
-    public void testGetUnitLifeCycleByIdWithNotFoundResponseWhenLogbookClientException()
-        throws Exception {
-        PowerMockito
-            .when(UserInterfaceTransactionManager.selectUnitLifeCycleById(FAKE_UNIT_LF_ID, TENANT_ID, CONTRACT_NAME))
-            .thenThrow(LogbookClientException.class);
+            .thenThrow(VitamClientException.class);
 
         given().param("id_lc", FAKE_UNIT_LF_ID).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_NAME).expect()
@@ -1307,27 +1293,12 @@ public class WebApplicationResourceTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testGetObjectGroupLifeCycleByIdWithBadRequestWhenInvalidParseOperationException()
+    public void testGetObjectGroupLifeCycleByIdWithBadRequestWhenVitamClientException()
         throws Exception {
         PowerMockito
             .when(UserInterfaceTransactionManager.selectObjectGroupLifeCycleById(FAKE_OBG_LF_ID, TENANT_ID,
                 CONTRACT_NAME))
-            .thenThrow(InvalidParseOperationException.class);
-
-        given().param("id_lc", FAKE_OBG_LF_ID).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_NAME).expect()
-            .statusCode(Status.BAD_REQUEST.getStatusCode()).when()
-            .get("/objectgrouplifecycles/" + FAKE_OBG_LF_ID);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Test
-    public void testGetObjectGroupLifeCycleByIdWithNotFoundResponseWhenLogbookClientException()
-        throws Exception {
-        PowerMockito
-            .when(UserInterfaceTransactionManager.selectObjectGroupLifeCycleById(FAKE_OBG_LF_ID, TENANT_ID,
-                CONTRACT_NAME))
-            .thenThrow(LogbookClientException.class);
+            .thenThrow(VitamClientException.class);
 
         given().param("id_lc", FAKE_OBG_LF_ID).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_NAME).expect()

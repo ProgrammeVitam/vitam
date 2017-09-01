@@ -29,9 +29,9 @@ import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
@@ -71,7 +71,8 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
             "    \"obIdReq\": null," +
             "    \"obIdIn\": null," +
             "    \"events\": []}";
-    final String BODY_WITH_ID = "{\"$query\": {\"$eq\": {\"obId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\" }}, \"$projection\": {}, \"$filter\": {}}";
+    final String BODY_WITH_ID =
+        "{\"$query\": {\"$eq\": {\"obId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\" }}, \"$projection\": {}, \"$filter\": {}}";
     final String ID = "identfier1";
     final String USAGE = "BinaryMaster";
     final int VERSION = 1;
@@ -182,7 +183,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         @GET
         @Path("/objects/{id_object_group}")
         @Consumes(MediaType.APPLICATION_JSON)
-         @Produces(MediaType.APPLICATION_OCTET_STREAM)
+        @Produces(MediaType.APPLICATION_OCTET_STREAM)
         public Response getObjectGroup(@PathParam("id_object_group") String idObjectGroup, String query) {
             return expectedResponse.get();
         }
@@ -271,21 +272,11 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
             return expectedResponse.post();
         }
 
-        // Logbook lifecycle by id
         @GET
         @Path("/unitlifecycles/{id_lc}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response getUnitLifeCycle(@PathParam("id_lc") String unitLifeCycleId) {
-            return expectedResponse.get();
-        }
-
-        // Logbook lifecycle dsl Query
-        @GET
-        @Path("/unitlifecycles")
-        @Consumes(MediaType.APPLICATION_JSON)
-        @Produces(MediaType.APPLICATION_JSON)
-        public Response getUnitLifeCycle(JsonNode queryDsl) {
+        public Response getUnitLifeCycle(@PathParam("id_lc") String unitLifeCycleId, JsonNode queryDsl) {
             return expectedResponse.get();
         }
 
@@ -293,7 +284,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         @Path("/objectgrouplifecycles/{id_lc}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response getObjectGroupLifeCycle(@PathParam("id_lc") String objectGroupLifeCycleId) {
+        public Response getObjectGroupLifeCycle(@PathParam("id_lc") String objectGroupLifeCycleId, JsonNode queryDsl) {
             return expectedResponse.get();
         }
 
@@ -587,7 +578,8 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     @RunWithCustomExecutor
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenOK() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("Vitam test")).build());
-        final Response response = client.getObject(JsonHandler.getFromString(queryDsql), ID, USAGE, VERSION, TENANT_ID, CONTRACT);
+        final Response response =
+            client.getObject(JsonHandler.getFromString(queryDsql), ID, USAGE, VERSION, TENANT_ID, CONTRACT);
         assertNotNull(response);
     }
 
@@ -596,12 +588,13 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
      * logbook operations
      *
      ***/
-
+    // TODO migration
     @Test
     @RunWithCustomExecutor
     public void selectLogbookOperations() throws Exception {
         when(mock.post())
-            .thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getLogbooksRequestResponse()).build());
+            .thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getLogbookOperationsRequestResponse())
+                .build());
         assertThat(client.selectOperation(JsonHandler.getFromString(queryDsql), TENANT_ID, CONTRACT)).isNotNull();
     }
 
@@ -630,7 +623,8 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     @RunWithCustomExecutor
     public void selectLogbookOperationByID() throws Exception {
         when(mock.post())
-            .thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getLogbookRequestResponse()).build());
+            .thenReturn(
+                Response.status(Status.OK).entity(ClientMockResultHelper.getLogbookOperationRequestResponse()).build());
         assertThat(client.selectOperationbyId(ID, TENANT_ID, CONTRACT)).isNotNull();
     }
 
@@ -660,16 +654,9 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     @RunWithCustomExecutor
     public void selectLogbookLifeCyclesUnitById() throws Exception {
         when(mock.get())
-            .thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getLogbookRequestResponse()).build());
+            .thenReturn(
+                Response.status(Status.OK).entity(ClientMockResultHelper.getLogbookOperationRequestResponse()).build());
         assertThat(client.selectUnitLifeCycleById(ID, TENANT_ID, CONTRACT)).isNotNull();
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void selectLogbookLifeCyclesUnit() throws Exception {
-        when(mock.get())
-            .thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getLogbookRequestResponseWithObId()).build());
-        assertThat(client.selectUnitLifeCycle(JsonHandler.getFromString(BODY_WITH_ID), TENANT_ID, CONTRACT)).isNotNull();
     }
 
     @Test
@@ -682,26 +669,10 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenSelectLogbookLifeCyclesUnitNotFoundThenNotFound() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        assertThat(client.selectUnitLifeCycle(JsonHandler.getFromString(BODY_WITH_ID), TENANT_ID, CONTRACT)
-            .getHttpCode()).isEqualTo(Status.NOT_FOUND.getStatusCode());
-    }
-
-    @Test
-    @RunWithCustomExecutor
     public void givenSelectLogbookLifeCyclesUnitByIdBadQueryThenPreconditionFailed() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         assertThat(client.selectUnitLifeCycleById(ID, TENANT_ID, CONTRACT).getHttpCode())
             .isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void givenSelectLogbookLifeCyclesUnitBadQueryThenPreconditionFailed() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        assertThat(client.selectUnitLifeCycle(JsonHandler.getFromString(BODY_WITH_ID), TENANT_ID, CONTRACT)
-            .getHttpCode()).isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     /***
@@ -711,9 +682,10 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
      ***/
     @Test
     @RunWithCustomExecutor
-    public void selectLogbookLifeCyclesObject() throws Exception {
+    public void selectLogbookLifeCyclesObjectById() throws Exception {
         when(mock.get())
-            .thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getLogbookRequestResponse()).build());
+            .thenReturn(
+                Response.status(Status.OK).entity(ClientMockResultHelper.getLogbookOperationRequestResponse()).build());
         assertThat(client.selectObjectGroupLifeCycleById(ID, TENANT_ID, CONTRACT)).isNotNull();
     }
 

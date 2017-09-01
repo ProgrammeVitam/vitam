@@ -125,6 +125,9 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.VitamConstants;
+import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
+import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.security.SanityChecker;
@@ -426,7 +429,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response getLogbookResultById(@Context HttpHeaders headers, @PathParam("idOperation") String operationId,
         String options) {
         String contractName = headers.getHeaderString(GlobalDataRest.X_ACCESS_CONTRAT_ID);
-        RequestResponse result = null;
+        RequestResponse<LogbookOperation> result = null;
         try {
             ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
@@ -435,8 +438,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (final LogbookClientException e) {
-            LOGGER.error("Logbook Client NOT FOUND Exception ", e);
+        } catch (final VitamClientException e) {
+            LOGGER.error("Vitam Client Exception ", e);
             return Response.status(Status.NOT_FOUND).build();
         } catch (final Exception e) {
             LOGGER.error("INTERNAL SERVER ERROR", e);
@@ -634,7 +637,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                             File file = downloadAndSaveATR(id, tenantId);
 
                             if (file != null) {
-                                JsonNode lastEvent = getlogBookOperationStatus(id, tenantId, contractName);
+                                LogbookEventOperation lastEvent = getlogBookOperationStatus(id, tenantId, contractName);
                                 // ingestExternalClient client
                                 int status = getStatus(lastEvent);
                                 return Response.status(status).entity(new FileInputStream(file))
@@ -648,6 +651,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                         } else {
                             return Response.status(Status.NO_CONTENT).header(GlobalDataRest.X_REQUEST_ID, operationId)
                                 .build();
+
                         }
                     } else {
                         return requestResponse.toResponse();
@@ -696,25 +700,23 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
-    private static JsonNode getlogBookOperationStatus(String operationId, Integer tenantId, String contractName)
-        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
-        final RequestResponse<JsonNode> result =
+    private static LogbookEventOperation getlogBookOperationStatus(String operationId, Integer tenantId,
+        String contractName)
+        throws VitamClientException {
+        final RequestResponse<LogbookOperation> result =
             UserInterfaceTransactionManager.selectOperationbyId(operationId, tenantId, contractName);
-        RequestResponseOK<JsonNode> responseOK = (RequestResponseOK<JsonNode>) result;
-        List<JsonNode> results = responseOK.getResults();
-        JsonNode operation = results.get(0);
+        RequestResponseOK<LogbookOperation> responseOK = (RequestResponseOK<LogbookOperation>) result;
+        List<LogbookOperation> results = responseOK.getResults();
+        LogbookOperation operation = results.get(0);
 
-        ArrayNode events = (ArrayNode) operation.get("events");
-        JsonNode lastEvent = Iterables.getLast(events);
-        return lastEvent;
+        return Iterables.getLast(operation.getEvents());
     }
 
-    private static int getStatus(JsonNode lastEvent) throws Exception {
-        String out = String.valueOf(lastEvent.get("outcome").asText());
-        if (out == null) {
+    private static int getStatus(LogbookEventOperation lastEvent) throws Exception {
+        if (lastEvent.getOutcome() == null) {
             throw new Exception("parsing Error");
         }
-        switch (out) {
+        switch (lastEvent.getOutcome()) {
             case "WARNING":
                 return 206;
             case "OK":
@@ -1319,8 +1321,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * async Download Error Report
      *
-     * @param document      the input stream to test
-     * @param tenant        the given tenant
+     * @param document the input stream to test
+     * @param tenant the given tenant
      * @param asyncResponse asyncResponse
      */
     private void asyncDownloadErrorReport(InputStream document, int tenant, final AsyncResponse asyncResponse) {
@@ -1591,14 +1593,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @RequiresPermissions("unitlifecycles:read")
     public Response getUnitLifeCycleById(@Context HttpHeaders headers, @PathParam("id_lc") String unitLifeCycleId) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitLifeCycleId);
-        RequestResponse result = null;
+        RequestResponse<LogbookLifecycle> result = null;
         try {
             result = UserInterfaceTransactionManager.selectUnitLifeCycleById(unitLifeCycleId, getTenantId(headers),
                 getAccessContractId(headers));
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (final LogbookClientException e) {
+        } catch (final VitamClientException e) {
             LOGGER.error(LOGBOOK_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
             return Response.status(Status.NOT_FOUND).build();
         } catch (final Exception e) {
@@ -1622,15 +1621,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response getObjectGroupLifeCycleById(@Context HttpHeaders headers,
         @PathParam("id_lc") String objectGroupLifeCycleId) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, objectGroupLifeCycleId);
-        RequestResponse result = null;
+        RequestResponse<LogbookLifecycle> result = null;
 
         try {
             result = UserInterfaceTransactionManager.selectObjectGroupLifeCycleById(objectGroupLifeCycleId,
                 getTenantId(headers), getAccessContractId(headers));
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (final LogbookClientException e) {
+        } catch (final VitamClientException e) {
             LOGGER.error(LOGBOOK_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
             return Response.status(Status.NOT_FOUND).build();
         } catch (final Exception e) {
@@ -1705,7 +1701,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 if (ProcessState.COMPLETED.equals(itemStatus.getGlobalState())) {
                     File file = downloadAndSaveATR(id, tenantId);
                     if (file != null) {
-                        JsonNode lastEvent = getlogBookOperationStatus(id, tenantId, contractName);
+                        LogbookEventOperation lastEvent = getlogBookOperationStatus(id, tenantId, contractName);
                         // ingestExternalClient client
                         int status = getStatus(lastEvent);
                         return Response.status(status).entity(new FileInputStream(file))

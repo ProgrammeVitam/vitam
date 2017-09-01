@@ -37,10 +37,6 @@ import javax.ws.rs.ProcessingException;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
 
-import fr.gouv.vitam.access.external.api.AdminCollections;
-import fr.gouv.vitam.access.external.client.AdminExternalClient;
-import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
-import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -52,8 +48,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
+import fr.gouv.vitam.access.external.client.AdminExternalClient;
+import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
+import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -63,11 +63,14 @@ import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -292,9 +295,9 @@ public class UserInterfaceTransactionManager {
      * @throws AccessUnauthorizedException
      */
 
-    public static RequestResponse<JsonNode> selectUnitLifeCycleById(String unitLifeCycleId, Integer tenantId,
+    public static RequestResponse<LogbookLifecycle> selectUnitLifeCycleById(String unitLifeCycleId, Integer tenantId,
         String contractId)
-        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
+        throws VitamClientException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
             return client.selectUnitLifeCycleById(unitLifeCycleId, tenantId, contractId);
 
@@ -304,13 +307,11 @@ public class UserInterfaceTransactionManager {
     /**
      * @param query the select query
      * @param tenantId the working tenant
-     * @return JsonNode result
-     * @throws InvalidParseOperationException if json data not well-formed
-     * @throws LogbookClientException if the request with illegal parameter
-     * @throws AccessUnauthorizedException
+     * @return logbook operation result
+     * @throws VitamClientException access client exception
      */
-    public static RequestResponse<JsonNode> selectOperation(JsonNode query, Integer tenantId, String contractId)
-        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
+    public static RequestResponse<LogbookOperation> selectOperation(JsonNode query, Integer tenantId, String contractId)
+        throws VitamClientException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
             return client.selectOperation(query, tenantId, contractId);
         }
@@ -320,14 +321,12 @@ public class UserInterfaceTransactionManager {
      * @param operationId the operation id
      * @param tenantId the working tenant
      * @param contractId the access contract Id
-     * @return JsonNode result
-     * @throws InvalidParseOperationException if json data not well-formed
-     * @throws LogbookClientException if the request with illegal parameter
-     * @throws AccessUnauthorizedException
+     * @return logbook operation result
+     * @throws VitamClientException
      */
-    public static RequestResponse<JsonNode> selectOperationbyId(String operationId, Integer tenantId,
+    public static RequestResponse<LogbookOperation> selectOperationbyId(String operationId, Integer tenantId,
         String contractId)
-        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
+        throws VitamClientException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
             return client.selectOperationbyId(operationId, tenantId, contractId);
         }
@@ -337,15 +336,13 @@ public class UserInterfaceTransactionManager {
      * @param objectGroupLifeCycleId the object lifecycle id to select
      * @param tenantId the working tenant
      * @param contractId the access contract Id
-     * @return JsonNode result
-     * @throws InvalidParseOperationException if json data not well-formed
-     * @throws LogbookClientException if the request with illegal parameter
-     * @throws AccessUnauthorizedException
+     * @return logbook lifecycle result
+     * @throws VitamClientException if the request with illegal parameter
      */
 
-    public static RequestResponse<JsonNode> selectObjectGroupLifeCycleById(String objectGroupLifeCycleId,
+    public static RequestResponse<LogbookLifecycle> selectObjectGroupLifeCycleById(String objectGroupLifeCycleId,
         Integer tenantId, String contractId)
-        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
+        throws VitamClientException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
             return client.selectObjectGroupLifeCycleById(objectGroupLifeCycleId, tenantId, contractId);
         }

@@ -26,46 +26,33 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.external.rest;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
-import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
-import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
-import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
-import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
@@ -79,8 +66,6 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 public class LogbookExternalResourceImpl {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookExternalResourceImpl.class);
-    private static final String ACCESS_EXTERNAL_MODULE = "LOGBOOK_EXTERNAL";
-    private static final String CODE_VITAM = "code_vitam";
     private static final String EVENT_ID_PROCESS = "evIdProc";
     private static final String OB_ID = "obId";
 
@@ -115,17 +100,30 @@ public class LogbookExternalResourceImpl {
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
         } catch (final LogbookClientException e) {
-            LOGGER.error(e);
+            LOGGER.error("Client exception while trying to search operations: ", e);
             status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            return Response.status(status)
+                .entity(VitamCodeHelper
+                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_ERROR, e.getLocalizedMessage())
+                    .setHttpCode(status.getStatusCode()))
+                .build();
         } catch (final InvalidParseOperationException e) {
-            LOGGER.error(e);
+            LOGGER.error("Invalid argument: " + e);
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            return Response.status(status)
+                .entity(VitamCodeHelper
+                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_ERROR, e.getLocalizedMessage())
+                    .setHttpCode(status.getStatusCode()))
+                .build();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error("Contract access does not allow ", e);
             status = Status.UNAUTHORIZED;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            return Response.status(status)
+                .entity(VitamCodeHelper
+                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_ERROR, e.getLocalizedMessage())
+                    .setHttpCode(status.getStatusCode()))
+                .build();
+
         }
     }
 
@@ -134,7 +132,6 @@ public class LogbookExternalResourceImpl {
      * @param queryDsl the query
      * @return the response with a specific HTTP status
      */
-
     @GET
     @Path("/operations/{id_op}")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -156,21 +153,37 @@ public class LogbookExternalResourceImpl {
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
         } catch (final LogbookClientException e) {
-            LOGGER.error(e);
+            LOGGER.error("Client exception while trying to get operation by id: ", e);
             status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            return Response.status(status)
+                .entity(VitamCodeHelper
+                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR, e.getLocalizedMessage())
+                    .setHttpCode(status.getStatusCode()))
+                .build();
         } catch (final InvalidParseOperationException e) {
-            LOGGER.error(e);
+            LOGGER.error("Invalid argument: " + e);
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            return Response.status(status)
+                .entity(VitamCodeHelper
+                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR, e.getLocalizedMessage())
+                    .setHttpCode(status.getStatusCode()))
+                .build();
         } catch (InvalidCreateOperationException e) {
-            LOGGER.error(e);
+            LOGGER.error("Could not modify search query: ", e);
             status = Status.BAD_REQUEST;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            return Response.status(status)
+                .entity(VitamCodeHelper
+                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR, e.getLocalizedMessage())
+                    .setHttpCode(status.getStatusCode()))
+                .build();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error("Contract access does not allow ", e);
             status = Status.UNAUTHORIZED;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            return Response.status(status)
+                .entity(VitamCodeHelper
+                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR, e.getLocalizedMessage())
+                    .setHttpCode(status.getStatusCode()))
+                .build();
         }
     }
 
@@ -202,21 +215,37 @@ public class LogbookExternalResourceImpl {
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
         } catch (final LogbookClientException e) {
-            LOGGER.error(e);
-            status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            LOGGER.error("Client exception while trying to get lifecycle unit by id: ", e);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(VitamCodeHelper
+                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR, e.getLocalizedMessage())
+                    .setHttpCode(status.getStatusCode()))
+                .build();
         } catch (final InvalidParseOperationException e) {
-            LOGGER.error(e);
+            LOGGER.error("Invalid argument: " + e);
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            return Response.status(status)
+                .entity(VitamCodeHelper
+                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR, e.getLocalizedMessage())
+                    .setHttpCode(status.getStatusCode()))
+                .build();
         } catch (InvalidCreateOperationException e) {
-            LOGGER.error(e);
+            LOGGER.error("Could not modify search query: ", e);
             status = Status.BAD_REQUEST;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            return Response.status(status)
+                .entity(VitamCodeHelper
+                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR, e.getLocalizedMessage())
+                    .setHttpCode(status.getStatusCode()))
+                .build();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error("Contract access does not allow ", e);
             status = Status.UNAUTHORIZED;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            return Response.status(status)
+                .entity(VitamCodeHelper
+                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR, e.getLocalizedMessage())
+                    .setHttpCode(status.getStatusCode()))
+                .build();
         }
     }
 
@@ -249,45 +278,41 @@ public class LogbookExternalResourceImpl {
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
         } catch (final LogbookClientException e) {
-            LOGGER.error(e);
-            status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            LOGGER.error("Client exception while trying to get object group lifecycle by id: ", e);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(VitamCodeHelper
+                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR,
+                        e.getLocalizedMessage())
+                    .setHttpCode(status.getStatusCode()))
+                .build();
         } catch (final InvalidParseOperationException e) {
-            LOGGER.error(e);
+            LOGGER.error("Invalid argument: " + e);
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            return Response.status(status)
+                .entity(VitamCodeHelper
+                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR,
+                        e.getLocalizedMessage())
+                    .setHttpCode(status.getStatusCode()))
+                .build();
         } catch (InvalidCreateOperationException e) {
-            LOGGER.error(e);
+            LOGGER.error("Could not modify search query: ", e);
             status = Status.BAD_REQUEST;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            return Response.status(status)
+                .entity(VitamCodeHelper
+                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR,
+                        e.getLocalizedMessage())
+                    .setHttpCode(status.getStatusCode()))
+                .build();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error("Contract access does not allow ", e);
             status = Status.UNAUTHORIZED;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
-        }
-    }
-
-    /***** LIFE CYCLES - END *****/
-
-    private VitamError getErrorEntity(Status status, String message) {
-        String aMessage =
-            (message != null && !message.trim().isEmpty()) ? message
-                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
-
-        return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(ACCESS_EXTERNAL_MODULE)
-            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);
-    }
-    
-    private InputStream getErrorStream(Status status, String message) {
-        String aMessage =
-            (message != null && !message.trim().isEmpty()) ? message
-                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
-        try {
-            return JsonHandler.writeToInpustream(new VitamError(status.name())
-                .setHttpCode(status.getStatusCode()).setContext(ACCESS_EXTERNAL_MODULE)
-                .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage));
-        } catch (InvalidParseOperationException e) {
-            return new ByteArrayInputStream("{ 'message' : 'Invalid VitamError message' }".getBytes());
+            return Response.status(status)
+                .entity(VitamCodeHelper
+                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR,
+                        e.getLocalizedMessage())
+                    .setHttpCode(status.getStatusCode()))
+                .build();
         }
     }
 

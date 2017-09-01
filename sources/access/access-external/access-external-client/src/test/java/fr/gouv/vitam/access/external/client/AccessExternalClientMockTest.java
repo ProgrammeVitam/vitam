@@ -14,7 +14,6 @@ public class AccessExternalClientMockTest {
             " \"$filter\": { \"$orderby\": \"#id\" }, " +
             " \"$projection\" : { \"$fields\" : { \"#id\": 1, \"title\" : 2, \"transacdate\": 1 } } " +
             " }";
-    final String BODY_WITH_ID = "{$query: {$eq: {\"#id\": \"identifier1\" }}, $projection: {}, $filter: {}}";
     final String ID = "identifier1";
     final String USAGE = "usage";
     final String CONTRACT = "contract";
@@ -76,12 +75,6 @@ public class AccessExternalClientMockTest {
     public void givenMockConfExistWhenAccessExternal_selectUnitLifeCycleByIdLogbook_ThenRetururnResult()
         throws Exception {
         assertNotNull(client.selectUnitLifeCycleById(ID, TENANT_ID, CONTRACT));
-    }
-
-    @Test
-    public void givenMockConfExistWhenAccessExternal_selectUnitLifeCycleLogbook_ThenRetururnResult()
-        throws Exception {
-        assertNotNull(client.selectUnitLifeCycle(JsonHandler.getFromString(BODY_WITH_ID), TENANT_ID, CONTRACT));
     }
 
     @Test

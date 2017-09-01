@@ -59,8 +59,8 @@ import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.external.client.IngestCollection;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -70,11 +70,12 @@ import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientNotFoundException;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientServerException;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.tools.SipTool;
 
 public class IngestStep {
@@ -185,25 +186,23 @@ public class IngestStep {
      * check on logbook if the global status is OK (status of the last event)
      *
      * @param status
-     * @throws LogbookClientException
+     * @throws VitamClientException
      * @throws InvalidParseOperationException
-     * @throws AccessUnauthorizedException
      */
     @Then("^le statut final du journal des opérations est (.*)$")
     public void the_logbook_operation_has_a_status(String status)
-        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
-        RequestResponse requestResponse =
+        throws VitamClientException, InvalidParseOperationException {
+        RequestResponse<LogbookOperation> requestResponse =
             world.getAccessClient().selectOperationbyId(world.getOperationId(), world.getTenantId(),
                 world.getContractId());
         if (requestResponse instanceof RequestResponseOK) {
-            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
+            RequestResponseOK<LogbookOperation> requestResponseOK =
+                (RequestResponseOK<LogbookOperation>) requestResponse;
 
-            ArrayNode actual = (ArrayNode) requestResponseOK.getResults().get(0).get("events");
-            JsonNode last = Iterables.getLast(actual);
-            assertThat(last.get("outcome").textValue())
-                .as("last event has status %s, but %s was expected. Event name is: %s", last.get("outcome").textValue(),
-                    status, last.get("evType").textValue())
-                .isEqualTo(status);
+            LogbookOperation actual = requestResponseOK.getFirstResult();
+            LogbookEventOperation last = Iterables.getLast(actual.getEvents());
+            assertThat(last.getOutcome()).as("last event has status %s, but %s was expected. Event name is: %s",
+                last.getOutcome(), status, last.getEvType()).isEqualTo(status);
         } else {
             LOGGER.error(
                 String.format("logbook operation return a vitam error for operationId: %s", world.getOperationId()));
@@ -217,33 +216,32 @@ public class IngestStep {
      *
      * @param eventNames list of event
      * @param eventStatus status of event
-     * @throws LogbookClientException
+     * @throws VitamClientException
      * @throws InvalidParseOperationException
-     * @throws AccessUnauthorizedException
      */
     @Then("^le[s]? statut[s]? (?:de l'événement|des événements) (.*) (?:est|sont) (.*)$")
     public void the_status_are(List<String> eventNames, String eventStatus)
-        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
-        RequestResponse requestResponse =
+        throws VitamClientException, InvalidParseOperationException {
+        RequestResponse<LogbookOperation> requestResponse =
             world.getAccessClient().selectOperationbyId(world.getOperationId(), world.getTenantId(),
                 world.getContractId());
 
         if (requestResponse.isOk()) {
-            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
+            RequestResponseOK<LogbookOperation> requestResponseOK =
+                (RequestResponseOK<LogbookOperation>) requestResponse;
 
-            ArrayNode actual = (ArrayNode) requestResponseOK.getResults().get(0).get("events");
-            List<JsonNode> list = (List<JsonNode>) JsonHandler.toArrayList(actual);
+            List<LogbookEventOperation> actual = requestResponseOK.getFirstResult().getEvents();
             try (AutoCloseableSoftAssertions softly = new AutoCloseableSoftAssertions()) {
                 for (String eventName : eventNames) {
-                    List<JsonNode> events =
-                        list.stream().filter(event -> eventName.equals(event.get("evType").textValue()))
-                            .filter(event -> !event.get("outcome").textValue().equals("STARTED"))
+                    List<LogbookEventOperation> events =
+                        actual.stream().filter(event -> eventName.equals(event.getEvType()))
+                            .filter(event -> !"STARTED".equals(event.getOutcome()))
                             .collect(Collectors.toList());
 
                     softly.assertThat(events).as("event %s is not present or finish.", eventName).hasSize(1);
-                    JsonNode onlyElement = Iterables.getOnlyElement(events);
+                    LogbookEventOperation onlyElement = Iterables.getOnlyElement(events);
 
-                    String currentStatus = onlyElement.get("outcome").textValue();
+                    String currentStatus = onlyElement.getOutcome();
                     softly.assertThat(currentStatus)
                         .as("event %s has status %s but excepted status is %s.", eventName, currentStatus, eventStatus)
                         .isEqualTo(eventStatus);
@@ -263,32 +261,31 @@ public class IngestStep {
      *
      * @param eventName the event
      * @param eventResult otucome detail of the event
-     * @throws LogbookClientException
+     * @throws VitamClientException
      * @throws InvalidParseOperationException
-     * @throws AccessUnauthorizedException
      */
     @Then("^le résultat de l'événement (.*) est (.*)$")
     public void the_results_are(String eventName, String eventResults)
-        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
-        RequestResponse requestResponse =
+        throws VitamClientException, InvalidParseOperationException {
+        RequestResponse<LogbookOperation> requestResponse =
             world.getAccessClient().selectOperationbyId(world.getOperationId(), world.getTenantId(),
                 world.getContractId());
 
         if (requestResponse.isOk()) {
-            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
+            RequestResponseOK<LogbookOperation> requestResponseOK =
+                (RequestResponseOK<LogbookOperation>) requestResponse;
 
-            ArrayNode actual = (ArrayNode) requestResponseOK.getResults().get(0).get("events");
-            List<JsonNode> list = (List<JsonNode>) JsonHandler.toArrayList(actual);
+            List<LogbookEventOperation> actual = requestResponseOK.getFirstResult().getEvents();
             try (AutoCloseableSoftAssertions softly = new AutoCloseableSoftAssertions()) {
-                List<JsonNode> events =
-                    list.stream().filter(event -> eventName.equals(event.get("evType").textValue()))
-                        .filter(event -> !event.get("outcome").textValue().equals("STARTED"))
+                List<LogbookEventOperation> events =
+                    actual.stream().filter(event -> eventName.equals(event.getEvType()))
+                        .filter(event -> !"STARTED".equals(event.getOutcome()))
                         .collect(Collectors.toList());
 
                 softly.assertThat(events).as("event %s is not present or finish.", eventName).hasSize(1);
-                JsonNode onlyElement = Iterables.getOnlyElement(events);
+                LogbookEventOperation onlyElement = Iterables.getOnlyElement(events);
 
-                String currentResult = onlyElement.get("outDetail").textValue();
+                String currentResult = onlyElement.getOutDetail();
                 softly.assertThat(currentResult)
                     .as("event %s has outcome detail %s but excepted outcome detail is %s.", eventName, currentResult,
                         eventResults)

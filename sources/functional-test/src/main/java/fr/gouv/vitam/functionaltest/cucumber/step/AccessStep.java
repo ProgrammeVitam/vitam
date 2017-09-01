@@ -66,7 +66,6 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientExcept
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.FileUtil;
-import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
@@ -79,6 +78,8 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.functional.administration.client.model.ContextModel;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
@@ -116,7 +117,7 @@ public class AccessStep {
     private String query;
 
     private StatusCode statusCode;
-    
+
     private Status auditStatus;
 
     public AccessStep(World world) {
@@ -482,11 +483,12 @@ public class AccessStep {
     @When("^je recherche les journaux d'opération$")
     public void search_logbook_operation() throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(query);
-        RequestResponse<JsonNode> requestResponse =
+        RequestResponse<LogbookOperation> requestResponse =
             world.getAccessClient().selectOperation(queryJSON, world.getTenantId(), world.getContractId());
         if (requestResponse.isOk()) {
-            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
-            results = requestResponseOK.getResults();
+            RequestResponseOK<LogbookOperation> requestResponseOK =
+                (RequestResponseOK<LogbookOperation>) requestResponse;
+            results = requestResponseOK.getResultsAsJsonNodes();
         } else {
             VitamError vitamError = (VitamError) requestResponse;
             Fail.fail("request selectOperation return an error: " + vitamError.getCode());
@@ -575,11 +577,12 @@ public class AccessStep {
     @When("^je recherche le JCV de l'unité archivistique dont le titre est (.*)$")
     public void search_LFC_Unit_with_title(String title) throws Throwable {
         String unitId = replaceTitleByGUID(title);
-        RequestResponse<JsonNode> requestResponse =
+        RequestResponse<LogbookLifecycle> requestResponse =
             world.getAccessClient().selectUnitLifeCycleById(unitId, world.getTenantId(), world.getContractId());
         if (requestResponse.isOk()) {
-            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
-            results = requestResponseOK.getResults();
+            RequestResponseOK<LogbookLifecycle> requestResponseOK =
+                (RequestResponseOK<LogbookLifecycle>) requestResponse;
+            results = requestResponseOK.getResultsAsJsonNodes();
         } else {
             VitamError vitamError = (VitamError) requestResponse;
             Fail.fail("request findDocuments return an error: " + vitamError.getCode());
@@ -605,12 +608,13 @@ public class AccessStep {
                 VitamError vitamError = (VitamError) requestResponse;
                 Fail.fail("Unit does not have object");
             }
-            RequestResponse<JsonNode> requestResponseLFC =
+            RequestResponse<LogbookLifecycle> requestResponseLFC =
                 world.getAccessClient().selectObjectGroupLifeCycleById(
                     unit.get(PROJECTIONARGS.OBJECT.exactToken()).asText(), world.getTenantId(), world.getContractId());
             if (requestResponseLFC.isOk()) {
-                RequestResponseOK<JsonNode> requestResponseLFCOK = (RequestResponseOK<JsonNode>) requestResponseLFC;
-                results = requestResponseLFCOK.getResults();
+                RequestResponseOK<LogbookLifecycle> requestResponseLFCOK =
+                    (RequestResponseOK<LogbookLifecycle>) requestResponseLFC;
+                results = requestResponseLFCOK.getResultsAsJsonNodes();
             } else {
                 VitamError vitamError = (VitamError) requestResponse;
                 Fail.fail("request selectObjectGroupLifeCycleById return an error: " + vitamError.getCode());
@@ -706,27 +710,27 @@ public class AccessStep {
             world.getAdminClient().findDocuments(AdminCollections.ACCESS_CONTRACTS, queryDsl, world.getTenantId());
         return requestResponse.toJsonNode().findValue("_id").asText();
     }
-    
+
     @When("^je veux faire l'audit des objets du service producteur \"([^\"]*)\"$")
     public void je_lance_l_audit_en_service_producteur(String originatingAgnecy) throws Throwable {
         String QUERY = "{auditType:\"originatingAgency\",objectID:\"" + originatingAgnecy + "\"}";
         JsonNode auditOption = JsonHandler.getFromString(QUERY);
-        
+
         assertThat(world.getAdminClient().launchAudit(
             auditOption, world.getTenantId(), world.getContractId()).getStatusCode()).isEqualTo(202);
-        
+
         auditStatus = world.getAdminClient().launchAudit(auditOption, world.getTenantId(), world.getContractId());
     }
-    
+
     @When("^je veux faire l'audit des objets de tenant (\\d+)$")
     public void je_veux_faire_l_audit_des_objets_de_tenant(int tenant) throws Throwable {
         String QUERY = "{auditType:\"originatingAgency\",objectID:\"" + tenant + "\"}";
         JsonNode auditOption = JsonHandler.getFromString(QUERY);
-        
+
         assertThat(world.getAdminClient().launchAudit(
             auditOption, world.getTenantId(), world.getContractId()).getStatusCode()).isEqualTo(202);
     }
-    
+
     @Then("^le réultat de l'audit est succès$")
     public void le_réultat_de_l_audit_est_succès() throws Throwable {
         assertThat(auditStatus.getStatusCode()).isEqualTo(202);
