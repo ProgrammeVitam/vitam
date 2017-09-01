@@ -27,27 +27,30 @@
 
 package fr.gouv.vitam.processing.integration.test;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
@@ -61,6 +64,10 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
@@ -70,18 +77,22 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.AccessContractModel;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
 import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
@@ -93,19 +104,17 @@ import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
-import fr.gouv.vitam.processing.common.model.DistributorIndex;
-import fr.gouv.vitam.processing.common.model.PauseRecover;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
-import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
-import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
@@ -115,9 +124,9 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 
-public class PausedProcessingIT {
+public class ReplayProcessingIT {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PausedProcessingIT.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReplayProcessingIT.class);
 
     private final static String CLUSTER_NAME = "vitam-cluster";
     private static final Integer TENANT_ID = 0;
@@ -161,15 +170,15 @@ public class PausedProcessingIT {
     private static WorkerMain workerApplication;
     private static AdminManagementMain adminManagementApplication;
     private static LogbookMain logbookApplication;
-    private static ProcessManagementMain processManagementMain;
-    private static WorkspaceMain workspaceMain;
+    private static WorkspaceMain workspaceApplication;
+    private static ProcessManagementMain processManagementApplication;
 
     private static JunitHelper.ElasticsearchTestConfiguration configES;
     private static MongodExecutable mongodExecutable;
     private static MongodProcess mongod;
 
-    private static String SIP_FILE_OK_NAME = "integration-processing/OK_ARBO_complexe.zip";
-
+    private static String SIP_OK_REPLAY_1 = "integration-processing/OK_TEST_REPLAY_1.zip";
+    private static String SIP_OK_REPLAY_2 = "integration-processing/OK_TEST_REPLAY_2.zip";
     private WorkspaceClient workspaceClient;
     private ProcessingManagementClient processingClient;
 
@@ -213,8 +222,8 @@ public class PausedProcessingIT {
         // launch workspace
         SystemPropertyUtil.set(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_WORKSPACE));
-        workspaceMain = new WorkspaceMain(CONFIG_WORKSPACE_PATH);
-        workspaceMain.start();
+        workspaceApplication = new WorkspaceMain(CONFIG_WORKSPACE_PATH);
+        workspaceApplication.start();
         SystemPropertyUtil.clear(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT);
 
         WorkspaceClientFactory.changeMode(WORKSPACE_URL);
@@ -232,8 +241,8 @@ public class PausedProcessingIT {
         // launch processing
         SystemPropertyUtil.set(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_PROCESSING));
-        processManagementMain = new ProcessManagementMain(CONFIG_PROCESSING_PATH);
-        processManagementMain.start();
+        processManagementApplication = new ProcessManagementMain(CONFIG_PROCESSING_PATH);
+        processManagementApplication.start();
         SystemPropertyUtil.clear(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT);
 
         ProcessingManagementClientFactory.changeConfigurationUrl(PROCESSING_URL);
@@ -264,11 +273,11 @@ public class PausedProcessingIT {
         mongod.stop();
         mongodExecutable.stop();
         try {
-            workspaceMain.stop();
+            workspaceApplication.stop();
             adminManagementApplication.stop();
             workerApplication.stop();
             logbookApplication.stop();
-            processManagementMain.stop();
+            processManagementApplication.stop();
             metadataApplication.stop();
         } catch (final Exception e) {
             LOGGER.error(e);
@@ -326,7 +335,7 @@ public class PausedProcessingIT {
 
                 RequestResponseOK<ProfileModel> response =
                     (RequestResponseOK<ProfileModel>) client.findProfiles(new Select().getFinalSelect());
-                client.importProfileFile(response.getResults().get(0).getIdentifier(),
+                client.importProfileFile(response.getResults().get(0).getId(),
                     PropertiesUtils.getResourceAsStream("integration-processing/Profil20.rng"));
 
                 // import contract
@@ -334,6 +343,12 @@ public class PausedProcessingIT {
                     PropertiesUtils.getResourceFile("integration-processing/referential_contracts_ok.json");
                 List<IngestContractModel> IngestContractModelList = JsonHandler
                     .getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
+
+                // import contrat
+                File fileAccessContracts = PropertiesUtils.getResourceFile("access_contrats.json");
+                List<AccessContractModel> accessContractModelList = JsonHandler
+                    .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {});
+                client.importAccessContracts(accessContractModelList);
 
                 client.importIngestContracts(IngestContractModelList);
             } catch (final Exception e) {
@@ -355,183 +370,6 @@ public class PausedProcessingIT {
             operationId != null ? operationId.toString() : "outcomeDetailMessage",
             operationId);
         logbookClient.create(initParameters);
-    }
-
-    @RunWithCustomExecutor
-    @Test
-    public void testPausedAndPersistedWorkflow() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        tryImportFile();
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(TENANT_ID);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
-
-        // workspace client dezip SIP in workspace
-        final InputStream zipInputStreamSipObject =
-            PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
-        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-        workspaceClient.createContainer(containerName);
-        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-            zipInputStreamSipObject);
-
-        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName,
-            WORFKLOW_NAME);
-        // wait a little bit
-
-        RequestResponse<JsonNode> resp = processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-            LogbookTypeProcess.INGEST.toString(), ProcessAction.NEXT.getValue());
-        // wait a little bit
-        assertNotNull(resp);
-
-        assertEquals(Response.Status.ACCEPTED.getStatusCode(), resp.getStatus());
-
-        wait(containerName);
-        ProcessWorkflow processWorkflow =
-            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
-
-        assertNotNull(processWorkflow);
-        assertEquals(ProcessState.PAUSE, processWorkflow.getState());
-        assertEquals(StatusCode.OK, processWorkflow.getStatus());
-        // wait a little bit
-
-        // shutdown processing
-        processManagementMain.stop();
-        // wait a little bit
-        LOGGER.info("After STOP");
-        // restart processing
-        SystemPropertyUtil.set(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT,
-            Integer.toString(PORT_SERVICE_PROCESSING));
-        processManagementMain = new ProcessManagementMain(CONFIG_PROCESSING_PATH);
-        processManagementMain.start();
-        SystemPropertyUtil.clear(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT);
-
-        // wait a little bit until jetty start
-
-        waitServerStart();
-
-        LOGGER.info("After RE-START");
-
-        // Next on the old paused ans persisted workflow
-        RequestResponse<ItemStatus> ret =
-            processingClient.updateOperationActionProcess(ProcessAction.NEXT.getValue(),
-                containerName);
-        assertNotNull(ret);
-
-        assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
-
-        wait(containerName);
-        processWorkflow =
-            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
-
-        assertNotNull(processWorkflow);
-        assertEquals(ProcessState.PAUSE, processWorkflow.getState());
-        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
-
-
-        ret = processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(),
-            containerName);
-        assertNotNull(ret);
-
-        assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
-
-        wait(containerName);
-        processWorkflow =
-            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
-
-        assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
-    }
-
-
-
-    /**
-     * This test is ignored because it use a complete ingest sip
-     *
-     * @throws Exception
-     * @see ProperlyStopStartProcessingIT that use a mocked worker and lite ingestLevelStack.json While running stop the
-     *      server processing, this should stop properly the running process Then start the server, this should start
-     *      the stopped process and run it unitl process complete
-     */
-    @Ignore
-    @RunWithCustomExecutor
-    @Test
-    public void testProperlyStopStartProcessing() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        tryImportFile();
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(TENANT_ID);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
-
-        // workspace client dezip SIP in workspace
-        final InputStream zipInputStreamSipObject =
-            PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
-        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-        workspaceClient.createContainer(containerName);
-        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-            zipInputStreamSipObject);
-
-        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName,
-            WORFKLOW_NAME);
-        // wait a little bit
-
-        ProcessWorkflow processWorkflow =
-            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
-
-        RequestResponse<JsonNode> resp = processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-            LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
-        // wait a little bit
-        assertNotNull(resp);
-        assertEquals(Response.Status.ACCEPTED.getStatusCode(), resp.getStatus());
-
-
-        waitStep(processWorkflow, 5);
-
-        // shutdown processing
-        processManagementMain.stop();
-
-        // wait a little bit
-        LOGGER.info("After STOP");
-
-        assertEquals(ProcessState.PAUSE, processWorkflow.getState());
-        assertTrue(PauseRecover.RECOVER_FROM_SERVER_PAUSE.equals(processWorkflow.getPauseRecover()));
-
-        DistributorIndex distributorIndex =
-            WorkspaceProcessDataManagement.getInstance()
-                .getDistributorIndex(ProcessDistributor.DISTRIBUTOR_INDEX, containerName);
-
-        assertThat(distributorIndex).isNotNull();
-        assertThat(distributorIndex.getItemStatus()).isNotNull();
-        assertThat(distributorIndex.getItemStatus().getItemsStatus()).isNotEmpty();
-        // restart processing
-        SystemPropertyUtil.set(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT,
-            Integer.toString(PORT_SERVICE_PROCESSING));
-        processManagementMain = new ProcessManagementMain(CONFIG_PROCESSING_PATH);
-        processManagementMain.start();
-        SystemPropertyUtil.clear(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT);
-
-        // wait a little bit until jetty start
-
-        waitServerStart();
-
-        LOGGER.info("After RE-START");
-
-
-        wait(containerName);
-
-
-        processWorkflow =
-            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
-        assertThat(processWorkflow).isNotNull();
-        assertThat(processWorkflow.getPauseRecover()).isEqualTo(PauseRecover.NO_RECOVER);
-        assertThat(processWorkflow.getState()).isEqualTo(ProcessState.COMPLETED);
-        assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.WARNING);
     }
 
     private void waitServerStart() {
@@ -564,5 +402,276 @@ public class PausedProcessingIT {
             return false;
         }
     }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testPauseAndReplayStepInAWorkflow() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        tryImportFile();
+        VitamThreadUtils.getVitamSession().setContractId("aName4");
+        String containerNameNoReplay = launchIngest(false);
+        String containerNameReplay = launchIngest(true);
+
+        LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
+        JsonNode logbookResultReplay = logbookClient.selectOperationById(containerNameReplay, null);
+        JsonNode logbookResultNoReplay = logbookClient.selectOperationById(containerNameNoReplay, null);
+        validateLogbookOperations(logbookResultReplay.get("$results").get(0),
+            logbookResultNoReplay.get("$results").get(0));
+
+        LogbookLifeCyclesClient lifecycleClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
+        final Select selectReplay = new Select();
+        selectReplay.setQuery(QueryHelper.eq("evIdProc", containerNameReplay));
+        RequestResponseOK requestResponseOKReplay =
+            RequestResponseOK.getFromJsonNode(lifecycleClient.selectUnitLifeCycle(selectReplay.getFinalSelect()));
+
+        final Select selectNoReplay = new Select();
+        selectNoReplay.setQuery(QueryHelper.eq("evIdProc", containerNameNoReplay));
+        RequestResponseOK requestResponseOKNoReplay =
+            RequestResponseOK.getFromJsonNode(lifecycleClient.selectUnitLifeCycle(selectNoReplay.getFinalSelect()));
+        validateLogbookLifecycles(requestResponseOKReplay.getResults(), requestResponseOKNoReplay.getResults(),
+            "Units");
+
+
+        final Select selectObjReplay = new Select();
+        selectObjReplay.setQuery(QueryHelper.eq("evIdProc", containerNameReplay));
+        RequestResponseOK requestObjResponseOKReplay =
+            RequestResponseOK
+                .getFromJsonNode(lifecycleClient.selectObjectGroupLifeCycle(selectObjReplay.getFinalSelect()));
+        final Select selectObjNoReplay = new Select();
+        selectObjNoReplay.setQuery(QueryHelper.eq("evIdProc", containerNameNoReplay));
+        RequestResponseOK requestObjResponseOKNoReplay =
+            RequestResponseOK
+                .getFromJsonNode(lifecycleClient.selectObjectGroupLifeCycle(selectObjNoReplay.getFinalSelect()));
+
+        validateLogbookLifecycles(requestObjResponseOKReplay.getResults(), requestObjResponseOKNoReplay.getResults(),
+            "Objects");
+
+        validateUnitsGoTs(containerNameReplay, containerNameNoReplay);
+
+        validateAccessRegInDetail();
+
+    }
+
+    private void validateAccessRegInDetail() throws Exception {
+        try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient();) {
+            Select select = new Select();
+            final BooleanQuery query = and();
+            query.add(exists("OriginatingAgency"));
+            select.setQuery(query);
+            RequestResponse<AccessionRegisterDetailModel> responseNoReplay =
+                adminClient.getAccessionRegisterDetail("TestReplayOriginAgency1", select.getFinalSelect());
+            RequestResponse<AccessionRegisterDetailModel> responseReplay =
+                adminClient.getAccessionRegisterDetail("TestReplayOriginAgency2", select.getFinalSelect());
+
+            if (responseNoReplay.isOk() && responseReplay.isOk()) {
+                RequestResponseOK<AccessionRegisterDetailModel> responseReplayOK =
+                    (RequestResponseOK<AccessionRegisterDetailModel>) responseReplay;
+                RequestResponseOK<AccessionRegisterDetailModel> responseNoReplayOK =
+                    (RequestResponseOK<AccessionRegisterDetailModel>) responseNoReplay;
+
+                assertEquals(responseReplayOK.getResults().size(), responseNoReplayOK.getResults().size());
+            }
+
+        }
+    }
+
+    private void validateUnitsGoTs(String containerNameReplay, String containerNameNoReplay) throws Exception {
+        try (final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();) {
+            // First thing first - units
+            SelectMultiQuery selectReplay = new SelectMultiQuery();
+            selectReplay.addQueries(QueryHelper.in(VitamFieldsHelper.operations(), containerNameReplay));
+            selectReplay.addOrderByDescFilter("Title");
+            ArrayNode resultUnitsReplay =
+                (ArrayNode) metadataClient.selectUnits(selectReplay.getFinalSelect()).get("$results");
+
+            SelectMultiQuery selectNoReplay = new SelectMultiQuery();
+            selectNoReplay.addQueries(QueryHelper.in(VitamFieldsHelper.operations(), containerNameNoReplay));
+            selectNoReplay.addOrderByDescFilter("Title");
+            ArrayNode resultUnitsNoReplay =
+                (ArrayNode) metadataClient.selectUnits(selectNoReplay.getFinalSelect()).get("$results");
+
+            assertEquals(resultUnitsReplay.size(), resultUnitsNoReplay.size());
+            assertEquals(resultUnitsReplay.get(0).get("Title").asText(),
+                resultUnitsNoReplay.get(0).get("Title").asText());
+
+            // And now - GoT
+            SelectMultiQuery selectObjReplay = new SelectMultiQuery();
+            selectObjReplay.addQueries(QueryHelper.in(VitamFieldsHelper.operations(), containerNameReplay));
+            ArrayNode resultObjReplay =
+                (ArrayNode) metadataClient.selectObjectGroups(selectObjReplay.getFinalSelect()).get("$results");
+
+            SelectMultiQuery selectObjNoReplay = new SelectMultiQuery();
+            selectObjNoReplay.addQueries(QueryHelper.in(VitamFieldsHelper.operations(), containerNameNoReplay));
+            ArrayNode resultObjectsNoReplay =
+                (ArrayNode) metadataClient.selectObjectGroups(selectObjNoReplay.getFinalSelect()).get("$results");
+
+            assertEquals(resultObjReplay.size(), resultObjectsNoReplay.size());
+        }
+    }
+
+
+    private void validateLogbookLifecycles(List<JsonNode> logbookResultReplay, List<JsonNode> logbookResultNoReplay,
+        String type) {
+        assertEquals(logbookResultReplay.size(), logbookResultNoReplay.size());
+        // maybe later, it could be improved
+    }
+
+    private void validateLogbookOperations(JsonNode logbookResultReplay, JsonNode logbookResultNoReplay)
+        throws Exception {
+
+        JsonNode evDetDataReplay = JsonHandler.getFromString(logbookResultReplay.get("evDetData").asText());
+        JsonNode evDetDataNotReplay = JsonHandler.getFromString(logbookResultNoReplay.get("evDetData").asText());
+        assertEquals(evDetDataReplay.get("EvDetailReq").asText(),
+            evDetDataNotReplay.get("EvDetailReq").asText());
+        Map<String, Integer> listStepsToCheck = new HashMap<>();
+
+
+        ArrayNode eventsNoReplay = (ArrayNode) logbookResultNoReplay.get("events");
+        for (JsonNode event : eventsNoReplay) {
+            if ("OK".equals(event.get("outcome").asText())) {
+                String evType = event.get("evType").asText();
+                if (listStepsToCheck.containsKey(evType)) {
+                    listStepsToCheck.put(evType, listStepsToCheck.get(evType) + 1);
+                } else {
+                    listStepsToCheck.put(evType, 1);
+                }
+            }
+        }
+        Map<String, Integer> listStepsExecutedReplay = new HashMap<>();
+        ArrayNode eventsReplay = (ArrayNode) logbookResultReplay.get("events");
+        for (JsonNode event : eventsReplay) {
+            if ("OK".equals(event.get("outcome").asText()) ||
+                "ALREADY_EXECUTED".equals(event.get("outcome").asText())) {
+                String evType = event.get("evType").asText();
+                if (listStepsExecutedReplay.containsKey(evType)) {
+                    listStepsExecutedReplay.put(evType, listStepsExecutedReplay.get(evType) + 1);
+                } else {
+                    listStepsExecutedReplay.put(evType, 1);
+                }
+            }
+        }
+        listStepsExecutedReplay.forEach((k, v) -> {
+            if ("ATR_NOTIFICATION".equals(k) || "ROLL_BACK".equals(k) || "PROCESS_SIP_UNITARY".equals(k) ||
+                "STP_INGEST_FINALISATION".equals(k)) {
+                assertEquals((int) listStepsToCheck.get(k), (int) v);
+            } else {
+                assertEquals(2 * (int) listStepsToCheck.get(k), (int) v);
+            }
+        });
+    }
+
+    private String launchIngest(boolean replayModeActivated) throws Exception {
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        final GUID objectGuid = GUIDFactory.newManifestGUID(TENANT_ID);
+        final String containerName = objectGuid.getId();
+        createLogbookOperation(operationGuid, objectGuid);
+
+        // workspace client dezip SIP in workspace
+        InputStream zipInputStreamSipObject = null;
+        if (replayModeActivated) {
+            zipInputStreamSipObject =
+                PropertiesUtils.getResourceAsStream(SIP_OK_REPLAY_2);
+        } else {
+            zipInputStreamSipObject =
+                PropertiesUtils.getResourceAsStream(SIP_OK_REPLAY_1);
+        }
+
+        //
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        workspaceClient.createContainer(containerName);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
+            zipInputStreamSipObject);
+
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
+        if (replayModeActivated) {
+            // wait a little bit
+            ProcessWorkflow processWorkflow = null;
+            String currentStep = null;
+            boolean executedOnce = false;
+            while (true) {
+                if (!executedOnce) {
+                    // First launch of the step
+                    RequestResponse<JsonNode> resp =
+                        processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
+                            LogbookTypeProcess.INGEST.toString(), ProcessAction.NEXT.getValue());
+                    // wait a little bit
+                    assertNotNull(resp);
+                    assertEquals(Response.Status.ACCEPTED.getStatusCode(), resp.getStatus());
+                    wait(containerName);
+
+                    ProcessQuery query = new ProcessQuery();
+                    query.setId(containerName);
+                    RequestResponseOK<ProcessDetail> response =
+                        (RequestResponseOK<ProcessDetail>) processingClient.listOperationsDetails(query);
+                    ProcessDetail currentProcess = response.getResults().get(0);
+                    currentStep = currentProcess.getPreviousStep();
+
+                    processWorkflow =
+                        ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
+                    assertNotNull(processWorkflow);
+                    assertEquals(ProcessState.PAUSE, processWorkflow.getState());
+                    // assertEquals(StatusCode.OK, processWorkflow.getStatus());
+
+                    System.out.println("Launch step : " + currentStep);
+                    executedOnce = true;
+
+                } else {
+                    // LETS REPLAY THE SAME STEP AGAIN
+                    RequestResponse<ItemStatus> ret =
+                        processingClient.updateOperationActionProcess(ProcessAction.REPLAY.getValue(),
+                            containerName);
+                    assertNotNull(ret);
+                    assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
+                    wait(containerName);
+
+                    ProcessQuery query = new ProcessQuery();
+                    query.setId(containerName);
+                    RequestResponseOK<ProcessDetail> response =
+                        (RequestResponseOK<ProcessDetail>) processingClient.listOperationsDetails(query);
+                    ProcessDetail currentProcess = response.getResults().get(0);
+                    currentStep = currentProcess.getPreviousStep();
+
+                    processWorkflow =
+                        ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
+                    assertNotNull(processWorkflow);
+                    assertEquals(ProcessState.PAUSE, processWorkflow.getState());
+                    // assertEquals(StatusCode.OK, processWorkflow.getStatus());
+                    executedOnce = false;
+                }
+                if ("STP_ACCESSION_REGISTRATION".equals(currentStep) && !executedOnce) {
+                    break;
+                }
+            }
+            RequestResponse<ItemStatus> ret =
+                processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(),
+                    containerName);
+            assertNotNull(ret);
+            assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
+            wait(containerName);
+            processWorkflow =
+                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.OK, processWorkflow.getStatus());
+
+        } else {
+            final RequestResponse<JsonNode> ret =
+                processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
+                    Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            assertNotNull(ret);
+            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+            wait(containerName);
+            ProcessWorkflow processWorkflow =
+                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.OK, processWorkflow.getStatus());
+        }
+        return containerName;
+    }
+
 
 }

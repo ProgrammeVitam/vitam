@@ -85,9 +85,24 @@ public interface WorkerParameters extends VitamParameter<WorkerParameterName> {
      *
      * @param currentStep the current step value
      * @return the current instance of WorkerParameters
-     * @throws IllegalArgumentException if the currentStep is null or empty
      */
     WorkerParameters setCurrentStep(String currentStep);
+    
+    /**
+     * Get the previous step parameter
+     *
+     * @return the previous step value
+     */
+    String getPreviousStep();
+
+    /**
+     * Set the previous step value
+     *
+     * @param previousStep the current step value
+     * @return the current instance of WorkerParameters
+     * @throws IllegalArgumentException if the previousStep is null or empty
+     */
+    WorkerParameters setPreviousStep(String previousStep);
 
     /**
      * Get container name parameter

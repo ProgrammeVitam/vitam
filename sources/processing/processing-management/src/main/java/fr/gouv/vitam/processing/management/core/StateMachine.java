@@ -1,28 +1,19 @@
 /*
- *  Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- *  <p>
- *  contact.vitam@culture.gouv.fr
- *  <p>
- *  This software is a computer program whose purpose is to implement a digital archiving back-office system managing
- *  high volumetry securely and efficiently.
- *  <p>
- *  This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
- *  software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- *  circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- *  <p>
- *  As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
- *  users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
- *  successive licensors have only limited liability.
- *  <p>
- *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
- *  developing or reproducing the software by the user in light of its specific status of free software, that may mean
- *  that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
- *  experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
- *  software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
- *  to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- *  <p>
- *  The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
- *  accept its terms.
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019) <p> contact.vitam@culture.gouv.fr <p>
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently. <p> This software is governed by the CeCILL 2.1 license under French law and
+ * abiding by the rules of distribution of free software. You can use, modify and/ or redistribute the software under
+ * the terms of the CeCILL 2.1 license as circulated by CEA, CNRS and INRIA at the following URL
+ * "http://www.cecill.info". <p> As a counterpart to the access to the source code and rights to copy, modify and
+ * redistribute granted by the license, users are provided only with a limited warranty and the software's author, the
+ * holder of the economic rights, and the successive licensors have only limited liability. <p> In this respect, the
+ * user's attention is drawn to the risks associated with loading, using, modifying and/or developing or reproducing the
+ * software by the user in light of its specific status of free software, that may mean that it is complicated to
+ * manipulate, and that also therefore means that it is reserved for developers and experienced professionals having
+ * in-depth computer knowledge. Users are therefore encouraged to load and test the software's suitability as regards
+ * their requirements in conditions enabling the security of their systems and/or data to be ensured and, more
+ * generally, to use and operate it in the same conditions as regards security. <p> The fact that you are presently
+ * reading this means that you have had knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
 
 package fr.gouv.vitam.processing.management.core;
@@ -76,7 +67,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
- * T
+ * State Machine class implementing the Interface. Dealing with evolution of workflows
  */
 public class StateMachine implements IEventsState, IEventsProcessEngine {
 
@@ -132,20 +123,20 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
     }
 
     /**
-     * This is important after a safe restart of the server
-     * In case of the process workflow is stepBystep mode we continue from the last not yet treated step
+     * This is important after a safe restart of the server In case of the process workflow is stepBystep mode we
+     * continue from the last not yet treated step
      */
     private void initStepIndex() {
         final Iterator<ProcessStep> it = processWorkflow.getSteps().iterator();
         while (it.hasNext()) {
             final ProcessStep step = it.next();
-            if (!PauseRecover.NO_RECOVER.equals(processWorkflow.getPauseRecover())
-                && step.getPauseOrCancelAction().equals(PauseOrCancelAction.ACTION_PAUSE)) {
+            if (!PauseRecover.NO_RECOVER.equals(processWorkflow.getPauseRecover()) &&
+                step.getPauseOrCancelAction().equals(PauseOrCancelAction.ACTION_PAUSE)) {
                 step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_RECOVER);
 
                 break;
-            } else if (!StatusCode.UNKNOWN.equals(step.getStepStatusCode())
-                && !ProcessBehavior.FINALLY.equals(step.getBehavior())) {
+            } else if (!StatusCode.UNKNOWN.equals(step.getStepStatusCode()) &&
+                !ProcessBehavior.FINALLY.equals(step.getBehavior())) {
                 stepIndex++;
             } else {
                 break;
@@ -184,6 +175,14 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
     }
 
     @Override
+    synchronized public void replay(WorkerParameters workerParameters)
+        throws StateNotAllowedException, ProcessingException {
+        this.state.eval(ProcessState.RUNNING);
+        this.doReplay(workerParameters, ProcessState.PAUSE);
+
+    }
+
+    @Override
     synchronized public void pause()
         throws StateNotAllowedException {
         this.state.eval(ProcessState.PAUSE);
@@ -212,7 +211,8 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         return processWorkflow.getTenantId();
     }
 
-    @Override public String getWorkflowId() {
+    @Override
+    public String getWorkflowId() {
         return processWorkflow.getWorkflowId();
     }
 
@@ -227,11 +227,10 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
     }
 
     /**
-     * Change state of the process to pause
-     * Can be called only from running state
-     * If last step then change state to completed
+     * Change state of the process to pause Can be called only from running state If last step then change state to
+     * completed
      *
-     * @param wait     if true wait until process is completed or until pauseCancelAction is ACTION_PAUSE or ACTION_CANCEL
+     * @param wait if true wait until process is completed or until pauseCancelAction is ACTION_PAUSE or ACTION_CANCEL
      * @param nbTry
      * @param timeWait
      * @param timeUnit
@@ -249,10 +248,10 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             targetState = ProcessState.PAUSE;
 
             /**
-             * As pause can occurs when step is in processEngine, but not yet in the distributor
-             * Wait max 1 second to be sur that step is in tje distributor
-             * If pause is not applied after 1 second, then return without calling waitMonitor.get bellow
-             * Else if pause applied then wait until distributor responds using waitMonitor.get bellow
+             * As pause can occurs when step is in processEngine, but not yet in the distributor Wait max 1 second to be
+             * sur that step is in tje distributor If pause is not applied after 1 second, then return without calling
+             * waitMonitor.get bellow Else if pause applied then wait until distributor responds using waitMonitor.get
+             * bellow
              */
             int retry = 100;
             boolean pausedApplied = this.processEngine.pause(operationId);
@@ -276,9 +275,8 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             }
 
             /**
-             * We can just stop here (updating the current step)
-             * and the information will be passed in reference to the worker task
-             * currentStep.setPauseOrCancelAction(PauseOrCancelAction.ACTION_PAUSE);
+             * We can just stop here (updating the current step) and the information will be passed in reference to the
+             * worker task currentStep.setPauseOrCancelAction(PauseOrCancelAction.ACTION_PAUSE);
              */
 
             processWorkflow.setPauseRecover(pauseRecover);
@@ -322,9 +320,8 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
     }
 
     /**
-     * Change the state of the process to completed
-     * Can be called only from running or pause state
-     * If running state, the next step will be completed
+     * Change the state of the process to completed Can be called only from running or pause state If running state, the
+     * next step will be completed
      *
      * @throws StateNotAllowedException
      */
@@ -334,9 +331,8 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             if (!isLastStep()) {
                 this.processEngine.cancel(operationId);
                 /**
-                 * We can just stop here (updating the current step)
-                 * and the information will be passed in reference to the worker task
-                 * currentStep.setPauseOrCancelAction(PauseOrCancelAction.ACTION_CANCEL);
+                 * We can just stop here (updating the current step) and the information will be passed in reference to
+                 * the worker task currentStep.setPauseOrCancelAction(PauseOrCancelAction.ACTION_CANCEL);
                  */
             }
         } else if (isPause()) {
@@ -353,11 +349,10 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
     }
 
     /**
-     * Change state of the process to running
-     * Can be called only from pause state
+     * Change state of the process to running Can be called only from pause state
      *
      * @param workerParameters the parameters to be passed to the distributor
-     * @param targetState      if true, run ony the next step
+     * @param targetState if true, run ony the next step
      * @throws StateNotAllowedException
      */
     protected void doRunning(WorkerParameters workerParameters, ProcessState targetState)
@@ -373,42 +368,66 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         this.targetState = targetState;
         stepByStep = ProcessState.PAUSE.equals(targetState);
 
-        executeSteps(workerParameters, processWorkflow.getPauseRecover());
+        executeSteps(workerParameters, processWorkflow.getPauseRecover(), false);
     }
 
     /**
-     * Execute steps of the workflow and manage index of the current step
-     * Call engine to execute the current step
+     * Change state of the process to running Can be called only from pause state
+     *
+     * @param workerParameters the parameters to be passed to the distributor
+     * @param targetState if true, run ony the next step
+     * @throws StateNotAllowedException
+     */
+    protected void doReplay(WorkerParameters workerParameters, ProcessState targetState)
+        throws ProcessingException {
+        if (null == targetState)
+            throw new ProcessingException("The targetState is required");
+        // Double check
+        if (isRunning()) {
+            throw new ProcessingException("doRunning not allowed on already running state");
+        }
+
+        this.state = ProcessState.RUNNING;
+        this.targetState = targetState;
+        stepByStep = ProcessState.PAUSE.equals(targetState);
+
+        // here, we need to add something in order to tell that we want the current step to be re executed
+        executeSteps(workerParameters, processWorkflow.getPauseRecover(), true);
+    }
+
+    /**
+     * Execute steps of the workflow and manage index of the current step Call engine to execute the current step
      *
      * @param workerParameters
      */
-    protected void executeSteps(WorkerParameters workerParameters, PauseRecover pauseRecover)
+    protected void executeSteps(WorkerParameters workerParameters, PauseRecover pauseRecover, boolean backwards)
         throws ProcessingException {
-
+        if (backwards) {
+            stepIndex--;
+            currentStep.setPauseOrCancelAction(PauseOrCancelAction.ACTION_REPLAY);
+        }
         /**
-         * This is required when pause action origin is API, we have to
-         * We have to check if we passe to the next step or continue with the current step
-         * Be careful, when server starts, the currentStep is already initialized in initIndex
-         * With stepIndex +1 without increment stepIndex
+         * This is required when pause action origin is API, we have to We have to check if we passe to the next step or
+         * continue with the current step Be careful, when server starts, the currentStep is already initialized in
+         * initIndex With stepIndex +1 without increment stepIndex
          */
         if (PauseRecover.RECOVER_FROM_API_PAUSE.equals(pauseRecover)) {
 
             /**
-             * currentStep.getPauseOrCancelAction().equals(PauseOrCancelAction.ACTION_PAUSE))
-             * This situation occurs when pause the processWorkflow without restart server
-             * In this case, the initIndex is not used to update pauseCancelAction
+             * currentStep.getPauseOrCancelAction().equals(PauseOrCancelAction.ACTION_PAUSE)) This situation occurs when
+             * pause the processWorkflow without restart server In this case, the initIndex is not used to update
+             * pauseCancelAction
              */
             if (currentStep.getPauseOrCancelAction().equals(PauseOrCancelAction.ACTION_PAUSE)) {
                 currentStep.setPauseOrCancelAction(PauseOrCancelAction.ACTION_RECOVER);
 
             } else {
                 /**
-                 * As the restart of the server can occurs with processWorkflow in pause mode
-                 * After start of the server the current step in PauseOrCancelAction.ACTION_PAUSE
-                 * is already initiated in the constructor and updated to be PauseOrCancelAction.ACTION_RECOVER
-                 * In this case, we have not to passe to the next step, but continue with the current step
-                 * As the currentStep in the constructor is initialized with stepIndex + 1 without increment stepIndex
-                 * So increment of stepIndex is required
+                 * As the restart of the server can occurs with processWorkflow in pause mode After start of the server
+                 * the current step in PauseOrCancelAction.ACTION_PAUSE is already initiated in the constructor and
+                 * updated to be PauseOrCancelAction.ACTION_RECOVER In this case, we have not to passe to the next step,
+                 * but continue with the current step As the currentStep in the constructor is initialized with
+                 * stepIndex + 1 without increment stepIndex So increment of stepIndex is required
                  *
                  * In fact, currentStep = steps.get(stepIndex); bellow will have the correct current step
                  *
@@ -461,6 +480,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             engineParams.put(SedaConstants.TAG_MESSAGE_IDENTIFIER, messageIdentifier);
             engineParams.put(SedaConstants.TAG_ORIGINATINGAGENCY, prodService);
             try {
+                workerParameters.setPreviousStep(backwards ? currentStep.getStepName() : null);
                 this.processEngine.start(currentStep, workerParameters, engineParams, pauseRecover);
             } catch (ProcessingEngineException e) {
                 LOGGER.error("ProcessEngine error ", e);
@@ -475,9 +495,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
     }
 
     /**
-     * Execute the finally step of the workflow
-     * Update global status of the workflow
-     * Persist the process workflow
+     * Execute the finally step of the workflow Update global status of the workflow Persist the process workflow
      *
      * @param workerParameters
      */
@@ -601,7 +619,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
                 } else {
                     targetState = ProcessState.RUNNING;
                     try {
-                        this.executeSteps(workerParameters, PauseRecover.NO_RECOVER);
+                        this.executeSteps(workerParameters, PauseRecover.NO_RECOVER, false);
                     } catch (ProcessingException e) {
                         LOGGER.error("ProcessEngine error > ", e);
                     }
@@ -686,8 +704,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             // Retry after 5 second
             try {
                 Thread.sleep(5000);
-            } catch (InterruptedException e1) {
-            }
+            } catch (InterruptedException e1) {}
             try {
                 dataManagement.persistProcessWorkflow(String.valueOf(ServerIdentity.getInstance().getServerId()),
                     operationId, processWorkflow);
@@ -700,8 +717,8 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
     }
 
     /**
-     * Create the final logbook entry for the corresponding process workflow
-     * This entry was created in ingest internal and as the process is full async we moved it to here
+     * Create the final logbook entry for the corresponding process workflow This entry was created in ingest internal
+     * and as the process is full async we moved it to here
      */
     protected void finalizeLogbook(WorkerParameters workParams) {
 
@@ -717,8 +734,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             // Retry after 5 second
             try {
                 Thread.sleep(5000);
-            } catch (InterruptedException e1) {
-            }
+            } catch (InterruptedException e1) {}
 
             try {
                 final GUID operationGuid = GUIDReader.getGUID(operationId);
@@ -779,4 +795,6 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             messageLogbookEngineHelper.getOutcomeDetail(eventType, statusCode));
         client.update(parameters);
     }
+
+
 }

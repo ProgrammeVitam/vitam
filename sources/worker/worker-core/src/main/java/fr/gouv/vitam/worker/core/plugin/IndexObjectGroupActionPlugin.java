@@ -33,15 +33,16 @@ import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
+import fr.gouv.vitam.processing.common.exception.StepAlreadyExecutedException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
@@ -74,6 +75,9 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
             checkMandatoryIOParameter(actionDefinition);
             indexObjectGroup(params, itemStatus);
 
+        } catch (final StepAlreadyExecutedException e) {
+            LOGGER.warn(e);
+            itemStatus.increment(StatusCode.ALREADY_EXECUTED);
         } catch (final ProcessingInternalServerException exc) {
             LOGGER.error(exc);
             itemStatus.increment(StatusCode.FATAL);
@@ -107,6 +111,8 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
             final InsertMultiQuery insertRequest = new InsertMultiQuery().addData(json);
             metadataClient.insertObjectGroup(insertRequest.getFinalInsert());
             itemStatus.increment(StatusCode.OK);
+        } catch (final MetaDataAlreadyExistException e) {
+            throw new StepAlreadyExecutedException("Object "+ objectName +" already processed", e);
         } catch (final MetaDataException e) {
             throw new ProcessingInternalServerException("Metadata Server Error", e);
         } catch (final InvalidParseOperationException e) {

@@ -39,6 +39,11 @@ public enum PauseOrCancelAction {
      * When the step was ACTION_PAUSE, after restart the step will be marked as ACTION_RECOVER
      */
     ACTION_RECOVER,
+    
+    /**
+     * When the replay occurs, the current step will be marked as ACTION_REPLAY, so it could be replayed
+     */
+    ACTION_REPLAY,
 
     /**
      * When the pause occurs, the current step will be marked as ACTION_PAUSE

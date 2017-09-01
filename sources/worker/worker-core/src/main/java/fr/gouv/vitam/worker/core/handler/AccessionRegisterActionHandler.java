@@ -40,6 +40,9 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
 import fr.gouv.vitam.common.SedaConstants;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -47,9 +50,13 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
+import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.server.HeaderIdHelper;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
@@ -58,6 +65,7 @@ import fr.gouv.vitam.functional.administration.common.AccessionRegisterStatus;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
@@ -80,9 +88,6 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
     private final List<Class<?>> handlerInitialIOList = new ArrayList<>();
 
     private static final int HANDLER_IO_PARAMETER_NUMBER = 4;
-    private static final int ARCHIVE_UNIT_MAP_RANK = 0;
-    private static final int OBJECTGOUP_MAP_RANK = 1;
-    private static final int DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP_RANK = 2;
     private static final int SEDA_PARAMETERS_RANK = 3;
 
     private MetaDataClientFactory metaDataClientFactory;
@@ -111,7 +116,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters params, HandlerIO handler) throws ProcessingException{
+    public ItemStatus execute(WorkerParameters params, HandlerIO handler) throws ProcessingException {
         checkMandatoryParameters(params);
         LOGGER.debug("TransferNotificationActionHandler running ...");
 
@@ -120,13 +125,14 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
         handlerIO = handler;
 
         int tenantId = HeaderIdHelper.getTenantId();
-        try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
+        try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient();
+            MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
+
+
             checkMandatoryIOParameter(handler);
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Params: " + params);
             }
-
-            MetaDataClient metaDataClient = metaDataClientFactory.getClient();
 
             // operation id
             String operationId = params.getContainerName();
@@ -148,11 +154,36 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
             for (UnitPerOriginatingAgency agency : agencies) {
                 final AccessionRegisterDetailModel register = generateAccessionRegister(params,
                     objectGroupPerOriginatingAgencyImmutableMap
-                        .getOrDefault(agency.getId(), new ObjectGroupPerOriginatingAgency()), agency, tenantId);
+                        .getOrDefault(agency.getId(), new ObjectGroupPerOriginatingAgency()),
+                    agency, tenantId);
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("register ID / Originating Agency: " + register.getId() + " / "
-                        + register.getOriginatingAgency());
+                    LOGGER.debug("register ID / Originating Agency: " + register.getId() + " / " +
+                        register.getOriginatingAgency());
                 }
+
+                VitamThreadUtils.getVitamSession().setContractId(VitamConstants.EVERY_ORIGINATING_AGENCY);
+                Select select = new Select();
+                try {
+                    select
+                        .setQuery(QueryHelper.and().add(QueryHelper.in("OperationIds", operationId)));
+
+                    RequestResponse<AccessionRegisterDetailModel> response =
+                        adminClient.getAccessionRegisterDetail(agency.getId(), select.getFinalSelect());
+                    if (response.isOk()) {
+                        RequestResponseOK<AccessionRegisterDetailModel> responseOK =
+                            (RequestResponseOK<AccessionRegisterDetailModel>) response;
+                        if (responseOK.getResults().size() > 0) {
+                            LOGGER.warn(
+                                "Step already executed, this is a replayed step for this operation : " + operationId);
+                            itemStatus.increment(StatusCode.ALREADY_EXECUTED);
+                            return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+                        }
+                    }
+                } catch (InvalidCreateOperationException | InvalidParseOperationException | ReferentialException e) {
+                    LOGGER.warn("Couldnt check accession register for this operation : " + operationId +
+                        ". Lets continue anyways.");
+                }
+
                 adminClient.createorUpdateAccessionRegister(register);
             }
 
@@ -227,8 +258,8 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
             // TODO P0 get size manifest.xml in local
             // TODO P0 extract this information from first parsing
             return mapParamsToAccessionRegisterDetailModel(params,
-                    originalAgency, submissionAgency, archivalAgreement, agency,
-                    objectGroupPerOriginatingAgency, tenantId, symbolic);
+                originalAgency, submissionAgency, archivalAgreement, agency,
+                objectGroupPerOriginatingAgency, tenantId, symbolic);
         } catch (InvalidParseOperationException e) {
             LOGGER.error("Inputs/outputs are not correct", e);
             throw new ProcessingException(e);

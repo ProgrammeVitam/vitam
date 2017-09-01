@@ -42,9 +42,8 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.metadata.client.MetaDataClient;
-import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.exception.StepAlreadyExecutedException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
@@ -76,7 +75,7 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
         checkMandatoryParameters(params);
         handlerIO = actionDefinition;
         final ItemStatus itemStatus = new ItemStatus(STORING_OBJECT_TASK_ID);
-        try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
+        try {
             checkMandatoryIOParameter(actionDefinition);
 
             // get list of object group's objects
@@ -101,7 +100,8 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
                     itemStatus.setEvDetailData(detailsFromStorageInfo(result));
 
                     try {
-                        storeStorageInfo((ObjectNode) mapOfObjects.objectJsonMap.get(objectGuid.getKey()), result, false);
+                        storeStorageInfo((ObjectNode) mapOfObjects.objectJsonMap.get(objectGuid.getKey()), result,
+                            false);
                     } catch (InvalidCreateOperationException e) {
                         LOGGER.error(e);
                     }
@@ -124,6 +124,9 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
                 throw e;
             }
 
+        } catch (StepAlreadyExecutedException e) {
+            LOGGER.warn(e);
+            itemStatus.increment(StatusCode.ALREADY_EXECUTED);
         } catch (final ProcessingException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
@@ -148,7 +151,8 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
      * @return the list of object guid and corresponding Json
      * @throws ProcessingException throws when error occurs while retrieving the object group file from workspace
      */
-    private MapOfObjects getMapOfObjectsIdsAndUris(WorkerParameters params) throws ProcessingException {
+    private MapOfObjects getMapOfObjectsIdsAndUris(WorkerParameters params)
+        throws StepAlreadyExecutedException, ProcessingException {
         final MapOfObjects mapOfObjects = new MapOfObjects();
         mapOfObjects.binaryObjectsToStore = new HashMap<>();
         mapOfObjects.objectJsonMap = new HashMap<>();
@@ -160,11 +164,15 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
         mapOfObjects.jsonOG = handlerIO.getJsonFromWorkspace(
             IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + objectName);
         handlerIO.addOuputResult(OG_OUT_RANK, mapOfObjects.jsonOG, true, false);
-        
+
         // Filter on objectGroup objects ids to retrieve only binary objects
         // informations linked to the ObjectGroup
         final JsonNode original = mapOfObjects.jsonOG.get(SedaConstants.PREFIX_QUALIFIERS);
         final JsonNode work = mapOfObjects.jsonOG.get(SedaConstants.PREFIX_WORK);
+        if (work == null) {
+            // work is null, that means the object has been processed
+            throw new StepAlreadyExecutedException("Object " + objectName + " has already been processed");
+        }
         final JsonNode qualifiers = work.get(SedaConstants.PREFIX_QUALIFIERS);
         if (qualifiers == null) {
             return mapOfObjects;
@@ -183,8 +191,8 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
                         binaryObject.get(SedaConstants.TAG_URI).asText());
                     for (final JsonNode version2 : originalVersions) {
                         for (final JsonNode binaryObject2 : version2) {
-                            if (binaryObject2.get(SedaConstants.TAG_PHYSICAL_ID) == null
-                                && binaryObject2.get(SedaConstants.PREFIX_ID).asText().equals(id)) {
+                            if (binaryObject2.get(SedaConstants.TAG_PHYSICAL_ID) == null &&
+                                binaryObject2.get(SedaConstants.PREFIX_ID).asText().equals(id)) {
                                 mapOfObjects.objectJsonMap.put(id, binaryObject2);
                             }
                         }

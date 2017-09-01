@@ -1,28 +1,19 @@
 /*
- *  Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- *  <p>
- *  contact.vitam@culture.gouv.fr
- *  <p>
- *  This software is a computer program whose purpose is to implement a digital archiving back-office system managing
- *  high volumetry securely and efficiently.
- *  <p>
- *  This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
- *  software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- *  circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- *  <p>
- *  As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
- *  users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
- *  successive licensors have only limited liability.
- *  <p>
- *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
- *  developing or reproducing the software by the user in light of its specific status of free software, that may mean
- *  that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
- *  experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
- *  software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
- *  to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- *  <p>
- *  The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
- *  accept its terms.
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019) <p> contact.vitam@culture.gouv.fr <p>
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently. <p> This software is governed by the CeCILL 2.1 license under French law and
+ * abiding by the rules of distribution of free software. You can use, modify and/ or redistribute the software under
+ * the terms of the CeCILL 2.1 license as circulated by CEA, CNRS and INRIA at the following URL
+ * "http://www.cecill.info". <p> As a counterpart to the access to the source code and rights to copy, modify and
+ * redistribute granted by the license, users are provided only with a limited warranty and the software's author, the
+ * holder of the economic rights, and the successive licensors have only limited liability. <p> In this respect, the
+ * user's attention is drawn to the risks associated with loading, using, modifying and/or developing or reproducing the
+ * software by the user in light of its specific status of free software, that may mean that it is complicated to
+ * manipulate, and that also therefore means that it is reserved for developers and experienced professionals having
+ * in-depth computer knowledge. Users are therefore encouraged to load and test the software's suitability as regards
+ * their requirements in conditions enabling the security of their systems and/or data to be ensured and, more
+ * generally, to use and operate it in the same conditions as regards security. <p> The fact that you are presently
+ * reading this means that you have had knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
 package fr.gouv.vitam.processing.distributor.v2;
 
@@ -146,8 +137,7 @@ public class ProcessDistributorImplTest {
             .setItemsStatus("ItemId",
                 new ItemStatus("ItemId")
                     .setMessage("message")
-                    .increment(statusCode)
-            );
+                    .increment(statusCode));
     }
 
     @BeforeClass
@@ -164,8 +154,7 @@ public class ProcessDistributorImplTest {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-    }
+    public static void tearDownAfterClass() throws Exception {}
 
     /**
      * Test the constructor
@@ -375,7 +364,8 @@ public class ProcessDistributorImplTest {
         assertNotNull(imap);
         assertFalse(imap.isEmpty());
         // All object status are OK
-        assertTrue(imap.get("ItemId").getStatusMeter().get(2) == numberOfObjectIningestLevelStack);
+        assertTrue(imap.get("ItemId").getStatusMeter()
+            .get(StatusCode.OK.getStatusLevel()) == numberOfObjectIningestLevelStack);
     }
 
     @Test
@@ -397,7 +387,7 @@ public class ProcessDistributorImplTest {
         when(workerClient.submitStep(anyObject())).thenAnswer(invocation -> {
             DescriptionStep descriptionStep = invocation.getArgumentAt(0, DescriptionStep.class);
             if (descriptionStep.getWorkParams().getObjectName().equals("aaa1.json")) {
-                //throw new RuntimeException("Exception While Executing aaa1");
+                // throw new RuntimeException("Exception While Executing aaa1");
                 return getMockedItemStatus(StatusCode.KO);
             }
             return getMockedItemStatus(StatusCode.OK);
@@ -415,8 +405,8 @@ public class ProcessDistributorImplTest {
         Map<String, ItemStatus> imap = itemStatus.getItemsStatus();
         assertNotNull(imap);
         assertFalse(imap.isEmpty());
-        // All object status are OK
-        assertTrue(imap.get("ItemId").getStatusMeter().get(4) == 1);
+        // All object status are KO
+        assertTrue(imap.get("ItemId").getStatusMeter().get(StatusCode.KO.getStatusLevel()) == 1);
     }
 
     @Test
@@ -438,7 +428,7 @@ public class ProcessDistributorImplTest {
         when(workerClient.submitStep(anyObject())).thenAnswer(invocation -> {
             DescriptionStep descriptionStep = invocation.getArgumentAt(0, DescriptionStep.class);
             if (descriptionStep.getWorkParams().getObjectName().equals("aaa1.json")) {
-                //throw new RuntimeException("Exception While Executing aaa1");
+                // throw new RuntimeException("Exception While Executing aaa1");
                 return getMockedItemStatus(StatusCode.WARNING);
             }
             return getMockedItemStatus(StatusCode.OK);
@@ -456,8 +446,8 @@ public class ProcessDistributorImplTest {
         Map<String, ItemStatus> imap = itemStatus.getItemsStatus();
         assertNotNull(imap);
         assertFalse(imap.isEmpty());
-        // All object status are OK
-        assertTrue(imap.get("ItemId").getStatusMeter().get(3) == 1);
+        // All object status are WARNING
+        assertTrue(imap.get("ItemId").getStatusMeter().get(StatusCode.WARNING.getStatusLevel()) == 1);
     }
 
     @Test
@@ -542,18 +532,20 @@ public class ProcessDistributorImplTest {
 
         ItemStatus is = itemStatus[0];
         assertThat(is).isNotNull();
-        assertThat(is.getStatusMeter().get(0)).isGreaterThan(0); //statusCode UNkNWON
-        assertThat(is.getStatusMeter().get(2)).isGreaterThan(0); //statusCode OK
+        assertThat(is.getStatusMeter().get(0)).isGreaterThan(0); // statusCode UNkNWON
+        assertThat(is.getStatusMeter().get(StatusCode.OK.getStatusLevel())).isGreaterThan(0); // statusCode OK
         // Why 16, because to execute in the file ingestLevelStack we have
-        //"level_0" : [],  Execute 0
-        //"level_1" : [ "a" ], Execute 1
-        //"level_2" : [ "a", "b" ], Execute 2
-        //"level_3" : [ "a", "b", "c" ], Execute 3
-        //"level_4" : [ "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k",...] Execute batchSize = 10
+        // "level_0" : [], Execute 0
+        // "level_1" : [ "a" ], Execute 1
+        // "level_2" : [ "a", "b" ], Execute 2
+        // "level_3" : [ "a", "b", "c" ], Execute 3
+        // "level_4" : [ "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k",...] Execute batchSize = 10
         // Total = 0 + 1 + 2 + 3 + 10 = 16
         // We should have at least one in UNkNWON and at least one in OK
-        assertThat((is.getStatusMeter().get(0) + is.getStatusMeter().get(2) + is.getStatusMeter().get(5)) % 10)
-            .isEqualTo(6);
+        assertThat((is.getStatusMeter().get(StatusCode.UNKNOWN.getStatusLevel()) +
+            is.getStatusMeter().get(StatusCode.OK.getStatusLevel()) +
+            is.getStatusMeter().get(StatusCode.KO.getStatusLevel())) % 10)
+                .isEqualTo(6);
     }
 
 
@@ -618,18 +610,19 @@ public class ProcessDistributorImplTest {
         assertThat(is).isNotNull();
         assertThat(is.getItemsStatus().get(PauseOrCancelAction.ACTION_PAUSE.name())).isNotNull();
         assertThat(is.getItemsStatus().get(ProcessDistributor.WORKER_CALL_EXCEPTION)).isNotNull();
-        assertThat(is.getStatusMeter().get(0)).isGreaterThan(0); //statusCode UNkNWON
-        assertThat(is.getStatusMeter().get(2)).isGreaterThan(0); //statusCode OK
-        assertThat(is.getStatusMeter().get(5)).isEqualTo(1); //statusCode FATAL
+        assertThat(is.getStatusMeter().get(StatusCode.UNKNOWN.getStatusLevel())).isGreaterThan(0); // statusCode UNkNWON
+        assertThat(is.getStatusMeter().get(StatusCode.OK.getStatusLevel())).isGreaterThan(0); // statusCode OK
+        assertThat(is.getStatusMeter().get(StatusCode.FATAL.getStatusLevel())).isEqualTo(1); // statusCode FATAL
         // Why 16, because to execute in the file ingestLevelStack we have
-        //"level_0" : [],  Execute 0
-        //"level_1" : [ "a" ], Execute 1
-        //"level_2" : [ "a", "b" ], Execute 2
-        //"level_3" : [ "a", "b", "c" ], Execute 3
-        //"level_4" : [ "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k",...] Execute batchSize = 10
+        // "level_0" : [], Execute 0
+        // "level_1" : [ "a" ], Execute 1
+        // "level_2" : [ "a", "b" ], Execute 2
+        // "level_3" : [ "a", "b", "c" ], Execute 3
+        // "level_4" : [ "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k",...] Execute batchSize = 10
         // Total = 0 + 1 + 2 + 3 + 10 = 16
         // We should have at least one in UNkNWON and at least one in OK
-        assertThat((is.getStatusMeter().get(0) + is.getStatusMeter().get(2) + is.getStatusMeter().get(5)) % 10)
+        assertThat((is.getStatusMeter().get(StatusCode.UNKNOWN.getStatusLevel()) + 
+            is.getStatusMeter().get(StatusCode.OK.getStatusLevel()) + is.getStatusMeter().get(StatusCode.FATAL.getStatusLevel())) % 10)
             .isEqualTo(6);
     }
 
@@ -685,6 +678,6 @@ public class ProcessDistributorImplTest {
         ItemStatus is = itemStatus[0];
         assertThat(is).isNotNull();
         assertThat(is.getStatusMeter()).isNotNull();
-        assertThat(is.getStatusMeter().get(0)).isGreaterThan(0); //statusCode UNkNWON
+        assertThat(is.getStatusMeter().get(0)).isGreaterThan(0); // statusCode UNkNWON
     }
 }

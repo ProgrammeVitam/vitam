@@ -138,8 +138,10 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
         parameters.putParameterValue(LogbookParameterName.agentIdentifier,
             SERVER_IDENTITY.getJsonIdentity());
-        parameters.putParameterValue(LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString());
+        if (parameters.getParameterValue(LogbookParameterName.eventDateTime) == null) {
+            parameters.putParameterValue(LogbookParameterName.eventDateTime,
+                LocalDateUtil.now().toString());
+        }
         ParameterHelper
             .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
         final String eip = parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess);
@@ -257,7 +259,8 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
     }
 
     @Override
-    public JsonNode selectUnitLifeCycleById(String id, JsonNode queryDsl) throws LogbookClientException, InvalidParseOperationException {
+    public JsonNode selectUnitLifeCycleById(String id, JsonNode queryDsl)
+        throws LogbookClientException, InvalidParseOperationException {
         Response response = null;
         try {
             response = performRequest(HttpMethod.GET, UNIT_LIFECYCLES_URL + "/" + id, null,
@@ -280,7 +283,8 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
     }
 
     @Override
-    public JsonNode selectUnitLifeCycle(JsonNode queryDsl) throws LogbookClientException, InvalidParseOperationException {
+    public JsonNode selectUnitLifeCycle(JsonNode queryDsl)
+        throws LogbookClientException, InvalidParseOperationException {
         Response response = null;
         try {
             response = performRequest(HttpMethod.GET, UNIT_LIFECYCLES_URL, null,
@@ -324,7 +328,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
             consumeAnyEntityAndClose(response);
         }
     }
-    
+
     @Override
     public JsonNode selectObjectGroupLifeCycle(JsonNode queryDsl)
         throws LogbookClientException, InvalidParseOperationException {
@@ -509,7 +513,8 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
         try {
             // BIG HACK because we use the same method to update and commit the collection
             // BIG HACK: I use an empty JSON to by pass the rest easy check
-            // The best way is probably to have two different resource but in the past, we have an another resource .../commit
+            // The best way is probably to have two different resource but in the past, we have an another resource
+            // .../commit
             // and we migrate with only one resource because I don't know : discuss with an architect
             response = performRequest(HttpMethod.PUT, commitPath, headers, JsonHandler.createObjectNode(),
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);

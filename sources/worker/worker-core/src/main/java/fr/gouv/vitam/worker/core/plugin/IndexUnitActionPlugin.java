@@ -26,9 +26,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin;
 
+import java.io.File;
+import java.io.InputStream;
+
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -44,20 +50,18 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.exception.StepAlreadyExecutedException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-
-import javax.ws.rs.core.Response;
-import java.io.File;
-import java.io.InputStream;
 
 /**
  * IndexUnitAction Plugin
@@ -96,6 +100,9 @@ public class IndexUnitActionPlugin extends ActionHandler {
 
         try {
             indexArchiveUnit(params, itemStatus);
+        } catch (final StepAlreadyExecutedException e) {
+            LOGGER.warn(e);
+            itemStatus.increment(StatusCode.ALREADY_EXECUTED);
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.KO);
@@ -125,7 +132,7 @@ public class IndexUnitActionPlugin extends ActionHandler {
         Response response = null;
         try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
             response = handlerIO
-                    .getInputStreamNoCachedFromWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName);
+                .getInputStreamNoCachedFromWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName);
 
             if (response != null) {
                 input = (InputStream) response.getEntity();
@@ -165,6 +172,9 @@ public class IndexUnitActionPlugin extends ActionHandler {
         } catch (final MetaDataNotFoundException e) {
             LOGGER.error("Unit references a non existing unit " + query.toString());
             throw new IllegalArgumentException(e);
+        } catch (final MetaDataAlreadyExistException e) {
+            LOGGER.error("Unit references an existing unit " + query.toString());
+            throw new StepAlreadyExecutedException("Unit already exists", e);
         } catch (final MetaDataException | InvalidParseOperationException e) {
             LOGGER.error("Internal Server Error", e);
             throw new ProcessingException(e);
@@ -177,7 +187,7 @@ public class IndexUnitActionPlugin extends ActionHandler {
         } finally {
             handlerIO.consumeAnyEntityAndClose(response);
         }
-    }    
+    }
 
     /**
      * Convert xml archive unit to json node for insert/update.
@@ -191,7 +201,7 @@ public class IndexUnitActionPlugin extends ActionHandler {
      */
     // FIXME do we need to create a new file or not ?
     private JsonNode prepareArchiveUnitJson(InputStream input, String containerId, String objectName)
-            throws InvalidParseOperationException, ProcessingException {
+        throws InvalidParseOperationException, ProcessingException {
         ParametersChecker.checkParameter("Input stream is a mandatory parameter", input);
         ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
         ParametersChecker.checkParameter("ObjectName id is a mandatory parameter", objectName);
@@ -207,10 +217,10 @@ public class IndexUnitActionPlugin extends ActionHandler {
         ObjectNode managementNode = (ObjectNode) archiveUnitNode.get(TAG_MANAGEMENT);
         final JsonNode sedaParameters = JsonHandler.getFromFile((File) handlerIO.getInput(SEDA_PARAMETERS_RANK));
         if (sedaParameters.get(SedaConstants.TAG_ARCHIVE_TRANSFER)
-                .get(SedaConstants.TAG_DATA_OBJECT_PACKAGE).get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER) != null) {
+            .get(SedaConstants.TAG_DATA_OBJECT_PACKAGE).get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER) != null) {
 
             String prodService = sedaParameters.get(SedaConstants.TAG_ARCHIVE_TRANSFER)
-                    .get(SedaConstants.TAG_DATA_OBJECT_PACKAGE).get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER).asText();
+                .get(SedaConstants.TAG_DATA_OBJECT_PACKAGE).get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER).asText();
 
             ArrayNode originatingAgencies = JsonHandler.createArrayNode();
             originatingAgencies.add(prodService);

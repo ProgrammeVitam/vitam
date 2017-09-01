@@ -49,7 +49,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.codahale.metrics.Gauge;
-import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -388,6 +387,10 @@ public class ProcessManagementResource extends ApplicationStatusResource {
                     itemStatus = processManagement.resume(workParams, tenantId);
                     break;
 
+                case REPLAY:
+                    itemStatus = processManagement.replay(workParams, tenantId);
+                    break;
+
                 case PAUSE:
                     itemStatus = processManagement.pause(workParams.getContainerName(), tenantId);
 
@@ -395,7 +398,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
                 default:
                     return this.buildResponse(Status.UNAUTHORIZED,
                         getErrorEntity(Status.UNAUTHORIZED, "UNAUTHORIZED_ACTION " + xAction, "The action " + xAction +
-                            " is not allowed! Only INIT, NEXT and RESUME are allowed for this endpoint"));
+                            " is not allowed! Only INIT, NEXT, REPLAY and RESUME are allowed for this endpoint"));
             }
 
             return this.buildResponse(itemStatus);

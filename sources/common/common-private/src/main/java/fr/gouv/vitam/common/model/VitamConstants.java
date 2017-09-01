@@ -14,7 +14,7 @@
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
  *
- *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
@@ -30,17 +30,15 @@ package fr.gouv.vitam.common.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlEnumValue;
-
 /**
  * Constants class for Vitam internal features
  */
 public class VitamConstants {
-	
+
     public static final String SIP_FOLDER = "SIP";
 
     public static final String CONTENT_SIP_FOLDER = SIP_FOLDER + "/Content";
-    
+
     /**
      * tag of StorageRule
      */
@@ -65,16 +63,21 @@ public class VitamConstants {
      * tag of ClassificationRule
      */
     public static final String TAG_RULE_CLASSIFICATION = "ClassificationRule";
+    /**
+     * tag of EveryOriginatingAgency
+     */
+    public static final String EVERY_ORIGINATING_AGENCY = "EveryOriginatingAgency";
+    
     private static List<String> ruleTypes = null;
 
     private VitamConstants() {
         // Nothing
     }
-    
+
     /**
-    *
-    * @return supported Rules type
-    */
+     *
+     * @return supported Rules type
+     */
     public static List<String> getSupportedRules() {
         if (ruleTypes == null) {
             ruleTypes = new ArrayList<>();
@@ -90,50 +93,50 @@ public class VitamConstants {
 
     public enum AppraisalRuleFinalAction {
         KEEP("Keep"),
-	    DESTROY("Destroy");
+        DESTROY("Destroy");
 
-	    private final String value;
+        private final String value;
 
-	    AppraisalRuleFinalAction(String v) {
-	        value = v;
-	    }
+        AppraisalRuleFinalAction(String v) {
+            value = v;
+        }
 
-	    public String value() {
-	        return value;
-	    }
+        public String value() {
+            return value;
+        }
 
-	    public static AppraisalRuleFinalAction fromValue(String v) throws IllegalArgumentException {
-	        for (AppraisalRuleFinalAction c: AppraisalRuleFinalAction.values()) {
-	            if (c.value.equals(v)) {
-	                return c;
-	            }
-	        }
-	        throw new IllegalArgumentException(v);
-	    }
+        public static AppraisalRuleFinalAction fromValue(String v) throws IllegalArgumentException {
+            for (AppraisalRuleFinalAction c : AppraisalRuleFinalAction.values()) {
+                if (c.value.equals(v)) {
+                    return c;
+                }
+            }
+            throw new IllegalArgumentException(v);
+        }
     }
 
     public enum StorageRuleFinalAction {
         RESTRICT_ACCESS("RestrictAccess"),
-	    TRANSFER("Transfer"),
-	    COPY("Copy");
+        TRANSFER("Transfer"),
+        COPY("Copy");
 
-	    private final String value;
+        private final String value;
 
-	    StorageRuleFinalAction(String v) {
-	        value = v;
-	    }
+        StorageRuleFinalAction(String v) {
+            value = v;
+        }
 
-	    public String value() {
-	        return value;
-	    }
+        public String value() {
+            return value;
+        }
 
-	    public static StorageRuleFinalAction fromValue(String v) throws IllegalArgumentException  {
-	        for (StorageRuleFinalAction c: StorageRuleFinalAction.values()) {
-	            if (c.value.equals(v)) {
-	                return c;
-	            }
-	        }
-	        throw new IllegalArgumentException(v);
-	    }
+        public static StorageRuleFinalAction fromValue(String v) throws IllegalArgumentException {
+            for (StorageRuleFinalAction c : StorageRuleFinalAction.values()) {
+                if (c.value.equals(v)) {
+                    return c;
+                }
+            }
+            throw new IllegalArgumentException(v);
+        }
     }
 }

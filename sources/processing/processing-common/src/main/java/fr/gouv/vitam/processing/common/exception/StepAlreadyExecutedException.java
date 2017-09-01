@@ -24,77 +24,35 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common.model;
+package fr.gouv.vitam.processing.common.exception;
 
 /**
- * Enum of process workflow execution mode
+ * StepAlreadyExecutedException manage steps already executed Exception
  * 
  */
-public enum ProcessAction {
+public class StepAlreadyExecutedException extends ProcessingException {
+
     /**
-     * initial execution mode for process workflow
-     */
-    INIT("init"),
-    /**
-     * execute only next step
-     */
-    NEXT("next"),
-    /**
-     * resume execution mode (all step will be executed)
      * 
      */
-    RESUME("resume"),
-    /**
-     * pause execution mode
-     * 
-     */
-    PAUSE("pause"),
-    /**
-     * execute one more time last executed step
-     */
-    REPLAY("replay"),
-    /**
-     * start execution mode for process workflow
-     */
-    START("start");
-
-
-    private String value;
+    private static final long serialVersionUID = 7434200692205429490L;
 
     /**
-     * Constructor
-     * 
-     * @param processAction
+     *
+     * @param message to be set
+     * @param cause to be set
      */
-
-    ProcessAction(String processAction) {
-        this.value = processAction;
+    public StepAlreadyExecutedException(String message, Throwable cause) {
+        super(message, cause);
     }
 
     /**
-     * 
-     * @return value of process workflow in String format
+     * @param message of exception
      */
-    public String getValue() {
-        return this.value;
+    public StepAlreadyExecutedException(String message) {
+        super(message);
     }
 
-    /**
-     * Returns Enum from value
-     * 
-     * @param value of process workflow in String format
-     * @return ProcessAction
-     */
-    public static ProcessAction getProcessAction(String value) {
-        if (value != null) {
-            for (ProcessAction action : ProcessAction.values()) {
-                if (value.equalsIgnoreCase(action.value)) {
-                    return action;
-                }
-            }
-        }
-        return null;
-    }
 
 
 }

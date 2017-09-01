@@ -60,9 +60,9 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -176,7 +176,48 @@ public class LogbookResource extends ApplicationStatusResource {
     }
 
     /**
-     * Selects an operation FIXME : since migration to RESTEASY queryDsl cannot be null => rewrite method
+     * Selects an operation only by Id
+     * 
+     * @param id operation ID
+     * @return the response with a specific HTTP status
+     */
+    @GET
+    @Path("/operations/{id_op}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getOperationOnlyById(@PathParam("id_op") String id) {
+        Status status;
+        try {
+            final LogbookOperation result = logbookOperation.getById(id);
+            return Response.status(Status.OK)
+                .entity(
+                    new RequestResponseOK<LogbookOperation>(new Select().getFinalSelect()).addResult(result)
+                        .setHttpCode(Status.OK.getStatusCode()))
+                .build();
+        } catch (final LogbookNotFoundException exc) {
+            LOGGER.error(exc);
+            status = Status.NOT_FOUND;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(LOGBOOK)
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(exc.getMessage()))
+                .build();
+        } catch (final IllegalArgumentException | LogbookException exc) {
+            LOGGER.error(exc);
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(LOGBOOK)
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(exc.getMessage()))
+                .build();
+        }
+    }
+
+    /**
+     * Selects an operation
      * 
      * @param id operation ID
      * @param queryDsl the query containing the ID
@@ -189,7 +230,9 @@ public class LogbookResource extends ApplicationStatusResource {
     public Response getOperation(@PathParam("id_op") String id, JsonNode queryDsl) {
         Status status;
         try {
-            if (queryDsl == null) {
+            // With resteasy, queryDsl couldnt be null
+            if (queryDsl == null ||
+                (queryDsl != null && queryDsl.get("$query") != null && queryDsl.get("$query").size() == 0)) {
                 final LogbookOperation result = logbookOperation.getById(id);
                 return Response.status(Status.OK)
                     .entity(

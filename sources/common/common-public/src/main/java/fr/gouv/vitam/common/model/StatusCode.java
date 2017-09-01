@@ -46,6 +46,10 @@ public enum StatusCode {
     STARTED,
 
     /**
+     * ALREADY_EXECUTED : indicates that a particular step / action has already been processed
+     */
+    ALREADY_EXECUTED,
+    /**
      * OK : indicates the successful without warning
      */
     OK,
@@ -95,6 +99,8 @@ public enum StatusCode {
         switch (this) {
             case OK:
                 return Status.OK;
+            case ALREADY_EXECUTED:
+                return Status.NO_CONTENT;
             case WARNING:
                 return Status.PARTIAL_CONTENT;
             case KO:
@@ -115,6 +121,8 @@ public enum StatusCode {
         if (Status.OK.getStatusCode() != status) {
             if (Status.PARTIAL_CONTENT.getStatusCode() == status) {
                 statusCode = StatusCode.WARNING;
+            } else if (Status.PARTIAL_CONTENT.getStatusCode() == status) {
+                statusCode = StatusCode.ALREADY_EXECUTED;
             } else if (Status.INTERNAL_SERVER_ERROR.getStatusCode() == status) {
                 statusCode = StatusCode.FATAL;
             } else {
