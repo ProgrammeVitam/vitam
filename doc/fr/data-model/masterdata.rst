@@ -362,6 +362,8 @@ Détail des champs
 "FilingParentId": point de rattachement automatique des SIP en application de ce contrat correspondant à l'id d’une unité archivistique dans le plan de classement
   Il s'agit d'une chaîne de 36 caractères correspondant à un GUID dans le champ _id de la collection Unit.
 
+  **L'unité archivistique concernée doit être de type FILING_UNIT afin que l'opération aboutisse**
+
 "_v": version de l'objet décrit
   Il s'agit d'un entier.
 
