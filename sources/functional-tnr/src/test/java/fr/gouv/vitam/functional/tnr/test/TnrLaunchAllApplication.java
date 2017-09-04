@@ -53,7 +53,6 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.junit.JunitHelper;
@@ -62,7 +61,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.ingest.external.rest.IngestExternalMain;
-import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalApplication;
+import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -72,7 +71,7 @@ import fr.gouv.vitam.processing.common.exception.PluginException;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementApplication;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferApplication;
-import fr.gouv.vitam.worker.server.rest.WorkerApplication;
+import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
 
 /**
@@ -200,13 +199,13 @@ public class TnrLaunchAllApplication {
 
     // private static VitamServer workerApplication;
     private static MetadataMain medtadataApplication;
-    private static WorkerApplication wkrapplication;
+    private static WorkerMain wkrapplication;
     private static AdminManagementMain adminApplication;
     private static LogbookMain logbookMain;
     private static WorkspaceApplication workspaceApplication;
     private static ProcessManagementApplication processManagementApplication;
-    private static IngestInternalApplication ingestInternalApplication;
     private static AccessInternalMain accessInternalApplication;
+    private static IngestInternalMain ingestInternalApplication;
     private static IngestExternalMain ingestExternalApplication;
     private static AccessExternalMain accessExternalApplication;
     private static StorageMain storageMain;
@@ -440,10 +439,9 @@ public class TnrLaunchAllApplication {
         LOGGER.warn("Start Worker");
         SystemPropertyUtil.set(JETTY_WORKER_PORT, Integer.toString(PORT_SERVICE_WORKER));
         try {
-            wkrapplication = new WorkerApplication(CONFIG_WORKER_PATH);
+            wkrapplication = new WorkerMain(CONFIG_WORKER_PATH);
             wkrapplication.start();
-        } catch (FileNotFoundException | PluginException | InvalidParseOperationException |
-            VitamApplicationServerException e) {
+        } catch (PluginException | VitamApplicationServerException | IOException e) {
             LOGGER.error(e);
             shutdownSiegfried();
             earlyShutdown();
@@ -481,7 +479,7 @@ public class TnrLaunchAllApplication {
         // launch ingest-internal
         LOGGER.warn("Start Ingest Internal");
         SystemPropertyUtil.set(JETTY_INGEST_INTERNAL_PORT, Integer.toString(PORT_SERVICE_INGEST_INTERNAL));
-        ingestInternalApplication = new IngestInternalApplication(CONFIG_INGEST_INTERNAL_PATH);
+        ingestInternalApplication = new IngestInternalMain(CONFIG_INGEST_INTERNAL_PATH);
         try {
             ingestInternalApplication.start();
         } catch (VitamApplicationServerException e) {
@@ -749,7 +747,7 @@ public class TnrLaunchAllApplication {
                 HOME_ITEST}, Thread.currentThread().getContextClassLoader());
             long end = System.nanoTime();
             Thread.sleep(100);
-            LOGGER.warn("ENDING TEST: {} in {} ms", HOME_ITEST, (end-start)/1000000);
+            LOGGER.warn("ENDING TEST: {} in {} ms", HOME_ITEST, (end - start) / 1000000);
         } catch (Throwable e) {
             LOGGER.error(e);
         }

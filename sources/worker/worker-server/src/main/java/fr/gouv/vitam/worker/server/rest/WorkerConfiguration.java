@@ -193,6 +193,7 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
 
     /**
      * Return the capacity (number of parallel steps that can handle the worker)
+     * 
      * @return the capacity
      */
     public int getCapacity() {
@@ -201,6 +202,7 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
 
     /**
      * Set the capacity (number of parallel steps that can handle the worker)
+     * 
      * @param capacity the capacity to set
      *
      * @return this
@@ -209,9 +211,10 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
         this.capacity = capacity;
         return this;
     }
-    
+
     /**
      * Return the workerFamily name
+     * 
      * @return workerFamily
      */
     public String getWorkerFamily() {
@@ -220,6 +223,7 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
 
     /**
      * Set the workerFamily name of this worker (Default Value : DefaultWorker)
+     * 
      * @param workerFamily the worker family as String
      * @return this
      */
@@ -227,5 +231,4 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
         this.workerFamily = workerFamily;
         return this;
     }
-
 }

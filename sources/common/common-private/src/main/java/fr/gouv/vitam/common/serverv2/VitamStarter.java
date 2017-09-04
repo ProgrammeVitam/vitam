@@ -32,10 +32,12 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
 import javax.servlet.DispatcherType;
+import javax.servlet.ServletContextListener;
 import javax.ws.rs.core.Application;
 
 import org.apache.shiro.web.env.EnvironmentLoaderListener;
@@ -83,16 +85,26 @@ public class VitamStarter {
     private Class<? extends Application> businessApplication;
     private Class<? extends Application> adminApplication;
     private Class<? extends VitamApplicationConfiguration> configurationType;
+    private List<ServletContextListener> customListeners;
 
     public VitamStarter(Class<? extends VitamApplicationConfiguration> configurationType,
         String configurationFile,
         Class<? extends Application> businessApplication,
         Class<? extends Application> adminApplication) {
+        this(configurationType, configurationFile, businessApplication, adminApplication, null);
+
+    }
+
+    public VitamStarter(Class<? extends VitamApplicationConfiguration> configurationType,
+        String configurationFile,
+        Class<? extends Application> businessApplication,
+        Class<? extends Application> adminApplication,
+        List<ServletContextListener> customListeners) {
 
         this.businessApplication = businessApplication;
         this.adminApplication = adminApplication;
         this.configurationType = configurationType;
-
+        this.customListeners = customListeners;
         configure(configurationFile);
     }
 
@@ -123,11 +135,9 @@ public class VitamStarter {
             ContextHandlerCollection applicationHandlers = new ContextHandlerCollection();
 
             applicationHandlers
-                .addHandler(buildApplicationHandler(configurationFile, configuration.isAuthentication(),
-                    configuration.isTenantFilter(), configuration.getTenants()));
+                .addHandler(buildApplicationHandler(configurationFile, configuration));
             applicationHandlers.addHandler(
-                buildAdminHandler(configurationFile, configuration.isAuthentication(),
-                    configuration.isTenantFilter(), configuration.getTenants()));
+                buildAdminHandler(configurationFile, configuration));
 
             final String jettyConfig = configuration.getJettyConfig();
 
@@ -187,12 +197,9 @@ public class VitamStarter {
      * @return the generated Handler
      * @throws VitamApplicationServerException
      * @param configurationFile
-     * @param authentication
-     * @param tenantFilter
-     * @param tenantList
+     * @param configuration
      */
-    protected Handler buildApplicationHandler(String configurationFile, boolean authentication,
-        boolean tenantFilter, List<Integer> tenantList)
+    protected Handler buildApplicationHandler(String configurationFile, VitamApplicationConfiguration configuration)
         throws VitamApplicationServerException {
         final ServletHolder servletHolder = new ServletHolder(new HttpServletDispatcher());
 
@@ -212,19 +219,18 @@ public class VitamStarter {
 
         context.setVirtualHosts(new String[] {"@business"});
 
-        if (authentication) {
+        if (configuration.isAuthentication()) {
             addShiroFilter(context);
         }
-        if (tenantFilter) {
-            addTenantFilter(context, tenantList);
+        if (configuration.isTenantFilter()) {
+            addTenantFilter(context, configuration.getTenants());
         }
         StatisticsHandler stats = new StatisticsHandler();
         stats.setHandler(context);
         return stats;
     }
 
-    protected Handler buildAdminHandler(String configurationFile, boolean authentication,
-        boolean tenantFilter, List<Integer> tenantList)
+    protected Handler buildAdminHandler(String configurationFile, VitamApplicationConfiguration configuration)
         throws VitamApplicationServerException {
         final ServletHolder servletHolder = new ServletHolder(new HttpServletDispatcher());
 
@@ -236,11 +242,16 @@ public class VitamStarter {
 
         context.setVirtualHosts(new String[] {"@admin"});
 
-        if (authentication) {
+        if (configuration.isAuthentication()) {
             addShiroFilter(context);
         }
-        if (tenantFilter) {
-            addTenantFilter(context, tenantList);
+        if (configuration.isTenantFilter()) {
+            addTenantFilter(context, configuration.getTenants());
+        }
+        if (customListeners != null && !customListeners.isEmpty()) {
+            customListeners.forEach((listener) -> {
+                context.addEventListener(listener);
+            });
         }
         StatisticsHandler stats = new StatisticsHandler();
         stats.setHandler(context);

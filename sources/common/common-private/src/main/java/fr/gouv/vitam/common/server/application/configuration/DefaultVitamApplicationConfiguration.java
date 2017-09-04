@@ -83,7 +83,7 @@ public abstract class DefaultVitamApplicationConfiguration implements VitamAppli
         this.authentication = authentication;
         return this;
     }
-    
+
     /**
      * @return the tenantFilter
      */
@@ -103,7 +103,5 @@ public abstract class DefaultVitamApplicationConfiguration implements VitamAppli
         this.tenantFilter = tenantFilter;
         return this;
     }
-
-
 
 }

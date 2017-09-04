@@ -27,38 +27,19 @@
 package fr.gouv.vitam.processing.integration.test;
 
 import static com.jayway.restassured.RestAssured.get;
-import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.EVENT_DETAILS;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 import javax.ws.rs.core.Response.Status;
 
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -67,15 +48,10 @@ import org.junit.rules.TemporaryFolder;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.jayway.restassured.RestAssured;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.MongoIterable;
-import com.mongodb.client.model.Filters;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
@@ -86,21 +62,13 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
-import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
-import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
@@ -113,7 +81,6 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -131,26 +98,19 @@ import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
-import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.metadata.core.UnitInheritedRule;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
-import fr.gouv.vitam.processing.common.ProcessingEntry;
-import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
-import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
-import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementApplication;
-import fr.gouv.vitam.worker.server.rest.WorkerApplication;
+import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
@@ -159,10 +119,6 @@ import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
  * Processing integration test
  */
 public class ProcessingLFCTraceabilityIT {
-    private static final String PROCESSING_UNIT_PLAN = "integration-processing/unit_plan_metadata.json";
-    private static final String INGEST_CONTRACTS_PLAN = "integration-processing/ingest_contracts_plan.json";
-    private static final String UNIT_ATTACHEMENT_ID = "aeaqaaaaaagbcaacaang6ak4ts6paliaaaaq";
-    private static final String UNIT_PLAN_ATTACHEMENT_ID = "aeaqaaaaaagbcaacabht2ak4x66x2baaaaaq";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessingLFCTraceabilityIT.class);
     private static final int DATABASE_PORT = 12346;
     private static final long SLEEP_TIME = 100l;
@@ -209,7 +165,7 @@ public class ProcessingLFCTraceabilityIT {
 
     // private static VitamServer workerApplication;
     private static MetadataMain metadataMain;
-    private static WorkerApplication workerApplication;
+    private static WorkerMain workerApplication;
     private static AdminManagementMain adminApplication;
     private static LogbookMain logbookApplication;
     private static WorkspaceApplication workspaceApplication;
@@ -306,7 +262,7 @@ public class ProcessingLFCTraceabilityIT {
 
         // launch worker
         SystemPropertyUtil.set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
-        workerApplication = new WorkerApplication(CONFIG_WORKER_PATH);
+        workerApplication = new WorkerMain(CONFIG_WORKER_PATH);
         workerApplication.start();
         SystemPropertyUtil.clear("jetty.worker.port");
 
@@ -462,7 +418,7 @@ public class ProcessingLFCTraceabilityIT {
             operationId);
         logbookClient.create(initParameters);
     }
-    
+
     private void launchIngest() throws Exception {
         final GUID operationGuid2 = GUIDFactory.newOperationLogbookGUID(tenantId);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid2);
@@ -496,7 +452,7 @@ public class ProcessingLFCTraceabilityIT {
         assertEquals(ProcessState.COMPLETED, processWorkflow2.getState());
         assertEquals(StatusCode.OK, processWorkflow2.getStatus());
     }
-    
+
     private String launchLogbookLFC() throws Exception {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
@@ -544,12 +500,12 @@ public class ProcessingLFCTraceabilityIT {
                 processMonitoring.findOneProcessWorkflow(containerName2nd, tenantId);
             assertNotNull(processWorkflow2nd);
             assertEquals(ProcessState.COMPLETED, processWorkflow2nd.getState());
-            //SINCE NO LFC ARE HANDLED, WARNING
+            // SINCE NO LFC ARE HANDLED, WARNING
             assertEquals(StatusCode.WARNING, processWorkflow2nd.getStatus());
-            
-            // launch an ingest            
+
+            // launch an ingest
             launchIngest();
-            
+
             // Launch securization a second time, with no lfc added
             String containerName3rd = launchLogbookLFC();
             wait(containerName3rd);

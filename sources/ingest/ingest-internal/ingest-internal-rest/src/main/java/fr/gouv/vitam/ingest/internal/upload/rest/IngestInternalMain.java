@@ -1,32 +1,37 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- * <p>
+ *
  * contact.vitam@culture.gouv.fr
- * <p>
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
- * <p>
+ *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
  * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- * <p>
+ *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
- * <p>
+ *
  * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- * <p>
+ *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
-package fr.gouv.vitam.ingest.external.rest;
+ *******************************************************************************/
+
+package fr.gouv.vitam.ingest.internal.upload.rest;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -36,35 +41,34 @@ import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
 import fr.gouv.vitam.common.serverv2.VitamStarter;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
-import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
- * Ingest External web application
+ * Ingest Internal web server application
  */
-public class IngestExternalMain {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalMain.class);
+public class IngestInternalMain {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalMain.class);
 
-    private static final String CONF_FILE_NAME = "ingest-external.conf";
+    private static final String CONF_FILE_NAME = "ingest-internal.conf";
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
-    
+
     private VitamStarter vitamStarter;
 
-    /**
-     * Ingest External Main constructor
-     * 
-     * @param configurationFile
-     */
-    public IngestExternalMain(String configurationFile) {
+    public IngestInternalMain(String configurationFile) {
         ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
             CONF_FILE_NAME), configurationFile);
-        vitamStarter = new VitamStarter(IngestExternalConfiguration.class, configurationFile,
+        vitamStarter = new VitamStarter(IngestInternalConfiguration.class, configurationFile,
             BusinessApplication.class, AdminApplication.class);
     }
 
     /**
      * Main method to run the application (doing start and join)
-     * 
-     * @param args
+     *
+     * @param args command line parameters
+     * @throws IllegalStateException if the Vitam server cannot be launched
      */
     public static void main(String[] args) {
         try {
@@ -73,10 +77,26 @@ public class IngestExternalMain {
                 throw new IllegalArgumentException(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
                     CONF_FILE_NAME));
             }
-            IngestExternalMain main = new IngestExternalMain(args[0]);
+            IngestInternalMain main = new IngestInternalMain(args[0]);
             VitamServiceRegistry serviceRegistry = new VitamServiceRegistry();
+            try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(args[0])) {
+                final IngestInternalConfiguration configuration =
+                    PropertiesUtils.readYaml(yamlIS, IngestInternalConfiguration.class);
+                WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            // Register Workspace
+            serviceRegistry.register(WorkspaceClientFactory.getInstance())
+                // Register Logbook for Operation
+                .register(LogbookOperationsClientFactory.getInstance())
+                // Register Storage (ATR access)
+                .register(StorageClientFactory.getInstance())
+                // Register ProcessingManagement
+                .register(ProcessingManagementClientFactory.getInstance());
             // Database dependency
             serviceRegistry.checkDependencies(VitamConfiguration.getRetryNumber(), VitamConfiguration.getRetryDelay());
+
             main.startAndJoin();
         } catch (Exception e) {
             LOGGER.error(String.format(fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) +

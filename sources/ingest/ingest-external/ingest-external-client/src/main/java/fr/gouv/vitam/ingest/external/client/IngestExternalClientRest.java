@@ -185,7 +185,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         return response;
     }
 
-
+    
     @Override
     @Deprecated
     public RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId,

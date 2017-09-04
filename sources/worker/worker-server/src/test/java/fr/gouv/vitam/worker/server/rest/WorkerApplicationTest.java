@@ -32,6 +32,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -86,9 +87,14 @@ public class WorkerApplicationTest {
 
     @Test
     public final void testFictiveLaunch()
-        throws FileNotFoundException, PluginException, InvalidParseOperationException {
+        throws Exception {
         try {
-            new WorkerApplication(worker.getAbsolutePath());
+            WorkerMain application = new WorkerMain(worker.getAbsolutePath());
+            Assert.assertFalse(application.getVitamStarter().isStarted());
+            application.start();
+            Assert.assertTrue(application.getVitamStarter().isStarted());
+            application.stop();
+            Assert.assertFalse(application.getVitamStarter().isStarted());
         } catch (final IllegalStateException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }

@@ -36,7 +36,7 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 public class IngestInternalApplicationTest {
     private static int serverPort;
     private static final JunitHelper junitHelper = JunitHelper.getInstance();
-    private static IngestInternalApplication application;
+    private static IngestInternalMain application;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -51,28 +51,30 @@ public class IngestInternalApplicationTest {
         junitHelper.releasePort(serverPort);
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void shouldRaiseAnExceptionWhenConfigureApplicationWithEmptyArgs() throws Exception {
-        application = new IngestInternalApplication((String) null);
+        application = new IngestInternalMain((String) null);
     }
 
     @Test(expected = IllegalStateException.class)
     public void shouldRaiseAnExceptionWhenConfigureApplicationWithFileNotFound() throws Exception {
-        application = new IngestInternalApplication("notFound.conf");
+        application = new IngestInternalMain("notFound.conf");
     }
 
     @Test(expected = IllegalStateException.class)
     public void shouldRaiseAnExceptionWhenConfigureApplicationWithWrongConfigurationFile() throws Exception {
-        application = new IngestInternalApplication("ingest-internal-err1.conf");
+        application = new IngestInternalMain("ingest-internal-err1.conf");
     }
 
     @Test
     public void shouldRunServerWhenConfigureApplicationWithFileExists() throws Exception {
-        application = new IngestInternalApplication("ingest-internal.conf");
-        Assert.assertFalse(application.getVitamServer().isStarted());
+        application = new IngestInternalMain("ingest-internal.conf");
+        Assert.assertFalse(application.getVitamStarter().isStarted());
         application.start();
-        Assert.assertTrue(application.getVitamServer().isStarted());
+        Assert.assertTrue(application.getVitamStarter().isStarted());
         application.stop();
-        Assert.assertFalse(application.getVitamServer().isStarted());
+        Assert.assertFalse(application.getVitamStarter().isStarted());
     }
+    
+    
 }

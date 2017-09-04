@@ -74,7 +74,7 @@ public class WorkerResourceTest {
     private static JunitHelper junitHelper;
     private static int serverPort;
     private static File newWorkerConf;
-    private static WorkerApplication application;
+    private static WorkerMain application;
 
     private static Worker worker;
 
@@ -109,8 +109,8 @@ public class WorkerResourceTest {
 
 
         try {
-            WorkerApplication.mock = worker;
-            application = new WorkerApplication(newWorkerConf.getAbsolutePath());
+            BusinessApplication.mock = worker;
+            application = new WorkerMain(newWorkerConf.getAbsolutePath());
             application.start();
             JunitHelper.unsetJettyPortSystemProperty();
         } catch (final VitamApplicationServerException e) {
@@ -165,9 +165,10 @@ public class WorkerResourceTest {
 
     @Test
     public final void testSubmitIncorrectStepThenBadRequest() {
+        // since resteasy -> 500 is thrown
         given().contentType(ContentType.JSON).body(BODY_TEST_NOT_JSON).when()
             .post(WORKER_STEP_URI).then()
-            .statusCode(Status.BAD_REQUEST.getStatusCode());
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
     @Test
