@@ -34,19 +34,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.client.PoolingStatusClient;
-import fr.gouv.vitam.common.exception.BadRequestException;
-import fr.gouv.vitam.common.exception.InternalServerException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.external.client.IngestCollection;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
-import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientNotFoundException;
-import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientServerException;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 
 /**
@@ -76,31 +70,10 @@ public interface IngestExternalClient extends MockOrRestClient, PoolingStatusCli
      * @param objectId
      * @param type
      * @param tenantId
-     * @return objest as stream
-     * @throws IngestExternalClientServerException
-     * @throws IngestExternalClientNotFoundException
-     * @throws InvalidParseOperationException
-     * @throws IngestExternalException
+     * @return object as stream
+     * @throws VitamClientException
      */
     Response downloadObjectAsync(String objectId, IngestCollection type, Integer tenantId)
-        throws IngestExternalClientServerException, IngestExternalClientNotFoundException,
-        InvalidParseOperationException, IngestExternalException;
-
-    /**
-     * 
-     * @param operationId
-     * @param workflow
-     * @param contextId
-     * @param actionId
-     * @param tenantId
-     * @return
-     * @throws VitamClientException
-     * @deprecated use updateOperationActionProcess
-     */
-    // FIXME clean lors de la 2745
-    @Deprecated
-    RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId,
-        String actionId, Integer tenantId)
         throws VitamClientException;
 
     /**
@@ -146,53 +119,6 @@ public interface IngestExternalClient extends MockOrRestClient, PoolingStatusCli
      */
     RequestResponse<ItemStatus> cancelOperationProcessExecution(String id, Integer tenantId)
         throws VitamClientException, IllegalArgumentException;
-
-    /**
-     * Use updateOperationActionProcess
-     * 
-     * @param contextId
-     * @param actionId
-     * @param container
-     * @param workflow
-     * @param tenantId
-     * @return ItemStatus
-     * @throws InternalServerException
-     * @throws BadRequestException
-     * @throws VitamClientException
-     * @deprecated use updateOperationActionProcess
-     */
-    // FIXME clean lors de la 2745
-    @Deprecated
-    ItemStatus updateVitamProcess(String contextId, String actionId, String container, String workflow,
-        Integer tenantId)
-        throws InternalServerException, BadRequestException, VitamClientException;
-
-    /**
-     * 
-     * @param contextId
-     * @param container
-     * @param workFlow
-     * @param tenantId
-     * @throws InternalServerException
-     * @throws VitamClientException
-     * @deprecated use updateOperationActionProcess
-     */
-    // FIXME clean lors de la 2745
-    @Deprecated
-    void initVitamProcess(String contextId, String container, String workFlow, Integer tenantId)
-        throws InternalServerException, VitamClientException;
-
-    /**
-     * Use initVitamProcess
-     * 
-     * @param contextId
-     * @param tenantId
-     * @throws VitamException
-     * @deprecated use updateOperationActionProcess
-     */
-    // FIXME clean lors de la 2745
-    @Deprecated
-    void initWorkFlow(String contextId, Integer tenantId) throws VitamException;
 
     /**
      * Get the list of operations details

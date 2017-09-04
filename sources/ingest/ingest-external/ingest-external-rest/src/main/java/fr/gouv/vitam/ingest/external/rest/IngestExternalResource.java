@@ -153,8 +153,11 @@ public class IngestExternalResource extends ApplicationStatusResource {
                     .header(GlobalDataRest.X_REQUEST_ID, guid.getId())
                     .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED)
                     .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.FATAL)
-                    .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, exc.getLocalizedMessage()))
-                    .build(), uploadedInputStream);
+                    .entity(getErrorStream(
+                        VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_INTERNAL_SERVER_ERROR,
+                            exc.getLocalizedMessage())))
+                    .build(),
+                uploadedInputStream);
         }
     }
 
@@ -191,22 +194,33 @@ public class IngestExternalResource extends ApplicationStatusResource {
             LOGGER.error("IllegalArgumentException was thrown : ", e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorStream(Status.BAD_REQUEST, e.getMessage())).build());
+                    .entity(getErrorStream(
+                        VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_BAD_REQUEST, e.getLocalizedMessage())))
+                    .build());
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("Predicates Failed Exception", e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.PRECONDITION_FAILED)
-                    .entity(getErrorStream(Status.PRECONDITION_FAILED, e.getMessage())).build());
+                    .entity(getErrorStream(
+                        VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_PRECONDITION_FAILED,
+                            e.getLocalizedMessage())))
+                    .build());
         } catch (final IngestInternalClientServerException e) {
             LOGGER.error("Internal Server Exception ", e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR)
-                    .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build());
+                    .entity(getErrorStream(
+                        VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_INTERNAL_SERVER_ERROR,
+                            e.getLocalizedMessage())))
+                    .build());
         } catch (final IngestInternalClientNotFoundException e) {
             LOGGER.error("Request resources does not exits", e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.NOT_FOUND)
-                    .entity(getErrorStream(Status.NOT_FOUND, e.getMessage())).build());
+                    .entity(getErrorStream(
+                        VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_NOT_FOUND, e.getLocalizedMessage())))
+                    .build());
+
         }
     }
 
@@ -220,10 +234,10 @@ public class IngestExternalResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response listOperationsDetails(@Context HttpHeaders headers, ProcessQuery query) {
-        LOGGER.error("ProcessQuery: " + JsonHandler.prettyPrint(query));
         try (IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient()) {
             return client.listOperationsDetails(query).toResponse();
         } catch (VitamClientException e) {
+            LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
             return Response.serverError()
                 .entity(
                     VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_INTERNAL_CLIENT_ERROR,
@@ -252,7 +266,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
     @Consumes({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, CommonMediaType.GZIP, CommonMediaType.TAR,
         CommonMediaType.BZIP2})
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Deprecated
+    @Deprecated // FIXME see 2745 to decide if we need the method or not
     public Response executeWorkFlow(@Context HttpHeaders headers, @PathParam("id") String id,
         InputStream uploadedInputStream) {
         Status status;
@@ -298,8 +312,15 @@ public class IngestExternalResource extends ApplicationStatusResource {
 
     }
 
+    private InputStream getErrorStream(VitamError vitamError) {
+        try {
+            return JsonHandler.writeToInpustream(vitamError);
+        } catch (InvalidParseOperationException e) {
+            return new ByteArrayInputStream("{ 'message' : 'Invalid VitamError message' }".getBytes());
+        }
+    }
 
-
+    @Deprecated
     private InputStream getErrorStream(Status status, String message) {
         String aMessage =
             (message != null && !message.trim().isEmpty()) ? message
@@ -505,7 +526,6 @@ public class IngestExternalResource extends ApplicationStatusResource {
         return Response.status(vitamError.getHttpCode()).entity(vitamError).build();
     }
 
-
     /**
      * @param headers the http header of request
      * @return Response
@@ -517,6 +537,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
         try (IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient()) {
             return client.getWorkflowDefinitions().toResponse();
         } catch (VitamClientException e) {
+            LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
             return Response.serverError()
                 .entity(VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_INTERNAL_CLIENT_ERROR,
                     e.getLocalizedMessage()))

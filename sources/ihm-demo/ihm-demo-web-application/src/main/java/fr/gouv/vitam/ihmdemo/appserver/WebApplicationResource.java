@@ -171,7 +171,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String CODE_VITAM = "code_vitam";
     private static final String BAD_REQUEST_EXCEPTION_MSG = "Bad request Exception";
     private static final String ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG = "Access client unavailable";
-    private static final String INGEST_CLIENT_NOT_FOUND_EXCEPTION_MSG = "Ingest client unavailable";
     private static final String ACCESS_SERVER_EXCEPTION_MSG = "Access Server exception";
     private static final String INTERNAL_SERVER_ERROR_MSG = "INTERNAL SERVER ERROR";
     private static final String SEARCH_CRITERIA_MANDATORY_MSG = "Search criteria payload is mandatory";
@@ -183,9 +182,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     private static final String LOGBOOK_CLIENT_NOT_FOUND_EXCEPTION_MSG = "Logbook Client NOT FOUND Exception";
     private static final ConcurrentMap<String, List<Object>> uploadRequestsStatus = new ConcurrentHashMap<>();
-    private static final int COMPLETE_RESPONSE_SIZE = 3;
     private static final int GUID_INDEX = 0;
-    private static final int ATR_CONTENT_INDEX = 2;
 
     private final WebApplicationConfig webApplicationConfig;
     private Map<String, AtomicLong> uploadMap = new HashMap<>();
@@ -1084,15 +1081,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         } catch (IllegalArgumentException exc) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, exc);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.BAD_REQUEST).build());
-        } catch (final IngestExternalClientNotFoundException exc) {
-            LOGGER.error(INGEST_CLIENT_NOT_FOUND_EXCEPTION_MSG, exc);
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.NOT_FOUND).build());
-        } catch (final IngestExternalException exc) {
-            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, exc);
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        } catch (final Exception exc) {
+        } catch (final VitamClientException exc) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, exc);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR).build());

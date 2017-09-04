@@ -282,7 +282,6 @@ angular.module('workflows')
       a.inProgress = true;
       ihmDemoFactory.executeAction(a.operationId, action)
         .then(function(response) {
-        	console.log('updateAction',action);
           // Update operation status
           // Download ATR eventually
           a.stepStatus = response.status;

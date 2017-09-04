@@ -31,13 +31,11 @@ import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
 import java.io.InputStream;
 import java.util.concurrent.TimeUnit;
 
-import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -84,23 +82,9 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
         return r;
     }
 
-    /**
-     * Generate the default header map
-     *
-     * @param requestId fake x-request-id
-     * @return header map
-     */
-    @Deprecated
-    private MultivaluedHashMap<String, Object> getDefaultHeaders(String requestId, Integer tenantId) {
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(X_REQUEST_ID, requestId);
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        return headers;
-    }
-
     @Override
     public Response downloadObjectAsync(String objectId, IngestCollection type, Integer tenantId)
-        throws IngestExternalException {
+        throws VitamClientException {
         return ClientMockResultHelper.getObjectStream();
     }
 
@@ -114,51 +98,26 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
             LOGGER.error(e);
             throw new VitamClientException(e.getMessage(), e);
         }
-        return new RequestResponseOK().addResult(pwork).setHttpCode(Status.OK.getStatusCode());
+        return new RequestResponseOK<ItemStatus>().addResult(pwork).setHttpCode(Status.OK.getStatusCode());
     }
 
     @Override
     public RequestResponse<ItemStatus> getOperationProcessExecutionDetails(String id, Integer tenantId)
         throws VitamClientException {
-        return new RequestResponseOK().addResult(new ItemStatus(ID)).setHttpCode(Status.OK.getStatusCode());
+        return new RequestResponseOK<ItemStatus>().addResult(new ItemStatus(ID)).setHttpCode(Status.OK.getStatusCode());
     }
 
     @Override
     public RequestResponse<ItemStatus> cancelOperationProcessExecution(String id, Integer tenantId)
         throws VitamClientException {
-        return new RequestResponseOK().addResult(new ItemStatus(ID)).setHttpCode(Status.OK.getStatusCode());
+        return new RequestResponseOK<ItemStatus>().addResult(new ItemStatus(ID)).setHttpCode(Status.OK.getStatusCode());
     }
 
     @Override
     public RequestResponse<ItemStatus> updateOperationActionProcess(String actionId, String id, Integer tenantId)
         throws VitamClientException {
-        return new RequestResponseOK().addResult(new ItemStatus(ID)).setHttpCode(Status.OK.getStatusCode());
+        return new RequestResponseOK<ItemStatus>().addResult(new ItemStatus(ID)).setHttpCode(Status.OK.getStatusCode());
     }
-
-    @Override
-    public RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId,
-        String actionId, Integer tenantId)
-        throws VitamClientException {
-        return new RequestResponseOK<JsonNode>().addHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATE,
-            FAKE_EXECUTION_STATUS);
-    }
-
-    @Override
-    @Deprecated
-    public void initWorkFlow(String contextId, Integer tenantId) throws VitamException {}
-
-    @Override
-    @Deprecated
-    public ItemStatus updateVitamProcess(String contextId, String actionId, String container, String workflow,
-        Integer tenantId)
-        throws VitamClientException {
-        return new ItemStatus(ID);
-    }
-
-    @Override
-    @Deprecated
-    public void initVitamProcess(String contextId, String container, String workflow, Integer tenantId)
-        throws VitamClientException {}
 
     @Override
     public RequestResponse<ProcessDetail> listOperationsDetails(Integer tenantId, ProcessQuery query)

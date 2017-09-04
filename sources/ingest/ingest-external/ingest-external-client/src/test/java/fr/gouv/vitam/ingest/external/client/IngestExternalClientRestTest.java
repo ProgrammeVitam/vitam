@@ -51,7 +51,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import javax.xml.stream.XMLStreamException;
 
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -60,10 +59,15 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.external.client.AbstractMockClient;
 import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.external.client.IngestCollection;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -78,9 +82,6 @@ import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
-import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientNotFoundException;
-import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientServerException;
-import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 
 @SuppressWarnings("rawtypes")
 public class IngestExternalClientRestTest extends VitamJerseyTest {
@@ -223,7 +224,7 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
         when(mock.post())
             .thenReturn(Response.accepted().header(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID).build());
 
-        final InputStream streamToUpload = IOUtils.toInputStream(MOCK_INPUTSTREAM_CONTENT);
+        final InputStream streamToUpload = IOUtils.toInputStream(MOCK_INPUTSTREAM_CONTENT, CharsetUtils.UTF_8);
         RequestResponse<JsonNode> resp = client.upload(streamToUpload, TENANT_ID, CONTEXT_ID, EXECUTION_MODE);
 
         assertEquals(resp.getHttpCode(), Status.ACCEPTED.getStatusCode());
@@ -246,18 +247,23 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
 
     }
 
-    @Test(expected = IngestExternalClientNotFoundException.class)
-    public void givenNotFoundWhenDownloadObjectThenReturnKO()
-        throws IngestExternalException, XMLStreamException, IOException, IngestExternalClientServerException,
-        IngestExternalClientNotFoundException, InvalidParseOperationException {
-        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND.getStatusCode()).build());
-        client.downloadObjectAsync("1", IngestCollection.MANIFESTS, TENANT_ID).readEntity(InputStream.class);
+    @Test
+    public void givenNotFoundWhenDownloadObjectThenReturn404()
+        throws VitamClientException, InvalidParseOperationException, IOException {
+        VitamError error = VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_NOT_FOUND, "NOT FOUND");
+        AbstractMockClient.FakeInboundResponse fakeResponse =
+            new AbstractMockClient.FakeInboundResponse(Status.NOT_FOUND, JsonHandler.writeToInpustream(error),
+                MediaType.APPLICATION_OCTET_STREAM_TYPE, new MultivaluedHashMap<String, Object>());
+        when(mock.get()).thenReturn(fakeResponse);
+        InputStream input =
+            client.downloadObjectAsync("1", IngestCollection.MANIFESTS, TENANT_ID).readEntity(InputStream.class);
+        VitamError response = JsonHandler.getFromInputStream(input, VitamError.class);
+        assertEquals(Status.NOT_FOUND.getStatusCode(), response.getHttpCode());
     }
 
     @Test
     public void givenInputstreamWhenDownloadObjectThenReturnOK()
-        throws IngestExternalException, XMLStreamException, IOException, IngestExternalClientServerException,
-        IngestExternalClientNotFoundException, InvalidParseOperationException {
+        throws VitamClientException {
 
         when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
 
@@ -267,7 +273,7 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
 
         try {
             assertTrue(IOUtils.contentEquals(fakeUploadResponseInputStream,
-                IOUtils.toInputStream("test")));
+                IOUtils.toInputStream("test", CharsetUtils.UTF_8)));
         } catch (final IOException e) {
             e.printStackTrace();
             fail();
