@@ -16,8 +16,8 @@
       accept: "application/json, text/plain, */*"
       Connection: "keep-alive"
       body_format: json
-      Host: "{{ vitam_ihm_recette_host }}"
-    url: http://{{vitam_ihm_recette_host}}:{{vitam_ihm_recette_port}}/ihm-recette/v1/api/login
+      Host: "{{ ip_service }}"
+    url: http://{{ip_service}}:{{vitam_ihm_recette_port}}/ihm-recette/v1/api/login
   ignore_errors: true
   run_once: true
   register: login
@@ -33,7 +33,7 @@
     headers:
       X-Tenant-Id: "{{item}}"
       Cookie: "{{login.set_cookie}}"
-    url: "http://{{vitam_ihm_recette_host}}:{{vitam_ihm_recette_port}}/ihm-recette/v1/api/delete/deleteTnr"
+    url: "http://{{ip_service}}:{{vitam_ihm_recette_port}}/ihm-recette/v1/api/delete/deleteTnr"
   # TNR are used on tenant 0 & 1 only
   with_items:
     - "0"
