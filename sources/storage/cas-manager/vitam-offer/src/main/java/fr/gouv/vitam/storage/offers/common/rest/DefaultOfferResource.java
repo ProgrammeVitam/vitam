@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -235,7 +236,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     // FIXME Later we should count in a standard get request (no /count in path)
     // with a DSL that specify a count
     // operation (aggregate)
-    @Path("/objects/{type}/count")
+    @Path("/count/objects/{type}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response countObjects(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
             @PathParam("type") DataCategory type) {
@@ -276,17 +277,17 @@ public class DefaultOfferResource extends ApplicationStatusResource {
      *             when there is an error of get object
      */
     @GET
-    @Path("/objects/{type}/{id_object:.+}")
+    @Path("/objects/{type}/{id_object}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({ MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP })
-    public void getObject(@PathParam("type") DataCategory type, @PathParam("id_object") String objectId,
+    public void getObject(@PathParam("type") DataCategory type, @NotNull @PathParam("id_object") String objectId,
             @Context HttpHeaders headers, @Suspended final AsyncResponse asyncResponse) throws IOException {
-
+        final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
         VitamThreadPoolExecutor.getDefaultExecutor().execute(new Runnable() {
 
             @Override
             public void run() {
-                getObjectAsync(type, objectId, headers, asyncResponse);
+                getObjectAsync(type, objectId, xTenantId, asyncResponse);
             }
         });
     }
@@ -550,10 +551,9 @@ public class DefaultOfferResource extends ApplicationStatusResource {
         }
     }
 
-    private void getObjectAsync(DataCategory type, String objectId, HttpHeaders headers, AsyncResponse asyncResponse) {
+    private void getObjectAsync(DataCategory type, String objectId, String xTenantId, AsyncResponse asyncResponse) {
         try {
             SanityChecker.checkParameter(objectId);
-            final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
             if (Strings.isNullOrEmpty(xTenantId)) {
                 LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
                 AsyncInputStreamHelper.asyncResponseResume(asyncResponse,

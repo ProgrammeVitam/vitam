@@ -77,7 +77,7 @@ REST API
   - contenu : information sur l'offre (capacité, disponibilité, ...)
 
 
-**GET /{type}/count**
+**GET /count/{type}/**
 
 - description : compter le nombre d'objet d'un conteneur de l'offre
 

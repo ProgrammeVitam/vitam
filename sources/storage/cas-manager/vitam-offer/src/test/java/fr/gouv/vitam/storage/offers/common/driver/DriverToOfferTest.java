@@ -43,6 +43,7 @@ import java.util.Map;
 import javax.ws.rs.core.Response;
 
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -76,7 +77,6 @@ import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.driver.model.StorageRequest;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
-import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferApplication;
 import fr.gouv.vitam.storage.offers.workspace.driver.DriverImpl;
 
 /**
@@ -99,7 +99,7 @@ public class DriverToOfferTest {
 
     private static Connection connection;
     private static String guid;
-    private static DefaultOfferApplication application;
+    private static DefaultOfferMain application;
 
     private static int TENANT_ID;
 
@@ -121,13 +121,12 @@ public class DriverToOfferTest {
         RestAssured.basePath = REST_URI;
 
         final File workspaceOffer = PropertiesUtils.findFile(WORKSPACE_OFFER_CONF);
-        final StorageConfiguration realWorkspaceOffer = PropertiesUtils.readYaml(workspaceOffer, StorageConfiguration.class);
         // newWorkspaceOfferConf = File.createTempFile("test",
         // WORKSPACE_OFFER_CONF, workspaceOffer.getParentFile());
         // PropertiesUtils.writeYaml(newWorkspaceOfferConf, realWorkspaceOffer);
 
         try {
-            application = new DefaultOfferApplication(realWorkspaceOffer);
+            application = new DefaultOfferMain(workspaceOffer.getAbsolutePath());
             application.start();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);

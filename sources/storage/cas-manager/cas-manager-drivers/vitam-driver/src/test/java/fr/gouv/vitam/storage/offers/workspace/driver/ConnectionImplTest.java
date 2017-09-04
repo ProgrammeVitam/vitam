@@ -231,7 +231,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
         }
 
         @GET
-        @Path("/objects/{type}/count")
+        @Path("/count/objects/{type}")
         @Produces(MediaType.APPLICATION_JSON)
         public Response countObjects(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
             @PathParam("type") String type) {

@@ -70,8 +70,8 @@ import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.exception.PluginException;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementApplication;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
-import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferApplication;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
+import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
 
 /**
@@ -209,8 +209,8 @@ public class TnrLaunchAllApplication {
     private static IngestExternalMain ingestExternalApplication;
     private static AccessExternalMain accessExternalApplication;
     private static StorageMain storageMain;
-    private static DefaultOfferApplication defaultOfferApplication;
-    private static DefaultOfferApplication defaultOfferApplication2;
+    private static DefaultOfferMain defaultOfferApplication;
+    private static DefaultOfferMain defaultOfferApplication2;
     private static Process siegfried;
     private static ElasticsearchTestConfiguration config = null;
 
@@ -337,7 +337,7 @@ public class TnrLaunchAllApplication {
             offerConfiguration = PropertiesUtils
                 .readYaml(PropertiesUtils.findFile(DEFAULT_OFFER_CONF),
                     fr.gouv.vitam.common.storage.StorageConfiguration.class);
-            defaultOfferApplication = new DefaultOfferApplication(offerConfiguration);
+            defaultOfferApplication = new DefaultOfferMain(DEFAULT_OFFER_CONF);
             defaultOfferApplication.start();
         } catch (IOException | VitamApplicationServerException e1) {
             LOGGER.error(e1);
@@ -356,7 +356,7 @@ public class TnrLaunchAllApplication {
                 offerConfiguration2 = PropertiesUtils
                     .readYaml(PropertiesUtils.findFile(DEFAULT_OFFER_CONF2),
                         fr.gouv.vitam.common.storage.StorageConfiguration.class);
-                defaultOfferApplication2 = new DefaultOfferApplication(offerConfiguration2);
+                defaultOfferApplication2 = new DefaultOfferMain(DEFAULT_OFFER_CONF2);
                 defaultOfferApplication2.start();
             } catch (IOException | VitamApplicationServerException e1) {
                 LOGGER.error(e1);
