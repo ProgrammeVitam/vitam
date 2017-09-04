@@ -37,5 +37,5 @@ Deux méthodes : registerWorker et unregisterWorker permettent d'ajouter ou de s
 Processing-distributor-client
 -----------------------------
 
-Pour le momentn le module est vide, car la partie client permettant d'appeler les méthodes register / unregister est portée par le module processing-management-client.
+Pour le moment le module est vide, car la partie client permettant d'appeler les méthodes register / unregister est portée par le module processing-management-client.
 A terme, il sera souhaité d'avoir 2 clients séparés.

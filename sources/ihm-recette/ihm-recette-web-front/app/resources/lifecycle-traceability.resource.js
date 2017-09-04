@@ -37,7 +37,7 @@
 angular.module('core').factory(
     'lifecycleTraceabilityResource',
     function ($http, IHM_URLS, tenantService) {
-        var Lifecycle_traceability_ROOT = '/operations/traceability-lfc';
+        var Lifecycle_traceability_ROOT = '/lifecycles/traceability';
         var OperationTraceabilityResource = {};
         /** get tenant of session and set to header
          *

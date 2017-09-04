@@ -79,6 +79,7 @@ public class ElasticsearchAccessTest {
 
         final ElasticsearchAccess elastic = new ElasticsearchAccess(CLUSTER_NAME, nodes);
         assertEquals(CLUSTER_NAME, elastic.getClusterName());
+        assertEquals(CLUSTER_NAME, elastic.getInfo());
         assertEquals(nodes, elastic.getNodes());
         assertNotNull(elastic.getClient());
         elastic.close();

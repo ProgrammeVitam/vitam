@@ -29,7 +29,6 @@ package fr.gouv.vitam.common.server.application.configuration;
 /**
  * Generic interface for a Database connection
  */
-@FunctionalInterface
 public interface DatabaseConnection {
 
     /**
@@ -38,4 +37,12 @@ public interface DatabaseConnection {
      * @return True if the connection is active
      */
     boolean checkConnection();
+
+    /**
+     * Get information on a Database
+     * 
+     * @return information on the database
+     */
+    String getInfo();
+
 }

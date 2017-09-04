@@ -142,7 +142,7 @@ public class MongoDbAccessMetadataImplTest {
     @Test
     public void givenMongoDbAccessConstructorWhenCreateWithRecreateThenAddDefaultCollections() {
         mongoDbAccess = new MongoDbAccessMetadataImpl(mongoClient, "vitam-test", true, esClient, tenantList);
-        assertThat(mongoDbAccess.toString()).isEqualTo(DEFAULT_MONGO);
+        assertThat(mongoDbAccess.getInfo()).isEqualTo(DEFAULT_MONGO);
         assertThat(MetadataCollections.C_UNIT.getName()).isEqualTo("Unit");
         assertThat(MetadataCollections.C_OBJECTGROUP.getName()).isEqualTo("ObjectGroup");
         assertThat(MongoDbAccessMetadataImpl.getUnitSize()).isEqualTo(0);
@@ -152,7 +152,7 @@ public class MongoDbAccessMetadataImplTest {
     @Test
     public void givenMongoDbAccessConstructorWhenCreateWithoutRecreateThenAddNothing() {
         mongoDbAccess = new MongoDbAccessMetadataImpl(mongoClient, "vitam-test", false, esClient, tenantList);
-        assertEquals("", mongoDbAccess.toString());
+        assertEquals("", mongoDbAccess.getInfo());
     }
 
     @Test

@@ -468,6 +468,7 @@ public class AccessExternalResourceImplTest {
 
         given()
             .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
             .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(QUERY_TEST)
@@ -478,6 +479,7 @@ public class AccessExternalResourceImplTest {
 
         given()
             .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
             .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
             .and().header(GlobalDataRest.X_TENANT_ID, UNEXTISTING_TENANT_ID)
             .body(QUERY_TEST)
@@ -488,6 +490,7 @@ public class AccessExternalResourceImplTest {
 
         given()
             .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
             .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
             .body(QUERY_TEST)
             .when()
@@ -509,6 +512,7 @@ public class AccessExternalResourceImplTest {
             .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithRoots(DATA_HTML))
+            .accept(ContentType.JSON)
             .when()
             .get("/units/" + ID_UNIT)
             .then()
@@ -544,6 +548,7 @@ public class AccessExternalResourceImplTest {
         given()
             .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .accept(ContentType.JSON)
             .body(buildDSLWithRoots(DATA_HTML))
             .when()
             .post("/units/" + ID_UNIT)
@@ -552,6 +557,7 @@ public class AccessExternalResourceImplTest {
 
         given()
             .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .accept(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, UNEXTISTING_TENANT_ID)
             .body(buildDSLWithRoots(DATA_HTML))
             .when()
@@ -561,6 +567,7 @@ public class AccessExternalResourceImplTest {
 
         given()
             .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .accept(ContentType.JSON)
             .body(buildDSLWithRoots(DATA_HTML))
             .when()
             .post("/units/" + ID_UNIT)
@@ -579,6 +586,7 @@ public class AccessExternalResourceImplTest {
         // HERE
         given()
             .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .accept(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithRoots(DATA_HTML))
             .when()
@@ -588,6 +596,7 @@ public class AccessExternalResourceImplTest {
 
         given()
             .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .accept(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, UNEXTISTING_TENANT_ID)
             .body(buildDSLWithRoots(DATA_HTML))
             .when()
@@ -597,6 +606,7 @@ public class AccessExternalResourceImplTest {
 
         given()
             .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .accept(ContentType.JSON)
             .body(buildDSLWithRoots(DATA_HTML))
             .when()
             .put("/units/" + ID_UNIT)
@@ -617,6 +627,7 @@ public class AccessExternalResourceImplTest {
         // HERE
         given()
             .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .accept(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithRoots(DATA_HTML))
             .when()
@@ -626,6 +637,7 @@ public class AccessExternalResourceImplTest {
 
         given()
             .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .accept(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, UNEXTISTING_TENANT_ID)
             .body(buildDSLWithRoots(DATA_HTML))
             .when()
@@ -635,6 +647,7 @@ public class AccessExternalResourceImplTest {
 
         given()
             .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .accept(ContentType.JSON)
             .body(buildDSLWithRoots(DATA_HTML))
             .when()
             .get("/units/" + ID_UNIT + "/object")
@@ -654,6 +667,7 @@ public class AccessExternalResourceImplTest {
         // HERE
         given()
             .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .accept(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithRoots(DATA_HTML))
             .when()
@@ -663,6 +677,7 @@ public class AccessExternalResourceImplTest {
 
         given()
             .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .accept(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, UNEXTISTING_TENANT_ID)
             .body(buildDSLWithRoots(DATA_HTML))
             .when()
@@ -672,6 +687,7 @@ public class AccessExternalResourceImplTest {
 
         given()
             .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .accept(ContentType.JSON)
             .body(buildDSLWithRoots(DATA_HTML))
             .when()
             .get("/units/" + ID_UNIT + "/object/")
@@ -692,6 +708,7 @@ public class AccessExternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .accept(ContentType.JSON)
             .body(buildDSLWithRoots(DATA_HTML))
             .when()
             .get("/units/" + ID_UNIT + "/object")
@@ -701,6 +718,7 @@ public class AccessExternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, UNEXTISTING_TENANT_ID)
+            .accept(ContentType.JSON)
             .body(buildDSLWithRoots(DATA_HTML))
             .when()
             .get("/units/" + ID_UNIT + "/object")
@@ -709,6 +727,7 @@ public class AccessExternalResourceImplTest {
 
         given()
             .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
             .body(buildDSLWithRoots(DATA_HTML))
             .when()
             .get("/units/" + ID_UNIT + "/object")
@@ -727,6 +746,7 @@ public class AccessExternalResourceImplTest {
         // HERE
         given()
             .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithRoots(DATA_HTML))
             .when()
@@ -735,6 +755,7 @@ public class AccessExternalResourceImplTest {
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
+            .accept(ContentType.JSON)
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, UNEXTISTING_TENANT_ID)
             .body(buildDSLWithRoots(DATA_HTML))
@@ -744,6 +765,7 @@ public class AccessExternalResourceImplTest {
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
+            .accept(ContentType.JSON)
             .contentType(ContentType.JSON)
             .body(buildDSLWithRoots(DATA_HTML))
             .when()

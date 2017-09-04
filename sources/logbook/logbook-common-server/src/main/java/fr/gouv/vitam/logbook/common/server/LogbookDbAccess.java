@@ -617,5 +617,11 @@ public interface LogbookDbAccess {
      */
     boolean existsLogbookLifeCycleObjectGroupInProcess(final String lifecycleItem)
         throws LogbookDatabaseException, LogbookNotFoundException;
-
+    
+    /**
+     * Get information on a Database
+     * 
+     * @return information on the database
+     */
+    String getInfo();
 }

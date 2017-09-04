@@ -39,12 +39,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
@@ -129,7 +123,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     /**
      * SLICE command to optimize listing
      */
-    private static final String SLICE = "$slice";    
+    private static final String SLICE = "$slice";
     private static final String UPDATE_NOT_FOUND_ITEM = "Update not found item: ";
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(LogbookMongoDbAccessImpl.class);
@@ -259,7 +253,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     }
 
     @Override
-    public String toString() {
+    public String getInfo() {
         final StringBuilder builder = new StringBuilder();
         // get a list of the collections in this database and print them out
         final MongoIterable<String> collectionNames = getMongoDatabase().listCollectionNames();
@@ -628,8 +622,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      * @param collection
      * @return the Closeable MongoCursor on the find request based on the given collection
      * @throws InvalidParseOperationException
-     * @throws InvalidCreateOperationException 
-     * @throws LogbookException 
+     * @throws InvalidCreateOperationException
+     * @throws LogbookException
      */
     @SuppressWarnings("rawtypes")
     private MongoCursor selectExecute(final LogbookCollections collection, Select select)
@@ -1325,7 +1319,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         final SelectToElasticsearch requestToEs = new SelectToElasticsearch(parser);
         List<SortBuilder> sorts = requestToEs.getFinalOrderBy(collection.getVitamCollection().isUseScore());
         SearchResponse elasticSearchResponse =
-            collection.getEsClient().search(collection, tenantId, requestToEs.getNthQueries(0), null, 
+            collection.getEsClient().search(collection, tenantId, requestToEs.getNthQueries(0), null,
                 sorts, requestToEs.getFinalOffset(),
                 requestToEs.getFinalLimit());
         if (elasticSearchResponse.status() != RestStatus.OK) {
@@ -1440,11 +1434,12 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         vitamDocument.put(LogbookDocument.EVENTS, eventDocuments);
 
     }
+
     private List<Bson> checkCopyToMaster(LogbookCollections collection, LogbookParameters item)
         throws LogbookNotFoundException {
         final String mainLogbookDocumentId = getDocumentForUpdate(item).getId();
-        Document oldValue = (Document) collection.getCollection().
-            find(eq(LogbookDocument.ID, mainLogbookDocumentId)).first();
+        Document oldValue =
+            (Document) collection.getCollection().find(eq(LogbookDocument.ID, mainLogbookDocumentId)).first();
         String masterData = item.getParameterValue(LogbookParameterName.masterData);
 
         List<Bson> updates = new ArrayList<Bson>();
@@ -1473,11 +1468,12 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                 }
                 boolean updateEvDevData = false;
                 Iterator<String> fieldNames = master.fieldNames();
-                while (fieldNames.hasNext()){
+                while (fieldNames.hasNext()) {
                     String fieldName = fieldNames.next();
                     String fieldValue = master.get(fieldName).asText();
-                    String mongoDbName = LogbookMongoDbName.getLogbookMongoDbName(LogbookParameterName.valueOf(fieldName)).getDbname();
-                    if (mongoDbName.equals( LogbookMongoDbName.eventDetailData.getDbname())) {
+                    String mongoDbName =
+                        LogbookMongoDbName.getLogbookMongoDbName(LogbookParameterName.valueOf(fieldName)).getDbname();
+                    if (mongoDbName.equals(LogbookMongoDbName.eventDetailData.getDbname())) {
                         JsonNode masterNode = ((ObjectNode) master).get(fieldName);
                         if (masterNode != null) {
                             String masterField = masterNode.asText();
@@ -1500,7 +1496,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         return updates;
     }
 
-    private void removeDuplicatedInformation (VitamDocument document) {
+    private void removeDuplicatedInformation(VitamDocument document) {
         document.remove(LogbookDocument.EVENTS);
         document.remove(LogbookDocument.ID);
         document.remove(LogbookDocument.TENANT_ID);

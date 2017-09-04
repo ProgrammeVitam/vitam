@@ -233,17 +233,17 @@ public class LogbookMongoDbAccessFactoryTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(mongoDbAccess);
         assertEquals("vitam-test", ((LogbookMongoDbAccessImpl) mongoDbAccess).getMongoDatabase().getName());
-        String status = mongoDbAccess.toString();
+        String status = mongoDbAccess.getInfo();
         ((LogbookMongoDbAccessImpl) mongoDbAccess).flushOnDisk();
 
         LogbookMongoDbAccessImpl.ensureIndex();
-        status = mongoDbAccess.toString();
+        status = mongoDbAccess.getInfo();
         assertTrue(status.indexOf("LogbookOperation") > 0);
-        assertEquals(status, mongoDbAccess.toString());
+        assertEquals(status, mongoDbAccess.getInfo());
         LogbookMongoDbAccessImpl.removeIndexBeforeImport();;
-        assertEquals(status, mongoDbAccess.toString());
+        assertEquals(status, mongoDbAccess.getInfo());
         LogbookMongoDbAccessImpl.resetIndexAfterImport();;
-        assertEquals(status, mongoDbAccess.toString());
+        assertEquals(status, mongoDbAccess.getInfo());
         assertEquals(0, mongoDbAccess.getLogbookLifeCyleUnitSize());
         assertEquals(0, mongoDbAccess.getLogbookOperationSize());
         final Select select = new Select();

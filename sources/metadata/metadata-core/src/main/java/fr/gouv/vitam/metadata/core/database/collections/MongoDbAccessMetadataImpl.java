@@ -141,7 +141,7 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
     }
 
     @Override
-    public String toString() {
+    public String getInfo() {
         final StringBuilder builder = new StringBuilder();
         // get a list of the collections in this database and print them out
         final MongoIterable<String> collectionNames = getMongoDatabase().listCollectionNames();
@@ -233,7 +233,8 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
         for (Integer tenantId : tenantIds) {
             if (count > 0) {
                 final DeleteResult result =
-                    MetadataCollections.C_OBJECTGROUP.getCollection().deleteMany(new Document().append("_tenant", tenantId));
+                    MetadataCollections.C_OBJECTGROUP.getCollection()
+                        .deleteMany(new Document().append("_tenant", tenantId));
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug(
                         MetadataCollections.C_OBJECTGROUP.getName() + " result.result.getDeletedCount(): " + result
